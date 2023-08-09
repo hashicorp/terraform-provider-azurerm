@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -364,6 +365,8 @@ func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients
 
 func (r FirewallNetworkRuleCollectionResource) checkFirewallNetworkRuleCollectionDoesNotExist(collectionName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+		defer cancel()
 		// Ensure we have enough information in state to look up in API
 		id, err := parse.FirewallNetworkRuleCollectionID(state.ID)
 		if err != nil {
