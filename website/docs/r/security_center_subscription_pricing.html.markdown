@@ -36,10 +36,9 @@ A `extension` block supports the following:
 
 * `name` - (Required) The name of extension.
 
-* `enabled` - (Required) enable or disable the extension.
+* `additional_extension_properties` - (Optional) Key/Value pairs that are required for some extensions.
 
-* `additional_extension_properties` - (Optional) Key/Value paris that are required for some extensions.
-
+~> **NOTE:** If an extension is not defined, it will not be enabled. Use `ignore_changes` on the `extension` field if you want to use the default extensions.
 
 ~> **NOTE:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
 

@@ -119,8 +119,6 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	extensionsStatusFromBackend := []pricings_v2023_01_01.Extension{}
-
 	apiResponse, err := client.Get(ctx, id)
 	if d.IsNewResource() {
 		if err != nil {
@@ -134,6 +132,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
+	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
 	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.Extensions != nil {
 		extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
 	}
@@ -141,10 +140,9 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
 		pricing.Properties.SubPlan = utils.String(vSub.(string))
 	}
-
-	// can not set extensions for free tier
-	if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
-		if d.HasChange("extension") {
+	if d.HasChange("extension") || d.IsNewResource() {
+		// can not set extensions for free tier
+		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
 			pricing.Properties.Extensions = extensions
 		}

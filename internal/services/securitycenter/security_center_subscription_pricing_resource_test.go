@@ -109,11 +109,29 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
-				check.That(data.ResourceName).Key("extension").IsNotEmpty(),
-				check.That(data.ResourceName).Key("extension").HasValue("AgentlessVmScanning"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.cloudPostureExtensionUpdated(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+			),
+		},
 	})
 }
 
@@ -169,15 +187,46 @@ provider "azurerm" {
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "CloudPosture"
+
   extension {
     name = "SensitiveDataDiscovery"
   }
+
   extension {
     name = "AgentlessVmScanning"
     additional_extension_properties = {
       ExclusionTags = "[]"
     }
+  }
+}
+`
+}
 
+func (SecurityCenterSubscriptionPricingResource) cloudPostureExtensionUpdated() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
+
+  extension {
+    name = "ContainerRegistriesVulnerabilityAssessments"
+  }
+
+  extension {
+    name = "AgentlessVmScanning"
+    additional_extension_properties = {
+      ExclusionTags = "[]"
+    }
+  }
+
+  extension {
+    name = "AgentlessDiscoveryForKubernetes"
   }
 }
 `
