@@ -3,7 +3,7 @@ subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 description: |-
- Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
+  Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 ---
 
 # azurerm_kubernetes_cluster
