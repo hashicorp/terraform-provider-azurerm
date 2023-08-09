@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
 
-~> **NOTE:** `parameters` only supports values with `string` or `secureString` type and will be deprecated in 4.0, please use `parameter_values` instead which supports more parameter types.
+~> **NOTE:** `parameters` only supports values with `string` or `secureString` type and will be deprecated in version 4.0 of the provider - please use `parameter_values` instead which supports more parameter types.
 
 * `parameter_values` - (Optional) The parameter values to pass to the Managed Application. This field is a JSON object that allows you to assign parameters to this Managed Application.
 

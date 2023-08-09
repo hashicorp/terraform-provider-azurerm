@@ -154,7 +154,7 @@ func TestAccManagedApplication_allSupportedParameterValuesTypes(t *testing.T) {
 
 func TestAccManagedApplication_parametersSecureString(t *testing.T) {
 	if features.FourPointOhBeta() {
-		t.Skipf("skipping bacause `parameters` is deprecated in 4.0")
+		t.Skipf("skipping because `parameters` is removed in 4.0")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
