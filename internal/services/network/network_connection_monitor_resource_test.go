@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/connectionmonitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -263,7 +263,7 @@ func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.Network.ConnectionMonitorsClient.Get(ctx, *id)
+	resp, err := clients.Network.ConnectionMonitors.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Connection Monitor (%s): %+v", id, err)
 	}

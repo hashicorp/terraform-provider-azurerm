@@ -73,6 +73,8 @@ A `repository` block supports the following:
 
 * `uri` - (Required) Specifies the URI of the repository.
 
+* `ca_certificate_id` - (Optional) Specifies the ID of the Certificate Authority used when retrieving the Git Repository via HTTPS.
+
 * `host_key` - (Optional) Specifies the SSH public key of git repository.
 
 * `host_key_algorithm` - (Optional) Specifies the SSH key algorithm of git repository.

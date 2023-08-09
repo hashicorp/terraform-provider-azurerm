@@ -103,6 +103,14 @@ function runGraduallyDeprecatedFunctions {
             exit 1
           fi
         fi
+
+        # require Azure SDK clients are created with the resource manager endpoint specified
+        grep -H -n "Client(o.SubscriptionId)" "$f" && {
+            echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
+            echo "that has the resource manager endpoint explicitly specified. These can be found in:"
+            echo "* $f"
+            exit 1
+        }
     fi
 
   done

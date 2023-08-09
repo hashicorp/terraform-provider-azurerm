@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -348,7 +348,7 @@ func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Network.NetworkInterfacesClient.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
+	resp, err := clients.Network.NetworkInterfaces.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -362,7 +362,7 @@ func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	err = client.Network.NetworkInterfacesClient.DeleteThenPoll(ctx, *id)
+	err = client.Network.NetworkInterfaces.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}

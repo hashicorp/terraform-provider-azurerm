@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type FirewallRulesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewFirewallRulesClientWithBaseURI(api environments.Api) (*FirewallRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "firewallrules", defaultApiVersion)
+func NewFirewallRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*FirewallRulesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "firewallrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FirewallRulesClient: %+v", err)
 	}

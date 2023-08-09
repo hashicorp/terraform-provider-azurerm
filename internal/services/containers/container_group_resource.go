@@ -1579,8 +1579,8 @@ func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContaine
 
 		if container.Properties.EnvironmentVariables != nil {
 			if len(*container.Properties.EnvironmentVariables) > 0 {
-				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, false, d, index)
-				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, true, d, index)
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables)
+				containerConfig["secure_environment_variables"] = flattenContainerSecureEnvironmentVariables(container.Properties.EnvironmentVariables, d, index, "init_container")
 			}
 		}
 
@@ -1662,8 +1662,8 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 
 		if container.Properties.EnvironmentVariables != nil {
 			if len(*container.Properties.EnvironmentVariables) > 0 {
-				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, false, d, index)
-				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, true, d, index)
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables)
+				containerConfig["secure_environment_variables"] = flattenContainerSecureEnvironmentVariables(container.Properties.EnvironmentVariables, d, index, "container")
 			}
 		}
 
@@ -1757,26 +1757,33 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 	containerConfig["volume"] = volumeConfigs
 }
 
-func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *pluginsdk.ResourceData, oldContainerIndex int) map[string]interface{} {
+func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, d *pluginsdk.ResourceData, oldContainerIndex int, rootPropName string) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	if input == nil {
 		return output
 	}
 
-	if isSecure {
-		for _, envVar := range *input {
-			if envVar.Value == nil {
-				envVarValue := d.Get(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, envVar.Name))
-				output[envVar.Name] = envVarValue
-			}
+	for _, envVar := range *input {
+		if envVar.Value == nil {
+			envVarValue := d.Get(fmt.Sprintf("%s.%d.secure_environment_variables.%s", rootPropName, oldContainerIndex, envVar.Name))
+			output[envVar.Name] = envVarValue
 		}
-	} else {
-		for _, envVar := range *input {
-			if envVar.Value != nil {
-				log.Printf("[DEBUG] NOT SECURE: Name: %s - Value: %s", envVar.Name, *envVar.Value)
-				output[envVar.Name] = *envVar.Value
-			}
+	}
+
+	return output
+}
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	if input == nil {
+		return output
+	}
+
+	for _, envVar := range *input {
+		if envVar.Value != nil {
+			log.Printf("[DEBUG] NOT SECURE: Name: %s - Value: %s", envVar.Name, *envVar.Value)
+			output[envVar.Name] = *envVar.Value
 		}
 	}
 

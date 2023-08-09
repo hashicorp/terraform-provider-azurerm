@@ -9,6 +9,9 @@ var defaultStartHour = 0
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default build timeout in hours
+var defaultTimeout = 12
+
 // specifies the default version of Terraform Core which should be used for testing
 var defaultTerraformCoreVersion = "1.5.1"
 
@@ -86,7 +89,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6", useDevTestSubscription = true),
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
-        "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1", useDevTestSubscription = true),
+        "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
 
         // IoT Central is only available in certain locations
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), useDevTestSubscription = true),
@@ -118,6 +121,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false), useDevTestSubscription = true),
 
+        // network has increased timeout to accommodate the custom_ip_prefix resource
+        "network" to testConfiguration(timeout = 24),
+
         // New Relic is only available in East US region
         "newrelic" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus", "eastus", false)),
 
@@ -126,6 +132,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Network Function is only available in certain locations
         "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
+
+        // Network Regional Tire Public IP is only available in
+        "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
 
@@ -166,6 +175,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true), useDevTestSubscription = true),
+
+        // MobileNetwork is only available in certain locations
+        "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false), useDevTestSubscription = false),
 
         // moved to alt subscription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),

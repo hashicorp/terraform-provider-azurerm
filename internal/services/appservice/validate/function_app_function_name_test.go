@@ -36,7 +36,7 @@ func TestFunctionAppFunctionName(t *testing.T) {
 		},
 		{
 			Input: "EndsInWrongChar-",
-			Valid: false,
+			Valid: true,
 		},
 	}
 

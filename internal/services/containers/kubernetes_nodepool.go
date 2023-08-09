@@ -300,7 +300,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -317,6 +317,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 
 				"cpu_cfs_quota_enabled": {
 					Type:     pluginsdk.TypeBool,
+					Default:  true,
 					Optional: true,
 				},
 
@@ -375,10 +376,17 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	// TODO 4.0: change the default value to `true` in the document
+	if !features.FourPointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["cpu_cfs_quota_enabled"].Default = false
+	}
+
+	return &schema
 }
 
 func schemaNodePoolKubeletConfigForceNew() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
@@ -398,6 +406,7 @@ func schemaNodePoolKubeletConfigForceNew() *pluginsdk.Schema {
 				"cpu_cfs_quota_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  true,
 					ForceNew: true,
 				},
 
@@ -464,6 +473,13 @@ func schemaNodePoolKubeletConfigForceNew() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	// TODO 4.0: change the default value to `true` in the document
+	if !features.FourPointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["cpu_cfs_quota_enabled"].Default = false
+	}
+
+	return &schema
 }
 
 func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
@@ -802,6 +818,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			EnableCustomCATrust:       defaultCluster.EnableCustomCATrust,
 			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
 			EnableFIPS:                defaultCluster.EnableFIPS,
+			EnableUltraSSD:            defaultCluster.EnableUltraSSD,
 			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
 			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
 			AvailabilityZones:         defaultCluster.AvailabilityZones,

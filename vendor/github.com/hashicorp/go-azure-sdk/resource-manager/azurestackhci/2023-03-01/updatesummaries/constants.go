@@ -1,6 +1,10 @@
 package updatesummaries
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -25,6 +29,19 @@ func PossibleValuesForHealthState() []string {
 		string(HealthStateUnknown),
 		string(HealthStateWarning),
 	}
+}
+
+func (s *HealthState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHealthState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseHealthState(input string) (*HealthState, error) {
@@ -65,6 +82,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"accepted":     ProvisioningStateAccepted,
@@ -100,6 +130,19 @@ func PossibleValuesForSeverity() []string {
 	}
 }
 
+func (s *Severity) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSeverity(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSeverity(input string) (*Severity, error) {
 	vals := map[string]Severity{
 		"critical":      SeverityCritical,
@@ -130,6 +173,19 @@ func PossibleValuesForStatus() []string {
 		string(StatusInProgress),
 		string(StatusSucceeded),
 	}
+}
+
+func (s *Status) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStatus(input string) (*Status, error) {
@@ -171,6 +227,19 @@ func PossibleValuesForUpdateSummariesPropertiesState() []string {
 		string(UpdateSummariesPropertiesStateUpdateFailed),
 		string(UpdateSummariesPropertiesStateUpdateInProgress),
 	}
+}
+
+func (s *UpdateSummariesPropertiesState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpdateSummariesPropertiesState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseUpdateSummariesPropertiesState(input string) (*UpdateSummariesPropertiesState, error) {
