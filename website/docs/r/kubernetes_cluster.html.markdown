@@ -3,7 +3,7 @@ subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 description: |-
-  Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
+ Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 ---
 
 # azurerm_kubernetes_cluster
@@ -124,6 +124,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableImageCleanerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/image-cleaner) for more information.
 
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
+
+-> **Note:** As the Application Gateway is deployed inside a Virtual Network, so the users (and Service Principals) that operate Application Gateways also have at least `Microsoft.Network/virtualNetworks/subnets/join/action` permission on the Virtual Network or Subnet. For more details, please visit [Virtual Network Permission](https://learn.microsoft.com/en-us/azure/application-gateway/configuration-infrastructure#virtual-network-permission).
 
 * `key_management_service` - (Optional) A `key_management_service` block as defined below. For more details, please visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/en-us/azure/aks/use-kms-etcd-encryption).
 
@@ -591,13 +593,13 @@ A `maintenance_window_auto_upgrade` block supports the following:
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saturday` and `Sunday`. Required in combination with weekly frequency.
 
 * `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
- Required in combination with relative monthly frequency.
+  Required in combination with relative monthly frequency.
 
 * `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
 
 * `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
 
-* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
@@ -619,7 +621,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
 
-* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
