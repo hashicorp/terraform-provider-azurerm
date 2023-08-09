@@ -41,11 +41,11 @@ The following arguments are supported:
 
 ---
 
-* `keyvault_certificate_id` - (Optional) The `versionles_id` of the Key Vault Certificate to use. Changing this forces a new Palo Alto Networks Rulestack Certificate to be created.
+* `key_vault_certificate_id` - (Optional) The `versionles_id` of the Key Vault Certificate to use. Changing this forces a new Palo Alto Networks Rulestack Certificate to be created.
 
 * `self_signed` - (Optional) Should a Self Signed Certificate be used. Defaults to `false`. Changing this forces a new Palo Alto Networks Rulestack Certificate to be created.
 
-~> **Note:** One and only one of `self_signed` or `keyvault_certificate_id` must be specified.
+~> **Note:** One and only one of `self_signed` or `key_vault_certificate_id` must be specified.
 
 * `audit_comment` - (Optional) The comment for Audit purposes.
 

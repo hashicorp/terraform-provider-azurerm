@@ -215,7 +215,7 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   name         = "testacc-palc-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  keyvault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
+  key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
 
   audit_comment = "Acceptance test audit comment - %[2]d"
   description   = "Acceptance test Desc - %[2]d"

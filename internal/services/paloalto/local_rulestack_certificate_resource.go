@@ -25,7 +25,7 @@ type LocalRuleStackCertificateModel struct {
 	Name                string `tfschema:"name"`
 	RuleStackID         string `tfschema:"rulestack_id"`
 	AuditComment        string `tfschema:"audit_comment"`
-	CertificateSignerID string `tfschema:"keyvault_certificate_id"`
+	CertificateSignerID string `tfschema:"key_vault_certificate_id"`
 	Description         string `tfschema:"description"`
 	SelfSigned          bool   `tfschema:"self_signed"`
 }
@@ -63,12 +63,12 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			Optional: true,
 		},
 
-		"keyvault_certificate_id": {
+		"key_vault_certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: keyvaultValidate.VersionlessNestedItemId,
-			ExactlyOneOf: []string{"self_signed", "keyvault_certificate_id"},
+			ExactlyOneOf: []string{"self_signed", "key_vault_certificate_id"},
 		},
 
 		"self_signed": {
@@ -76,7 +76,7 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			Default:      false,
-			ExactlyOneOf: []string{"keyvault_certificate_id", "self_signed"},
+			ExactlyOneOf: []string{"key_vault_certificate_id", "self_signed"},
 		},
 	}
 }
@@ -255,7 +255,7 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 				cert.Properties.AuditComment = pointer.To(model.AuditComment)
 			}
 
-			if metadata.ResourceData.HasChanges("keyvault_certificate_id", "self_signed") {
+			if metadata.ResourceData.HasChanges("key_vault_certificate_id", "self_signed") {
 				cert.Properties.CertificateSelfSigned = boolAsBooleanEnumCert(model.SelfSigned)
 				cert.Properties.CertificateSignerResourceId = pointer.To(model.CertificateSignerID)
 			}

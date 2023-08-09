@@ -166,7 +166,7 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   name         = "testacc-palc-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  keyvault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
+  key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

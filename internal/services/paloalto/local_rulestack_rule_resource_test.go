@@ -492,14 +492,14 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
   name         = "testacc-palcT-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  keyvault_certificate_id = azurerm_key_vault_certificate.trust.versionless_id
+  key_vault_certificate_id = azurerm_key_vault_certificate.trust.versionless_id
 }
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
   name         = "testacc-palcU-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  keyvault_certificate_id = azurerm_key_vault_certificate.untrust.versionless_id
+  key_vault_certificate_id = azurerm_key_vault_certificate.untrust.versionless_id
 }
 
 resource "azurerm_palo_alto_local_rulestack" "test" {
@@ -665,14 +665,14 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
   name         = "testacc-palcT-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  keyvault_certificate_id = azurerm_key_vault_certificate.trust.versionless_id
+  key_vault_certificate_id = azurerm_key_vault_certificate.trust.versionless_id
 }
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
   name         = "testacc-palcU-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  keyvault_certificate_id = azurerm_key_vault_certificate.untrust.versionless_id
+  key_vault_certificate_id = azurerm_key_vault_certificate.untrust.versionless_id
 }
 
 resource "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association" "test" {
