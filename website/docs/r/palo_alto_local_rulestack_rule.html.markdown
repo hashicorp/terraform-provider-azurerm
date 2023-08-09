@@ -53,6 +53,8 @@ The following arguments are supported:
 
 ~> **NOTE:** This is the primary identifier of a rule, as such it is not possible to change the Priority of a rule once created.
 
+* `action` - (Required) The action to take on the rule being triggered. Defaults to `Allow`.
+
 * `name` - (Required) The name which should be used for this Palo Alto Local Rulestack Rule. 
 
 * `destination` - (Required) One or more `destination` blocks as defined below.
@@ -61,7 +63,6 @@ The following arguments are supported:
 
 ---
 
-* `action` - (Optional) The action to take on the rule being triggered. Defaults to `Allow`.
 
 * `audit_comment` - (Optional) The comment for Audit purposes.
 
