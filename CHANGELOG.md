@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_digital_twins_instance` - support for User Assigned Identities [GH-22782]
 * `azurerm_function_app_function` - hyphen and underscore are now allows characters for function names [GH-22519]
 * `azurerm_key_vault` - support `NestedItemTypeStorageKey` for the `nested_item` property [GH-22707]
+* `azurerm_key_vault_certificate` - Support update of certificates based on `certificate_policy` [GH-20627]
 * `azurerm_kubernetes_cluster` - export the identity for Web App Routing under `web_app_routing_identity` [GH-22809]
 * `azurerm_kubernetes_cluster` - add support for the `snapshot_id` property in the `default_node_pool` block [GH-22708]
 * `azurerm_log_analytics_workspace` - support changing value of `sku` from `CapacityReservation` and `PerGB2018` [GH-22597]
