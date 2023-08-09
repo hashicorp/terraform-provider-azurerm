@@ -30,21 +30,6 @@ func TestAccContainerAppEnvironment_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("log_analytics_workspace_id"),
-	})
-}
-
-func TestAccContainerAppEnvironment_withoutLogAnalyticsWorkspace(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
-	r := ContainerAppEnvironmentResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 		data.ImportStep(),
 	})
 }
