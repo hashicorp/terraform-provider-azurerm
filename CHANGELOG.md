@@ -25,6 +25,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - export the identity for Web App Routing under `web_app_routing_identity` [GH-22809]
 * `azurerm_kubernetes_cluster` - add support for the `snapshot_id` property in the `default_node_pool` block [GH-22708]
 * `azurerm_log_analytics_workspace` - support changing value of `sku` from `CapacityReservation` and `PerGB2018` [GH-22597]
+* `azurerm_managed_application` - deprecate the `parameters` property in favour of `parameter_values` [GH-21541]
 * `azurerm_mssql_server` - `SystemAssigned, UserAssigned` identity is now supported [GH-22828]
 * `azurerm_network_packet_capture` - updating to use `hashicorp/go-azure-sdk` [GH-22873]
 * `azurerm_network_profile` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
@@ -51,6 +52,8 @@ BUG FIXES:
 * `azurerm_custom_ip_prefix` - support for environments other than Azure Public [GH-22812]
 * `azurerm_databricks_workspace` - update parse function for `machine_learning_workspace_id` field validation [GH-22865]
 * `azurerm_kusto_cosmosdb_data_connection_resource` - ensure the `subscriptionId` and `ResourceGroupName` align with the CosmosDB container [GH-22663]
+* `azurerm_managed_application` - fix an issue where `secureString` parameters were not persisted to state [GH-21541]
+* `azurerm_managed_application` - the `plan` block is now marked ForceNew to comply with service limitations [GH-21541]
 * `azurerm_monitor_data_collection_rule` - recreate resource when attempting to remove `kind` [GH-22811]
 * `azurerm_static_site_custom_domain` - prevent overwriting `validation_token` with an empty value by setting it into state when creating the resource [GH-22848]
 
