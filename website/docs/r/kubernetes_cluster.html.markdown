@@ -125,7 +125,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
--> **Note:** As the Application Gateway is deployed inside a Virtual Network, so the users (and Service Principals) that operate Application Gateways also have at least `Microsoft.Network/virtualNetworks/subnets/join/action` permission on the Virtual Network or Subnet. For more details, please visit [Virtual Network Permission](https://learn.microsoft.com/en-us/azure/application-gateway/configuration-infrastructure#virtual-network-permission).
+-> **Note:** Since the Application Gateway is deployed inside a Virtual Network, users (and Service Principals) that are operating the Application Gateway must have the `Microsoft.Network/virtualNetworks/subnets/join/action` permission on the Virtual Network or Subnet. For more details, please visit [Virtual Network Permission](https://learn.microsoft.com/en-us/azure/application-gateway/configuration-infrastructure#virtual-network-permission).
 
 * `key_management_service` - (Optional) A `key_management_service` block as defined below. For more details, please visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/en-us/azure/aks/use-kms-etcd-encryption).
 
