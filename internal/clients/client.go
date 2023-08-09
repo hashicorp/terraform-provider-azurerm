@@ -543,7 +543,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)
 	}
-	client.Resource = resource.NewClient(o)
+	if client.Resource, err = resource.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Resource: %+v", err)
+	}
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}
