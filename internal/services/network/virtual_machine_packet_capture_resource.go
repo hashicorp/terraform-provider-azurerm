@@ -181,16 +181,12 @@ func resourceVirtualMachinePacketCaptureCreate(d *pluginsdk.ResourceData, meta i
 		return tf.ImportAsExistsError("azurerm_virtual_machine_packet_capture", id.ID())
 	}
 
-	storageLocation, err := expandVirtualMachinePacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
-	if err != nil {
-		return err
-	}
-
+	storageLocation := expandVirtualMachinePacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
 	payload := packetcaptures.PacketCapture{
 		Properties: packetcaptures.PacketCaptureParameters{
 			Target:                  targetResourceId,
 			TargetType:              pointer.To(packetcaptures.PacketCaptureTargetTypeAzureVM),
-			StorageLocation:         *storageLocation,
+			StorageLocation:         storageLocation,
 			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int64(int64(timeLimitInSeconds)),
 			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
@@ -270,7 +266,7 @@ func resourceVirtualMachinePacketCaptureDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func expandVirtualMachinePacketCaptureStorageLocation(input []interface{}) (*packetcaptures.PacketCaptureStorageLocation, error) {
+func expandVirtualMachinePacketCaptureStorageLocation(input []interface{}) packetcaptures.PacketCaptureStorageLocation {
 	location := input[0].(map[string]interface{})
 
 	storageLocation := packetcaptures.PacketCaptureStorageLocation{}
@@ -282,7 +278,7 @@ func expandVirtualMachinePacketCaptureStorageLocation(input []interface{}) (*pac
 		storageLocation.StorageId = pointer.To(v.(string))
 	}
 
-	return &storageLocation, nil
+	return storageLocation
 }
 
 func flattenVirtualMachinePacketCaptureStorageLocation(input packetcaptures.PacketCaptureStorageLocation) []interface{} {

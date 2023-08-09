@@ -176,15 +176,11 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_network_packet_capture", id.ID())
 	}
 
-	storageLocation, err := expandNetworkPacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
-	if err != nil {
-		return err
-	}
-
+	storageLocation := expandNetworkPacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
 	payload := packetcaptures.PacketCapture{
 		Properties: packetcaptures.PacketCaptureParameters{
 			Target:                  targetResourceId,
-			StorageLocation:         *storageLocation,
+			StorageLocation:         storageLocation,
 			BytesToCapturePerPacket: pointer.To(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      pointer.To(int64(timeLimitInSeconds)),
 			TotalBytesPerSession:    pointer.To(int64(totalBytesPerSession)),
@@ -264,7 +260,7 @@ func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandNetworkPacketCaptureStorageLocation(input []interface{}) (*packetcaptures.PacketCaptureStorageLocation, error) {
+func expandNetworkPacketCaptureStorageLocation(input []interface{}) packetcaptures.PacketCaptureStorageLocation {
 	location := input[0].(map[string]interface{})
 
 	storageLocation := packetcaptures.PacketCaptureStorageLocation{}
@@ -276,7 +272,7 @@ func expandNetworkPacketCaptureStorageLocation(input []interface{}) (*packetcapt
 		storageLocation.StorageId = utils.String(v.(string))
 	}
 
-	return &storageLocation, nil
+	return storageLocation
 }
 
 func flattenNetworkPacketCaptureStorageLocation(input packetcaptures.PacketCaptureStorageLocation) []interface{} {
