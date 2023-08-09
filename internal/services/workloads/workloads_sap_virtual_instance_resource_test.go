@@ -1142,7 +1142,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
 }
 
 func RandomInt() int {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	num := rand.Intn(90) + 10
 
 	return num

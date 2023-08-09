@@ -606,7 +606,7 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstanc
 func expandStorageConfiguration(input *ThreeTierConfiguration) *sapvirtualinstances.StorageConfiguration {
 	if len(input.TransportCreateAndMount) == 0 && len(input.TransportMount) == 0 {
 		return &sapvirtualinstances.StorageConfiguration{
-			sapvirtualinstances.SkipFileShareConfiguration{},
+			TransportFileShareConfiguration: sapvirtualinstances.SkipFileShareConfiguration{},
 		}
 	}
 
