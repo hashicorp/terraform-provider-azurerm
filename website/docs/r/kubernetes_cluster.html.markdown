@@ -599,7 +599,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 
 * `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
 
-* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
@@ -621,7 +621,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
 
-* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
