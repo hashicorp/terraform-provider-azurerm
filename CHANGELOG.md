@@ -37,6 +37,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_virutal_machine` - correctly retrieve and set value for `power_state` [GH-22851]
 * `azurerm_cdn_endpoint` - conditionally using `PUT` in place of `PATCH` when a field other than `tags` has changed [GH-22662]
+* `azurerm_cdn_frontdoor_security_policy` - fix `resourceId` casing for associated `ActivatedResourceReference` resources on `READ` from Azure [GH-22841]
 * `azure_container_group` - set `init_container.secure_environment_variables` into state correctly [GH-22832]
 * `azurerm_custom_ip_prefix` - support for environments other than Azure Public [GH-22812]
 * `azurerm_databricks_workspace` - update parse function for `machine_learning_workspace_id` field validation [GH-22865]
