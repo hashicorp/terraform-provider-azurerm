@@ -740,27 +740,8 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 
 			// We only handle the error here because no request body is returned https://github.com/Azure/azure-rest-api-specs/issues/23456
-			if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, params); err != nil {
 				return fmt.Errorf("recovering %s: %+v", id, err)
-			}
-
-			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
-			log.Printf("[DEBUG] Waiting for %s to become ready", id)
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Deleted", "Activating", "Updating", "Unknown"},
-				Target:                    []string{"Succeeded", "Ready"},
-				Refresh:                   apiManagementRefreshFunc(ctx, client, id),
-				MinTimeout:                1 * time.Minute,
-				ContinuousTargetOccurence: 2,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 			}
 		}
 	}
