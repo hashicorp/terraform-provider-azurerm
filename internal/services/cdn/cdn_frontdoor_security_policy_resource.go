@@ -243,7 +243,7 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 			for _, item := range *waf.Associations {
 				domain, err := cdnfrontdoorsecurityparams.FlattenSecurityPoliciesActivatedResourceReference(item.Domains)
 				if err != nil {
-					return fmt.Errorf("flattening `domain`: %+v", err)
+					return fmt.Errorf("flattening `ActivatedResourceReference`: %+v", err)
 				}
 
 				associations = append(associations, map[string]interface{}{
