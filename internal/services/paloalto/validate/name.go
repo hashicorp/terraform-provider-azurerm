@@ -26,6 +26,10 @@ func LocalRuleStackRuleName(input interface{}, k string) (warnings []string, err
 	return paloAltoNameValidation(input, k)
 }
 
+func DestinationNATName(input interface{}, k string) (warnings []string, errors []error) {
+	return paloAltoNameValidation(input, k)
+}
+
 func paloAltoNameValidation(input interface{}, k string) (warnings []string, errors []error) {
 	value, ok := input.(string)
 	if !ok {

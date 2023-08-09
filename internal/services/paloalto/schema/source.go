@@ -62,7 +62,7 @@ func SourceSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: nil, // TODO - This is another resource type?
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
@@ -91,30 +91,48 @@ func SourceSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSource(input []Source) *localrules.SourceAddr {
+func ExpandSource(input []Source) (*localrules.SourceAddr, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	d := input[0]
+
+	prefixLists := make([]string, 0)
+	if len(d.PrefixLists) > 0 {
+		for _, p := range d.PrefixLists {
+			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(p)
+			if err != nil {
+				return nil, err
+			}
+			prefixLists = append(prefixLists, id.PrefixListName)
+		}
+	}
 
 	return &localrules.SourceAddr{
 		Cidrs:       pointer.To(d.CIDRS),
 		Countries:   pointer.To(d.Countries),
 		Feeds:       pointer.To(d.Feeds),
-		PrefixLists: pointer.To(d.PrefixLists),
-	}
+		PrefixLists: pointer.To(prefixLists),
+	}, nil
 }
 
-func FlattenSource(input *localrules.SourceAddr) []Source {
+func FlattenSource(input *localrules.SourceAddr, ruleId localrules.LocalRuleId) []Source {
 	if input == nil {
 		return []Source{}
+	}
+
+	prefixLists := make([]string, 0)
+	if p := input.PrefixLists; p != nil {
+		for _, v := range *p {
+			prefixLists = append(prefixLists, prefixlistlocalrulestack.NewLocalRulestackPrefixListID(ruleId.SubscriptionId, ruleId.ResourceGroupName, ruleId.LocalRulestackName, v).ID())
+		}
 	}
 
 	return []Source{{
 		CIDRS:       pointer.From(input.Cidrs),
 		Countries:   pointer.From(input.Countries),
 		Feeds:       pointer.From(input.Feeds),
-		PrefixLists: pointer.From(input.PrefixLists),
+		PrefixLists: prefixLists,
 	}}
 }

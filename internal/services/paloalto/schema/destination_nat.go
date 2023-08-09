@@ -1,11 +1,12 @@
 package schema
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -38,7 +39,7 @@ func DestinationNATSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: nil, // TODO - Validation needed
+					ValidateFunc: validate.DestinationNATName,
 				},
 
 				"protocol": {
@@ -71,7 +72,7 @@ func FrontendEndpointSchema() *pluginsdk.Schema {
 				"port": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
-					ValidateFunc: nil, // TODO - Need a atoi validation func for 1 - 65535
+					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 			},
 		},
@@ -88,13 +89,13 @@ func BackendEndpointSchema() *pluginsdk.Schema {
 				"public_ip_address": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validate.IPv4Address,
+					ValidateFunc: helpersValidate.IPv4Address,
 				},
 
 				"port": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
-					ValidateFunc: nil, // TODO - Need a atoi validation func for 1 - 65535
+					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 			},
 		},

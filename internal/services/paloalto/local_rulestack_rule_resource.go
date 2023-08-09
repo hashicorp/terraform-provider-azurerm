@@ -216,15 +216,25 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			destination, err := schema.ExpandDestination(model.Destination)
+			if err != nil {
+				return fmt.Errorf("expanding destination for %s, %+v", id, err)
+			}
+
+			source, err := schema.ExpandSource(model.Source)
+			if err != nil {
+				return fmt.Errorf("expanding source for %s: %+v", id, err)
+			}
+
 			props := localrules.RuleEntry{
 				Category:          schema.ExpandCategory(model.Category),
-				Destination:       schema.ExpandDestination(model.Destination),
+				Destination:       destination,
 				EnableLogging:     boolAsStateEnum(model.LoggingEnabled),
 				NegateDestination: boolAsBooleanEnumRule(model.NegateDestination),
 				NegateSource:      boolAsBooleanEnumRule(model.NegateSource),
 				RuleName:          model.Name,
 				RuleState:         boolAsStateEnum(model.RuleEnabled),
-				Source:            schema.ExpandSource(model.Source),
+				Source:            source,
 				Tags:              expandTagsForRule(model.Tags),
 			}
 
@@ -319,7 +329,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				state.Category = schema.FlattenCategory(props.Category)
 				state.DecryptionRuleType = string(pointer.From(props.DecryptionRuleType))
 				state.Description = pointer.From(props.Description)
-				state.Destination = schema.FlattenDestination(props.Destination)
+				state.Destination = schema.FlattenDestination(props.Destination, *id)
 				state.LoggingEnabled = stateEnumAsBool(props.EnableLogging)
 				if certName := pointer.From(props.InboundInspectionCertificate); certName != "" {
 					state.InspectionCertificateID = certificates.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, certName).ID()
@@ -335,7 +345,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				}
 				state.ProtocolPorts = pointer.From(props.ProtocolPortList)
 				state.RuleEnabled = stateEnumAsBool(props.RuleState)
-				state.Source = schema.FlattenSource(props.Source)
+				state.Source = schema.FlattenSource(props.Source, *id)
 				state.Tags = flattenTagsFromRule(props.Tags)
 			}
 
@@ -425,7 +435,11 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("destination") {
-				ruleEntry.Properties.Destination = schema.ExpandDestination(model.Destination)
+				destination, err := schema.ExpandDestination(model.Destination)
+				if err != nil {
+					return fmt.Errorf("expanding destination for %s, %+v", id, err)
+				}
+				ruleEntry.Properties.Destination = destination
 			}
 
 			if metadata.ResourceData.HasChange("logging_enabled") {
@@ -465,7 +479,11 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("source") {
-				ruleEntry.Properties.Source = schema.ExpandSource(model.Source)
+				source, err := schema.ExpandSource(model.Source)
+				if err != nil {
+					return fmt.Errorf("expanding source for %s: %+v", id, err)
+				}
+				ruleEntry.Properties.Source = source
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

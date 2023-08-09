@@ -66,7 +66,7 @@ func DestinationSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: nil, // TODO - This is another resource type?
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					AtLeastOneOf: []string{
 						"destination.0.cidrs",
@@ -113,32 +113,67 @@ func DestinationSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandDestination(input []Destination) *localrules.DestinationAddr {
+func ExpandDestination(input []Destination) (*localrules.DestinationAddr, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	d := input[0]
+	prefixLists := make([]string, 0)
+	if len(d.PrefixLists) > 0 {
+		for _, p := range d.PrefixLists {
+			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(p)
+			if err != nil {
+				return nil, err
+			}
+			prefixLists = append(prefixLists, id.PrefixListName)
+		}
+	}
+
+	fqdnLists := make([]string, 0)
+	if len(d.FQDNLists) > 0 {
+		for _, p := range d.FQDNLists {
+			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(p)
+			if err != nil {
+				return nil, err
+			}
+			fqdnLists = append(fqdnLists, id.FqdnListName)
+		}
+	}
 
 	return &localrules.DestinationAddr{
 		Cidrs:       pointer.To(d.CIDRS),
 		Countries:   pointer.To(d.Countries),
 		Feeds:       pointer.To(d.Feeds),
-		FqdnLists:   pointer.To(d.FQDNLists),
-		PrefixLists: pointer.To(d.PrefixLists),
-	}
+		FqdnLists:   pointer.To(fqdnLists),
+		PrefixLists: pointer.To(prefixLists),
+	}, nil
 }
 
-func FlattenDestination(input *localrules.DestinationAddr) []Destination {
+func FlattenDestination(input *localrules.DestinationAddr, ruleId localrules.LocalRuleId) []Destination {
 	if input == nil {
 		return []Destination{}
+	}
+
+	prefixLists := make([]string, 0)
+	if p := input.PrefixLists; p != nil {
+		for _, v := range *p {
+			prefixLists = append(prefixLists, prefixlistlocalrulestack.NewLocalRulestackPrefixListID(ruleId.SubscriptionId, ruleId.ResourceGroupName, ruleId.LocalRulestackName, v).ID())
+		}
+	}
+
+	fqdnLists := make([]string, 0)
+	if p := input.FqdnLists; p != nil {
+		for _, v := range *p {
+			fqdnLists = append(fqdnLists, fqdnlistlocalrulestack.NewLocalRulestackFqdnListID(ruleId.SubscriptionId, ruleId.ResourceGroupName, ruleId.LocalRulestackName, v).ID())
+		}
 	}
 
 	return []Destination{{
 		CIDRS:       pointer.From(input.Cidrs),
 		Countries:   pointer.From(input.Countries),
 		Feeds:       pointer.From(input.Feeds),
-		FQDNLists:   pointer.From(input.FqdnLists),
-		PrefixLists: pointer.From(input.PrefixLists),
+		FQDNLists:   fqdnLists,
+		PrefixLists: prefixLists,
 	}}
 }

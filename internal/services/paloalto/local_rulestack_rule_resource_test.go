@@ -235,6 +235,13 @@ resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
   fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
 }
 
+resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+
+  prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
+}
+
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name         = "testacc-palr-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
@@ -252,7 +259,9 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   description          = "Acceptance Test Rule - dated %[2]d"
 
   destination {
-    countries = ["US", "GB"]
+    countries                       = ["US", "GB"]
+    local_rulestack_fqdn_list_ids   = [azurerm_palo_alto_local_rulestack_fqdn_list.test.id]
+    local_rulestack_prefix_list_ids = [azurerm_palo_alto_local_rulestack_prefix_list.test.id]
   }
 
   logging_enabled = false
@@ -267,7 +276,8 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   enabled = false
 
   source {
-    countries = ["US", "GB"]
+    countries                       = ["US", "GB"]
+    local_rulestack_prefix_list_ids = [azurerm_palo_alto_local_rulestack_prefix_list.test.id]
   }
 
   tags = {
