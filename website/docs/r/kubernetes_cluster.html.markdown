@@ -593,7 +593,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saturday` and `Sunday`. Required in combination with weekly frequency.
 
 * `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
-  Required in combination with relative monthly frequency.
+ Required in combination with relative monthly frequency.
 
 * `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
 
