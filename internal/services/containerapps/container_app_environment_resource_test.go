@@ -137,12 +137,13 @@ resource "azurerm_container_app_environment" "test" {
 func (r ContainerAppEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_container_app_environment" "import" {
-  name                       = azurerm_container_app_environment.test.name
-  resource_group_name        = azurerm_container_app_environment.test.resource_group_name
-  location                   = azurerm_container_app_environment.test.location
+  name                = azurerm_container_app_environment.test.name
+  resource_group_name = azurerm_container_app_environment.test.resource_group_name
+  location            = azurerm_container_app_environment.test.location
 }
 `, r.basic(data), data.RandomInteger)
 }
