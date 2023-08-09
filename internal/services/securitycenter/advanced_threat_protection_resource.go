@@ -88,6 +88,34 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.TargetResourceID, err)
 	}
 
+	deadline, _ := ctx.Deadline()
+
+	// the API appears to be eventually consistent, tracked on https://github.com/Azure/azure-rest-api-specs/issues/25232
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{"diff"},
+		Target:  []string{"consistent"},
+		Refresh: func() (result interface{}, state string, err error) {
+			resp, err := client.Get(ctx, id.TargetResourceID)
+			if err != nil {
+				return resp, "error", err
+			}
+			if atpp := resp.AdvancedThreatProtectionProperties; atpp != nil {
+				if atpp.IsEnabled != nil && *atpp.IsEnabled == d.Get("enabled").(bool) {
+					return resp, "consistent", nil
+				} else {
+					return resp, "diff", nil
+				}
+			}
+			return resp, "error", fmt.Errorf("Properties was nil")
+		},
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of advanced threat protection: %+v", err)
+	}
+
 	d.SetId(id.ID())
 	return resourceAdvancedThreatProtectionRead(d, meta)
 }
