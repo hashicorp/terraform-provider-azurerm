@@ -37,19 +37,19 @@ The following arguments are supported:
 
 ---
 
-* `anti_spyware_profile` - (Optional) The setting to use for Anti-Spyware.  Possible values include `BestPractice`, `Custom` and `None`. Defaults to `None`.
+* `anti_spyware_profile` - (Optional) The setting to use for Anti-Spyware.  Possible values include `BestPractice`, and `Custom`.
 
-* `anti_virus_profile` - (Optional) The setting to use for Anti-Virus. Possible values include `BestPractice`, `Custom` and `None`. Defaults to `None`.
+* `anti_virus_profile` - (Optional) The setting to use for Anti-Virus. Possible values include `BestPractice`, and `Custom`.
 
 * `description` - (Optional) The description for this Local Rulestack.
 
-* `dns_subscription` - (Optional) TThe setting to use for DNS Subscription. Possible values include `BestPractice`, `Custom` and `None`. Defaults to `None`.
+* `dns_subscription` - (Optional) TThe setting to use for DNS Subscription. Possible values include `BestPractice`, and `Custom`.
 
-* `file_blocking_profile` - (Optional) The setting to use for the File Blocking Profile. Possible values include `BestPractice`, `Custom` and `None`. Defaults to `None`.
+* `file_blocking_profile` - (Optional) The setting to use for the File Blocking Profile. Possible values include `BestPractice`, and `Custom`.
 
-* `url_filtering_profile` - (Optional) The setting to use for the URL Filtering Profile. Possible values include `BestPractice`, `Custom` and `None`. Defaults to `None`.
+* `url_filtering_profile` - (Optional) The setting to use for the URL Filtering Profile. Possible values include `BestPractice`, and `Custom`.
 
-* `vulnerability_profile` - (Optional) The setting to use for the Vulnerability Profile. Possible values include `BestPractice`, `Custom` and `None`. Defaults to `None`.
+* `vulnerability_profile` - (Optional) The setting to use for the Vulnerability Profile. Possible values include `BestPractice`, and `Custom`.
 
 ## Attributes Reference
 
