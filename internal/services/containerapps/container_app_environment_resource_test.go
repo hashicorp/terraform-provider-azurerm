@@ -25,7 +25,7 @@ func TestAccContainerAppEnvironment_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, true),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -40,7 +40,7 @@ func TestAccContainerAppEnvironment_withoutLogAnalyticsWorkspace(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, false),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -55,7 +55,7 @@ func TestAccContainerAppEnvironment_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, true),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -118,11 +118,7 @@ func (r ContainerAppEnvironmentResource) Exists(ctx context.Context, client *cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ContainerAppEnvironmentResource) basic(data acceptance.TestData, bindLogAnalyticsWorkspace bool) string {
-	logAnalyticsWorkspace := "log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id"
-	if !bindLogAnalyticsWorkspace {
-		logAnalyticsWorkspace = ""
-	}
+func (r ContainerAppEnvironmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -134,9 +130,8 @@ resource "azurerm_container_app_environment" "test" {
   name                = "acctest-CAEnv%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  %[3]s
 }
-`, r.template(data), data.RandomInteger, logAnalyticsWorkspace)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) requiresImport(data acceptance.TestData) string {
@@ -148,9 +143,8 @@ resource "azurerm_container_app_environment" "import" {
   name                       = azurerm_container_app_environment.test.name
   resource_group_name        = azurerm_container_app_environment.test.resource_group_name
   location                   = azurerm_container_app_environment.test.location
-  log_analytics_workspace_id = azurerm_container_app_environment.test.log_analytics_workspace_id
 }
-`, r.basic(data, true), data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) complete(data acceptance.TestData) string {
