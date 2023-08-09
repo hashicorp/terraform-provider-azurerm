@@ -282,6 +282,12 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 	snapShotName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+	}
+
 	snapshotId := snapshots.NewSnapshotID(subscriptionId, resourceGroup, snapShotName)
 	if err := client.Compute.SnapshotsClient.RevokeAccessThenPoll(ctx, snapshotId); err != nil {
 		return fmt.Errorf("revoking SAS on %s: %+v", snapshotId, err)

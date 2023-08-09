@@ -1722,7 +1722,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
-				if err := diskDeleteFuture.Poller.PollUntilDone(); err != nil {
+				if err := diskDeleteFuture.Poller.PollUntilDone(ctx); err != nil {
 					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
 				}
 			}
