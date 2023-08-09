@@ -55,7 +55,6 @@ type Client struct {
 	VnetPeeringsClient                     *network.VirtualNetworkPeeringsClient
 	VirtualWanClient                       *network.VirtualWansClient
 	VirtualHubClient                       *network.VirtualHubsClient
-	VpnConnectionsClient                   *network.VpnConnectionsClient
 	VpnGatewaysClient                      *network.VpnGatewaysClient
 }
 
@@ -177,9 +176,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	vpnGatewaysClient := network.NewVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
-	vpnConnectionsClient := network.NewVpnConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vpnConnectionsClient.Client, o.ResourceManagerAuthorizer)
-
 	ServiceAssociationLinkClient := network.NewServiceAssociationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceAssociationLinkClient.Client, o.ResourceManagerAuthorizer)
 
@@ -232,7 +228,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VnetPeeringsClient:                     &VnetPeeringsClient,
 		VirtualWanClient:                       &VirtualWanClient,
 		VirtualHubClient:                       &VirtualHubClient,
-		VpnConnectionsClient:                   &vpnConnectionsClient,
 		VpnGatewaysClient:                      &vpnGatewaysClient,
 		PrivateDnsZoneGroupClient:              &PrivateDnsZoneGroupClient,
 		PrivateLinkServiceClient:               &PrivateLinkServiceClient,
