@@ -32,6 +32,7 @@ BUG FIXES:
 * `azurerm_cdn_endpoint` - conditionally using `PUT` in place of `PATCH` when a field other than `tags` has changed [GH-22662]
 * `azure_container_group` - set `init_container.secure_environment_variables` into state correctly [GH-22832]
 * `azurerm_custom_ip_prefix` - support for environments other than Azure Public [GH-22812]
+* `azurerm_databricks_workspace` - update parse function for `machine_learning_workspace_id` field validation [GH-22865]
 * `azurerm_kusto_cosmosdb_data_connection_resource` - ensure the `subscriptionId` and `ResourceGroupName` align with the CosmosDB container [GH-22663]
 * `azurerm_monitor_data_collection_rule` - recreate resource when attempting to remove `kind` [GH-22811]
 
