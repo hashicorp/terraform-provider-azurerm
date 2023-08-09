@@ -200,7 +200,6 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"scope": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						// There is currently no validation, as any length and characters can be used in the field
 					},
 				},
 			},
