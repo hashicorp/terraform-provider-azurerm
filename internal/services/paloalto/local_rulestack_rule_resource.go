@@ -433,11 +433,15 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("inspection_certificate_id") {
-				certID, err := certificates.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
-				if err != nil {
-					return err
+				if model.InspectionCertificateID != "" {
+					certID, err := certificates.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
+					if err != nil {
+						return err
+					}
+					ruleEntry.Properties.InboundInspectionCertificate = pointer.To(certID.CertificateName)
+				} else {
+					ruleEntry.Properties.InboundInspectionCertificate = pointer.To("")
 				}
-				ruleEntry.Properties.InboundInspectionCertificate = pointer.To(certID.CertificateName)
 			}
 
 			if metadata.ResourceData.HasChange("negate_destination") {
