@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
+	virtual_machines_2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
@@ -59,7 +60,7 @@ type Client struct {
 	VMScaleSetExtensionsClient       *compute.VirtualMachineScaleSetExtensionsClient
 	VMScaleSetRollingUpgradesClient  *compute.VirtualMachineScaleSetRollingUpgradesClient
 	VMScaleSetVMsClient              *compute.VirtualMachineScaleSetVMsClient
-	VMClient                         *compute.VirtualMachinesClient
+	VMClient                         *virtual_machines_2023_03_01.VirtualMachinesClient
 	VMImageClient                    *compute.VirtualMachineImagesClient
 }
 
@@ -208,8 +209,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	vmScaleSetVMsClient := compute.NewVirtualMachineScaleSetVMsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetVMsClient.Client, o.ResourceManagerAuthorizer)
 
-	vmClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
+	vmClient, err := virtual_machines_2023_03_01.NewVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VM client: %+v", err)
+	}
+	o.Configure(vmClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		AvailabilitySetsClient:           availabilitySetsClient,
@@ -242,6 +246,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VMImageClient:                    &vmImageClient,
 
 		// NOTE: use `VirtualMachinesClient` instead
-		VMClient: &vmClient,
+		VMClient: vmClient,
 	}, nil
 }
