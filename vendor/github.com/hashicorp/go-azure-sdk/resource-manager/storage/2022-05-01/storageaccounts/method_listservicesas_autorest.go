@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type ListServiceSASOperationResponse struct {
 }
 
 // ListServiceSAS ...
-func (c StorageAccountsClient) ListServiceSAS(ctx context.Context, id StorageAccountId, input ServiceSasParameters) (result ListServiceSASOperationResponse, err error) {
+func (c StorageAccountsClient) ListServiceSAS(ctx context.Context, id commonids.StorageAccountId, input ServiceSasParameters) (result ListServiceSASOperationResponse, err error) {
 	req, err := c.preparerForListServiceSAS(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "ListServiceSAS", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c StorageAccountsClient) ListServiceSAS(ctx context.Context, id StorageAcc
 }
 
 // preparerForListServiceSAS prepares the ListServiceSAS request.
-func (c StorageAccountsClient) preparerForListServiceSAS(ctx context.Context, id StorageAccountId, input ServiceSasParameters) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForListServiceSAS(ctx context.Context, id commonids.StorageAccountId, input ServiceSasParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

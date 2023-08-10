@@ -78,6 +78,7 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 	}
 
 	req.URL.RawQuery = query.Encode()
+	req.Pager = input.Pager
 	req.RetryFunc = client.RequestRetryAny(defaultRetryFunctions...)
 	req.ValidStatusCodes = input.ExpectedStatusCodes
 
