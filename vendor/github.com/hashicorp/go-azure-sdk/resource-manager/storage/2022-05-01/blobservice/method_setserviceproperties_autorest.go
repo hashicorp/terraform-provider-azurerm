@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type SetServicePropertiesOperationResponse struct {
 }
 
 // SetServiceProperties ...
-func (c BlobServiceClient) SetServiceProperties(ctx context.Context, id StorageAccountId, input BlobServiceProperties) (result SetServicePropertiesOperationResponse, err error) {
+func (c BlobServiceClient) SetServiceProperties(ctx context.Context, id commonids.StorageAccountId, input BlobServiceProperties) (result SetServicePropertiesOperationResponse, err error) {
 	req, err := c.preparerForSetServiceProperties(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobservice.BlobServiceClient", "SetServiceProperties", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c BlobServiceClient) SetServiceProperties(ctx context.Context, id StorageA
 }
 
 // preparerForSetServiceProperties prepares the SetServiceProperties request.
-func (c BlobServiceClient) preparerForSetServiceProperties(ctx context.Context, id StorageAccountId, input BlobServiceProperties) (*http.Request, error) {
+func (c BlobServiceClient) preparerForSetServiceProperties(ctx context.Context, id commonids.StorageAccountId, input BlobServiceProperties) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

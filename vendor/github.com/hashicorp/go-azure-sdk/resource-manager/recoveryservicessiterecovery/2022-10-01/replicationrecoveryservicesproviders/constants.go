@@ -1,6 +1,10 @@
 package replicationrecoveryservicesproviders
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForAgentVersionStatus() []string {
 		string(AgentVersionStatusSupported),
 		string(AgentVersionStatusUpdateRequired),
 	}
+}
+
+func (s *AgentVersionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgentVersionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAgentVersionStatus(input string) (*AgentVersionStatus, error) {
@@ -54,6 +71,19 @@ func PossibleValuesForHealthErrorCustomerResolvability() []string {
 		string(HealthErrorCustomerResolvabilityAllowed),
 		string(HealthErrorCustomerResolvabilityNotAllowed),
 	}
+}
+
+func (s *HealthErrorCustomerResolvability) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHealthErrorCustomerResolvability(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseHealthErrorCustomerResolvability(input string) (*HealthErrorCustomerResolvability, error) {

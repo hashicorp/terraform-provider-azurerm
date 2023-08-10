@@ -11,7 +11,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	storage_v2022_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
@@ -32,7 +31,6 @@ import (
 
 type Client struct {
 	AccountsClient              *storage.AccountsClient
-	LocalUsersClient            *localusers.LocalUsersClient
 	FileSystemsClient           *filesystems.Client
 	ADLSGen2PathsClient         *paths.Client
 	ManagementPoliciesClient    *storage.ManagementPoliciesClient
@@ -55,9 +53,6 @@ type Client struct {
 func NewClient(options *common.ClientOptions) (*Client, error) {
 	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
-
-	localUsersClient := localusers.NewLocalUsersClientWithBaseURI(options.ResourceManagerEndpoint)
-	localUsersClient.Client.Authorizer = options.ResourceManagerAuthorizer
 
 	fileSystemsClient := filesystems.NewWithEnvironment(options.AzureEnvironment)
 	options.ConfigureClient(&fileSystemsClient.Client, options.StorageAuthorizer)
@@ -106,7 +101,6 @@ func NewClient(options *common.ClientOptions) (*Client, error) {
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
 		AccountsClient:              &accountsClient,
-		LocalUsersClient:            &localUsersClient,
 		FileSystemsClient:           &fileSystemsClient,
 		ADLSGen2PathsClient:         &adlsGen2PathsClient,
 		ManagementPoliciesClient:    &managementPoliciesClient,
