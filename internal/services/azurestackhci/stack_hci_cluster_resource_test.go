@@ -95,9 +95,17 @@ func TestAccStackHCICluster_automanageConfigurationAssignment(t *testing.T) {
 			Config: r.automanageConfigurationAssignment(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("automanage_configuration_id").Exists(),
 			),
 		},
-		data.ImportStep("automanage_configuration_id"),
+		data.ImportStep(),
+		{
+			Config: r.removeAutomanageConfigurationAssignment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -235,6 +243,43 @@ resource "azurerm_stack_hci_cluster" "test" {
   client_id                   = data.azurerm_client_config.current.client_id
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   automanage_configuration_id = azurerm_automanage_configuration.test.id
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r StackHCIClusterResource) removeAutomanageConfigurationAssignment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_automanage_configuration" "test" {
+  name                = "acctest-amcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_stack_hci_cluster" "test" {
+  name                        = "acctest-StackHCICluster-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  client_id                   = data.azurerm_client_config.current.client_id
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+
+  tags = {
+    ENV = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

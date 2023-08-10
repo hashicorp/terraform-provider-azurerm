@@ -160,6 +160,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 
 func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.Clusters
+	hciAssignmentClient := meta.(*clients.Client).Automanage.HCIAssignmentClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,12 +189,21 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 		if props := model.Properties; props != nil {
 			d.Set("client_id", props.AadClientId)
 			d.Set("tenant_id", props.AadTenantId)
-			if v, ok := d.GetOk("automanage_configuration_id"); ok {
-				automanageConfigId, err := autoParse.AutomanageConfigurationID(v.(string))
+
+			assignmentResp, err := hciAssignmentClient.Get(ctx, id.ResourceGroupName, id.ClusterName, "default")
+			if err != nil && !utils.ResponseWasNotFound(assignmentResp.Response) {
+				return err
+			}
+
+			if !utils.ResponseWasNotFound(assignmentResp.Response) && assignmentResp.Properties != nil && assignmentResp.Properties.ConfigurationProfile != nil {
+				automanageConfigId, err := autoParse.AutomanageConfigurationID(*assignmentResp.Properties.ConfigurationProfile)
 				if err != nil {
 					return err
 				}
 				d.Set("automanage_configuration_id", automanageConfigId.ID())
+			} else {
+				// remove the automanage_configuration_id if it is not found
+				d.Set("automanage_configuration_id", "")
 			}
 		}
 
@@ -227,10 +237,10 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("automanage_configuration_id") {
-
 		if v, ok := d.GetOk("automanage_configuration_id"); ok {
 			hciAssignmentClient := meta.(*clients.Client).Automanage.HCIAssignmentClient
 			autoConfigClient := meta.(*clients.Client).Automanage.ConfigurationClient
+
 			automanageConfigId, err := autoParse.AutomanageConfigurationID(v.(string))
 			if err != nil {
 				return err
@@ -242,24 +252,30 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 			}
 
 			hciAssignmentID := autoParse.NewAutomanageConfigurationHCIAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
-			autoResp, err := hciAssignmentClient.Get(ctx, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName)
 
-			if err != nil && !utils.ResponseWasNotFound(autoResp.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", hciAssignmentID, err)
+			properties := automanage.ConfigurationProfileAssignment{
+				Properties: &automanage.ConfigurationProfileAssignmentProperties{
+					ConfigurationProfile: utils.String(automanageConfigId.ID()),
+				},
 			}
 
-			if utils.ResponseWasNotFound(autoResp.Response) {
-				properties := automanage.ConfigurationProfileAssignment{
-					Properties: &automanage.ConfigurationProfileAssignmentProperties{
-						ConfigurationProfile: utils.String(automanageConfigId.ID()),
-					},
-				}
+			if _, err := hciAssignmentClient.CreateOrUpdate(ctx, properties, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName); err != nil {
+				return fmt.Errorf("creating %s: %+v", hciAssignmentID, err)
+			}
+		} else {
+			hciAssignmentClient := meta.(*clients.Client).Automanage.HCIAssignmentClient
+			assignmentResp, err := hciAssignmentClient.Get(ctx, id.ResourceGroupName, id.ClusterName, "default")
+			if err != nil && !utils.ResponseWasNotFound(assignmentResp.Response) {
+				return err
+			}
 
-				if _, err := hciAssignmentClient.CreateOrUpdate(ctx, properties, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName); err != nil {
-					return fmt.Errorf("creating %s: %+v", hciAssignmentID, err)
+			if !utils.ResponseWasNotFound(assignmentResp.Response) {
+				if _, err := hciAssignmentClient.Delete(ctx, id.ResourceGroupName, id.ClusterName, "default"); err != nil {
+					return fmt.Errorf("deleting %s: %+v", id, err)
 				}
 			}
 		}
+
 	}
 
 	return resourceArmStackHCIClusterRead(d, meta)
@@ -267,12 +283,24 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 
 func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.Clusters
+	hciAssignmentClient := meta.(*clients.Client).Automanage.HCIAssignmentClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	assignmentResp, err := hciAssignmentClient.Get(ctx, id.ResourceGroupName, id.ClusterName, "default")
+	if err != nil && !utils.ResponseWasNotFound(assignmentResp.Response) {
+		return err
+	}
+
+	if !utils.ResponseWasNotFound(assignmentResp.Response) {
+		if _, err := hciAssignmentClient.Delete(ctx, id.ResourceGroupName, id.ClusterName, "default"); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
+		}
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
