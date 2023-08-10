@@ -64,12 +64,13 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 			},
 
 			"auto_key_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"encryption_type": {
@@ -125,11 +126,16 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if keyVaultDetails != nil {
 		if !keyVaultDetails.softDeleteEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 	}
 
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
+
+	if err := diskEncryptionSetValidateRotationPolicy(rotationToLatestKeyVersionEnabled, keyVaultKeyId); err != nil {
+		return err
+	}
+
 	encryptionType := diskencryptionsets.DiskEncryptionSetType(d.Get("encryption_type").(string))
 	t := d.Get("tags").(map[string]interface{})
 
@@ -253,8 +259,9 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	keyVaultKeyId := d.Get("key_vault_key_id").(string)
+
 	if d.HasChange("key_vault_key_id") {
-		keyVaultKeyId := d.Get("key_vault_key_id").(string)
 		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 		if err != nil {
 			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
@@ -262,10 +269,10 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if keyVaultDetails != nil {
 			if !keyVaultDetails.softDeleteEnabled {
-				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 			}
 			if !keyVaultDetails.purgeProtectionEnabled {
-				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 			}
 		}
 
@@ -282,12 +289,13 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
 	if d.HasChange("auto_key_rotation_enabled") {
 		if update.Properties == nil {
 			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{}
 		}
 
-		update.Properties.RotationToLatestKeyVersionEnabled = utils.Bool(d.Get("auto_key_rotation_enabled").(bool))
+		update.Properties.RotationToLatestKeyVersionEnabled = utils.Bool(rotationToLatestKeyVersionEnabled)
 	}
 
 	if d.HasChange("federated_client_id") {
@@ -300,6 +308,10 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		} else {
 			update.Properties.FederatedClientId = utils.String("None") // this is the only way to remove the federated client id
 		}
+	}
+
+	if err := diskEncryptionSetValidateRotationPolicy(rotationToLatestKeyVersionEnabled, keyVaultKeyId); err != nil {
+		return err
 	}
 
 	err = client.UpdateThenPoll(ctx, *id, update)
@@ -387,4 +399,16 @@ func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *cli
 		purgeProtectionEnabled: purgeProtectionEnabled,
 		softDeleteEnabled:      softDeleteEnabled,
 	}, nil
+}
+
+func diskEncryptionSetValidateRotationPolicy(autoRotate bool, keyVaultKeyID string) error {
+
+	if autoRotate {
+		_, err := keyVaultValidate.NestedItemId(keyVaultKeyID, "key_vault_key_id")
+		if err == nil {
+			return fmt.Errorf("when the 'auto_key_rotation_enabled' field is set to 'true' the 'key_vault_key_id' field must not be versioned, got %q", keyVaultKeyID)
+		}
+	}
+
+	return nil
 }

@@ -86,7 +86,7 @@ func TestAccDiskEncryptionSet_update(t *testing.T) {
 	})
 }
 
-func TestAccDiskEncryptionSet_keyRotate(t *testing.T) {
+func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
 	r := DiskEncryptionSetResource{}
 
@@ -99,6 +99,28 @@ func TestAccDiskEncryptionSet_keyRotate(t *testing.T) {
 		},
 		{
 			Config: r.keyRotate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDiskEncryptionSet_keyRotateValid(t *testing.T) {
+	// Regression test case for issue #22864
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.keyRotateValid(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -357,6 +379,42 @@ resource "azurerm_disk_encryption_set" "test" {
 }
 
 func (r DiskEncryptionSetResource) keyRotate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "new" {
+  name         = "newKey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+}
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                      = "acctestDES-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  key_vault_key_id          = azurerm_key_vault_key.new.id
+  auto_key_rotation_enabled = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.systemAssignedDependencies(data), data.RandomInteger)
+}
+
+func (r DiskEncryptionSetResource) keyRotateValid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
