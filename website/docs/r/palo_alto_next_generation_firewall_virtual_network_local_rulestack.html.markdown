@@ -44,7 +44,7 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "trust" {
-  name                 = "exmaple-trust-subnet"
+  name                 = "example-trust-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -96,7 +96,7 @@ resource "azurerm_palo_alto_local_rulestack" "example" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "example" {
-  name         = "exmaple-rulestack-rule"
+  name         = "example-rulestack-rule"
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
   priority     = 1001
   action       = "Allow"
