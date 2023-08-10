@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -184,7 +183,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: storageaccounts.ValidateStorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 					},
 				},
@@ -215,7 +214,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: storageaccounts.ValidateStorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"target_resource_group_id": {
@@ -276,7 +275,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_boot_diagnostic_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: storageaccounts.ValidateStorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"target_capacity_reservation_group_id": {
@@ -798,7 +797,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			recoveryBootDiagStorageAccount := ""
 			if respBootDiagStorageAccountId := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); respBootDiagStorageAccountId != "" {
-				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(respBootDiagStorageAccountId)
+				parsedRecoveryBootDiagStorageAccount, err := commonids.ParseStorageAccountIDInsensitively(respBootDiagStorageAccountId)
 				if err != nil {
 					return err
 				}
@@ -858,7 +857,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 					primaryStagingAzureStorageAccountID := ""
 					if respStorageAccId := pointer.From(disk.PrimaryStagingAzureStorageAccountId); respStorageAccId != "" {
-						parsedStorageAccountId, err := storageaccounts.ParseStorageAccountIDInsensitively(respStorageAccId)
+						parsedStorageAccountId, err := commonids.ParseStorageAccountIDInsensitively(respStorageAccId)
 						if err != nil {
 							return err
 						}
