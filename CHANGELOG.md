@@ -9,6 +9,10 @@ ENHANCEMENTS:
 * `recoveryservices`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
 * `resources`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
 
+BUG FIXES:
+
+* `postgresql_database` - Readd support for `collation` `en-GB` [GH-22907]
+
 ## 3.69.0 (August 10, 2023)
 
 FEATURES:
