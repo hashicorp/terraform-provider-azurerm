@@ -650,8 +650,11 @@ func expandTransportMount(input []TransportMount) sapvirtualinstances.MountFileS
 
 	transportMount := &input[0]
 
+	// Currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected.
+	// The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`.
+	// See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209
 	result := sapvirtualinstances.MountFileShareConfiguration{
-		Id:                transportMount.FileShareId,
+		Id:                strings.Replace(transportMount.FileShareId, "/fileshares/", "/shares/", 1),
 		PrivateEndpointId: transportMount.PrivateEndpointId,
 	}
 

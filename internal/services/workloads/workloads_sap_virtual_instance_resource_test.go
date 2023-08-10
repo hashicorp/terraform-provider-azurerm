@@ -1063,7 +1063,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       }
 
       transport_mount {
-        file_share_id       = replace(azurerm_storage_share.test.resource_manager_id, "/fileshares/", "/shares/")
+        file_share_id       = azurerm_storage_share.test.resource_manager_id
         private_endpoint_id = azurerm_private_endpoint.test.id
       }
     }

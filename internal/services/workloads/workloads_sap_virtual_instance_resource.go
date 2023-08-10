@@ -3,6 +3,7 @@ package workloads
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -566,13 +567,11 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											// The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`
-											// See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209
 											"file_share_id": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
+												ValidateFunc: storageValidate.StorageShareResourceManagerID,
 											},
 
 											"private_endpoint_id": {
@@ -1054,8 +1053,11 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 			}
 
 			if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
+				// Currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected.
+				// The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`.
+				// See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209
 				transportMount := TransportMount{
-					FileShareId:       mountFileShareConfiguration.Id,
+					FileShareId:       strings.Replace(mountFileShareConfiguration.Id, "/shares/", "/fileshares/", 1),
 					PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
 				}
 
