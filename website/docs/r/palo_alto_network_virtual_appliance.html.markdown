@@ -30,7 +30,7 @@ resource "azurerm_virtual_hub" "example" {
   location            = azurerm_resource_group.example.location
   virtual_wan_id      = azurerm_virtual_wan.example.id
   address_prefix      = "10.0.0.0/23"
-  
+
   tags = {
     "hubSaaSPreview" = "true"
   }

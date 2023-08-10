@@ -27,7 +27,7 @@ resource "azurerm_palo_alto_local_rulestack" "example" {
 resource "azurerm_palo_alto_local_rulestack_prefix_list" "example" {
   name         = "example"
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
-  prefix_list  = [ "10.0.1.0/24" ]
+  prefix_list  = ["10.0.1.0/24"]
 }
 ```
 

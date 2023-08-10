@@ -25,10 +25,10 @@ resource "azurerm_palo_alto_local_rulestack" "example" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_fqdn_list" "example" {
-  name          = "example"
+  name         = "example"
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
-  
-  fully_qualified_domain_names = [ "contoso.com" ]
+
+  fully_qualified_domain_names = ["contoso.com"]
 }
 ```
 

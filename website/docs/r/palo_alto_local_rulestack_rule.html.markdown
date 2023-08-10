@@ -25,11 +25,11 @@ resource "azurerm_palo_alto_local_rulestack" "example" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "example" {
-  name          = "example-rule"
+  name         = "example-rule"
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
-  priority      = 1000
-  
-  applications  = ["any"]
+  priority     = 1000
+
+  applications = ["any"]
 
   source {
     cidrs = ["10.0.0.0/8"]
