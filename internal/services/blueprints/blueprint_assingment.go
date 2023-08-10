@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,7 +55,7 @@ func normalizeAssignmentParameterValuesJSON(jsonString interface{}) string {
 		return ""
 	}
 
-	var values map[string]*blueprint.ParameterValue
+	var values map[string]*assignment.ParameterValue
 	if err := json.Unmarshal([]byte(jsonString.(string)), &values); err != nil {
 		return fmt.Sprintf("unable to parse JSON: %+v", err)
 	}
@@ -70,7 +69,7 @@ func normalizeAssignmentResourceGroupValuesJSON(jsonString interface{}) string {
 		return ""
 	}
 
-	var values map[string]*blueprint.ResourceGroupValue
+	var values map[string]*assignment.ResourceGroupValue
 	if err := json.Unmarshal([]byte(jsonString.(string)), &values); err != nil {
 		return fmt.Sprintf("unable to parse JSON: %+v", err)
 	}
