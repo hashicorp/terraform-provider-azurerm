@@ -1,6 +1,13 @@
 ## 3.70.0 (Unreleased)
 
+ENHANCEMENTS:
 
+* dependencies: updating to `v0.20230810.1125717` of `github.com/hashicorp/go-azure-sdk` [GH-22874]
+* `cosmos`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
+* `policy`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
+* `postgres`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
+* `recoveryservices`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
+* `resources`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
 
 ## 3.69.0 (August 10, 2023)
 
