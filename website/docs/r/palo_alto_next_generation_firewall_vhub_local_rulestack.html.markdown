@@ -19,9 +19,9 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
   rulestack_id        = "TODO"
 
   network_profile {
-    virtual_hub_id = "TODO"
+    virtual_hub_id               = "TODO"
     network_virtual_appliance_id = "TODO"
-    public_ip_address_ids = [ "example" ]
+    public_ip_address_ids        = ["example"]
   }
 }
 ```

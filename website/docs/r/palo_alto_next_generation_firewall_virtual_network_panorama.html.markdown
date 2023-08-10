@@ -44,7 +44,7 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "trust" {
-  name                 = "exmaple-trust-subnet"
+  name                 = "example-trust-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -96,13 +96,13 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   panorama_base64_config = "e2RnbmFtZTogY25nZnctYXotZXhhbXBsZSwgdHBsbmFtZTogY25nZnctZXhhbXBsZS10ZW1wbGF0ZS1zdGFjaywgZXhhbXBsZS1wYW5vcmFtYS1zZXJ2ZXI6IDE5Mi4xNjguMC4xLCB2bS1hdXRoLWtleTogMDAwMDAwMDAwMDAwMDAwLCBleHBpcnk6IDIwMjQvMDcvMzF9Cg=="
 
   network_profile {
-    public_ip_address_ids = [ azurerm_public_ip.example.id ]
+    public_ip_address_ids = [azurerm_public_ip.example.id]
 
     vnet_configuration {
       virtual_network_id  = azurerm_virtual_network.example.id
       trusted_subnet_id   = azurerm_subnet.trust.id
       untrusted_subnet_id = azurerm_subnet.untrust.id
-    }    
+    }
   }
 }
 ```

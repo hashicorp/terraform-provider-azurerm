@@ -58,11 +58,11 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "example" {
   location            = azurerm_resource_group.example.location
 
   network_profile {
-    public_ip_address_ids                = [ azurerm_public_ip.example.id ]
+    public_ip_address_ids        = [azurerm_public_ip.example.id]
     virtual_hub_id               = azurerm_virtual_hub.example.id
-    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.example.id    
+    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.example.id
   }
-  
+
   panorama_base64_config = "VGhpcyBpcyBub3QgYSByZWFsIGNvbmZpZywgcGxlYXNlIHVzZSB5b3VyIFBhbm9yYW1hIHNlcnZlciB0byBnZW5lcmF0ZSBhIHJlYWwgdmFsdWUgZm9yIHRoaXMgcHJvcGVydHkhCg=="
 }
 ```
