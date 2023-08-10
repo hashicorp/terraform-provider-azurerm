@@ -4,17 +4,18 @@
 package automation
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"time"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft"
 
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	runbook2 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
+
+	// runbook2 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -310,8 +311,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
-		_, err := autoCli.RunbookDraftClient.ReplaceContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName, io.NopCloser(bytes.NewBufferString(content)))
-		if err != nil {
+		draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+		if err := autoCli.RunbookDraftClient.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(content)); err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
 		// Uncomment below once https://github.com/Azure/azure-sdk-for-go/issues/17196 is resolved.
@@ -319,8 +320,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)
 		// }
 
-		id2 := runbook2.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
-		if err := autoCli.RunbookClientHack.PublishThenPoll(ctx, id2); err != nil {
+		// id2 := runbook.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+		if err := autoCli.RunbookClient.PublishThenPoll(ctx, id); err != nil {
 			return fmt.Errorf("publishing the updated %s: %+v", id, err)
 		}
 	}

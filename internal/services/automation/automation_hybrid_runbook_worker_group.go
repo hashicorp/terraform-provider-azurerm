@@ -6,12 +6,12 @@ package automation
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/hybridrunbookworkergroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -85,16 +85,19 @@ func (m HybridRunbookWorkerGroupResource) Create() sdk.ResourceFunc {
 				}
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
-			req := hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateParameters{}
+			req := hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateParameters{
+				Name: pointer.To(model.Name),
+			}
 			if model.CredentialName != "" {
-				req.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
+				req.Properties = &hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateProperties{}
+				req.Properties.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
 					Name: utils.String(model.CredentialName),
 				}
 			}
 			// return 201 cause err in autorest sdk
-			future, err := client.Create(ctx, id, req)
+			_, err = client.Create(ctx, id, req)
 			// Workaround swagger issue https://github.com/Azure/azure-rest-api-specs/issues/19741
-			if err != nil && !response.WasStatusCode(future.HttpResponse, http.StatusCreated) {
+			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
@@ -124,8 +127,10 @@ func (m HybridRunbookWorkerGroupResource) Read() sdk.ResourceFunc {
 
 			output.Name = utils.NormalizeNilableString(result.Model.Name)
 			output.AutomationAccountName = id.AutomationAccountName
-			if c := result.Model.Credential; c != nil {
-				output.CredentialName = utils.NormalizeNilableString(c.Name)
+			if c := result.Model.Properties; c != nil {
+				if c.Credential != nil {
+					output.CredentialName = pointer.From(c.Credential.Name)
+				}
 			}
 			output.ResourceGroupName = id.ResourceGroupName
 			return meta.Encode(&output)
@@ -150,7 +155,8 @@ func (m HybridRunbookWorkerGroupResource) Update() sdk.ResourceFunc {
 
 			var upd hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateParameters
 			if meta.ResourceData.HasChange("credential_name") {
-				upd.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
+				upd.Properties = &hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateProperties{}
+				upd.Properties.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
 					Name: utils.String(model.CredentialName),
 				}
 			}

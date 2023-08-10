@@ -198,11 +198,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/role
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/certificate
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/connection
@@ -211,9 +209,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/credent
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscnodeconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/hybridrunbookworker
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/hybridrunbookworkergroup
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/module
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/schedule
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/sourcecontrol
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable
