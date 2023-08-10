@@ -4,6 +4,19 @@ FEATURES:
 
 * **New Resource**: `azurerm_graph_services_account` [GH-22665]
 * **New Resource**: `azurerm_managed_lustre_file_system` [GH-22680]
+* **New Resource**: `azurerm_palo_alto_local_rulestack` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_local_rulestack_certificate` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_local_rulestack_fqdn_list` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_local_rulestack_outbound_untrust_certificate_association`  [GH-22700]
+* **New Resource**: `azurerm_palo_alto_local_rulestack_prefix_list` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_local_rulestack_rule` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_virtual_network_appliance` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` [GH-22700]
+* **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama` [GH-22700]
+* **New Data Source**: `azurerm_palo_alto_local_rulestack` [GH-22700]
 
 ENHANCEMENTS:
 
