@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_palo_alto_local_rulestack` [GH-22700]
 * **New Resource**: `azurerm_graph_services_account` [GH-22665]
 * **New Resource**: `azurerm_managed_lustre_file_system` [GH-22680]
 * **New Resource**: `azurerm_palo_alto_local_rulestack` [GH-22700]
@@ -16,7 +17,6 @@ FEATURES:
 * **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` [GH-22700]
 * **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` [GH-22700]
 * **New Resource**: `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama` [GH-22700]
-* **New Data Source**: `azurerm_palo_alto_local_rulestack` [GH-22700]
 
 ENHANCEMENTS:
 
@@ -34,7 +34,6 @@ ENHANCEMENTS:
 * `azurerm_container_app_environment` - `log_analytics_workspace_id` is now an Optional property [GH-22733]
 * `azurerm_digital_twins_instance` - support for User Assigned Identities [GH-22782]
 * `azurerm_function_app_function` - hyphen and underscore are now allows characters for function names [GH-22519]
-* `azurerm_key_vault` - support `NestedItemTypeStorageKey` for the `nested_item` property [GH-22707]
 * `azurerm_key_vault_certificate` - Support update of certificates based on `certificate_policy` [GH-20627]
 * `azurerm_kubernetes_cluster` - export the identity for Web App Routing under `web_app_routing_identity` [GH-22809]
 * `azurerm_kubernetes_cluster` - add support for the `snapshot_id` property in the `default_node_pool` block [GH-22708]
@@ -61,10 +60,11 @@ BUG FIXES:
 
 * Data Source: `azurerm_virutal_machine` - correctly retrieve and set value for `power_state` [GH-22851]
 * `azurerm_cdn_endpoint` - conditionally using `PUT` in place of `PATCH` when a field other than `tags` has changed [GH-22662]
-* `azurerm_cdn_frontdoor_security_policy` - fix `resourceId` casing for associated `ActivatedResourceReference` resources on `READ` from Azure [GH-22841]
-* `azure_container_group` - set `init_container.secure_environment_variables` into state correctly [GH-22832]
+* `azurerm_cdn_frontdoor_security_policy` - normalizing the value returned from the API for `cdn_frontdoor_domain_id` [GH-22841]
+* `azurerm_container_group` - set `init_container.secure_environment_variables` into state correctly [GH-22832]
 * `azurerm_custom_ip_prefix` - support for environments other than Azure Public [GH-22812]
 * `azurerm_databricks_workspace` - update parse function for `machine_learning_workspace_id` field validation [GH-22865]
+* `azurerm_key_vault` - fixing support for the `storage` Nested Item type [GH-22707]
 * `azurerm_kusto_cosmosdb_data_connection_resource` - ensure the `subscriptionId` and `ResourceGroupName` align with the CosmosDB container [GH-22663]
 * `azurerm_managed_application` - fix an issue where `secureString` parameters were not persisted to state [GH-21541]
 * `azurerm_managed_application` - the `plan` block is now marked ForceNew to comply with service limitations [GH-21541]
