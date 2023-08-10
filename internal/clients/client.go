@@ -109,6 +109,7 @@ import (
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
+	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
@@ -240,6 +241,7 @@ type Client struct {
 	Nginx                        *nginx2.Client
 	NotificationHubs             *notificationhub.Client
 	Orbital                      *orbital.Client
+	PaloAlto                     *paloalto.Client
 	Policy                       *policy.Client
 	Portal                       *portal.Client
 	Postgres                     *postgres.Client
@@ -511,6 +513,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
+	}
+	if client.PaloAlto, err = paloalto.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PaloAlto: %+v", err)
 	}
 	if client.Portal, err = portal.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Portal: %+v", err)
