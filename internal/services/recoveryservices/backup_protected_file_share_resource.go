@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -24,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	recoveryServicesValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -104,12 +105,12 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	vaultId := backupprotectableitems.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string))
 
 	// get storage account name from id
-	parsedStorageAccountID, err := storageParse.StorageAccountID(storageAccountID)
+	parsedStorageAccountID, err := commonids.ParseStorageAccountID(storageAccountID)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageAccountID, err)
 	}
 
-	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
+	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroupName, parsedStorageAccountID.StorageAccountName)
 	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
 
 	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
