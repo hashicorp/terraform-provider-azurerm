@@ -271,11 +271,11 @@ resource "azurerm_automanage_configuration" "test" {
 }
 
 resource "azurerm_stack_hci_cluster" "test" {
-  name                        = "acctest-StackHCICluster-%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  client_id                   = data.azurerm_client_config.current.client_id
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  name                = "acctest-StackHCICluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  client_id           = data.azurerm_client_config.current.client_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
     ENV = "Test"
