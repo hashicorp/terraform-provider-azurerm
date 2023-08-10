@@ -10,6 +10,8 @@ description: |-
 
 Manages a SAP Virtual Instance.
 
+-> **Note:** Before using this resource, it's required to submit the request of registering the Resource Provider with Azure CLI `az provider register --namespace "Microsoft.Workloads"`. The Resource Provider can take a while to register, you can check the status by running `az provider show --namespace "Microsoft.Workloads" --query "registrationState"`. Once this outputs "Registered" the Resource Provider is available for use.
+
 ## Example Usage
 
 ```hcl
