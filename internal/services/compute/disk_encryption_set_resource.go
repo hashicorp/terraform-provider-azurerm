@@ -62,6 +62,7 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			// Issue #22864
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -252,7 +253,9 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("auto_key_rotation_enabled", RotationToLatestKeyVersionEnabled)
 
 		// NOTE: Since the auto rotation changes the version information when the key is rotated
-		// we need to persist the versionless key ID to the state file...
+		// we need to persist the versionless key ID to the state file else terraform will always
+		// try to revert to the original version of the key once it has been rotated...
+		// Issue #22864
 		if RotationToLatestKeyVersionEnabled {
 			nestedItem, err := keyVaultParse.ParseNestedItemID(keyVaultKeyId)
 			if err != nil {
