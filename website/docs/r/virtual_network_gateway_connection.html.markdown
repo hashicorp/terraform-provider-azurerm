@@ -263,7 +263,7 @@ The following arguments are supported:
 The `custom_bgp_addresses` block supports:
 
 * `primary` - (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
-* `secondary` - (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
+* `secondary` - (Optional) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
 
 ---
 

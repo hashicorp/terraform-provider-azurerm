@@ -219,7 +219,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 						},
 						"secondary": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.Any(validation.IsIPv4Address),
 						},
 					},
@@ -805,17 +805,21 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 		}
 	}
 
-	if len(primaryIpConfiguration) == 0 || len(secondaryIpConfiguration) == 0 {
-		return &customBgpIpAddresses, fmt.Errorf("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
+	if len(primaryIpConfiguration) == 0 && len(secondaryIpConfiguration) == 0 {
+		return &customBgpIpAddresses, fmt.Errorf("primary and secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
 	}
 
 	customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
 		IPConfigurationID:  &primaryIpConfiguration,
 		CustomBgpIPAddress: utils.String(primaryAddress),
-	}, network.GatewayCustomBgpIPAddressIPConfiguration{
-		IPConfigurationID:  &secondaryIpConfiguration,
-		CustomBgpIPAddress: utils.String(secondaryAddress),
 	})
+
+	if secondaryAddress != "" {
+		customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
+			IPConfigurationID:  &secondaryIpConfiguration,
+			CustomBgpIPAddress: utils.String(secondaryAddress),
+		})
+	}
 
 	return &customBgpIpAddresses, nil
 }
@@ -850,17 +854,18 @@ func flattenVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]networ
 }
 
 func flattenGatewayCustomBgpIPAddresses(gatewayCustomBgpIPAddresses *[]network.GatewayCustomBgpIPAddressIPConfiguration) interface{} {
-	customBgpIpAdresses := make([]interface{}, 0)
+	customBgpIpAddresses := make([]interface{}, 0)
+	customBgpIpAddress := map[string]interface{}{}
 
-	if len(*gatewayCustomBgpIPAddresses) == 2 {
-		addresses := *gatewayCustomBgpIPAddresses
-		customBgpIpAdresses = append(customBgpIpAdresses, map[string]interface{}{
-			"primary":   addresses[0].CustomBgpIPAddress,
-			"secondary": addresses[1].CustomBgpIPAddress,
-		})
+	for k, v := range *gatewayCustomBgpIPAddresses {
+		if k == 0 && v.CustomBgpIPAddress != nil {
+			customBgpIpAddress["primary"] = *v.CustomBgpIPAddress
+		} else if k == 1 && v.CustomBgpIPAddress != nil {
+			customBgpIpAddress["secondary"] = *v.CustomBgpIPAddress
+		}
 	}
 
-	return customBgpIpAdresses
+	return append(customBgpIpAddresses, customBgpIpAddress)
 }
 
 func flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
