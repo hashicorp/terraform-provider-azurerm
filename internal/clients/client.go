@@ -117,6 +117,7 @@ import (
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
+	qumulo "github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
@@ -249,6 +250,7 @@ type Client struct {
 	PrivateDns                   *privatedns.Client
 	PrivateDnsResolver           *dnsresolver.Client
 	Purview                      *purview.Client
+	Qumulo                       *qumulo.Client
 	RecoveryServices             *recoveryServices.Client
 	Redis                        *redis_v2023_04_01.Client
 	RedisEnterprise              *redisenterprise.Client
@@ -541,6 +543,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
+	if client.Qumulo, err = qumulo.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Qumulo: %+v", err)
 	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)

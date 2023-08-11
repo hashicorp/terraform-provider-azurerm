@@ -276,6 +276,9 @@ service/private-dns-resolver:
 service/purview:
   - internal/services/purview/**/*
 
+service/qumulo:
+  - internal/services/qumulo/**/*
+
 service/recovery-services:
   - internal/services/recoveryservices/**/*
 
