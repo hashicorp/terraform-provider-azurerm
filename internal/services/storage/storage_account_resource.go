@@ -1408,7 +1408,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 		if account == nil {
 			return fmt.Errorf("unable to locate %s", id)
@@ -1512,7 +1512,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Sku for %s %q: %+v", *id, err)
+			return fmt.Errorf("updating Sku for %s: %+v", *id, err)
 		}
 	}
 

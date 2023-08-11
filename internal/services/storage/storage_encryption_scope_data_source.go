@@ -67,7 +67,7 @@ func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
