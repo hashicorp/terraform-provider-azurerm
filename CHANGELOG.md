@@ -13,6 +13,7 @@ BUG FIXES:
 
 * `azurerm_iothub_dps` - updating the validation for `target` within the `ip_filter_rule` block to match the values defined in the Azure API Definitions [GH-22891]
 * `azurerm_postgresql_database` - updating the validation for `collation` to include `en-GB` [GH-22907]
+* `azurerm_virtual_network_gateway_connection` - `custom_bgp_addresses.secondary` is now `Optional` rather than `Required` [GH-22912]
 
 ## 3.69.0 (August 10, 2023)
 
