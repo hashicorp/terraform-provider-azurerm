@@ -201,8 +201,8 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 					return err
 				}
 				configId = automanageConfigId.ID()
-			} 
-			
+			}
+
 			d.Set("automanage_configuration_id", configId)
 		}
 
