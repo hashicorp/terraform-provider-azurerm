@@ -7,12 +7,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -743,12 +741,15 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 			// retry to restore service since there is an API issue : https://github.com/Azure/azure-rest-api-specs/issues/25262
 			err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-				if err := client.CreateOrUpdateThenPoll(ctx, id, params); err != nil {
-					if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusBadRequest {
+				resp, err := client.CreateOrUpdate(ctx, id, params)
+				if err != nil {
+					if response.WasBadRequest(resp.HttpResponse) {
 						return pluginsdk.RetryableError(err)
 					}
 					return pluginsdk.NonRetryableError(err)
-
+				}
+				if err := resp.Poller.PollUntilDone(ctx); err != nil {
+					return pluginsdk.NonRetryableError(err)
 				}
 				return nil
 			})
@@ -1182,11 +1183,17 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 			if _, err := deletedServicesClient.GetByName(ctx, deletedServiceId); err != nil {
 				return fmt.Errorf("retrieving the deleted %s to be able to purge it: %+v", *id, err)
 			}
-			if err := deletedServicesClient.PurgeThenPoll(ctx, deletedServiceId); err != nil {
-				if v, ok := err.(autorest.DetailedError); ok && v.StatusCode != http.StatusNotFound {
+			resp, err := deletedServicesClient.Purge(ctx, deletedServiceId)
+			if err != nil && !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("purging the deleted %s: %+v", *id, err)
+			}
+
+			if !response.WasNotFound(resp.HttpResponse) {
+				if err := resp.Poller.PollUntilDone(ctx); err != nil {
 					return fmt.Errorf("purging the deleted %s: %+v", *id, err)
 				}
 			}
+
 			log.Printf("[DEBUG] Purged %s.", *id)
 			return nil
 		}
