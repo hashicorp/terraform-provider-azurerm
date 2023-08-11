@@ -472,7 +472,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 				Secrets: expandLinuxSecrets(d.Get("secret").([]interface{})),
 			},
 			NetworkProfile: &virtualmachines.NetworkProfile{
-				NetworkInterfaces: pointer.To(expandVirtualMachineNetworkInterfaceIDs(d.Get("network_interface_ids").([]interface{}))),
+				NetworkInterfaces: expandVirtualMachineNetworkInterfaceIDs(d.Get("network_interface_ids").([]interface{})),
 			},
 			Priority: pointer.To(virtualmachines.VirtualMachinePriorityTypes(d.Get("priority").(string))),
 			StorageProfile: &virtualmachines.StorageProfile{
@@ -1140,11 +1140,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		// @tombuildsstuff: after testing shutting it down isn't sufficient - we need a full deallocation
 		shouldDeallocate = true
 
-		networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
-		networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
-
 		update.Properties.NetworkProfile = &virtualmachines.NetworkProfile{
-			NetworkInterfaces: &networkInterfaceIds,
+			NetworkInterfaces: expandVirtualMachineNetworkInterfaceIDs(d.Get("network_interface_ids").([]interface{})),
 		}
 	}
 

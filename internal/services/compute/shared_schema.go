@@ -4,8 +4,10 @@
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -45,26 +47,29 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
-	output := make([]compute.AdditionalUnattendContent, 0)
+func expandAdditionalUnattendContent(input []interface{}) *[]virtualmachines.AdditionalUnattendContent {
+	if len(input) == 0 {
+		return nil
+	}
+	output := make([]virtualmachines.AdditionalUnattendContent, 0)
 
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		output = append(output, compute.AdditionalUnattendContent{
-			SettingName: compute.SettingNames(raw["setting"].(string)),
+		output = append(output, virtualmachines.AdditionalUnattendContent{
+			SettingName: pointer.To(virtualmachines.SettingNames(raw["setting"].(string))),
 			Content:     utils.String(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      compute.PassNamesOobeSystem,
-			ComponentName: compute.ComponentNamesMicrosoftWindowsShellSetup,
+			PassName:      pointer.To(virtualmachines.PassNamesOobeSystem),
+			ComponentName: pointer.To(virtualmachines.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 		})
 	}
 
 	return &output
 }
 
-func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent, d *pluginsdk.ResourceData) []interface{} {
+func flattenAdditionalUnattendContent(input *[]virtualmachines.AdditionalUnattendContent, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -91,7 +96,7 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 
 		output = append(output, map[string]interface{}{
 			"content": content,
-			"setting": string(v.SettingName),
+			"setting": string(pointer.From(v.SettingName)),
 		})
 	}
 
@@ -117,22 +122,22 @@ func bootDiagnosticsSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
+func expandBootDiagnostics(input []interface{}) *virtualmachines.DiagnosticsProfile {
 	if len(input) == 0 {
-		return &compute.DiagnosticsProfile{
-			BootDiagnostics: &compute.BootDiagnostics{
+		return &virtualmachines.DiagnosticsProfile{
+			BootDiagnostics: &virtualmachines.BootDiagnostics{
 				Enabled:    utils.Bool(false),
-				StorageURI: utils.String(""),
+				StorageUri: utils.String(""),
 			},
 		}
 	}
 
 	// this serves the managed boot diagnostics, in this case we only have this empty block without `storage_account_uri` set
 	if input[0] == nil {
-		return &compute.DiagnosticsProfile{
-			BootDiagnostics: &compute.BootDiagnostics{
+		return &virtualmachines.DiagnosticsProfile{
+			BootDiagnostics: &virtualmachines.BootDiagnostics{
 				Enabled:    utils.Bool(true),
-				StorageURI: utils.String(""),
+				StorageUri: utils.String(""),
 			},
 		}
 	}
@@ -141,22 +146,22 @@ func expandBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
 
 	storageAccountURI := raw["storage_account_uri"].(string)
 
-	return &compute.DiagnosticsProfile{
-		BootDiagnostics: &compute.BootDiagnostics{
+	return &virtualmachines.DiagnosticsProfile{
+		BootDiagnostics: &virtualmachines.BootDiagnostics{
 			Enabled:    utils.Bool(true),
-			StorageURI: utils.String(storageAccountURI),
+			StorageUri: utils.String(storageAccountURI),
 		},
 	}
 }
 
-func flattenBootDiagnostics(input *compute.DiagnosticsProfile) []interface{} {
+func flattenBootDiagnostics(input *virtualmachines.DiagnosticsProfile) []interface{} {
 	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled {
 		return []interface{}{}
 	}
 
 	storageAccountUri := ""
-	if input.BootDiagnostics.StorageURI != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageURI
+	if input.BootDiagnostics.StorageUri != nil {
+		storageAccountUri = *input.BootDiagnostics.StorageUri
 	}
 
 	return []interface{}{
@@ -196,27 +201,27 @@ func linuxSecretSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandLinuxSecrets(input []interface{}) *[]compute.VaultSecretGroup {
-	output := make([]compute.VaultSecretGroup, 0)
+func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
+	output := make([]virtualmachines.VaultSecretGroup, 0)
 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 
 		keyVaultId := v["key_vault_id"].(string)
 		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
-		certificates := make([]compute.VaultCertificate, 0)
+		certificates := make([]virtualmachines.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
 			certificateV := certificateRaw.(map[string]interface{})
 
 			url := certificateV["url"].(string)
-			certificates = append(certificates, compute.VaultCertificate{
-				CertificateURL: utils.String(url),
+			certificates = append(certificates, virtualmachines.VaultCertificate{
+				CertificateUrl: utils.String(url),
 			})
 		}
 
-		output = append(output, compute.VaultSecretGroup{
-			SourceVault: &compute.SubResource{
-				ID: utils.String(keyVaultId),
+		output = append(output, virtualmachines.VaultSecretGroup{
+			SourceVault: &virtualmachines.SubResource{
+				Id: utils.String(keyVaultId),
 			},
 			VaultCertificates: &certificates,
 		})
@@ -225,7 +230,7 @@ func expandLinuxSecrets(input []interface{}) *[]compute.VaultSecretGroup {
 	return &output
 }
 
-func flattenLinuxSecrets(input *[]compute.VaultSecretGroup) []interface{} {
+func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -234,20 +239,20 @@ func flattenLinuxSecrets(input *[]compute.VaultSecretGroup) []interface{} {
 
 	for _, v := range *input {
 		keyVaultId := ""
-		if v.SourceVault != nil && v.SourceVault.ID != nil {
-			keyVaultId = *v.SourceVault.ID
+		if v.SourceVault != nil && v.SourceVault.Id != nil {
+			keyVaultId = *v.SourceVault.Id
 		}
 
 		certificates := make([]interface{}, 0)
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				if c.CertificateURL == nil {
+				if c.CertificateUrl == nil {
 					continue
 				}
 
 				certificates = append(certificates, map[string]interface{}{
-					"url": *c.CertificateURL,
+					"url": *c.CertificateUrl,
 				})
 			}
 		}
@@ -291,21 +296,21 @@ func planSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandPlan(input []interface{}) *compute.Plan {
+func expandPlan(input []interface{}) *virtualmachines.Plan {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
 
-	return &compute.Plan{
+	return &virtualmachines.Plan{
 		Name:      utils.String(raw["name"].(string)),
 		Product:   utils.String(raw["product"].(string)),
 		Publisher: utils.String(raw["publisher"].(string)),
 	}
 }
 
-func flattenPlan(input *compute.Plan) []interface{} {
+func flattenPlan(input *virtualmachines.Plan) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -437,31 +442,31 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 	return false
 }
 
-func expandSourceImageReference(referenceInput []interface{}, imageId string) *compute.ImageReference {
+func expandSourceImageReference(referenceInput []interface{}, imageId string) *virtualmachines.ImageReference {
 	if imageId != "" {
 		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
 		if _, errors := validation.Any(validate.CommunityGalleryImageID, validate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
-			return &compute.ImageReference{
-				CommunityGalleryImageID: utils.String(imageId),
+			return &virtualmachines.ImageReference{
+				CommunityGalleryImageId: utils.String(imageId),
 			}
 		}
 
 		// With Version            : "/sharedGalleries/galleryUniqueName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/sharedGalleries/galleryUniqueName/images/myGalleryImageName"
 		if _, errors := validation.Any(validate.SharedGalleryImageID, validate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
-			return &compute.ImageReference{
-				SharedGalleryImageID: utils.String(imageId),
+			return &virtualmachines.ImageReference{
+				SharedGalleryImageId: utils.String(imageId),
 			}
 		}
 
-		return &compute.ImageReference{
-			ID: utils.String(imageId),
+		return &virtualmachines.ImageReference{
+			Id: utils.String(imageId),
 		}
 	}
 
 	raw := referenceInput[0].(map[string]interface{})
-	return &compute.ImageReference{
+	return &virtualmachines.ImageReference{
 		Publisher: utils.String(raw["publisher"].(string)),
 		Offer:     utils.String(raw["offer"].(string)),
 		Sku:       utils.String(raw["sku"].(string)),
@@ -469,7 +474,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) *c
 	}
 }
 
-func flattenSourceImageReference(input *compute.ImageReference, hasImageId bool) []interface{} {
+func flattenSourceImageReference(input *virtualmachines.ImageReference, hasImageId bool) []interface{} {
 	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
 	if input == nil || hasImageId {
 		return []interface{}{}
@@ -532,30 +537,30 @@ func winRmListenerSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandWinRMListener(input []interface{}) *compute.WinRMConfiguration {
-	listeners := make([]compute.WinRMListener, 0)
+func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguration {
+	listeners := make([]virtualmachines.WinRMListener, 0)
 
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		listener := compute.WinRMListener{
-			Protocol: compute.ProtocolTypes(raw["protocol"].(string)),
+		listener := virtualmachines.WinRMListener{
+			Protocol: pointer.To(virtualmachines.ProtocolTypes(raw["protocol"].(string))),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
 		if certificateUrl != "" {
-			listener.CertificateURL = utils.String(certificateUrl)
+			listener.CertificateUrl = utils.String(certificateUrl)
 		}
 
 		listeners = append(listeners, listener)
 	}
 
-	return &compute.WinRMConfiguration{
+	return &virtualmachines.WinRMConfiguration{
 		Listeners: &listeners,
 	}
 }
 
-func flattenWinRMListener(input *compute.WinRMConfiguration) []interface{} {
+func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []interface{} {
 	if input == nil || input.Listeners == nil {
 		return []interface{}{}
 	}
@@ -564,13 +569,13 @@ func flattenWinRMListener(input *compute.WinRMConfiguration) []interface{} {
 
 	for _, v := range *input.Listeners {
 		certificateUrl := ""
-		if v.CertificateURL != nil {
-			certificateUrl = *v.CertificateURL
+		if v.CertificateUrl != nil {
+			certificateUrl = *v.CertificateUrl
 		}
 
 		output = append(output, map[string]interface{}{
 			"certificate_url": certificateUrl,
-			"protocol":        string(v.Protocol),
+			"protocol":        string(pointer.From(v.Protocol)),
 		})
 	}
 
@@ -609,29 +614,29 @@ func windowsSecretSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandWindowsSecrets(input []interface{}) *[]compute.VaultSecretGroup {
-	output := make([]compute.VaultSecretGroup, 0)
+func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
+	output := make([]virtualmachines.VaultSecretGroup, 0)
 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 
 		keyVaultId := v["key_vault_id"].(string)
 		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
-		certificates := make([]compute.VaultCertificate, 0)
+		certificates := make([]virtualmachines.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
 			certificateV := certificateRaw.(map[string]interface{})
 
 			store := certificateV["store"].(string)
 			url := certificateV["url"].(string)
-			certificates = append(certificates, compute.VaultCertificate{
+			certificates = append(certificates, virtualmachines.VaultCertificate{
 				CertificateStore: utils.String(store),
-				CertificateURL:   utils.String(url),
+				CertificateUrl:   utils.String(url),
 			})
 		}
 
-		output = append(output, compute.VaultSecretGroup{
-			SourceVault: &compute.SubResource{
-				ID: utils.String(keyVaultId),
+		output = append(output, virtualmachines.VaultSecretGroup{
+			SourceVault: &virtualmachines.SubResource{
+				Id: utils.String(keyVaultId),
 			},
 			VaultCertificates: &certificates,
 		})
@@ -640,7 +645,7 @@ func expandWindowsSecrets(input []interface{}) *[]compute.VaultSecretGroup {
 	return &output
 }
 
-func flattenWindowsSecrets(input *[]compute.VaultSecretGroup) []interface{} {
+func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -649,8 +654,8 @@ func flattenWindowsSecrets(input *[]compute.VaultSecretGroup) []interface{} {
 
 	for _, v := range *input {
 		keyVaultId := ""
-		if v.SourceVault != nil && v.SourceVault.ID != nil {
-			keyVaultId = *v.SourceVault.ID
+		if v.SourceVault != nil && v.SourceVault.Id != nil {
+			keyVaultId = *v.SourceVault.Id
 		}
 
 		certificates := make([]interface{}, 0)
@@ -663,8 +668,8 @@ func flattenWindowsSecrets(input *[]compute.VaultSecretGroup) []interface{} {
 				}
 
 				url := ""
-				if c.CertificateURL != nil {
-					url = *c.CertificateURL
+				if c.CertificateUrl != nil {
+					url = *c.CertificateUrl
 				}
 
 				certificates = append(certificates, map[string]interface{}{
