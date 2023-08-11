@@ -28,7 +28,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "example" {
   name         = "example-rule"
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
   priority     = 1000
-  action = "Allow"
+  action       = "Allow"
 
   applications = ["any"]
 
