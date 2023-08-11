@@ -495,11 +495,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		d.Set("shared_key", conn.SharedKey)
 	}
 
-	if conn.GatewayCustomBgpIPAddresses != nil {
-		adresses := flattenGatewayCustomBgpIPAddresses(conn.GatewayCustomBgpIPAddresses)
-		if err := d.Set("custom_bgp_addresses", adresses); err != nil {
-			return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
-		}
+	if err := d.Set("custom_bgp_addresses", flattenGatewayCustomBgpIPAddresses(conn.GatewayCustomBgpIPAddresses)); err != nil {
+		return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
 	}
 
 	d.Set("connection_protocol", string(conn.ConnectionProtocol))
@@ -855,8 +852,11 @@ func flattenVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]networ
 
 func flattenGatewayCustomBgpIPAddresses(gatewayCustomBgpIPAddresses *[]network.GatewayCustomBgpIPAddressIPConfiguration) interface{} {
 	customBgpIpAddresses := make([]interface{}, 0)
-	customBgpIpAddress := map[string]interface{}{}
+	if gatewayCustomBgpIPAddresses == nil || len(*gatewayCustomBgpIPAddresses) == 0 {
+		return customBgpIpAddresses
+	}
 
+	customBgpIpAddress := map[string]interface{}{}
 	for k, v := range *gatewayCustomBgpIPAddresses {
 		if k == 0 && v.CustomBgpIPAddress != nil {
 			customBgpIpAddress["primary"] = *v.CustomBgpIPAddress
