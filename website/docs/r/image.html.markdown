@@ -10,176 +10,21 @@ description: |-
 
 Manages a custom virtual machine image that can be used to create virtual machines.
 
-## Example Usage Creating from VHD
+## Example Usage
+
+-> **Note:** For a more complete example, see [the `examples/image` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/image) within the GitHub Repository.
 
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
+data "azurerm_virtual_machine" "example" {
+  name                = "examplevm"
+  resource_group_name = "example-resources"
 }
-
-resource "azurerm_storage_account" "example" {
-  name                     = "examplestorage"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  allow_nested_items_to_be_public = true
-
-  tags = {
-    environment = "Dev"
-  }
-}
-
-resource "azurerm_storage_container" "example" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.example.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_network" "example" {
-  name                = "example-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_network_interface" "example" {
-  name                = "test-nic"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.example.id
-  }
-}
-
-resource "azurerm_virtual_machine" "example" {
-  name                  = "examplevm"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    create_option = "FromImage"
-    vhd_uri       = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}/myosdisk1.vhd"
-  }
-
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-}
-
-resource "azurerm_image" "example" {
-  name                = "exampleimage"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.example.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-  }
-}
-```
-
-## Example Usage Creating from Virtual Machine (VM must be generalized beforehand)
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_virtual_network" "example" {
-  name                = "example-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_network_interface" "example" {
-  name                = "test-nic"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.example.id
-  }
-}
-
-resource "azurerm_virtual_machine" "example" {
-  name                  = "examplevm"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-}
-
-# azurerm_virtual_machine.example has to be generalized in order to create the below image
 
 resource "azurerm_image" "example" {
   name                      = "exampleimage"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  source_virtual_machine_id = azurerm_virtual_machine.example.id
+  location                  = data.azurerm_virtual_machine.example.location
+  resource_group_name       = data.azurerm_virtual_machine.example.name
+  source_virtual_machine_id = data.azurerm_virtual_machine.example.id
 }
 ```
 
