@@ -173,7 +173,7 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  availability_zone = "1"
+  availability_zone   = "1"
   delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
   storage_sku         = "Performance"
@@ -215,7 +215,7 @@ resource "azurerm_subnet" "test" {
   delegation {
     name = "delegation"
     service_delegation {
-	  actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       name    = "Qumulo.Storage/fileSystems"
     }
   }
