@@ -915,7 +915,12 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(
+			"azure_files_authentication.0.active_directory.0.storage_sid",
+			"azure_files_authentication.0.active_directory.0.domain_sid",
+			"azure_files_authentication.0.active_directory.0.forest_name",
+			"azure_files_authentication.0.active_directory.0.netbios_domain_name",
+		),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -3322,6 +3327,15 @@ resource "azurerm_storage_account" "test" {
 
   tags = {
     environment = "production"
+  }
+
+  lifecycle {
+	ignore_changes = [
+		azure_files_authentication.0.active_directory.0.storage_sid,
+		azure_files_authentication.0.active_directory.0.domain_sid,
+		azure_files_authentication.0.active_directory.0.forest_name,
+		azure_files_authentication.0.active_directory.0.netbios_domain_name,
+	]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
