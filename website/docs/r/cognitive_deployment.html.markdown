@@ -78,7 +78,7 @@ A `scale` block supports the following:
 
 * `family` - (Optional) If the service has different generations of hardware, for the same SKU, then that can be captured here. Changing this forces a new resource to be created.
 
-* `capacity` - (Optional) Tokens-per-Minute (TPM). If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted. Default value is `1`. Changing this forces a new resource to be created.
+* `capacity` - (Optional) Tokens-per-Minute (TPM). Unit of this value is thousands of Token-per-Minute. Default value is `1` which indicates limitation is `1000` tokens per minute. If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
