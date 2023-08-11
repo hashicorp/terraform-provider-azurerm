@@ -135,7 +135,6 @@ func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
 			Config:      r.keyRotateInvalid(data),
 			ExpectError: regexp.MustCompile("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found"),
 		},
-		data.ImportStep(),
 	})
 }
 

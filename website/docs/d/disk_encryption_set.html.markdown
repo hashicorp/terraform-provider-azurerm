@@ -27,7 +27,7 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - The name of the Disk Encryption Set exists.
+* `name` - The name of the existing Disk Encryption Set.
 
 * `resource_group_name` - The name of the Resource Group where the Disk Encryption Set exists.
 
