@@ -28,6 +28,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "example" {
   name         = "example-rule"
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
   priority     = 1000
+  action       = "Allow"
 
   applications = ["any"]
 
@@ -53,7 +54,7 @@ The following arguments are supported:
 
 ~> **NOTE:** This is the primary identifier of a rule, as such it is not possible to change the Priority of a rule once created.
 
-* `action` - (Required) The action to take on the rule being triggered. Defaults to `Allow`.
+* `action` - (Required) The action to take on the rule being triggered.
 
 * `name` - (Required) The name which should be used for this Palo Alto Local Rulestack Rule. 
 
@@ -108,11 +109,11 @@ A `destination` block supports the following:
 
 * `feeds` - (Optional) Specifies a list of Feeds.
 
-* `fqdn_lists` - (Optional) Specifies a list of FQDN lists.
+* `local_rulestack_fqdn_list_ids` - (Optional) Specifies a list of FQDN lists.
 
 ~> **Note:** This is a list of names of FQDN Lists configured on the same Local Rulestack as this Rule is being created.
 
-* `prefix_lists` - (Optional) Specifies a list of Prefix Lists.
+* `local_rulestack_prefix_list_ids` - (Optional) Specifies a list of Prefix Lists.
 
 ~> **Note:** This is a list of names of Prefix Lists configured on the same Local Rulestack as this Rule is being created.
 
@@ -128,7 +129,7 @@ A `source` block supports the following:
 
 * `feeds` - (Optional) Specifies a list of Feeds.
 
-* `prefix_lists` - (Optional) Specifies a list of Prefix Lists.
+* `local_rulestack_prefix_list_ids` - (Optional) Specifies a list of Prefix Lists.
 
 ~> **Note:** This is a list of names of Prefix Lists configured on the same Local Rulestack as this Rule is being created.
 
