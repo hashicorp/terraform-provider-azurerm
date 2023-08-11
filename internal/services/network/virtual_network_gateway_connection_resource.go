@@ -805,8 +805,8 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 		}
 	}
 
-	if len(primaryIpConfiguration) == 0 && len(secondaryIpConfiguration) == 0 {
-		return &customBgpIpAddresses, fmt.Errorf("primary and secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
+	if len(primaryIpConfiguration) == 0 || (secondaryAddress != "" && len(secondaryIpConfiguration) == 0) {
+		return &customBgpIpAddresses, fmt.Errorf("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
 	}
 
 	customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
