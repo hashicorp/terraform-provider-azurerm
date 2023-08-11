@@ -340,20 +340,11 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.CreateMode = pointer.To(vaults.CreateModeRecover)
 	}
 
-	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
-	virtualNetworkNames := make([]string, 0)
-	for _, v := range subnetIds {
-		id, err := commonids.ParseSubnetIDInsensitively(v)
-		if err != nil {
-			return err
-		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
-			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
-		}
+	unlock, err := lockVirtualNetworks(subnetIds)
+	if err != nil {
+		return err
 	}
-
-	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	defer unlock()
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -403,6 +394,26 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	return resourceKeyVaultRead(d, meta)
+}
+
+func lockVirtualNetworks(subnetIds []string) (func(), error) {
+	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
+	virtualNetworkNames := make([]string, 0)
+	for _, v := range subnetIds {
+		id, err := commonids.ParseSubnetIDInsensitively(v)
+		if err != nil {
+			return nil, err
+		}
+		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
+		}
+	}
+
+	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+
+	return func() {
+		locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	}, nil
 }
 
 func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -484,21 +495,11 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		networkAclsRaw := d.Get("network_acls").([]interface{})
 		networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
 
-		// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
-		virtualNetworkNames := make([]string, 0)
-		for _, v := range subnetIds {
-			id, err := commonids.ParseSubnetIDInsensitively(v)
-			if err != nil {
-				return err
-			}
-
-			if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
-				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
-			}
+		unlock, err := lockVirtualNetworks(subnetIds)
+		if err != nil {
+			return err
 		}
-
-		locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-		defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+		defer unlock()
 
 		update.Properties.NetworkAcls = networkAcls
 	}
