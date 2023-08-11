@@ -41,6 +41,8 @@ The following attributes are exported:
 
 * `auto_key_rotation_enabled` - Is the Azure Disk Encryption Set Key automatically rotated to latest version?
 
+* `key_vault_key_url` - The URL for the Key Vault Key or Key Vault Secret that is currently being used by the service.
+
 * `tags` - A mapping of tags assigned to the Disk Encryption Set.
 
 ## Timeouts

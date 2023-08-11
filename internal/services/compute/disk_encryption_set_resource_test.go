@@ -6,6 +6,7 @@ package compute_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
@@ -86,7 +87,7 @@ func TestAccDiskEncryptionSet_update(t *testing.T) {
 	})
 }
 
-func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
+func TestAccDiskEncryptionSet_keyReplace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
 	r := DiskEncryptionSetResource{}
 
@@ -97,8 +98,9 @@ func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.keyRotate(data),
+			Config: r.keyReplace(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -114,16 +116,24 @@ func TestAccDiskEncryptionSet_keyRotateValid(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
 			Config: r.keyRotateValid(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
+	// Regression test case for issue #22864
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyRotateInvalid(data),
+			ExpectError: regexp.MustCompile("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found"),
 		},
 		data.ImportStep(),
 	})
@@ -297,7 +307,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 
-  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, purgeProtectionEnabled)
@@ -364,7 +374,7 @@ resource "azurerm_disk_encryption_set" "test" {
   name                      = "acctestDES-%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
-  key_vault_key_id          = azurerm_key_vault_key.test.id
+  key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
   auto_key_rotation_enabled = true
 
   identity {
@@ -378,7 +388,25 @@ resource "azurerm_disk_encryption_set" "test" {
 `, r.systemAssignedDependencies(data), data.RandomInteger)
 }
 
-func (r DiskEncryptionSetResource) keyRotate(data acceptance.TestData) string {
+func (r DiskEncryptionSetResource) keyRotateInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                      = "acctestDES-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  key_vault_key_id          = azurerm_key_vault_key.test.id
+  auto_key_rotation_enabled = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.systemAssignedDependencies(data), data.RandomInteger)
+}
+
+func (r DiskEncryptionSetResource) keyReplace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -404,7 +432,7 @@ resource "azurerm_disk_encryption_set" "test" {
   name                      = "acctestDES-%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
-  key_vault_key_id          = azurerm_key_vault_key.new.id
+  key_vault_key_id          = azurerm_key_vault_key.new.versionless_id
   auto_key_rotation_enabled = true
 
   identity {
@@ -418,29 +446,11 @@ func (r DiskEncryptionSetResource) keyRotateValid(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_key_vault_key" "new" {
-  name         = "newKey"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-
-  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
-}
-
 resource "azurerm_disk_encryption_set" "test" {
   name                      = "acctestDES-%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
-  key_vault_key_id          = azurerm_key_vault_key.new.id
+  key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
   auto_key_rotation_enabled = true
 
   identity {
@@ -490,7 +500,7 @@ resource "azurerm_key_vault_access_policy" "user-assigned" {
     "GetRotationPolicy",
   ]
 
-  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
 }
 
 resource "azurerm_disk_encryption_set" "test" {
@@ -506,7 +516,7 @@ resource "azurerm_disk_encryption_set" "test" {
     ]
   }
 
-  depends_on = ["azurerm_key_vault_access_policy.user-assigned"]
+  depends_on = [azurerm_key_vault_access_policy.user-assigned]
 }
 	`, r.dependencies(data, true), data.RandomInteger)
 }
@@ -533,7 +543,7 @@ resource "azurerm_key_vault_access_policy" "user-assigned" {
     "GetRotationPolicy",
   ]
 
-  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
 }
 
 resource "azurerm_disk_encryption_set" "test" {
@@ -549,7 +559,7 @@ resource "azurerm_disk_encryption_set" "test" {
     ]
   }
 
-  depends_on = ["azurerm_key_vault_access_policy.user-assigned"]
+  depends_on = [azurerm_key_vault_access_policy.user-assigned]
 }
 	`, r.systemAssignedDependencies(data), data.RandomInteger)
 }
@@ -581,7 +591,7 @@ resource "azurerm_key_vault_access_policy" "user-assigned" {
     "GetRotationPolicy",
   ]
 
-  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
 }
 
 resource "azurerm_disk_encryption_set" "test" {
@@ -598,7 +608,7 @@ resource "azurerm_disk_encryption_set" "test" {
     ]
   }
 
-  depends_on = ["azurerm_key_vault_access_policy.user-assigned"]
+  depends_on = [azurerm_key_vault_access_policy.user-assigned]
 }
 	`, r.dependencies(data, true), data.RandomInteger, federatedClientId)
 }

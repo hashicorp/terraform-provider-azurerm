@@ -43,6 +43,11 @@ func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"key_vault_key_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -74,6 +79,10 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if props := model.Properties; props != nil {
 		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
+
+		if props.ActiveKey != nil && props.ActiveKey.KeyUrl != "" {
+			d.Set("key_vault_key_url", props.ActiveKey.KeyUrl)
+		}
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)
