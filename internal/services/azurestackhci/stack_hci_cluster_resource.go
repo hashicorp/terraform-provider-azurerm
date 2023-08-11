@@ -194,17 +194,16 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 			if err != nil && !utils.ResponseWasNotFound(assignmentResp.Response) {
 				return err
 			}
-
+			configId := ""
 			if !utils.ResponseWasNotFound(assignmentResp.Response) && assignmentResp.Properties != nil && assignmentResp.Properties.ConfigurationProfile != nil {
 				automanageConfigId, err := autoParse.AutomanageConfigurationID(*assignmentResp.Properties.ConfigurationProfile)
 				if err != nil {
 					return err
 				}
-				d.Set("automanage_configuration_id", automanageConfigId.ID())
-			} else {
-				// remove the automanage_configuration_id if it is not found
-				d.Set("automanage_configuration_id", "")
-			}
+				configId = automanageConfigId.ID()
+			} 
+			
+			d.Set("automanage_configuration_id", configId)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
