@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azuremanagedlustrefilesystem/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -145,14 +144,14 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: storageValidate.StorageContainerResourceManagerID,
+						ValidateFunc: commonids.ValidateStorageContainerID,
 					},
 
 					"logging_container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: storageValidate.StorageContainerResourceManagerID,
+						ValidateFunc: commonids.ValidateStorageContainerID,
 					},
 
 					"import_prefix": {
