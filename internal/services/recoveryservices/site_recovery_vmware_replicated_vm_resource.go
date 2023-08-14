@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -160,7 +159,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		"default_log_storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: storageaccounts.ValidateStorageAccountID,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"managed_disk", "default_log_storage_account_id"},
 		},
 
@@ -230,7 +229,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		"target_boot_diagnostics_storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: storageaccounts.ValidateStorageAccountID,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		// managed disk is enabled only if mobility service is already installed. (in most cases, it's not installed)
@@ -273,7 +272,7 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 			"log_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageaccounts.ValidateStorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 		},
 	}
@@ -514,7 +513,7 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			// once the PUT request returned successfully, an item has been created, even if it may fail in the poll process.
 			metadata.SetID(id)
 
-			err = poller.Poller.PollUntilDone()
+			err = poller.Poller.PollUntilDone(ctx)
 			if err != nil {
 				return fmt.Errorf("polling %q: %+v", id, err)
 			}
