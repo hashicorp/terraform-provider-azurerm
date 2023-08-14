@@ -326,7 +326,7 @@ func (r CognitiveDeploymentResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			
+
 			id, err := deployments.ParseDeploymentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
