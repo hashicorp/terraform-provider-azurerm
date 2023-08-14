@@ -324,6 +324,51 @@ func TestAccCdnEndpoint_longQueryString(t *testing.T) {
 	})
 }
 
+// Covers https://github.com/hashicorp/terraform-provider-azurerm/issues/22326
+func TestAccCdnEndpoint_compressionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	r := CdnEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.compressionUpdate(data, "true", "sandbox"), // PUT
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("is_compression_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("sandbox"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.compressionUpdate(data, "false", "sandbox"), // PUT
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("is_compression_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("sandbox"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.compressionUpdate(data, "true", "sandbox"), // PUT
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("is_compression_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("sandbox"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.compressionUpdate(data, "true", "production"), // PATCH
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("is_compression_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.EndpointID(state.ID)
 	if err != nil {
@@ -1459,4 +1504,44 @@ resource "azurerm_cdn_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(8))
+}
+
+func (r CdnEndpointResource) compressionUpdate(data acceptance.TestData, compressionEnabled string, tag string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Verizon"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                      = "acctestcdnend%d"
+  profile_name              = azurerm_cdn_profile.test.name
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  is_http_allowed           = true
+  is_https_allowed          = true
+  content_types_to_compress = ["text/html"]
+  is_compression_enabled    = %s
+
+  origin {
+    name      = "acceptanceTestCdnOrigin1"
+    host_name = "www.contoso.com"
+  }
+
+  tags = {
+    environment = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, compressionEnabled, tag)
 }

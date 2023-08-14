@@ -23,7 +23,7 @@ type VolumeGroupsDeleteOperationResponse struct {
 // VolumeGroupsDelete ...
 func (c VolumeGroupsClient) VolumeGroupsDelete(ctx context.Context, id VolumeGroupId) (result VolumeGroupsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

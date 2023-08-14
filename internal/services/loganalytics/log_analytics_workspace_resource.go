@@ -117,7 +117,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"reservation_capacity_in_gb_per_day": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
 				ValidateFunc: validation.IntInSlice([]int{
 					int(workspaces.CapacityReservationLevelOneHundred),
 					int(workspaces.CapacityReservationLevelTwoHundred),
@@ -178,7 +177,12 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 		log.Printf("[INFO] Log Analytics Workspace SKU: OLD: %q, NEW: %q", old, new)
 		// If the old value is not LACluster(e.g. "") return ForceNew because they are
 		// really changing the sku...
-		if !strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) && !strings.EqualFold(old.(string), "") {
+		changingFromLACluster := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) || strings.EqualFold(old.(string), "")
+		// changing from capacity reservation to perGB does not force new when the last sku update date is more than 31-days ago.
+		// to let users do the change, we do not force new in this case and let the API error out.
+		changingFromCapacityReservationToPerGB := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) && strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight))
+		changingFromPerGBToCapacityReservation := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight)) && strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumCapacityReservation))
+		if !changingFromCapacityReservationToPerGB && !changingFromLACluster && !changingFromPerGBToCapacityReservation {
 			d.ForceNew("sku")
 		}
 	}

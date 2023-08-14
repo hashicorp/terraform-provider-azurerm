@@ -179,6 +179,29 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_updateTagsWithUserAssignedDefaultIdentity(t *testing.T) {
+	// Regression test case for issue #22466
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateTagWithUserAssignedDefaultIdentity(data, "Production"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateTagWithUserAssignedDefaultIdentity(data, "Sandbox"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -1018,6 +1041,28 @@ func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_backupPeriodicToContinuousUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithBackupPeriodic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupContinuousUpdate(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_networkBypass(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -1257,6 +1302,18 @@ func TestAccCosmosDBAccount_ipRangeFilters(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_withoutMaxAgeInSeconds(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutMaxAgeInSeconds(data, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelEventual),
 		},
 		data.ImportStep(),
 	})
@@ -1516,7 +1573,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*"]
     allowed_headers    = ["x-tempo-*"]
     allowed_methods    = ["GET", "PUT"]
-    max_age_in_seconds = "500"
+    max_age_in_seconds = 500
   }
 
   access_key_metadata_writes_enabled    = false
@@ -1574,7 +1631,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*"]
     allowed_headers    = ["x-tempo-*"]
     allowed_methods    = ["GET", "PUT"]
-    max_age_in_seconds = "500"
+    max_age_in_seconds = 500
   }
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
@@ -1639,7 +1696,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*"]
     allowed_headers    = ["x-tempo-*"]
     allowed_methods    = ["GET", "PUT"]
-    max_age_in_seconds = "500"
+    max_age_in_seconds = 500
   }
 
   access_key_metadata_writes_enabled    = false
@@ -1793,7 +1850,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
 
   access_key_metadata_writes_enabled = true
@@ -1858,7 +1915,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
 
   access_key_metadata_writes_enabled = true
@@ -1935,7 +1992,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
   access_key_metadata_writes_enabled = true
 }
@@ -2007,7 +2064,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
   access_key_metadata_writes_enabled = true
 }
@@ -3341,6 +3398,42 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
+func (CosmosDBAccountResource) basicWithBackupContinuousUpdate(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  is_virtual_network_filter_enabled = true
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
 func (CosmosDBAccountResource) basicWithNetworkBypassTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4124,4 +4217,100 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func (CosmosDBAccountResource) updateTagWithUserAssignedDefaultIdentity(data acceptance.TestData, tag string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "westeurope"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-user-example"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level       = "BoundedStaleness"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  default_identity_type = join("=", ["UserAssignedIdentity", azurerm_user_assigned_identity.test.id])
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment  = "%[2]s",
+    created_date = "2023-07-18"
+  }
+}
+`, data.RandomInteger, tag)
+}
+
+func (r CosmosDBAccountResource) withoutMaxAgeInSeconds(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+  is_virtual_network_filter_enabled = true
+  virtual_network_rule {
+    id = azurerm_subnet.subnet1.id
+  }
+  virtual_network_rule {
+    id = azurerm_subnet.subnet2.id
+  }
+  enable_multiple_write_locations = true
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+  cors_rule {
+    allowed_origins = ["http://www.example.com"]
+    exposed_headers = ["x-tempo-*"]
+    allowed_headers = ["x-tempo-*"]
+    allowed_methods = ["GET", "PUT"]
+  }
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }

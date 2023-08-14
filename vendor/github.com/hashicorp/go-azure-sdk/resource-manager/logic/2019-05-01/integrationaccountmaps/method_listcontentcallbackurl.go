@@ -21,7 +21,7 @@ type ListContentCallbackUrlOperationResponse struct {
 // ListContentCallbackUrl ...
 func (c IntegrationAccountMapsClient) ListContentCallbackUrl(ctx context.Context, id MapId, input GetCallbackUrlParameters) (result ListContentCallbackUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

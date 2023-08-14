@@ -20,7 +20,7 @@ type StreamingLocatorsCreateOperationResponse struct {
 // StreamingLocatorsCreate ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsCreate(ctx context.Context, id StreamingLocatorId, input StreamingLocator) (result StreamingLocatorsCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

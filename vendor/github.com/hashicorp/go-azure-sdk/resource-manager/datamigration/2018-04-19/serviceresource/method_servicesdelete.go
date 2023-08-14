@@ -50,7 +50,7 @@ func (o ServicesDeleteOperationOptions) ToQuery() *client.QueryParams {
 // ServicesDelete ...
 func (c ServiceResourceClient) ServicesDelete(ctx context.Context, id ServiceId, options ServicesDeleteOperationOptions) (result ServicesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

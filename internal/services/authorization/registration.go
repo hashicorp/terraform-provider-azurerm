@@ -54,6 +54,7 @@ func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		PimActiveRoleAssignmentResource{},
 		PimEligibleRoleAssignmentResource{},
+		RoleAssignmentMarketplaceResource{},
 	}
 	return resources
 }

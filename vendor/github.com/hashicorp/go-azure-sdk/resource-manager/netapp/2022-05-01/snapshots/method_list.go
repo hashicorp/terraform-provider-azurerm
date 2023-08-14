@@ -21,7 +21,7 @@ type ListOperationResponse struct {
 // List ...
 func (c SnapshotsClient) List(ctx context.Context, id VolumeId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

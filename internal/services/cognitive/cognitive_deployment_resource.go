@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -150,7 +151,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						ForceNew:     true,
 						Default:      1,
-						ValidateFunc: validation.IntBetween(1, 10000),
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 				},
 			},
@@ -196,7 +197,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						ForceNew:     true,
 						Default:      1,
-						ValidateFunc: validation.IntBetween(1, 10000),
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 				},
 			},
@@ -220,6 +221,9 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Cognitive.DeploymentsClient
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
+
+			locks.ByID(accountId.ID())
+
 			if err != nil {
 				return err
 			}
@@ -249,6 +253,8 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			locks.UnlockByID(accountId.ID())
 
 			metadata.SetID(id)
 			return nil

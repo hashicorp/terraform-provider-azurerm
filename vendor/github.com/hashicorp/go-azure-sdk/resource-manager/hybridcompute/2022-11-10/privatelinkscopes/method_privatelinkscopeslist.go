@@ -1,0 +1,90 @@
+package privatelinkscopes
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type PrivateLinkScopesListOperationResponse struct {
+	HttpResponse *http.Response
+	OData        *odata.OData
+	Model        *[]HybridComputePrivateLinkScope
+}
+
+type PrivateLinkScopesListCompleteResult struct {
+	Items []HybridComputePrivateLinkScope
+}
+
+// PrivateLinkScopesList ...
+func (c PrivateLinkScopesClient) PrivateLinkScopesList(ctx context.Context, id commonids.SubscriptionId) (result PrivateLinkScopesListOperationResponse, err error) {
+	opts := client.RequestOptions{
+		ContentType: "application/json; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodGet,
+		Path:       fmt.Sprintf("%s/providers/Microsoft.HybridCompute/privateLinkScopes", id.ID()),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
+	if err != nil {
+		return
+	}
+
+	var resp *client.Response
+	resp, err = req.ExecutePaged(ctx)
+	if resp != nil {
+		result.OData = resp.OData
+		result.HttpResponse = resp.Response
+	}
+	if err != nil {
+		return
+	}
+
+	var values struct {
+		Values *[]HybridComputePrivateLinkScope `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
+		return
+	}
+
+	result.Model = values.Values
+
+	return
+}
+
+// PrivateLinkScopesListComplete retrieves all the results into a single object
+func (c PrivateLinkScopesClient) PrivateLinkScopesListComplete(ctx context.Context, id commonids.SubscriptionId) (PrivateLinkScopesListCompleteResult, error) {
+	return c.PrivateLinkScopesListCompleteMatchingPredicate(ctx, id, HybridComputePrivateLinkScopeOperationPredicate{})
+}
+
+// PrivateLinkScopesListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PrivateLinkScopesClient) PrivateLinkScopesListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate HybridComputePrivateLinkScopeOperationPredicate) (result PrivateLinkScopesListCompleteResult, err error) {
+	items := make([]HybridComputePrivateLinkScope, 0)
+
+	resp, err := c.PrivateLinkScopesList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = PrivateLinkScopesListCompleteResult{
+		Items: items,
+	}
+	return
+}

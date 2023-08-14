@@ -26,7 +26,7 @@ type DeletedAccountsListCompleteResult struct {
 // DeletedAccountsList ...
 func (c CognitiveServicesAccountsClient) DeletedAccountsList(ctx context.Context, id commonids.SubscriptionId) (result DeletedAccountsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

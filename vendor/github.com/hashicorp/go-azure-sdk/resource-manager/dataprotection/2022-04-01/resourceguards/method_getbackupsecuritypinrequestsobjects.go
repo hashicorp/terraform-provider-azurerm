@@ -25,7 +25,7 @@ type GetBackupSecurityPINRequestsObjectsCompleteResult struct {
 // GetBackupSecurityPINRequestsObjects ...
 func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetBackupSecurityPINRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

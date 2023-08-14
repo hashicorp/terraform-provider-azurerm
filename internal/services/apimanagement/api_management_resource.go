@@ -669,7 +669,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sku := expandAzureRmApiManagementSkuName(d)
+	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
 
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
@@ -768,8 +768,8 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 			CustomProperties:    customProperties,
 			Certificates:        certificates,
 		},
+		Sku:  &sku,
 		Tags: tags.Expand(t),
-		Sku:  sku,
 	}
 
 	if _, ok := d.GetOk("hostname_configuration"); ok {
@@ -786,7 +786,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
 		if err != nil {
 			return err
 		}
@@ -1170,6 +1170,12 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	location := location.NormalizeNilable(existing.Location)
+
 	log.Printf("[DEBUG] Deleting %s", *id)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
@@ -1177,6 +1183,7 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		// TODO: @tombuildsstuff: this NotFound can be removed once this is switched to `go-azure-sdk`
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
@@ -1185,19 +1192,18 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	// Purge the soft deleted Api Management permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
 		log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
-		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
-		if err != nil {
-			return err
+		if _, err := deletedServicesClient.GetByName(ctx, id.ServiceName, location); err != nil {
+			return fmt.Errorf("retrieving the deleted %s to be able to purge it: %+v", *id, err)
 		}
-		future, err := deletedServicesClient.Purge(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
+		future, err := deletedServicesClient.Purge(ctx, id.ServiceName, location)
 		if err != nil {
-			return err
+			return fmt.Errorf("purging the deleted %s: %+v", *id, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for purge of %s..", *id)
 		err = future.WaitForCompletionRef(ctx, deletedServicesClient.Client)
 		if err != nil {
-			return fmt.Errorf("purging %s: %+v", *id, err)
+			return fmt.Errorf("waiting for the purge of deleted %s: %+v", *id, err)
 		}
 		log.Printf("[DEBUG] Purged %s.", *id)
 		return nil
@@ -1609,21 +1615,14 @@ func flattenIdentity(input *apimanagement.ServiceIdentity) (*[]interface{}, erro
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
-	vs := d.Get("sku_name").(string)
-
-	if len(vs) == 0 {
-		return nil
-	}
-
-	name, capacity, err := azure.SplitSku(vs)
-	if err != nil {
-		return nil
-	}
-
-	return &apimanagement.ServiceSkuProperties{
+func expandAzureRmApiManagementSkuName(input string) apimanagement.ServiceSkuProperties {
+	// "sku_name" is validated to be in this format above, and is required
+	skuParts := strings.Split(input, "_")
+	name := skuParts[0]
+	capacity, _ := strconv.Atoi(skuParts[1])
+	return apimanagement.ServiceSkuProperties{
 		Name:     apimanagement.SkuType(name),
-		Capacity: utils.Int32(capacity),
+		Capacity: pointer.To(int32(capacity)),
 	}
 }
 

@@ -12,6 +12,15 @@ import (
 type ProtectionContainer interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawProtectionContainerImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalProtectionContainerImplementation(input []byte) (ProtectionContainer, error) {
 	if input == nil {
 		return nil, nil
@@ -123,10 +132,6 @@ func unmarshalProtectionContainerImplementation(input []byte) (ProtectionContain
 		return out, nil
 	}
 
-	type RawProtectionContainerImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawProtectionContainerImpl{
 		Type:   value,
 		Values: temp,

@@ -23,7 +23,7 @@ type DatabasesForceUnlinkOperationResponse struct {
 // DatabasesForceUnlink ...
 func (c RedisEnterpriseClient) DatabasesForceUnlink(ctx context.Context, id DatabaseId, input ForceUnlinkParameters) (result DatabasesForceUnlinkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

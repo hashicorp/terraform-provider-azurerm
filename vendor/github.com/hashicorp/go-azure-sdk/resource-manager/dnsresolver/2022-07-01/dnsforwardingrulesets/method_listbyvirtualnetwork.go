@@ -53,7 +53,7 @@ func (o ListByVirtualNetworkOperationOptions) ToQuery() *client.QueryParams {
 // ListByVirtualNetwork ...
 func (c DnsForwardingRulesetsClient) ListByVirtualNetwork(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (result ListByVirtualNetworkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

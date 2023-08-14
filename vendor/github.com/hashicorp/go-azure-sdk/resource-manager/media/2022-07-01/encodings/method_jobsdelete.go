@@ -19,7 +19,7 @@ type JobsDeleteOperationResponse struct {
 // JobsDelete ...
 func (c EncodingsClient) JobsDelete(ctx context.Context, id JobId) (result JobsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

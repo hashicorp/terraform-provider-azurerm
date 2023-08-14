@@ -21,7 +21,7 @@ type ListCallbackUrlOperationResponse struct {
 // ListCallbackUrl ...
 func (c IntegrationAccountsClient) ListCallbackUrl(ctx context.Context, id IntegrationAccountId, input GetCallbackUrlParameters) (result ListCallbackUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -228,7 +228,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Computed:     true,
-										ValidateFunc: validation.IsURLWithScheme([]string{"api"}),
+										ValidateFunc: validation.IsURLWithScheme([]string{"api", "https"}),
 									},
 
 									"tenant_id": {

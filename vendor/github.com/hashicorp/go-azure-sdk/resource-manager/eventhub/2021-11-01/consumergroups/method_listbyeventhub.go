@@ -56,7 +56,7 @@ func (o ListByEventHubOperationOptions) ToQuery() *client.QueryParams {
 // ListByEventHub ...
 func (c ConsumerGroupsClient) ListByEventHub(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions) (result ListByEventHubOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

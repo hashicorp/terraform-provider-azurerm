@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -17,7 +18,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c BlobContainersClient) Get(ctx context.Context, id ContainerId) (result GetOperationResponse, err error) {
+func (c BlobContainersClient) Get(ctx context.Context, id commonids.StorageContainerId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "Get", nil, "Failure preparing request")
@@ -40,7 +41,7 @@ func (c BlobContainersClient) Get(ctx context.Context, id ContainerId) (result G
 }
 
 // preparerForGet prepares the Get request.
-func (c BlobContainersClient) preparerForGet(ctx context.Context, id ContainerId) (*http.Request, error) {
+func (c BlobContainersClient) preparerForGet(ctx context.Context, id commonids.StorageContainerId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

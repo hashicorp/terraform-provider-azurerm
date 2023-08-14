@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -16,7 +17,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c StorageAccountsClient) Delete(ctx context.Context, id StorageAccountId) (result DeleteOperationResponse, err error) {
+func (c StorageAccountsClient) Delete(ctx context.Context, id commonids.StorageAccountId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "Delete", nil, "Failure preparing request")
@@ -39,7 +40,7 @@ func (c StorageAccountsClient) Delete(ctx context.Context, id StorageAccountId) 
 }
 
 // preparerForDelete prepares the Delete request.
-func (c StorageAccountsClient) preparerForDelete(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForDelete(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

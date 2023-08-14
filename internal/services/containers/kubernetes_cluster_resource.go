@@ -366,24 +366,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"monitor_metrics": {
+			"custom_ca_trust_certificates_base64": {
 				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"annotations_allowed": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"labels_allowed": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
+				MaxItems: 10,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsBase64,
 				},
 			},
 
@@ -484,6 +473,26 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								dnsValidate.ValidateDnsZoneID,
 								validation.StringIsEmpty,
 							),
+						},
+						"web_app_routing_identity": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"client_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"object_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"user_assigned_identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -914,6 +923,27 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"monitor_metrics": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"annotations_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"labels_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -1407,9 +1437,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						// This needs to become Required in 4.0 - omitting it isn't accepted by the API
 						"admin_password": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
@@ -1474,20 +1505,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
-
-			"custom_ca_trust_certificates_base64": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 10,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsBase64,
-				},
-			},
 		},
 	}
 
-	// CLEANUP: post-3.0 we should inline these?
 	for k, v := range schemaKubernetesAddOns() {
 		resource.Schema[k] = v
 	}
@@ -1520,6 +1540,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.NetworkPluginModeOverlay),
 				"Overlay",
 			}, false),
+		}
+		resource.Schema["windows_profile"].Elem.(*pluginsdk.Resource).Schema["admin_password"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringLenBetween(8, 123),
 		}
 	}
 
@@ -2367,6 +2393,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.os_disk_type",
 			"default_node_pool.0.os_sku",
 			"default_node_pool.0.pod_subnet_id",
+			"default_node_pool.0.snapshot_id",
 			"default_node_pool.0.ultra_ssd_enabled",
 			"default_node_pool.0.vnet_subnet_id",
 			"default_node_pool.0.vm_size",
@@ -4421,9 +4448,16 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 		dnsZoneId = *v
 	}
 
+	webAppRoutingIdentity := []interface{}{}
+
+	if v := input.WebAppRouting.Identity; v != nil {
+		webAppRoutingIdentity = flattenKubernetesClusterAddOnIdentityProfile(v)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"dns_zone_id": dnsZoneId,
+			"dns_zone_id":              dnsZoneId,
+			"web_app_routing_identity": webAppRoutingIdentity,
 		},
 	}
 }

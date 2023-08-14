@@ -331,6 +331,29 @@ func TestAccLogAnalyticsWorkspace_ToggleDisableLocalAuth(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withCapacityReservationTypo(data, 100),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("100"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {

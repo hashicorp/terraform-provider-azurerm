@@ -64,7 +64,7 @@ func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseCollation,
+				ValidateFunc: validate.PostgresqlFlexibleServerDatabaseCollation,
 				Default:      "en_US.utf8",
 			},
 		},

@@ -66,14 +66,20 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	vaultConfigsClient := backupresourcevaultconfigs.NewBackupResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
 
-	vaultSettingsClient := replicationvaultsetting.NewReplicationVaultSettingClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&vaultSettingsClient.Client, o.ResourceManagerAuthorizer)
+	vaultSettingsClient, err := replicationvaultsetting.NewReplicationVaultSettingClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationVaultSettings client: %+v", err)
+	}
+	o.Configure(vaultSettingsClient.Client, o.Authorizers.ResourceManager)
 
 	storageConfigsClient := backupresourcestorageconfigsnoncrr.NewBackupResourceStorageConfigsNonCRRClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&storageConfigsClient.Client, o.ResourceManagerAuthorizer)
 
-	vaultsClient := vaults.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
+	vaultsClient, err := vaults.NewVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Vaults client: %+v", err)
+	}
+	o.Configure(vaultsClient.Client, o.Authorizers.ResourceManager)
 
 	vaultCertificatesClient := azuresdkhacks.NewVaultCertificatesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&vaultCertificatesClient.Client, o.ResourceManagerAuthorizer)
@@ -105,29 +111,53 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	backupProtectionContainerOperationResultsClient := backup.NewProtectionContainerOperationResultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupProtectionContainerOperationResultsClient.Client, o.ResourceManagerAuthorizer)
 
-	fabricClient := replicationfabrics.NewReplicationFabricsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&fabricClient.Client, o.ResourceManagerAuthorizer)
+	fabricClient, err := replicationfabrics.NewReplicationFabricsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationFabrics client: %+v", err)
+	}
+	o.Configure(fabricClient.Client, o.Authorizers.ResourceManager)
 
-	protectionContainerClient := replicationprotectioncontainers.NewReplicationProtectionContainersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&protectionContainerClient.Client, o.ResourceManagerAuthorizer)
+	protectionContainerClient, err := replicationprotectioncontainers.NewReplicationProtectionContainersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationProtectionContainers client: %+v", err)
+	}
+	o.Configure(protectionContainerClient.Client, o.Authorizers.ResourceManager)
 
-	replicationPoliciesClient := replicationpolicies.NewReplicationPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&replicationPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	replicationPoliciesClient, err := replicationpolicies.NewReplicationPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationPolicies client: %+v", err)
+	}
+	o.Configure(replicationPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	containerMappingClient := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&containerMappingClient.Client, o.ResourceManagerAuthorizer)
+	containerMappingClient, err := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationProtectionContainerMappings client: %+v", err)
+	}
+	o.Configure(containerMappingClient.Client, o.Authorizers.ResourceManager)
 
-	networkMappingClient := replicationnetworkmappings.NewReplicationNetworkMappingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&networkMappingClient.Client, o.ResourceManagerAuthorizer)
+	networkMappingClient, err := replicationnetworkmappings.NewReplicationNetworkMappingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationNetworks client: %+v", err)
+	}
+	o.Configure(networkMappingClient.Client, o.Authorizers.ResourceManager)
 
-	replicationMigrationItemsClient := replicationprotecteditems.NewReplicationProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&replicationMigrationItemsClient.Client, o.ResourceManagerAuthorizer)
+	replicationMigrationItemsClient, err := replicationprotecteditems.NewReplicationProtectedItemsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationNetworks client: %+v", err)
+	}
+	o.Configure(replicationMigrationItemsClient.Client, o.Authorizers.ResourceManager)
 
-	replicationRecoveryPlanClient := replicationrecoveryplans.NewReplicationRecoveryPlansClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&replicationRecoveryPlanClient.Client, o.ResourceManagerAuthorizer)
+	replicationRecoveryPlanClient, err := replicationrecoveryplans.NewReplicationRecoveryPlansClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationNetworks client: %+v", err)
+	}
+	o.Configure(replicationRecoveryPlanClient.Client, o.Authorizers.ResourceManager)
 
-	replicationNetworksClient := replicationnetworks.NewReplicationNetworksClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&replicationNetworksClient.Client, o.ResourceManagerAuthorizer)
+	replicationNetworksClient, err := replicationnetworks.NewReplicationNetworksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ReplicationNetworks client: %+v", err)
+	}
+	o.Configure(replicationNetworksClient.Client, o.Authorizers.ResourceManager)
 
 	resourceGuardProxyClient := resourceguardproxy.NewResourceGuardProxyClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
@@ -154,19 +184,19 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ProtectedItemOperationResultsClient:       &protectedItemOperationResultClient,
 		BackupOperationStatusesClient:             &backupOperationStatusesClient,
 		BackupOperationResultsClient:              &backupOperationResultClient,
-		VaultsClient:                              &vaultsClient,
+		VaultsClient:                              vaultsClient,
 		VaultsConfigsClient:                       &vaultConfigsClient,
 		VaultCertificatesClient:                   &vaultCertificatesClient,
-		VaultsSettingsClient:                      &vaultSettingsClient,
+		VaultsSettingsClient:                      vaultSettingsClient,
 		StorageConfigsClient:                      &storageConfigsClient,
-		FabricClient:                              &fabricClient,
-		ProtectionContainerClient:                 &protectionContainerClient,
-		ReplicationPoliciesClient:                 &replicationPoliciesClient,
-		ContainerMappingClient:                    &containerMappingClient,
-		NetworkMappingClient:                      &networkMappingClient,
-		ReplicationProtectedItemsClient:           &replicationMigrationItemsClient,
-		ReplicationRecoveryPlansClient:            &replicationRecoveryPlanClient,
-		ReplicationNetworksClient:                 &replicationNetworksClient,
+		FabricClient:                              fabricClient,
+		ProtectionContainerClient:                 protectionContainerClient,
+		ReplicationPoliciesClient:                 replicationPoliciesClient,
+		ContainerMappingClient:                    containerMappingClient,
+		NetworkMappingClient:                      networkMappingClient,
+		ReplicationProtectedItemsClient:           replicationMigrationItemsClient,
+		ReplicationRecoveryPlansClient:            replicationRecoveryPlanClient,
+		ReplicationNetworksClient:                 replicationNetworksClient,
 		ResourceGuardProxyClient:                  &resourceGuardProxyClient,
 		VMWareMachinesClient:                      vmwareMachinesClient,
 		VMWareRunAsAccountsClient:                 vmwareRunAsAccountsClient,

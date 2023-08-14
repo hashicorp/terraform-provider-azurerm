@@ -44,6 +44,9 @@ service/automation:
 service/azure-stack-hci:
   - internal/services/azurestackhci/**/*
 
+service/azuremanagedlustrefilesystem:
+  - internal/services/azuremanagedlustrefilesystem/**/*
+
 service/batch:
   - internal/services/batch/**/*
 
@@ -141,6 +144,9 @@ service/fluid-relay:
 service/frontdoor:
   - internal/services/frontdoor/**/*
 
+service/graph:
+  - internal/services/graphservices/**/*
+
 service/hdinsight:
   - internal/services/hdinsight/**/*
 
@@ -236,6 +242,9 @@ service/netapp:
 
 service/network:
   - internal/services/network/**/*
+
+service/network-function:
+  - internal/services/networkfunction/**/*
 
 service/nginx:
   - internal/services/nginx/**/*

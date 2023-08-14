@@ -20,7 +20,7 @@ type PatchOperationResponse struct {
 // Patch ...
 func (c NotificationHubsClient) Patch(ctx context.Context, id NotificationHubId, input NotificationHubPatchParameters) (result PatchOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

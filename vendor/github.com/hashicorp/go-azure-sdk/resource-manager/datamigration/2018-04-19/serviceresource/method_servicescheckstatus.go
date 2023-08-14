@@ -21,7 +21,7 @@ type ServicesCheckStatusOperationResponse struct {
 // ServicesCheckStatus ...
 func (c ServiceResourceClient) ServicesCheckStatus(ctx context.Context, id ServiceId) (result ServicesCheckStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

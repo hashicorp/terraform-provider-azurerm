@@ -23,7 +23,7 @@ type VolumesBreakReplicationOperationResponse struct {
 // VolumesBreakReplication ...
 func (c VolumesReplicationClient) VolumesBreakReplication(ctx context.Context, id VolumeId, input BreakReplicationRequest) (result VolumesBreakReplicationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

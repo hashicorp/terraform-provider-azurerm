@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type IntegrationAccountCertificatesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewIntegrationAccountCertificatesClientWithBaseURI(api environments.Api) (*IntegrationAccountCertificatesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "integrationaccountcertificates", defaultApiVersion)
+func NewIntegrationAccountCertificatesClientWithBaseURI(sdkApi sdkEnv.Api) (*IntegrationAccountCertificatesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "integrationaccountcertificates", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IntegrationAccountCertificatesClient: %+v", err)
 	}

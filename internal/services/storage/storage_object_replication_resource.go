@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,11 +120,11 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	srcAccount, err := objectreplicationpolicies.ParseStorageAccountID(d.Get("source_storage_account_id").(string))
+	srcAccount, err := commonids.ParseStorageAccountID(d.Get("source_storage_account_id").(string))
 	if err != nil {
 		return err
 	}
-	dstAccount, err := objectreplicationpolicies.ParseStorageAccountID(d.Get("destination_storage_account_id").(string))
+	dstAccount, err := commonids.ParseStorageAccountID(d.Get("destination_storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -205,8 +206,8 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	srcAccount := objectreplicationpolicies.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName)
-	dstAccount := objectreplicationpolicies.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName)
+	srcAccount := commonids.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName)
+	dstAccount := commonids.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName)
 
 	props := objectreplicationpolicies.ObjectReplicationPolicy{
 		Properties: &objectreplicationpolicies.ObjectReplicationPolicyProperties{

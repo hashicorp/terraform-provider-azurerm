@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c BlobInventoryPoliciesClient) CreateOrUpdate(ctx context.Context, id StorageAccountId, input BlobInventoryPolicy) (result CreateOrUpdateOperationResponse, err error) {
+func (c BlobInventoryPoliciesClient) CreateOrUpdate(ctx context.Context, id commonids.StorageAccountId, input BlobInventoryPolicy) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobinventorypolicies.BlobInventoryPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c BlobInventoryPoliciesClient) CreateOrUpdate(ctx context.Context, id Stor
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c BlobInventoryPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id StorageAccountId, input BlobInventoryPolicy) (*http.Request, error) {
+func (c BlobInventoryPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id commonids.StorageAccountId, input BlobInventoryPolicy) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

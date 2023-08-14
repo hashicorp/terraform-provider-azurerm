@@ -134,6 +134,22 @@ func parseErrorFromApiResponse(response http.Response) (*Error, error) {
 		}, nil
 	}
 
+	var err4 resourceManagerErrorType3
+	if err = json.Unmarshal(respBody, &err4); err == nil && err4.Status != "" && err4.Error.Message != "" {
+		activityId := ""
+		code := err4.Status
+		messages := []string{
+			err4.Error.Message,
+		}
+		return &Error{
+			ActivityId:   activityId,
+			Code:         code,
+			Message:      strings.Join(messages, "\n"),
+			Status:       err4.Status,
+			FullHttpBody: string(respBody),
+		}, nil
+	}
+
 	return &Error{
 		Code:         "internal-error",
 		Message:      "Couldn't parse Azure API Response into a friendly error - please see the original HTTP Response for more details (and file a bug so we can fix this!).",
@@ -171,6 +187,18 @@ type resourceManagerErrorType2 struct {
 			PossibleCauses    string `json:"possibleCauses"`
 			RecommendedAction string `json:"recommendedAction"`
 		} `json:"details"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+type resourceManagerErrorType3 struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	ResourceId string `json:"resourceId"`
+	Status     string `json:"status"`
+	StartTime  string `json:"startTime"`
+	EndTime    string `json:"endTime"`
+	Error      struct {
 		Message string `json:"message"`
 	} `json:"error"`
 }

@@ -20,7 +20,7 @@ type SynchronizeAutoStorageKeysOperationResponse struct {
 // SynchronizeAutoStorageKeys ...
 func (c BatchAccountClient) SynchronizeAutoStorageKeys(ctx context.Context, id BatchAccountId) (result SynchronizeAutoStorageKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 		},
