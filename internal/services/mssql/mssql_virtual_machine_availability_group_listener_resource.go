@@ -288,11 +288,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 			}
 
 			if model.MultiSubnetIpConfiguration != nil && len(model.MultiSubnetIpConfiguration) != 0 {
-				multiSubnetIpConfiguration, err := expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(model.MultiSubnetIpConfiguration)
-				if err != nil {
-					return err
-				}
-				parameters.Properties.MultiSubnetIPConfigurations = multiSubnetIpConfiguration
+				parameters.Properties.MultiSubnetIPConfigurations = expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(model.MultiSubnetIpConfiguration)
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -424,7 +420,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 	return &results, nil
 }
 
-func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(multiSubnetIpConfiguration []MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.MultiSubnetIPConfiguration, error) {
+func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(multiSubnetIpConfiguration []MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener) *[]availabilitygrouplisteners.MultiSubnetIPConfiguration {
 	results := make([]availabilitygrouplisteners.MultiSubnetIPConfiguration, 0)
 
 	for _, item := range multiSubnetIpConfiguration {
@@ -440,7 +436,8 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguratio
 
 		results = append(results, config)
 	}
-	return &results, nil
+
+	return &results
 }
 
 func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(input *[]availabilitygrouplisteners.LoadBalancerConfiguration, subscriptionId string) ([]LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener, error) {
