@@ -449,14 +449,17 @@ func expandMHSMNetworkAcls(input []interface{}) (*managedhsms.MHSMNetworkRuleSet
 		return nil, subnetIds
 	}
 	v := input[0].(map[string]interface{})
+
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
 	ipRules := make([]managedhsms.MHSMIPRule, 0)
+
 	for _, v := range ipRulesRaw.List() {
 		rule := managedhsms.MHSMIPRule{
 			Value: v.(string),
 		}
 		ipRules = append(ipRules, rule)
 	}
+
 	networkRulesRaw := v["virtual_network_subnet_ids"].(*pluginsdk.Set)
 	networkRules := make([]managedhsms.MHSMVirtualNetworkRule, 0)
 	for _, v := range networkRulesRaw.List() {
@@ -467,6 +470,7 @@ func expandMHSMNetworkAcls(input []interface{}) (*managedhsms.MHSMNetworkRuleSet
 		}
 		networkRules = append(networkRules, rule)
 	}
+
 	res := &managedhsms.MHSMNetworkRuleSet{
 		Bypass:              pointer.To(managedhsms.NetworkRuleBypassOptions(v["bypass"].(string))),
 		DefaultAction:       pointer.To(managedhsms.NetworkRuleAction(v["default_action"].(string))),

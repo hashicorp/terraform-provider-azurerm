@@ -113,34 +113,69 @@ func TestAccKeyVaultManagedHardwareSecurityModule_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateNacl(data, "None", "Deny"),
+			Config: r.updateNacl(data, "None", "Deny", nil, nil),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateNacl(data, "AzureServices", "None"),
+			Config: r.updateNacl(data, "AzureServices", "None", nil, nil),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.updateNacl(data, "AzureServices", "Allow"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateNacl(data, "None", "Allow"),
+			Config: r.updateNacl(data, "AzureServices", "Allow", nil, nil),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateNacl(data, "None", "Deny"),
+			Config: r.updateNacl(data, "None", "Allow", nil, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNacl(data, "None", "Deny", nil, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNacl(data, "None", "Deny", utils.String("0.0.0.0/0"), nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNacl(data, "None", "Deny", utils.String("0.0.0.0/0"), utils.Bool(true)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNacl(data, "None", "Deny", nil, utils.Bool(true)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNacl(data, "None", "Deny", nil, utils.Bool(false)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNacl(data, "None", "Deny", nil, nil),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -352,7 +387,17 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r KeyVaultManagedHardwareSecurityModuleResource) updateNacl(data acceptance.TestData, bypass, defaultAction string) string {
+func (r KeyVaultManagedHardwareSecurityModuleResource) updateNacl(data acceptance.TestData, bypass, defaultAction string, ipRule *string, allowSubnet *bool) string {
+	ipRuleAssignment, subnetIdAssignment := "", ""
+	if ipRule != nil {
+		ipRuleAssignment = fmt.Sprintf("ip_rules = [%s]", *ipRule)
+	}
+	if allowSubnet != nil {
+		subnetIdAssignment = "virtual_network_subnet_ids = [azurerm_subnet.test_a.id]"
+		if !*allowSubnet {
+			subnetIdAssignment = "virtual_network_subnet_ids = []"
+		}
+	}
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -389,6 +434,8 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   network_acls {
     default_action = "%[3]s"
     bypass         = "%[4]s"
+    %[5]s
+    %[6]s
   }
 
   public_network_access_enabled = true
@@ -397,7 +444,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
     Env = "Test"
   }
 }
-`, template, data.RandomInteger, defaultAction, bypass)
+`, template, data.RandomInteger, defaultAction, bypass, ipRuleAssignment, subnetIdAssignment)
 }
 
 func (KeyVaultManagedHardwareSecurityModuleResource) template(data acceptance.TestData) string {
