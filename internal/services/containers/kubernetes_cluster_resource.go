@@ -270,7 +270,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"skip_nodes_with_local_storage": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  !features.FourPointOhBeta(),
 						},
 						"skip_nodes_with_system_pods": {
 							Type:     pluginsdk.TypeBool,
