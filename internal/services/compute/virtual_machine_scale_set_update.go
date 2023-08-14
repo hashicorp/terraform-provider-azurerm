@@ -6,11 +6,12 @@ package compute
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
@@ -26,19 +27,19 @@ type virtualMachineScaleSetUpdateMetaData struct {
 	UpdateInstances bool
 
 	Client   *client.Client
-	Existing compute.VirtualMachineScaleSet
-	ID       *parse.VirtualMachineScaleSetId
-	OSType   compute.OperatingSystemTypes
+	Existing virtualmachinescalesets.VirtualMachineScaleSet
+	ID       *virtualmachinescalesets.VirtualMachineScaleSetId
+	OSType   virtualmachinescalesets.OperatingSystemTypes
 }
 
-func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.Context, update compute.VirtualMachineScaleSetUpdate) error {
+func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.Context, update virtualmachinescalesets.VirtualMachineScaleSetUpdate) error {
 	if metadata.AutomaticOSUpgradeIsEnabled {
 		// Virtual Machine Scale Sets with Automatic OS Upgrade enabled must have all VM instances upgraded to same
 		// Platform Image. Upgrade all VM instances to latest Virtual Machine Scale Set model while property
 		// 'upgradePolicy.automaticOSUpgradePolicy.enableAutomaticOSUpgrade' is false and then update property
 		// 'upgradePolicy.automaticOSUpgradePolicy.enableAutomaticOSUpgrade' to true
 
-		update.VirtualMachineScaleSetUpdateProperties.UpgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade = utils.Bool(false)
+		update.Properties.UpgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade = utils.Bool(false)
 	}
 
 	if err := metadata.updateVmss(ctx, update); err != nil {
@@ -48,18 +49,18 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 	// if we update the SKU, we also need to subsequently roll the instances using the `UpdateInstances` API
 	if metadata.UpdateInstances {
 		userWantsToRollInstances := metadata.CanRollInstancesWhenRequired
-		upgradeMode := metadata.Existing.VirtualMachineScaleSetProperties.UpgradePolicy.Mode
+		upgradeMode := metadata.Existing.Properties.UpgradePolicy.Mode
 
 		if userWantsToRollInstances {
 			// If the updated image version is not "latest" and upgrade mode is automatic then azure will roll the instances automatically.
 			// Calling upgradeInstancesForAutomaticUpgradePolicy() in this case will cause an error.
-			if upgradeMode == compute.UpgradeModeAutomatic && isUsingLatestImage(update) {
+			if pointer.From(upgradeMode) == virtualmachinescalesets.UpgradeModeAutomatic && isUsingLatestImage(update) {
 				if err := metadata.upgradeInstancesForAutomaticUpgradePolicy(ctx); err != nil {
 					return err
 				}
 			}
 
-			if upgradeMode == compute.UpgradeModeManual {
+			if pointer.From(upgradeMode) == virtualmachinescalesets.UpgradeModeManual {
 				if err := metadata.upgradeInstancesForManualUpgradePolicy(ctx); err != nil {
 					return err
 				}
@@ -74,7 +75,7 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 		// 'upgradePolicy.automaticOSUpgradePolicy.enableAutomaticOSUpgrade' to true
 
 		// finally set this to true
-		update.VirtualMachineScaleSetUpdateProperties.UpgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade = utils.Bool(true)
+		update.Properties.UpgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade = utils.Bool(true)
 
 		// then update the VM
 		if err := metadata.updateVmss(ctx, update); err != nil {
@@ -85,21 +86,15 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 	return nil
 }
 
-func (metadata virtualMachineScaleSetUpdateMetaData) updateVmss(ctx context.Context, update compute.VirtualMachineScaleSetUpdate) error {
+func (metadata virtualMachineScaleSetUpdateMetaData) updateVmss(ctx context.Context, update virtualmachinescalesets.VirtualMachineScaleSetUpdate) error {
 	client := metadata.Client.VMScaleSetClient
 	id := metadata.ID
 
-	log.Printf("[DEBUG] Updating %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
-	if err != nil {
-		return fmt.Errorf("updating %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+	log.Printf("[DEBUG] Updating %s %s..", metadata.OSType, id)
+	if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s %s: %+v", metadata.OSType, id, err)
 	}
-
-	log.Printf("[DEBUG] Waiting for update of %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
-	}
-	log.Printf("[DEBUG] Updated %s Virtual Machine Scale Set %q (Resource Group %q).", metadata.OSType, id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Updated %s %s", metadata.OSType, id)
 
 	return nil
 }
@@ -190,13 +185,15 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 	return nil
 }
 
-func isUsingLatestImage(update compute.VirtualMachineScaleSetUpdate) bool {
-	if update.VirtualMachineProfile.StorageProfile == nil ||
-		update.VirtualMachineProfile.StorageProfile.ImageReference == nil ||
-		update.VirtualMachineProfile.StorageProfile.ImageReference.Version == nil {
+func isUsingLatestImage(update virtualmachinescalesets.VirtualMachineScaleSetUpdate) bool {
+	if update.Properties == nil ||
+		update.Properties.VirtualMachineProfile == nil ||
+		update.Properties.VirtualMachineProfile.StorageProfile == nil ||
+		update.Properties.VirtualMachineProfile.StorageProfile.ImageReference == nil ||
+		update.Properties.VirtualMachineProfile.StorageProfile.ImageReference.Version == nil {
 		return false
 	}
-	if strings.EqualFold(*update.VirtualMachineProfile.StorageProfile.ImageReference.Version, "latest") {
+	if strings.EqualFold(*update.Properties.VirtualMachineProfile.StorageProfile.ImageReference.Version, "latest") {
 		return true
 	}
 	return false

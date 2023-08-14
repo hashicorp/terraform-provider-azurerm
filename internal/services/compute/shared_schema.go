@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -171,6 +172,55 @@ func flattenBootDiagnostics(input *virtualmachines.DiagnosticsProfile) []interfa
 	}
 }
 
+func expandVMSSBootDiagnostics(input []interface{}) *virtualmachinescalesets.DiagnosticsProfile {
+	if len(input) == 0 {
+		return &virtualmachinescalesets.DiagnosticsProfile{
+			BootDiagnostics: &virtualmachinescalesets.BootDiagnostics{
+				Enabled:    utils.Bool(false),
+				StorageUri: utils.String(""),
+			},
+		}
+	}
+
+	// this serves the managed boot diagnostics, in this case we only have this empty block without `storage_account_uri` set
+	if input[0] == nil {
+		return &virtualmachinescalesets.DiagnosticsProfile{
+			BootDiagnostics: &virtualmachinescalesets.BootDiagnostics{
+				Enabled:    utils.Bool(true),
+				StorageUri: utils.String(""),
+			},
+		}
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	storageAccountURI := raw["storage_account_uri"].(string)
+
+	return &virtualmachinescalesets.DiagnosticsProfile{
+		BootDiagnostics: &virtualmachinescalesets.BootDiagnostics{
+			Enabled:    utils.Bool(true),
+			StorageUri: utils.String(storageAccountURI),
+		},
+	}
+}
+
+func flattenVMSSBootDiagnostics(input *virtualmachinescalesets.DiagnosticsProfile) []interface{} {
+	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled {
+		return []interface{}{}
+	}
+
+	storageAccountUri := ""
+	if input.BootDiagnostics.StorageUri != nil {
+		storageAccountUri = *input.BootDiagnostics.StorageUri
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"storage_account_uri": storageAccountUri,
+		},
+	}
+}
+
 func linuxSecretSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -266,6 +316,71 @@ func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{
 	return output
 }
 
+func expandVMSSLinuxSecrets(input []interface{}) *[]virtualmachinescalesets.VaultSecretGroup {
+	output := make([]virtualmachinescalesets.VaultSecretGroup, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]interface{})
+
+		keyVaultId := v["key_vault_id"].(string)
+		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
+		certificates := make([]virtualmachinescalesets.VaultCertificate, 0)
+		for _, certificateRaw := range certificatesRaw {
+			certificateV := certificateRaw.(map[string]interface{})
+
+			url := certificateV["url"].(string)
+			certificates = append(certificates, virtualmachinescalesets.VaultCertificate{
+				CertificateUrl: utils.String(url),
+			})
+		}
+
+		output = append(output, virtualmachinescalesets.VaultSecretGroup{
+			SourceVault: &virtualmachinescalesets.SubResource{
+				Id: utils.String(keyVaultId),
+			},
+			VaultCertificates: &certificates,
+		})
+	}
+
+	return &output
+}
+
+func flattenVMSSLinuxSecrets(input *[]virtualmachinescalesets.VaultSecretGroup) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, v := range *input {
+		keyVaultId := ""
+		if v.SourceVault != nil && v.SourceVault.Id != nil {
+			keyVaultId = *v.SourceVault.Id
+		}
+
+		certificates := make([]interface{}, 0)
+
+		if v.VaultCertificates != nil {
+			for _, c := range *v.VaultCertificates {
+				if c.CertificateUrl == nil {
+					continue
+				}
+
+				certificates = append(certificates, map[string]interface{}{
+					"url": *c.CertificateUrl,
+				})
+			}
+		}
+
+		output = append(output, map[string]interface{}{
+			"key_vault_id": keyVaultId,
+			"certificate":  certificates,
+		})
+	}
+
+	return output
+}
+
 func planSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -311,6 +426,49 @@ func expandPlan(input []interface{}) *virtualmachines.Plan {
 }
 
 func flattenPlan(input *virtualmachines.Plan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	product := ""
+	if input.Product != nil {
+		product = *input.Product
+	}
+
+	publisher := ""
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"product":   product,
+			"publisher": publisher,
+		},
+	}
+}
+
+func expandVMSSPlan(input []interface{}) *virtualmachinescalesets.Plan {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	return &virtualmachinescalesets.Plan{
+		Name:      utils.String(raw["name"].(string)),
+		Product:   utils.String(raw["product"].(string)),
+		Publisher: utils.String(raw["publisher"].(string)),
+	}
+}
+
+func flattenVMSSPlan(input *virtualmachinescalesets.Plan) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -475,6 +633,69 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) *v
 }
 
 func flattenSourceImageReference(input *virtualmachines.ImageReference, hasImageId bool) []interface{} {
+	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
+	if input == nil || hasImageId {
+		return []interface{}{}
+	}
+
+	var publisher, offer, sku, version string
+
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+	if input.Offer != nil {
+		offer = *input.Offer
+	}
+	if input.Sku != nil {
+		sku = *input.Sku
+	}
+	if input.Version != nil {
+		version = *input.Version
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"publisher": publisher,
+			"offer":     offer,
+			"sku":       sku,
+			"version":   version,
+		},
+	}
+}
+
+func expandVMSSSourceImageReference(referenceInput []interface{}, imageId string) *virtualmachinescalesets.ImageReference {
+	if imageId != "" {
+		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
+		if _, errors := validation.Any(validate.CommunityGalleryImageID, validate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
+			return &virtualmachinescalesets.ImageReference{
+				CommunityGalleryImageId: utils.String(imageId),
+			}
+		}
+
+		// With Version            : "/sharedGalleries/galleryUniqueName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/sharedGalleries/galleryUniqueName/images/myGalleryImageName"
+		if _, errors := validation.Any(validate.SharedGalleryImageID, validate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
+			return &virtualmachinescalesets.ImageReference{
+				SharedGalleryImageId: utils.String(imageId),
+			}
+		}
+
+		return &virtualmachinescalesets.ImageReference{
+			Id: utils.String(imageId),
+		}
+	}
+
+	raw := referenceInput[0].(map[string]interface{})
+	return &virtualmachinescalesets.ImageReference{
+		Publisher: utils.String(raw["publisher"].(string)),
+		Offer:     utils.String(raw["offer"].(string)),
+		Sku:       utils.String(raw["sku"].(string)),
+		Version:   utils.String(raw["version"].(string)),
+	}
+}
+
+func flattenVMSSSourceImageReference(input *virtualmachinescalesets.ImageReference, hasImageId bool) []interface{} {
 	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
 	if input == nil || hasImageId {
 		return []interface{}{}

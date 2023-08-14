@@ -10,6 +10,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,6 +64,47 @@ func ExpandSSHKeys(input []interface{}) []virtualmachines.SshPublicKey {
 }
 
 func FlattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, error) {
+	if input == nil || input.PublicKeys == nil {
+		return &[]interface{}{}, nil
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *input.PublicKeys {
+		if v.KeyData == nil || v.Path == nil {
+			continue
+		}
+
+		username := parseUsernameFromAuthorizedKeysPath(*v.Path)
+		if username == nil {
+			return nil, fmt.Errorf("parsing username from %q", *v.Path)
+		}
+
+		output = append(output, map[string]interface{}{
+			"public_key": *v.KeyData,
+			"username":   *username,
+		})
+	}
+
+	return &output, nil
+}
+
+func ExpandVMSSSSHKeys(input []interface{}) []virtualmachinescalesets.SshPublicKey {
+	output := make([]virtualmachinescalesets.SshPublicKey, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		username := raw["username"].(string)
+		output = append(output, virtualmachinescalesets.SshPublicKey{
+			KeyData: utils.String(raw["public_key"].(string)),
+			Path:    utils.String(formatUsernameForAuthorizedKeysPath(username)),
+		})
+	}
+
+	return output
+}
+
+func FlattenVMSSSSHKeys(input *virtualmachinescalesets.SshConfiguration) (*[]interface{}, error) {
 	if input == nil || input.PublicKeys == nil {
 		return &[]interface{}{}, nil
 	}
