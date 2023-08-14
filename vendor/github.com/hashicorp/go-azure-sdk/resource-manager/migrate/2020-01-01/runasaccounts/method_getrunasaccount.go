@@ -21,7 +21,7 @@ type GetRunAsAccountOperationResponse struct {
 // GetRunAsAccount ...
 func (c RunAsAccountsClient) GetRunAsAccount(ctx context.Context, id commonids.VMwareSiteRunAsAccountId) (result GetRunAsAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

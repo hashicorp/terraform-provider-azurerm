@@ -21,7 +21,7 @@ type StopMachineOperationResponse struct {
 // StopMachine ...
 func (c MachinesClient) StopMachine(ctx context.Context, id commonids.VMwareSiteMachineId) (result StopMachineOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

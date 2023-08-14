@@ -21,7 +21,7 @@ type GetMachineOperationResponse struct {
 // GetMachine ...
 func (c MachinesClient) GetMachine(ctx context.Context, id commonids.VMwareSiteMachineId) (result GetMachineOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

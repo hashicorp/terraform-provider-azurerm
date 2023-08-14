@@ -21,7 +21,7 @@ type StartMachineOperationResponse struct {
 // StartMachine ...
 func (c MachinesClient) StartMachine(ctx context.Context, id commonids.VMwareSiteMachineId) (result StartMachineOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},
