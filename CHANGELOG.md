@@ -14,6 +14,7 @@ BUG FIXES:
 * `azurerm_cost_management_scheduled_action` - fix update for `email_address_sender` [GH-22930]
 * `azurerm_iothub_dps` - updating the validation for `target` within the `ip_filter_rule` block to match the values defined in the Azure API Definitions [GH-22891]
 * `azurerm_postgresql_database` - updating the validation for `collation` to include `en-GB` [GH-22907]
+* Service: `postgresql` - reworking the validation for database collation [GH-22928]
 * `azurerm_virtual_network_gateway_connection` - `custom_bgp_addresses.secondary` is now `Optional` rather than `Required` [GH-22912]
 
 ## 3.69.0 (August 10, 2023)
