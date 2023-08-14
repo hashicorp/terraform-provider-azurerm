@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,18 +49,16 @@ func TestAccStorageSyncGroup_requiresImport(t *testing.T) {
 }
 
 func (r StorageSyncGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageSyncGroupID(state.ID)
+	id, err := syncgroupresource.ParseSyncGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.SyncGroupsClient.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
+	resp, err := client.Storage.SyncGroupsClient.SyncGroupsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Storage Sync Group %q (Service %q / Resource Group %q): %+v", id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r StorageSyncGroupResource) basic(data acceptance.TestData) string {

@@ -161,7 +161,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "example" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -190,7 +190,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "example" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -219,7 +219,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "example" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -270,7 +270,7 @@ A `volume` block supports the following:
 
 * `proximity_placement_group_id` - (Required) The ID of the proximity placement group. Changing this forces a new Application Volume Group to be created and data will be lost. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.
 
-* `security_style` - (Required) Volume security style. Possible value is `Unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `security_style` - (Required) Volume security style. Possible value is `unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard` and `Ultra`. Changing this forces a new Application Volume Group to be created and data will be lost.
 

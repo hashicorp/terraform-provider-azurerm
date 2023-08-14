@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -7,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
@@ -127,6 +130,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
+
+			"bypass_platform_safety_checks_on_user_schedule_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
 			"capacity_reservation_group_id": {
 				Type:     pluginsdk.TypeString,
@@ -280,6 +289,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{
 					"capacity_reservation_group_id",
 				},
+			},
+
+			"reboot_setting": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.LinuxVMGuestPatchAutomaticByPlatformRebootSettingAlways),
+					string(compute.LinuxVMGuestPatchAutomaticByPlatformRebootSettingIfRequired),
+					string(compute.LinuxVMGuestPatchAutomaticByPlatformRebootSettingNever),
+				}, false),
 			},
 
 			"secret": linuxSecretSchema(),
@@ -517,13 +536,14 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.VirtualMachineProperties.LicenseType = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("patch_mode"); ok {
-		if v.(string) == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+	patchMode := d.Get("patch_mode").(string)
+	if patchMode != "" {
+		if patchMode == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
 			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
 		}
 
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
-			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
+			PatchMode: compute.LinuxVMGuestPatchMode(patchMode),
 		}
 	}
 
@@ -536,6 +556,38 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
 		}
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(v.(string))
+	}
+
+	if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
+		if patchMode != string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+		}
+
+		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+
+		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+		}
+
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(true)
+	}
+
+	if v, ok := d.GetOk("reboot_setting"); ok {
+		if patchMode != string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+		}
+
+		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+
+		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+		}
+
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = compute.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(v.(string))
 	}
 
 	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
@@ -842,6 +894,15 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				assessmentMode = string(patchSettings.AssessmentMode)
 			}
 			d.Set("patch_assessment_mode", assessmentMode)
+
+			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
+			rebootSetting := ""
+			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.AutomaticByPlatformSettings != nil {
+				bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
+				rebootSetting = string(patchSettings.AutomaticByPlatformSettings.RebootSetting)
+			}
+			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
+			d.Set("reboot_setting", rebootSetting)
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
@@ -956,10 +1017,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	log.Printf("[DEBUG] Retrieving Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
-			return nil
-		}
-
 		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -1241,6 +1298,63 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(assessmentMode)
+	}
+
+	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)
+	bypassPlatformSafetyChecksOnUserScheduleEnabled := d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool)
+	if bypassPlatformSafetyChecksOnUserScheduleEnabled && !isPatchModeAutomaticByPlatform {
+		return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+	}
+	if d.HasChange("bypass_platform_safety_checks_on_user_schedule_enabled") {
+		shouldUpdate = true
+
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+
+		if isPatchModeAutomaticByPlatform {
+			if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+				update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+			}
+
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(bypassPlatformSafetyChecksOnUserScheduleEnabled)
+		}
+	}
+
+	rebootSetting := d.Get("reboot_setting").(string)
+	if rebootSetting != "" && !isPatchModeAutomaticByPlatform {
+		return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+	}
+	if d.HasChange("reboot_setting") {
+		shouldUpdate = true
+
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+		}
+
+		if isPatchModeAutomaticByPlatform {
+			if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+				update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+			}
+
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = compute.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(rebootSetting)
+		}
 	}
 
 	if d.HasChange("allow_extension_operations") {
@@ -1540,16 +1654,8 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, *diskId)
-			if err != nil {
-				if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
-				}
-			}
-			if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
-				if err := diskDeleteFuture.Poller.PollUntilDone(); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
-				}
+			if err := disksClient.DeleteThenPoll(ctx, *diskId); err != nil {
+				return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Deleted OS Disk from Linux Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroupName)

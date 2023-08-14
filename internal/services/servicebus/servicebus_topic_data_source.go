@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
@@ -9,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -37,18 +39,22 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
+			// TODO Remove in 4.0
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NamespaceName,
+				ValidateFunc: azValidate.NamespaceName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
+			// TODO Remove in 4.0
 			"resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: resourcegroups.ValidateName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"auto_delete_on_idle": {

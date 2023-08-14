@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -12,10 +15,6 @@ type MobileNetworkPacketCoreControlPlanDataSource struct{}
 
 func TestAccMobileNetworkPacketCoreControlPlanDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	d := MobileNetworkPacketCoreControlPlanDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{

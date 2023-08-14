@@ -1,29 +1,45 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint" // nolint: staticcheck
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	AssignmentsClient         *blueprint.AssignmentsClient
-	BlueprintsClient          *blueprint.BlueprintsClient
-	PublishedBlueprintsClient *blueprint.PublishedBlueprintsClient
+	AssignmentsClient         *assignment.AssignmentClient
+	BlueprintsClient          *blueprint.BlueprintClient
+	PublishedBlueprintsClient *publishedblueprint.PublishedBlueprintClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	assignmentsClient := blueprint.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&assignmentsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	assignmentsClient, err := assignment.NewAssignmentClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Assignment client: %+v", err)
+	}
+	o.Configure(assignmentsClient.Client, o.Authorizers.ResourceManager)
 
-	blueprintsClient := blueprint.NewBlueprintsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&blueprintsClient.Client, o.ResourceManagerAuthorizer)
+	blueprintsClient, err := blueprint.NewBlueprintClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Blueprint client: %+v", err)
+	}
+	o.Configure(blueprintsClient.Client, o.Authorizers.ResourceManager)
 
-	publishedBlueprintsClient := blueprint.NewPublishedBlueprintsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&publishedBlueprintsClient.Client, o.ResourceManagerAuthorizer)
+	publishedBlueprintsClient, err := publishedblueprint.NewPublishedBlueprintClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PublishedBlueprint client: %+v", err)
+	}
+	o.Configure(publishedBlueprintsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AssignmentsClient:         &assignmentsClient,
-		BlueprintsClient:          &blueprintsClient,
-		PublishedBlueprintsClient: &publishedBlueprintsClient,
-	}
+		AssignmentsClient:         assignmentsClient,
+		BlueprintsClient:          blueprintsClient,
+		PublishedBlueprintsClient: publishedBlueprintsClient,
+	}, nil
 }

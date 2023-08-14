@@ -12,6 +12,15 @@ import (
 type Overlay interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawOverlayImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalOverlayImplementation(input []byte) (Overlay, error) {
 	if input == nil {
 		return nil, nil
@@ -43,10 +52,6 @@ func unmarshalOverlayImplementation(input []byte) (Overlay, error) {
 		return out, nil
 	}
 
-	type RawOverlayImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawOverlayImpl{
 		Type:   value,
 		Values: temp,

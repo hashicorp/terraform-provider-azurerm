@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter_test
 
 import (
@@ -95,6 +98,43 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureExtensionUpdated(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+			),
+		},
+	})
+}
+
 func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pricings_v2023_01_01.ParsePricingIDInsensitively(state.ID)
 	if err != nil {
@@ -132,6 +172,62 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureExtension() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
+
+  extension {
+    name = "AgentlessVmScanning"
+    additional_extension_properties = {
+      ExclusionTags = "[]"
+    }
+  }
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureExtensionUpdated() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
+
+  extension {
+    name = "ContainerRegistriesVulnerabilityAssessments"
+  }
+
+  extension {
+    name = "AgentlessVmScanning"
+    additional_extension_properties = {
+      ExclusionTags = "[]"
+    }
+  }
+
+  extension {
+    name = "AgentlessDiscoveryForKubernetes"
+  }
 }
 `
 }

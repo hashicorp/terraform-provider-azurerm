@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -8,9 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -52,7 +55,27 @@ func (r KubernetesClusterExtensionResource) ModelObject() interface{} {
 }
 
 func (r KubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return extensions.ValidateExtensionID
+	return func(val interface{}, key string) (warns []string, errs []error) {
+		idRaw, ok := val.(string)
+		if !ok {
+			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
+			return
+		}
+
+		id, err := extensions.ParseScopedExtensionID(idRaw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
+			return
+		}
+
+		// validate the scope is a kubernetes cluster id
+		if _, err := commonids.ParseKubernetesClusterID(id.Scope); err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q as a Kubernetes Cluster ID: %+v", idRaw, err))
+			return
+		}
+
+		return
+	}
 }
 
 func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -71,7 +94,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: managedclusters.ValidateManagedClusterID,
+			ValidateFunc: commonids.ValidateKubernetesClusterID,
 		},
 
 		"extension_type": {
@@ -203,14 +226,13 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Containers.KubernetesExtensionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			clusterID, err := managedclusters.ParseManagedClusterID(model.ClusterID)
+			clusterID, err := commonids.ParseKubernetesClusterID(model.ClusterID)
 			if err != nil {
 				return err
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			id := extensions.NewExtensionID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.ContainerService", "managedClusters", clusterID.ManagedClusterName, model.Name)
+			id := extensions.NewScopedExtensionID(clusterID.ID(), model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -278,7 +300,7 @@ func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesExtensionsClient
 
-			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			id, err := extensions.ParseScopedExtensionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -315,7 +337,7 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesExtensionsClient
 
-			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			id, err := extensions.ParseScopedExtensionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -329,9 +351,13 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			kubernetesClusterId, err := commonids.ParseKubernetesClusterID(id.Scope)
+			if err != nil {
+				return fmt.Errorf("parsing %q as a Kubernetes Cluster ID: %+v", id.Scope, err)
+			}
 			state := KubernetesClusterExtensionModel{
 				Name:      id.ExtensionName,
-				ClusterID: managedclusters.NewManagedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: kubernetesClusterId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -377,7 +403,7 @@ func (r KubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesExtensionsClient
 
-			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			id, err := extensions.ParseScopedExtensionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

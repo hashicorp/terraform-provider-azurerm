@@ -25,7 +25,7 @@ type AssetFiltersListCompleteResult struct {
 // AssetFiltersList ...
 func (c AssetsAndAssetFiltersClient) AssetFiltersList(ctx context.Context, id AssetId) (result AssetFiltersListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

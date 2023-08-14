@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type RestoreBlobRangesOperationResponse struct {
 }
 
 // RestoreBlobRanges ...
-func (c StorageAccountsClient) RestoreBlobRanges(ctx context.Context, id StorageAccountId, input BlobRestoreParameters) (result RestoreBlobRangesOperationResponse, err error) {
+func (c StorageAccountsClient) RestoreBlobRanges(ctx context.Context, id commonids.StorageAccountId, input BlobRestoreParameters) (result RestoreBlobRangesOperationResponse, err error) {
 	req, err := c.preparerForRestoreBlobRanges(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "RestoreBlobRanges", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c StorageAccountsClient) RestoreBlobRanges(ctx context.Context, id Storage
 }
 
 // RestoreBlobRangesThenPoll performs RestoreBlobRanges then polls until it's completed
-func (c StorageAccountsClient) RestoreBlobRangesThenPoll(ctx context.Context, id StorageAccountId, input BlobRestoreParameters) error {
+func (c StorageAccountsClient) RestoreBlobRangesThenPoll(ctx context.Context, id commonids.StorageAccountId, input BlobRestoreParameters) error {
 	result, err := c.RestoreBlobRanges(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestoreBlobRanges: %+v", err)
@@ -50,7 +51,7 @@ func (c StorageAccountsClient) RestoreBlobRangesThenPoll(ctx context.Context, id
 }
 
 // preparerForRestoreBlobRanges prepares the RestoreBlobRanges request.
-func (c StorageAccountsClient) preparerForRestoreBlobRanges(ctx context.Context, id StorageAccountId, input BlobRestoreParameters) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForRestoreBlobRanges(ctx context.Context, id commonids.StorageAccountId, input BlobRestoreParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

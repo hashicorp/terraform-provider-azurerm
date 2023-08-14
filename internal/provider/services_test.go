@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -78,4 +83,54 @@ func TestUntypedResourcesContainImporters(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestResourcesAreNamedConsistently(t *testing.T) {
+	t.Logf("Validating Typed Services..")
+	for _, service := range SupportedTypedServices() {
+		t.Logf("Service %q", service.Name())
+		for _, dataSource := range service.DataSources() {
+			if err := validateResourceTypeName(dataSource.ResourceType()); err != nil {
+				t.Fatalf("the Data Source %q isn't named consistently: %+v", dataSource.ResourceType(), err)
+			}
+		}
+		for _, resource := range service.Resources() {
+			if err := validateResourceTypeName(resource.ResourceType()); err != nil {
+				t.Fatalf("the Resource %q isn't named consistently: %+v", resource.ResourceType(), err)
+			}
+		}
+	}
+
+	t.Logf("Validating Untyped Services..")
+	for _, service := range SupportedUntypedServices() {
+		t.Logf("Service %q", service.Name())
+		for dataSourceType := range service.SupportedDataSources() {
+			if err := validateResourceTypeName(dataSourceType); err != nil {
+				t.Fatalf("the Data Source %q isn't named consistently: %+v", dataSourceType, err)
+			}
+		}
+		for resourceType := range service.SupportedResources() {
+			if err := validateResourceTypeName(resourceType); err != nil {
+				t.Fatalf("the Resource %q isn't named consistently: %+v", resourceType, err)
+			}
+		}
+	}
+}
+
+func validateResourceTypeName(resourceType string) error {
+	if strings.ToLower(resourceType) != resourceType {
+		return fmt.Errorf("the resource type must be all lower-case")
+	}
+
+	// Role Assignments should be named `azurerm_{type}_role_assignment` for consistency
+	if strings.Contains(resourceType, "role_assignment") && !strings.HasSuffix(resourceType, "role_assignment") {
+		return fmt.Errorf("role assignment resources should be named `azurerm_{type}_role_assignment`")
+	}
+
+	// Role Definitions should be named `azurerm_{type}_role_definition` for consistency
+	if strings.Contains(resourceType, "role_definition") && !strings.HasSuffix(resourceType, "role_definition") {
+		return fmt.Errorf("role assignment resources should be named `azurerm_{type}_role_definition`")
+	}
+
+	return nil
 }

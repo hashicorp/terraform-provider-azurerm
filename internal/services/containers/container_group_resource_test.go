@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -658,7 +661,7 @@ func TestAccContainerGroup_withInitContainer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("ip_address_type"),
+		data.ImportStep("ip_address_type", "init_container.0.secure_environment_variables", "container.0.secure_environment_variables"),
 	})
 }
 
@@ -2236,6 +2239,9 @@ resource "azurerm_container_group" "test" {
     name     = "init"
     image    = "busybox"
     commands = ["echo", "hello from init"]
+    secure_environment_variables = {
+      PASSWORD = "something_very_secure_for_init"
+    }
   }
 
   container {
@@ -2245,6 +2251,9 @@ resource "azurerm_container_group" "test" {
     memory = "1.5"
 
     commands = ["echo", "hello from ubuntu"]
+    secure_environment_variables = {
+      PASSWORD = "something_very_secure"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -2388,6 +2397,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "List",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -2425,7 +2435,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   key_permissions = [
     "Get",
     "UnwrapKey",
-    "WrapKey"
+    "WrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id  = data.azurerm_client_config.current.tenant_id

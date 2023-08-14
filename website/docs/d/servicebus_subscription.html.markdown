@@ -14,10 +14,8 @@ Use this data source to access information about an existing ServiceBus Subscrip
 
 ```hcl
 data "azurerm_servicebus_subscription" "example" {
-  name                = "examplesubscription"
-  resource_group_name = "exampleresources"
-  namespace_name      = "examplenamespace"
-  topic_name          = "exampletopic"
+  name     = "examplesubscription"
+  topic_id = "exampletopic"
 }
 
 output "servicebus_subscription" {
@@ -34,6 +32,10 @@ output "servicebus_subscription" {
 * `namespace_name` - (Required) The name of the ServiceBus Namespace.
 
 * `topic_name` - (Required) The name of the ServiceBus Topic.
+
+~> **Note:** `namespace_name`，`resource_group_name` and `topic_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `topic_id`.
+
+* `topic_id` - (Required) The ID of the ServiceBus Topic where the Service Bus Subscription exists.
 
 ## Attributes Reference
 

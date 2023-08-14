@@ -21,7 +21,7 @@ type MonitorsRefreshSetPasswordLinkOperationResponse struct {
 // MonitorsRefreshSetPasswordLink ...
 func (c RefreshSetPasswordLinkClient) MonitorsRefreshSetPasswordLink(ctx context.Context, id MonitorId) (result MonitorsRefreshSetPasswordLinkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

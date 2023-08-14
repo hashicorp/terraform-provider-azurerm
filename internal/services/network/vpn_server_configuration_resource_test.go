@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VPNServerConfigurationResource struct{}
@@ -197,17 +200,17 @@ func TestAccVPNServerConfiguration_withoutRadiusServerRootCertificate(t *testing
 }
 
 func (t VPNServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VpnServerConfigurationID(state.ID)
+	id, err := virtualwans.ParseVpnServerConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VpnServerConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.VirtualWANs.VpnServerConfigurationsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Vpn Server Configuration (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r VPNServerConfigurationResource) azureAD(data acceptance.TestData) string {

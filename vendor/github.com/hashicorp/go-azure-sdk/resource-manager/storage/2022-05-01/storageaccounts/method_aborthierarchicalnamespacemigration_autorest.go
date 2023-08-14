@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type AbortHierarchicalNamespaceMigrationOperationResponse struct {
 }
 
 // AbortHierarchicalNamespaceMigration ...
-func (c StorageAccountsClient) AbortHierarchicalNamespaceMigration(ctx context.Context, id StorageAccountId) (result AbortHierarchicalNamespaceMigrationOperationResponse, err error) {
+func (c StorageAccountsClient) AbortHierarchicalNamespaceMigration(ctx context.Context, id commonids.StorageAccountId) (result AbortHierarchicalNamespaceMigrationOperationResponse, err error) {
 	req, err := c.preparerForAbortHierarchicalNamespaceMigration(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "AbortHierarchicalNamespaceMigration", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c StorageAccountsClient) AbortHierarchicalNamespaceMigration(ctx context.C
 }
 
 // AbortHierarchicalNamespaceMigrationThenPoll performs AbortHierarchicalNamespaceMigration then polls until it's completed
-func (c StorageAccountsClient) AbortHierarchicalNamespaceMigrationThenPoll(ctx context.Context, id StorageAccountId) error {
+func (c StorageAccountsClient) AbortHierarchicalNamespaceMigrationThenPoll(ctx context.Context, id commonids.StorageAccountId) error {
 	result, err := c.AbortHierarchicalNamespaceMigration(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AbortHierarchicalNamespaceMigration: %+v", err)
@@ -50,7 +51,7 @@ func (c StorageAccountsClient) AbortHierarchicalNamespaceMigrationThenPoll(ctx c
 }
 
 // preparerForAbortHierarchicalNamespaceMigration prepares the AbortHierarchicalNamespaceMigration request.
-func (c StorageAccountsClient) preparerForAbortHierarchicalNamespaceMigration(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForAbortHierarchicalNamespaceMigration(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

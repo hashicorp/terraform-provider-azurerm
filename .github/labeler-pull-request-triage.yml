@@ -44,6 +44,9 @@ service/automation:
 service/azure-stack-hci:
   - internal/services/azurestackhci/**/*
 
+service/azuremanagedlustrefilesystem:
+  - internal/services/azuremanagedlustrefilesystem/**/*
+
 service/batch:
   - internal/services/batch/**/*
 
@@ -65,8 +68,14 @@ service/cognitive-services:
 service/communication:
   - internal/services/communication/**/*
 
+service/connections:
+  - internal/services/connections/**/*
+
 service/consumption:
   - internal/services/consumption/**/*
+
+service/container-apps:
+  - internal/services/containerapps/**/*
 
 service/cosmosdb:
   - internal/services/cosmos/**/*
@@ -98,6 +107,9 @@ service/databox-edge:
 service/databricks:
   - internal/services/databricks/**/*
 
+service/datadog:
+  - internal/services/datadog/**/*
+
 service/devtestlabs:
   - internal/services/devtestlabs/**/*
 
@@ -126,8 +138,14 @@ service/event-hubs:
 service/firewall:
   - internal/services/firewall/**/*
 
+service/fluid-relay:
+  - internal/services/fluidrelay/**/*
+
 service/frontdoor:
   - internal/services/frontdoor/**/*
+
+service/graph:
+  - internal/services/graphservices/**/*
 
 service/hdinsight:
   - internal/services/hdinsight/**/*
@@ -225,11 +243,17 @@ service/netapp:
 service/network:
   - internal/services/network/**/*
 
+service/network-function:
+  - internal/services/networkfunction/**/*
+
 service/nginx:
   - internal/services/nginx/**/*
 
 service/notifications:
   - internal/services/notificationhub/**/*
+
+service/orbital:
+  - internal/services/orbital/**/*
 
 service/policy:
   - internal/services/policy/**/*
@@ -271,6 +295,9 @@ service/sentinel:
 service/service-bus:
   - internal/services/servicebus/**/*
 
+service/service-connector:
+  - internal/services/serviceconnector/**/*
+
 service/service-fabric:
   - internal/services/servicefabric/**/*
 
@@ -288,6 +315,9 @@ service/sql:
 
 service/storage:
   - internal/services/storage/**/*
+
+service/storagemover:
+  - internal/services/storagemover/**/*
 
 service/stream-analytics:
   - internal/services/streamanalytics/**/*

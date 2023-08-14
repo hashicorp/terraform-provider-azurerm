@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -38,7 +39,7 @@ func (r TableListOperationResponse) LoadMore(ctx context.Context) (resp TableLis
 }
 
 // TableList ...
-func (c TableServiceClient) TableList(ctx context.Context, id StorageAccountId) (resp TableListOperationResponse, err error) {
+func (c TableServiceClient) TableList(ctx context.Context, id commonids.StorageAccountId) (resp TableListOperationResponse, err error) {
 	req, err := c.preparerForTableList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "tableservice.TableServiceClient", "TableList", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c TableServiceClient) TableList(ctx context.Context, id StorageAccountId) 
 }
 
 // preparerForTableList prepares the TableList request.
-func (c TableServiceClient) preparerForTableList(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c TableServiceClient) preparerForTableList(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,12 +143,12 @@ func (c TableServiceClient) responderForTableList(resp *http.Response) (result T
 }
 
 // TableListComplete retrieves all of the results into a single object
-func (c TableServiceClient) TableListComplete(ctx context.Context, id StorageAccountId) (TableListCompleteResult, error) {
+func (c TableServiceClient) TableListComplete(ctx context.Context, id commonids.StorageAccountId) (TableListCompleteResult, error) {
 	return c.TableListCompleteMatchingPredicate(ctx, id, TableOperationPredicate{})
 }
 
 // TableListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c TableServiceClient) TableListCompleteMatchingPredicate(ctx context.Context, id StorageAccountId, predicate TableOperationPredicate) (resp TableListCompleteResult, err error) {
+func (c TableServiceClient) TableListCompleteMatchingPredicate(ctx context.Context, id commonids.StorageAccountId, predicate TableOperationPredicate) (resp TableListCompleteResult, err error) {
 	items := make([]Table, 0)
 
 	page, err := c.TableList(ctx, id)

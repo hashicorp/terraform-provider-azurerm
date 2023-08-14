@@ -20,7 +20,7 @@ type WorkbookTemplatesCreateOrUpdateOperationResponse struct {
 // WorkbookTemplatesCreateOrUpdate ...
 func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesCreateOrUpdate(ctx context.Context, id WorkbookTemplateId, input WorkbookTemplate) (result WorkbookTemplatesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

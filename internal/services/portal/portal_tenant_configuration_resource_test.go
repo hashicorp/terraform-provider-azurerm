@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package portal_test
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -88,6 +92,22 @@ func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *c
 	}
 
 	return utils.Bool(resp.Model != nil), nil
+}
+
+func (r PortalTenantConfigurationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.PortalTenantConfigurationID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Portal.TenantConfigurationsClient.Delete(ctx)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("deleting %s: %+v", *id, err)
+		}
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (r PortalTenantConfigurationResource) basic(enforcePrivateMarkdownStorage bool) string {

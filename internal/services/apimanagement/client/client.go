@@ -1,8 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
-	pandoraAPIMGlobalSchema "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -28,7 +33,7 @@ type Client struct {
 	GatewayCertificateAuthorityClient  *apimanagement.GatewayCertificateAuthorityClient
 	GatewayClient                      *apimanagement.GatewayClient
 	GatewayHostNameConfigurationClient *apimanagement.GatewayHostnameConfigurationClient
-	GlobalSchemaClient                 *pandoraAPIMGlobalSchema.SchemaClient
+	GlobalSchemaClient                 *schema.SchemaClient
 	GroupClient                        *apimanagement.GroupClient
 	GroupUsersClient                   *apimanagement.GroupUserClient
 	IdentityProviderClient             *apimanagement.IdentityProviderClient
@@ -51,7 +56,7 @@ type Client struct {
 	UsersClient                        *apimanagement.UserClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	apiClient := apimanagement.NewAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiClient.Client, o.ResourceManagerAuthorizer)
 
@@ -115,8 +120,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	gatewayHostnameConfigurationClient := apimanagement.NewGatewayHostnameConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayHostnameConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
-	globalSchemaClient := pandoraAPIMGlobalSchema.NewSchemaClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&globalSchemaClient.Client, o.ResourceManagerAuthorizer)
+	globalSchemaClient, err := schema.NewSchemaClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Schema client: %+v", err)
+	}
+	o.Configure(globalSchemaClient.Client, o.Authorizers.ResourceManager)
 
 	groupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupClient.Client, o.ResourceManagerAuthorizer)
@@ -200,7 +208,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		GatewayCertificateAuthorityClient:  &gatewayCertificateAuthorityClient,
 		GatewayClient:                      &gatewayClient,
 		GatewayHostNameConfigurationClient: &gatewayHostnameConfigurationClient,
-		GlobalSchemaClient:                 &globalSchemaClient,
+		GlobalSchemaClient:                 globalSchemaClient,
 		GroupClient:                        &groupClient,
 		GroupUsersClient:                   &groupUsersClient,
 		IdentityProviderClient:             &identityProviderClient,
@@ -221,5 +229,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		TagClient:                          &tagClient,
 		TenantAccessClient:                 &tenantAccessClient,
 		UsersClient:                        &usersClient,
-	}
+	}, nil
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
@@ -8,17 +11,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
-	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/serversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -37,7 +41,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 		Delete: resourceMySqlServerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ServerID(id)
+			_, err := servers.ParseServerID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			d.Set("create_mode", "Default")
@@ -92,19 +96,19 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(mysql.CreateModeDefault),
+				Default:  string(servers.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(mysql.CreateModeDefault),
-					string(mysql.CreateModeGeoRestore),
-					string(mysql.CreateModePointInTimeRestore),
-					string(mysql.CreateModeReplica),
+					string(servers.CreateModeDefault),
+					string(servers.CreateModeGeoRestore),
+					string(servers.CreateModePointInTimeRestore),
+					string(servers.CreateModeReplica),
 				}, false),
 			},
 
 			"creation_source_server_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: servers.ValidateServerID,
 			},
 
 			"fqdn": {
@@ -177,12 +181,12 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(mysql.TLS12),
+				Default:  string(servers.MinimalTlsVersionEnumTLSOneTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(mysql.TLSEnforcementDisabled),
-					string(mysql.TLS10),
-					string(mysql.TLS11),
-					string(mysql.TLS12),
+					string(servers.MinimalTlsVersionEnumTLSEnforcementDisabled),
+					string(servers.MinimalTlsVersionEnumTLSOneZero),
+					string(servers.MinimalTlsVersionEnumTLSOneOne),
+					string(servers.MinimalTlsVersionEnumTLSOneTwo),
 				}, false),
 			},
 
@@ -295,14 +299,14 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(mysql.FiveFullStopSeven),
-					string(mysql.EightFullStopZero),
+					string(servers.ServerVersionFivePointSeven),
+					string(servers.ServerVersionEightPointZero),
 				}, false),
 				ForceNew: true,
 			},
@@ -328,9 +332,9 @@ func resourceMySqlServer() *pluginsdk.Resource {
 }
 
 func resourceMySqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServersClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.Servers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
+	securityClient := meta.(*clients.Client).MySQL.MySqlClient.ServerSecurityAlertPolicies
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -338,54 +342,54 @@ func resourceMySqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mysql_server", id.ID())
 		}
 	}
 
-	mode := mysql.CreateMode(d.Get("create_mode").(string))
-	tlsMin := mysql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+	mode := servers.CreateMode(d.Get("create_mode").(string))
+	tlsMin := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 	source := d.Get("creation_source_server_id").(string)
-	version := mysql.ServerVersion(d.Get("version").(string))
+	version := servers.ServerVersion(d.Get("version").(string))
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
 		return fmt.Errorf("expanding sku_name for %s: %v", id, err)
 	}
 
-	infraEncrypt := mysql.InfrastructureEncryptionEnabled
+	infraEncrypt := servers.InfrastructureEncryptionEnabled
 	if v := d.Get("infrastructure_encryption_enabled"); !v.(bool) {
-		infraEncrypt = mysql.InfrastructureEncryptionDisabled
+		infraEncrypt = servers.InfrastructureEncryptionDisabled
 	}
 
-	if sku.Tier == mysql.Basic && infraEncrypt == mysql.InfrastructureEncryptionEnabled {
+	if pointer.From(sku.Tier) == servers.SkuTierBasic && infraEncrypt == servers.InfrastructureEncryptionEnabled {
 		return fmt.Errorf("`infrastructure_encryption_enabled` is not supported for sku Tier `Basic` for %s", id)
 	}
 
-	publicAccess := mysql.PublicNetworkAccessEnumEnabled
+	publicAccess := servers.PublicNetworkAccessEnumEnabled
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		publicAccess = mysql.PublicNetworkAccessEnumDisabled
+		publicAccess = servers.PublicNetworkAccessEnumDisabled
 	}
 
-	ssl := mysql.SslEnforcementEnumEnabled
+	ssl := servers.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
-		ssl = mysql.SslEnforcementEnumDisabled
+		ssl = servers.SslEnforcementEnumDisabled
 	}
 
 	storage := expandMySQLStorageProfile(d)
 
-	var props mysql.BasicServerPropertiesForCreate
+	var props servers.ServerPropertiesForCreate
 	switch mode {
-	case mysql.CreateModeDefault:
+	case servers.CreateModeDefault:
 		admin := d.Get("administrator_login").(string)
 		pass := d.Get("administrator_login_password").(string)
 
@@ -401,113 +405,94 @@ func resourceMySqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		// check admin
-		props = &mysql.ServerPropertiesForDefaultCreate{
-			AdministratorLogin:         &admin,
-			AdministratorLoginPassword: &pass,
-			CreateMode:                 mode,
-			InfrastructureEncryption:   infraEncrypt,
-			PublicNetworkAccess:        publicAccess,
-			MinimalTLSVersion:          tlsMin,
-			SslEnforcement:             ssl,
+		props = &servers.ServerPropertiesForDefaultCreate{
+			AdministratorLogin:         admin,
+			AdministratorLoginPassword: pass,
+			InfrastructureEncryption:   pointer.To(infraEncrypt),
+			PublicNetworkAccess:        pointer.To(publicAccess),
+			MinimalTlsVersion:          pointer.To(tlsMin),
+			SslEnforcement:             pointer.To(ssl),
 			StorageProfile:             storage,
-			Version:                    version,
+			Version:                    pointer.To(version),
 		}
-	case mysql.CreateModePointInTimeRestore:
+	case servers.CreateModePointInTimeRestore:
 		v, ok := d.GetOk("restore_point_in_time")
 		if !ok || v.(string) == "" {
 			return fmt.Errorf("restore_point_in_time must be set when create_mode is PointInTimeRestore")
 		}
-		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
-		props = &mysql.ServerPropertiesForRestore{
-			CreateMode:     mode,
-			SourceServerID: &source,
-			RestorePointInTime: &date.Time{
-				Time: time,
-			},
-			InfrastructureEncryption: infraEncrypt,
-			PublicNetworkAccess:      publicAccess,
-			MinimalTLSVersion:        tlsMin,
-			SslEnforcement:           ssl,
+		props = &servers.ServerPropertiesForRestore{
+			SourceServerId:           source,
+			RestorePointInTime:       t.Format(time.RFC3339),
+			InfrastructureEncryption: pointer.To(infraEncrypt),
+			PublicNetworkAccess:      pointer.To(publicAccess),
+			MinimalTlsVersion:        pointer.To(tlsMin),
+			SslEnforcement:           pointer.To(ssl),
 			StorageProfile:           storage,
-			Version:                  version,
+			Version:                  pointer.To(version),
 		}
-	case mysql.CreateModeGeoRestore:
-		props = &mysql.ServerPropertiesForGeoRestore{
-			CreateMode:               mode,
-			SourceServerID:           &source,
-			InfrastructureEncryption: infraEncrypt,
-			PublicNetworkAccess:      publicAccess,
-			MinimalTLSVersion:        tlsMin,
-			SslEnforcement:           ssl,
+	case servers.CreateModeGeoRestore:
+		props = &servers.ServerPropertiesForGeoRestore{
+			SourceServerId:           source,
+			InfrastructureEncryption: pointer.To(infraEncrypt),
+			PublicNetworkAccess:      pointer.To(publicAccess),
+			MinimalTlsVersion:        pointer.To(tlsMin),
+			SslEnforcement:           pointer.To(ssl),
 			StorageProfile:           storage,
-			Version:                  version,
+			Version:                  pointer.To(version),
 		}
-	case mysql.CreateModeReplica:
-		props = &mysql.ServerPropertiesForReplica{
-			CreateMode:               mode,
-			SourceServerID:           &source,
-			InfrastructureEncryption: infraEncrypt,
-			PublicNetworkAccess:      publicAccess,
-			MinimalTLSVersion:        tlsMin,
-			SslEnforcement:           ssl,
-			Version:                  version,
+	case servers.CreateModeReplica:
+		props = &servers.ServerPropertiesForReplica{
+			SourceServerId:           source,
+			InfrastructureEncryption: pointer.To(infraEncrypt),
+			PublicNetworkAccess:      pointer.To(publicAccess),
+			MinimalTlsVersion:        pointer.To(tlsMin),
+			SslEnforcement:           pointer.To(ssl),
+			Version:                  pointer.To(version),
 		}
 	}
 
-	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	server := mysql.ServerForCreate{
+	server := servers.ServerForCreate{
 		Identity:   expandedIdentity,
-		Location:   &location,
+		Location:   location,
 		Properties: props,
 		Sku:        sku,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.Name, server)
-	if err != nil {
+	if err = client.CreateThenPoll(ctx, id, server); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
+		securityAlertId := serversecurityalertpolicies.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
-			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
-			if err != nil {
+			if err = securityClient.CreateOrUpdateThenPoll(ctx, securityAlertId, *alert); err != nil {
 				return fmt.Errorf("updating of Security Alert Policy for %s: %+v", id, err)
 			}
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of Security Alert Policy for %s: %+v", id, err)
-			}
 		}
 	}
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
-	if mode == mysql.CreateModeReplica {
-		log.Printf("[INFO] changing `public_network_access_enabled` for AzureRM MySQL Server %q (Resource Group %q)", id.Name, id.ResourceGroup)
-		properties := mysql.ServerUpdateParameters{
-			ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
-				PublicNetworkAccess: publicAccess,
+	if mode == servers.CreateModeReplica {
+		log.Printf("[INFO] changing `public_network_access_enabled` for %s", id)
+		properties := servers.ServerUpdateParameters{
+			Properties: &servers.ServerUpdateParametersProperties{
+				PublicNetworkAccess: pointer.To(publicAccess),
 			},
 		}
 
-		future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
-		if err != nil {
-			return fmt.Errorf("updating MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err = client.UpdateThenPoll(ctx, id, properties); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
 
@@ -515,8 +500,8 @@ func resourceMySqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceMySqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServersClient
-	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.Servers
+	securityClient := meta.(*clients.Client).MySQL.MySqlClient.ServerSecurityAlertPolicies
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -524,64 +509,56 @@ func resourceMySqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MySQL Server ID : %v", err)
 	}
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for MySQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("expanding sku_name for %s: %v", id, err)
 	}
 
-	publicAccess := mysql.PublicNetworkAccessEnumEnabled
+	publicAccess := servers.PublicNetworkAccessEnumEnabled
 	if v := d.Get("public_network_access_enabled").(bool); !v {
-		publicAccess = mysql.PublicNetworkAccessEnumDisabled
+		publicAccess = servers.PublicNetworkAccessEnumDisabled
 	}
 
-	ssl := mysql.SslEnforcementEnumEnabled
+	ssl := servers.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
-		ssl = mysql.SslEnforcementEnumDisabled
+		ssl = servers.SslEnforcementEnumDisabled
 	}
 
 	storageProfile := expandMySQLStorageProfile(d)
 
-	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	properties := mysql.ServerUpdateParameters{
+	properties := servers.ServerUpdateParameters{
 		Identity: expandedIdentity,
-		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
+		Properties: &servers.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
-			PublicNetworkAccess:        publicAccess,
-			SslEnforcement:             ssl,
-			MinimalTLSVersion:          mysql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string)),
+			PublicNetworkAccess:        pointer.To(publicAccess),
+			SslEnforcement:             pointer.To(ssl),
+			MinimalTlsVersion:          pointer.To(servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))),
 			StorageProfile:             storageProfile,
-			Version:                    mysql.ServerVersion(d.Get("version").(string)),
+			Version:                    pointer.To(servers.ServerVersion(d.Get("version").(string))),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
-	if err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, properties); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
+		securityAlertId := serversecurityalertpolicies.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
-			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
-			if err != nil {
+			if err = securityClient.CreateOrUpdateThenPoll(ctx, securityAlertId, *alert); err != nil {
 				return fmt.Errorf("updataing mysql server security alert policy: %v", err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation/update of mysql server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
 	}
@@ -590,19 +567,19 @@ func resourceMySqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceMySqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServersClient
-	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.Servers
+	securityClient := meta.(*clients.Client).MySQL.MySqlClient.ServerSecurityAlertPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -611,93 +588,102 @@ func resourceMySqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	tier := mysql.Basic
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-		tier = sku.Tier
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if err := d.Set("identity", flattenServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if props := resp.ServerProperties; props != nil {
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("infrastructure_encryption_enabled", props.InfrastructureEncryption == mysql.InfrastructureEncryptionEnabled)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == mysql.PublicNetworkAccessEnumEnabled)
-		d.Set("ssl_enforcement_enabled", props.SslEnforcement == mysql.SslEnforcementEnumEnabled)
-		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
-		d.Set("version", string(props.Version))
-
-		if storage := props.StorageProfile; storage != nil {
-			d.Set("auto_grow_enabled", storage.StorageAutogrow == mysql.StorageAutogrowEnabled)
-			d.Set("backup_retention_days", storage.BackupRetentionDays)
-			d.Set("geo_redundant_backup_enabled", storage.GeoRedundantBackup == mysql.Enabled)
-			d.Set("storage_mb", storage.StorageMB)
+		tier := servers.SkuTierBasic
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
+			tier = pointer.From(sku.Tier)
 		}
 
-		// Computed
-		d.Set("fqdn", props.FullyQualifiedDomainName)
-	}
-
-	// the basic does not support threat detection policies
-	if tier == mysql.GeneralPurpose || tier == mysql.MemoryOptimized {
-		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-			return fmt.Errorf("retrieving Security Alert Policy for %s: %+v", *id, err)
+		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		if !utils.ResponseWasNotFound(secResp.Response) {
-			block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("threat_detection_policy.0.storage_account_access_key").(string))
-			if err := d.Set("threat_detection_policy", block); err != nil {
-				return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+		if props := model.Properties; props != nil {
+			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("infrastructure_encryption_enabled", pointer.From(props.InfrastructureEncryption) == servers.InfrastructureEncryptionEnabled)
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == servers.PublicNetworkAccessEnumEnabled)
+			d.Set("ssl_enforcement_enabled", pointer.From(props.SslEnforcement) == servers.SslEnforcementEnumEnabled)
+			minimalTlsVersion := ""
+			if props.MinimalTlsVersion != nil {
+				minimalTlsVersion = string(*props.MinimalTlsVersion)
+			}
+			d.Set("ssl_minimal_tls_version_enforced", minimalTlsVersion)
+			version := ""
+			if props.Version != nil {
+				version = string(*props.Version)
+			}
+			d.Set("version", version)
+
+			if storage := props.StorageProfile; storage != nil {
+				d.Set("auto_grow_enabled", pointer.From(storage.StorageAutogrow) == servers.StorageAutogrowEnabled)
+				d.Set("backup_retention_days", storage.BackupRetentionDays)
+				d.Set("geo_redundant_backup_enabled", pointer.From(storage.GeoRedundantBackup) == servers.GeoRedundantBackupEnabled)
+				d.Set("storage_mb", storage.StorageMB)
+			}
+
+			// Computed
+			d.Set("fqdn", props.FullyQualifiedDomainName)
+		}
+
+		// the basic does not support threat detection policies
+		if tier == servers.SkuTierGeneralPurpose || tier == servers.SkuTierMemoryOptimized {
+			securityAlertId := serversecurityalertpolicies.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+			secResp, err := securityClient.Get(ctx, securityAlertId)
+			if err != nil && !response.WasNotFound(secResp.HttpResponse) {
+				return fmt.Errorf("retrieving Security Alert Policy for %s: %+v", *id, err)
+			}
+
+			if !response.WasNotFound(secResp.HttpResponse) && secResp.Model != nil {
+				block := flattenSecurityAlertPolicy(secResp.Model.Properties, d.Get("threat_detection_policy.0.storage_account_access_key").(string))
+				if err := d.Set("threat_detection_policy", block); err != nil {
+					return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+				}
 			}
 		}
-	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceMySqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServersClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.ServerID(d.Id())
-	if err != nil {
-		return fmt.Errorf("parsing MySQL Server ID : %v", err)
-	}
-
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
 }
 
-func expandServerSkuName(skuName string) (*mysql.Sku, error) {
+func resourceMySqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MySQL.MySqlClient.Servers
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := servers.ParseServerID(d.Id())
+	if err != nil {
+		return fmt.Errorf("parsing MySQL Server ID : %v", err)
+	}
+
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func expandServerSkuName(skuName string) (*servers.Sku, error) {
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("sku_name (%s) has the worng numberof parts (%d) after splitting on _", skuName, len(parts))
 	}
 
-	var tier mysql.SkuTier
+	var tier servers.SkuTier
 	switch parts[0] {
 	case "B":
-		tier = mysql.Basic
+		tier = servers.SkuTierBasic
 	case "GP":
-		tier = mysql.GeneralPurpose
+		tier = servers.SkuTierGeneralPurpose
 	case "MO":
-		tier = mysql.MemoryOptimized
+		tier = servers.SkuTierMemoryOptimized
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
 	}
@@ -707,44 +693,44 @@ func expandServerSkuName(skuName string) (*mysql.Sku, error) {
 		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
 	}
 
-	return &mysql.Sku{
-		Name:     utils.String(skuName),
-		Tier:     tier,
-		Capacity: utils.Int32(int32(capacity)),
+	return &servers.Sku{
+		Name:     skuName,
+		Tier:     pointer.To(tier),
+		Capacity: utils.Int64(int64(capacity)),
 		Family:   utils.String(parts[1]),
 	}, nil
 }
 
-func expandMySQLStorageProfile(d *pluginsdk.ResourceData) *mysql.StorageProfile {
-	storage := mysql.StorageProfile{}
+func expandMySQLStorageProfile(d *pluginsdk.ResourceData) *servers.StorageProfile {
+	storage := servers.StorageProfile{}
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
-		storage.StorageAutogrow = mysql.StorageAutogrowDisabled
+		storage.StorageAutogrow = pointer.To(servers.StorageAutogrowDisabled)
 		if v.(bool) {
-			storage.StorageAutogrow = mysql.StorageAutogrowEnabled
+			storage.StorageAutogrow = pointer.To(servers.StorageAutogrowEnabled)
 		}
 	}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
-		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
+		storage.BackupRetentionDays = utils.Int64(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("geo_redundant_backup_enabled"); ok {
-		storage.GeoRedundantBackup = mysql.Disabled
+		storage.GeoRedundantBackup = pointer.To(servers.GeoRedundantBackupDisabled)
 		if v.(bool) {
-			storage.GeoRedundantBackup = mysql.Enabled
+			storage.GeoRedundantBackup = pointer.To(servers.GeoRedundantBackupEnabled)
 		}
 	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageMB = utils.Int32(int32(v.(int)))
+		storage.StorageMB = utils.Int64(int64(v.(int)))
 	}
 
 	return &storage
 }
 
-func expandSecurityAlertPolicy(i interface{}) *mysql.ServerSecurityAlertPolicy {
+func expandSecurityAlertPolicy(i interface{}) *serversecurityalertpolicies.ServerSecurityAlertPolicy {
 	slice := i.([]interface{})
 	if len(slice) == 0 {
 		return nil
@@ -752,12 +738,12 @@ func expandSecurityAlertPolicy(i interface{}) *mysql.ServerSecurityAlertPolicy {
 
 	block := slice[0].(map[string]interface{})
 
-	state := mysql.ServerSecurityAlertPolicyStateEnabled
+	state := serversecurityalertpolicies.ServerSecurityAlertPolicyStateEnabled
 	if !block["enabled"].(bool) {
-		state = mysql.ServerSecurityAlertPolicyStateDisabled
+		state = serversecurityalertpolicies.ServerSecurityAlertPolicyStateDisabled
 	}
 
-	props := &mysql.SecurityAlertPolicyProperties{
+	props := &serversecurityalertpolicies.SecurityAlertPolicyProperties{
 		State: state,
 	}
 
@@ -774,7 +760,7 @@ func expandSecurityAlertPolicy(i interface{}) *mysql.ServerSecurityAlertPolicy {
 	}
 
 	if v, ok := block["retention_days"]; ok {
-		props.RetentionDays = utils.Int32(int32(v.(int)))
+		props.RetentionDays = utils.Int64(int64(v.(int)))
 	}
 
 	if v, ok := block["storage_account_access_key"]; ok && v.(string) != "" {
@@ -785,12 +771,12 @@ func expandSecurityAlertPolicy(i interface{}) *mysql.ServerSecurityAlertPolicy {
 		props.StorageEndpoint = utils.String(v.(string))
 	}
 
-	return &mysql.ServerSecurityAlertPolicy{
-		SecurityAlertPolicyProperties: props,
+	return &serversecurityalertpolicies.ServerSecurityAlertPolicy{
+		Properties: props,
 	}
 }
 
-func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, accessKey string) interface{} {
+func flattenSecurityAlertPolicy(props *serversecurityalertpolicies.SecurityAlertPolicyProperties, accessKey string) interface{} {
 	if props == nil {
 		return nil
 	}
@@ -802,13 +788,13 @@ func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, acce
 		props.StorageEndpoint != nil && *props.StorageEndpoint == "" &&
 		props.RetentionDays != nil && *props.RetentionDays == 0 &&
 		props.EmailAccountAdmins != nil && !*props.EmailAccountAdmins &&
-		props.State == mysql.ServerSecurityAlertPolicyStateDisabled {
+		props.State == serversecurityalertpolicies.ServerSecurityAlertPolicyStateDisabled {
 		return nil
 	}
 
 	block := map[string]interface{}{}
 
-	block["enabled"] = props.State == mysql.ServerSecurityAlertPolicyStateEnabled
+	block["enabled"] = props.State == serversecurityalertpolicies.ServerSecurityAlertPolicyStateEnabled
 
 	// the service will return "disabledAlerts":[""] for empty
 	if props.DisabledAlerts == nil || len(*props.DisabledAlerts) == 0 || (*props.DisabledAlerts)[0] == "" {
@@ -837,37 +823,4 @@ func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, acce
 	block["storage_account_access_key"] = accessKey
 
 	return []interface{}{block}
-}
-
-func expandServerIdentity(input []interface{}) (*mysql.ResourceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
-	}
-
-	if expanded.Type == identity.TypeNone {
-		return nil, nil
-	}
-
-	return &mysql.ResourceIdentity{
-		Type: mysql.IdentityType(string(expanded.Type)),
-	}, nil
-}
-
-func flattenServerIdentity(input *mysql.ResourceIdentity) []interface{} {
-	var transition *identity.SystemAssigned
-
-	if input != nil {
-		transition = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transition.PrincipalId = input.PrincipalID.String()
-		}
-		if input.TenantID != nil {
-			transition.TenantId = input.TenantID.String()
-		}
-	}
-
-	return identity.FlattenSystemAssigned(transition)
 }

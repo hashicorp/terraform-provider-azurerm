@@ -10,11 +10,11 @@ type QueryKeyOperationPredicate struct {
 
 func (p QueryKeyOperationPredicate) Matches(input QueryKey) bool {
 
-	if p.Key != nil && (input.Key == nil && *p.Key != *input.Key) {
+	if p.Key != nil && (input.Key == nil || *p.Key != *input.Key) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 

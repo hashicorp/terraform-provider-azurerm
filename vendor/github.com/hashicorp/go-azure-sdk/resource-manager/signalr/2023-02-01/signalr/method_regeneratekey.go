@@ -23,7 +23,7 @@ type RegenerateKeyOperationResponse struct {
 // RegenerateKey ...
 func (c SignalRClient) RegenerateKey(ctx context.Context, id SignalRId, input RegenerateKeyParameters) (result RegenerateKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

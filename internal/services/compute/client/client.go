@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -20,12 +23,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type Client struct {
+	// TODO: move the Compute client to using Meta Clients where possible
+	// TODO: @tombuildsstuff: investigate _if_ that's possible given Compute uses a myriad of API Versions
 	AvailabilitySetsClient           *availabilitysets.AvailabilitySetsClient
 	CapacityReservationsClient       *capacityreservations.CapacityReservationsClient
 	CapacityReservationGroupsClient  *capacityreservationgroups.CapacityReservationGroupsClient
@@ -39,6 +45,7 @@ type Client struct {
 	GalleryApplicationVersionsClient *galleryapplicationversions.GalleryApplicationVersionsClient
 	GalleryImagesClient              *compute.GalleryImagesClient
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
+	GallerySharingUpdateClient       *gallerysharingupdate.GallerySharingUpdateClient
 	ImagesClient                     *images.ImagesClient
 	MarketplaceAgreementsClient      *agreements.AgreementsClient
 	ProximityPlacementGroupsClient   *proximityplacementgroups.ProximityPlacementGroupsClient
@@ -57,38 +64,71 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	availabilitySetsClient := availabilitysets.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
+	availabilitySetsClient, err := availabilitysets.NewAvailabilitySetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AvailabilitySets client: %+v", err)
+	}
+	o.Configure(availabilitySetsClient.Client, o.Authorizers.ResourceManager)
 
-	capacityReservationsClient := capacityreservations.NewCapacityReservationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&capacityReservationsClient.Client, o.ResourceManagerAuthorizer)
+	capacityReservationsClient, err := capacityreservations.NewCapacityReservationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building CapacityReservations client: %+v", err)
+	}
+	o.Configure(capacityReservationsClient.Client, o.Authorizers.ResourceManager)
 
-	capacityReservationGroupsClient := capacityreservationgroups.NewCapacityReservationGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&capacityReservationGroupsClient.Client, o.ResourceManagerAuthorizer)
+	capacityReservationGroupsClient, err := capacityreservationgroups.NewCapacityReservationGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building CapacityReservationGroups client: %+v", err)
+	}
+	o.Configure(capacityReservationGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	dedicatedHostsClient := dedicatedhosts.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&dedicatedHostsClient.Client, o.ResourceManagerAuthorizer)
+	dedicatedHostsClient, err := dedicatedhosts.NewDedicatedHostsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DedicatedHosts client: %+v", err)
+	}
+	o.Configure(dedicatedHostsClient.Client, o.Authorizers.ResourceManager)
 
-	dedicatedHostGroupsClient := dedicatedhostgroups.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
+	dedicatedHostGroupsClient, err := dedicatedhostgroups.NewDedicatedHostGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DedicatedHostGroups client: %+v", err)
+	}
+	o.Configure(dedicatedHostGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	disksClient := disks.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
+	disksClient, err := disks.NewDisksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Disks client: %+v", err)
+	}
+	o.Configure(disksClient.Client, o.Authorizers.ResourceManager)
 
-	diskAccessClient := diskaccesses.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&diskAccessClient.Client, o.ResourceManagerAuthorizer)
+	diskAccessClient, err := diskaccesses.NewDiskAccessesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DiskAccesses client: %+v", err)
+	}
+	o.Configure(diskAccessClient.Client, o.Authorizers.ResourceManager)
 
-	diskEncryptionSetsClient := diskencryptionsets.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&diskEncryptionSetsClient.Client, o.ResourceManagerAuthorizer)
+	diskEncryptionSetsClient, err := diskencryptionsets.NewDiskEncryptionSetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DiskEncryptionSets client: %+v", err)
+	}
+	o.Configure(diskEncryptionSetsClient.Client, o.Authorizers.ResourceManager)
 
-	galleriesClient := galleries.NewGalleriesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&galleriesClient.Client, o.ResourceManagerAuthorizer)
+	galleriesClient, err := galleries.NewGalleriesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Galleries client: %+v", err)
+	}
+	o.Configure(galleriesClient.Client, o.Authorizers.ResourceManager)
 
-	galleryApplicationsClient := galleryapplications.NewGalleryApplicationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&galleryApplicationsClient.Client, o.ResourceManagerAuthorizer)
+	galleryApplicationsClient, err := galleryapplications.NewGalleryApplicationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building GalleryApplications client: %+v", err)
+	}
+	o.Configure(galleryApplicationsClient.Client, o.Authorizers.ResourceManager)
 
-	galleryApplicationVersionsClient := galleryapplicationversions.NewGalleryApplicationVersionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&galleryApplicationVersionsClient.Client, o.ResourceManagerAuthorizer)
+	galleryApplicationVersionsClient, err := galleryapplicationversions.NewGalleryApplicationVersionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building GalleryApplicationVersions client: %+v", err)
+	}
+	o.Configure(galleryApplicationVersionsClient.Client, o.Authorizers.ResourceManager)
 
 	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&galleryImagesClient.Client, o.ResourceManagerAuthorizer)
@@ -96,8 +136,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&galleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
 
-	imagesClient := images.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&imagesClient.Client, o.ResourceManagerAuthorizer)
+	gallerySharingUpdateClient, err := gallerysharingupdate.NewGallerySharingUpdateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building GallerySharingUpdate client: %+v", err)
+	}
+	o.Configure(gallerySharingUpdateClient.Client, o.Authorizers.ResourceManager)
+
+	imagesClient, err := images.NewImagesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Images client: %+v", err)
+	}
+	o.Configure(imagesClient.Client, o.Authorizers.ResourceManager)
 
 	marketplaceAgreementsClient, err := agreements.NewAgreementsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -105,23 +154,38 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(marketplaceAgreementsClient.Client, o.Authorizers.ResourceManager)
 
-	proximityPlacementGroupsClient := proximityplacementgroups.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&proximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
+	proximityPlacementGroupsClient, err := proximityplacementgroups.NewProximityPlacementGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ProximityPlacementGroups client: %+v", err)
+	}
+	o.Configure(proximityPlacementGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	skusClient := skus.NewSkusClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&skusClient.Client, o.ResourceManagerAuthorizer)
+	skusClient, err := skus.NewSkusClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Skus client: %+v", err)
+	}
+	o.Configure(skusClient.Client, o.Authorizers.ResourceManager)
 
-	snapshotsClient := snapshots.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&snapshotsClient.Client, o.ResourceManagerAuthorizer)
+	snapshotsClient, err := snapshots.NewSnapshotsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Snapshots client: %+v", err)
+	}
+	o.Configure(snapshotsClient.Client, o.Authorizers.ResourceManager)
 
-	sshPublicKeysClient := sshpublickeys.NewSshPublicKeysClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&sshPublicKeysClient.Client, o.ResourceManagerAuthorizer)
+	sshPublicKeysClient, err := sshpublickeys.NewSshPublicKeysClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SshPublicKeys client: %+v", err)
+	}
+	o.Configure(sshPublicKeysClient.Client, o.Authorizers.ResourceManager)
 
 	usageClient := compute.NewUsageClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&usageClient.Client, o.ResourceManagerAuthorizer)
 
-	virtualMachinesClient := virtualmachines.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&virtualMachinesClient.Client, o.ResourceManagerAuthorizer)
+	virtualMachinesClient, err := virtualmachines.NewVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VirtualMachines client: %+v", err)
+	}
+	o.Configure(virtualMachinesClient.Client, o.Authorizers.ResourceManager)
 
 	vmExtensionImageClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmExtensionImageClient.Client, o.ResourceManagerAuthorizer)
@@ -148,26 +212,27 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AvailabilitySetsClient:           &availabilitySetsClient,
-		CapacityReservationsClient:       &capacityReservationsClient,
-		CapacityReservationGroupsClient:  &capacityReservationGroupsClient,
-		DedicatedHostsClient:             &dedicatedHostsClient,
-		DedicatedHostGroupsClient:        &dedicatedHostGroupsClient,
-		DisksClient:                      &disksClient,
-		DiskAccessClient:                 &diskAccessClient,
-		DiskEncryptionSetsClient:         &diskEncryptionSetsClient,
-		GalleriesClient:                  &galleriesClient,
-		GalleryApplicationsClient:        &galleryApplicationsClient,
-		GalleryApplicationVersionsClient: &galleryApplicationVersionsClient,
+		AvailabilitySetsClient:           availabilitySetsClient,
+		CapacityReservationsClient:       capacityReservationsClient,
+		CapacityReservationGroupsClient:  capacityReservationGroupsClient,
+		DedicatedHostsClient:             dedicatedHostsClient,
+		DedicatedHostGroupsClient:        dedicatedHostGroupsClient,
+		DisksClient:                      disksClient,
+		DiskAccessClient:                 diskAccessClient,
+		DiskEncryptionSetsClient:         diskEncryptionSetsClient,
+		GalleriesClient:                  galleriesClient,
+		GalleryApplicationsClient:        galleryApplicationsClient,
+		GalleryApplicationVersionsClient: galleryApplicationVersionsClient,
 		GalleryImagesClient:              &galleryImagesClient,
 		GalleryImageVersionsClient:       &galleryImageVersionsClient,
-		ImagesClient:                     &imagesClient,
+		GallerySharingUpdateClient:       gallerySharingUpdateClient,
+		ImagesClient:                     imagesClient,
 		MarketplaceAgreementsClient:      marketplaceAgreementsClient,
-		ProximityPlacementGroupsClient:   &proximityPlacementGroupsClient,
-		SkusClient:                       &skusClient,
-		SSHPublicKeysClient:              &sshPublicKeysClient,
-		SnapshotsClient:                  &snapshotsClient,
-		VirtualMachinesClient:            &virtualMachinesClient,
+		ProximityPlacementGroupsClient:   proximityPlacementGroupsClient,
+		SkusClient:                       skusClient,
+		SSHPublicKeysClient:              sshPublicKeysClient,
+		SnapshotsClient:                  snapshotsClient,
+		VirtualMachinesClient:            virtualMachinesClient,
 		VMExtensionImageClient:           &vmExtensionImageClient,
 		VMExtensionClient:                &vmExtensionClient,
 		VMScaleSetClient:                 &vmScaleSetClient,

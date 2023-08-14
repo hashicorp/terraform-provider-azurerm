@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package netapp_test
 
 import (
@@ -328,6 +331,7 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.0
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -352,7 +356,7 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv4.1"]
-  security_style      = "Unix"
+  security_style      = "unix"
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
@@ -429,7 +433,7 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
-  security_style      = "Unix"
+  security_style      = "unix"
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 

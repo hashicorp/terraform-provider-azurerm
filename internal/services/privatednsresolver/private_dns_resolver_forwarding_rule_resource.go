@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package privatednsresolver
 
 import (
@@ -62,6 +65,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Arguments() map[string]*plugin
 		"domain_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

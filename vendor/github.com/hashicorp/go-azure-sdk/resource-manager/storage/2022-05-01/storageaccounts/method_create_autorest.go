@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type CreateOperationResponse struct {
 }
 
 // Create ...
-func (c StorageAccountsClient) Create(ctx context.Context, id StorageAccountId, input StorageAccountCreateParameters) (result CreateOperationResponse, err error) {
+func (c StorageAccountsClient) Create(ctx context.Context, id commonids.StorageAccountId, input StorageAccountCreateParameters) (result CreateOperationResponse, err error) {
 	req, err := c.preparerForCreate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "Create", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c StorageAccountsClient) Create(ctx context.Context, id StorageAccountId, 
 }
 
 // CreateThenPoll performs Create then polls until it's completed
-func (c StorageAccountsClient) CreateThenPoll(ctx context.Context, id StorageAccountId, input StorageAccountCreateParameters) error {
+func (c StorageAccountsClient) CreateThenPoll(ctx context.Context, id commonids.StorageAccountId, input StorageAccountCreateParameters) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
@@ -50,7 +51,7 @@ func (c StorageAccountsClient) CreateThenPoll(ctx context.Context, id StorageAcc
 }
 
 // preparerForCreate prepares the Create request.
-func (c StorageAccountsClient) preparerForCreate(ctx context.Context, id StorageAccountId, input StorageAccountCreateParameters) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForCreate(ctx context.Context, id commonids.StorageAccountId, input StorageAccountCreateParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

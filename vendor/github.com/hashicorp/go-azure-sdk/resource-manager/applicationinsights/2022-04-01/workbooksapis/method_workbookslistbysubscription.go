@@ -61,7 +61,7 @@ func (o WorkbooksListBySubscriptionOperationOptions) ToQuery() *client.QueryPara
 // WorkbooksListBySubscription ...
 func (c WorkbooksAPIsClient) WorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (result WorkbooksListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

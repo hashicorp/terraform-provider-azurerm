@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type EmailServicesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewEmailServicesClientWithBaseURI(api environments.Api) (*EmailServicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "emailservices", defaultApiVersion)
+func NewEmailServicesClientWithBaseURI(sdkApi sdkEnv.Api) (*EmailServicesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "emailservices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EmailServicesClient: %+v", err)
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,22 +8,24 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var networkInterfaceResourceName = "azurerm_network_interface"
@@ -33,7 +38,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 		Delete: resourceNetworkInterfaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NetworkInterfaceID(id)
+			_, err := commonids.ParseNetworkInterfaceID(id)
 			return err
 		}),
 
@@ -70,7 +75,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.SubnetID,
+							ValidateFunc:     commonids.ValidateSubnetID,
 						},
 
 						"private_ip_address": {
@@ -82,10 +87,10 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"private_ip_address_version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(network.IPVersionIPv4),
+							Default:  string(networkinterfaces.IPVersionIPvFour),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPVersionIPv4),
-								string(network.IPVersionIPv6),
+								string(networkinterfaces.IPVersionIPvFour),
+								string(networkinterfaces.IPVersionIPvSix),
 							}, false),
 						},
 
@@ -93,8 +98,8 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPAllocationMethodDynamic),
-								string(network.IPAllocationMethodStatic),
+								string(networkinterfaces.IPAllocationMethodDynamic),
+								string(networkinterfaces.IPAllocationMethodStatic),
 							}, false),
 						},
 
@@ -159,7 +164,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed
 			"applied_dns_servers": {
@@ -197,23 +202,21 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 }
 
 func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+	id := commonids.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_network_interface", id.ID())
-		}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_network_interface", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -221,30 +224,30 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	properties := network.InterfacePropertiesFormat{
+	properties := networkinterfaces.NetworkInterfacePropertiesFormat{
 		EnableIPForwarding:          &enableIpForwarding,
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
-	locks.ByName(id.Name, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
+	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 
 	dns, hasDns := d.GetOk("dns_servers")
 	nameLabel, hasNameLabel := d.GetOk("internal_dns_name_label")
 	if hasDns || hasNameLabel {
-		dnsSettings := network.InterfaceDNSSettings{}
+		dnsSettings := networkinterfaces.NetworkInterfaceDnsSettings{}
 
 		if hasDns {
 			dnsRaw := dns.([]interface{})
 			dns := expandNetworkInterfaceDnsServers(dnsRaw)
-			dnsSettings.DNSServers = &dns
+			dnsSettings.DnsServers = &dns
 		}
 
 		if hasNameLabel {
-			dnsSettings.InternalDNSNameLabel = utils.String(nameLabel.(string))
+			dnsSettings.InternalDnsNameLabel = utils.String(nameLabel.(string))
 		}
 
-		properties.DNSSettings = &dnsSettings
+		properties.DnsSettings = &dnsSettings
 	}
 
 	ipConfigsRaw := d.Get("ip_configuration").([]interface{})
@@ -264,21 +267,17 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		properties.IPConfigurations = ipConfigs
 	}
 
-	iface := network.Interface{
-		Name:                      utils.String(id.Name),
-		ExtendedLocation:          expandEdgeZone(d.Get("edge_zone").(string)),
-		Location:                  utils.String(location),
-		InterfacePropertiesFormat: &properties,
-		Tags:                      tags.Expand(t),
+	iface := networkinterfaces.NetworkInterface{
+		Name:             pointer.To(id.NetworkInterfaceName),
+		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
+		Properties:       &properties,
+		Tags:             tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, iface)
+	err = client.CreateOrUpdateThenPoll(ctx, id, iface)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -286,39 +285,43 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkInterfaceID(d.Id())
+	id, err := commonids.ParseNetworkInterfaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
+	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 
 	// first get the existing one so that we can pull things as needed
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if existing.InterfacePropertiesFormat == nil {
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	// then pull out things we need to lock on
-	info := parseFieldsFromNetworkInterface(*existing.InterfacePropertiesFormat)
+	info := parseFieldsFromNetworkInterface(*existing.Model.Properties)
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	update := network.Interface{
-		Name:             utils.String(id.Name),
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+	update := networkinterfaces.NetworkInterface{
+		Name:             utils.String(id.NetworkInterfaceName),
+		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Location:         utils.String(location),
-		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
+		Properties: &networkinterfaces.NetworkInterfacePropertiesFormat{
 			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
-			DNSSettings:                 &network.InterfaceDNSSettings{},
+			DnsSettings:                 &networkinterfaces.NetworkInterfaceDnsSettings{},
 		},
 	}
 
@@ -326,21 +329,21 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		dnsServersRaw := d.Get("dns_servers").([]interface{})
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
-		update.InterfacePropertiesFormat.DNSSettings.DNSServers = &dnsServers
+		update.Properties.DnsSettings.DnsServers = &dnsServers
 	} else {
-		update.InterfacePropertiesFormat.DNSSettings.DNSServers = existing.InterfacePropertiesFormat.DNSSettings.DNSServers
+		update.Properties.DnsSettings.DnsServers = existing.Model.Properties.DnsSettings.DnsServers
 	}
 
 	if d.HasChange("enable_ip_forwarding") {
-		update.InterfacePropertiesFormat.EnableIPForwarding = utils.Bool(d.Get("enable_ip_forwarding").(bool))
+		update.Properties.EnableIPForwarding = utils.Bool(d.Get("enable_ip_forwarding").(bool))
 	} else {
-		update.InterfacePropertiesFormat.EnableIPForwarding = existing.InterfacePropertiesFormat.EnableIPForwarding
+		update.Properties.EnableIPForwarding = existing.Model.Properties.EnableIPForwarding
 	}
 
 	if d.HasChange("internal_dns_name_label") {
-		update.InterfacePropertiesFormat.DNSSettings.InternalDNSNameLabel = utils.String(d.Get("internal_dns_name_label").(string))
+		update.Properties.DnsSettings.InternalDnsNameLabel = utils.String(d.Get("internal_dns_name_label").(string))
 	} else {
-		update.InterfacePropertiesFormat.DNSSettings.InternalDNSNameLabel = existing.InterfacePropertiesFormat.DNSSettings.InternalDNSNameLabel
+		update.Properties.DnsSettings.InternalDnsNameLabel = existing.Model.Properties.DnsSettings.InternalDnsNameLabel
 	}
 
 	if d.HasChange("ip_configuration") {
@@ -360,142 +363,144 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		// then map the fields managed in other resources back
 		ipConfigs = mapFieldsToNetworkInterface(ipConfigs, info)
 
-		update.InterfacePropertiesFormat.IPConfigurations = ipConfigs
+		update.Properties.IPConfigurations = ipConfigs
 	} else {
-		update.InterfacePropertiesFormat.IPConfigurations = existing.InterfacePropertiesFormat.IPConfigurations
+		update.Properties.IPConfigurations = existing.Model.Properties.IPConfigurations
 	}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	} else {
-		update.Tags = existing.Tags
+		update.Tags = existing.Model.Tags
 	}
 
 	// this can be managed in another resource, so just port it over
-	update.InterfacePropertiesFormat.NetworkSecurityGroup = existing.InterfacePropertiesFormat.NetworkSecurityGroup
+	update.Properties.NetworkSecurityGroup = existing.Model.Properties.NetworkSecurityGroup
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, update)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, update)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
 func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkInterfaceID(d.Id())
+	id, err := commonids.ParseNetworkInterfaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
+	d.Set("name", id.NetworkInterfaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.InterfacePropertiesFormat; props != nil {
-		primaryPrivateIPAddress := ""
-		privateIPAddresses := make([]interface{}, 0)
-		if configs := props.IPConfigurations; configs != nil {
-			for i, config := range *props.IPConfigurations {
-				if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
-					v := ipProps.PrivateIPAddress
-					if v == nil {
-						continue
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+
+		if props := model.Properties; props != nil {
+			primaryPrivateIPAddress := ""
+			privateIPAddresses := make([]interface{}, 0)
+			if configs := props.IPConfigurations; configs != nil {
+				for i, config := range *props.IPConfigurations {
+					if ipProps := config.Properties; ipProps != nil {
+						v := ipProps.PrivateIPAddress
+						if v == nil {
+							continue
+						}
+
+						if i == 0 {
+							primaryPrivateIPAddress = *v
+						}
+
+						privateIPAddresses = append(privateIPAddresses, *v)
 					}
-
-					if i == 0 {
-						primaryPrivateIPAddress = *v
-					}
-
-					privateIPAddresses = append(privateIPAddresses, *v)
 				}
 			}
-		}
 
-		appliedDNSServers := make([]string, 0)
-		dnsServers := make([]string, 0)
-		internalDnsNameLabel := ""
-		internalDomainNameSuffix := ""
-		if dnsSettings := props.DNSSettings; dnsSettings != nil {
-			appliedDNSServers = flattenNetworkInterfaceDnsServers(dnsSettings.AppliedDNSServers)
-			dnsServers = flattenNetworkInterfaceDnsServers(dnsSettings.DNSServers)
+			appliedDNSServers := make([]string, 0)
+			dnsServers := make([]string, 0)
+			internalDnsNameLabel := ""
+			internalDomainNameSuffix := ""
+			if dnsSettings := props.DnsSettings; dnsSettings != nil {
+				appliedDNSServers = flattenNetworkInterfaceDnsServers(dnsSettings.AppliedDnsServers)
+				dnsServers = flattenNetworkInterfaceDnsServers(dnsSettings.DnsServers)
 
-			if dnsSettings.InternalDNSNameLabel != nil {
-				internalDnsNameLabel = *dnsSettings.InternalDNSNameLabel
+				if dnsSettings.InternalDnsNameLabel != nil {
+					internalDnsNameLabel = *dnsSettings.InternalDnsNameLabel
+				}
+
+				if dnsSettings.InternalDomainNameSuffix != nil {
+					internalDomainNameSuffix = *dnsSettings.InternalDomainNameSuffix
+				}
 			}
 
-			if dnsSettings.InternalDomainNameSuffix != nil {
-				internalDomainNameSuffix = *dnsSettings.InternalDomainNameSuffix
+			virtualMachineId := ""
+			if props.VirtualMachine != nil && props.VirtualMachine.Id != nil {
+				virtualMachineId = *props.VirtualMachine.Id
+			}
+
+			if err := d.Set("applied_dns_servers", appliedDNSServers); err != nil {
+				return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
+			}
+
+			if err := d.Set("dns_servers", dnsServers); err != nil {
+				return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
+			}
+
+			d.Set("enable_ip_forwarding", props.EnableIPForwarding)
+			d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
+			d.Set("internal_dns_name_label", internalDnsNameLabel)
+			d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
+			d.Set("mac_address", props.MacAddress)
+			d.Set("private_ip_address", primaryPrivateIPAddress)
+			d.Set("virtual_machine_id", virtualMachineId)
+
+			if err := d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)); err != nil {
+				return fmt.Errorf("setting `ip_configuration`: %+v", err)
+			}
+
+			if err := d.Set("private_ip_addresses", privateIPAddresses); err != nil {
+				return fmt.Errorf("setting `private_ip_addresses`: %+v", err)
 			}
 		}
 
-		virtualMachineId := ""
-		if props.VirtualMachine != nil && props.VirtualMachine.ID != nil {
-			virtualMachineId = *props.VirtualMachine.ID
-		}
-
-		if err := d.Set("applied_dns_servers", appliedDNSServers); err != nil {
-			return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
-		}
-
-		if err := d.Set("dns_servers", dnsServers); err != nil {
-			return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
-		}
-
-		d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
-		d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
-		d.Set("internal_dns_name_label", internalDnsNameLabel)
-		d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
-		d.Set("mac_address", props.MacAddress)
-		d.Set("private_ip_address", primaryPrivateIPAddress)
-		d.Set("virtual_machine_id", virtualMachineId)
-
-		if err := d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)); err != nil {
-			return fmt.Errorf("setting `ip_configuration`: %+v", err)
-		}
-
-		if err := d.Set("private_ip_addresses", privateIPAddresses); err != nil {
-			return fmt.Errorf("setting `private_ip_addresses`: %+v", err)
-		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkInterfaceID(d.Id())
+	id, err := commonids.ParseNetworkInterfaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
+	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
+		if response.WasNotFound(existing.HttpResponse) {
 			log.Printf("[DEBUG] %q was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -504,10 +509,15 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if existing.InterfacePropertiesFormat == nil {
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
-	props := *existing.InterfacePropertiesFormat
+
+	props := *existing.Model.Properties
 
 	lockingDetails, err := determineResourcesToLockFromIPConfiguration(props.IPConfigurations)
 	if err != nil {
@@ -517,41 +527,37 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 	lockingDetails.lock()
 	defer lockingDetails.unlock()
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.InterfaceIPConfiguration, error) {
-	ipConfigs := make([]network.InterfaceIPConfiguration, 0)
+func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinterfaces.NetworkInterfaceIPConfiguration, error) {
+	ipConfigs := make([]networkinterfaces.NetworkInterfaceIPConfiguration, 0)
 
 	for _, configRaw := range input {
 		data := configRaw.(map[string]interface{})
 
 		subnetId := data["subnet_id"].(string)
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
-		privateIpAddressVersion := network.IPVersion(data["private_ip_address_version"].(string))
+		privateIpAddressVersion := networkinterfaces.IPVersion(data["private_ip_address_version"].(string))
 
-		allocationMethod := network.IPAllocationMethod(privateIpAllocationMethod)
-		properties := network.InterfaceIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: allocationMethod,
-			PrivateIPAddressVersion:   privateIpAddressVersion,
+		allocationMethod := networkinterfaces.IPAllocationMethod(privateIpAllocationMethod)
+		properties := networkinterfaces.NetworkInterfaceIPConfigurationPropertiesFormat{
+			PrivateIPAllocationMethod: &allocationMethod,
+			PrivateIPAddressVersion:   &privateIpAddressVersion,
 		}
 
-		if privateIpAddressVersion == network.IPVersionIPv4 && subnetId == "" {
+		if privateIpAddressVersion == networkinterfaces.IPVersionIPvFour && subnetId == "" {
 			return nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
 		}
 
 		if subnetId != "" {
-			properties.Subnet = &network.Subnet{
-				ID: &subnetId,
+			properties.Subnet = &networkinterfaces.Subnet{
+				Id: &subnetId,
 			}
 		}
 
@@ -560,8 +566,8 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.Int
 		}
 
 		if v := data["public_ip_address_id"].(string); v != "" {
-			properties.PublicIPAddress = &network.PublicIPAddress{
-				ID: &v,
+			properties.PublicIPAddress = &networkinterfaces.PublicIPAddress{
+				Id: &v,
 			}
 		}
 
@@ -570,13 +576,13 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.Int
 		}
 
 		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
-			properties.GatewayLoadBalancer = &network.SubResource{ID: &v}
+			properties.GatewayLoadBalancer = &networkinterfaces.SubResource{Id: &v}
 		}
 
 		name := data["name"].(string)
-		ipConfigs = append(ipConfigs, network.InterfaceIPConfiguration{
-			Name:                                     &name,
-			InterfaceIPConfigurationPropertiesFormat: &properties,
+		ipConfigs = append(ipConfigs, networkinterfaces.NetworkInterfaceIPConfiguration{
+			Name:       &name,
+			Properties: &properties,
 		})
 	}
 
@@ -584,7 +590,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.Int
 	if len(ipConfigs) > 1 {
 		hasPrimary := false
 		for _, config := range ipConfigs {
-			if config.Primary != nil && *config.Primary {
+			if config.Properties != nil && config.Properties.Primary != nil && *config.Properties.Primary {
 				hasPrimary = true
 				break
 			}
@@ -598,14 +604,14 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.Int
 	return &ipConfigs, nil
 }
 
-func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfiguration) []interface{} {
+func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)
 	for _, ipConfig := range *input {
-		props := ipConfig.InterfaceIPConfigurationPropertiesFormat
+		props := ipConfig.Properties
 
 		name := ""
 		if ipConfig.Name != nil {
@@ -613,8 +619,8 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 		}
 
 		subnetId := ""
-		if props.Subnet != nil && props.Subnet.ID != nil {
-			subnetId = *props.Subnet.ID
+		if props.Subnet != nil && props.Subnet.Id != nil {
+			subnetId = *props.Subnet.Id
 		}
 
 		privateIPAddress := ""
@@ -622,14 +628,19 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 			privateIPAddress = *props.PrivateIPAddress
 		}
 
+		privateIPAllocationMethod := ""
+		if props.PrivateIPAllocationMethod != nil {
+			privateIPAllocationMethod = string(*props.PrivateIPAllocationMethod)
+		}
+
 		privateIPAddressVersion := ""
-		if props.PrivateIPAddressVersion != "" {
-			privateIPAddressVersion = string(props.PrivateIPAddressVersion)
+		if props.PrivateIPAddressVersion != nil {
+			privateIPAddressVersion = string(*props.PrivateIPAddressVersion)
 		}
 
 		publicIPAddressId := ""
-		if props.PublicIPAddress != nil && props.PublicIPAddress.ID != nil {
-			publicIPAddressId = *props.PublicIPAddress.ID
+		if props.PublicIPAddress != nil && props.PublicIPAddress.Id != nil {
+			publicIPAddressId = *props.PublicIPAddress.Id
 		}
 
 		primary := false
@@ -638,15 +649,15 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 		}
 
 		gatewayLBFrontendIPConfigId := ""
-		if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.ID != nil {
-			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.ID
+		if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.Id != nil {
+			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.Id
 		}
 
 		result = append(result, map[string]interface{}{
 			"name":                          name,
 			"primary":                       primary,
 			"private_ip_address":            privateIPAddress,
-			"private_ip_address_allocation": string(props.PrivateIPAllocationMethod),
+			"private_ip_address_allocation": privateIPAllocationMethod,
 			"private_ip_address_version":    privateIPAddressVersion,
 			"public_ip_address_id":          publicIPAddressId,
 			"subnet_id":                     subnetId,

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -7,17 +10,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var routeTableResourceName = "azurerm_route_table"
@@ -30,7 +33,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 		Delete: resourceRouteTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.RouteTableID(id)
+			_, err := routetables.ParseRouteTableID(id)
 			return err
 		}),
 
@@ -76,11 +79,11 @@ func resourceRouteTable() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.RouteNextHopTypeVirtualNetworkGateway),
-								string(network.RouteNextHopTypeVnetLocal),
-								string(network.RouteNextHopTypeInternet),
-								string(network.RouteNextHopTypeVirtualAppliance),
-								string(network.RouteNextHopTypeNone),
+								string(routetables.RouteNextHopTypeVirtualNetworkGateway),
+								string(routetables.RouteNextHopTypeVnetLocal),
+								string(routetables.RouteNextHopTypeInternet),
+								string(routetables.RouteNextHopTypeVirtualAppliance),
+								string(routetables.RouteNextHopTypeNone),
 							}, false),
 						},
 
@@ -93,6 +96,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO rename to bgp_route_propagation_enabled in 4.0
 			"disable_bgp_route_propagation": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -106,53 +110,48 @@ func resourceRouteTable() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
 
-	id := parse.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := routetables.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		existing, err := client.Get(ctx, id, routetables.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_route_table", id.ID())
 		}
 	}
 
-	routeSet := network.RouteTable{
-		Name:     &id.Name,
+	routeSet := routetables.RouteTable{
+		Name:     &id.RouteTableName,
 		Location: &location,
-		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
+		Properties: &routetables.RouteTablePropertiesFormat{
 			Routes:                     expandRouteTableRoutes(d),
 			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, routeSet)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, routeSet); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -161,85 +160,81 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RouteTableID(d.Id())
+	id, err := routetables.ParseRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, *id, routetables.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Route Table %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.RouteTableName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.RouteTablePropertiesFormat; props != nil {
-		d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
-		if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
-			return err
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
+			if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
+				return err
+			}
+
+			if err := d.Set("subnets", flattenRouteTableSubnets(props.Subnets)); err != nil {
+				return err
+			}
 		}
 
-		if err := d.Set("subnets", flattenRouteTableSubnets(props.Subnets)); err != nil {
-			return err
-		}
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.RouteTableID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting Route Table %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Route Table %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
 }
 
-func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]network.Route {
+func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.RouteTables
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := routetables.ParseRouteTableID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 	configs := d.Get("route").(*pluginsdk.Set).List()
-	routes := make([]network.Route, 0, len(configs))
+	routes := make([]routetables.Route, 0, len(configs))
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
-		route := network.Route{
+		route := routetables.Route{
 			Name: utils.String(data["name"].(string)),
-			RoutePropertiesFormat: &network.RoutePropertiesFormat{
+			Properties: &routetables.RoutePropertiesFormat{
 				AddressPrefix: utils.String(data["address_prefix"].(string)),
-				NextHopType:   network.RouteNextHopType(data["next_hop_type"].(string)),
+				NextHopType:   routetables.RouteNextHopType(data["next_hop_type"].(string)),
 			},
 		}
 
 		if v := data["next_hop_in_ip_address"].(string); v != "" {
-			route.RoutePropertiesFormat.NextHopIPAddress = &v
+			route.Properties.NextHopIPAddress = &v
 		}
 
 		routes = append(routes, route)
@@ -248,7 +243,7 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]network.Route {
 	return &routes
 }
 
-func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
+func flattenRouteTableRoutes(input *[]routetables.Route) []interface{} {
 	results := make([]interface{}, 0)
 
 	if routes := input; routes != nil {
@@ -257,7 +252,7 @@ func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
 
 			r["name"] = *route.Name
 
-			if props := route.RoutePropertiesFormat; props != nil {
+			if props := route.Properties; props != nil {
 				r["address_prefix"] = *props.AddressPrefix
 				r["next_hop_type"] = string(props.NextHopType)
 				if ip := props.NextHopIPAddress; ip != nil && *ip != "" {
@@ -272,12 +267,12 @@ func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
 	return results
 }
 
-func flattenRouteTableSubnets(subnets *[]network.Subnet) []string {
+func flattenRouteTableSubnets(subnets *[]routetables.Subnet) []string {
 	output := make([]string, 0)
 
 	if subnets != nil {
 		for _, subnet := range *subnets {
-			output = append(output, *subnet.ID)
+			output = append(output, *subnet.Id)
 		}
 	}
 

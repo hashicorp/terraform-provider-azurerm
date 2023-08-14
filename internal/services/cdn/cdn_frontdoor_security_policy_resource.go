@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn
 
 import (
@@ -229,13 +232,22 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 		wafPolicyId := ""
 		if waf.WafPolicy != nil && waf.WafPolicy.ID != nil {
-			wafPolicyId = *waf.WafPolicy.ID
+			parsedId, err := parse.FrontDoorFirewallPolicyIDInsensitively(*waf.WafPolicy.ID)
+			if err != nil {
+				return fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
+			}
+			wafPolicyId = parsedId.ID()
 		}
 
 		if waf.Associations != nil {
 			for _, item := range *waf.Associations {
+				domain, err := cdnfrontdoorsecurityparams.FlattenSecurityPoliciesActivatedResourceReference(item.Domains)
+				if err != nil {
+					return fmt.Errorf("flattening `ActivatedResourceReference`: %+v", err)
+				}
+
 				associations = append(associations, map[string]interface{}{
-					"domain":            cdnfrontdoorsecurityparams.FlattenSecurityPoliciesActivatedResourceReference(item.Domains),
+					"domain":            domain,
 					"patterns_to_match": utils.FlattenStringSlice(item.PatternsToMatch),
 				})
 			}

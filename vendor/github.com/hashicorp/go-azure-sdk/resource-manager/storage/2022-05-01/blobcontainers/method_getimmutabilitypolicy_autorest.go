@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -42,7 +43,7 @@ func (o GetImmutabilityPolicyOperationOptions) toQueryString() map[string]interf
 }
 
 // GetImmutabilityPolicy ...
-func (c BlobContainersClient) GetImmutabilityPolicy(ctx context.Context, id ContainerId, options GetImmutabilityPolicyOperationOptions) (result GetImmutabilityPolicyOperationResponse, err error) {
+func (c BlobContainersClient) GetImmutabilityPolicy(ctx context.Context, id commonids.StorageContainerId, options GetImmutabilityPolicyOperationOptions) (result GetImmutabilityPolicyOperationResponse, err error) {
 	req, err := c.preparerForGetImmutabilityPolicy(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "GetImmutabilityPolicy", nil, "Failure preparing request")
@@ -65,7 +66,7 @@ func (c BlobContainersClient) GetImmutabilityPolicy(ctx context.Context, id Cont
 }
 
 // preparerForGetImmutabilityPolicy prepares the GetImmutabilityPolicy request.
-func (c BlobContainersClient) preparerForGetImmutabilityPolicy(ctx context.Context, id ContainerId, options GetImmutabilityPolicyOperationOptions) (*http.Request, error) {
+func (c BlobContainersClient) preparerForGetImmutabilityPolicy(ctx context.Context, id commonids.StorageContainerId, options GetImmutabilityPolicyOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

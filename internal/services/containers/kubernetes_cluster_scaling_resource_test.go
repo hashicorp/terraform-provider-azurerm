@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -7,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -50,7 +53,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 					client := clients.Containers.AgentPoolsClient
 
-					id, err := managedclusters.ParseManagedClusterID(state.Attributes["id"])
+					id, err := commonids.ParseKubernetesClusterID(state.Attributes["id"])
 					if err != nil {
 						return err
 					}
@@ -103,7 +106,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 					client := clients.Containers.AgentPoolsClient
 
-					id, err := managedclusters.ParseManagedClusterID(state.Attributes["id"])
+					id, err := commonids.ParseKubernetesClusterID(state.Attributes["id"])
 					if err != nil {
 						return err
 					}

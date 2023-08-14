@@ -1,6 +1,10 @@
 package capacitypools
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEncryptionType() []string {
 		string(EncryptionTypeDouble),
 		string(EncryptionTypeSingle),
 	}
+}
+
+func (s *EncryptionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEncryptionType(input string) (*EncryptionType, error) {
@@ -45,6 +62,19 @@ func PossibleValuesForQosType() []string {
 		string(QosTypeAuto),
 		string(QosTypeManual),
 	}
+}
+
+func (s *QosType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseQosType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseQosType(input string) (*QosType, error) {
@@ -77,6 +107,19 @@ func PossibleValuesForServiceLevel() []string {
 		string(ServiceLevelStandardZRS),
 		string(ServiceLevelUltra),
 	}
+}
+
+func (s *ServiceLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseServiceLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseServiceLevel(input string) (*ServiceLevel, error) {

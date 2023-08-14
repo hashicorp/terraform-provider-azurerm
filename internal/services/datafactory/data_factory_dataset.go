@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 func expandDataFactoryExpressionResultType(str string, isDynamic bool) interface{} {

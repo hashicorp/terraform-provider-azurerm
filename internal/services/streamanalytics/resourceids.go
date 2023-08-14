@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 // @tombuildsstuff: Resources using this Resource ID are going to need a state migration to account for `streamingjobs` -> `streamingJobs` prior to migrating to `hashicorp/go-azure-sdk`
