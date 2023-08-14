@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/applicationsecuritygroups"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -2238,7 +2239,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 	return extensionProfile, hasHealthExtension, nil
 }
 
-func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
+func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0)
 	if input == nil || input.Extensions == nil {
 		return result, nil
@@ -2269,13 +2270,13 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
-		var protectedSettingsFromKeyVault *compute.KeyVaultSecretReference
+		var protectedSettingsFromKeyVault *virtualmachinescalesets.KeyVaultSecretReference
 		extPublisher := ""
 		extSettings := ""
 		extType := ""
 		extTypeVersion := ""
 
-		if props := v.VirtualMachineScaleSetExtensionProperties; props != nil {
+		if props := v.Properties; props != nil {
 			if props.Publisher != nil {
 				extPublisher = *props.Publisher
 			}
@@ -2305,11 +2306,14 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 			}
 
 			if props.Settings != nil {
-				extSettingsRaw, err := pluginsdk.FlattenJsonToString(props.Settings.(map[string]interface{}))
-				if err != nil {
-					return nil, err
+				settingsRaw := *props.Settings
+				if settings, ok := settingsRaw.(map[string]interface{}); ok {
+					extSettingsRaw, err := pluginsdk.FlattenJsonToString(settings)
+					if err != nil {
+						return nil, err
+					}
+					extSettings = extSettingsRaw
 				}
-				extSettings = extSettingsRaw
 			}
 
 			protectedSettingsFromKeyVault = props.ProtectedSettingsFromKeyVault

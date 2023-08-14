@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -42,7 +43,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
-		}, importVirtualMachineScaleSet(compute.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine_scale_set")),
+		}, importVirtualMachineScaleSet(virtualmachinescalesets.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine_scale_set")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(time.Minute * 60),

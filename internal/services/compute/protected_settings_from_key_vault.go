@@ -6,6 +6,7 @@ package compute
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -52,24 +53,19 @@ func expandProtectedSettingsFromKeyVault(input []interface{}) *compute.KeyVaultS
 	}
 }
 
-func flattenProtectedSettingsFromKeyVault(input *compute.KeyVaultSecretReference) []interface{} {
+func flattenProtectedSettingsFromKeyVault(input *virtualmachinescalesets.KeyVaultSecretReference) []interface{} {
 	if input == nil {
 		return nil
 	}
 
-	secretUrl := ""
-	if input.SecretURL != nil {
-		secretUrl = *input.SecretURL
-	}
-
 	sourceVaultId := ""
-	if input.SourceVault != nil && input.SourceVault.ID != nil {
-		sourceVaultId = *input.SourceVault.ID
+	if input.SourceVault.Id != nil {
+		sourceVaultId = *input.SourceVault.Id
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      secretUrl,
+			"secret_url":      input.SecretUrl,
 			"source_vault_id": sourceVaultId,
 		},
 	}
