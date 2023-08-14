@@ -39,20 +39,17 @@ type MsSqlVirtualMachineAvailabilityGroupListenerModel struct {
 }
 
 type LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener struct {
-	PrivateIpAddress     []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener `tfschema:"private_ip_address"`
-	LoadBalancerId       string                                                         `tfschema:"load_balancer_id"`
-	ProbePort            int                                                            `tfschema:"probe_port"`
-	SqlVirtualMachineIds []string                                                       `tfschema:"sql_virtual_machine_ids"`
+	LoadBalancerId       string   `tfschema:"load_balancer_id"`
+	PrivateIpAddress     string   `tfschema:"private_ip_address"`
+	ProbePort            int      `tfschema:"probe_port"`
+	SqlVirtualMachineIds []string `tfschema:"sql_virtual_machine_ids"`
+	SubnetId             string   `tfschema:"subnet_id"`
 }
 
 type MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener struct {
-	PrivateIpAddress    []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener `tfschema:"private_ip_address"`
-	SqlVirtualMachineId string                                                         `tfschema:"sql_virtual_machine_id"`
-}
-
-type PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener struct {
-	IpAddress string `tfschema:"ip_address"`
-	SubnetId  string `tfschema:"subnet_id"`
+	PrivateIpAddress    string `tfschema:"private_ip_address"`
+	SqlVirtualMachineId string `tfschema:"sql_virtual_machine_id"`
+	SubnetId            string `tfschema:"subnet_id"`
 }
 
 type ReplicaMsSqlVirtualMachineAvailabilityGroupListener struct {
@@ -114,35 +111,18 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 			MaxItems:     1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"private_ip_address": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"ip_address": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsIPAddress,
-								},
-
-								"subnet_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: networkValidate.SubnetID,
-								},
-							},
-						},
-					},
-
 					"load_balancer_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: lbValidate.LoadBalancerID,
+					},
+
+					"private_ip_address": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IsIPAddress,
 					},
 
 					"probe_port": {
@@ -161,6 +141,13 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 							ValidateFunc: sqlvirtualmachines.ValidateSqlVirtualMachineID,
 						},
 					},
+
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: networkValidate.SubnetID,
+					},
 				},
 			},
 		},
@@ -173,27 +160,10 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"private_ip_address": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"ip_address": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsIPAddress,
-								},
-
-								"subnet_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: networkValidate.SubnetID,
-								},
-							},
-						},
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IsIPAddress,
 					},
 
 					"sql_virtual_machine_id": {
@@ -201,6 +171,13 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: sqlvirtualmachines.ValidateSqlVirtualMachineID,
+					},
+
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: networkValidate.SubnetID,
 					},
 				},
 			},
@@ -437,13 +414,11 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 		}
 		lbConfig.SqlVirtualMachineInstances = utils.ExpandStringSlice(parsedIds)
 
-		if lb.PrivateIpAddress != nil {
-			privateIpAddress, err := expandMsSqlVirtualMachinePrivateIpAddress(lb.PrivateIpAddress)
-			if err != nil {
-				return nil, err
-			}
-			lbConfig.PrivateIPAddress = privateIpAddress
+		lbConfig.PrivateIPAddress = &availabilitygrouplisteners.PrivateIPAddress{
+			IPAddress:        pointer.To(lb.PrivateIpAddress),
+			SubnetResourceId: pointer.To(lb.SubnetId),
 		}
+
 		results = append(results, lbConfig)
 	}
 	return &results, nil
@@ -458,41 +433,14 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguratio
 			SqlVirtualMachineInstance: item.SqlVirtualMachineId,
 		}
 
-		if item.PrivateIpAddress != nil {
-			privateIpAddress, err := expandMsSqlVirtualMachinePrivateIpAddress(item.PrivateIpAddress)
-			if err != nil {
-				return nil, err
-			}
-			config.PrivateIPAddress = *privateIpAddress
+		config.PrivateIPAddress = availabilitygrouplisteners.PrivateIPAddress{
+			IPAddress:        pointer.To(item.PrivateIpAddress),
+			SubnetResourceId: pointer.To(item.SubnetId),
 		}
+
 		results = append(results, config)
 	}
 	return &results, nil
-}
-
-func expandMsSqlVirtualMachinePrivateIpAddress(input []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener) (*availabilitygrouplisteners.PrivateIPAddress, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
-	var ipAddress, subnetId string
-	if input[0].IpAddress != "" {
-		ipAddress = input[0].IpAddress
-	}
-
-	if input[0].SubnetId != "" {
-		id, err := networkParse.SubnetID(input[0].SubnetId)
-		if err != nil {
-			return nil, err
-		}
-		subnetId = id.ID()
-	}
-
-	return &availabilitygrouplisteners.PrivateIPAddress{
-		IPAddress: pointer.To(ipAddress),
-
-		SubnetResourceId: pointer.To(subnetId),
-	}, nil
 }
 
 func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(input *[]availabilitygrouplisteners.LoadBalancerConfiguration, subscriptionId string) ([]LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener, error) {
@@ -502,14 +450,16 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguratio
 	}
 
 	for _, lbConfig := range *input {
+		privateIpAddress := ""
+		subnetResourceId := ""
+		if v := lbConfig.PrivateIPAddress; v != nil {
+			privateIpAddress = pointer.From(v.IPAddress)
 
-		var privateIpAddress []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener
-		if lbConfig.PrivateIPAddress != nil {
-			flattenedPrivateIp, err := flattenPrivateIpAddress(*lbConfig.PrivateIPAddress)
+			parsedSubnetResourceId, err := networkParse.SubnetIDInsensitively(pointer.From(v.SubnetResourceId))
 			if err != nil {
 				return nil, err
 			}
-			privateIpAddress = flattenedPrivateIp
+			subnetResourceId = parsedSubnetResourceId.ID()
 		}
 
 		loadBalancerId := ""
@@ -527,22 +477,24 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguratio
 			var parsedIds []string
 			for _, sqlVmId := range sqlVirtualMachineIds {
 				parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively(sqlVmId)
-
-				// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
-				newId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineName)
 				if err != nil {
 					return nil, err
 				}
+
+				// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
+				newId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineName)
+
 				parsedIds = append(parsedIds, newId.ID())
 			}
 			sqlVirtualMachineIds = parsedIds
 		}
 
 		v := LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener{
-			PrivateIpAddress:     privateIpAddress,
 			LoadBalancerId:       loadBalancerId,
+			PrivateIpAddress:     privateIpAddress,
 			ProbePort:            int(pointer.From(lbConfig.ProbePort)),
 			SqlVirtualMachineIds: sqlVirtualMachineIds,
+			SubnetId:             subnetResourceId,
 		}
 
 		results = append(results, v)
@@ -557,49 +509,28 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfigurati
 	}
 
 	for _, config := range *input {
-		var privateIpAddress []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener
-		flattenedPrivateIp, err := flattenPrivateIpAddress(config.PrivateIPAddress)
+		parsedSubnetResourceId, err := networkParse.SubnetIDInsensitively(pointer.From(config.PrivateIPAddress.SubnetResourceId))
 		if err != nil {
 			return nil, err
 		}
-		privateIpAddress = flattenedPrivateIp
 
-		parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively(config.SqlVirtualMachineInstance)
+		parsedSqlVirtualMachineId, err := sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively(config.SqlVirtualMachineInstance)
+		if err != nil {
+			return nil, err
+		}
 
 		// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
-		newId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineName)
-		if err != nil {
-			return nil, err
-		}
+		newSqlVirtualMachineId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedSqlVirtualMachineId.ResourceGroupName, parsedSqlVirtualMachineId.SqlVirtualMachineName)
 
 		v := MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener{
-			PrivateIpAddress:    privateIpAddress,
-			SqlVirtualMachineId: newId.ID(),
+			PrivateIpAddress:    pointer.From(config.PrivateIPAddress.IPAddress),
+			SqlVirtualMachineId: newSqlVirtualMachineId.ID(),
+			SubnetId:            parsedSubnetResourceId.ID(),
 		}
 
 		results = append(results, v)
 	}
 	return results, nil
-}
-
-func flattenPrivateIpAddress(input availabilitygrouplisteners.PrivateIPAddress) ([]PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener, error) {
-
-	privateIpAddress := PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener{
-		IpAddress: pointer.From(input.IPAddress),
-	}
-
-	subnetId := ""
-	if input.SubnetResourceId != nil {
-		id, err := networkParse.SubnetIDInsensitively(*input.SubnetResourceId)
-		if err != nil {
-			return nil, err
-		}
-		subnetId = id.ID()
-	}
-
-	privateIpAddress.SubnetId = subnetId
-
-	return []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener{privateIpAddress}, nil
 }
 
 func expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(replicas []ReplicaMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.AgReplica, error) {
@@ -645,9 +576,6 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availa
 
 			// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
 			newId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineName)
-			if err != nil {
-				return nil, err
-			}
 
 			sqlVirtualMachineInstanceId = newId.ID()
 		}

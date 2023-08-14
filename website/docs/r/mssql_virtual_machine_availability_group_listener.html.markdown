@@ -66,13 +66,10 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "example" {
   sql_virtual_machine_group_id = azurerm_mssql_virtual_machine_group.example.id
 
   load_balancer_configuration {
-    load_balancer_id = data.azurerm_lb.example.id
-    probe_port       = 51572
-
-    private_ip_address {
-      ip_address = "10.0.2.11"
-      subnet_id  = data.azurerm_subnet.example.id
-    }
+    load_balancer_id   = data.azurerm_lb.example.id
+    private_ip_address = "10.0.2.11"
+    probe_port         = 51572
+    subnet_id          = data.azurerm_subnet.example.id
 
     sql_virtual_machine_ids = [
       azurerm_mssql_virtual_machine.example[0].id,
@@ -124,11 +121,13 @@ A `load_balancer_configuration` block supports the following:
 
 * `load_balancer_id` - (Required) The ID of the Load Balancer. Changing this forces a new resource to be created.
 
-* `private_ip_address` - (Required) A `private_ip_address` block as defined below. Changing this forces a new resource to be created.
+* `private_ip_address` - (Required) The private IP Address of the listener. Changing this forces a new resource to be created.
 
 * `probe_port` - (Required) The probe port of the listener. Changing this forces a new resource to be created.
 
 * `sql_virtual_machine_ids` - (Required) Specifies a list of SQL Virtual Machine IDs. Changing this forces a new resource to be created.
+
+* `subnet_id` - (Required) The ID of the Subnet to create the listener. Changing this forces a new resource to be created.
 
 ~> **NOTE:** `sql_virtual_machine_ids` should match with the SQL Virtual Machines specified in `replica`.
 
@@ -136,25 +135,19 @@ A `load_balancer_configuration` block supports the following:
 
 A `multi_subnet_ip_configuration` block supports the following:
 
-* `private_ip_address` - (Required) A `private_ip_address` block as defined below. Changing this forces a new resource to be created.
+* `private_ip_address` - (Required) The private IP Address of the listener. Changing this forces a new resource to be created.
 
 * `sql_virtual_machine_id` - (Required) The ID of the Sql Virtual Machine. Changing this forces a new resource to be created.
+
+* `subnet_id` - (Required) The ID of the Subnet to create the listener. Changing this forces a new resource to be created.
 
 ~> **NOTE:** `sql_virtual_machine_id` should match with the SQL Virtual Machines specified in `replica`.
 
 ---
 
-A `private_ip_address` block supports the following:
-
-* `ip_address` - (Required) IP Address. Changing this forces a new resource to be created.
-
-* `subnet_id` - (Required) The ID of the Subnet. Changing this forces a new resource to be created.
-
----
-
 A `replica` block supports the following:
 
-* `commit` - (Required) T replica commit mode for the availability group. Possible values are `Synchronous_Commit` and `Asynchronous_Commit`. Changing this forces a new resource to be created.
+* `commit` - (Required) The replica commit mode for the availability group. Possible values are `Synchronous_Commit` and `Asynchronous_Commit`. Changing this forces a new resource to be created.
 
 * `failover_mode` - (Required) The replica failover mode for the availability group. Possible values are `Manual` and `Automatic`. Changing this forces a new resource to be created.
 

@@ -111,13 +111,10 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "test" {
   sql_virtual_machine_group_id = azurerm_mssql_virtual_machine_group.test.id
 
   load_balancer_configuration {
-    load_balancer_id = azurerm_lb.test.id
-    probe_port       = 51572
-
-    private_ip_address {
-      ip_address = "10.0.2.11"
-      subnet_id  = azurerm_subnet.domain_clients[0].id
-    }
+    load_balancer_id   = azurerm_lb.test.id
+    private_ip_address = "10.0.2.11"
+    probe_port         = 51572
+    subnet_id          = azurerm_subnet.domain_clients[0].id
 
     sql_virtual_machine_ids = [
       azurerm_mssql_virtual_machine.test[0].id,
@@ -155,21 +152,15 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "test" {
   sql_virtual_machine_group_id = azurerm_mssql_virtual_machine_group.test.id
 
   multi_subnet_ip_configuration {
-    private_ip_address {
-      ip_address = "10.0.2.11"
-      subnet_id  = azurerm_subnet.domain_clients[0].id
-    }
-
+    private_ip_address     = "10.0.2.11"
     sql_virtual_machine_id = azurerm_mssql_virtual_machine.test[0].id
+    subnet_id              = azurerm_subnet.domain_clients[0].id
   }
 
   multi_subnet_ip_configuration {
-    private_ip_address {
-      ip_address = "10.0.3.11"
-      subnet_id  = azurerm_subnet.domain_clients[1].id
-    }
-
+    private_ip_address     = "10.0.3.11"
     sql_virtual_machine_id = azurerm_mssql_virtual_machine.test[1].id
+    subnet_id              = azurerm_subnet.domain_clients[1].id
   }
 
   replica {
