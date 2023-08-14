@@ -104,6 +104,62 @@ func flattenAdditionalUnattendContent(input *[]virtualmachines.AdditionalUnatten
 	return output
 }
 
+func expandVMSSAdditionalUnattendContent(input []interface{}) *[]virtualmachinescalesets.AdditionalUnattendContent {
+	if len(input) == 0 {
+		return nil
+	}
+	output := make([]virtualmachinescalesets.AdditionalUnattendContent, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		output = append(output, virtualmachinescalesets.AdditionalUnattendContent{
+			SettingName: pointer.To(virtualmachinescalesets.SettingNames(raw["setting"].(string))),
+			Content:     utils.String(raw["content"].(string)),
+
+			// no other possible values
+			PassName:      pointer.To(virtualmachinescalesets.PassNamesOobeSystem),
+			ComponentName: pointer.To(virtualmachinescalesets.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+		})
+	}
+
+	return &output
+}
+
+func flattenVMSSAdditionalUnattendContent(input *[]virtualmachinescalesets.AdditionalUnattendContent, d *pluginsdk.ResourceData) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	existing := make([]interface{}, 0)
+	if v, ok := d.GetOk("additional_unattend_content"); ok {
+		existing = v.([]interface{})
+	}
+
+	output := make([]interface{}, 0)
+	for i, v := range *input {
+		// content isn't returned from the API as it's sensitive so we need to look it up
+		content := ""
+		if len(existing) > i {
+			existingVal := existing[i]
+			existingRaw, ok := existingVal.(map[string]interface{})
+			if ok {
+				contentRaw, ok := existingRaw["content"]
+				if ok {
+					content = contentRaw.(string)
+				}
+			}
+		}
+
+		output = append(output, map[string]interface{}{
+			"content": content,
+			"setting": string(pointer.From(v.SettingName)),
+		})
+	}
+
+	return output
+}
+
 func bootDiagnosticsSchema() *pluginsdk.Schema {
 	// lintignore:XS003
 	return &pluginsdk.Schema{
@@ -803,6 +859,51 @@ func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []interface
 	return output
 }
 
+func expandVMSSWinRMListener(input []interface{}) *virtualmachinescalesets.WinRMConfiguration {
+	listeners := make([]virtualmachinescalesets.WinRMListener, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		listener := virtualmachinescalesets.WinRMListener{
+			Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(raw["protocol"].(string))),
+		}
+
+		certificateUrl := raw["certificate_url"].(string)
+		if certificateUrl != "" {
+			listener.CertificateUrl = utils.String(certificateUrl)
+		}
+
+		listeners = append(listeners, listener)
+	}
+
+	return &virtualmachinescalesets.WinRMConfiguration{
+		Listeners: &listeners,
+	}
+}
+
+func flattenVMSSWinRMListener(input *virtualmachinescalesets.WinRMConfiguration) []interface{} {
+	if input == nil || input.Listeners == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, v := range *input.Listeners {
+		certificateUrl := ""
+		if v.CertificateUrl != nil {
+			certificateUrl = *v.CertificateUrl
+		}
+
+		output = append(output, map[string]interface{}{
+			"certificate_url": certificateUrl,
+			"protocol":        string(pointer.From(v.Protocol)),
+		})
+	}
+
+	return output
+}
+
 func windowsSecretSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -867,6 +968,80 @@ func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGro
 }
 
 func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, v := range *input {
+		keyVaultId := ""
+		if v.SourceVault != nil && v.SourceVault.Id != nil {
+			keyVaultId = *v.SourceVault.Id
+		}
+
+		certificates := make([]interface{}, 0)
+
+		if v.VaultCertificates != nil {
+			for _, c := range *v.VaultCertificates {
+				store := ""
+				if c.CertificateStore != nil {
+					store = *c.CertificateStore
+				}
+
+				url := ""
+				if c.CertificateUrl != nil {
+					url = *c.CertificateUrl
+				}
+
+				certificates = append(certificates, map[string]interface{}{
+					"store": store,
+					"url":   url,
+				})
+			}
+		}
+
+		output = append(output, map[string]interface{}{
+			"key_vault_id": keyVaultId,
+			"certificate":  certificates,
+		})
+	}
+
+	return output
+}
+
+func expandVMSSWindowsSecrets(input []interface{}) *[]virtualmachinescalesets.VaultSecretGroup {
+	output := make([]virtualmachinescalesets.VaultSecretGroup, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]interface{})
+
+		keyVaultId := v["key_vault_id"].(string)
+		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
+		certificates := make([]virtualmachinescalesets.VaultCertificate, 0)
+		for _, certificateRaw := range certificatesRaw {
+			certificateV := certificateRaw.(map[string]interface{})
+
+			store := certificateV["store"].(string)
+			url := certificateV["url"].(string)
+			certificates = append(certificates, virtualmachinescalesets.VaultCertificate{
+				CertificateStore: utils.String(store),
+				CertificateUrl:   utils.String(url),
+			})
+		}
+
+		output = append(output, virtualmachinescalesets.VaultSecretGroup{
+			SourceVault: &virtualmachinescalesets.SubResource{
+				Id: utils.String(keyVaultId),
+			},
+			VaultCertificates: &certificates,
+		})
+	}
+
+	return &output
+}
+
+func flattenVMSSWindowsSecrets(input *[]virtualmachinescalesets.VaultSecretGroup) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
