@@ -100,7 +100,8 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 				return resp, "error", err
 			}
 			if atpp := resp.AdvancedThreatProtectionProperties; atpp != nil {
-				if atpp.IsEnabled != nil && *atpp.IsEnabled == d.Get("enabled").(bool) {
+				respEnabled := atpp.IsEnabled != nil && *atpp.IsEnabled
+				if respEnabled == d.Get("enabled").(bool) {
 					return resp, "consistent", nil
 				} else {
 					return resp, "diff", nil
