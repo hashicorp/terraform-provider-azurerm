@@ -223,6 +223,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
 
 			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
 
 			if err != nil {
 				return err
@@ -253,8 +254,6 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
-			locks.UnlockByID(accountId.ID())
 
 			metadata.SetID(id)
 			return nil
@@ -313,6 +312,8 @@ func (r CognitiveDeploymentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
 			client := metadata.Client.Cognitive.DeploymentsClient
 
 			id, err := deployments.ParseDeploymentID(metadata.ResourceData.Id())
