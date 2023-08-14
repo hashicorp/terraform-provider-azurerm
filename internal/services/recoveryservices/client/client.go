@@ -146,8 +146,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(replicationMigrationItemsClient.Client, o.Authorizers.ResourceManager)
 
-	replicationProtectableItemsCLient := replicationprotectableitems.NewReplicationProtectableItemsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&replicationProtectableItemsCLient.Client, o.ResourceManagerAuthorizer)
+	replicationProtectableItemsCLient, err := replicationprotectableitems.NewReplicationProtectableItemsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building replicationProtectableItems client: %+v", err)
+	}
+	o.Configure(replicationProtectableItemsCLient.Client, o.Authorizers.ResourceManager)
 
 	replicationRecoveryPlanClient, err := replicationrecoveryplans.NewReplicationRecoveryPlansClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -182,7 +185,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VaultCertificatesClient:                   &vaultCertificatesClient,
 		VaultsSettingsClient:                      vaultSettingsClient,
 		StorageConfigsClient:                      &storageConfigsClient,
-		ReplicationProtectableItemsClient:         &replicationProtectableItemsCLient,
+		ReplicationProtectableItemsClient:         replicationProtectableItemsCLient,
 		ReplicationProtectedItemsClient:           replicationMigrationItemsClient,
 		ReplicationRecoveryPlansClient:            replicationRecoveryPlanClient,
 		ReplicationNetworksClient:                 replicationNetworksClient,
