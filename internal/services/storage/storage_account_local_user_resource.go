@@ -212,7 +212,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 
 			var plan LocalUserModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -289,7 +289,7 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -354,7 +354,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 
 			params, err := client.Get(ctx, *id)
 			if err != nil {
@@ -430,7 +430,7 @@ func (r LocalUserResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 
 			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {

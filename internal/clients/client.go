@@ -362,7 +362,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Containers: %+v", err)
 	}
 	client.ContainerApps = containerapps.NewClient(o)
-	client.Cosmos = cosmosdb.NewClient(o)
+	if client.Cosmos, err = cosmosdb.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for CosmosDB: %+v", err)
+	}
 	if client.CostManagement, err = costmanagement.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for CostManagement: %+v", err)
 	}
@@ -520,7 +522,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Portal, err = portal.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Portal: %+v", err)
 	}
-	client.Postgres = postgres.NewClient(o)
+	if client.Postgres, err = postgres.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Postgres: %+v", err)
+	}
 	if client.PowerBI, err = powerBI.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for PowerBI: %+v", err)
 	}
@@ -533,7 +537,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Purview, err = purview.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Purview: %+v", err)
 	}
-	client.RecoveryServices = recoveryServices.NewClient(o)
+	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
 	}
@@ -543,7 +549,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)
 	}
-	client.Resource = resource.NewClient(o)
+	if client.Resource, err = resource.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Resource: %+v", err)
+	}
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}

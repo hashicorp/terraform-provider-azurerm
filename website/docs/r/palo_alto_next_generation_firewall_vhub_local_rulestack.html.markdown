@@ -13,15 +13,53 @@ Manages a Palo Alto Next Generation Firewall VHub Local Rulestack.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_public_ip" "example" {
+  name                = "acceptanceTestPublicIp1"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  allocation_method   = "Static"
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_virtual_wan" "example" {
+  name                = "example-virtualwan"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_virtual_hub" "example" {
+  name                = "example-virtualhub"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  virtual_wan_id      = azurerm_virtual_wan.example.id
+  address_prefix      = "10.0.0.0/23"
+
+  tags = {
+    "hubSaaSPreview" = "true"
+  }
+}
+
+resource "azurerm_palo_alto_virtual_network_appliance" "example" {
+  name           = "example-appliance"
+  virtual_hub_id = azurerm_virtual_hub.example.id
+}
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "example" {
-  name                = "example"
-  resource_group_name = "example"
-  rulestack_id        = "TODO"
+  name                = "example-ngfwvn"
+  resource_group_name = azurerm_resource_group.example.name
+  rulestack_id        = azurerm_palo_alto_local_rulestack.example.id
 
   network_profile {
-    virtual_hub_id = "TODO"
-    network_virtual_appliance_id = "TODO"
-    public_ip_address_ids = [ "example" ]
+    public_ip_address_ids        = [azurerm_public_ip.example.id]
+    virtual_hub_id               = azurerm_virtual_hub.example.id
+    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.example.id
   }
 }
 ```

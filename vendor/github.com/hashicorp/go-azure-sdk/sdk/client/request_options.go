@@ -3,14 +3,31 @@
 
 package client
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
+)
 
 type RequestOptions struct {
-	ContentType         string
+	// ContentType is the content type of the request and should include the charset
+	ContentType string
+
+	// ExpectedStatusCodes is a slice of HTTP response codes considered valid for this request
 	ExpectedStatusCodes []int
-	HttpMethod          string
-	OptionsObject       Options
-	Path                string
+
+	// HttpMethod is the capitalized method verb for this request
+	HttpMethod string
+
+	// OptionsObject is used for dynamically modifying the request at runtime
+	OptionsObject Options
+
+	// Pager is an optional struct for handling custom pagination for this request. OData 4.0 compliant paging
+	// is already handled implicitly and does not require a custom pager.
+	Pager odata.CustomPager
+
+	// Path is the absolute URI for this request, with a leading slash.
+	Path string
 }
 
 func (ro RequestOptions) Validate() error {

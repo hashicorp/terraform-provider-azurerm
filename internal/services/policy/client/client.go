@@ -17,14 +17,17 @@ type Client struct {
 	AssignmentsClient                   *assignments.PolicyAssignmentsClient
 	DefinitionsClient                   *policy.DefinitionsClient
 	ExemptionsClient                    *policy.ExemptionsClient
-	SetDefinitionsClient                *policy.SetDefinitionsClient
-	RemediationsClient                  *remediations.RemediationsClient
 	GuestConfigurationAssignmentsClient *guestconfigurationassignments.GuestConfigurationAssignmentsClient
+	RemediationsClient                  *remediations.RemediationsClient
+	SetDefinitionsClient                *policy.SetDefinitionsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	assignmentsClient := assignments.NewPolicyAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&assignmentsClient.Client, o.ResourceManagerAuthorizer)
+	assignmentsClient, err := assignments.NewPolicyAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PolicyAssignments client: %+v", err)
+	}
+	o.Configure(assignmentsClient.Client, o.Authorizers.ResourceManager)
 
 	definitionsClient := policy.NewDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&definitionsClient.Client, o.ResourceManagerAuthorizer)
@@ -32,24 +35,27 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	exemptionsClient := policy.NewExemptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&exemptionsClient.Client, o.ResourceManagerAuthorizer)
 
-	setDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&setDefinitionsClient.Client, o.ResourceManagerAuthorizer)
-
-	remediationsClient := remediations.NewRemediationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&remediationsClient.Client, o.ResourceManagerAuthorizer)
-
 	guestConfigurationAssignmentsClient, err := guestconfigurationassignments.NewGuestConfigurationAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Guest Configuration Assignments Client:  %+v", err)
 	}
 	o.Configure(guestConfigurationAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
+	remediationsClient, err := remediations.NewRemediationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Remediations client: %+v", err)
+	}
+	o.Configure(remediationsClient.Client, o.Authorizers.ResourceManager)
+
+	setDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&setDefinitionsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		AssignmentsClient:                   &assignmentsClient,
+		AssignmentsClient:                   assignmentsClient,
 		DefinitionsClient:                   &definitionsClient,
 		ExemptionsClient:                    &exemptionsClient,
-		SetDefinitionsClient:                &setDefinitionsClient,
-		RemediationsClient:                  &remediationsClient,
 		GuestConfigurationAssignmentsClient: guestConfigurationAssignmentsClient,
+		RemediationsClient:                  remediationsClient,
+		SetDefinitionsClient:                &setDefinitionsClient,
 	}, nil
 }

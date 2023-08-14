@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -42,7 +43,7 @@ func (o CreateOrUpdateImmutabilityPolicyOperationOptions) toQueryString() map[st
 }
 
 // CreateOrUpdateImmutabilityPolicy ...
-func (c BlobContainersClient) CreateOrUpdateImmutabilityPolicy(ctx context.Context, id ContainerId, input ImmutabilityPolicy, options CreateOrUpdateImmutabilityPolicyOperationOptions) (result CreateOrUpdateImmutabilityPolicyOperationResponse, err error) {
+func (c BlobContainersClient) CreateOrUpdateImmutabilityPolicy(ctx context.Context, id commonids.StorageContainerId, input ImmutabilityPolicy, options CreateOrUpdateImmutabilityPolicyOperationOptions) (result CreateOrUpdateImmutabilityPolicyOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdateImmutabilityPolicy(ctx, id, input, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "CreateOrUpdateImmutabilityPolicy", nil, "Failure preparing request")
@@ -65,7 +66,7 @@ func (c BlobContainersClient) CreateOrUpdateImmutabilityPolicy(ctx context.Conte
 }
 
 // preparerForCreateOrUpdateImmutabilityPolicy prepares the CreateOrUpdateImmutabilityPolicy request.
-func (c BlobContainersClient) preparerForCreateOrUpdateImmutabilityPolicy(ctx context.Context, id ContainerId, input ImmutabilityPolicy, options CreateOrUpdateImmutabilityPolicyOperationOptions) (*http.Request, error) {
+func (c BlobContainersClient) preparerForCreateOrUpdateImmutabilityPolicy(ctx context.Context, id commonids.StorageContainerId, input ImmutabilityPolicy, options CreateOrUpdateImmutabilityPolicyOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

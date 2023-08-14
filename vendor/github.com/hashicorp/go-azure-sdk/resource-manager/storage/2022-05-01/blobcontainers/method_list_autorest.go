@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -72,7 +73,7 @@ func (o ListOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // List ...
-func (c BlobContainersClient) List(ctx context.Context, id StorageAccountId, options ListOperationOptions) (resp ListOperationResponse, err error) {
+func (c BlobContainersClient) List(ctx context.Context, id commonids.StorageAccountId, options ListOperationOptions) (resp ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "List", nil, "Failure preparing request")
@@ -94,7 +95,7 @@ func (c BlobContainersClient) List(ctx context.Context, id StorageAccountId, opt
 }
 
 // preparerForList prepares the List request.
-func (c BlobContainersClient) preparerForList(ctx context.Context, id StorageAccountId, options ListOperationOptions) (*http.Request, error) {
+func (c BlobContainersClient) preparerForList(ctx context.Context, id commonids.StorageAccountId, options ListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -181,12 +182,12 @@ func (c BlobContainersClient) responderForList(resp *http.Response) (result List
 }
 
 // ListComplete retrieves all of the results into a single object
-func (c BlobContainersClient) ListComplete(ctx context.Context, id StorageAccountId, options ListOperationOptions) (ListCompleteResult, error) {
+func (c BlobContainersClient) ListComplete(ctx context.Context, id commonids.StorageAccountId, options ListOperationOptions) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, options, ListContainerItemOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c BlobContainersClient) ListCompleteMatchingPredicate(ctx context.Context, id StorageAccountId, options ListOperationOptions, predicate ListContainerItemOperationPredicate) (resp ListCompleteResult, err error) {
+func (c BlobContainersClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.StorageAccountId, options ListOperationOptions, predicate ListContainerItemOperationPredicate) (resp ListCompleteResult, err error) {
 	items := make([]ListContainerItem, 0)
 
 	page, err := c.List(ctx, id, options)
