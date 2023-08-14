@@ -20,6 +20,7 @@ func PostgresqlDatabaseCollation(v interface{}, k string) (warnings []string, er
 		"English_United States.1252": true,
 		"En-US":                      true,
 		"POSIX":                      true,
+		"de-DE":                      true,
 		"en-US":                      true,
 		"en-GB":                      true,
 		"aa":                         true,
