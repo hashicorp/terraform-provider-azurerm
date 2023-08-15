@@ -3,6 +3,7 @@ package eventgrid
 import (
 	"regexp"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
@@ -10,7 +11,6 @@ import (
 	serviceBusTopics "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -185,7 +185,7 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: storageValidate.StorageAccountID,
+					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"queue_name": {
 					Type:         pluginsdk.TypeString,
@@ -708,7 +708,7 @@ func eventSubscriptionSchemaStorageBlobDeadletterDestination() *pluginsdk.Schema
 				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: storageValidate.StorageAccountID,
+					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"storage_blob_container_name": {
 					Type:         pluginsdk.TypeString,

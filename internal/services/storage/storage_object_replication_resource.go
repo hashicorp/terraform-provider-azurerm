@@ -48,14 +48,14 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"destination_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"rules": {
@@ -270,8 +270,8 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := dstResp.Model; model != nil {
 		if props := dstResp.Model.Properties; props != nil {
-			d.Set("source_storage_account_id", parse.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName).ID())
-			d.Set("destination_storage_account_id", parse.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName).ID())
+			d.Set("source_storage_account_id", commonids.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName).ID())
+			d.Set("destination_storage_account_id", commonids.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName).ID())
 			if err := d.Set("rules", flattenObjectReplicationRules(props.Rules)); err != nil {
 				return fmt.Errorf("setting `rules`: %+v", err)
 			}

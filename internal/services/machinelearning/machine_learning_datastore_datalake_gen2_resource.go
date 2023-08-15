@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -165,7 +165,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_datalake_gen2", id.ID())
 			}
 
-			containerId, err := storageparse.StorageContainerResourceManagerID(model.StorageContainerID)
+			containerId, err := commonids.ParseStorageContainerID(model.StorageContainerID)
 			if err != nil {
 				return err
 			}
@@ -229,7 +229,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
-			containerId, err := storageparse.StorageContainerResourceManagerID(state.StorageContainerID)
+			containerId, err := commonids.ParseStorageContainerID(state.StorageContainerID)
 			if err != nil {
 				return err
 			}
@@ -310,7 +310,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			containerId := storageparse.NewStorageContainerResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, "default", data.Filesystem)
+			containerId := commonids.NewStorageContainerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault
