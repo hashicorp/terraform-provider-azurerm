@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type OrchestratedVirtualMachineScaleSetDataSource struct{}
@@ -24,11 +24,11 @@ type OrchestratedVirtualMachineScaleSetDataSource struct{}
 var _ sdk.DataSource = OrchestratedVirtualMachineScaleSetDataSource{}
 
 type OrchestratedVirtualMachineScaleSetDataSourceModel struct {
-	Name             string                                   `tfschema:"name"`
-	ResourceGroup    string                                   `tfschema:"resource_group_name"`
-	Location         string                                   `tfschema:"location"`
-	NetworkInterface []VirtualMachineScaleSetNetworkInterface `tfschema:"network_interface"`
-	Identity         []identity.ModelUserAssigned             `tfschema:"identity"`
+	Name             string                                     `tfschema:"name"`
+	ResourceGroup    string                                     `tfschema:"resource_group_name"`
+	Location         string                                     `tfschema:"location"`
+	NetworkInterface []VirtualMachineScaleSetNetworkInterface   `tfschema:"network_interface"`
+	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 type VirtualMachineScaleSetNetworkInterface struct {
@@ -149,29 +149,33 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewVirtualMachineScaleSetID(subscriptionId, orchestratedVMSS.ResourceGroup, orchestratedVMSS.Name)
+			id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, orchestratedVMSS.ResourceGroup, orchestratedVMSS.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+			existing, err := client.Get(ctx, id, virtualmachinescalesets.GetOperationOptions{Expand: pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)})
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			orchestratedVMSS.Location = location.NormalizeNilable(existing.Location)
+			if model := existing.Model; model != nil {
+				orchestratedVMSS.Location = location.Normalize(model.Location)
 
-			if profile := existing.VirtualMachineProfile; profile != nil {
-				if nwProfile := profile.NetworkProfile; nwProfile != nil {
-					orchestratedVMSS.NetworkInterface = flattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+				if props := model.Properties; props != nil {
+					if profile := props.VirtualMachineProfile; profile != nil {
+						if nwProfile := profile.NetworkProfile; nwProfile != nil {
+							orchestratedVMSS.NetworkInterface = flattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+						}
+					}
 				}
-			}
 
-			userIdentity, err := flattenOrchestratedVirtualMachineScaleSetIdentityToModel(existing.Identity)
-			if err != nil {
-				return err
+				userIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return err
+				}
+				orchestratedVMSS.Identity = *userIdentity
 			}
-			orchestratedVMSS.Identity = userIdentity
 
 			metadata.SetID(id)
 
@@ -180,92 +184,88 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachineScaleSetNetworkConfiguration) []VirtualMachineScaleSetNetworkInterface {
+func flattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescalesets.VirtualMachineScaleSetNetworkConfiguration) []VirtualMachineScaleSetNetworkInterface {
 	if input == nil {
 		return []VirtualMachineScaleSetNetworkInterface{}
 	}
 
 	networkInterfaces := make([]VirtualMachineScaleSetNetworkInterface, 0)
 	for _, v := range *input {
-		var name, networkSecurityGroupId string
-		if v.Name != nil {
-			name = *v.Name
+		if v.Properties == nil {
+			continue
 		}
-		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
-			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
+		var networkSecurityGroupId string
+		if v.Properties.NetworkSecurityGroup != nil && v.Properties.NetworkSecurityGroup.Id != nil {
+			networkSecurityGroupId = *v.Properties.NetworkSecurityGroup.Id
 		}
 		var acceleratedNetworkingEnabled, ipForwardingEnabled, primary bool
-		if v.EnableAcceleratedNetworking != nil {
-			acceleratedNetworkingEnabled = *v.EnableAcceleratedNetworking
+		if v.Properties.EnableAcceleratedNetworking != nil {
+			acceleratedNetworkingEnabled = *v.Properties.EnableAcceleratedNetworking
 		}
-		if v.EnableIPForwarding != nil {
-			ipForwardingEnabled = *v.EnableIPForwarding
+		if v.Properties.EnableIPForwarding != nil {
+			ipForwardingEnabled = *v.Properties.EnableIPForwarding
 		}
-		if v.Primary != nil {
-			primary = *v.Primary
+		if v.Properties.Primary != nil {
+			primary = *v.Properties.Primary
 		}
 
 		var dnsServers []string
-		if settings := v.DNSSettings; settings != nil {
-			dnsServers = *v.DNSSettings.DNSServers
+		if settings := v.Properties.DnsSettings; settings != nil {
+			dnsServers = *v.Properties.DnsSettings.DnsServers
 		}
 
 		networkInterfaces = append(networkInterfaces, VirtualMachineScaleSetNetworkInterface{
-			Name:                         name,
+			Name:                         v.Name,
 			NetworkSecurityGroupId:       networkSecurityGroupId,
 			AcceleratedNetworkingEnabled: acceleratedNetworkingEnabled,
 			IPForwardingEnabled:          ipForwardingEnabled,
 			Primary:                      primary,
 			DNSServers:                   dnsServers,
-			IPConfiguration:              flattenOrchestratedVirtualMachineScaleSetNetworkInterfaceIPConfiguration(v.IPConfigurations),
+			IPConfiguration:              flattenOrchestratedVirtualMachineScaleSetNetworkInterfaceIPConfiguration(v.Properties.IPConfigurations),
 		})
 	}
 
 	return networkInterfaces
 }
 
-func flattenOrchestratedVirtualMachineScaleSetNetworkInterfaceIPConfiguration(input *[]compute.VirtualMachineScaleSetIPConfiguration) []VirtualMachineScaleSetNetworkInterfaceIPConfiguration {
-	if input == nil {
-		return []VirtualMachineScaleSetNetworkInterfaceIPConfiguration{}
-	}
-
+func flattenOrchestratedVirtualMachineScaleSetNetworkInterfaceIPConfiguration(input []virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration) []VirtualMachineScaleSetNetworkInterfaceIPConfiguration {
 	ipConfigurations := make([]VirtualMachineScaleSetNetworkInterfaceIPConfiguration, 0)
-	for _, v := range *input {
-		var name, subnetId string
-		if v.Name != nil {
-			name = *v.Name
+	for _, v := range input {
+		if v.Properties == nil {
+			continue
 		}
-		if v.Subnet != nil && v.Subnet.ID != nil {
-			subnetId = *v.Subnet.ID
+		var subnetId string
+		if v.Properties.Subnet != nil && v.Properties.Subnet.Id != nil {
+			subnetId = *v.Properties.Subnet.Id
 		}
 
 		var primary bool
-		if v.Primary != nil {
-			primary = *v.Primary
+		if v.Properties.Primary != nil {
+			primary = *v.Properties.Primary
 		}
 
 		ipConfigurations = append(ipConfigurations, VirtualMachineScaleSetNetworkInterfaceIPConfiguration{
-			Name:                                    name,
+			Name:                                    v.Name,
 			SubnetId:                                subnetId,
 			Primary:                                 primary,
-			PublicIPAddress:                         flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(v.PublicIPAddressConfiguration),
-			ApplicationGatewayBackendAddressPoolIds: flattenSubResourcesToStringIDs(v.ApplicationGatewayBackendAddressPools),
-			ApplicationSecurityGroupIds:             flattenSubResourcesToStringIDs(v.ApplicationSecurityGroups),
-			LoadBalancerBackendAddressPoolIds:       flattenSubResourcesToStringIDs(v.LoadBalancerBackendAddressPools),
+			PublicIPAddress:                         flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(v.Properties.PublicIPAddressConfiguration),
+			ApplicationGatewayBackendAddressPoolIds: flattenSubResourcesToStringIDs(v.Properties.ApplicationGatewayBackendAddressPools),
+			ApplicationSecurityGroupIds:             flattenSubResourcesToStringIDs(v.Properties.ApplicationSecurityGroups),
+			LoadBalancerBackendAddressPoolIds:       flattenSubResourcesToStringIDs(v.Properties.LoadBalancerBackendAddressPools),
 		})
 	}
 
 	return ipConfigurations
 }
 
-func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *compute.VirtualMachineScaleSetPublicIPAddressConfiguration) []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress {
-	if input == nil {
+func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfiguration) []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress {
+	if input == nil || input.Properties == nil {
 		return []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{}
 	}
 
 	ipTags := make([]VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag, 0)
-	if input.IPTags != nil {
-		for _, rawTag := range *input.IPTags {
+	if input.Properties.IPTags != nil {
+		for _, rawTag := range *input.Properties.IPTags {
 			var tag, tagType string
 
 			if rawTag.IPTagType != nil {
@@ -283,62 +283,30 @@ func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *compute.Vir
 		}
 	}
 
-	var domainNameLabel, name, publicIPPrefixId, version string
-	if input.DNSSettings != nil && input.DNSSettings.DomainNameLabel != nil {
-		domainNameLabel = *input.DNSSettings.DomainNameLabel
+	var domainNameLabel, publicIPPrefixId, version string
+	if input.Properties.DnsSettings != nil {
+		domainNameLabel = input.Properties.DnsSettings.DomainNameLabel
 	}
 
-	if input.Name != nil {
-		name = *input.Name
+	if input.Properties.PublicIPPrefix != nil && input.Properties.PublicIPPrefix.Id != nil {
+		publicIPPrefixId = *input.Properties.PublicIPPrefix.Id
 	}
 
-	if input.PublicIPPrefix != nil && input.PublicIPPrefix.ID != nil {
-		publicIPPrefixId = *input.PublicIPPrefix.ID
-	}
-
-	if input.PublicIPAddressVersion != "" {
-		version = string(input.PublicIPAddressVersion)
+	if pointer.From(input.Properties.PublicIPAddressVersion) != "" {
+		version = string(pointer.From(input.Properties.PublicIPAddressVersion))
 	}
 
 	var idleTimeoutInMinutes int
-	if input.IdleTimeoutInMinutes != nil {
-		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
+	if input.Properties.IdleTimeoutInMinutes != nil {
+		idleTimeoutInMinutes = int(*input.Properties.IdleTimeoutInMinutes)
 	}
 
 	return []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{{
-		Name:                 name,
+		Name:                 input.Name,
 		DomainNameLabel:      domainNameLabel,
 		IdleTimeoutInMinutes: idleTimeoutInMinutes,
 		IPTag:                ipTags,
 		PublicIpPrefixId:     publicIPPrefixId,
 		Version:              version,
 	}}
-}
-
-func flattenOrchestratedVirtualMachineScaleSetIdentityToModel(input *compute.VirtualMachineScaleSetIdentity) ([]identity.ModelUserAssigned, error) {
-	if input == nil {
-		return nil, nil
-	}
-
-	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
-	for k, v := range input.UserAssignedIdentities {
-		if v != nil {
-			identityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-
-	tmp := identity.UserAssignedMap{
-		Type:        identity.Type(input.Type),
-		IdentityIds: identityIds,
-	}
-
-	output, err := identity.FlattenUserAssignedMapToModel(&tmp)
-	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	return *output, nil
 }

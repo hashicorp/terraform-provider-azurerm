@@ -41,18 +41,18 @@ func flattenSubResourcesToIDs(input *[]virtualmachinescalesets.SubResource) []in
 	return ids
 }
 
-func flattenSubResourcesToStringIDs(input *[]compute.SubResource) []string {
+func flattenSubResourcesToStringIDs(input *[]virtualmachinescalesets.SubResource) []string {
 	ids := make([]string, 0)
 	if input == nil {
 		return ids
 	}
 
 	for _, v := range *input {
-		if v.ID == nil {
+		if v.Id == nil {
 			continue
 		}
 
-		ids = append(ids, *v.ID)
+		ids = append(ids, *v.Id)
 	}
 
 	return ids
