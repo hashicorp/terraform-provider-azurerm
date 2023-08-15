@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, or `Ultra`. Changing this forces a new resource to be created.
 
-* `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `4` and `500`.
+* `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `2` and `500`.
 
 * `qos_type` - (Optional) QoS Type of the pool. Valid values include `Auto` or `Manual`.
 
