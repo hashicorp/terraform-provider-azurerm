@@ -1,10 +1,20 @@
 package paloalto
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
 
 var _ sdk.TypedServiceRegistration = Registration{}
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/paloalto"
+}
+
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) Name() string {
 	return "Palo Alto"
