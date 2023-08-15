@@ -8,8 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
@@ -68,9 +69,9 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.CachingTypesNone),
-					string(compute.CachingTypesReadOnly),
-					string(compute.CachingTypesReadWrite),
+					string(virtualmachines.CachingTypesNone),
+					string(virtualmachines.CachingTypesReadOnly),
+					string(virtualmachines.CachingTypesReadWrite),
 				}, false),
 			},
 
@@ -78,10 +79,10 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.DiskCreateOptionTypesAttach),
+				Default:  string(virtualmachines.DiskCreateOptionTypesAttach),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskCreateOptionTypesAttach),
-					string(compute.DiskCreateOptionTypesEmpty),
+					string(virtualmachines.DiskCreateOptionTypesAttach),
+					string(virtualmachines.DiskCreateOptionTypesEmpty),
 				}, false),
 			},
 
@@ -99,21 +100,25 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedVirtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	parsedVirtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", parsedVirtualMachineId.ID(), err)
 	}
 
-	locks.ByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
-	defer locks.UnlockByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
+	locks.ByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 
-	virtualMachine, err := client.Get(ctx, parsedVirtualMachineId.ResourceGroup, parsedVirtualMachineId.Name, "")
+	virtualMachine, err := client.Get(ctx, *parsedVirtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(virtualMachine.Response) {
+		if response.WasNotFound(virtualMachine.HttpResponse) {
 			return fmt.Errorf("Virtual Machine %q  was not found", parsedVirtualMachineId.String())
 		}
 
 		return fmt.Errorf("loading Virtual Machine %q : %+v", parsedVirtualMachineId.String(), err)
+	}
+
+	if virtualMachine.Model != nil && virtualMachine.Model.Properties != nil {
+		return fmt.Errorf("reading Virtual Machine %q : `model/properties` was nil", parsedVirtualMachineId.String())
 	}
 
 	managedDiskId := d.Get("managed_disk_id").(string)
@@ -128,25 +133,24 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 
 	name := *managedDisk.Name
 	resourceId := fmt.Sprintf("%s/dataDisks/%s", parsedVirtualMachineId.ID(), name)
-	lun := int32(d.Get("lun").(int))
+	lun := int64(d.Get("lun").(int))
 	caching := d.Get("caching").(string)
-	createOption := compute.DiskCreateOptionTypes(d.Get("create_option").(string))
+	createOption := virtualmachines.DiskCreateOptionTypes(d.Get("create_option").(string))
 	writeAcceleratorEnabled := d.Get("write_accelerator_enabled").(bool)
 
-	expandedDisk := compute.DataDisk{
+	expandedDisk := virtualmachines.DataDisk{
 		Name:         utils.String(name),
-		Caching:      compute.CachingTypes(caching),
+		Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
 		CreateOption: createOption,
-		Lun:          utils.Int32(lun),
-		ManagedDisk: &compute.ManagedDiskParameters{
-			ID:                 utils.String(managedDiskId),
-			StorageAccountType: compute.StorageAccountTypes(string(*managedDisk.Sku.Name)),
+		Lun:          lun,
+		ManagedDisk: &virtualmachines.ManagedDiskParameters{
+			Id:                 utils.String(managedDiskId),
+			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(pointer.From(managedDisk.Sku.Name))),
 		},
 		WriteAcceleratorEnabled: utils.Bool(writeAcceleratorEnabled),
 	}
 
-	disks := *virtualMachine.StorageProfile.DataDisks
-
+	disks := *virtualMachine.Model.Properties.StorageProfile.DataDisks
 	existingIndex := -1
 	for i, disk := range disks {
 		if *disk.Name == name {
@@ -169,23 +173,18 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		disks[existingIndex] = expandedDisk
 	}
 
-	virtualMachine.StorageProfile.DataDisks = &disks
+	virtualMachine.Model.Properties.StorageProfile.DataDisks = &disks
 
 	// fixes #2485
-	virtualMachine.Identity = nil
+	virtualMachine.Model.Identity = nil
 	// fixes #1600
-	virtualMachine.Resources = nil
+	virtualMachine.Model.Resources = nil
 
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	// which we're intentionally not wrapping, since the errors good.
-	future, err := client.CreateOrUpdate(ctx, parsedVirtualMachineId.ResourceGroup, parsedVirtualMachineId.Name, virtualMachine)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *parsedVirtualMachineId, *virtualMachine.Model); err != nil {
 		return fmt.Errorf("updating Virtual Machine %q  with Disk %q: %+v", parsedVirtualMachineId.String(), name, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Virtual Machine %q to finish updating Disk %q: %+v", parsedVirtualMachineId.String(), name, err)
 	}
 
 	d.SetId(resourceId)
@@ -202,9 +201,11 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+	vmId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+
+	virtualMachine, err := client.Get(ctx, vmId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(virtualMachine.Response) {
+		if response.WasNotFound(virtualMachine.HttpResponse) {
 			log.Printf("[DEBUG] Virtual Machine %q was not found (Resource Group %q) therefore Data Disk Attachment cannot exist - removing from state", id.VirtualMachineName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -213,14 +214,18 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("loading Virtual Machine %q : %+v", id.String(), err)
 	}
 
-	var disk *compute.DataDisk
-	if profile := virtualMachine.StorageProfile; profile != nil {
-		if dataDisks := profile.DataDisks; dataDisks != nil {
-			for _, dataDisk := range *dataDisks {
-				// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
-				if *dataDisk.Name == id.Name {
-					disk = &dataDisk
-					break
+	var disk *virtualmachines.DataDisk
+	if model := virtualMachine.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if profile := props.StorageProfile; profile != nil {
+				if dataDisks := profile.DataDisks; dataDisks != nil {
+					for _, dataDisk := range *dataDisks {
+						// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
+						if *dataDisk.Name == id.Name {
+							disk = &dataDisk
+							break
+						}
+					}
 				}
 			}
 		}
@@ -232,17 +237,14 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 		return nil
 	}
 
-	d.Set("virtual_machine_id", virtualMachine.ID)
-	d.Set("caching", string(disk.Caching))
+	d.Set("virtual_machine_id", vmId.ID())
+	d.Set("caching", string(pointer.From(disk.Caching)))
 	d.Set("create_option", string(disk.CreateOption))
 	d.Set("write_accelerator_enabled", disk.WriteAcceleratorEnabled)
+	d.Set("lun", int(disk.Lun))
 
 	if managedDisk := disk.ManagedDisk; managedDisk != nil {
-		d.Set("managed_disk_id", managedDisk.ID)
-	}
-
-	if lun := disk.Lun; lun != nil {
-		d.Set("lun", int(*lun))
+		d.Set("managed_disk_id", managedDisk.Id)
 	}
 
 	return nil
@@ -258,40 +260,41 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
+	vmId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+	virtualMachine, err := client.Get(ctx, vmId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(virtualMachine.Response) {
+		if response.WasNotFound(virtualMachine.HttpResponse) {
 			return fmt.Errorf("Virtual Machine %q was not found", id.String())
 		}
 
 		return fmt.Errorf("loading Virtual Machine %q : %+v", id.String(), err)
 	}
 
-	dataDisks := make([]compute.DataDisk, 0)
-	for _, dataDisk := range *virtualMachine.StorageProfile.DataDisks {
+	if virtualMachine.Model == nil || virtualMachine.Model.Properties == nil {
+		return fmt.Errorf("reading Virtual Machine %q : `model/properties` was nil", vmId)
+	}
+
+	dataDisks := make([]virtualmachines.DataDisk, 0)
+	for _, dataDisk := range *virtualMachine.Model.Properties.StorageProfile.DataDisks {
 		// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
 		if *dataDisk.Name != id.Name {
 			dataDisks = append(dataDisks, dataDisk)
 		}
 	}
 
-	virtualMachine.StorageProfile.DataDisks = &dataDisks
+	virtualMachine.Model.Properties.StorageProfile.DataDisks = &dataDisks
 
 	// fixes #2485
-	virtualMachine.Identity = nil
+	virtualMachine.Model.Identity = nil
 	// fixes #1600
-	virtualMachine.Resources = nil
+	virtualMachine.Model.Resources = nil
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, virtualMachine)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, vmId, *virtualMachine.Model); err != nil {
 		return fmt.Errorf("removing Disk %q from Virtual Machine %q : %+v", id.Name, id.String(), err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Disk %q to be removed from Virtual Machine %q : %+v", id.Name, id.String(), err)
 	}
 
 	return nil
