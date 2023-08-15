@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	virtual_machines_2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesetrollingupgrades"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -59,7 +60,7 @@ type Client struct {
 	VMExtensionClient                *compute.VirtualMachineExtensionsClient
 	VMScaleSetClient                 *virtualmachinescalesets.VirtualMachineScaleSetsClient
 	VMScaleSetExtensionsClient       *compute.VirtualMachineScaleSetExtensionsClient
-	VMScaleSetRollingUpgradesClient  *compute.VirtualMachineScaleSetRollingUpgradesClient
+	VMScaleSetRollingUpgradesClient  *virtualmachinescalesetrollingupgrades.VirtualMachineScaleSetRollingUpgradesClient
 	VMScaleSetVMsClient              *compute.VirtualMachineScaleSetVMsClient
 	VMClient                         *virtual_machines_2023_03_01.VirtualMachinesClient
 	VMImageClient                    *compute.VirtualMachineImagesClient
@@ -207,8 +208,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	vmScaleSetExtensionsClient := compute.NewVirtualMachineScaleSetExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetExtensionsClient.Client, o.ResourceManagerAuthorizer)
 
-	vmScaleSetRollingUpgradesClient := compute.NewVirtualMachineScaleSetRollingUpgradesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmScaleSetRollingUpgradesClient.Client, o.ResourceManagerAuthorizer)
+	vmScaleSetRollingUpgradesClient, err := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetRollingUpgradesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VM ScaleSet Rolling Upgrades client: %+v", err)
+	}
+	o.Configure(vmScaleSetRollingUpgradesClient.Client, o.Authorizers.ResourceManager)
 
 	vmScaleSetVMsClient := compute.NewVirtualMachineScaleSetVMsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetVMsClient.Client, o.ResourceManagerAuthorizer)
@@ -245,7 +249,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VMExtensionClient:                &vmExtensionClient,
 		VMScaleSetClient:                 vmScaleSetClient,
 		VMScaleSetExtensionsClient:       &vmScaleSetExtensionsClient,
-		VMScaleSetRollingUpgradesClient:  &vmScaleSetRollingUpgradesClient,
+		VMScaleSetRollingUpgradesClient:  vmScaleSetRollingUpgradesClient,
 		VMScaleSetVMsClient:              &vmScaleSetVMsClient,
 		VMImageClient:                    &vmImageClient,
 
