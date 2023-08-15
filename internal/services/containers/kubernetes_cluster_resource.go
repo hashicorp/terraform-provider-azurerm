@@ -87,6 +87,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.ebpf_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != ""
+			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
 					d.SetNewComputed("oidc_issuer_url")
@@ -1052,7 +1055,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"ebpf_data_plane": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkDataplaneCilium),
 							}, false),
@@ -2036,11 +2038,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		networkProfile := *existing.Model.Properties.NetworkProfile
 
-		if networkProfile.LoadBalancerProfile == nil && networkProfile.NatGatewayProfile == nil {
-			// on of the profiles should be present
-			return fmt.Errorf("both `loadBalancerProfile` and `natGatewayProfile` are nil in Azure")
-		}
-
 		if networkProfile.LoadBalancerProfile != nil {
 			loadBalancerProfile := *networkProfile.LoadBalancerProfile
 
@@ -2146,6 +2143,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
+		}
+
+		if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
+			ebpfDataPlane := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkDataplane = utils.ToPtr(managedclusters.NetworkDataplane(ebpfDataPlane))
 		}
 	}
 	if d.HasChange("service_mesh_profile") {

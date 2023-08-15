@@ -854,7 +854,14 @@ func TestAccKubernetesCluster_ebpfDataPlane(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ebpfDataPlane(data),
+			Config: r.ebpfDataPlane(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ebpfDataPlane(data, "cilium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3516,7 +3523,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, authorizedIPConfig)
 }
 
-func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData) string {
+func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData, ebpfDataPlane string) string {
+	ebpfDataPlaneValue := "null"
+	if ebpfDataPlane != "" {
+		ebpfDataPlaneValue = fmt.Sprintf(`"%s"`, ebpfDataPlane)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3558,11 +3569,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
-    ebpf_data_plane     = "cilium"
+    ebpf_data_plane     = %[3]s
     network_plugin_mode = "overlay"
   }
 }
-`, "westcentralus", data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, ebpfDataPlaneValue)
 }
 
 func (KubernetesClusterResource) networkPluginMode(data acceptance.TestData) string {
