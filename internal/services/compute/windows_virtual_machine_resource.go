@@ -1031,7 +1031,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving %s..", id.VirtualMachineName, id.ResourceGroupName)
+	log.Printf("[DEBUG] Retrieving %s..", id)
 	existing, err := client.Get(ctx, *id, virtualmachines.GetOperationOptions{Expand: pointer.To(virtualmachines.InstanceViewTypesUserData)})
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -1669,7 +1669,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 			diskDeleteFuture, err := disksClient.Delete(ctx, *diskId)
 			if err != nil {
 				if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for %s: %+v", diskId.DiskName, diskId.ResourceGroupName, err)
+					return fmt.Errorf("deleting OS Disk  for %s: %+v", diskId, err)
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
