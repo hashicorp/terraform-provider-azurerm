@@ -16,7 +16,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -24,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/custompollers"
@@ -52,7 +50,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(10 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
@@ -147,18 +145,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 								string(managedhsms.NetworkRuleBypassOptionsAzureServices),
 							}, false),
 						},
-						"ip_rules": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.Any(
-									commonValidate.IPv4Address,
-									commonValidate.CIDR,
-								),
-							},
-							Set: set.HashIPv4AddressOrCIDR,
-						},
 						"virtual_network_subnet_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -223,7 +209,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
 	}
 	networkAclsRaw := d.Get("network_acls").([]interface{})
-	networkAcls, subnetIds := expandMHSMNetworkAcls(networkAclsRaw)
+	networkAcls := expandMHSMNetworkAcls(networkAclsRaw)
 	hsm := managedhsms.ManagedHsm{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
@@ -244,11 +230,6 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	if tenantId := d.Get("tenant_id").(string); tenantId != "" {
 		hsm.Properties.TenantId = pointer.To(tenantId)
 	}
-	unlock, err := lockVirtualNetworks(subnetIds)
-	if err != nil {
-		return err
-	}
-	defer unlock()
 
 	if err := hsmClient.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -306,19 +287,13 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 
 	if d.HasChange("network_acls") {
 		networkAclsRaw := d.Get("network_acls").([]interface{})
-		networkAcls, subnetIds := expandMHSMNetworkAcls(networkAclsRaw)
+		networkAcls := expandMHSMNetworkAcls(networkAclsRaw)
 		update := managedhsms.ManagedHsm{
 			Properties: &managedhsms.ManagedHsmProperties{
 				TenantId:    utils.String(d.Get("tenant_id").(string)),
 				NetworkAcls: networkAcls,
 			},
 		}
-
-		unlock, err := lockVirtualNetworks(subnetIds)
-		if err != nil {
-			return err
-		}
-		defer unlock()
 
 		deadline, ok := ctx.Deadline()
 		if !ok {
@@ -424,7 +399,14 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		}
 	}
 
-	if err := hsmClient.DeleteThenPoll(ctx, *id); err != nil {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+	}
+	err = retryHSMUpdateError(time.Until(deadline), "waiting for deleting Managed HSM pool", id.ID(), func() error {
+		return hsmClient.DeleteThenPoll(ctx, *id)
+	})
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -443,49 +425,23 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	return nil
 }
 
-func expandMHSMNetworkAcls(input []interface{}) (*managedhsms.MHSMNetworkRuleSet, []string) {
-	subnetIds := make([]string, 0)
+func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet {
 	if len(input) == 0 {
-		return nil, subnetIds
+		return nil
 	}
 	v := input[0].(map[string]interface{})
 
-	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
-	ipRules := make([]managedhsms.MHSMIPRule, 0)
-
-	for _, v := range ipRulesRaw.List() {
-		rule := managedhsms.MHSMIPRule{
-			Value: v.(string),
-		}
-		ipRules = append(ipRules, rule)
-	}
-
-	networkRulesRaw := v["virtual_network_subnet_ids"].(*pluginsdk.Set)
-	networkRules := make([]managedhsms.MHSMVirtualNetworkRule, 0)
-	for _, v := range networkRulesRaw.List() {
-		rawId := v.(string)
-		subnetIds = append(subnetIds, rawId)
-		rule := managedhsms.MHSMVirtualNetworkRule{
-			Id: rawId,
-		}
-		networkRules = append(networkRules, rule)
-	}
-
 	res := &managedhsms.MHSMNetworkRuleSet{
-		Bypass:              pointer.To(managedhsms.NetworkRuleBypassOptions(v["bypass"].(string))),
-		DefaultAction:       pointer.To(managedhsms.NetworkRuleAction(v["default_action"].(string))),
-		IPRules:             &ipRules,
-		VirtualNetworkRules: &networkRules,
+		Bypass:        pointer.To(managedhsms.NetworkRuleBypassOptions(v["bypass"].(string))),
+		DefaultAction: pointer.To(managedhsms.NetworkRuleAction(v["default_action"].(string))),
 	}
 
-	return res, subnetIds
+	return res
 }
 
 func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 	bypass := string(managedhsms.NetworkRuleBypassOptionsAzureServices)
 	defaultAction := string(managedhsms.NetworkRuleActionAllow)
-	ipRules := make([]interface{}, 0)
-	virtualNetworkSubnetIds := make([]interface{}, 0)
 
 	if acl != nil {
 		if acl.Bypass != nil {
@@ -494,29 +450,12 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 		if acl.DefaultAction != nil {
 			defaultAction = string(*acl.DefaultAction)
 		}
-		if acl.IPRules != nil {
-			for _, v := range *acl.IPRules {
-				ipRules = append(ipRules, v.Value)
-			}
-		}
-		if acl.VirtualNetworkRules != nil {
-			for _, v := range *acl.VirtualNetworkRules {
-				subnetIdRaw := v.Id
-				subnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdRaw)
-				if err == nil {
-					subnetIdRaw = subnetId.ID()
-				}
-				virtualNetworkSubnetIds = append(virtualNetworkSubnetIds, subnetIdRaw)
-			}
-		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"bypass":                     bypass,
-			"default_action":             defaultAction,
-			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
-			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds),
+			"bypass":         bypass,
+			"default_action": defaultAction,
 		},
 	}
 }
@@ -615,10 +554,10 @@ func retryHSMUpdateError(timeout time.Duration, action string, id string, retryF
 			return nil
 		}
 		retryableErrors := []string{
-			"Try again later",
+			"try again later",
 		}
 		for _, retryableError := range retryableErrors {
-			if strings.Contains(err.Error(), retryableError) {
+			if strings.Contains(strings.ToLower(err.Error()), retryableError) {
 				return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 			}
 		}
