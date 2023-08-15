@@ -87,6 +87,7 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 			return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
 		}
 	}
+
 	payload := schema.GlobalSchemaContract{
 		Properties: &schema.GlobalSchemaContractProperties{
 			Description: pointer.To(d.Get("description").(string)),
