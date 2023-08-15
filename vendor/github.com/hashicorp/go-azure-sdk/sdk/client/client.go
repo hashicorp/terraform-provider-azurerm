@@ -109,13 +109,16 @@ func (r *Request) Marshal(payload interface{}) error {
 	}
 
 	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		v, ok := payload.(*[]byte)
-		if !ok {
-			return fmt.Errorf("internal-error: `payload` must be *[]byte but got %+v", payload)
+		switch v := payload.(type) {
+		case *[]byte:
+			r.ContentLength = int64(len(*v))
+			r.Body = io.NopCloser(bytes.NewReader(*v))
+		case []byte:
+			r.ContentLength = int64(len(v))
+			r.Body = io.NopCloser(bytes.NewReader(v))
+		default:
+			return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 		}
-
-		r.ContentLength = int64(len(*v))
-		r.Body = io.NopCloser(bytes.NewReader(*v))
 		return nil
 	}
 
