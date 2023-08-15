@@ -8,10 +8,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -55,7 +56,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualMachineScaleSetID,
+				ValidateFunc: virtualmachinescalesets.ValidateVirtualMachineScaleSetID,
 			},
 
 			"publisher": {
@@ -133,11 +134,11 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineScaleSetId, err := parse.VirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
+	virtualMachineScaleSetId, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, virtualMachineScaleSetId.Name, d.Get("name").(string))
+	id := parse.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroupName, virtualMachineScaleSetId.VirtualMachineScaleSetName, d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
 	if err != nil {
@@ -171,7 +172,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 			AutoUpgradeMinorVersion:       utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
 			EnableAutomaticUpgrade:        utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
 			SuppressFailures:              utils.Bool(d.Get("failure_suppression_enabled").(bool)),
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandOldProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
 			ProvisionAfterExtensions:      provisionAfterExtensions,
 			Settings:                      settings,
 		},
@@ -240,7 +241,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("protected_settings_from_key_vault") {
-		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{}))
+		props.ProtectedSettingsFromKeyVault = expandOldProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{}))
 	}
 
 	if d.HasChange("provision_after_extensions") {
@@ -301,10 +302,12 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
+	vmssId := virtualmachinescalesets.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName)
+
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, "")
+	vmss, err := vmssClient.Get(ctx, vmssId, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(vmss.Response) {
+		if response.WasNotFound(vmss.HttpResponse) {
 			log.Printf("Virtual Machine Scale Set %q was not found in Resource Group %q - removing Extension from state!", id.VirtualMachineScaleSetName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -325,13 +328,13 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("name", id.ExtensionName)
-	d.Set("virtual_machine_scale_set_id", vmss.ID)
+	d.Set("virtual_machine_scale_set_id", vmssId.ID())
 
 	if props := resp.VirtualMachineScaleSetExtensionProperties; props != nil {
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 		d.Set("force_update_tag", props.ForceUpdateTag)
-		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
+		d.Set("protected_settings_from_key_vault", flattenOldProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
 		d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
 		d.Set("publisher", props.Publisher)
 		d.Set("type", props.Type)

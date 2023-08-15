@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -366,7 +367,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{
 					"availability_set_id",
 				},
-				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+				ValidateFunc: virtualmachinescalesets.ValidateVirtualMachineScaleSetID,
 			},
 
 			"platform_fault_domain": {

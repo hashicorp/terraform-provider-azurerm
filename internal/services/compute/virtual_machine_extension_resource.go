@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -118,18 +120,21 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	virtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroup, virtualMachineId.Name, d.Get("name").(string))
+	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, d.Get("name").(string))
 
-	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+	virtualMachine, err := vmClient.Get(ctx, *virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("getting %s: %+v", virtualMachineId, err)
 	}
 
-	location := *virtualMachine.Location
+	location := ""
+	if virtualMachine.Model != nil {
+		location = virtualMachine.Model.Location
+	}
 	if location == "" {
 		return fmt.Errorf("reading location of %s", virtualMachineId)
 	}
@@ -163,7 +168,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 			TypeHandlerVersion:            &typeHandlerVersion,
 			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
 			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandOldProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
 			SuppressFailures:              &suppressFailure,
 		},
 		Tags: tags.Expand(t),
@@ -210,16 +215,18 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+	vmId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+
+	virtualMachine, err := vmClient.Get(ctx, vmId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(virtualMachine.Response) {
+		if response.WasNotFound(virtualMachine.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request on Virtual Machine %s: %s", id.ExtensionName, err)
 	}
 
-	d.Set("virtual_machine_id", virtualMachine.ID)
+	d.Set("virtual_machine_id", vmId.ID())
 
 	resp, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
 	if err != nil {
@@ -238,7 +245,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("type_handler_version", props.TypeHandlerVersion)
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
-		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
+		d.Set("protected_settings_from_key_vault", flattenOldProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
 
 		suppressFailure := false
 		if props.SuppressFailures != nil {
