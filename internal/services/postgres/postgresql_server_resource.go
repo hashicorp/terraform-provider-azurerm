@@ -76,7 +76,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, err
 			}
 
-			timeout, cancel := context.WithTimeout(ctx, 5*time.Minute)
+			timeout, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
 			defer cancel()
 
 			resp, err := client.Get(timeout, *id)
