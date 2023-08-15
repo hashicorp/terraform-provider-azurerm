@@ -208,8 +208,6 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
 	}
-	networkAclsRaw := d.Get("network_acls").([]interface{})
-	networkAcls := expandMHSMNetworkAcls(networkAclsRaw)
 	hsm := managedhsms.ManagedHsm{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
@@ -219,7 +217,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 			SoftDeleteRetentionInDays: utils.Int64(int64(d.Get("soft_delete_retention_days").(int))),
 			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
 			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
-			NetworkAcls:               networkAcls,
+			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
 		},
 		Sku: &managedhsms.ManagedHsmSku{
 			Family: managedhsms.ManagedHsmSkuFamilyB,
