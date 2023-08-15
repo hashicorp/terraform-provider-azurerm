@@ -229,7 +229,7 @@ In this case, `azurerm_key_vault_access_policy` is not needed.
 
 -> **NOTE** When `auto_key_rotation_enabled` is set to `true` the `key_vault_key_id` must use the `versionless_id`.
 
--> **NOTE** To validate which Key Vault Key version is currently being used by the service it is recommended that you run a `terraform refresh` command and then check the value of the exported `key_vault_key_url` field. You may also use the `azurerm_disk_encryption_set` datasource as well.
+-> **NOTE** To validate which Key Vault Key version is currently being used by the service it is recommended that you use the `azurerm_disk_encryption_set` data source or run a `terraform refresh` command and check the value of the exported `key_vault_key_url` field.
 
 -> **NOTE** It may take between 10 to 20 minutes for the service to update the Key Vault Key URL once the keys have been rotated.
 
