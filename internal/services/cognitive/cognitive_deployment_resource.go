@@ -315,11 +315,14 @@ func (r CognitiveDeploymentResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model cognitiveDeploymentModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
+				return err
 			}
 
 			client := metadata.Client.Cognitive.DeploymentsClient
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
+			if err != nil {
+				return err
+			}
 
 			locks.ByID(accountId.ID())
 			defer locks.UnlockByID(accountId.ID())
