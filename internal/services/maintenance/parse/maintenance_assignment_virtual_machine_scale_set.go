@@ -23,7 +23,7 @@ func MaintenanceAssignmentVirtualMachineScaleSetID(input string) (*MaintenanceAs
 	}
 
 	targetResourceId, name := groups[1], groups[2]
-	virtualMachineScaleSetId, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(targetResourceId)
+	virtualMachineScaleSetId, err := virtualmachinescalesets.ParseVirtualMachineScaleSetIDInsensitively(targetResourceId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Maintenance Assignment Virtual Machine Scale Set ID: %q: Expected valid virtual machine scale set ID", input)
 	}

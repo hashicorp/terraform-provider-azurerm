@@ -786,7 +786,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 			}
 
-			d.Set("eviction_policy", props.EvictionPolicy)
+			d.Set("eviction_policy", pointer.From(props.EvictionPolicy))
 			if profile := props.HardwareProfile; profile != nil {
 				d.Set("size", string(pointer.From(profile.VMSize)))
 			}
