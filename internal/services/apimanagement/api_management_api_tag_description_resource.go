@@ -142,10 +142,12 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 	apiTagId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagDescriptionId)
 
 	d.Set("api_tag_id", apiTagId.ID())
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("external_documentation_url", pointer.From(model.Properties.ExternalDocsUrl))
-		d.Set("external_documentation_description", pointer.From(model.Properties.ExternalDocsDescription))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("external_documentation_url", pointer.From(props.ExternalDocsUrl))
+			d.Set("external_documentation_description", pointer.From(props.ExternalDocsDescription))
+		}
 	}
 
 	return nil

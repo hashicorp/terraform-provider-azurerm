@@ -158,27 +158,29 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("api_name", id.ApiId)
 	d.Set("schema_id", id.SchemaId)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("content_type", model.Properties.ContentType)
-		if documentProperties := model.Properties.Document; documentProperties != nil {
-			if documentProperties.Value != nil {
-				d.Set("value", pointer.From(documentProperties.Value))
-			}
-
-			if documentProperties.Components != nil {
-				value, err := convert2Str(pointer.From(documentProperties.Components))
-				if err != nil {
-					return err
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("content_type", props.ContentType)
+			if documentProperties := props.Document; documentProperties != nil {
+				if documentProperties.Value != nil {
+					d.Set("value", pointer.From(documentProperties.Value))
 				}
-				d.Set("components", value)
-			}
 
-			if documentProperties.Definitions != nil {
-				value, err := convert2Str(documentProperties.Definitions)
-				if err != nil {
-					return err
+				if documentProperties.Components != nil {
+					value, err := convert2Str(pointer.From(documentProperties.Components))
+					if err != nil {
+						return err
+					}
+					d.Set("components", value)
 				}
-				d.Set("definitions", value)
+
+				if documentProperties.Definitions != nil {
+					value, err := convert2Str(documentProperties.Definitions)
+					if err != nil {
+						return err
+					}
+					d.Set("definitions", value)
+				}
 			}
 		}
 	}

@@ -129,10 +129,12 @@ func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.ReleaseId)
-	if model := resp.Model; model != nil && model.Properties != nil {
-		apiName := getApiName(id.ApiId)
-		d.Set("api_id", api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName).ID())
-		d.Set("notes", pointer.From(model.Properties.Notes))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			apiName := getApiName(id.ApiId)
+			d.Set("api_id", api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName).ID())
+			d.Set("notes", pointer.From(props.Notes))
+		}
 	}
 	return nil
 }

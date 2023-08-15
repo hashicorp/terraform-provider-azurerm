@@ -533,54 +533,55 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", name)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		apiType := string(pointer.From(model.Properties.Type))
-		if len(apiType) == 0 {
-			apiType = string(api.ApiTypeHTTP)
-		}
-		d.Set("api_type", apiType)
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("display_name", pointer.From(model.Properties.DisplayName))
-		d.Set("is_current", pointer.From(model.Properties.IsCurrent))
-		d.Set("is_online", pointer.From(model.Properties.IsOnline))
-		d.Set("path", model.Properties.Path)
-		d.Set("service_url", pointer.From(model.Properties.ServiceUrl))
-		d.Set("revision", pointer.From(model.Properties.ApiRevision))
-		if !features.FourPointOhBeta() {
-			d.Set("soap_pass_through", apiType == string(api.ApiTypeSoap))
-		}
-		d.Set("subscription_required", pointer.From(model.Properties.SubscriptionRequired))
-		d.Set("version", pointer.From(model.Properties.ApiVersion))
-		d.Set("version_set_id", pointer.From(model.Properties.ApiVersionSetId))
-		d.Set("revision_description", pointer.From(model.Properties.ApiRevisionDescription))
-		d.Set("version_description", pointer.From(model.Properties.ApiVersionDescription))
-		d.Set("terms_of_service_url", pointer.From(model.Properties.TermsOfServiceUrl))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			apiType := string(pointer.From(props.Type))
+			if len(apiType) == 0 {
+				apiType = string(api.ApiTypeHTTP)
+			}
+			d.Set("api_type", apiType)
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", pointer.From(props.DisplayName))
+			d.Set("is_current", pointer.From(props.IsCurrent))
+			d.Set("is_online", pointer.From(props.IsOnline))
+			d.Set("path", props.Path)
+			d.Set("service_url", pointer.From(props.ServiceUrl))
+			d.Set("revision", pointer.From(props.ApiRevision))
+			if !features.FourPointOhBeta() {
+				d.Set("soap_pass_through", apiType == string(api.ApiTypeSoap))
+			}
+			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
+			d.Set("version", pointer.From(props.ApiVersion))
+			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))
+			d.Set("revision_description", pointer.From(props.ApiRevisionDescription))
+			d.Set("version_description", pointer.From(props.ApiVersionDescription))
+			d.Set("terms_of_service_url", pointer.From(props.TermsOfServiceUrl))
 
-		if err := d.Set("protocols", flattenApiManagementApiProtocols(model.Properties.Protocols)); err != nil {
-			return fmt.Errorf("setting `protocols`: %s", err)
-		}
+			if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
+				return fmt.Errorf("setting `protocols`: %s", err)
+			}
 
-		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(model.Properties.SubscriptionKeyParameterNames)); err != nil {
-			return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
-		}
+			if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
+				return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
+			}
 
-		if err := d.Set("oauth2_authorization", flattenApiManagementOAuth2Authorization(model.Properties.AuthenticationSettings.OAuth2)); err != nil {
-			return fmt.Errorf("setting `oauth2_authorization`: %+v", err)
-		}
+			if err := d.Set("oauth2_authorization", flattenApiManagementOAuth2Authorization(props.AuthenticationSettings.OAuth2)); err != nil {
+				return fmt.Errorf("setting `oauth2_authorization`: %+v", err)
+			}
 
-		if err := d.Set("openid_authentication", flattenApiManagementOpenIDAuthentication(model.Properties.AuthenticationSettings.Openid)); err != nil {
-			return fmt.Errorf("setting `openid_authentication`: %+v", err)
-		}
+			if err := d.Set("openid_authentication", flattenApiManagementOpenIDAuthentication(props.AuthenticationSettings.Openid)); err != nil {
+				return fmt.Errorf("setting `openid_authentication`: %+v", err)
+			}
 
-		if err := d.Set("contact", flattenApiManagementApiContact(model.Properties.Contact)); err != nil {
-			return fmt.Errorf("setting `contact`: %+v", err)
-		}
+			if err := d.Set("contact", flattenApiManagementApiContact(props.Contact)); err != nil {
+				return fmt.Errorf("setting `contact`: %+v", err)
+			}
 
-		if err := d.Set("license", flattenApiManagementApiLicense(model.Properties.License)); err != nil {
-			return fmt.Errorf("setting `license`: %+v", err)
+			if err := d.Set("license", flattenApiManagementApiLicense(props.License)); err != nil {
+				return fmt.Errorf("setting `license`: %+v", err)
+			}
 		}
 	}
-
 	return nil
 }
 

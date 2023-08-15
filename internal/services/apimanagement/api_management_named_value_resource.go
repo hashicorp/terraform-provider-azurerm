@@ -171,17 +171,19 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("display_name", model.Properties.DisplayName)
-		d.Set("secret", pointer.From(model.Properties.Secret))
-		// API will not return `value` when `secret` is `true`, in which case we shall not set the `value`. Refer to the issue : #6688
-		if model.Properties.Secret != nil && !*model.Properties.Secret {
-			d.Set("value", pointer.From(model.Properties.Value))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("display_name", props.DisplayName)
+			d.Set("secret", pointer.From(props.Secret))
+			// API will not return `value` when `secret` is `true`, in which case we shall not set the `value`. Refer to the issue : #6688
+			if props.Secret != nil && !*props.Secret {
+				d.Set("value", pointer.From(props.Value))
+			}
+			if err := d.Set("value_from_key_vault", flattenApiManagementNamedValueKeyVault(props.KeyVault)); err != nil {
+				return fmt.Errorf("setting `value_from_key_vault`: %+v", err)
+			}
+			d.Set("tags", pointer.From(props.Tags))
 		}
-		if err := d.Set("value_from_key_vault", flattenApiManagementNamedValueKeyVault(model.Properties.KeyVault)); err != nil {
-			return fmt.Errorf("setting `value_from_key_vault`: %+v", err)
-		}
-		d.Set("tags", pointer.From(model.Properties.Tags))
 	}
 
 	return nil

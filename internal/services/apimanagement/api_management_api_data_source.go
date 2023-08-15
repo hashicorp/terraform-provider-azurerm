@@ -147,24 +147,26 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("name", name)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("display_name", pointer.From(model.Properties.DisplayName))
-		d.Set("is_current", pointer.From(model.Properties.IsCurrent))
-		d.Set("is_online", pointer.From(model.Properties.IsOnline))
-		d.Set("path", model.Properties.Path)
-		d.Set("revision", pointer.From(model.Properties.ApiRevision))
-		d.Set("service_url", pointer.From(model.Properties.ServiceUrl))
-		d.Set("soap_pass_through", pointer.From(model.Properties.Type) == api.ApiTypeSoap)
-		d.Set("subscription_required", pointer.From(model.Properties.SubscriptionRequired))
-		d.Set("version", pointer.From(model.Properties.ApiVersion))
-		d.Set("version_set_id", pointer.From(model.Properties.ApiVersionSetId))
-		if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(model.Properties.Protocols)); err != nil {
-			return fmt.Errorf("setting `protocols`: %s", err)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", pointer.From(props.DisplayName))
+			d.Set("is_current", pointer.From(props.IsCurrent))
+			d.Set("is_online", pointer.From(props.IsOnline))
+			d.Set("path", props.Path)
+			d.Set("revision", pointer.From(props.ApiRevision))
+			d.Set("service_url", pointer.From(props.ServiceUrl))
+			d.Set("soap_pass_through", pointer.From(props.Type) == api.ApiTypeSoap)
+			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
+			d.Set("version", pointer.From(props.ApiVersion))
+			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))
+			if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(props.Protocols)); err != nil {
+				return fmt.Errorf("setting `protocols`: %s", err)
+			}
 
-		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiDataSourceSubscriptionKeyParamNames(model.Properties.SubscriptionKeyParameterNames)); err != nil {
-			return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
+			if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiDataSourceSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
+				return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
+			}
 		}
 	}
 	return nil

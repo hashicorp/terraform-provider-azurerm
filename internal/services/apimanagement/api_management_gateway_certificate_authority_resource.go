@@ -128,8 +128,8 @@ func resourceApiManagementGatewayCertificateAuthorityRead(d *pluginsdk.ResourceD
 
 	if model := resp.Model; model != nil {
 		d.Set("certificate_name", pointer.From(model.Name))
-		if model.Properties != nil {
-			d.Set("is_trusted", pointer.From(model.Properties.IsTrusted))
+		if props := model.Properties; props != nil {
+			d.Set("is_trusted", pointer.From(props.IsTrusted))
 		}
 	}
 

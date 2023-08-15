@@ -124,8 +124,10 @@ func resourceApiManagementIdentityProviderGoogleRead(d *pluginsdk.ResourceData, 
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("client_id", model.Properties.ClientId)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("client_id", props.ClientId)
+		}
 	}
 
 	return nil

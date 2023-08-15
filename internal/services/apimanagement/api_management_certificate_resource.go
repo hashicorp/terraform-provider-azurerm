@@ -181,12 +181,12 @@ func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		d.Set("name", pointer.From(model.Name))
-		if model.Properties != nil {
-			d.Set("expiration", model.Properties.ExpirationDate)
-			d.Set("subject", model.Properties.Subject)
-			d.Set("thumbprint", model.Properties.Thumbprint)
+		if props := model.Properties; props != nil {
+			d.Set("expiration", props.ExpirationDate)
+			d.Set("subject", props.Subject)
+			d.Set("thumbprint", props.Thumbprint)
 
-			if keyvault := model.Properties.KeyVault; keyvault != nil {
+			if keyvault := props.KeyVault; keyvault != nil {
 				d.Set("key_vault_secret_id", pointer.From(keyvault.SecretIdentifier))
 				d.Set("key_vault_identity_client_id", pointer.From(keyvault.IdentityClientId))
 			}

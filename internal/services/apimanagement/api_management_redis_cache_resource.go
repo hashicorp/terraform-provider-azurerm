@@ -168,16 +168,18 @@ func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interfa
 	}
 	d.Set("name", id.CacheId)
 	d.Set("api_management_id", apimanagementservice.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName).ID())
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("description", pointer.From(model.Properties.Description))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
 
-		cacheId := ""
-		if model.Properties.ResourceId != nil {
-			// correct the resourceID issue: "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
-			cacheId = strings.TrimPrefix(*model.Properties.ResourceId, *resourceManagerEndpoint)
+			cacheId := ""
+			if props.ResourceId != nil {
+				// correct the resourceID issue: "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
+				cacheId = strings.TrimPrefix(*props.ResourceId, *resourceManagerEndpoint)
+			}
+			d.Set("redis_cache_id", cacheId)
+			d.Set("cache_location", props.UseFromLocation)
 		}
-		d.Set("redis_cache_id", cacheId)
-		d.Set("cache_location", model.Properties.UseFromLocation)
 	}
 	return nil
 }

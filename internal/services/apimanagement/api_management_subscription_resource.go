@@ -238,29 +238,31 @@ func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("display_name", pointer.From(model.Properties.DisplayName))
-		d.Set("state", string(model.Properties.State))
-		productId := ""
-		apiId := ""
-		// check if the subscription is for all apis or a specific product/ api
-		if model.Properties.Scope != "" && !strings.HasSuffix(model.Properties.Scope, "/apis") {
-			// the scope is either a product or api id
-			parseId, err := product.ParseProductIDInsensitively(model.Properties.Scope)
-			if err == nil {
-				productId = parseId.ID()
-			} else {
-				parsedApiId, err := api.ParseApiIDInsensitively(model.Properties.Scope)
-				if err != nil {
-					return fmt.Errorf("parsing scope into product/ api id %q: %+v", model.Properties.Scope, err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("display_name", pointer.From(props.DisplayName))
+			d.Set("state", string(props.State))
+			productId := ""
+			apiId := ""
+			// check if the subscription is for all apis or a specific product/ api
+			if props.Scope != "" && !strings.HasSuffix(props.Scope, "/apis") {
+				// the scope is either a product or api id
+				parseId, err := product.ParseProductIDInsensitively(props.Scope)
+				if err == nil {
+					productId = parseId.ID()
+				} else {
+					parsedApiId, err := api.ParseApiIDInsensitively(props.Scope)
+					if err != nil {
+						return fmt.Errorf("parsing scope into product/ api id %q: %+v", props.Scope, err)
+					}
+					apiId = parsedApiId.ID()
 				}
-				apiId = parsedApiId.ID()
 			}
+			d.Set("product_id", productId)
+			d.Set("api_id", apiId)
+			d.Set("user_id", pointer.From(props.OwnerId))
+			d.Set("allow_tracing", pointer.From(props.AllowTracing))
 		}
-		d.Set("product_id", productId)
-		d.Set("api_id", apiId)
-		d.Set("user_id", pointer.From(model.Properties.OwnerId))
-		d.Set("allow_tracing", pointer.From(model.Properties.AllowTracing))
 	}
 
 	// Primary and secondary keys must be got from this additional api

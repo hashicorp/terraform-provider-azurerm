@@ -156,11 +156,13 @@ func resourceApiManagementEmailTemplateRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("template_name", templateName)
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("title", pointer.From(model.Properties.Title))
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("subject", model.Properties.Subject)
-		d.Set("body", model.Properties.Body)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("title", pointer.From(props.Title))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("subject", props.Subject)
+			d.Set("body", props.Body)
+		}
 	}
 
 	return nil

@@ -205,38 +205,39 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("display_name", model.Properties.DisplayName)
-		d.Set("method", model.Properties.Method)
-		d.Set("url_template", model.Properties.UrlTemplate)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("method", props.Method)
+			d.Set("url_template", props.UrlTemplate)
 
-		flattenedRequest, err := flattenApiManagementOperationRequestContract(model.Properties.Request)
-		if err != nil {
-			return err
-		}
-		if err := d.Set("request", flattenedRequest); err != nil {
-			return fmt.Errorf("flattening `request`: %+v", err)
-		}
+			flattenedRequest, err := flattenApiManagementOperationRequestContract(props.Request)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("request", flattenedRequest); err != nil {
+				return fmt.Errorf("flattening `request`: %+v", err)
+			}
 
-		flattenedResponse, err := flattenApiManagementOperationResponseContract(model.Properties.Responses)
-		if err != nil {
-			return err
-		}
-		if err := d.Set("response", flattenedResponse); err != nil {
-			return fmt.Errorf("flattening `response`: %+v", err)
-		}
+			flattenedResponse, err := flattenApiManagementOperationResponseContract(props.Responses)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("response", flattenedResponse); err != nil {
+				return fmt.Errorf("flattening `response`: %+v", err)
+			}
 
-		flattenedTemplateParams, err := schemaz.FlattenApiManagementOperationParameterContract(model.Properties.TemplateParameters)
-		if err != nil {
-			return err
-		}
+			flattenedTemplateParams, err := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+			if err != nil {
+				return err
+			}
 
-		if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
-			return fmt.Errorf("flattening `template_parameter`: %+v", err)
+			if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
+				return fmt.Errorf("flattening `template_parameter`: %+v", err)
+			}
 		}
 	}
-
 	return nil
 }
 

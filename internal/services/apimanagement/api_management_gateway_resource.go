@@ -151,10 +151,11 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("name", id.GatewayId)
 	d.Set("api_management_id", apimId.ID())
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("location_data", flattenApiManagementGatewayLocationData(model.Properties.LocationData))
-
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("location_data", flattenApiManagementGatewayLocationData(props.LocationData))
+		}
 	}
 
 	return nil

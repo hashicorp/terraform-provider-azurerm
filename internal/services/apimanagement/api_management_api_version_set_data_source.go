@@ -91,12 +91,14 @@ func dataSourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta in
 
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("display_name", model.Properties.DisplayName)
-		d.Set("versioning_scheme", string(model.Properties.VersioningScheme))
-		d.Set("version_header_name", pointer.From(model.Properties.VersionHeaderName))
-		d.Set("version_query_name", pointer.From(model.Properties.VersionQueryName))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("versioning_scheme", string(props.VersioningScheme))
+			d.Set("version_header_name", pointer.From(props.VersionHeaderName))
+			d.Set("version_query_name", pointer.From(props.VersionQueryName))
+		}
 	}
 
 	return nil

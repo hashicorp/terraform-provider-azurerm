@@ -300,37 +300,37 @@ func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, met
 
 	if model := resp.Model; model != nil {
 		d.Set("name", pointer.From(model.Name))
-		if model.Properties != nil {
-			d.Set("authorization_endpoint", model.Properties.AuthorizationEndpoint)
-			d.Set("client_id", model.Properties.ClientId)
-			d.Set("client_registration_endpoint", model.Properties.ClientRegistrationEndpoint)
-			d.Set("default_scope", pointer.From(model.Properties.DefaultScope))
-			d.Set("description", pointer.From(model.Properties.Description))
-			d.Set("display_name", model.Properties.DisplayName)
-			d.Set("support_state", pointer.From(model.Properties.SupportState))
-			d.Set("token_endpoint", pointer.From(model.Properties.TokenEndpoint))
+		if props := model.Properties; props != nil {
+			d.Set("authorization_endpoint", props.AuthorizationEndpoint)
+			d.Set("client_id", props.ClientId)
+			d.Set("client_registration_endpoint", props.ClientRegistrationEndpoint)
+			d.Set("default_scope", pointer.From(props.DefaultScope))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("support_state", pointer.From(props.SupportState))
+			d.Set("token_endpoint", pointer.From(props.TokenEndpoint))
 
 			// TODO: Read properties from api, https://github.com/Azure/azure-rest-api-specs/issues/14128
 			d.Set("resource_owner_password", d.Get("resource_owner_password").(string))
 			d.Set("resource_owner_username", d.Get("resource_owner_username").(string))
 
-			if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(model.Properties.AuthorizationMethods)); err != nil {
+			if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(props.AuthorizationMethods)); err != nil {
 				return fmt.Errorf("flattening `authorization_methods`: %+v", err)
 			}
 
-			if err := d.Set("bearer_token_sending_methods", flattenApiManagementAuthorizationServerBearerTokenSendingMethods(model.Properties.BearerTokenSendingMethods)); err != nil {
+			if err := d.Set("bearer_token_sending_methods", flattenApiManagementAuthorizationServerBearerTokenSendingMethods(props.BearerTokenSendingMethods)); err != nil {
 				return fmt.Errorf("flattening `bearer_token_sending_methods`: %+v", err)
 			}
 
-			if err := d.Set("client_authentication_method", flattenApiManagementAuthorizationServerClientAuthenticationMethods(model.Properties.ClientAuthenticationMethod)); err != nil {
+			if err := d.Set("client_authentication_method", flattenApiManagementAuthorizationServerClientAuthenticationMethods(props.ClientAuthenticationMethod)); err != nil {
 				return fmt.Errorf("flattening `client_authentication_method`: %+v", err)
 			}
 
-			if err := d.Set("grant_types", flattenApiManagementAuthorizationServerGrantTypes(model.Properties.GrantTypes)); err != nil {
+			if err := d.Set("grant_types", flattenApiManagementAuthorizationServerGrantTypes(props.GrantTypes)); err != nil {
 				return fmt.Errorf("flattening `grant_types`: %+v", err)
 			}
 
-			if err := d.Set("token_body_parameter", flattenApiManagementAuthorizationServerTokenBodyParameters(model.Properties.TokenBodyParameters)); err != nil {
+			if err := d.Set("token_body_parameter", flattenApiManagementAuthorizationServerTokenBodyParameters(props.TokenBodyParameters)); err != nil {
 				return fmt.Errorf("flattening `token_body_parameter`: %+v", err)
 			}
 		}

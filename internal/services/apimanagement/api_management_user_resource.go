@@ -184,12 +184,14 @@ func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("first_name", pointer.From(model.Properties.FirstName))
-		d.Set("last_name", pointer.From(model.Properties.LastName))
-		d.Set("email", pointer.From(model.Properties.Email))
-		d.Set("note", pointer.From(model.Properties.Note))
-		d.Set("state", string(pointer.From(model.Properties.State)))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("first_name", pointer.From(props.FirstName))
+			d.Set("last_name", pointer.From(props.LastName))
+			d.Set("email", pointer.From(props.Email))
+			d.Set("note", pointer.From(props.Note))
+			d.Set("state", string(pointer.From(props.State)))
+		}
 	}
 
 	return nil

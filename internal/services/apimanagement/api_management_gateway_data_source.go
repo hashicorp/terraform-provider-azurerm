@@ -100,9 +100,9 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 
 	if model := resp.Model; model != nil {
 		d.Set("name", pointer.From(model.Name))
-		if model.Properties != nil {
-			d.Set("description", pointer.From(model.Properties.Description))
-			d.Set("location_data", flattenApiManagementGatewayLocationData(model.Properties.LocationData))
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("location_data", flattenApiManagementGatewayLocationData(props.LocationData))
 		}
 	}
 

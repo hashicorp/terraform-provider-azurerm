@@ -191,11 +191,11 @@ func resourceApiManagementLoggerRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("name", pointer.From(model.Name))
-		if model.Properties != nil {
-			d.Set("resource_id", pointer.From(model.Properties.ResourceId))
-			d.Set("buffered", pointer.From(model.Properties.IsBuffered))
-			d.Set("description", pointer.From(model.Properties.Description))
-			if err := d.Set("eventhub", flattenApiManagementLoggerEventHub(d, model.Properties)); err != nil {
+		if props := model.Properties; props != nil {
+			d.Set("resource_id", pointer.From(props.ResourceId))
+			d.Set("buffered", pointer.From(props.IsBuffered))
+			d.Set("description", pointer.From(props.Description))
+			if err := d.Set("eventhub", flattenApiManagementLoggerEventHub(d, props)); err != nil {
 				return fmt.Errorf("setting `eventhub`: %s", err)
 			}
 		}

@@ -100,13 +100,14 @@ func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.Resour
 		if err != nil {
 			return fmt.Errorf("parsing GatewayHostnameConfiguration ID %q", *model.Id)
 		}
-
-		d.Set("host_name", model.Properties.Hostname)
-		d.Set("certificate_id", model.Properties.CertificateId)
-		d.Set("request_client_certificate_enabled", model.Properties.NegotiateClientCertificate)
-		d.Set("tls10_enabled", model.Properties.Tls10Enabled)
-		d.Set("tls11_enabled", model.Properties.Tls11Enabled)
-		d.Set("http2_enabled", model.Properties.HTTP2Enabled)
+		if props := model.Properties; props != nil {
+			d.Set("host_name", props.Hostname)
+			d.Set("certificate_id", props.CertificateId)
+			d.Set("request_client_certificate_enabled", props.NegotiateClientCertificate)
+			d.Set("tls10_enabled", props.Tls10Enabled)
+			d.Set("tls11_enabled", props.Tls11Enabled)
+			d.Set("http2_enabled", props.HTTP2Enabled)
+		}
 	}
 
 	d.SetId(id.ID())

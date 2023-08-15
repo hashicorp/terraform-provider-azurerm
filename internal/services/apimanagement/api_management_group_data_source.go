@@ -80,11 +80,13 @@ func dataSourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("display_name", model.Properties.DisplayName)
-		d.Set("description", pointer.From(model.Properties.Description))
-		d.Set("external_id", pointer.From(model.Properties.ExternalId))
-		d.Set("type", string(pointer.From(model.Properties.Type)))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("display_name", props.DisplayName)
+			d.Set("description", pointer.From(props.Description))
+			d.Set("external_id", pointer.From(props.ExternalId))
+			d.Set("type", string(pointer.From(props.Type)))
+		}
 	}
 
 	return nil

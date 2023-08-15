@@ -349,24 +349,24 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		d.Set("name", pointer.From(model.Name))
-		if model.Properties != nil {
-			d.Set("description", pointer.From(model.Properties.Description))
-			d.Set("protocol", string(model.Properties.Protocol))
-			d.Set("resource_id", pointer.From(model.Properties.ResourceId))
-			d.Set("title", pointer.From(model.Properties.Title))
-			d.Set("url", model.Properties.Url)
-			if err := d.Set("credentials", flattenApiManagementBackendCredentials(model.Properties.Credentials)); err != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("protocol", string(props.Protocol))
+			d.Set("resource_id", pointer.From(props.ResourceId))
+			d.Set("title", pointer.From(props.Title))
+			d.Set("url", props.Url)
+			if err := d.Set("credentials", flattenApiManagementBackendCredentials(props.Credentials)); err != nil {
 				return fmt.Errorf("setting `credentials`: %s", err)
 			}
-			if err := d.Set("proxy", flattenApiManagementBackendProxy(model.Properties.Proxy)); err != nil {
+			if err := d.Set("proxy", flattenApiManagementBackendProxy(props.Proxy)); err != nil {
 				return fmt.Errorf("setting `proxy`: %s", err)
 			}
-			if properties := model.Properties.Properties; properties != nil {
+			if properties := props.Properties; properties != nil {
 				if err := d.Set("service_fabric_cluster", flattenApiManagementBackendServiceFabricCluster(properties.ServiceFabricCluster)); err != nil {
 					return fmt.Errorf("setting `service_fabric_cluster`: %s", err)
 				}
 			}
-			if err := d.Set("tls", flattenApiManagementBackendTls(model.Properties.Tls)); err != nil {
+			if err := d.Set("tls", flattenApiManagementBackendTls(props.Tls)); err != nil {
 				return fmt.Errorf("setting `tls`: %s", err)
 			}
 		}

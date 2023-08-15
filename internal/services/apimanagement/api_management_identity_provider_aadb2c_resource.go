@@ -183,21 +183,23 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceDat
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		d.Set("client_id", model.Properties.ClientId)
-		d.Set("signin_tenant", model.Properties.SigninTenant)
-		d.Set("authority", model.Properties.Authority)
-		d.Set("signup_policy", model.Properties.SignupPolicyName)
-		d.Set("signin_policy", model.Properties.SigninPolicyName)
-		d.Set("profile_editing_policy", model.Properties.ProfileEditingPolicyName)
-		d.Set("password_reset_policy", model.Properties.PasswordResetPolicyName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("client_id", props.ClientId)
+			d.Set("signin_tenant", props.SigninTenant)
+			d.Set("authority", props.Authority)
+			d.Set("signup_policy", props.SignupPolicyName)
+			d.Set("signin_policy", props.SigninPolicyName)
+			d.Set("profile_editing_policy", props.ProfileEditingPolicyName)
+			d.Set("password_reset_policy", props.PasswordResetPolicyName)
 
-		allowedTenant := ""
-		if allowedTenants := model.Properties.AllowedTenants; allowedTenants != nil && len(*allowedTenants) > 0 {
-			t := *allowedTenants
-			allowedTenant = t[0]
+			allowedTenant := ""
+			if allowedTenants := props.AllowedTenants; allowedTenants != nil && len(*allowedTenants) > 0 {
+				t := *allowedTenants
+				allowedTenant = t[0]
+			}
+			d.Set("allowed_tenant", allowedTenant)
 		}
-		d.Set("allowed_tenant", allowedTenant)
 	}
 
 	return nil

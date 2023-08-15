@@ -148,10 +148,12 @@ func resourceApiManagementProductPolicyRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("product_id", id.ProductId)
 
-	if model := resp.Model; model != nil && model.Properties != nil {
-		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
-		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", html.UnescapeString(model.Properties.Value))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
+			// as such there is no way to set `xml_link` and we'll let Terraform handle it
+			d.Set("xml_content", html.UnescapeString(props.Value))
+		}
 	}
 
 	return nil

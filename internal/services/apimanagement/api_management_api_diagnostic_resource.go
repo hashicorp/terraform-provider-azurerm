@@ -287,23 +287,23 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("api_management_name", diagnosticId.ServiceName)
 	if model := resp.Model; model != nil {
 		d.Set("identifier", pointer.From(model.Name))
-		if model.Properties != nil {
-			d.Set("api_management_logger_id", model.Properties.LoggerId)
-			if model.Properties.Sampling != nil && model.Properties.Sampling.Percentage != nil {
-				d.Set("sampling_percentage", pointer.From(model.Properties.Sampling.Percentage))
+		if props := model.Properties; props != nil {
+			d.Set("api_management_logger_id", props.LoggerId)
+			if props.Sampling != nil && props.Sampling.Percentage != nil {
+				d.Set("sampling_percentage", pointer.From(props.Sampling.Percentage))
 			}
-			d.Set("always_log_errors", pointer.From(model.Properties.AlwaysLog) == apidiagnostic.AlwaysLogAllErrors)
-			d.Set("verbosity", pointer.From(model.Properties.Verbosity))
-			d.Set("log_client_ip", pointer.From(model.Properties.LogClientIP))
-			d.Set("http_correlation_protocol", pointer.From(model.Properties.HTTPCorrelationProtocol))
-			if frontend := model.Properties.Frontend; frontend != nil {
+			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == apidiagnostic.AlwaysLogAllErrors)
+			d.Set("verbosity", pointer.From(props.Verbosity))
+			d.Set("log_client_ip", pointer.From(props.LogClientIP))
+			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
+			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))
 				d.Set("frontend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Response))
 			} else {
 				d.Set("frontend_request", nil)
 				d.Set("frontend_response", nil)
 			}
-			if backend := model.Properties.Backend; backend != nil {
+			if backend := props.Backend; backend != nil {
 				d.Set("backend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Request))
 				d.Set("backend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Response))
 			} else {
@@ -312,8 +312,8 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			format := string(apidiagnostic.OperationNameFormatName)
-			if model.Properties.OperationNameFormat != nil {
-				format = string(pointer.From(model.Properties.OperationNameFormat))
+			if props.OperationNameFormat != nil {
+				format = string(pointer.From(props.OperationNameFormat))
 			}
 			d.Set("operation_name_format", format)
 		}

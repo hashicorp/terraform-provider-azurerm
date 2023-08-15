@@ -140,7 +140,9 @@ func resourceApiManagementApiOperationTagRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", id.TagId)
 
 	if model := resp.Model; model != nil {
-		d.Set("display_name", model.Properties.DisplayName)
+		if props := model.Properties; props != nil {
+			d.Set("display_name", props.DisplayName)
+		}
 	}
 
 	return nil
