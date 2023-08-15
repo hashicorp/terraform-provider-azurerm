@@ -26,7 +26,7 @@ func TestAccFileSystem_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_details"),
+		data.ImportStep("admin_password", "user_email_address"),
 	})
 }
 
@@ -56,7 +56,7 @@ func TestAccFileSystem_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_details"),
+		data.ImportStep("admin_password", "user_email_address"),
 	})
 }
 
@@ -71,21 +71,21 @@ func TestAccFileSystem_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_details"),
+		data.ImportStep("admin_password", "user_email_address"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_details"),
+		data.ImportStep("admin_password", "user_email_address"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_details"),
+		data.ImportStep("admin_password", "user_email_address"),
 	})
 }
 
@@ -115,9 +115,7 @@ resource "azurerm_qumulo_file_system" "test" {
   delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
   storage_sku         = "Standard"
-  user_details {
-    email = "t@test.com"
-  }
+  user_email_address  = "test@test.com"
 }
 `, r.template(data), data.RandomString)
 }
@@ -134,9 +132,7 @@ resource "azurerm_qumulo_file_system" "test" {
   delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
   storage_sku         = "Standard"
-  user_details {
-    email = "t@test.com"
-  }
+  user_email_address  = "test@test.com"
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
@@ -157,9 +153,7 @@ resource "azurerm_qumulo_file_system" "import" {
   delegated_subnet_id = azurerm_qumulo_file_system.test.delegated_subnet_id
   initial_capacity    = azurerm_qumulo_file_system.test.initial_capacity
   storage_sku         = azurerm_qumulo_file_system.test.storage_sku
-  user_details {
-    email = azurerm_qumulo_file_system.test.user_details.0.email
-  }
+  user_email_address  = azurerm_qumulo_file_system.test.user_email_address
 }
 `, r.basic(data))
 }
@@ -177,9 +171,7 @@ resource "azurerm_qumulo_file_system" "test" {
   delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
   storage_sku         = "Performance"
-  user_details {
-    email = "test@test.com"
-  }
+  user_email_address  = "test@test.com"
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"

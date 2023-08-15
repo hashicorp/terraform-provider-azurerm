@@ -35,11 +35,13 @@ func (r FileSystemResource) ModelObject() interface{} {
 
 type FileSystemResourceSchema struct {
 	AvailabilityZone  string                 `tfschema:"availability_zone"`
+	AdminPassword     string                 `tfschema:"admin_password"`
 	DelegatedSubnetId string                 `tfschema:"delegated_subnet_id"`
 	InitialCapacity   int64                  `tfschema:"initial_capacity"`
 	Location          string                 `tfschema:"location"`
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
+	UserEmailAddress  string                 `tfschema:"user_email_address"`
 	StorageSku        string                 `tfschema:"storage_sku"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
@@ -91,21 +93,11 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(filesystems.PossibleValuesForStorageSku(), false),
 		},
 
-		"user_details": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"email": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
+		"user_email_address": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"availability_zone": commonschema.ZoneSingleOptionalForceNew(),
@@ -149,12 +141,14 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Tags:     tags.Expand(config.Tags),
 				Properties: filesystems.FileSystemResourceProperties{
-					AdminPassword:     metadata.ResourceData.Get("admin_password").(string),
+					AdminPassword:     config.AdminPassword,
 					AvailabilityZone:  pointer.To(config.AvailabilityZone),
 					DelegatedSubnetId: config.DelegatedSubnetId,
 					InitialCapacity:   config.InitialCapacity,
 					StorageSku:        filesystems.StorageSku(config.StorageSku),
-					UserDetails:       expandFileSystemUserDetails(metadata.ResourceData.Get("user_details").([]interface{})),
+					UserDetails: filesystems.UserDetails{
+						Email: config.UserEmailAddress,
+					},
 					MarketplaceDetails: filesystems.MarketplaceDetails{
 						OfferId:     offerId,
 						PlanId:      planId,
@@ -185,6 +179,13 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			var config FileSystemResourceSchema
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			schema.AdminPassword = config.AdminPassword
+			schema.UserEmailAddress = config.UserEmailAddress
+
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -192,21 +193,21 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if resp.Model != nil {
+			if model := resp.Model; model != nil {
 				schema.Name = id.FileSystemName
 				schema.ResourceGroupName = id.ResourceGroupName
-				schema.AvailabilityZone = pointer.From(resp.Model.Properties.AvailabilityZone)
-				schema.InitialCapacity = resp.Model.Properties.InitialCapacity
-				schema.StorageSku = string(resp.Model.Properties.StorageSku)
-				schema.Location = location.Normalize(resp.Model.Location)
-				schema.Tags = tags.Flatten(resp.Model.Tags)
-			}
+				schema.AvailabilityZone = pointer.From(model.Properties.AvailabilityZone)
+				schema.InitialCapacity = model.Properties.InitialCapacity
+				schema.StorageSku = string(model.Properties.StorageSku)
+				schema.Location = location.Normalize(model.Location)
+				schema.Tags = tags.Flatten(model.Tags)
 
-			subnetId, err := commonids.ParseSubnetIDInsensitively(resp.Model.Properties.DelegatedSubnetId)
-			if err != nil {
-				return err
+				subnetId, err := commonids.ParseSubnetID(model.Properties.DelegatedSubnetId)
+				if err != nil {
+					return err
+				}
+				schema.DelegatedSubnetId = subnetId.ID()
 			}
-			schema.DelegatedSubnetId = subnetId.ID()
 
 			return metadata.Encode(&schema)
 		},
@@ -262,14 +263,4 @@ func (r FileSystemResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandFileSystemUserDetails(input []interface{}) filesystems.UserDetails {
-	output := filesystems.UserDetails{}
-	if len(input) == 0 {
-		return output
-	}
-	userDetails := input[0].(map[string]interface{})
-	output.Email = userDetails["email"].(string)
-	return output
 }

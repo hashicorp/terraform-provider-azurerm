@@ -58,7 +58,7 @@ resource "azurerm_qumulo_file_system" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of this File System. Changing this forces a new File System to be created.
+* `name` - (Required) Specifies the name of this Qumulo File System resource. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this File System should exist. Changing this forces a new File System to be created.
 
