@@ -218,29 +218,26 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 }
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
-	if len(inputList) == 0 {
-		return nil
-	}
 	var extensionStatuses = map[string]bool{}
 	var extensionProperties = map[string]*interface{}{}
-
 	var outputList []pricings_v2023_01_01.Extension
-	for _, v := range inputList {
-		input := v.(map[string]interface{})
-		extensionStatuses[input["name"].(string)] = true
-
-		if vAdditional, ok := input["additional_extension_properties"]; ok {
-			extensionProperties[input["name"].(string)] = &vAdditional
-		}
-	}
 
 	if extensionsStatusFromBackend != nil {
 		for _, backendExtension := range *extensionsStatusFromBackend {
-			_, ok := extensionStatuses[backendExtension.Name]
-			// set any extension that does not appear in the template to be false
-			if !ok {
-				extensionStatuses[backendExtension.Name] = false
-			}
+			// set the default value to false, then turn on the extension that appear in the template
+			extensionStatuses[backendExtension.Name] = false
+		}
+	}
+
+	// set any extension in the template to be true
+	for _, v := range inputList {
+		input := v.(map[string]interface{})
+		if input["name"] == "" {
+			continue
+		}
+		extensionStatuses[input["name"].(string)] = true
+		if vAdditional, ok := input["additional_extension_properties"]; ok {
+			extensionProperties[input["name"].(string)] = &vAdditional
 		}
 	}
 
