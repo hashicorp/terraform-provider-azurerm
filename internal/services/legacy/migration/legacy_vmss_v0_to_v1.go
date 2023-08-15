@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -700,16 +701,21 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		//  essentially a noop there's no reason this shouldn't be the same I guess
 
 		client := meta.(*clients.Client).Compute.VMScaleSetClient
+		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 		resGroup := rawState["resource_group_name"].(string)
 		name := rawState["name"].(string)
 
-		read, err := client.Get(ctx, resGroup, name, "")
+		id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, resGroup, name)
+
+		read, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
 		if err != nil {
 			return rawState, err
 		}
 
-		rawState["id"] = *read.ID
+		if read.Model != nil {
+			rawState["id"] = *read.Model.Id
+		}
 		return rawState, nil
 	}
 }
