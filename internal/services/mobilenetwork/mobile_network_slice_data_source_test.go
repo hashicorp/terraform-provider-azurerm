@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -12,9 +15,6 @@ type MobileNetworkSliceDataSource struct{}
 
 func TestAccMobileNetworkSliceDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
 
 	d := MobileNetworkSliceDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{

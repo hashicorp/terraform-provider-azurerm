@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -6,6 +9,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -136,7 +141,7 @@ func (NetworkWatcherFlowLogV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		if len(parts) != 2 {
 			return rawState, fmt.Errorf("Error: Network Watcher Flow Log ID could not be split on `/networkSecurityGroupId`: %s", oldId)
 		}
-		watcherId, err := parse.NetworkWatcherID(parts[0])
+		watcherId, err := networkwatchers.ParseNetworkWatcherIDInsensitively(parts[0])
 		if err != nil {
 			return rawState, err
 		}
@@ -152,12 +157,12 @@ func (NetworkWatcherFlowLogV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			if err != nil {
 				return rawState, err
 			}
-			name = fmt.Sprintf("Microsoft.Network%s%s", watcherId.ResourceGroup, nsgId.Name)
+			name = fmt.Sprintf("Microsoft.Network%s%s", watcherId.ResourceGroupName, nsgId.Name)
 			if len(name) > 80 {
 				name = name[:80]
 			}
 		}
-		id := parse.NewFlowLogID(watcherId.SubscriptionId, watcherId.ResourceGroup, watcherId.Name, name)
+		id := flowlogs.NewFlowLogID(watcherId.SubscriptionId, watcherId.ResourceGroupName, watcherId.NetworkWatcherName, name)
 		newId := id.ID()
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 		rawState["id"] = newId

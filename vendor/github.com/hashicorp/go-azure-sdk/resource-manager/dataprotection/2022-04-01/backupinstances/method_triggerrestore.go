@@ -23,7 +23,7 @@ type TriggerRestoreOperationResponse struct {
 // TriggerRestore ...
 func (c BackupInstancesClient) TriggerRestore(ctx context.Context, id BackupInstanceId, input AzureBackupRestoreRequest) (result TriggerRestoreOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

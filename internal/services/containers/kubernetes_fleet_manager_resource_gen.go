@@ -90,6 +90,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id := fleets.NewFleetID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)

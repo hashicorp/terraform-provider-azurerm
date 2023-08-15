@@ -1,9 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package shim
 
 import (
 	"context"
 
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
 )
 
 type StorageContainerWrapper interface {

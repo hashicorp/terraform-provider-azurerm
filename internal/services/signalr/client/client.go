@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -20,7 +23,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(signalRClient.Client, o.Authorizers.ResourceManager)
 
 	webPubSubClient := webpubsub_v2023_02_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
 	})
 
 	return &Client{

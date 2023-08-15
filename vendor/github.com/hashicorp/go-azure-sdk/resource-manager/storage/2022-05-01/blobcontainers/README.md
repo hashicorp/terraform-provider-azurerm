@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 payload := blobcontainers.LegalHold{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 payload := blobcontainers.BlobContainer{
 	// ...
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 payload := blobcontainers.ImmutabilityPolicy{
 	// ...
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 read, err := client.DeleteImmutabilityPolicy(ctx, id, blobcontainers.DefaultDeleteImmutabilityPolicyOperationOptions())
 if err != nil {
@@ -119,7 +119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 payload := blobcontainers.ImmutabilityPolicy{
 	// ...
@@ -140,7 +140,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -156,7 +156,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 read, err := client.GetImmutabilityPolicy(ctx, id, blobcontainers.DefaultGetImmutabilityPolicyOperationOptions())
 if err != nil {
@@ -172,7 +172,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 payload := blobcontainers.LeaseContainerRequest{
 	// ...
@@ -210,7 +210,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 read, err := client.LockImmutabilityPolicy(ctx, id, blobcontainers.DefaultLockImmutabilityPolicyOperationOptions())
 if err != nil {
@@ -226,7 +226,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 if err := client.ObjectLevelWormThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -238,7 +238,7 @@ if err := client.ObjectLevelWormThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 payload := blobcontainers.LegalHold{
 	// ...
@@ -259,7 +259,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := blobcontainers.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := blobcontainers.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
 
 payload := blobcontainers.BlobContainer{
 	// ...

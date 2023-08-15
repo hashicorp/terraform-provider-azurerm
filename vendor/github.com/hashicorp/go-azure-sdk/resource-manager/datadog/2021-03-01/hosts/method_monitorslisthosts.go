@@ -25,7 +25,7 @@ type MonitorsListHostsCompleteResult struct {
 // MonitorsListHosts ...
 func (c HostsClient) MonitorsListHosts(ctx context.Context, id MonitorId) (result MonitorsListHostsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

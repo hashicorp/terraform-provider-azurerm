@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps
 
 import (
@@ -66,7 +69,7 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 
 		"log_analytics_workspace_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
@@ -153,47 +156,48 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
-			if err != nil {
-				return err
-			}
-
-			workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
-			if err != nil {
-				return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
-			}
-
-			if workspace.Model == nil || workspace.Model.Properties == nil {
-				return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
-			}
-
-			if workspace.Model.Properties.CustomerId == nil {
-				return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
-			}
-
-			keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
-			if err != nil {
-				return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
-			}
-
-			if keys.Model.PrimarySharedKey == nil {
-				return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
-			}
-
 			managedEnvironment := managedenvironments.ManagedEnvironment{
 				Location: containerAppEnvironment.Location,
 				Name:     pointer.To(containerAppEnvironment.Name),
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
-					AppLogsConfiguration: &managedenvironments.AppLogsConfiguration{
-						Destination: pointer.To("log-analytics"),
-						LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
-							CustomerId: workspace.Model.Properties.CustomerId,
-							SharedKey:  keys.Model.PrimarySharedKey,
-						},
-					},
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
+			}
+
+			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
+				logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
+				if err != nil {
+					return err
+				}
+
+				workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
+				}
+
+				if workspace.Model == nil || workspace.Model.Properties == nil {
+					return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
+				}
+
+				if workspace.Model.Properties.CustomerId == nil {
+					return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
+				}
+
+				keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
+				}
+				if keys.Model.PrimarySharedKey == nil {
+					return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
+				}
+				managedEnvironment.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					Destination: pointer.To("log-analytics"),
+					LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
+						CustomerId: workspace.Model.Properties.CustomerId,
+						SharedKey:  keys.Model.PrimarySharedKey,
+					},
+				}
 			}
 
 			if containerAppEnvironment.InfrastructureSubnetId != "" {

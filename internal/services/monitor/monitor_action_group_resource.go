@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -225,7 +228,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Computed:     true,
-										ValidateFunc: validation.IsURLWithScheme([]string{"api"}),
+										ValidateFunc: validation.IsURLWithScheme([]string{"api", "https"}),
 									},
 
 									"tenant_id": {

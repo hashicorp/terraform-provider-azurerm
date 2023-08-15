@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -37,8 +40,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues"
 )
 
 var (
@@ -80,8 +83,9 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		0: migration.AccountV0ToV1{},
 		1: migration.AccountV1ToV2{},
 		2: migration.AccountV2ToV3{},
+		3: migration.AccountV3ToV4{},
 	}
-	schemaVersion := 3
+	schemaVersion := 4
 
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,

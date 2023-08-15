@@ -1,6 +1,10 @@
 package netappaccounts
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForActiveDirectoryStatus() []string {
 		string(ActiveDirectoryStatusInUse),
 		string(ActiveDirectoryStatusUpdating),
 	}
+}
+
+func (s *ActiveDirectoryStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseActiveDirectoryStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseActiveDirectoryStatus(input string) (*ActiveDirectoryStatus, error) {
@@ -54,6 +71,19 @@ func PossibleValuesForKeySource() []string {
 		string(KeySourceMicrosoftPointKeyVault),
 		string(KeySourceMicrosoftPointNetApp),
 	}
+}
+
+func (s *KeySource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeySource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKeySource(input string) (*KeySource, error) {
@@ -88,6 +118,19 @@ func PossibleValuesForKeyVaultStatus() []string {
 		string(KeyVaultStatusInUse),
 		string(KeyVaultStatusUpdating),
 	}
+}
+
+func (s *KeyVaultStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyVaultStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKeyVaultStatus(input string) (*KeyVaultStatus, error) {

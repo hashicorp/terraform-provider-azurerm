@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -19,11 +22,13 @@ const (
 	NestedItemTypeSecret NestedItemObjectType = "secrets"
 	// KeyVaultObjectType Certificates...
 	NestedItemTypeCertificate NestedItemObjectType = "certificates"
+	// KeyVaultObjectType Storage Keys...
+	NestedItemTypeStorageKey NestedItemObjectType = "storage"
 )
 
 // PossibleNestedItemObjectTypeValues returns a string slice of possible "NestedItemObjectType" values.
 func PossibleNestedItemObjectTypeValues() []string {
-	return []string{string(NestedItemTypeKey), string(NestedItemTypeSecret), string(NestedItemTypeCertificate)}
+	return []string{string(NestedItemTypeKey), string(NestedItemTypeSecret), string(NestedItemTypeCertificate), string(NestedItemTypeStorageKey)}
 }
 
 var _ resourceids.Id = NestedItemId{}

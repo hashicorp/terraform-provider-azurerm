@@ -48,7 +48,7 @@ func (o CreateOperationOptions) ToQuery() *client.QueryParams {
 // Create ...
 func (c QueryKeysClient) Create(ctx context.Context, id CreateQueryKeyId, options CreateOperationOptions) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

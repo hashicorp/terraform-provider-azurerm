@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -17,7 +18,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c StorageAccountsClient) Update(ctx context.Context, id StorageAccountId, input StorageAccountUpdateParameters) (result UpdateOperationResponse, err error) {
+func (c StorageAccountsClient) Update(ctx context.Context, id commonids.StorageAccountId, input StorageAccountUpdateParameters) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "Update", nil, "Failure preparing request")
@@ -40,7 +41,7 @@ func (c StorageAccountsClient) Update(ctx context.Context, id StorageAccountId, 
 }
 
 // preparerForUpdate prepares the Update request.
-func (c StorageAccountsClient) preparerForUpdate(ctx context.Context, id StorageAccountId, input StorageAccountUpdateParameters) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForUpdate(ctx context.Context, id commonids.StorageAccountId, input StorageAccountUpdateParameters) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -23,4 +26,22 @@ func flattenEdgeZone(input *network.ExtendedLocation) string {
 		return ""
 	}
 	return edgezones.NormalizeNilable(input.Name)
+}
+
+func expandEdgeZoneModel(input string) *edgezones.Model {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &edgezones.Model{
+		Name: normalized,
+	}
+}
+
+func flattenEdgeZoneModel(input *edgezones.Model) string {
+	if input == nil || input.Name == "" {
+		return ""
+	}
+	return edgezones.Normalize(input.Name)
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres_test
 
 import (
@@ -24,7 +27,7 @@ func TestAccPostgresqlFlexibleServerDatabase_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("charset").HasValue("UTF8"),
-				check.That(data.ResourceName).Key("collation").HasValue("en_US.UTF8"),
+				check.That(data.ResourceName).Key("collation").HasValue("en_US.utf8"),
 			),
 		},
 		data.ImportStep(),
@@ -122,7 +125,7 @@ func (PostgresqlFlexibleServerDatabaseResource) basic(data acceptance.TestData) 
 resource "azurerm_postgresql_flexible_server_database" "test" {
   name      = "acctest-fsd-%d"
   server_id = azurerm_postgresql_flexible_server.test.id
-  collation = "en_US.UTF8"
+  collation = "en_US.utf8"
   charset   = "UTF8"
 }
 `, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)

@@ -34,15 +34,18 @@ type Error struct {
 
 	InnerError *Error `json:"innerError"` // nested errors
 
-	Details *[]struct {
-		Code   *string `json:"code"`
-		Target *string `json:"target"`
-	} `json:"details"`
+	Details    *[]ErrorDetails  `json:"-"`
+	RawDetails *json.RawMessage `json:"details"` // should be an array, but sometimes an object :S
 
 	Values *[]struct {
 		Item  string `json:"item"`
 		Value string `json:"value"`
 	} `json:"values"`
+}
+
+type ErrorDetails struct {
+	Code   *string `json:"code"`
+	Target *string `json:"target"`
 }
 
 func (e *Error) UnmarshalJSON(data []byte) error {
@@ -77,6 +80,25 @@ func (e *Error) UnmarshalJSON(data []byte) error {
 			return fmt.Errorf("unrecognised error message: %#v", string(*raw))
 		}
 	}
+
+	// Unmarshal the details, which should be an array but might be an object
+	if raw := e.RawDetails; raw != nil && len(*raw) > 0 {
+		var details ErrorDetails
+		err := json.Unmarshal(*raw, &details)
+		if err == nil {
+			e.Details = &[]ErrorDetails{
+				details,
+			}
+			return nil
+		}
+
+		var detailsSlice []ErrorDetails
+		if errSlice := json.Unmarshal(*raw, &detailsSlice); errSlice != nil {
+			return fmt.Errorf("failed to unmarshal `RawDetails` as either `ErrorDetails` (%+v) or `[]ErrorDetails` (%+v) - type: %+v", err, errSlice, *raw)
+		}
+		e.Details = &detailsSlice
+	}
+
 	return nil
 }
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package web_test
 
 import (
@@ -27,7 +30,7 @@ func TestAccAzureStaticSiteCustomDomain_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("validation_token").Exists(),
 			),
 		},
-		data.ImportStep("validation_type"),
+		data.ImportStep("validation_type", "validation_token"),
 	})
 }
 

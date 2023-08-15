@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres
 
 import (
@@ -61,7 +64,7 @@ func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseCollation,
+				ValidateFunc: validate.PostgresqlFlexibleServerDatabaseCollation,
 				Default:      "en_US.utf8",
 			},
 		},

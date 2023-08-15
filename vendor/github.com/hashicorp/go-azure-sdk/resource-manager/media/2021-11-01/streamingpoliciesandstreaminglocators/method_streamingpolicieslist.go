@@ -60,7 +60,7 @@ func (o StreamingPoliciesListOperationOptions) ToQuery() *client.QueryParams {
 // StreamingPoliciesList ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesList(ctx context.Context, id MediaServiceId, options StreamingPoliciesListOperationOptions) (result StreamingPoliciesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

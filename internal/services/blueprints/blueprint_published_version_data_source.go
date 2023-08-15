@@ -1,16 +1,21 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package blueprints
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceBlueprintPublishedVersion() *pluginsdk.Resource {
@@ -82,48 +87,31 @@ func dataSourceBlueprintPublishedVersionRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	scope := d.Get("scope_id").(string)
-	blueprintName := d.Get("blueprint_name").(string)
-	versionID := d.Get("version").(string)
+	id := publishedblueprint.NewScopedVersionID(d.Get("scope_id").(string), d.Get("blueprint_name").(string), d.Get("version").(string))
 
-	resp, err := client.Get(ctx, scope, blueprintName, versionID)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Published Blueprint Version %q not found: %+v", versionID, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("Published Blueprint Version %q not found: %+v", id.String(), err)
 		}
 
-		return fmt.Errorf("Read failed for Published Blueprint (%q) Version (%q): %+v", blueprintName, versionID, err)
+		return fmt.Errorf("reading Published Blueprint Version (%q): %+v", id.String(), err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Failed to retrieve ID for Blueprint %q Version %q", blueprintName, versionID)
-	} else {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(id.ID())
 
-	if resp.Type != nil {
-		d.Set("type", resp.Type)
-	}
+	if m := resp.Model; m != nil {
+		p := m.Properties
 
-	if resp.Status != nil {
-		if resp.Status.TimeCreated != nil {
-			d.Set("time_created", resp.Status.TimeCreated.String())
-		}
+		d.Set("type", pointer.From(m.Type))
+		d.Set("target_scope", pointer.From(p.TargetScope))
+		d.Set("display_name", pointer.From(p.DisplayName))
+		d.Set("description", pointer.From(p.Description))
 
-		if resp.Status.LastModified != nil {
-			d.Set("last_modified", resp.Status.LastModified.String())
+		if s := p.Status; s != nil {
+			d.Set("time_created", pointer.From(s.TimeCreated))
+			d.Set("last_modified", pointer.From(s.LastModified))
 		}
 	}
-
-	d.Set("target_scope", resp.TargetScope)
-
-	if resp.DisplayName != nil {
-		d.Set("display_name", resp.DisplayName)
-	}
-
-	if resp.Description != nil {
-		d.Set("description", resp.Description)
-	}
-
 	return nil
 }

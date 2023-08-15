@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -7,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -14,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -23,6 +26,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var _ sdk.ResourceWithUpdate = DataCollectionRuleResource{}
+var _ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
 
 type DataCollectionRule struct {
 	DataCollectionEndpointId string                 `tfschema:"data_collection_endpoint_id"`
@@ -400,7 +406,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"storage_account_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
 						},
@@ -429,7 +435,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"storage_account_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
 						},
@@ -458,7 +464,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"storage_account_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
 						},
@@ -2177,4 +2183,18 @@ func flattenDataCollectionRuleStreamDeclarations(input *map[string]datacollectio
 	}
 
 	return result
+}
+
+func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if oldValue, newValue := metadata.ResourceDiff.GetChange("kind"); oldValue.(string) != newValue.(string) && oldValue.(string) != "" {
+				if err := metadata.ResourceDiff.ForceNew("kind"); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
 }

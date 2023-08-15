@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps_test
 
 import (
@@ -27,7 +30,7 @@ func TestAccContainerAppEnvironment_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("log_analytics_workspace_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -109,10 +112,9 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -120,13 +122,13 @@ resource "azurerm_container_app_environment" "test" {
 func (r ContainerAppEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_container_app_environment" "import" {
-  name                       = azurerm_container_app_environment.test.name
-  resource_group_name        = azurerm_container_app_environment.test.resource_group_name
-  location                   = azurerm_container_app_environment.test.location
-  log_analytics_workspace_id = azurerm_container_app_environment.test.log_analytics_workspace_id
+  name                = azurerm_container_app_environment.test.name
+  resource_group_name = azurerm_container_app_environment.test.resource_group_name
+  location            = azurerm_container_app_environment.test.location
 }
 `, r.basic(data), data.RandomInteger)
 }

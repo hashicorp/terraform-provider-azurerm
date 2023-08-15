@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
@@ -117,6 +121,12 @@ func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationN
 			return err
 		}
 
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+			defer cancel()
+		}
+
 		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName, configurationName)
 
 		resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, configurationId)
@@ -187,6 +197,12 @@ func (r PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Contex
 	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
 	}
 
 	resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, *id)

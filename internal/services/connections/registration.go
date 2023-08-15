@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package connections
 
 import (
@@ -8,6 +11,10 @@ import (
 var _ sdk.UntypedServiceRegistration = Registration{}
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/connections"
+}
 
 func (r Registration) Name() string {
 	return "Connections"

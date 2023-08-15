@@ -20,7 +20,7 @@ type GetDefaultDeleteResourceGuardProxyRequestsObjectOperationResponse struct {
 // GetDefaultDeleteResourceGuardProxyRequestsObject ...
 func (c ResourceGuardsClient) GetDefaultDeleteResourceGuardProxyRequestsObject(ctx context.Context, id DeleteResourceGuardProxyRequestId) (result GetDefaultDeleteResourceGuardProxyRequestsObjectOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates"
@@ -16,27 +21,36 @@ type Client struct {
 	DPSCertificateClient    *dpscertificate.DpsCertificateClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	ResourceClient := devices.NewIotHubResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ResourceClient.Client, o.ResourceManagerAuthorizer)
 
 	IotHubCertificateClient := devices.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&IotHubCertificateClient.Client, o.ResourceManagerAuthorizer)
 
-	DeviceUpdatesClient := deviceupdates.NewDeviceupdatesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DeviceUpdatesClient.Client, o.ResourceManagerAuthorizer)
+	DeviceUpdatesClient, err := deviceupdates.NewDeviceupdatesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Device Updates Client: %+v", err)
+	}
+	o.Configure(DeviceUpdatesClient.Client, o.Authorizers.ResourceManager)
 
-	DPSResourceClient := iotdpsresource.NewIotDpsResourceClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DPSResourceClient.Client, o.ResourceManagerAuthorizer)
+	DPSResourceClient, err := iotdpsresource.NewIotDpsResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DPS Resource Client: %+v", err)
+	}
+	o.Configure(DPSResourceClient.Client, o.Authorizers.ResourceManager)
 
-	DPSCertificateClient := dpscertificate.NewDpsCertificateClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DPSCertificateClient.Client, o.ResourceManagerAuthorizer)
+	DPSCertificateClient, err := dpscertificate.NewDpsCertificateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DPS Certificate Client: %+v", err)
+	}
+	o.Configure(DPSCertificateClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		ResourceClient:          &ResourceClient,
 		IotHubCertificateClient: &IotHubCertificateClient,
-		DeviceUpdatesClient:     &DeviceUpdatesClient,
-		DPSResourceClient:       &DPSResourceClient,
-		DPSCertificateClient:    &DPSCertificateClient,
-	}
+		DeviceUpdatesClient:     DeviceUpdatesClient,
+		DPSResourceClient:       DPSResourceClient,
+		DPSCertificateClient:    DPSCertificateClient,
+	}, nil
 }

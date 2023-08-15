@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql_test
 
 import (
@@ -6,10 +9,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -116,31 +119,26 @@ func TestAccMySQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 }
 
 func (r MySQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkRuleID(state.ID)
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.MySQL.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := clients.MySQL.MySqlClient.VirtualNetworkRules.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading MySQL Virtual Network Rule (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MySQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkRuleID(state.ID)
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.MySQL.VirtualNetworkRulesClient.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
+	if err = client.MySQL.MySqlClient.VirtualNetworkRules.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting MySQL Virtual Network Rule (%s): %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.MySQL.VirtualNetworkRulesClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of MySQL Virtual Network Rule (%s): %+v", id, err)
 	}
 
 	return utils.Bool(true), nil

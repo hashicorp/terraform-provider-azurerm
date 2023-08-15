@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package disks
 
 import (
@@ -126,7 +129,7 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 
 			//lintignore:R006
 			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
-				if err := r.retryError("waiting for creation", id.ID(), future.Poller.PollUntilDone()); err != nil {
+				if err := r.retryError("waiting for creation", id.ID(), future.Poller.PollUntilDone(ctx)); err != nil {
 					return err
 				}
 				metadata.SetID(id)
@@ -198,7 +201,7 @@ func (r DiskPoolResource) Delete() sdk.ResourceFunc {
 
 			//lintignore:R006
 			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
-				return r.retryError("waiting for deletion", id.ID(), future.Poller.PollUntilDone())
+				return r.retryError("waiting for deletion", id.ID(), future.Poller.PollUntilDone(ctx))
 			})
 		},
 	}
@@ -247,7 +250,7 @@ func (r DiskPoolResource) Update() sdk.ResourceFunc {
 
 			//lintignore:R006
 			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
-				return r.retryError("waiting for update", id.ID(), future.Poller.PollUntilDone())
+				return r.retryError("waiting for update", id.ID(), future.Poller.PollUntilDone(ctx))
 			})
 		},
 	}

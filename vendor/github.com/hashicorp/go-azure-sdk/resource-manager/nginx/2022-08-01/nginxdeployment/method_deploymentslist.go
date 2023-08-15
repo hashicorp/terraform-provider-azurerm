@@ -26,7 +26,7 @@ type DeploymentsListCompleteResult struct {
 // DeploymentsList ...
 func (c NginxDeploymentClient) DeploymentsList(ctx context.Context, id commonids.SubscriptionId) (result DeploymentsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 import (
@@ -97,6 +100,12 @@ func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"ca_certificate_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.SpringCloudCertificateID,
 						},
 
 						"host_key": {
@@ -255,7 +264,7 @@ func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []in
 	results := make([]appplatform.ConfigurationServiceGitRepository, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		results = append(results, appplatform.ConfigurationServiceGitRepository{
+		repo := appplatform.ConfigurationServiceGitRepository{
 			Name:                  utils.String(v["name"].(string)),
 			Patterns:              utils.ExpandStringSlice(v["patterns"].(*pluginsdk.Set).List()),
 			URI:                   utils.String(v["uri"].(string)),
@@ -267,7 +276,11 @@ func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []in
 			HostKeyAlgorithm:      utils.String(v["host_key_algorithm"].(string)),
 			PrivateKey:            utils.String(v["private_key"].(string)),
 			StrictHostKeyChecking: utils.Bool(v["strict_host_key_checking"].(bool)),
-		})
+		}
+		if caCertificatedId := v["ca_certificate_id"].(string); caCertificatedId != "" {
+			repo.CaCertResourceID = utils.String(caCertificatedId)
+		}
+		results = append(results, repo)
 	}
 	return &results
 }
@@ -327,7 +340,16 @@ func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]
 				username = value.(string)
 			}
 		}
+
+		var caCertificateId string
+		if item.CaCertResourceID != nil {
+			certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*item.CaCertResourceID)
+			if err == nil {
+				caCertificateId = certificatedId.ID()
+			}
+		}
 		results = append(results, map[string]interface{}{
+			"ca_certificate_id":        caCertificateId,
 			"name":                     name,
 			"label":                    label,
 			"patterns":                 utils.FlattenStringSlice(item.Patterns),

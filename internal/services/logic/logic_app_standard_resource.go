@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic
 
 import (
@@ -862,6 +865,11 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Computed: true,
+				},
+
+				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},

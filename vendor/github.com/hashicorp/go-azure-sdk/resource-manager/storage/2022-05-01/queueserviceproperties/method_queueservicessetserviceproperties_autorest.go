@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type QueueServicesSetServicePropertiesOperationResponse struct {
 }
 
 // QueueServicesSetServiceProperties ...
-func (c QueueServicePropertiesClient) QueueServicesSetServiceProperties(ctx context.Context, id StorageAccountId, input QueueServiceProperties) (result QueueServicesSetServicePropertiesOperationResponse, err error) {
+func (c QueueServicePropertiesClient) QueueServicesSetServiceProperties(ctx context.Context, id commonids.StorageAccountId, input QueueServiceProperties) (result QueueServicesSetServicePropertiesOperationResponse, err error) {
 	req, err := c.preparerForQueueServicesSetServiceProperties(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "queueserviceproperties.QueueServicePropertiesClient", "QueueServicesSetServiceProperties", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c QueueServicePropertiesClient) QueueServicesSetServiceProperties(ctx cont
 }
 
 // preparerForQueueServicesSetServiceProperties prepares the QueueServicesSetServiceProperties request.
-func (c QueueServicePropertiesClient) preparerForQueueServicesSetServiceProperties(ctx context.Context, id StorageAccountId, input QueueServiceProperties) (*http.Request, error) {
+func (c QueueServicePropertiesClient) preparerForQueueServicesSetServiceProperties(ctx context.Context, id commonids.StorageAccountId, input QueueServiceProperties) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -56,7 +56,7 @@ func (o ListAllByDnsZoneOperationOptions) ToQuery() *client.QueryParams {
 // ListAllByDnsZone ...
 func (c RecordSetsClient) ListAllByDnsZone(ctx context.Context, id DnsZoneId, options ListAllByDnsZoneOperationOptions) (result ListAllByDnsZoneOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

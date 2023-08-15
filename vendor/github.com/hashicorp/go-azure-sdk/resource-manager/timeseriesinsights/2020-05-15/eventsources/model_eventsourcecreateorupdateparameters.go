@@ -12,6 +12,15 @@ import (
 type EventSourceCreateOrUpdateParameters interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawEventSourceCreateOrUpdateParametersImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalEventSourceCreateOrUpdateParametersImplementation(input []byte) (EventSourceCreateOrUpdateParameters, error) {
 	if input == nil {
 		return nil, nil
@@ -43,10 +52,6 @@ func unmarshalEventSourceCreateOrUpdateParametersImplementation(input []byte) (E
 		return out, nil
 	}
 
-	type RawEventSourceCreateOrUpdateParametersImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawEventSourceCreateOrUpdateParametersImpl{
 		Type:   value,
 		Values: temp,

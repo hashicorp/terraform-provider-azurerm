@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,16 +8,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceNetworkPacketCapture() *pluginsdk.Resource {
@@ -25,7 +29,7 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 		DeprecationMessage: "The \"azurerm_network_packet_capture\" resource is deprecated and will be removed in favour of the `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` resources in version 4.0 of the AzureRM Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PacketCaptureID(id)
+			_, err := packetcaptures.ParsePacketCaptureID(id)
 			return err
 		}),
 
@@ -126,14 +130,10 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 							ForceNew: true,
 						},
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.PcProtocolAny),
-								string(network.PcProtocolTCP),
-								string(network.PcProtocolUDP),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(packetcaptures.PossibleValuesForPcProtocol(), false),
 						},
 						"remote_ip_address": {
 							Type:     pluginsdk.TypeString,
@@ -153,72 +153,62 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 }
 
 func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PacketCapturesClient
+	client := meta.(*clients.Client).Network.PacketCaptures
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPacketCaptureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
+	id := packetcaptures.NewPacketCaptureID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
 
 	targetResourceId := d.Get("target_resource_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_network_packet_capture", id.ID())
 	}
 
-	storageLocation, err := expandNetworkPacketCaptureStorageLocation(d)
-	if err != nil {
-		return err
-	}
-
-	properties := network.PacketCapture{
-		PacketCaptureParameters: &network.PacketCaptureParameters{
-			Target:                  utils.String(targetResourceId),
+	storageLocation := expandNetworkPacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
+	payload := packetcaptures.PacketCapture{
+		Properties: packetcaptures.PacketCaptureParameters{
+			Target:                  targetResourceId,
 			StorageLocation:         storageLocation,
-			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
-			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
-			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
-			Filters:                 expandNetworkPacketCaptureFilters(d),
+			BytesToCapturePerPacket: pointer.To(int64(bytesToCapturePerPacket)),
+			TimeLimitInSeconds:      pointer.To(int64(timeLimitInSeconds)),
+			TotalBytesPerSession:    pointer.To(int64(totalBytesPerSession)),
+			Filters:                 expandNetworkPacketCaptureFilters(d.Get("filter").([]interface{})),
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name, properties)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
-
 	return resourceNetworkPacketCaptureRead(d, meta)
 }
 
 func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PacketCapturesClient
+	client := meta.(*clients.Client).Network.PacketCaptures
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PacketCaptureID(d.Id())
+	id, err := packetcaptures.ParsePacketCaptureID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -227,24 +217,26 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.PacketCaptureName)
 	d.Set("network_watcher_name", id.NetworkWatcherName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.PacketCaptureResultProperties; props != nil {
-		d.Set("target_resource_id", props.Target)
-		d.Set("maximum_bytes_per_packet", int(*props.BytesToCapturePerPacket))
-		d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
-		d.Set("maximum_capture_duration", int(*props.TimeLimitInSeconds))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("target_resource_id", props.Target)
+			d.Set("maximum_bytes_per_packet", int(pointer.From(props.BytesToCapturePerPacket)))
+			d.Set("maximum_bytes_per_session", int(pointer.From(props.TotalBytesPerSession)))
+			d.Set("maximum_capture_duration", int(pointer.From(props.TimeLimitInSeconds)))
 
-		location := flattenNetworkPacketCaptureStorageLocation(props.StorageLocation)
-		if err := d.Set("storage_location", location); err != nil {
-			return fmt.Errorf("setting `storage_location`: %+v", err)
-		}
+			location := flattenNetworkPacketCaptureStorageLocation(props.StorageLocation)
+			if err := d.Set("storage_location", location); err != nil {
+				return fmt.Errorf("setting `storage_location`: %+v", err)
+			}
 
-		filters := flattenNetworkPacketCaptureFilters(props.Filters)
-		if err := d.Set("filter", filters); err != nil {
-			return fmt.Errorf("setting `filter`: %+v", err)
+			filters := flattenNetworkPacketCaptureFilters(props.Filters)
+			if err := d.Set("filter", filters); err != nil {
+				return fmt.Errorf("setting `filter`: %+v", err)
+			}
 		}
 	}
 
@@ -252,78 +244,55 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PacketCapturesClient
+	client := meta.(*clients.Client).Network.PacketCaptures
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PacketCaptureID(d.Id())
+	id, err := packetcaptures.ParsePacketCaptureID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandNetworkPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
-	locations := d.Get("storage_location").([]interface{})
-	if len(locations) == 0 {
-		return nil, fmt.Errorf("expandng `storage_location`: not found")
-	}
+func expandNetworkPacketCaptureStorageLocation(input []interface{}) packetcaptures.PacketCaptureStorageLocation {
+	location := input[0].(map[string]interface{})
 
-	location := locations[0].(map[string]interface{})
-
-	storageLocation := network.PacketCaptureStorageLocation{}
+	storageLocation := packetcaptures.PacketCaptureStorageLocation{}
 
 	if v := location["file_path"]; v != "" {
 		storageLocation.FilePath = utils.String(v.(string))
 	}
 	if v := location["storage_account_id"]; v != "" {
-		storageLocation.StorageID = utils.String(v.(string))
+		storageLocation.StorageId = utils.String(v.(string))
 	}
 
-	return &storageLocation, nil
+	return storageLocation
 }
 
-func flattenNetworkPacketCaptureStorageLocation(input *network.PacketCaptureStorageLocation) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenNetworkPacketCaptureStorageLocation(input packetcaptures.PacketCaptureStorageLocation) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"file_path":          pointer.From(input.FilePath),
+			"storage_account_id": pointer.From(input.StorageId),
+			"storage_path":       pointer.From(input.StoragePath),
+		},
 	}
-
-	output := make(map[string]interface{})
-
-	if path := input.FilePath; path != nil {
-		output["file_path"] = *path
-	}
-
-	if account := input.StorageID; account != nil {
-		output["storage_account_id"] = *account
-	}
-
-	if path := input.StoragePath; path != nil {
-		output["storage_path"] = *path
-	}
-
-	return []interface{}{output}
 }
 
-func expandNetworkPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.PacketCaptureFilter {
-	inputFilters := d.Get("filter").([]interface{})
-	if len(inputFilters) == 0 {
+func expandNetworkPacketCaptureFilters(input []interface{}) *[]packetcaptures.PacketCaptureFilter {
+	if len(input) == 0 {
 		return nil
 	}
 
-	filters := make([]network.PacketCaptureFilter, 0)
+	filters := make([]packetcaptures.PacketCaptureFilter, 0)
 
-	for _, v := range inputFilters {
+	for _, v := range input {
 		inputFilter := v.(map[string]interface{})
 
 		localIPAddress := inputFilter["local_ip_address"].(string)
@@ -332,45 +301,35 @@ func expandNetworkPacketCaptureFilters(d *pluginsdk.ResourceData) *[]network.Pac
 		remoteIPAddress := inputFilter["remote_ip_address"].(string)
 		remotePort := inputFilter["remote_port"].(string)
 
-		filter := network.PacketCaptureFilter{
+		filters = append(filters, packetcaptures.PacketCaptureFilter{
 			LocalIPAddress:  utils.String(localIPAddress),
 			LocalPort:       utils.String(localPort),
-			Protocol:        network.PcProtocol(protocol),
+			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
 			RemoteIPAddress: utils.String(remoteIPAddress),
 			RemotePort:      utils.String(remotePort),
-		}
-		filters = append(filters, filter)
+		})
 	}
 
 	return &filters
 }
 
-func flattenNetworkPacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {
+func flattenNetworkPacketCaptureFilters(input *[]packetcaptures.PacketCaptureFilter) []interface{} {
 	filters := make([]interface{}, 0)
 
-	if inFilter := input; inFilter != nil {
-		for _, v := range *inFilter {
-			filter := make(map[string]interface{})
-
-			if address := v.LocalIPAddress; address != nil {
-				filter["local_ip_address"] = *address
+	if input != nil {
+		for _, v := range *input {
+			protocol := ""
+			if v.Protocol != nil {
+				protocol = string(*v.Protocol)
 			}
 
-			if port := v.LocalPort; port != nil {
-				filter["local_port"] = *port
-			}
-
-			filter["protocol"] = string(v.Protocol)
-
-			if address := v.RemoteIPAddress; address != nil {
-				filter["remote_ip_address"] = *address
-			}
-
-			if port := v.RemotePort; port != nil {
-				filter["remote_port"] = *port
-			}
-
-			filters = append(filters, filter)
+			filters = append(filters, map[string]interface{}{
+				"local_ip_address":  pointer.From(v.LocalIPAddress),
+				"local_port":        pointer.From(v.LocalPort),
+				"protocol":          protocol,
+				"remote_ip_address": pointer.From(v.RemoteIPAddress),
+				"remote_port":       pointer.From(v.RemotePort),
+			})
 		}
 	}
 

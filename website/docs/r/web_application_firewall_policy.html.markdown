@@ -180,6 +180,8 @@ The `policy_settings` block supports the following:
 
 * `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `8` to `2000`. Defaults to `128`.
 
+* `log_scrubbing` - (Optional) One `log_scrubbing` block as defined below.
+
 ---
 
 The `managed_rules` block supports the following:
@@ -246,6 +248,26 @@ The `rule` block supports the following:
 
 * `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block` and `Log`.
 
+---
+
+The `log_scrubbing` block supports the following:
+
+* `enabled` - (Optional) Whether the log scrubbing is enabled or disabled. Defaults to `true`.
+
+* `rule` - (Optional) One or more `scrubbing_rule` as define below.
+
+---
+
+The `scrubbing_rule` block supports the following:
+
+* `enabled` - (Optional) Whether this rule is enabled. Defaults to `true`.
+
+* `match_variable` - (Required) Specifies the variable to be scrubbed from the logs. Possible values are `RequestHeaderNames`, `RequestCookieNames`, `RequestArgNames`, `RequestPostArgNames`, `RequestJSONArgNames` and `RequestIPAddress`.
+
+* `selector_match_operator` - (Optional) Specifies the operating on the `selector`. Possible values are `Equals` and `EqualsAny`. Defaults to `Equals`.
+
+* `selector` - (Optional) Specifies which elements in the collection this rule applies to.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -270,5 +292,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
+terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
 ```
