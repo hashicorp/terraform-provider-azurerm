@@ -255,6 +255,9 @@ service/notifications:
 service/orbital:
   - internal/services/orbital/**/*
 
+service/paloalto:
+  - internal/services/paloalto/**/*
+
 service/policy:
   - internal/services/policy/**/*
 
