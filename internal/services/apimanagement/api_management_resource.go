@@ -1218,7 +1218,9 @@ func apiManagementRefreshFunc(ctx context.Context, client *apimanagementservice.
 
 		state := ""
 		if model := resp.Model; model != nil {
-			state = pointer.From(model.Properties.ProvisioningState)
+			if provisioningState := model.Properties.ProvisioningState; provisioningState != nil {
+				state = pointer.From(provisioningState)
+			}
 		}
 
 		return resp, state, nil
