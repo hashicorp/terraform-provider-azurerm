@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -41,7 +42,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 			"rule": {
 				Type:     pluginsdk.TypeList,
@@ -276,13 +277,15 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	rid, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
+	rid, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
 	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
-	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroup, rid.Name, "default")
+	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
+
+	// TODO: support Requires Import
 
 	parameters := storage.ManagementPolicy{
 		Name: &mgmtPolicyId.ManagementPolicyName,
@@ -299,7 +302,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, rid.ResourceGroup, rid.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, rid.ResourceGroupName, rid.StorageAccountName, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", mgmtPolicyId, err)
 	}
 
@@ -329,8 +332,7 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", rid, err)
 	}
 
-	storageAccountID := parse.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName)
-	d.Set("storage_account_id", storageAccountID.ID())
+	d.Set("storage_account_id", commonids.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName).ID())
 
 	if policy := result.Policy; policy != nil {
 		policy := result.Policy

@@ -26,7 +26,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -282,7 +281,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						"storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: storageValidate.StorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"identity_client_id": {

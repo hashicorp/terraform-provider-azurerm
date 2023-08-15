@@ -1,12 +1,12 @@
 ---
 subcategory: "Palo Alto"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_palo_alto_next_generation_firewall_vhub_panorama"
+page_title: "Azure Resource Manager: azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama"
 description: |-
   Manages a Palo Alto Next Generation Firewall VHub Panorama.
 ---
 
-# azurerm_palo_alto_next_generation_firewall_vhub_panorama
+# azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama
 
 Manages a Palo Alto Next Generation Firewall VHub Panorama.
 
@@ -52,7 +52,7 @@ resource "azurerm_palo_alto_virtual_network_appliance" "example" {
   virtual_hub_id = azurerm_virtual_hub.example.id
 }
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "example" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -179,5 +179,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Palo Alto Next Generation Firewall VHub Panoramas can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_palo_alto_next_generation_firewall_vhub_panorama.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVhubPanoramaFW
+terraform import azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVhubPanoramaFW
 ```
