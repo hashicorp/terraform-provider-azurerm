@@ -138,6 +138,19 @@ func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
 	})
 }
 
+func TestAccDiskEncryptionSet_keyRotateFalseInvalid(t *testing.T) {
+	// Regression test case for issue #22864
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyRotateFalseInvalid(data),
+			ExpectError: regexp.MustCompile("'auto_key_rotation_enabled' field is set to 'false' expected a key vault key with a versioned ID but no version information was found"),
+		},
+	})
+}
+
 func TestAccDiskEncryptionSet_withEncryptionType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
 	r := DiskEncryptionSetResource{}
@@ -397,6 +410,23 @@ resource "azurerm_disk_encryption_set" "test" {
   location                  = azurerm_resource_group.test.location
   key_vault_key_id          = azurerm_key_vault_key.test.id
   auto_key_rotation_enabled = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.systemAssignedDependencies(data), data.RandomInteger)
+}
+
+func (r DiskEncryptionSetResource) keyRotateFalseInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                      = "acctestDES-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
 
   identity {
     type = "SystemAssigned"

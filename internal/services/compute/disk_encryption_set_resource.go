@@ -127,20 +127,24 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
-	keyVaultKeyId := d.Get("key_vault_key_id").(string)
-
-	keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId)
+	keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
 	if err != nil {
 		return err
 	}
 
-	if rotationToLatestKeyVersionEnabled && keyVaultKey.Version != "" {
-		return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found: %q", keyVaultKey.ID())
+	if rotationToLatestKeyVersionEnabled {
+		if keyVaultKey.Version != "" {
+			return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found: %q", keyVaultKey.ID())
+		}
+	} else {
+		if keyVaultKey.Version == "" {
+			return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'false' expected a key vault key with a versioned ID but no version information was found: %q", keyVaultKey.ID())
+		}
 	}
 
-	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
+	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKey.ID())
 	if err != nil {
-		return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
+		return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
 	}
 
 	if keyVaultDetails != nil {
@@ -149,18 +153,25 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	// All validation has passed set the ActiveKey KeyURL...
+	activeKey := &diskencryptionsets.KeyForDiskEncryptionSet{}
+
 	// NOTE: The API requires a versioned key to be sent however if rotationToLatestKeyVersion is enabled this will cause
 	// terraform to revert the rotated key to the previous version that is defined in the configuration file...
 	// Issue #22864
 	if rotationToLatestKeyVersionEnabled {
+		// Get the latest version of the key...
 		keyBundle, err := keyVaultKeyClient.GetKey(ctx, keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name, "")
 		if err != nil {
 			return err
 		}
 
 		if keyBundle.Key != nil {
-			keyVaultKeyId = pointer.From(keyBundle.Key.Kid)
+			activeKey.KeyUrl = pointer.From(keyBundle.Key.Kid)
 		}
+	} else {
+		// Use the passed version of the key...
+		activeKey.KeyUrl = keyVaultKey.ID()
 	}
 
 	encryptionType := diskencryptionsets.DiskEncryptionSetType(d.Get("encryption_type").(string))
@@ -174,9 +185,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	params := diskencryptionsets.DiskEncryptionSet{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &diskencryptionsets.EncryptionSetProperties{
-			ActiveKey: &diskencryptionsets.KeyForDiskEncryptionSet{
-				KeyUrl: keyVaultKeyId,
-			},
+			ActiveKey:                         activeKey,
 			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 			EncryptionType:                    &encryptionType,
 		},
@@ -237,10 +246,22 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if props := model.Properties; props != nil {
-		keyVaultKeyId := ""
+		var keyVaultKey *keyVaultParse.NestedItemId
+
 		if props.ActiveKey != nil && props.ActiveKey.KeyUrl != "" {
-			keyVaultKeyId = props.ActiveKey.KeyUrl
-			d.Set("key_vault_key_url", keyVaultKeyId)
+			keyVaultKey, err = keyVaultParse.ParseOptionallyVersionedNestedItemID(props.ActiveKey.KeyUrl)
+			if err != nil {
+				return err
+			}
+
+			d.Set("key_vault_key_url", keyVaultKey.ID())
+		}
+
+		// This "should" never happen, but if keyVaultKey does not get assigned above it
+		// would cause a panic when referenced below, so check to make sure it was
+		// assigned or not...
+		if keyVaultKey == nil {
+			return fmt.Errorf("`KeyForDiskEncryptionSet.ActiveKey` was nil")
 		}
 
 		RotationToLatestKeyVersionEnabled := pointer.From(props.RotationToLatestKeyVersionEnabled)
@@ -251,14 +272,9 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		// try to revert to the original version of the key once it has been rotated...
 		// Issue #22864
 		if RotationToLatestKeyVersionEnabled {
-			keyVaultKey, err := keyVaultParse.ParseNestedItemID(keyVaultKeyId)
-			if err != nil {
-				return err
-			}
-
 			d.Set("key_vault_key_id", keyVaultKey.VersionlessID())
 		} else {
-			d.Set("key_vault_key_id", keyVaultKeyId)
+			d.Set("key_vault_key_id", keyVaultKey.ID())
 		}
 
 		encryptionType := string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey)
@@ -305,18 +321,12 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
-	keyVaultKeyId := d.Get("key_vault_key_id").(string)
+	keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
+	if err != nil {
+		return err
+	}
 
 	if d.HasChange("key_vault_key_id") {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId)
-		if err != nil {
-			return err
-		}
-
-		if rotationToLatestKeyVersionEnabled && keyVaultKey.Version != "" {
-			return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found: %q", keyVaultKey.ID())
-		}
-
 		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKey.ID())
 		if err != nil {
 			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
@@ -326,20 +336,15 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if !keyVaultDetails.softDeleteEnabled {
 				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 			}
+
 			if !keyVaultDetails.purgeProtectionEnabled {
 				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 			}
 		}
 
-		update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{
-			ActiveKey: &diskencryptionsets.KeyForDiskEncryptionSet{
-				KeyUrl: keyVaultKeyId,
-			},
-		}
-
-		if keyVaultDetails != nil {
-			update.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
-				Id: utils.String(keyVaultDetails.keyVaultId),
+		if update.Properties == nil {
+			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{
+				ActiveKey: &diskencryptionsets.KeyForDiskEncryptionSet{},
 			}
 		}
 
@@ -347,6 +352,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		// terraform to revert the rotated key to the previous version that is defined in the configuration file...
 		// Issue #22864
 		if rotationToLatestKeyVersionEnabled {
+			// Get the latest version of the key...
 			keyBundle, err := keyVaultKeyClient.GetKey(ctx, keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name, "")
 			if err != nil {
 				return err
@@ -355,6 +361,25 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if keyBundle.Key != nil {
 				update.Properties.ActiveKey.KeyUrl = pointer.From(keyBundle.Key.Kid)
 			}
+		} else {
+			// Use the passed version of the key...
+			update.Properties.ActiveKey.KeyUrl = keyVaultKey.ID()
+		}
+
+		if keyVaultDetails != nil {
+			update.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
+				Id: utils.String(keyVaultDetails.keyVaultId),
+			}
+		}
+	}
+
+	if rotationToLatestKeyVersionEnabled {
+		if keyVaultKey.Version != "" {
+			return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found: %q", keyVaultKey.ID())
+		}
+	} else {
+		if keyVaultKey.Version == "" {
+			return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'false' expected a key vault key with a versioned ID but no version information was found: %q", keyVaultKey.ID())
 		}
 	}
 
@@ -370,6 +395,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if update.Properties == nil {
 			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{}
 		}
+
 		v, ok := d.GetOk("federated_client_id")
 		if ok {
 			update.Properties.FederatedClientId = utils.String(v.(string))
