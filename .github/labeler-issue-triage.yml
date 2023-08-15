@@ -341,4 +341,3 @@ service/virtual-desktops:
 
 service/vmware:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_vmware_((.|\n)*)###'
-  
