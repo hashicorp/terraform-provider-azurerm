@@ -255,7 +255,7 @@ service/notifications:
 service/orbital:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_orbital_((.|\n)*)###'
 
-services/paloalto:
+service/paloalto:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_palo_alto_((.|\n)*)###'
 
 service/policy:
