@@ -423,10 +423,10 @@ func (r DiskEncryptionSetResource) keyRotateFalseInvalid(data acceptance.TestDat
 %s
 
 resource "azurerm_disk_encryption_set" "test" {
-  name                      = "acctestDES-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.versionless_id
 
   identity {
     type = "SystemAssigned"
