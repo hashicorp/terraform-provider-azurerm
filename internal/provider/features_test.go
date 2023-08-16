@@ -62,6 +62,7 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -146,6 +147,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
+							"reimage_on_manual_upgrade":     true,
 							"roll_instances_when_required":  true,
 							"force_delete":                  true,
 							"scale_to_zero_before_deletion": true,
@@ -200,6 +202,7 @@ func TestExpandFeatures(t *testing.T) {
 					SkipShutdownAndForceDelete: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
 					ScaleToZeroOnDelete:       true,
@@ -280,6 +283,7 @@ func TestExpandFeatures(t *testing.T) {
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
 							"force_delete":                  false,
+							"reimage_on_manual_upgrade":     false,
 							"roll_instances_when_required":  false,
 							"scale_to_zero_before_deletion": false,
 						},
@@ -334,6 +338,7 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    false,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       false,
 				},
@@ -924,6 +929,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -944,6 +950,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               true,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -964,6 +971,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -985,6 +993,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       false,
 				},
@@ -997,6 +1006,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
 							"force_delete":                  false,
+							"reimage_on_manual_upgrade":     false,
 							"roll_instances_when_required":  false,
 							"scale_to_zero_before_deletion": false,
 						},
@@ -1006,6 +1016,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    false,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       false,
 				},

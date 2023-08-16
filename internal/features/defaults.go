@@ -50,6 +50,7 @@ func Default() UserFeatures {
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,
+			ReimageOnManualUpgrade:    true,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
 		},

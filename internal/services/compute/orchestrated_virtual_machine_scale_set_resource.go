@@ -1104,9 +1104,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		AutomaticOSUpgradeIsEnabled: false,
-		// CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
-		// UpdateInstances:              updateInstances,
+		AutomaticOSUpgradeIsEnabled:  false,
+		CanReimageOnManualUpgrade:    false,
 		CanRollInstancesWhenRequired: false,
 		UpdateInstances:              false,
 		Client:                       meta.(*clients.Client).Compute,
