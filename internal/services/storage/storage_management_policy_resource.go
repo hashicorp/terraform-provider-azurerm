@@ -288,7 +288,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
 	if d.IsNewResource() {
-		// This lock is to protect the existance checking when two storage mgmt policies are being created at the same time.
+		// This lock is to protect the existence checking when two storage mgmt policies are being created at the same time.
 		locks.ByID(mgmtPolicyId.ID())
 		defer locks.UnlockByID(mgmtPolicyId.ID())
 
