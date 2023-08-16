@@ -284,6 +284,7 @@ resource "azurerm_key_vault_access_policy" "client" {
     "Create",
     "Delete",
     "Get",
+    "GetRotationPolicy",
     "List",
     "Purge",
     "Recover",
