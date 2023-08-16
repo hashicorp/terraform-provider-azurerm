@@ -26,7 +26,6 @@ func TestAccDataSourceDnsSoaRecord_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("name").HasValue("@"),
 				check.That(data.ResourceName).Key("email").HasValue("testemail.com"),
-				check.That(data.ResourceName).Key("host_name").HasValue("testhost.contoso.com"),
 				check.That(data.ResourceName).Key("expire_time").HasValue("2419200"),
 				check.That(data.ResourceName).Key("minimum_ttl").HasValue("300"),
 				check.That(data.ResourceName).Key("refresh_time").HasValue("3600"),
@@ -56,7 +55,6 @@ resource "azurerm_dns_zone" "test" {
 
   soa_record {
     email     = "testemail.com"
-    host_name = "testhost.contoso.com"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
