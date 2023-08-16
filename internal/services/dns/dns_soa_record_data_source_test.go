@@ -54,7 +54,7 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   soa_record {
-    email     = "testemail.com"
+    email = "testemail.com"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
