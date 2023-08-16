@@ -172,19 +172,17 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                 = "acctest-nfcp-%d"
   location             = "%s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+  ingestion_type       = "IPFIX"
+
+  ingestion_source {
+    resource_id = azurerm_express_route_circuit.test.id
+    source_type = "Resource"
+  }
 
   emission_policy {
     emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
-    }
-  }
-
-  ingestion_policy {
-    ingestion_type = "IPFIX"
-    ingestion_source {
-      resource_id = azurerm_express_route_circuit.test.id
-      source_type = "Resource"
     }
   }
 }
@@ -200,19 +198,16 @@ resource "azurerm_network_function_collector_policy" "import" {
   name                 = azurerm_network_function_collector_policy.test.name
   location             = "%s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+  ingestion_type       = "IPFIX"
+  ingestion_source {
+    resource_id = azurerm_express_route_circuit.test.id
+    source_type = "Resource"
+  }
 
   emission_policy {
     emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
-    }
-  }
-
-  ingestion_policy {
-    ingestion_type = "IPFIX"
-    ingestion_source {
-      resource_id = azurerm_express_route_circuit.test.id
-      source_type = "Resource"
     }
   }
 }
@@ -228,19 +223,16 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                 = "acctest-nfcp-%d"
   location             = "%s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+  ingestion_type       = "IPFIX"
+  ingestion_source {
+    resource_id = azurerm_express_route_circuit.test.id
+    source_type = "Resource"
+  }
 
   emission_policy {
     emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
-    }
-  }
-
-  ingestion_policy {
-    ingestion_type = "IPFIX"
-    ingestion_source {
-      resource_id = azurerm_express_route_circuit.test.id
-      source_type = "Resource"
     }
   }
 
@@ -260,19 +252,16 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                 = "acctest-nfcp-%d"
   location             = "%s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+  ingestion_type       = "IPFIX"
+  ingestion_source {
+    resource_id = azurerm_express_route_circuit.test.id
+    source_type = "Resource"
+  }
 
   emission_policy {
     emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
-    }
-  }
-
-  ingestion_policy {
-    ingestion_type = "IPFIX"
-    ingestion_source {
-      resource_id = azurerm_express_route_circuit.test.id
-      source_type = "Resource"
     }
   }
 

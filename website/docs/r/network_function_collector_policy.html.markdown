@@ -68,19 +68,17 @@ resource "azurerm_network_function_collector_policy" "example" {
   name                 = "example-nfcp"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.example.id
   location             = azurerm_resource_group.example.location
+  ingestion_type       = "IPFIX"
+
+  ingestion_source {
+    resource_id = azurerm_express_route_circuit.example.id
+    source_type = "Resource"
+  }
 
   emission_policy {
     emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
-    }
-  }
-
-  ingestion_policy {
-    ingestion_type = "IPFIX"
-    ingestion_source {
-      resource_id = azurerm_express_route_circuit.example.id
-      source_type = "Resource"
     }
   }
 
@@ -102,7 +100,9 @@ The following arguments are supported:
 
 * `emission_policy` - (Required) An `emission_policy` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
-* `ingestion_policy` - (Required) An `ingestion_policy` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
+* `ingestion_source` - (Required) An `ingestion_source` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
+
+* `ingestion_type` - (Required) Specifies the ingestion type. The only possible value is `IPFIX`. Changing this forces a new Network Function Collector Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Function Collector Policy.
 
@@ -119,14 +119,6 @@ An `emission_policy` block supports the following:
 An `emission_destination` block supports the following:
 
 * `destination_type` - (Required) Emission destination type. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
-
----
-
-An `ingestion_policy` block supports the following:
-
-* `ingestion_source` - (Required) An `ingestion_source` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
-
-* `ingestion_type` - (Required) Specifies the ingestion type. The only possible value is `IPFIX`. Changing this forces a new Network Function Collector Policy to be created.
 
 ---
 

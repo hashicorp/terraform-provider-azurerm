@@ -7,9 +7,11 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -22,9 +24,10 @@ type NetworkFunctionCollectorPolicyModel struct {
 	Name                                   string                                  `tfschema:"name"`
 	NetworkFunctionAzureTrafficCollectorId string                                  `tfschema:"traffic_collector_id"`
 	EmissionPolicies                       []EmissionPoliciesPropertiesFormatModel `tfschema:"emission_policy"`
-	IngestionPolicy                        []IngestionPolicyPropertiesFormatModel  `tfschema:"ingestion_policy"`
+	IngestionSources                       []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_source"`
+	IngestionType                          collectorpolicies.IngestionType         `tfschema:"ingestion_type"`
 	Location                               string                                  `tfschema:"location"`
-	Tags                                   map[string]string                       `tfschema:"tags"`
+	Tags                                   map[string]interface{}                  `tfschema:"tags"`
 }
 
 type EmissionPoliciesPropertiesFormatModel struct {
@@ -34,11 +37,6 @@ type EmissionPoliciesPropertiesFormatModel struct {
 
 type EmissionPolicyDestinationModel struct {
 	DestinationType collectorpolicies.DestinationType `tfschema:"destination_type"`
-}
-
-type IngestionPolicyPropertiesFormatModel struct {
-	IngestionSources []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_source"`
-	IngestionType    collectorpolicies.IngestionType         `tfschema:"ingestion_type"`
 }
 
 type IngestionSourcesPropertiesFormatModel struct {
@@ -87,13 +85,14 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"emission_destination": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						ForceNew: true,
-						MinItems: 1,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"destination_type": {
@@ -120,49 +119,39 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			},
 		},
 
-		"ingestion_policy": {
+		"ingestion_source": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"ingestion_source": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						MinItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"resource_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: azure.ValidateResourceID,
-								},
-
-								"source_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(collectorpolicies.SourceTypeResource),
-									}, false),
-								},
-							},
-						},
+					"resource_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
 					},
 
-					"ingestion_type": {
+					"source_type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(collectorpolicies.IngestionTypeIPFIX),
+							string(collectorpolicies.SourceTypeResource),
 						}, false),
 					},
 				},
 			},
+		},
+
+		"ingestion_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(collectorpolicies.IngestionTypeIPFIX),
+			}, false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -202,9 +191,13 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &collectorpolicies.CollectorPolicyPropertiesFormat{
 					EmissionPolicies: expandEmissionPoliciesPropertiesFormatModelArray(model.EmissionPolicies),
-					IngestionPolicy:  expandIngestionPolicyPropertiesFormatModel(model.IngestionPolicy),
+					IngestionPolicy: &collectorpolicies.IngestionPolicyPropertiesFormat{
+						IngestionSources: expandIngestionSourcesPropertiesFormatModelArray(model.IngestionSources),
+						IngestionType:    &model.IngestionType,
+					},
 				},
-				Tags: &model.Tags,
+
+				Tags: tags.Expand(model.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
@@ -244,7 +237,7 @@ func (r NetworkFunctionCollectorPolicyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
+				properties.Tags = tags.Expand(model.Tags)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
@@ -285,12 +278,14 @@ func (r NetworkFunctionCollectorPolicyResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				if properties := model.Properties; properties != nil {
 					state.EmissionPolicies = flattenEmissionPoliciesPropertiesFormatModelArray(properties.EmissionPolicies)
-					state.IngestionPolicy = flattenIngestionPolicyPropertiesFormatModel(properties.IngestionPolicy)
+					if properties.IngestionPolicy != nil {
+						state.IngestionSources = flattenIngestionSourcesPropertiesFormatModelArray(properties.IngestionPolicy.IngestionSources)
+						state.IngestionType = pointer.From(properties.IngestionPolicy.IngestionType)
+					}
+
 				}
 
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
+				state.Tags = tags.Flatten(model.Tags)
 			}
 
 			return metadata.Encode(&state)
@@ -382,20 +377,6 @@ func expandEmissionPolicyDestinationModelArray(inputList []EmissionPolicyDestina
 	return &outputList
 }
 
-func expandIngestionPolicyPropertiesFormatModel(inputList []IngestionPolicyPropertiesFormatModel) *collectorpolicies.IngestionPolicyPropertiesFormat {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	input := &inputList[0]
-	output := collectorpolicies.IngestionPolicyPropertiesFormat{
-		IngestionType:    &input.IngestionType,
-		IngestionSources: expandIngestionSourcesPropertiesFormatModelArray(input.IngestionSources),
-	}
-
-	return &output
-}
-
 func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourcesPropertiesFormatModel) *[]collectorpolicies.IngestionSourcesPropertiesFormat {
 	var outputList []collectorpolicies.IngestionSourcesPropertiesFormat
 	for _, v := range inputList {
@@ -415,7 +396,7 @@ func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourc
 }
 
 func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpolicies.EmissionPoliciesPropertiesFormat) []EmissionPoliciesPropertiesFormatModel {
-	var outputList []EmissionPoliciesPropertiesFormatModel
+	outputList := make([]EmissionPoliciesPropertiesFormatModel, 0)
 	if inputList == nil {
 		return outputList
 	}
@@ -436,7 +417,7 @@ func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpol
 }
 
 func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.EmissionPolicyDestination) []EmissionPolicyDestinationModel {
-	var outputList []EmissionPolicyDestinationModel
+	outputList := make([]EmissionPolicyDestinationModel, 0)
 	if inputList == nil {
 		return outputList
 	}
@@ -454,25 +435,8 @@ func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.E
 	return outputList
 }
 
-func flattenIngestionPolicyPropertiesFormatModel(input *collectorpolicies.IngestionPolicyPropertiesFormat) []IngestionPolicyPropertiesFormatModel {
-	var outputList []IngestionPolicyPropertiesFormatModel
-	if input == nil {
-		return outputList
-	}
-
-	output := IngestionPolicyPropertiesFormatModel{
-		IngestionSources: flattenIngestionSourcesPropertiesFormatModelArray(input.IngestionSources),
-	}
-
-	if input.IngestionType != nil {
-		output.IngestionType = *input.IngestionType
-	}
-
-	return append(outputList, output)
-}
-
 func flattenIngestionSourcesPropertiesFormatModelArray(inputList *[]collectorpolicies.IngestionSourcesPropertiesFormat) []IngestionSourcesPropertiesFormatModel {
-	var outputList []IngestionSourcesPropertiesFormatModel
+	outputList := make([]IngestionSourcesPropertiesFormatModel, 0)
 	if inputList == nil {
 		return outputList
 	}
