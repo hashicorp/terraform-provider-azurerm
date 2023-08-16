@@ -6,6 +6,7 @@ package pluginsdk
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -28,6 +29,12 @@ func ImporterValidatingResourceId(validateFunc IDValidationFunc) *schema.Resourc
 func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc ImporterFunc) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
+			if _, ok := ctx.Deadline(); !ok {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+				defer cancel()
+			}
+
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
 
 			if err := validateFunc(d.Id()); err != nil {
