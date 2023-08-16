@@ -20,10 +20,10 @@ type AutoHealSettingWindows struct {
 }
 
 type AutoHealTriggerWindows struct {
-	Requests        []AutoHealRequestTrigger    `tfschema:"requests"`
-	PrivateMemoryKB int                         `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
-	StatusCodes     []AutoHealStatusCodeTrigger `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests    []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests        []AutoHealRequestTrigger           `tfschema:"requests"`
+	PrivateMemoryKB int                                `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
+	StatusCodes     []AutoHealStatusCodeTriggerWindows `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests    []AutoHealSlowRequest              `tfschema:"slow_request"`
 }
 
 type AutoHealRequestTrigger struct {
@@ -31,10 +31,18 @@ type AutoHealRequestTrigger struct {
 	Interval string `tfschema:"interval"`
 }
 
-type AutoHealStatusCodeTrigger struct {
+type AutoHealStatusCodeTriggerWindows struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
 	SubStatus       int    `tfschema:"sub_status"`
 	Win32Status     int    `tfschema:"win32_status"`
+	Path            string `tfschema:"path"`
+	Count           int    `tfschema:"count"`
+	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
+}
+
+type AutoHealStatusCodeTriggerLinux struct {
+	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
+	SubStatus       int    `tfschema:"sub_status"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
@@ -502,10 +510,10 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 			resultTrigger.PrivateMemoryKB = int(*triggers.PrivateBytesInKB)
 		}
 
-		statusCodeTriggers := make([]AutoHealStatusCodeTrigger, 0)
+		statusCodeTriggers := make([]AutoHealStatusCodeTriggerWindows, 0)
 		if triggers.StatusCodes != nil {
 			for _, s := range *triggers.StatusCodes {
-				t := AutoHealStatusCodeTrigger{
+				t := AutoHealStatusCodeTriggerWindows{
 					Interval: pointer.From(s.TimeInterval),
 					Path:     pointer.From(s.Path),
 				}
@@ -530,7 +538,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		}
 		if triggers.StatusCodesRange != nil {
 			for _, s := range *triggers.StatusCodesRange {
-				t := AutoHealStatusCodeTrigger{
+				t := AutoHealStatusCodeTriggerWindows{
 					Interval: pointer.From(s.TimeInterval),
 					Path:     pointer.From(s.Path),
 				}

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migrations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -67,6 +68,8 @@ type LinuxWebAppModel struct {
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
 
 var _ sdk.ResourceWithCustomImporter = LinuxWebAppResource{}
+
+var _ sdk.ResourceWithStateMigration = LinuxWebAppResource{}
 
 func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -188,8 +191,6 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-// TODO - Feature: Deployments (Preview)?
-
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
@@ -242,6 +243,8 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 		"site_credential": helpers.SiteCredentialSchema(),
 	}
 }
+
+// TODO - Feature: Deployments (Preview)?
 
 func (r LinuxWebAppResource) ModelObject() interface{} {
 	return &LinuxWebAppModel{}
@@ -954,5 +957,14 @@ func (r LinuxWebAppResource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		return nil
+	}
+}
+
+func (r LinuxWebAppResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migrations.LinuxWebAppV0ToV1{},
+		},
 	}
 }

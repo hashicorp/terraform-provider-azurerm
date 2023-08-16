@@ -50,7 +50,6 @@ type SiteConfigLinux struct {
 	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
 	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
-	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
 func SiteConfigSchemaLinux() *pluginsdk.Schema {
@@ -435,9 +434,9 @@ type AutoHealSettingLinux struct {
 }
 
 type AutoHealTriggerLinux struct {
-	Requests     []AutoHealRequestTrigger    `tfschema:"requests"`
-	StatusCodes  []AutoHealStatusCodeTrigger `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests     []AutoHealRequestTrigger         `tfschema:"requests"`
+	StatusCodes  []AutoHealStatusCodeTriggerLinux `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests []AutoHealSlowRequest            `tfschema:"slow_request"`
 }
 
 type AutoHealActionLinux struct {
@@ -576,12 +575,6 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							},
 
 							"sub_status": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: nil, // TODO - no docs on this, needs investigation
-							},
-
-							"win32_status": {
 								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								ValidateFunc: nil, // TODO - no docs on this, needs investigation
@@ -1222,10 +1215,10 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 			}}
 		}
 
-		statusCodeTriggers := make([]AutoHealStatusCodeTrigger, 0)
+		statusCodeTriggers := make([]AutoHealStatusCodeTriggerLinux, 0)
 		if triggers.StatusCodes != nil {
 			for _, s := range *triggers.StatusCodes {
-				t := AutoHealStatusCodeTrigger{
+				t := AutoHealStatusCodeTriggerLinux{
 					Interval: pointer.From(s.TimeInterval),
 					Path:     pointer.From(s.Path),
 				}
@@ -1246,7 +1239,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 		}
 		if triggers.StatusCodesRange != nil {
 			for _, s := range *triggers.StatusCodesRange {
-				t := AutoHealStatusCodeTrigger{
+				t := AutoHealStatusCodeTriggerLinux{
 					Interval: pointer.From(s.TimeInterval),
 					Path:     pointer.From(s.Path),
 				}
