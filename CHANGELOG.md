@@ -7,7 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230810.1125717` of `github.com/hashicorp/go-azure-sdk` [GH-22874]
+* dependencies: updating to `v0.20230815.1145621` of `github.com/hashicorp/go-azure-sdk` [GH-22962]
 * `apimanagement`: updating to use `hashicorp/go-azure-sdk` [GH-22783]
 * `cosmos`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
 * `policy`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
