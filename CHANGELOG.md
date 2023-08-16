@@ -27,6 +27,7 @@ BUG FIXES:
 * `azurerm_postgresql_database` - reworking the validation for database collation [GH-22928]
 * `azurerm_postgresql_flexible_database` - reworking the validation for database collation [GH-22928]
 * `azurerm_virtual_network_gateway_connection` - `custom_bgp_addresses.secondary` is now `Optional` rather than `Required` [GH-22912]
+* `azurerm_web_application_firewall_policy` - fix handling not found in read [GH-22982]
 
 ## 3.69.0 (August 10, 2023)
 
