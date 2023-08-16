@@ -10,7 +10,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -285,7 +287,21 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
-	// TODO: support Requires Import
+	if d.IsNewResource() {
+		// This lock is to protect the existance checking when two storage mgmt policies are being created at the same time.
+		locks.ByID(mgmtPolicyId.ID())
+		defer locks.UnlockByID(mgmtPolicyId.ID())
+
+		existing, err := client.Get(ctx, rid.ResourceGroupName, rid.StorageAccountName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %s", mgmtPolicyId, err)
+			}
+		}
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_storage_management_policy", mgmtPolicyId.ID())
+		}
+	}
 
 	parameters := storage.ManagementPolicy{
 		Name: &mgmtPolicyId.ManagementPolicyName,
