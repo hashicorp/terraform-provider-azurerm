@@ -1090,6 +1090,10 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	if err := meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, *id); err != nil {
+		fmt.Errorf("cancelling rolling upgrades for %s: %+v", *id, err)
+	}
+
 	// Sometimes VMSS's aren't fully deleted when the `Delete` call returns - as such we'll try to scale the cluster
 	// to 0 nodes first, then delete the cluster - which should ensure there's no Network Interfaces kicking around
 	// and work around this Azure API bug:
