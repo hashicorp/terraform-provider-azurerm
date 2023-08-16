@@ -812,7 +812,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("parsing VMID %q for disk attachment: %+v", *disk.Model.ManagedBy, err)
 		}
 		// check instanceView State
-		vmClient := meta.(*clients.Client).Compute.VMClient
+		vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 
 		locks.ByName(name, VirtualMachineResourceName)
 		defer locks.UnlockByName(name, VirtualMachineResourceName)

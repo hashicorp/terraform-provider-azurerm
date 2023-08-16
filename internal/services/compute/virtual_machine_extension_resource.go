@@ -116,7 +116,7 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 
 func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
-	vmClient := meta.(*clients.Client).Compute.VMClient
+	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,7 +206,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 
 func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
-	vmClient := meta.(*clients.Client).Compute.VMClient
+	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

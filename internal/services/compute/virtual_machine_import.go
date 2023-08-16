@@ -20,7 +20,7 @@ func importVirtualMachine(osType virtualmachines.OperatingSystemTypes, resourceT
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		client := meta.(*clients.Client).Compute.VMClient
+		client := meta.(*clients.Client).Compute.VirtualMachinesClient
 		vm, err := client.Get(ctx, *id, virtualmachines.GetOperationOptions{Expand: pointer.To(virtualmachines.InstanceViewTypesUserData)})
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)

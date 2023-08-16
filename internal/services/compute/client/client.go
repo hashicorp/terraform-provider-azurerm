@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
@@ -24,7 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
-	virtual_machines_2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesetrollingupgrades"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
@@ -62,7 +61,6 @@ type Client struct {
 	VMScaleSetExtensionsClient       *compute.VirtualMachineScaleSetExtensionsClient
 	VMScaleSetRollingUpgradesClient  *virtualmachinescalesetrollingupgrades.VirtualMachineScaleSetRollingUpgradesClient
 	VMScaleSetVMsClient              *compute.VirtualMachineScaleSetVMsClient
-	VMClient                         *virtual_machines_2023_03_01.VirtualMachinesClient
 	VMImageClient                    *compute.VirtualMachineImagesClient
 }
 
@@ -217,12 +215,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	vmScaleSetVMsClient := compute.NewVirtualMachineScaleSetVMsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetVMsClient.Client, o.ResourceManagerAuthorizer)
 
-	vmClient, err := virtual_machines_2023_03_01.NewVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building VM client: %+v", err)
-	}
-	o.Configure(vmClient.Client, o.Authorizers.ResourceManager)
-
 	return &Client{
 		AvailabilitySetsClient:           availabilitySetsClient,
 		CapacityReservationsClient:       capacityReservationsClient,
@@ -252,8 +244,5 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VMScaleSetRollingUpgradesClient:  vmScaleSetRollingUpgradesClient,
 		VMScaleSetVMsClient:              &vmScaleSetVMsClient,
 		VMImageClient:                    &vmImageClient,
-
-		// NOTE: use `VirtualMachinesClient` instead
-		VMClient: vmClient,
 	}, nil
 }

@@ -76,7 +76,7 @@ func dataSourceVirtualMachine() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
 	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient

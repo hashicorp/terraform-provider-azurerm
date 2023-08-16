@@ -124,7 +124,7 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
-	vmClient := meta.(*clients.Client).Compute.VMClient
+	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
 	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
