@@ -7,10 +7,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230815.1165905` of `github.com/hashicorp/go-azure-sdk` [GH-22962]
+* dependencies: updating to `v0.20230815.1165905` of `github.com/hashicorp/go-azure-sdk` [GH-22981]
 * `apimanagement`: updating to use `hashicorp/go-azure-sdk` [GH-22783]
 * `cosmos`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
-* `devtest`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22981]
+* `devtestlabs`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22981]
 * `policy`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
 * `postgresql`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
 * `recoveryservices`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22874]
