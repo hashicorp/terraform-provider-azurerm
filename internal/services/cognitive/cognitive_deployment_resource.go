@@ -319,13 +319,9 @@ func (r CognitiveDeploymentResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			accountId := cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+
 			locks.ByID(accountId.ID())
 			defer locks.UnlockByID(accountId.ID())
-
-			id, err := deployments.ParseDeploymentID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
