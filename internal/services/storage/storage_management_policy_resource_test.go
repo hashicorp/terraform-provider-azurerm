@@ -46,7 +46,7 @@ func TestAccStorageManagementPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccStorageManagementPolicy_requiersImport(t *testing.T) {
+func TestAccStorageManagementPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
