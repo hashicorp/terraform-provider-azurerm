@@ -29,7 +29,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("build Automation client: %+v", err)
+		return nil, fmt.Errorf("building Automation client: %+v", err)
 	}
 
 	agentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

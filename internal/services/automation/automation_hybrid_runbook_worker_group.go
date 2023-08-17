@@ -127,9 +127,11 @@ func (m HybridRunbookWorkerGroupResource) Read() sdk.ResourceFunc {
 
 			output.Name = utils.NormalizeNilableString(result.Model.Name)
 			output.AutomationAccountName = id.AutomationAccountName
-			if c := result.Model.Properties; c != nil {
-				if c.Credential != nil {
-					output.CredentialName = pointer.From(c.Credential.Name)
+			if model := result.Model; model != nil {
+				if prop := model.Properties; prop != nil {
+					if prop.Credential != nil {
+						output.CredentialName = pointer.From(prop.Credential.Name)
+					}
 				}
 			}
 			output.ResourceGroupName = id.ResourceGroupName

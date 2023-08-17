@@ -8,16 +8,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft"
-
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
-	// runbook2 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -315,12 +312,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(content)); err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
-		// Uncomment below once https://github.com/Azure/azure-sdk-for-go/issues/17196 is resolved.
-		// if err := f1.WaitForCompletionRef(ctx, draftClient.Client); err != nil {
-		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)
-		// }
 
-		// id2 := runbook.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
 		if err := autoCli.Runbook.PublishThenPoll(ctx, id); err != nil {
 			return fmt.Errorf("publishing the updated %s: %+v", id, err)
 		}
@@ -329,7 +321,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	d.SetId(id.ID())
 
 	automationAccountId := jobschedule.NewAutomationAccountID(subscriptionID, id.ResourceGroupName, id.AutomationAccountName)
-
 	jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, automationAccountId, jobschedule.ListByAutomationAccountOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
