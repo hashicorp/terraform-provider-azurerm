@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `storage`: updating Storage Account and Storage Blob Container to use Common IDs to enable migrating to `hashicorp/go-azure-sdk` in the future [GH-22915]
 * Data Source: `azurerm_kubernetes_cluster` - add support for the `current_kubernetes_version` property [GH-22986]
 * `azurerm_mssql_virtual_machine` - add support for the `sql_virtual_machine_group_id` and `wsfc_domain_credential` properties [GH-22808]
+* `azurerm_netapp_pool` - `size_in_tb` can be sized down to 2 TB [GH-22943]
 * `azurerm_stack_hci_cluster` - add support for the `automanage_configuration_id` property [GH-22857]
 
 BUG FIXES:
@@ -26,6 +27,7 @@ BUG FIXES:
 * `azurerm_iothub_dps` - updating the validation for `target` within the `ip_filter_rule` block to match the values defined in the Azure API Definitions [GH-22891]
 * `azurerm_postgresql_database` - reworking the validation for database collation [GH-22928]
 * `azurerm_postgresql_flexible_database` - reworking the validation for database collation [GH-22928]
+* `azurerm_storage_management_policy` - check for an existing resource to prevent overwriting property values [GH-22966]
 * `azurerm_virtual_network_gateway_connection` - `custom_bgp_addresses.secondary` is now `Optional` rather than `Required` [GH-22912]
 * `azurerm_web_application_firewall_policy` - fix handling not found in read [GH-22982]
 
