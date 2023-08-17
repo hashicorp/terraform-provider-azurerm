@@ -156,7 +156,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			// whilst the Swagger defines multiple at this time only UAI is supported
-			"identity": commonschema.UserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,

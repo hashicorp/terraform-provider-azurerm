@@ -117,7 +117,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("loading Virtual Machine %q : %+v", parsedVirtualMachineId.String(), err)
 	}
 
-	if virtualMachine.Model != nil && virtualMachine.Model.Properties != nil {
+	if virtualMachine.Model == nil || virtualMachine.Model.Properties == nil {
 		return fmt.Errorf("reading Virtual Machine %q : `model/properties` was nil", parsedVirtualMachineId.String())
 	}
 

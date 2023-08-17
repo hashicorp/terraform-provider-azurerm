@@ -182,13 +182,10 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 						if !utils.ResponseWasNotFound(nics.Response().Response) {
 							return fmt.Errorf("listing Network Interfaces for VM Instance %q for %q: %+v", *instance.InstanceID, id, err)
 						}
-						vmId, err := virtualmachines.ParseVirtualMachineID(*instance.InstanceID)
-						if err != nil {
-							return err
-						}
+						vmId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroupName, *instance.InstanceID)
 
 						// Network Interfaces of VM in Flexible VMSS are accessed from single VM
-						vm, err := vmClient.Get(ctx, *vmId, virtualmachines.DefaultGetOperationOptions())
+						vm, err := vmClient.Get(ctx, vmId, virtualmachines.DefaultGetOperationOptions())
 						if err != nil {
 							return fmt.Errorf("retrieving VM Instance %q for %q: %+v", *instance.InstanceID, id, err)
 						}

@@ -1144,7 +1144,10 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.
 		}
 	}
 
-	var publicIPPrefixId, version string
+	var domainNameLabel, publicIPPrefixId, version string
+	if input.Properties.DnsSettings != nil {
+		domainNameLabel = input.Properties.DnsSettings.DomainNameLabel
+	}
 
 	if input.Properties.PublicIPPrefix != nil && input.Properties.PublicIPPrefix.Id != nil {
 		publicIPPrefixId = *input.Properties.PublicIPPrefix.Id
@@ -1161,7 +1164,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.
 
 	return map[string]interface{}{
 		"name":                    input.Name,
-		"domain_name_label":       input.Properties.DnsSettings.DomainNameLabel,
+		"domain_name_label":       domainNameLabel,
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
 		"ip_tag":                  ipTags,
 		"public_ip_prefix_id":     publicIPPrefixId,

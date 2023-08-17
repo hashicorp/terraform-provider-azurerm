@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
@@ -517,6 +518,12 @@ func (OrchestratedVirtualMachineScaleSetResource) Destroy(ctx context.Context, c
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+	}
+
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
