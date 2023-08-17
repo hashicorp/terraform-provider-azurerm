@@ -2147,7 +2147,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
 			ebpfDataPlane := d.Get(key).(string)
-			existing.Model.Properties.NetworkProfile.NetworkDataplane = utils.ToPtr(managedclusters.NetworkDataplane(ebpfDataPlane))
+			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
