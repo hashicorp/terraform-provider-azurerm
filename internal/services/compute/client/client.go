@@ -4,8 +4,11 @@
 package client
 
 import (
+	"context"
 	"fmt"
+	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
@@ -26,6 +29,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
@@ -244,4 +249,35 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		// NOTE: use `VirtualMachinesClient` instead
 		VMClient: &vmClient,
 	}, nil
+}
+
+func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id parse.VirtualMachineScaleSetId) error {
+	resp, err := c.VMScaleSetRollingUpgradesClient.GetLatest(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		// No rolling upgrades are running so skipping attempt to cancel them before deletion
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
+		return fmt.Errorf("retrieving rolling updates for %s: %+v", id, err)
+	}
+
+	var upgradeStatus compute.RollingUpgradeStatusCode
+	if status := resp.RunningStatus; status != nil {
+		upgradeStatus = status.Code
+	}
+
+	future, err := c.VMScaleSetRollingUpgradesClient.Cancel(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		// Sometimes the rolling update completes quickly in which case there's no need to error out if cancelling fails
+		if response.WasConflict(future.Response()) || upgradeStatus == compute.RollingUpgradeStatusCodeCompleted {
+			return nil
+		}
+		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, c.VMScaleSetExtensionsClient.Client); err != nil {
+		return fmt.Errorf("waiting for cancelling of rolling upgrades for %s: %+v", id, err)
+	}
+
+	log.Printf("[DEBUG] cancelled Virtual Machine Scale Set Rolling Upgrades for %s.", id)
+	return nil
 }
