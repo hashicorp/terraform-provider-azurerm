@@ -132,9 +132,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(networkinterfaces.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
 					string(networkinterfaces.NetworkInterfaceAuxiliaryModeFloating),
-					string(networkinterfaces.NetworkInterfaceAuxiliaryModeNone),
 				}, false),
-				Default:      string(networkinterfaces.NetworkInterfaceAuxiliaryModeNone),
 				RequiredWith: []string{"auxiliary_sku"},
 			},
 
@@ -146,9 +144,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
 					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAOne),
 					string(networkinterfaces.NetworkInterfaceAuxiliarySkuATwo),
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuNone),
 				}, false),
-				Default:      string(networkinterfaces.NetworkInterfaceAuxiliarySkuNone),
 				RequiredWith: []string{"auxiliary_mode"},
 			},
 
@@ -512,8 +508,19 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
 			}
 
-			d.Set("auxiliary_mode", pointer.From(props.AuxiliaryMode))
-			d.Set("auxiliary_sku", pointer.From(props.AuxiliarySku))
+			auxiliaryMode := ""
+			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != networkinterfaces.NetworkInterfaceAuxiliaryModeNone {
+				auxiliaryMode = string(*props.AuxiliaryMode)
+			}
+
+			d.Set("auxiliary_mode", auxiliaryMode)
+
+			auxiliarySku := ""
+			if props.AuxiliarySku != nil && *props.AuxiliarySku != networkinterfaces.NetworkInterfaceAuxiliarySkuNone {
+				auxiliarySku = string(*props.AuxiliarySku)
+			}
+
+			d.Set("auxiliary_sku", auxiliarySku)
 			d.Set("enable_ip_forwarding", props.EnableIPForwarding)
 			d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
 			d.Set("internal_dns_name_label", internalDnsNameLabel)

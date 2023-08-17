@@ -49,21 +49,21 @@ func TestAccNetworkInterface_auxiliary(t *testing.T) {
 	r := NetworkInterfaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.auxiliary(data, "", ""),
+			Config: r.auxiliaryNone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.auxiliary(data, "AcceleratedConnections", "A2"),
+			Config: r.auxiliaryAcceleratedConnections(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.auxiliary(data, "", ""),
+			Config: r.auxiliaryNone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -416,28 +416,18 @@ resource "azurerm_network_interface" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NetworkInterfaceResource) auxiliary(data acceptance.TestData, mode string, sku string) string {
+func (r NetworkInterfaceResource) auxiliaryNone(data acceptance.TestData) string {
 	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
 	// To not affect other testcases of `Network`, hard-code to that for now
 	data.Locations.Primary = "westus"
-
-	if mode != "" {
-		mode = fmt.Sprintf(`auxiliary_mode = "%s"`, mode)
-	}
-
-	if sku != "" {
-		sku = fmt.Sprintf(`auxiliary_sku = "%s"`, sku)
-	}
 
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctestni-%d"
-  location            = "%s"
-  resource_group_name = azurerm_resource_group.test.name
-  %s
-  %s
+  name                          = "acctestni-%d"
+  location                      = "%s"
+  resource_group_name           = azurerm_resource_group.test.name
   enable_accelerated_networking = true
 
   ip_configuration {
@@ -450,7 +440,36 @@ resource "azurerm_network_interface" "test" {
     fastpathenabled = "true"
   }
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary, mode, sku)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptance.TestData) string {
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// To not affect other testcases of `Network`, hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                          = "acctestni-%d"
+  location                      = "%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  auxiliary_mode                = "AcceleratedConnections"
+  auxiliary_sku                 = "A2"
+  enable_accelerated_networking = true
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    fastpathenabled = "true"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r NetworkInterfaceResource) withMultipleParameters(data acceptance.TestData) string {

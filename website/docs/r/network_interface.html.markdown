@@ -60,11 +60,11 @@ The following arguments are supported:
 
 ---
 
-* `auxiliary_mode` - (Optional) The Auxiliary mode of the Network Interface. Possible values are `AcceleratedConnections`, `Floating` and `None`. Defaults to `None`.
+* `auxiliary_mode` - (Optional) The Auxiliary mode of the Network Interface. Possible values are `AcceleratedConnections` and `Floating`.
 
--> **Note:** This field requires the preview feature is enabled. See the [Prerequisites](https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#prerequisites) for more details.
+* `auxiliary_sku` - (Optional) The Auxiliary SKU of the Network Interface. Possible values are `A1`, `A2`, `A4` and `A8`.
 
-* `auxiliary_sku` - (Optional) The Auxiliary SKU of the Network Interface. Possible values are `A1`, `A2`, `A4`, `A8` and `None`. Defaults to `None`.
+-> **Note:** `auxiliary_mode` and `auxiliary_sku` require the preview feature is enabled. See the [Prerequisites](https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#prerequisites) for more details.
 
 * `dns_servers` - (Optional) A list of IP Addresses defining the DNS Servers which should be used for this Network Interface.
 
