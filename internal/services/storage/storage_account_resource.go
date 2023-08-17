@@ -2159,7 +2159,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			default:
 				blobProps, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] Unable to read blob service properties %s: %+v", *id, err)
+					log.Printf("[INFO] refreshing blob service properties %s: %+v", *id, err)
 					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
 				} else {
 					repeat = false // no error, exit loop
@@ -2190,7 +2190,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			default:
 				queueProps, err = queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] Unable to read queue service properties %s: %+v", *id, err)
+					log.Printf("[INFO] refreshing queue service properties %s: %+v", *id, err)
 					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
 				} else {
 					repeat = false // no error, exit loop
@@ -2218,7 +2218,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			default:
 				shareProps, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] Unable to read file service properties %s: %+v", *id, err)
+					log.Printf("[INFO] refreshing file service properties %s: %+v", *id, err)
 					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
 				} else {
 					repeat = false // no error, exit loop
@@ -2256,7 +2256,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			default:
 				staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] Unable to read static website properties %s: %+v", *id, err)
+					log.Printf("[INFO] refreshing static website properties %s: %+v", *id, err)
 					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
 				} else {
 					repeat = false // no error, exit loop
