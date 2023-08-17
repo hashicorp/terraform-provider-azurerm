@@ -20,11 +20,14 @@ ENHANCEMENTS:
 * `azurerm_mssql_virtual_machine` - add support for the `sql_virtual_machine_group_id` and `wsfc_domain_credential` properties [GH-22808]
 * `azurerm_netapp_pool` - `size_in_tb` can be sized down to 2 TB [GH-22943]
 * `azurerm_stack_hci_cluster` - add support for the `automanage_configuration_id` property [GH-22857]
+* Data Source: `azurerm_disk_encryption_set` - now exports `key_vault_key_url` [GH-22893]
+* `azurerm_disk_encryption_set` - now exports `key_vault_key_url` [GH-22893]
 
 BUG FIXES:
 
 * `azurerm_cognitive_deployment` - add lock on parent resource to prevent errors when deleting the resource [GH-22940]
 * `azurerm_cost_management_scheduled_action` - fix update for `email_address_sender` [GH-22930]
+* `azurerm_disk_encryption_set` - now correctly supports key rotation by specifying a versionless Key ID when setting `auto_key_rotation_enabled` to `true` [GH-22893]
 * `azurerm_iothub_dps` - updating the validation for `target` within the `ip_filter_rule` block to match the values defined in the Azure API Definitions [GH-22891]
 * `azurerm_postgresql_database` - reworking the validation for database collation [GH-22928]
 * `azurerm_postgresql_flexible_database` - reworking the validation for database collation [GH-22928]
