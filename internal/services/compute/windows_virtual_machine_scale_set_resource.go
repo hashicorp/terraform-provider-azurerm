@@ -1122,6 +1122,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	// If rolling upgrades are configured and running we need to cancel them before trying to delete the VMSS
 	if err := meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, *id); err != nil {
 		fmt.Errorf("cancelling rolling upgrades for %s: %+v", *id, err)
 	}
