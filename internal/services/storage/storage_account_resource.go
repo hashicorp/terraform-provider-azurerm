@@ -2145,25 +2145,57 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier)
 
 	if supportLevel.supportBlob {
+		var err error
 		blobClient := storageClient.BlobServicesClient
-		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
+		var blobProps storage.BlobServiceProperties
+
+		repeat := true
+		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
+		for repeat {
+			select {
+			case <-timeout:
+				log.Printf("[INFO] reading blob service properties timeout expired %s", *id)
+				return fmt.Errorf("reading blob service properties for %s: %+v", *id, err)
+			default:
+				blobProps, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					log.Printf("[INFO] Unable to read blob service properties %s: %+v", *id, err)
+					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
+				} else {
+					repeat = false // no error, exit loop
+				}
+			}
 		}
+
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
 		}
 	}
 
 	if supportLevel.supportQueue {
+		var err error
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
-			return fmt.Errorf("building Queues Client: %s", err)
+			log.Printf("building Queues Client: %s", err)
 		}
+		var queueProps *queues.StorageServiceProperties
 
-		queueProps, err := queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
+		repeat := true
+		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
+		for repeat {
+			select {
+			case <-timeout:
+				log.Printf("[INFO] reading queue service properties timeout expired %s", *id)
+				return fmt.Errorf("reading queue service properties for %s: %+v", *id, err)
+			default:
+				queueProps, err = queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					log.Printf("[INFO] Unable to read queue service properties %s: %+v", *id, err)
+					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
+				} else {
+					repeat = false // no error, exit loop
+				}
+			}
 		}
 
 		if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
@@ -2172,11 +2204,26 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportShare {
+		var err error
 		fileServiceClient := storageClient.FileServicesClient
+		var shareProps storage.FileServiceProperties
 
-		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
+		repeat := true
+		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
+		for repeat {
+			select {
+			case <-timeout:
+				log.Printf("[INFO] reading file service properties timeout expired %s", *id)
+				return fmt.Errorf("reading file service properties for %s: %+v", *id, err)
+			default:
+				shareProps, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					log.Printf("[INFO] Unable to read file service properties %s: %+v", *id, err)
+					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
+				} else {
+					repeat = false // no error, exit loop
+				}
+			}
 		}
 
 		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
@@ -2185,21 +2232,38 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportStaticWebsite {
+		var err error
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *id, err)
+			log.Printf("retrieving %s: %+v", *id, err)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
 		if err != nil {
-			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+			log.Printf("building Accounts Data Plane Client: %s", err)
 		}
 
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving static website for %s: %+v", *id, err)
+		var staticWebsiteProps accounts.GetServicePropertiesResult
+
+		repeat := true
+		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
+		for repeat {
+			select {
+			case <-timeout:
+				log.Printf("[INFO] reading static website properties timeout expired %s", *id)
+				return fmt.Errorf("reading static website properties for %s: %+v", *id, err)
+			default:
+				staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+				if err != nil {
+					log.Printf("[INFO] Unable to read static website properties %s: %+v", *id, err)
+					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
+				} else {
+					repeat = false // no error, exit loop
+				}
+			}
 		}
+
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {
 			return fmt.Errorf("setting `static_website`: %+v", err)
