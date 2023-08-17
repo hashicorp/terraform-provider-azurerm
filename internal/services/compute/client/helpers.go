@@ -3,9 +3,10 @@ package client
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"log"
 )
 
 func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id parse.VirtualMachineScaleSetId) error {
@@ -19,10 +20,13 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id par
 	}
 
 	future, err := c.VMScaleSetRollingUpgradesClient.Cancel(ctx, id.ResourceGroup, id.Name)
-
+	if err != nil {
+		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
+	}
 	if err := future.WaitForCompletionRef(ctx, c.VMScaleSetExtensionsClient.Client); err != nil {
 		return fmt.Errorf("waiting for cancelling of rolling upgrades for %s: %+v", id, err)
 	}
+
 	log.Printf("[DEBUG] cancelled Virtual Machine Scale Set Rolling Upgrades for %s.", id)
 	return nil
 }

@@ -1092,7 +1092,7 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 
 	// If rolling upgrades are configured and running we need to cancel them before trying to delete the VMSS
 	if err := meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, *id); err != nil {
-		fmt.Errorf("cancelling rolling upgrades for %s: %+v", *id, err)
+		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", *id, err)
 	}
 
 	// Sometimes VMSS's aren't fully deleted when the `Delete` call returns - as such we'll try to scale the cluster
