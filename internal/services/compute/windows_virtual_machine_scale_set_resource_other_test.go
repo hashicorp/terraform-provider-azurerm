@@ -939,6 +939,8 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					// This function manually updates the value for the image sku which triggers rolling upgrades
+					// and simulates the scenario where rolling upgrades are running when we try to delete a VMSS
 					client := clients.Compute.VMScaleSetClient
 
 					id, err := parse.VirtualMachineScaleSetID(state.Attributes["id"])
