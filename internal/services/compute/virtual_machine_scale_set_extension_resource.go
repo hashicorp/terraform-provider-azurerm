@@ -370,12 +370,6 @@ func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	vmssId := parse.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName)
-
-	if err := meta.(*clients.Client).Compute.CancelRollingUpgradesBeforeDeletion(ctx, vmssId); err != nil {
-		fmt.Errorf("cancelling rolling upgrades for %s: %+v", *id, err)
-	}
-
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 	if err != nil {
 		return fmt.Errorf("deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)

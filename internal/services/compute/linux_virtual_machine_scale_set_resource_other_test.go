@@ -846,87 +846,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 	})
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherCancelRollingUpgrades(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 3
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  upgrade_mode        = "Rolling"
-
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 90
-    max_unhealthy_instance_percent          = 100
-    max_unhealthy_upgraded_instance_percent = 100
-    pause_time_between_batches              = "PT30S"
-  }
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  extension {
-    name                       = "CustomScript"
-    publisher                  = "Microsoft.Azure.Extensions"
-    type                       = "CustomScript"
-    type_handler_version       = "2.0"
-    auto_upgrade_minor_version = true
-
-    settings = jsonencode({
-      "commandToExecute" = "sleep 5m"
-    })
-  }
-
-  extension {
-    name                       = "HealthExtension"
-    publisher                  = "Microsoft.ManagedServices"
-    type                       = "ApplicationHealthLinux"
-    type_handler_version       = "1.0"
-    auto_upgrade_minor_version = true
-    settings = jsonencode({
-      protocol = "https"
-      port     = 443
-    })
-  }
-
-  tags = {
-    accTest = "true"
-  }
-
-  lifecycle {
-    ignore_changes = [source_image_reference.0.sku]
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r LinuxVirtualMachineScaleSetResource) otherBootDiagnostics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1078,6 +997,87 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherCancelRollingUpgrades(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Rolling"
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 90
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
+    pause_time_between_batches              = "PT30S"
+  }
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      "commandToExecute" = "sleep 5m"
+    })
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
+  }
+
+  tags = {
+    accTest = "true"
+  }
+
+  lifecycle {
+    ignore_changes = [source_image_reference.0.sku]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherComputerNamePrefix(data acceptance.TestData) string {

@@ -986,77 +986,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 	})
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherCancelRollingUpgrades(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 3
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  upgrade_mode        = "Rolling"
-
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 90
-    max_unhealthy_instance_percent          = 100
-    max_unhealthy_upgraded_instance_percent = 100
-    pause_time_between_batches              = "PT30S"
-  }
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  extension {
-    name                       = "HealthExtension"
-    publisher                  = "Microsoft.ManagedServices"
-    type                       = "ApplicationHealthLinux"
-    type_handler_version       = "1.0"
-    auto_upgrade_minor_version = true
-    settings = jsonencode({
-      protocol = "https"
-      port     = 443
-	  requestPath = "/"
-    })
-  }
-
-  tags = {
-    accTest = "true"
-  }
-
-  lifecycle {
-    ignore_changes = [source_image_reference.0.sku]
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (WindowsVirtualMachineScaleSetResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
-	template := WindowsVirtualMachineScaleSetResource{}.template(data)
+func (r WindowsVirtualMachineScaleSetResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1097,7 +1027,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     content = "<AutoLogon><Username>myadmin</Username><Password><Value>P@ssword1234!</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount></AutoLogon>"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnostics(data acceptance.TestData) string {
@@ -1245,6 +1175,75 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherCancelRollingUpgrades(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Rolling"
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 90
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
+    pause_time_between_batches              = "PT30S"
+  }
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+	  requestPath = "/"
+    })
+  }
+
+  tags = {
+    accTest = "true"
+  }
+
+  lifecycle {
+    ignore_changes = [source_image_reference.0.sku]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherComputerNamePrefix(data acceptance.TestData) string {
