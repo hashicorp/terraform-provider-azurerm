@@ -930,7 +930,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationComplete(t *tes
 }
 
 func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
