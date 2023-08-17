@@ -2,30 +2,27 @@ package migrations
 
 import (
 	"context"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxWebAppV0ToV1 struct{}
 
+var _ pluginsdk.StateUpgrade = LinuxWebAppV0ToV1{}
+
 func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.WebAppName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: resourcegroups.ValidateName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"location": {
@@ -35,12 +32,9 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"service_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
-
-		// Optional
 
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
@@ -48,7 +42,6 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			ValidateFunc: validate.AppSettings,
 		},
 
 		"auth_settings": {
@@ -97,17 +90,15 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"token_refresh_extension_hours": {
-						Type:        pluginsdk.TypeFloat,
-						Optional:    true,
-						Default:     72,
-						Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+						Type:     pluginsdk.TypeFloat,
+						Optional: true,
+						Default:  72,
 					},
 
 					"token_store_enabled": {
-						Type:        pluginsdk.TypeBool,
-						Optional:    true,
-						Default:     false,
-						Description: "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.",
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 
 					"unauthenticated_client_action": {
@@ -332,9 +323,8 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"require_authentication": {
-						Type:        pluginsdk.TypeBool,
-						Optional:    true,
-						Description: "Should the authentication flow be used for all requests.",
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
 					},
 
 					"unauthenticated_action": {
@@ -452,7 +442,6 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
-									Description: "The list of allowed Applications for the Default Authorisation Policy.",
 								},
 
 								"login_parameters": {
@@ -461,7 +450,6 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
-									Description: "A map of key-value pairs to send to the Authorisation Endpoint when a user logs in.",
 								},
 
 								"allowed_audiences": {
@@ -470,7 +458,6 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
-									Description: "Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.",
 								},
 							},
 						},
@@ -1670,10 +1657,9 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"vnet_route_all_enabled": {
-						Type:        pluginsdk.TypeBool,
-						Optional:    true,
-						Default:     false,
-						Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 
 					"detailed_error_logging_enabled": {
@@ -1768,6 +1754,74 @@ func (l LinuxWebAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
+		"custom_domain_verification_id": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_ip_address_list": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"possible_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"possible_outbound_ip_address_list": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"site_credential": {
+			Type:      pluginsdk.TypeList,
+			Computed:  true,
+			Sensitive: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+
+					"password": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -1794,5 +1848,3 @@ func (l LinuxWebAppV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		return rawState, nil
 	}
 }
-
-var _ pluginsdk.StateUpgrade = LinuxWebAppV0ToV1{}
