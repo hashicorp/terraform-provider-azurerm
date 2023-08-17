@@ -266,10 +266,16 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id par
 		upgradeStatus = status.Code
 	}
 
+	// If lastest rolling upgrade is marked as completed, skip cancellation
+	if upgradeStatus == compute.RollingUpgradeStatusCodeCompleted {
+		return nil
+	}
+
 	future, err := c.VMScaleSetRollingUpgradesClient.Cancel(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		// Sometimes the rolling update completes quickly in which case there's no need to error out if cancelling fails
-		if response.WasConflict(future.Response()) || upgradeStatus == compute.RollingUpgradeStatusCodeCompleted {
+		// If there is no rolling upgrade the API will throw a 409/No rolling upgrade to cancel
+		// we don't error out in this case
+		if response.WasConflict(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
