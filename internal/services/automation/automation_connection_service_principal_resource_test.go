@@ -98,7 +98,7 @@ func (t AutomationConnectionServicePrincipalResource) Exists(ctx context.Context
 		return nil, err
 	}
 
-	resp, err := clients.Automation.ConnectionClient.Get(ctx, *id)
+	resp, err := clients.Automation.Connection.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

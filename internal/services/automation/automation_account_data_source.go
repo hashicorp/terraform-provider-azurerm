@@ -77,7 +77,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 
 func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	iclient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

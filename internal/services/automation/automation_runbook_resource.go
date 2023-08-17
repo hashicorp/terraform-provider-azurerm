@@ -249,8 +249,8 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 
 func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	autoCli := meta.(*clients.Client).Automation
-	client := autoCli.RunbookClient
-	jsClient := autoCli.JobScheduleClient
+	client := autoCli.Runbook
+	jsClient := autoCli.JobSchedule
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -312,7 +312,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
 		draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
-		if err := autoCli.RunbookDraftClient.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(content)); err != nil {
+		if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(content)); err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
 		// Uncomment below once https://github.com/Azure/azure-sdk-for-go/issues/17196 is resolved.
@@ -321,7 +321,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		// }
 
 		// id2 := runbook.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
-		if err := autoCli.RunbookClient.PublishThenPoll(ctx, id); err != nil {
+		if err := autoCli.Runbook.PublishThenPoll(ctx, id); err != nil {
 			return fmt.Errorf("publishing the updated %s: %+v", id, err)
 		}
 	}
@@ -369,8 +369,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	autoCli := meta.(*clients.Client).Automation
-	client := autoCli.RunbookClient
-	jsClient := autoCli.JobScheduleClient
+	client := autoCli.Runbook
+	jsClient := autoCli.JobSchedule
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -406,8 +406,8 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
-	// move to stable RunbookClient once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
-	contentResp, err := autoCli.RunbookClient.GetContent(ctx, *id)
+	// move to stable Runbook once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
+	contentResp, err := autoCli.Runbook.GetContent(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(contentResp.HttpResponse) {
 			d.Set("content", "")
@@ -455,7 +455,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.RunbookClient
+	client := meta.(*clients.Client).Automation.Runbook
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -159,7 +159,7 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 
 			var model SourceControlModel
 			if err := meta.Decode(&model); err != nil {
@@ -220,7 +220,7 @@ func (m SourceControlResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -263,7 +263,7 @@ func (m SourceControlResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 
 			id, err := sourcecontrol.ParseSourceControlID(meta.ResourceData.Id())
 			if err != nil {
@@ -323,7 +323,7 @@ func (m SourceControlResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			meta.Logger.Infof("deleting %s", *id)
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)
 			}

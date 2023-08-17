@@ -1,0 +1,10 @@
+package listkeys
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type Key struct {
+	KeyName     *AutomationKeyName        `json:"KeyName,omitempty"`
+	Permissions *AutomationKeyPermissions `json:"Permissions,omitempty"`
+	Value       *string                   `json:"Value,omitempty"`
+}

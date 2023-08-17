@@ -24,7 +24,7 @@ func (a HybridRunbookWorkerGroupResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.RunBookWgClient.Get(ctx, *id)
+	resp, err := client.Automation.HybridRunbookWorkerGroup.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HybridRunbookWorkerGroup %s: %+v", id, err)
 	}

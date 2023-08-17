@@ -153,7 +153,7 @@ func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.Automation.RunbookClient.Get(ctx, *id)
+	resp, err := clients.Automation.Runbook.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", id.RunbookName, id.ResourceGroupName)
 	}

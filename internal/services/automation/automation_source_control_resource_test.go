@@ -48,7 +48,7 @@ func (s SourceControlResource) Exists(ctx context.Context, client *clients.Clien
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.SourceControlClient.Get(ctx, *id)
+	resp, err := client.Automation.SourceControl.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Type %s: %+v", *id, err)
 	}

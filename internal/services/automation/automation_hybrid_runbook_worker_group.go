@@ -68,7 +68,7 @@ func (m HybridRunbookWorkerGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.RunBookWgClient
+			client := meta.Client.Automation.HybridRunbookWorkerGroup
 
 			var model HybridRunbookWorkerGroupModel
 			if err := meta.Decode(&model); err != nil {
@@ -115,7 +115,7 @@ func (m HybridRunbookWorkerGroupResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			client := meta.Client.Automation.RunBookWgClient
+			client := meta.Client.Automation.HybridRunbookWorkerGroup
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				return err
@@ -142,7 +142,7 @@ func (m HybridRunbookWorkerGroupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.Automation.RunBookWgClient
+			client := meta.Client.Automation.HybridRunbookWorkerGroup
 			id, err := hybridrunbookworkergroup.ParseHybridRunbookWorkerGroupID(meta.ResourceData.Id())
 			if err != nil {
 				return err
@@ -178,7 +178,7 @@ func (m HybridRunbookWorkerGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			meta.Logger.Infof("deleting %s", id)
-			client := meta.Client.Automation.RunBookWgClient
+			client := meta.Client.Automation.HybridRunbookWorkerGroup
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
