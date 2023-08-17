@@ -23,6 +23,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cognitive_deployment` - add lock on parent resource to prevent errors when deleting the resource [GH-22940]
 * `azurerm_cost_management_scheduled_action` - fix update for `email_address_sender` [GH-22930]
 * `azurerm_iothub_dps` - updating the validation for `target` within the `ip_filter_rule` block to match the values defined in the Azure API Definitions [GH-22891]
 * `azurerm_postgresql_database` - reworking the validation for database collation [GH-22928]
