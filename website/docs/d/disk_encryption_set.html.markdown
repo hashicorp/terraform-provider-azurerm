@@ -27,7 +27,7 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - The name of the Disk Encryption Set exists.
+* `name` - The name of the existing Disk Encryption Set.
 
 * `resource_group_name` - The name of the Resource Group where the Disk Encryption Set exists.
 
@@ -40,6 +40,8 @@ The following attributes are exported:
 * `location` - The location where the Disk Encryption Set exists.
 
 * `auto_key_rotation_enabled` - Is the Azure Disk Encryption Set Key automatically rotated to latest version?
+
+* `key_vault_key_url` - The URL for the Key Vault Key or Key Vault Secret that is currently being used by the service.
 
 * `tags` - A mapping of tags assigned to the Disk Encryption Set.
 
