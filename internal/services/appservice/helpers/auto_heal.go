@@ -41,7 +41,7 @@ type AutoHealStatusCodeTriggerWindows struct {
 }
 
 type AutoHealStatusCodeTriggerLinux struct {
-	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
+	StatusCodeRange string `tfschema:"status_code_range"`
 	SubStatus       int    `tfschema:"sub_status"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
