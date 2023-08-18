@@ -21,7 +21,7 @@ func (ApiManagementPolicyV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// old id : /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1/policies/policy
 		// new id : /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1
 		oldId := rawState["id"].(string)
-		newId := strings.TrimSuffix(oldId, "/policies/xml")
+		newId := strings.TrimSuffix(oldId, "/policies/policy")
 
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 		rawState["id"] = newId

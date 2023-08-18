@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,11 +21,11 @@ type ApiManagementPolicyV0ToV1 struct{}
 
 func (ApiManagementPolicyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		apiMgmtId, err := policy.ParseServiceID(rawState["id"].(string))
+		apiMgmtId, err := parse.ApiManagementID(rawState["id"].(string))
 		if err != nil {
 			return rawState, nil
 		}
-		id := policy.NewServiceID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroupName, apiMgmtId.ServiceName)
+		id := policy.NewServiceID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroup, apiMgmtId.ServiceName)
 		rawState["id"] = id.ID()
 
 		client := meta.(*clients.Client).ApiManagement.PolicyClient
