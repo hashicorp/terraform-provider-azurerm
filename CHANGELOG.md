@@ -1,3 +1,16 @@
+## 3.71.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `automation`: upgrade remaining resources to `2022-08-08` [GH-22989]
+* Data Source: `azurerm_disk_encryption_set` - add support for the `identity` block [GH-23005]
+* `azurerm_linux_virtual_machine_scale_set` - cancel rolling upgrades that are in progress before destroying the resource [GH-22991]
+* `azurerm_windows_virtual_machine_scale_set` - cancel rolling upgrades that are in progress before destroying the resource [GH-22991]
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - deprecate `public_network_access_enabled` and prevent sending it to the API since it isn't functional [GH-22478]
+
 ## 3.70.0 (August 17, 2023)
 
 FEATURES:
