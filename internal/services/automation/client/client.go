@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
-	v20220808 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08"
+	automation_2022_08_08 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	*v20220808.Client
+	*automation_2022_08_08.Client
 
 	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
 	SoftwareUpdateConfigClient  *softwareupdateconfiguration.SoftwareUpdateConfigurationClient
@@ -25,7 +25,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	metaClient, err := v20220808.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	metaClient, err := automation_2022_08_08.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
