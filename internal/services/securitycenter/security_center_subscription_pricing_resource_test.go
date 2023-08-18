@@ -109,7 +109,7 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
-				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("4"),
 			),
 		},
 		data.ImportStep(),
@@ -129,7 +129,7 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
-				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("4"),
 			),
 		},
 	})
@@ -197,6 +197,14 @@ resource "azurerm_security_center_subscription_pricing" "test" {
     additional_extension_properties = {
       ExclusionTags = "[]"
     }
+  }
+
+  extension {
+    name = "ContainerRegistriesVulnerabilityAssessments"
+  }
+
+  extension {
+    name = "AgentlessDiscoveryForKubernetes"
   }
 }
 `
