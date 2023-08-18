@@ -139,6 +139,7 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			32: 4096,
 			40: 4096,
 			80: 4096,
+			128: 4096
 		},
 		"fsv2": {
 			8:  1024,
