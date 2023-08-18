@@ -420,6 +420,11 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 				ApiVersion: pointer.To(version),
 			},
 		}
+
+		if v, ok := d.GetOk("service_url"); ok {
+			apiParams.Properties.ServiceUrl = pointer.To(v.(string))
+		}
+
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
 		if len(wsdlSelectorVs) > 0 {
