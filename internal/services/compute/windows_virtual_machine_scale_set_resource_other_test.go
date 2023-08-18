@@ -1184,7 +1184,7 @@ func (r WindowsVirtualMachineScaleSetResource) otherCancelRollingUpgrades(data a
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
+  name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_F2"
@@ -1199,8 +1199,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     max_unhealthy_upgraded_instance_percent = 100
     pause_time_between_batches              = "PT30S"
   }
-
-  disable_password_authentication = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1227,7 +1225,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   extension {
     name                       = "HealthExtension"
     publisher                  = "Microsoft.ManagedServices"
-    type                       = "ApplicationHealthLinux"
+    type                       = "ApplicationHealthWindows"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
     settings = jsonencode({
@@ -1245,7 +1243,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     ignore_changes = [source_image_reference.0.sku]
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), r.vmName(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherComputerNamePrefix(data acceptance.TestData) string {
