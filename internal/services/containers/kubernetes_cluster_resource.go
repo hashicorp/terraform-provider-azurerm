@@ -1289,7 +1289,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeBool,
 				Optional:   true,
 				Default:    true,
-				Deprecated: "`public_network_access_enabled` is not functional, will not be passed to the API",
+				Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API",
 			},
 
 			"role_based_access_control_enabled": {
