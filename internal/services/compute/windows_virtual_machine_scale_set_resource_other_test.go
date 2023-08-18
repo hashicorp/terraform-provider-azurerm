@@ -4,12 +4,18 @@
 package compute_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(t *testing.T) {
@@ -923,8 +929,66 @@ func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationComplete(t *tes
 	})
 }
 
-func (WindowsVirtualMachineScaleSetResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
-	template := WindowsVirtualMachineScaleSetResource{}.template(data)
+func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherCancelRollingUpgrades(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					// This function manually updates the value for the image sku which triggers rolling upgrades
+					// and simulates the scenario where rolling upgrades are running when we try to delete a VMSS
+					client := clients.Compute.VMScaleSetClient
+
+					id, err := parse.VirtualMachineScaleSetID(state.Attributes["id"])
+					if err != nil {
+						return err
+					}
+
+					existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", *id, err)
+					}
+
+					existingImageReference := existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference
+
+					imageReference := compute.ImageReference{
+						Publisher: existingImageReference.Publisher,
+						Offer:     existingImageReference.Offer,
+						Sku:       pointer.To("2019-Datacenter"),
+						Version:   existingImageReference.Version,
+					}
+
+					updateProps := compute.VirtualMachineScaleSetUpdateProperties{
+						VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
+							StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
+								ImageReference: &imageReference,
+							},
+						},
+						UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
+					}
+					update := compute.VirtualMachineScaleSetUpdate{
+						VirtualMachineScaleSetUpdateProperties: &updateProps,
+					}
+
+					if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
+						return fmt.Errorf("updating %s: %+v", *id, err)
+					}
+
+					return nil
+
+				}, data.ResourceName),
+			),
+		},
+
+		data.ImportStep("admin_password"),
+	})
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -965,7 +1029,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     content = "<AutoLogon><Username>myadmin</Username><Password><Value>P@ssword1234!</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount></AutoLogon>"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnostics(data acceptance.TestData) string {
@@ -1113,6 +1177,75 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherCancelRollingUpgrades(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Rolling"
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 90
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
+    pause_time_between_batches              = "PT30S"
+  }
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
+  }
+
+  tags = {
+    accTest = "true"
+  }
+
+  lifecycle {
+    ignore_changes = [source_image_reference.0.sku]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherComputerNamePrefix(data acceptance.TestData) string {
