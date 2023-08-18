@@ -132,7 +132,7 @@ func datasourceAutomationVariableCommonSchema(attType pluginsdk.ValueType) map[s
 }
 
 func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +198,7 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -246,7 +246,7 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 }
 
 func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +293,7 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

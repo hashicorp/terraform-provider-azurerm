@@ -24,7 +24,7 @@ func (a AutomationConnectionTypeResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.ConnectionTypeClient.Get(ctx, *id)
+	resp, err := client.Automation.ConnectionType.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Connection Type %s: %+v", *id, err)
 	}

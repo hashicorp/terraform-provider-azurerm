@@ -30,7 +30,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	accountClient, err := netappaccounts.NewNetAppAccountsClientWithBaseURI(o.Environment.ResourceManager)
 	o.Configure(accountClient.Client, o.Authorizers.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building AccountClient client: %+v", err)
+		return nil, fmt.Errorf("building AutomationAccount client: %+v", err)
 	}
 
 	poolClient, err := capacitypools.NewCapacityPoolsClientWithBaseURI(o.Environment.ResourceManager)
