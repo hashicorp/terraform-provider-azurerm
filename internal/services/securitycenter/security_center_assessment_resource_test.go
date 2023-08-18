@@ -227,6 +227,10 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "VirtualMachines"
   subplan       = "P2"
+
+  lifecycle {
+    ignore_changes = [extension]
+  }
 }
 
 resource "azurerm_security_center_assessment_policy" "test" {
