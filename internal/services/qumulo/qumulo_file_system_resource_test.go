@@ -114,6 +114,7 @@ resource "azurerm_qumulo_file_system" "test" {
   admin_password      = ")^X#ZX#JRyIY}t9"
   delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
+  marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
   storage_sku         = "Standard"
   user_email_address  = "test@test.com"
 }
@@ -131,6 +132,7 @@ resource "azurerm_qumulo_file_system" "test" {
   admin_password      = ")^X#ZX#JRyIY}t9"
   delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
+  marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
   storage_sku         = "Standard"
   user_email_address  = "test@test.com"
   tags = {
@@ -152,6 +154,7 @@ resource "azurerm_qumulo_file_system" "import" {
   admin_password      = azurerm_qumulo_file_system.test.admin_password
   delegated_subnet_id = azurerm_qumulo_file_system.test.delegated_subnet_id
   initial_capacity    = azurerm_qumulo_file_system.test.initial_capacity
+  marketplace_plan_id = azurerm_qumulo_file_system.test.marketplace_plan_id
   storage_sku         = azurerm_qumulo_file_system.test.storage_sku
   user_email_address  = azurerm_qumulo_file_system.test.user_email_address
 }
@@ -170,6 +173,7 @@ resource "azurerm_qumulo_file_system" "test" {
   availability_zone   = "1"
   delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
+  marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
   storage_sku         = "Performance"
   user_email_address  = "test@test.com"
   tags = {

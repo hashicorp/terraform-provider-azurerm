@@ -45,11 +45,14 @@ resource "azurerm_qumulo_file_system" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   admin_password      = ")^X#ZX#JRyIY}t9"
+  availability_zone   = "1"
   delegated_subnet_id = azurerm_subnet.example.id
   initial_capacity    = 21
+  marketplace_plan_id = "qumulo-on-azure-v1%%gmz7xq9ge3py%%P1M"
   storage_sku         = "Standard"
-  user_details {
-    email = "t@example.com"
+  user_email_address  = "test@test.com"
+  tags = {
+    environment = "test"
   }
 }
 ```
@@ -60,31 +63,25 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of this Qumulo File System resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group within which this File System should exist. Changing this forces a new File System to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Qumulo File System should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the File System should exist. Changing this forces a new File System to be created.
+* `location` - (Required) The Azure Region where the Qumulo File System should exist. Changing this forces a new resource to be created.
  
-* `admin_password` - (Required) Initial administrator password of the resource. Changing this forces a new File System to be created.
+* `admin_password` - (Required) Initial administrator password of the Qumulo File System. Changing this forces a new resource to be created.
 
-* `delegated_subnet_id` - (Required) Delegated subnet ID for Vnet injection. Changing this forces a new File System to be created.
+* `delegated_subnet_id` - (Required) Delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
 
-* `initial_capacity` - (Required) Storage capacity in TB. Changing this forces a new File System to be created.
+* `initial_capacity` - (Required) Storage capacity in TB. Changing this forces a new resource to be created.
 
-* `marketplace_details` - (Required) A `marketplace_details` block as defined below. Marketplace details.
+* `marketplace_plan_id` - (Required) Specifies the marketplace plan ID. Changing this forces a new resource to be created.
 
-* `storage_sku` - (Required) Storage Sku. Possible values are `Performance` and `Standard`. Changing this forces a new File System to be created.
+* `storage_sku` - (Required) Storage Sku. Possible values are `Performance` and `Standard`. Changing this forces a new resource to be created.
 
-* `user_details` - (Required) An `user_details` block as defined below.
+* `user_email_address` - (Required) The email address. Changing this forces a new resource to be created.
 
-* `availability_zone` - (Optional) Availability zone. Changing this forces a new File System to be created.
+* `availability_zone` - (Optional) Availability zone. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the File System.
-
----
-
-A `user_details` block supports the following arguments:
-
-* `email` - (Required) Specifies user email address. Changing this forces a new File System to be created.
 
 ---
 
@@ -98,10 +95,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating this File System.
-* `delete` - (Defaults to 60 minutes) Used when deleting this File System.
+* `create` - (Defaults to 180 minutes) Used when creating this File System.
+* `delete` - (Defaults to 120 minutes) Used when deleting this File System.
 * `read` - (Defaults to 5 minutes) Used when retrieving this File System.
-* `update` - (Defaults to 60 minutes) Used when updating this File System.
+* `update` - (Defaults to 120 minutes) Used when updating this File System.
 
 ## Import
 

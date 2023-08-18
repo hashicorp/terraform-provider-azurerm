@@ -23,7 +23,6 @@ var _ sdk.ResourceWithUpdate = FileSystemResource{}
 
 const (
 	offerId     = "qumulo-saas-mpp"
-	planId      = "qumulo-on-azure-v1%%gmz7xq9ge3py%%P1M"
 	publisherId = "qumulo1584033880660"
 )
 
@@ -39,11 +38,12 @@ type FileSystemResourceSchema struct {
 	DelegatedSubnetId string                 `tfschema:"delegated_subnet_id"`
 	InitialCapacity   int64                  `tfschema:"initial_capacity"`
 	Location          string                 `tfschema:"location"`
+	MarketplacePlanId string                 `tfschema:"marketplace_plan_id"`
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	UserEmailAddress  string                 `tfschema:"user_email_address"`
 	StorageSku        string                 `tfschema:"storage_sku"`
 	Tags              map[string]interface{} `tfschema:"tags"`
+	UserEmailAddress  string                 `tfschema:"user_email_address"`
 }
 
 func (r FileSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -86,6 +86,13 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(18, 1000),
 		},
 
+		"marketplace_plan_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"storage_sku": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -114,7 +121,7 @@ func (r FileSystemResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r FileSystemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
 
@@ -151,7 +158,7 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 					},
 					MarketplaceDetails: filesystems.MarketplaceDetails{
 						OfferId:     offerId,
-						PlanId:      planId,
+						PlanId:      config.MarketplacePlanId,
 						PublisherId: publisherId,
 					},
 				},
@@ -198,6 +205,7 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 				schema.ResourceGroupName = id.ResourceGroupName
 				schema.AvailabilityZone = pointer.From(model.Properties.AvailabilityZone)
 				schema.InitialCapacity = model.Properties.InitialCapacity
+				schema.MarketplacePlanId = model.Properties.MarketplaceDetails.PlanId
 				schema.StorageSku = string(model.Properties.StorageSku)
 				schema.Location = location.Normalize(model.Location)
 				schema.Tags = tags.Flatten(model.Tags)
@@ -216,7 +224,7 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 
 func (r FileSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
 
@@ -236,7 +244,7 @@ func (r FileSystemResource) Delete() sdk.ResourceFunc {
 
 func (r FileSystemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
 
