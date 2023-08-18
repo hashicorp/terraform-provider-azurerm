@@ -60,9 +60,9 @@ The following arguments are supported:
 
 ---
 
-* `auxiliary_mode` - (Optional) The Auxiliary mode of the Network Interface. Possible values are `AcceleratedConnections` and `Floating`.
+* `auxiliary_mode` - (Optional) Specifies auxiliary mode for enabling [Accelerated Connections](https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections) to improve networking performance. Possible values are `AcceleratedConnections` and `Floating`.
 
-* `auxiliary_sku` - (Optional) The Auxiliary SKU of the Network Interface. Possible values are `A1`, `A2`, `A4` and `A8`.
+* `auxiliary_sku` - (Optional) Specifies auxiliary SKU for tuning the performance of network connections. Possible values are `A1`, `A2`, `A4` and `A8`.
 
 -> **Note:** `auxiliary_mode` and `auxiliary_sku` require the preview feature is enabled. See the [Prerequisites](https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#prerequisites) for more details.
 
