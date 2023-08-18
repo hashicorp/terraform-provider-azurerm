@@ -31,10 +31,11 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiManagementPolicyV0ToV1{},
 			1: migration.ApiManagementPolicyV1ToV2{},
+			2: migration.ApiManagementPolicyV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
