@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -124,6 +125,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			id := volumequotarules.NewVolumeQuotaRuleID(subscriptionId, model.ResourceGroupName, model.AccountName, model.CapacityPoolName, model.VolumeName, model.Name)
+			volumeID := volumes.NewVolumeID(subscriptionId, model.ResourceGroupName, model.AccountName, model.CapacityPoolName, model.VolumeName)
 
 			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
@@ -135,10 +137,10 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// TODO: Add validation - Performing some validations that are not possible in the schema
-			// if errorList := netAppValidate.ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList); len(errorList) > 0 {
-			// 	return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
-			// }
+			// Performing some validations that are not possible in the schema
+			if errorList := netAppValidate.ValidateNetAppVolumeQuotaRule(ctx, volumeID, metadata.Client, existing.Model); len(errorList) > 0 {
+				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
+			}
 
 			parameters := volumequotarules.VolumeQuotaRule{
 				Location: location.Normalize(model.Location),
