@@ -7,9 +7,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumequotarules"
@@ -54,7 +56,7 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeGroupName,
+			ValidateFunc: netAppValidate.VolumeQuotaRuleName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -85,6 +87,10 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 		"quota_target": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			ValidateFunc: validation.Any(
+				netAppValidate.ValidateWindowsSID,
+				netAppValidate.ValidateUnixUserIDOrGroupID,
+			),
 		},
 
 		"quota_size_in_kib": {
@@ -129,7 +135,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// Performing some validations that are not possible in the schema
+			// TODO: Add validation - Performing some validations that are not possible in the schema
 			// if errorList := netAppValidate.ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList); len(errorList) > 0 {
 			// 	return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			// }
@@ -146,6 +152,11 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 			err = client.CreateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// Waiting for volume quota rule to be completely provisioned
+			if err := waitForVolumeQuotaRuleCreateOrUpdate(ctx, client, id); err != nil {
+				return err
 			}
 
 			metadata.SetID(id)
@@ -187,6 +198,11 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 			if shouldUpdate {
 				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				// Waiting for volume quota rule to be completely provisioned
+				if err := waitForVolumeQuotaRuleCreateOrUpdate(ctx, client, pointer.From(id)); err != nil {
+					return err
 				}
 			}
 
@@ -268,5 +284,44 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
+	}
+}
+
+func waitForVolumeQuotaRuleCreateOrUpdate(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netappVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish creating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netappVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
+			}
+		}
+
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }
