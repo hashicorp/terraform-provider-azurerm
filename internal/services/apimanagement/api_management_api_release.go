@@ -75,9 +75,7 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	apiName := getApiName(apiId.ApiId)
-
-	id := apirelease.NewReleaseID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiName, name)
+	id := apirelease.NewReleaseID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiId.ApiId, name)
 	ifMatch := "*"
 
 	if d.IsNewResource() {
@@ -131,8 +129,7 @@ func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("name", id.ReleaseId)
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			apiName := getApiName(id.ApiId)
-			d.Set("api_id", api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName).ID())
+			d.Set("api_id", api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId).ID())
 			d.Set("notes", pointer.From(props.Notes))
 		}
 	}
