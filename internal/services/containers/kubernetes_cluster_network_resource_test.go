@@ -3506,7 +3506,7 @@ func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData, ebpfDat
 	if ebpfDataPlane != "" {
 		ebpfDataPlaneValue = fmt.Sprintf(`"%s"`, ebpfDataPlane)
 	}
-  
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
