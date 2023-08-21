@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
