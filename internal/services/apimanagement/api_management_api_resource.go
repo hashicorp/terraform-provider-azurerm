@@ -529,21 +529,19 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	name := getApiName(id.ApiId)
-	newId := api.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name)
-	resp, err := client.Get(ctx, newId)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] %s does not exist - removing from state", newId)
+			log.Printf("[INFO] %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", newId, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("name", name)
+	d.Set("name", getApiName(id.ApiId))
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -608,12 +606,9 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	name := getApiName(id.ApiId)
-
-	newId := api.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name)
-	if resp, err := client.Delete(ctx, newId, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
+	if resp, err := client.Delete(ctx, *id, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", newId, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
