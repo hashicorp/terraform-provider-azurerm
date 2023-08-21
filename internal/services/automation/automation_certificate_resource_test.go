@@ -107,7 +107,7 @@ func (t AutomationCertificateResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Automation.CertificateClient.Get(ctx, *id)
+	resp, err := clients.Automation.Certificate.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

@@ -537,7 +537,7 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Web Application Firewall Policy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil

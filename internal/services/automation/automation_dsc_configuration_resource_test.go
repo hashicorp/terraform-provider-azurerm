@@ -74,7 +74,7 @@ func (t AutomationDscConfigurationResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Automation.DscConfigurationClient.Get(ctx, *id)
+	resp, err := clients.Automation.DscConfiguration.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

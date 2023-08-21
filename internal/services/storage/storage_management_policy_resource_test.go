@@ -46,6 +46,21 @@ func TestAccStorageManagementPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccStorageManagementPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
+	r := StorageManagementPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccStorageManagementPolicy_singleAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
@@ -470,6 +485,16 @@ resource "azurerm_storage_management_policy" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageManagementPolicyResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "import" {
+  storage_account_id = azurerm_storage_management_policy.test.storage_account_id
+}
+`, r.basic(data))
 }
 
 func (r StorageManagementPolicyResource) singleAction(data acceptance.TestData) string {

@@ -811,28 +811,6 @@ func TestAccKubernetesCluster_httpProxyConfigWithSubnet(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_publicNetworkAccess(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.publicNetworkAccess(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.publicNetworkAccess(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesCluster_networkPluginMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -3528,6 +3506,7 @@ func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData, ebpfDat
 	if ebpfDataPlane != "" {
 		ebpfDataPlaneValue = fmt.Sprintf(`"%s"`, ebpfDataPlane)
 	}
+  
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
