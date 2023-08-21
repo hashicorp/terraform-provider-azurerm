@@ -859,6 +859,10 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 		result.AutoUpgradeMinorVersion = utils.Bool(autoUpgradeMinorVersion.(bool))
 	}
 
+	if autoUpgradeEnabled, ok := ref["automatic_upgrade_enabled"]; ok {
+		result.EnableAutomaticUpgrade = utils.Bool(autoUpgradeEnabled.(bool))
+	}
+
 	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
 		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
 	}
