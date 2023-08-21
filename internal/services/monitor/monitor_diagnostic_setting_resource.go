@@ -109,11 +109,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"enabled_log": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      !features.FourPointOhBeta(),
-				ConflictsWith: []string{"log"},
-				AtLeastOneOf:  []string{"enabled_log", "log", "metric"},
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				Computed:     !features.FourPointOhBeta(),
+				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -153,7 +152,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"metric": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				AtLeastOneOf: []string{"enabled_log", "log", "metric"},
+				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -240,6 +239,9 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 			Set: resourceMonitorDiagnosticLogSettingHash,
 		}
+
+		resource.Schema["metric"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
+		resource.Schema["enabled_log"].ConflictsWith = []string{"log"}
 	}
 
 	return resource
