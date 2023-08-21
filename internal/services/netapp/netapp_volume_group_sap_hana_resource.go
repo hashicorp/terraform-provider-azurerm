@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,13 +31,13 @@ import (
 type NetAppVolumeGroupSapHanaResource struct{}
 
 type NetAppVolumeGroupSapHanaModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+	Name                  string                                 `tfschema:"name"`
+	ResourceGroupName     string                                 `tfschema:"resource_group_name"`
+	Location              string                                 `tfschema:"location"`
+	AccountName           string                                 `tfschema:"account_name"`
+	GroupDescription      string                                 `tfschema:"group_description"`
+	ApplicationIdentifier string                                 `tfschema:"application_identifier"`
+	Volumes               []netAppModels.NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
 var _ sdk.Resource = NetAppVolumeGroupSapHanaResource{}
@@ -274,7 +275,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 								"replication_frequency": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(PossibleValuesForReplicationSchedule(), false),
+									ValidateFunc: validation.StringInSlice(netAppModels.PossibleValuesForReplicationSchedule(), false),
 								},
 							},
 						},

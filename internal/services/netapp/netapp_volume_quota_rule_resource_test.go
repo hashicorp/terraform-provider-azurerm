@@ -19,13 +19,13 @@ import (
 
 type NetAppVolumeQuotaRuleResource struct{}
 
-func TestAccNetAppVolumeQuotaRule_defaultIndividualGroupQuotaType(t *testing.T) {
+func TestAccNetAppVolumeQuotaRule_individualGroupQuotaType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_quota_rule", "test")
 	r := NetAppVolumeQuotaRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultIndividualGroupQuotaType(data),
+			Config: r.individualGroupQuotaType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -34,13 +34,14 @@ func TestAccNetAppVolumeQuotaRule_defaultIndividualGroupQuotaType(t *testing.T) 
 	})
 }
 
-func TestAccNetAppVolumeQuotaRule_defaultUserQuotaType(t *testing.T) {
+// *********************** I'M TESTING HERE *********************
+func TestAccNetAppVolumeQuotaRule_individualUserQuotaType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_quota_rule", "test")
 	r := NetAppVolumeQuotaRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultUserQuotaType(data),
+			Config: r.individualUserQuotaType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -64,13 +65,13 @@ func TestAccNetAppVolumeQuotaRule_defaultGroupQuotaType(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeQuotaRule_defaultIndividualUserQuotaType(t *testing.T) {
+func TestAccNetAppVolumeQuotaRule_defaultUserQuotaType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_quota_rule", "test")
 	r := NetAppVolumeQuotaRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultIndividualUserQuotaType(data),
+			Config: r.defaultUserQuotaType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -97,7 +98,7 @@ func (t NetAppVolumeQuotaRuleResource) Exists(ctx context.Context, clients *clie
 	return utils.Bool(true), nil
 }
 
-func (NetAppVolumeQuotaRuleResource) defaultIndividualGroupQuotaType(data acceptance.TestData) string {
+func (NetAppVolumeQuotaRuleResource) individualGroupQuotaType(data acceptance.TestData) string {
 	template := NetAppVolumeQuotaRuleResource{}.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -116,7 +117,7 @@ resource "azurerm_netapp_volume_quota_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeQuotaRuleResource) defaultIndividualUserQuotaType(data acceptance.TestData) string {
+func (NetAppVolumeQuotaRuleResource) individualUserQuotaType(data acceptance.TestData) string {
 	template := NetAppVolumeQuotaRuleResource{}.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -128,7 +129,7 @@ resource "azurerm_netapp_volume_quota_rule" "test" {
   account_name           = azurerm_netapp_account.test.name
   pool_name              = azurerm_netapp_pool.test.name
   volume_name            = azurerm_netapp_volume.test.name
-  quota_target           = "3001"
+  quota_target           = "S-1-5-21-3623811015-3361044348-30300820-1013"
   quota_size_in_kib      = 1024
   quota_type             = "IndividualUserQuota"
 }

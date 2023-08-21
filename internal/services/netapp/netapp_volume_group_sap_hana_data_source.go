@@ -14,17 +14,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type NetAppVolumeGroupSapHanaDataSourceModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+	Name                  string                                 `tfschema:"name"`
+	ResourceGroupName     string                                 `tfschema:"resource_group_name"`
+	Location              string                                 `tfschema:"location"`
+	AccountName           string                                 `tfschema:"account_name"`
+	GroupDescription      string                                 `tfschema:"group_description"`
+	ApplicationIdentifier string                                 `tfschema:"application_identifier"`
+	Volumes               []netAppModels.NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
 var _ sdk.DataSource = NetAppVolumeGroupSapHanaDataSource{}
