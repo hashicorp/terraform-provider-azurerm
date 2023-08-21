@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+`azurerm_api_management_policy` - fixes an error caused by a migration [GH-23018]
 * `azurerm_kubernetes_cluster` - deprecate `public_network_access_enabled` and prevent sending it to the API since it isn't functional [GH-22478]
 
 ## 3.70.0 (August 17, 2023)
