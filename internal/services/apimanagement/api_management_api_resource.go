@@ -606,7 +606,7 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
+	if resp, err := client.Delete(ctx, *id, api.DefaultDeleteOperationOptions()); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
