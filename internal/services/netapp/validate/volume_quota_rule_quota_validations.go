@@ -55,6 +55,20 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 		}
 	}
 
+	// Dual protocol volumes does not support group quotas
+	if len(pointer.From(volume.Model.Properties.ProtocolTypes)) == 2 {
+		if pointer.To(rule.QuotaType) != nil && (volumequotarules.Type(rule.QuotaType) == volumequotarules.TypeIndividualGroupQuota || volumequotarules.Type(rule.QuotaType) == volumequotarules.TypeDefaultGroupQuota) {
+			errors = append(errors, fmt.Errorf("'dual protocol volume %v cannot have group quotas'", volumeID.VolumeName))
+		}
+	}
+
+	// CIFS protocol volumes does not support group quotas
+	if findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "cifs") {
+		if pointer.To(rule.QuotaType) != nil && (volumequotarules.Type(rule.QuotaType) == volumequotarules.TypeIndividualGroupQuota || volumequotarules.Type(rule.QuotaType) == volumequotarules.TypeDefaultGroupQuota) {
+			errors = append(errors, fmt.Errorf("'cifs volume %v cannot have group quotas'", volumeID.VolumeName))
+		}
+	}
+
 	// Quota types and targets validations
 	errors = append(errors, ValidateNetAppVolumeQuotaRuleQuotaType(pointer.To(volumequotarules.Type(rule.QuotaType)), pointer.To(rule.QuotaTarget))...)
 
