@@ -663,7 +663,7 @@ func containerSecurityContextSchema() *pluginsdk.Schema {
 		ForceNew: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"priviledge_enabled": {
+				"privilege_enabled": {
 					Type:     pluginsdk.TypeBool,
 					ForceNew: true,
 					Required: true,
@@ -1095,7 +1095,7 @@ func expandContainerSecurityContext(input []interface{}) *containerinstance.Secu
 	raw := input[0].(map[string]interface{})
 
 	output := &containerinstance.SecurityContextDefinition{
-		Privileged: pointer.To(raw["priviledge_enabled"].(bool)),
+		Privileged: pointer.To(raw["privilege_enabled"].(bool)),
 	}
 
 	return output
@@ -1106,14 +1106,14 @@ func flattenContainerSecurityContext(input *containerinstance.SecurityContextDef
 		return []interface{}{}
 	}
 
-	var priviledged bool
+	var privileged bool
 	if v := input.Privileged; v != nil {
-		priviledged = *v
+		privileged = *v
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"priviledge_enabled": priviledged,
+			"privilege_enabled": privileged,
 		},
 	}
 }

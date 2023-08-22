@@ -2518,7 +2518,7 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
     security {
-      priviledge_enabled = %[3]t
+      privilege_enabled = %[3]t
     }
   }
 }
