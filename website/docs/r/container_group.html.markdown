@@ -345,7 +345,9 @@ The `dns_config` block supports:
 
 The `security` block supports:
 
-* `privilege_enabled` - (Required) Whether the container's permission is elevated to privileged? Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`. Changing this forces a new resource to be created.
+* `privilege_enabled` - (Required) Whether the container's permission is elevated to privileged? Changing this forces a new resource to be created.
+
+~> **NOTE:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`. 
 
 ## Attributes Reference
 
