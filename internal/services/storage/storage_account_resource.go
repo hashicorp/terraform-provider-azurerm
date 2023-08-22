@@ -2149,14 +2149,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var blobProps storage.BlobServiceProperties
 
 		// wait for blob service endpoint to become available
-		log.Printf("[INFO] reading %s blob service properties properties..", *id)
+		log.Printf("[DEBUG] reading %s blob service properties properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				blobProps, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] reading %s blob service properties properties: %+v", *id, err)
+					log.Printf("[DEBUG] reading %s blob service properties properties: %+v", *id, err)
 					return blobProps, "NotFound", nil
 				}
 				return blobProps, "Available", nil
@@ -2182,14 +2182,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var queueProps *queues.StorageServiceProperties
 
 		// wait for queue service endpoint to become available
-		log.Printf("[INFO] reading %s queue service properties properties..", *id)
+		log.Printf("[DEBUG] reading %s queue service properties properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				queueProps, err = queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] reading %s queue service properties properties: %+v", *id, err)
+					log.Printf("[DEBUG] reading %s queue service properties properties: %+v", *id, err)
 					return queueProps, "NotFound", nil
 				}
 				return queueProps, "Available", nil
@@ -2212,14 +2212,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var shareProps storage.FileServiceProperties
 
 		// wait for file service endpoint to become available
-		log.Printf("[INFO] reading %s file service properties properties..", *id)
+		log.Printf("[DEBUG] reading %s file service properties properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				shareProps, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] reading %s file service properties properties: %+v", *id, err)
+					log.Printf("[DEBUG] reading %s file service properties properties: %+v", *id, err)
 					return shareProps, "NotFound", nil
 				}
 				return shareProps, "Available", nil
@@ -2252,14 +2252,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var staticWebsiteProps accounts.GetServicePropertiesResult
 
 		// wait for static website endpoint to become available
-		log.Printf("[INFO] reading %s static website properties..", *id)
+		log.Printf("[DEBUG] reading %s static website properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] reading %s static website properties: %+v", *id, err)
+					log.Printf("[DEBUG] reading %s static website properties: %+v", *id, err)
 					return staticWebsiteProps, "NotFound", nil
 				}
 				return staticWebsiteProps, "Available", nil
