@@ -2149,22 +2149,26 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		blobClient := storageClient.BlobServicesClient
 		var blobProps storage.BlobServiceProperties
 
-		repeat := true
-		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
-		for repeat {
-			select {
-			case <-timeout:
-				log.Printf("[INFO] reading blob service properties timeout expired %s", *id)
-				return fmt.Errorf("reading blob service properties for %s: %+v", *id, err)
-			default:
+		// wait for blob service endpoint to become available
+
+		log.Printf("[INFO] reading %s blob service properties properties..", *id)
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"NotFound"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
 				blobProps, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] refreshing blob service properties %s: %+v", *id, err)
-					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
-				} else {
-					repeat = false // no error, exit loop
+					log.Printf("[INFO] reading %s blob service properties properties: %+v", *id, err)
+					return blobProps, "NotFound", nil
 				}
-			}
+				return blobProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s blob service properties properties: %+v", *id, err)
 		}
 
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
@@ -2180,22 +2184,26 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		var queueProps *queues.StorageServiceProperties
 
-		repeat := true
-		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
-		for repeat {
-			select {
-			case <-timeout:
-				log.Printf("[INFO] reading queue service properties timeout expired %s", *id)
-				return fmt.Errorf("reading queue service properties for %s: %+v", *id, err)
-			default:
+		// wait for queue service endpoint to become available
+
+		log.Printf("[INFO] reading %s queue service properties properties..", *id)
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"NotFound"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
 				queueProps, err = queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] refreshing queue service properties %s: %+v", *id, err)
-					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
-				} else {
-					repeat = false // no error, exit loop
+					log.Printf("[INFO] reading %s queue service properties properties: %+v", *id, err)
+					return queueProps, "NotFound", nil
 				}
-			}
+				return queueProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s queue service properties properties: %+v", *id, err)
 		}
 
 		if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
@@ -2208,22 +2216,26 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		fileServiceClient := storageClient.FileServicesClient
 		var shareProps storage.FileServiceProperties
 
-		repeat := true
-		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
-		for repeat {
-			select {
-			case <-timeout:
-				log.Printf("[INFO] reading file service properties timeout expired %s", *id)
-				return fmt.Errorf("reading file service properties for %s: %+v", *id, err)
-			default:
+		// wait for file service endpoint to become available
+
+		log.Printf("[INFO] reading %s file service properties properties..", *id)
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"NotFound"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
 				shareProps, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] refreshing file service properties %s: %+v", *id, err)
-					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
-				} else {
-					repeat = false // no error, exit loop
+					log.Printf("[INFO] reading %s file service properties properties: %+v", *id, err)
+					return shareProps, "NotFound", nil
 				}
-			}
+				return shareProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s file service properties properties: %+v", *id, err)
 		}
 
 		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
@@ -2246,22 +2258,26 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		var staticWebsiteProps accounts.GetServicePropertiesResult
 
-		repeat := true
-		timeout := time.After(5 * time.Minute) // set timeout to 5 minutes
-		for repeat {
-			select {
-			case <-timeout:
-				log.Printf("[INFO] reading static website properties timeout expired %s", *id)
-				return fmt.Errorf("reading static website properties for %s: %+v", *id, err)
-			default:
+		// wait for static website endpoint to become available
+
+		log.Printf("[INFO] reading %s static website properties..", *id)
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"NotFound"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
 				staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
 				if err != nil {
-					log.Printf("[INFO] refreshing static website properties %s: %+v", *id, err)
-					time.Sleep(5 * time.Second) // wait for 5 seconds before retrying
-				} else {
-					repeat = false // no error, exit loop
+					log.Printf("[INFO] reading %s static website properties: %+v", *id, err)
+					return staticWebsiteProps, "NotFound", nil
 				}
-			}
+				return staticWebsiteProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s static website properties: %+v", *id, err)
 		}
 
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
