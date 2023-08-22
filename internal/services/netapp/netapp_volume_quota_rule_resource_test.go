@@ -103,15 +103,15 @@ func (NetAppVolumeQuotaRuleResource) individualGroupQuotaType(data acceptance.Te
 %[1]s
 
 resource "azurerm_netapp_volume_quota_rule" "test" {
-  name                   = "acctest-NetAppVolumeQuotaRule-%[2]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  account_name           = azurerm_netapp_account.test.name
-  pool_name              = azurerm_netapp_pool.test.name
-  volume_name            = azurerm_netapp_volume.test.name
-  quota_target           = "3001"
-  quota_size_in_kib      = 1024
-  quota_type             = "IndividualGroupQuota"
+  name                = "acctest-NetAppVolumeQuotaRule-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_name         = azurerm_netapp_volume.test.name
+  quota_target        = "3001"
+  quota_size_in_kib   = 1024
+  quota_type          = "IndividualGroupQuota"
 }
 `, template, data.RandomInteger)
 }
@@ -122,15 +122,15 @@ func (NetAppVolumeQuotaRuleResource) individualUserQuotaType(data acceptance.Tes
 %[1]s
 
 resource "azurerm_netapp_volume_quota_rule" "test" {
-  name                   = "acctest-NetAppVolumeQuotaRule-%[2]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  account_name           = azurerm_netapp_account.test.name
-  pool_name              = azurerm_netapp_pool.test.name
-  volume_name            = azurerm_netapp_volume.test.name
-  quota_target           = "3001"
-  quota_size_in_kib      = 1024
-  quota_type             = "IndividualUserQuota"
+  name                = "acctest-NetAppVolumeQuotaRule-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_name         = azurerm_netapp_volume.test.name
+  quota_target        = "3001"
+  quota_size_in_kib   = 1024
+  quota_type          = "IndividualUserQuota"
 }
 `, template, data.RandomInteger)
 }
@@ -141,14 +141,14 @@ func (NetAppVolumeQuotaRuleResource) defaultUserQuotaType(data acceptance.TestDa
 %[1]s
 
 resource "azurerm_netapp_volume_quota_rule" "test" {
-  name                   = "acctest-NetAppVolumeQuotaRule-Default-Usr-%[2]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  account_name           = azurerm_netapp_account.test.name
-  pool_name              = azurerm_netapp_pool.test.name
-  volume_name            = azurerm_netapp_volume.test.name
-  quota_size_in_kib      = 1024
-  quota_type             = "DefaultUserQuota"
+  name                = "acctest-NetAppVolumeQuotaRule-Default-Usr-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_name         = azurerm_netapp_volume.test.name
+  quota_size_in_kib   = 1024
+  quota_type          = "DefaultUserQuota"
 }
 `, template, data.RandomInteger)
 }
@@ -159,14 +159,14 @@ func (NetAppVolumeQuotaRuleResource) defaultGroupQuotaType(data acceptance.TestD
 %[1]s
 
 resource "azurerm_netapp_volume_quota_rule" "test" {
-  name                   = "acctest-NetAppVolumeQuotaRule-Default-Grp-%[2]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  account_name           = azurerm_netapp_account.test.name
-  pool_name              = azurerm_netapp_pool.test.name
-  volume_name            = azurerm_netapp_volume.test.name
-  quota_size_in_kib      = 1024
-  quota_type             = "DefaultGroupQuota"
+  name                = "acctest-NetAppVolumeQuotaRule-Default-Grp-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_name         = azurerm_netapp_volume.test.name
+  quota_size_in_kib   = 1024
+  quota_type          = "DefaultGroupQuota"
 }
 `, template, data.RandomInteger)
 }
