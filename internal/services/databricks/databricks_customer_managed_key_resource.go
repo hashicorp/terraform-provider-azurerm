@@ -10,8 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/migration"
@@ -103,12 +105,23 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	var keySource workspaces.KeySource
+	var params *workspaces.WorkspaceCustomParameters
+
 	if model := workspace.Model; model != nil {
-		if parameters := model.Properties.Parameters; parameters != nil {
-			if parameters.PrepareEncryption != nil {
+		if params = model.Properties.Parameters; params != nil {
+			if params.PrepareEncryption != nil {
 				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
 			}
+
+			if params.Encryption != nil && params.Encryption.Value != nil {
+				keySource = pointer.From(params.Encryption.Value.KeySource)
+			}
+		} else {
+			return fmt.Errorf("`WorkspaceCustomParameters` were nil")
 		}
+	} else {
+		return fmt.Errorf("`Workspace` was nil")
 	}
 
 	if !encryptionEnabled {
@@ -121,10 +134,10 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	// NOTE: Removed d.IsNewResouce check, the reason why I remove it is because it never made sense in the first place.
-	// If you create the CMK resource, remove it then add it again you will get an import error.
-	// It should not matter, nor care, if it is a new resource or not since it is only wrapping the
-	// custom parameters encyption value...
+	// Only throw the import error if the keysource value has been set to something other than default...
+	if params.Encryption != nil && params.Encryption.Value != nil && keySource != workspaces.KeySourceDefault {
+		return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
+	}
 
 	// We need to pull all of the custom params from the parent
 	// workspace resource and then add our new encryption values into the
@@ -132,14 +145,12 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	// resource will be lost and overwritten as nil. ¯\_(ツ)_/¯
 	// NOTE: 'workspace.Parameters' will never be nil as 'customer_managed_key_enabled' and 'infrastructure_encryption_enabled'
 	// fields have a default value in the parent workspace resource.
-	keySource := workspaces.KeySourceMicrosoftPointKeyvault
-	params := workspace.Model.Properties.Parameters
 	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
 		Value: &workspaces.Encryption{
-			KeySource:   &keySource,
-			KeyName:     &key.Name,
-			Keyversion:  &key.Version,
-			Keyvaulturi: &key.KeyVaultBaseUrl,
+			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
+			KeyName:     pointer.To(key.Name),
+			Keyversion:  pointer.To(key.Version),
+			Keyvaulturi: pointer.To(key.KeyVaultBaseUrl),
 		},
 	}
 

@@ -63,6 +63,23 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	cmkTemplate := r.cmkTemplate()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, cmkTemplate),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(parent.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -109,8 +126,20 @@ func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context,
 	return utils.Bool(false), nil
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
-	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
+func (r DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
+	cmkTemplate := r.cmkTemplate()
+	template := r.basic(data, cmkTemplate)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_databricks_workspace_customer_managed_key" "import" {
+  workspace_id     = azurerm_databricks_workspace.test.id
+  key_vault_key_id = azurerm_key_vault_key.test.id
+}
+`, template)
+}
+
+func (r DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
+	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -139,8 +168,8 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, "eastus2", keyVault, cmk)
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
-	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
+func (r DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
+	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
