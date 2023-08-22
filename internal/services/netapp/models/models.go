@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package models
 
 type NetAppVolumeGroupVolume struct {
@@ -19,6 +22,26 @@ type NetAppVolumeGroupVolume struct {
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
 	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
+}
+
+type NetAppVolumeGroupSapHanaModel struct {
+	Name                  string                    `tfschema:"name"`
+	ResourceGroupName     string                    `tfschema:"resource_group_name"`
+	Location              string                    `tfschema:"location"`
+	AccountName           string                    `tfschema:"account_name"`
+	GroupDescription      string                    `tfschema:"group_description"`
+	ApplicationIdentifier string                    `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+}
+
+type NetAppVolumeGroupSapHanaDataSourceModel struct {
+	Name                  string                    `tfschema:"name"`
+	ResourceGroupName     string                    `tfschema:"resource_group_name"`
+	Location              string                    `tfschema:"location"`
+	AccountName           string                    `tfschema:"account_name"`
+	GroupDescription      string                    `tfschema:"group_description"`
+	ApplicationIdentifier string                    `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
 type ExportPolicyRule struct {
@@ -59,6 +82,18 @@ func PossibleValuesForReplicationSchedule() []string {
 }
 
 type NetAppVolumeQuotaRuleModel struct {
+	Name              string `tfschema:"name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	Location          string `tfschema:"location"`
+	AccountName       string `tfschema:"account_name"`
+	CapacityPoolName  string `tfschema:"pool_name"`
+	VolumeName        string `tfschema:"volume_name"`
+	QuotaTarget       string `tfschema:"quota_target"`
+	QuotaSizeInKiB    int64  `tfschema:"quota_size_in_kib"`
+	QuotaType         string `tfschema:"quota_type"`
+}
+
+type NetAppVolumeQuotaRuleDataSourceModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	Location          string `tfschema:"location"`

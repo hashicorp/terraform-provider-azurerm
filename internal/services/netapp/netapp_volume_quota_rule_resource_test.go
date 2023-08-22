@@ -34,7 +34,6 @@ func TestAccNetAppVolumeQuotaRule_individualGroupQuotaType(t *testing.T) {
 	})
 }
 
-// *********************** I'M TESTING HERE *********************
 func TestAccNetAppVolumeQuotaRule_individualUserQuotaType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_quota_rule", "test")
 	r := NetAppVolumeQuotaRuleResource{}
@@ -129,7 +128,7 @@ resource "azurerm_netapp_volume_quota_rule" "test" {
   account_name           = azurerm_netapp_account.test.name
   pool_name              = azurerm_netapp_pool.test.name
   volume_name            = azurerm_netapp_volume.test.name
-  quota_target           = "S-1-5-21-3623811015-3361044348-30300820-1013"
+  quota_target           = "3001"
   quota_size_in_kib      = 1024
   quota_type             = "IndividualUserQuota"
 }

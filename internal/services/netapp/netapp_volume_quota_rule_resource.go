@@ -77,10 +77,6 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 		"quota_target": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// ValidateFunc: validation.Any(
-			// 	netAppValidate.ValidateWindowsSID,
-			// 	netAppValidate.ValidateUnixUserIDOrGroupID,
-			// ),
 		},
 
 		"quota_size_in_kib": {
@@ -230,8 +226,6 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			metadata.SetID(id)
-
 			model := netAppModels.NetAppVolumeQuotaRuleModel{
 				Name:              id.VolumeQuotaRuleName,
 				AccountName:       id.NetAppAccountName,
@@ -243,6 +237,8 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				QuotaSizeInKiB:    pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
 				QuotaType:         string(pointer.From(existing.Model.Properties.QuotaType)),
 			}
+
+			metadata.SetID(id)
 
 			return metadata.Encode(&model)
 		},
