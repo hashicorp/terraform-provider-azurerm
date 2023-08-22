@@ -2145,12 +2145,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier)
 
 	if supportLevel.supportBlob {
-		var err error
 		blobClient := storageClient.BlobServicesClient
 		var blobProps storage.BlobServiceProperties
 
 		// wait for blob service endpoint to become available
-
 		log.Printf("[INFO] reading %s blob service properties properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
@@ -2177,7 +2175,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportQueue {
-		var err error
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
 			log.Printf("building Queues Client: %s", err)
@@ -2185,7 +2182,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var queueProps *queues.StorageServiceProperties
 
 		// wait for queue service endpoint to become available
-
 		log.Printf("[INFO] reading %s queue service properties properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
@@ -2212,12 +2208,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportShare {
-		var err error
 		fileServiceClient := storageClient.FileServicesClient
 		var shareProps storage.FileServiceProperties
 
 		// wait for file service endpoint to become available
-
 		log.Printf("[INFO] reading %s file service properties properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
@@ -2244,7 +2238,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportStaticWebsite {
-		var err error
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
 		if err != nil {
@@ -2259,7 +2252,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var staticWebsiteProps accounts.GetServicePropertiesResult
 
 		// wait for static website endpoint to become available
-
 		log.Printf("[INFO] reading %s static website properties..", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"NotFound"},
