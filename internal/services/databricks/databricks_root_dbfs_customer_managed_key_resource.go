@@ -98,7 +98,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	var keySource workspaces.KeySource
+	keySource := workspaces.KeySourceDefault
 	var params *workspaces.WorkspaceCustomParameters
 
 	if model := workspace.Model; model != nil {
@@ -107,7 +107,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
 			}
 
-			if params.Encryption.Value != nil {
+			if params.Encryption != nil && params.Encryption.Value != nil && params.Encryption.Value.KeySource != nil {
 				keySource = pointer.From(params.Encryption.Value.KeySource)
 			}
 		} else {
