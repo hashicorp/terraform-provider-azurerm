@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_disk_encryption_set` - add support for the `identity` block [GH-23005]
 * `azurerm_linux_virtual_machine_scale_set` - cancel rolling upgrades that are in progress before destroying the resource [GH-22991]
 * `azurerm_windows_virtual_machine_scale_set` - cancel rolling upgrades that are in progress before destroying the resource [GH-22991]
+* `azurerm_synapse_spark_pool` - support addtional values for the `node_size_family` property [GH-23040]
 
 BUG FIXES:
 
