@@ -14,14 +14,14 @@ Manages a Volume Quota Rule.
 
 ```hcl
 resource "azurerm_netapp_volume_quota_rule" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = "example"
-  location = "West Europe"
-  quota_size_in_kib = 42
-  account_name = "example"
-  pool_name = "example"
-  volume_name = "example"
-  quota_type = "IndividualUserQuota"
+  location            = "West Europe"
+  quota_size_in_kib   = 42
+  account_name        = "example"
+  pool_name           = "example"
+  volume_name         = "example"
+  quota_type          = "IndividualUserQuota"
 }
 ```
 

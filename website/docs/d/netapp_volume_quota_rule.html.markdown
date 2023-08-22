@@ -14,11 +14,11 @@ Use this data source to access information about an existing Volume Quota Rule.
 
 ```hcl
 data "azurerm_netapp_volume_quota_rule" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
-  volume_name = "existing"
-  account_name = "existing"
-  pool_name = "existing"
+  volume_name         = "existing"
+  account_name        = "existing"
+  pool_name           = "existing"
 }
 
 output "id" {
