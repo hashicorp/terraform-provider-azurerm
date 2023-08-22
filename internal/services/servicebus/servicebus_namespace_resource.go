@@ -6,7 +6,6 @@ package servicebus
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -180,7 +179,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -657,20 +656,21 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 	networkRules := flattenServiceBusNamespaceVirtualNetworkRules(networkRuleSet.VirtualNetworkRules)
 	ipRules := flattenServiceBusNamespaceIPRules(networkRuleSet.IPRules)
 
-	// only set network rule set if the values are different then what they are defaulted to during namespace creation
-	// this is to get around having `network_rule_set` be Optional/Computed
-	if defaultAction == string(namespaces.DefaultActionAllow) &&
-		publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled &&
-		trustedServiceEnabled == false &&
-		len(networkRules) == 0 &&
-		len(ipRules) == 0 {
+	/*
+		// only set network rule set if the values are different then what they are defaulted to during namespace creation
+		// this is to get around having `network_rule_set` be Optional/Computed
+		if defaultAction == string(namespaces.DefaultActionAllow) &&
+			publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled &&
+			trustedServiceEnabled == false &&
+			len(networkRules) == 0 &&
+			len(ipRules) == 0 {
 
-		return []interface{}{}
-	}
+			return []interface{}{}
+		}*/
 
 	return []interface{}{map[string]interface{}{
 		"default_action":                defaultAction,
-		"trusted_services_allowed":      networkRuleSet.TrustedServiceAccessEnabled,
+		"trusted_services_allowed":      trustedServiceEnabled,
 		"public_network_access_enabled": publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled,
 		"network_rules":                 pluginsdk.NewSet(networkRuleHash, networkRules),
 		"ip_rules":                      ipRules,
