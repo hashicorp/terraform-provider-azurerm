@@ -33,7 +33,6 @@ func DatabaseSkuName() pluginsdk.SchemaValidateFunc {
 	pattern := "(?i)(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)"
 	return validation.StringMatch(regexp.MustCompile(fmt.Sprintf(pattern, Free, Basic, Elastic, Standard, Premium, DataWarehouse, Stretch, BusinessCritical, Gen4, Gen5, HsGen5, ServerlessGen5, Fsv2, Dc, EightIM, Serverless8IM)),
 
-
 		`This is not a valid sku name. For example, a valid sku name is 'GP_S_Gen5_1','HS_Gen4_1','BC_Gen5_2', 'ElasticPool', 'Basic', 'S0', 'P1'.`,
 	)
 }
