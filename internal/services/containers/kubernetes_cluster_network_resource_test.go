@@ -811,28 +811,6 @@ func TestAccKubernetesCluster_httpProxyConfigWithSubnet(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_publicNetworkAccess(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.publicNetworkAccess(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.publicNetworkAccess(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesCluster_networkPluginMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -854,7 +832,14 @@ func TestAccKubernetesCluster_ebpfDataPlane(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ebpfDataPlane(data),
+			Config: r.ebpfDataPlane(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ebpfDataPlane(data, "cilium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3482,41 +3467,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) publicNetworkAccess(data acceptance.TestData, enabled bool) string {
-	authorizedIPConfig := ""
-	if !enabled {
-		authorizedIPConfig = `api_server_access_profile {
-	authorized_ip_ranges = ["0.0.0.0/0"]
-  }`
+func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData, ebpfDataPlane string) string {
+	ebpfDataPlaneValue := "null"
+	if ebpfDataPlane != "" {
+		ebpfDataPlaneValue = fmt.Sprintf(`"%s"`, ebpfDataPlane)
 	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2s_v3"
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  public_network_access_enabled = %t
-  %s
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, authorizedIPConfig)
-}
 
-func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3558,11 +3514,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
-    ebpf_data_plane     = "cilium"
+    ebpf_data_plane     = %[3]s
     network_plugin_mode = "overlay"
   }
 }
-`, "westcentralus", data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, ebpfDataPlaneValue)
 }
 
 func (KubernetesClusterResource) networkPluginMode(data acceptance.TestData) string {

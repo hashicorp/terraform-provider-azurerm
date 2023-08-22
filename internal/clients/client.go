@@ -396,7 +396,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
 	}
-	client.DevTestLabs = devtestlabs.NewClient(o)
+	if client.DevTestLabs, err = devtestlabs.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DevTestLabs: %+v", err)
+	}
 	if client.DigitalTwins, err = digitaltwins.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DigitalTwins: %+v", err)
 	}

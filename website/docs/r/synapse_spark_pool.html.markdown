@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Synapse Spark Pool should exist. Changing this forces a new Synapse Spark Pool to be created.
 
-* `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible values are `MemoryOptimized` and `None`.
+* `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible values are `HardwareAcceleratedFPGA`, `HardwareAcceleratedGPU`, `MemoryOptimized`, and `None`.
 
 * `node_size` - (Required) The level of node in the Spark Pool. Possible values are `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
 

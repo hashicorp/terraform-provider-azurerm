@@ -1,6 +1,5 @@
 # github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 ## explicit
-github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
@@ -108,7 +107,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.58.0
+# github.com/hashicorp/go-azure-helpers v0.59.0
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/eventhub
@@ -128,7 +127,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230811.1084201
+# github.com/hashicorp/go-azure-sdk v0.20230815.1165905
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -139,7 +138,52 @@ github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/p
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/analysisservices
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apidiagnostic
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperation
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationpolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationtag
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apipolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apirelease
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apischema
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apitag
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apitagdescription
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apiversionset
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apiversionsets
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/authorizationserver
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/backend
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/cache
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/certificate
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/delegationsettings
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/deletedservice
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/diagnostic
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/emailtemplates
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gateway
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gatewayapi
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gatewaycertificateauthority
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gatewayhostnameconfiguration
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/group
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/groupuser
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/identityprovider
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/logger
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/namedvalue
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientemail
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientuser
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/openidconnectprovider
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/policy
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/product
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/productapi
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/productgroup
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/productpolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/producttag
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signinsettings
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signupsettings
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/subscription
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tag
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tenantaccess
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/user
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations
@@ -154,11 +198,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/role
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/activity
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/certificate
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/connection
@@ -167,11 +211,30 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/credent
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscnodeconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/hybridrunbookworker
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/hybridrunbookworkergroup
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/job
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobstream
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/linkedworkspace
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/listkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/module
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/objectdatatypes
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/operations
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/python2package
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/python3package
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/schedule
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/softwareupdateconfigurationmachinerun
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/softwareupdateconfigurationrun
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/sourcecontrol
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/sourcecontrolsyncjob
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/sourcecontrolsyncjobstreams
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/statistics
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/testjob
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/testjobstream
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/typefields
+github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/usages
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable
 github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01
@@ -770,6 +833,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2
 github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links
 github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker
 github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr
+github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners
+github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/blobcontainers

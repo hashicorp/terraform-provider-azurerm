@@ -129,7 +129,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Automation.VariableClient
+			client := metadata.Client.Automation.Variable
 
 			variableList, err := client.ListByAutomationAccountComplete(ctx, pointer.From(automationAccountId))
 			if err != nil {

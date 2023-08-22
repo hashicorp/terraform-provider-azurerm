@@ -82,7 +82,7 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 }
 
 func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CertificateClient
+	client := meta.(*clients.Client).Automation.Certificate
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +129,7 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CertificateClient
+	client := meta.(*clients.Client).Automation.Certificate
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -164,7 +164,7 @@ func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceAutomationCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CertificateClient
+	client := meta.(*clients.Client).Automation.Certificate
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

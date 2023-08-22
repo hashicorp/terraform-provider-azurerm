@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -133,18 +133,18 @@ func TestAccStorageAccountCustomerManagedKey_userAssignedIdentity(t *testing.T) 
 }
 
 func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	accountId, err := storageParse.StorageAccountID(state.Attributes["id"])
+	accountId, err := commonids.ParseStorageAccountID(state.Attributes["id"])
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroup, accountId.Name, "")
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroupName, accountId.StorageAccountName, "")
 	if err != nil {
 		return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 	}
 
 	if utils.ResponseWasNotFound(resp.Response) {
-		return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", accountId.Name, accountId.ResourceGroup)
+		return fmt.Errorf("Bad: %s does not exist", accountId)
 	}
 
 	if props := resp.AccountProperties; props != nil {
@@ -170,12 +170,12 @@ func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx 
 }
 
 func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	accountId, err := storageParse.StorageAccountID(state.Attributes["storage_account_id"])
+	accountId, err := commonids.ParseStorageAccountID(state.Attributes["storage_account_id"])
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroup, accountId.Name, "")
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroupName, accountId.StorageAccountName, "")
 	if err != nil {
 		return nil, fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 	}

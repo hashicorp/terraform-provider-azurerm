@@ -71,7 +71,6 @@ var windowsApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.java_version",
 	"site_config.0.application_stack.0.node_version",
 	"site_config.0.application_stack.0.php_version",
-	"site_config.0.application_stack.0.python_version",
 	"site_config.0.application_stack.0.python",
 }
 
