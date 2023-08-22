@@ -1,5 +1,9 @@
 ## 3.71.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_databricks_workspace_root_dbfs_customer_managed_key` [GH-22579]
+
 ENHANCEMENTS:
 
 * `automation`: upgrade remaining resources to `2022-08-08` [GH-22989]
