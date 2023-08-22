@@ -131,7 +131,7 @@ func (r DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) requiresImport(da
 	template := r.basic(data, cmkTemplate)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_databricks_workspace_customer_managed_key" "import" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "import" {
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
 }
