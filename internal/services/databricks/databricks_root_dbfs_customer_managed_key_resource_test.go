@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatabricksWorkspaceCustomerManagedKeyResource struct{}
+type DatabricksWorkspaceRootDbfsCustomerManagedKeyResource struct{}
 
-func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_root_dbfs_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
-	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	r := DatabricksWorkspaceRootDbfsCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -37,10 +37,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_remove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_root_dbfs_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
-	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	r := DatabricksWorkspaceRootDbfsCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,10 +63,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_root_dbfs_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
-	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	r := DatabricksWorkspaceRootDbfsCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -80,10 +80,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_noIp(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_root_dbfs_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
-	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	r := DatabricksWorkspaceRootDbfsCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -105,7 +105,7 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
 	})
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -126,19 +126,19 @@ func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context,
 	return utils.Bool(false), nil
 }
 
-func (r DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
+func (r DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
 	cmkTemplate := r.cmkTemplate()
 	template := r.basic(data, cmkTemplate)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_databricks_workspace_customer_managed_key" "import" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "import" {
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
 }
 `, template)
 }
 
-func (r DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
+func (r DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
 	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -168,7 +168,7 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, "eastus2", keyVault, cmk)
 }
 
-func (r DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
+func (r DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
 	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -201,9 +201,9 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, "eastus2", keyVault, data.RandomString, cmk)
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) cmkTemplate() string {
+func (DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) cmkTemplate() string {
 	return `
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.test.id
@@ -212,7 +212,7 @@ resource "azurerm_databricks_workspace_customer_managed_key" "test" {
 `
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) keyVaultTemplate(data acceptance.TestData) string {
+func (DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) keyVaultTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_key_vault" "test" {
   name                = "acctest-kv-%[3]s"
