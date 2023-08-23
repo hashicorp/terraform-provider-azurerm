@@ -6,6 +6,7 @@ package servicebus
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -179,7 +180,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: !features.FourPointOhBeta(),
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -601,7 +602,7 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 
 	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
 	if defaultAction == namespaces.DefaultActionDeny && vnetRule == nil && ipRule == nil {
-		return fmt.Errorf(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set", id)
+		return fmt.Errorf(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
 	}
 
 	publicNetworkAccess := namespaces.PublicNetworkAccessFlag(publicNetworkAcc)
@@ -656,9 +657,9 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 	networkRules := flattenServiceBusNamespaceVirtualNetworkRules(networkRuleSet.VirtualNetworkRules)
 	ipRules := flattenServiceBusNamespaceIPRules(networkRuleSet.IPRules)
 
-	/*
-		// only set network rule set if the values are different then what they are defaulted to during namespace creation
-		// this is to get around having `network_rule_set` be Optional/Computed
+	// only set network rule set if the values are different than what they are defaulted to during namespace creation
+	// this has to wait until 4.0 due to `azurerm_servicebus_namespace_network_rule_set` which forces `network_rule_set` to be Optional/Computed
+	if features.FourPointOhBeta() {
 		if defaultAction == string(namespaces.DefaultActionAllow) &&
 			publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled &&
 			trustedServiceEnabled == false &&
@@ -666,7 +667,8 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 			len(ipRules) == 0 {
 
 			return []interface{}{}
-		}*/
+		}
+	}
 
 	return []interface{}{map[string]interface{}{
 		"default_action":                defaultAction,
