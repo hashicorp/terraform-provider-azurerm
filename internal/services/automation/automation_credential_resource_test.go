@@ -72,7 +72,7 @@ func (t AutomationCredentialResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Automation.CredentialClient.Get(ctx, *id)
+	resp, err := clients.Automation.Credential.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

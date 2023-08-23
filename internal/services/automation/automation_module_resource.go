@@ -91,7 +91,7 @@ func resourceAutomationModule() *pluginsdk.Resource {
 }
 
 func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ModuleClient
+	client := meta.(*clients.Client).Automation.Module
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +183,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ModuleClient
+	client := meta.(*clients.Client).Automation.Module
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -210,7 +210,7 @@ func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ModuleClient
+	client := meta.(*clients.Client).Automation.Module
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -431,9 +432,9 @@ func (r StorageManagementPolicyResource) Exists(ctx context.Context, client *cli
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.ManagementPoliciesClient.Get(ctx, id.ResourceGroupName, id.StorageAccountName)
+	resp, err := client.Storage.ResourceManager.ManagementPolicies.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Management Policy for %s: %+v", id, err)

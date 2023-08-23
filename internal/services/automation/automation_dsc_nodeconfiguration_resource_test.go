@@ -55,7 +55,7 @@ func (t AutomationDscNodeConfigurationResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	resp, err := clients.Automation.DscNodeConfigurationClient.Get(ctx, *id)
+	resp, err := clients.Automation.DscNodeConfiguration.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
