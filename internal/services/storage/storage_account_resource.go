@@ -2346,15 +2346,15 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 func handleStorageServiceError(service string, err error) (interface{}, string, error) {
 	// if the error is a DetailedError type, check the status code and return the appropriate state
 	if respErr, ok := err.(azautorest.DetailedError); ok {
-		log.Printf("[INFO] error getting %s service properties: method=%s, statusCode=%d, message=%s\n", service, respErr.Method, respErr.StatusCode.(int), respErr.Message)
+		log.Printf("[DEBUG] error getting %s service properties: method=%s, statusCode=%d, message=%s\n", service, respErr.Method, respErr.StatusCode.(int), respErr.Message)
 		if respErr.StatusCode == 404 {
 			// if the status code is 404 (not found), retry the request
-			log.Printf("[INFO] getting %s service properties: retrying...\n", service)
+			log.Printf("[DEBUG] getting %s service properties: retrying...\n", service)
 			return nil, "Pending", nil
 		}
 	}
 	// if the error is unhandled type or status, log the error and return the error state
-	log.Printf("[INFO] error %s service properties: %v\n", service, err)
+	log.Printf("[DEBUG] error %s service properties: %v\n", service, err)
 	return nil, "error", err
 }
 
