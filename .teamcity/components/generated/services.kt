@@ -105,6 +105,7 @@ var services = mapOf(
         "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
         "resource" to "Resources",
+        "resourceconnector" to "Resource Connector",
         "sql" to "SQL",
         "search" to "Search",
         "securitycenter" to "Security Center",

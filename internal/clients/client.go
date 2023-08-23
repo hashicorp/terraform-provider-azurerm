@@ -122,6 +122,7 @@ import (
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	resourceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/resourceconnector/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	securityCenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
@@ -254,6 +255,7 @@ type Client struct {
 	RedisEnterprise              *redisenterprise.Client
 	Relay                        *relay.Client
 	Resource                     *resource.Client
+	ResourceConnector            *resourceConnector.Client
 	Search                       *search.Client
 	SecurityCenter               *securityCenter.Client
 	Sentinel                     *sentinel.Client
@@ -553,6 +555,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Resource, err = resource.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Resource: %+v", err)
+	}
+	if client.ResourceConnector, err = resourceConnector.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Resource connector: %+v", err)
 	}
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)

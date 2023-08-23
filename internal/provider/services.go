@@ -107,6 +107,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resourceconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
@@ -186,6 +187,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		privatednsresolver.Registration{},
 		recoveryservices.Registration{},
 		resource.Registration{},
+		resourceconnector.Registration{},
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
