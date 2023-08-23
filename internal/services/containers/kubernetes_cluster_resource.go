@@ -105,6 +105,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta interface{}) bool {
+				return new.(string) != string(managedclusters.NetworkPluginModeOverlay) || new != "Overlay"
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
