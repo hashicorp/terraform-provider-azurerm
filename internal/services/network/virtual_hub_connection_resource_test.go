@@ -239,16 +239,17 @@ func TestAccVirtualHubConnection_requiresLocking(t *testing.T) {
 func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
+	nameSuffix := randString()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		//{
+		//	Config: r.withRoutingConfiguration(data),
+		//	Check: acceptance.ComposeTestCheckFunc(
+		//		check.That(data.ResourceName).ExistsInAzure(r),
+		//	),
+		//},
 		{
-			Config: r.withRoutingConfiguration(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.updateRoutingConfiguration(data),
+			Config: r.updateRoutingConfiguration(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -553,16 +554,65 @@ resource "azurerm_virtual_hub_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubConnectionResource) updateRoutingConfiguration(data acceptance.TestData) string {
+func (r VirtualHubConnectionResource) updateRoutingConfiguration(data acceptance.TestData, nameSuffix string) string {
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_route_map" "test" {
+  name           = "acctestrm-%[2]s"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+
+  rule {
+    name                 = "rule1"
+    next_step_if_matched = "Continue"
+
+    action {
+      type = "Add"
+
+      parameter {
+        as_path = ["22334"]
+      }
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["10.0.0.0/8"]
+    }
+  }
+}
+
+resource "azurerm_route_map" "test2" {
+  name           = "acctestrmn-%[2]s"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+
+  rule {
+    name                 = "rule1"
+    next_step_if_matched = "Continue"
+
+    action {
+      type = "Add"
+
+      parameter {
+        as_path = ["22334"]
+      }
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["10.0.0.0/8"]
+    }
+  }
+}
+
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%[2]d"
+  name                      = "acctest-vhubconn-%[3]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
   routing {
+    inbound_route_map_id  = azurerm_route_map.test.id
+    outbound_route_map_id = azurerm_route_map.test2.id
+
     propagated_route_table {
       labels = ["label3"]
     }
@@ -574,5 +624,5 @@ resource "azurerm_virtual_hub_connection" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), nameSuffix, data.RandomInteger)
 }

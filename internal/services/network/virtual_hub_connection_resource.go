@@ -89,6 +89,18 @@ func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
 						AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 					},
 
+					"inbound_route_map_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.RouteMapID,
+					},
+
+					"outbound_route_map_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.RouteMapID,
+					},
+
 					"propagated_route_table": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -312,6 +324,18 @@ func expandVirtualHubConnectionRouting(input []interface{}) *network.RoutingConf
 		}
 	}
 
+	if inboundRouteMapId := v["inbound_route_map_id"].(string); inboundRouteMapId != "" {
+		result.InboundRouteMap = &network.SubResource{
+			ID: utils.String(inboundRouteMapId),
+		}
+	}
+
+	if outboundRouteMapId := v["outbound_route_map_id"].(string); outboundRouteMapId != "" {
+		result.OutboundRouteMap = &network.SubResource{
+			ID: utils.String(outboundRouteMapId),
+		}
+	}
+
 	if vnetStaticRoute := v["static_vnet_route"].([]interface{}); len(vnetStaticRoute) != 0 {
 		result.VnetRoutes = expandVirtualHubConnectionVnetStaticRoute(vnetStaticRoute)
 	}
@@ -401,9 +425,21 @@ func flattenVirtualHubConnectionRouting(input *network.RoutingConfiguration) []i
 		associatedRouteTableId = *input.AssociatedRouteTable.ID
 	}
 
+	inboundRouteMapId := ""
+	if input.InboundRouteMap != nil && input.InboundRouteMap.ID != nil {
+		inboundRouteMapId = *input.InboundRouteMap.ID
+	}
+
+	outboundRouteMapId := ""
+	if input.OutboundRouteMap != nil && input.OutboundRouteMap.ID != nil {
+		outboundRouteMapId = *input.OutboundRouteMap.ID
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"associated_route_table_id": associatedRouteTableId,
+			"inbound_route_map_id":      inboundRouteMapId,
+			"outbound_route_map_id":     outboundRouteMapId,
 			"propagated_route_table":    flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 			"static_vnet_route":         flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
 		},
