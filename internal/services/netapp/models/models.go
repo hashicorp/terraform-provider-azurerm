@@ -94,8 +94,7 @@ type NetAppVolumeQuotaRuleModel struct {
 	CapacityPoolName  string `tfschema:"pool_name"`
 	VolumeName        string `tfschema:"volume_name"`
 	QuotaTarget       string `tfschema:"quota_target"`
-	QuotaSizeInKiB    int    `tfschema:"quota_size_in_kib"`
-	QuotaSizeInMiB    int    `tfschema:"quota_size_in_mib"`
+	QuotaSizeInKiB    int64  `tfschema:"quota_size_in_kib"`
 	QuotaType         string `tfschema:"quota_type"`
 }
 
@@ -107,7 +106,6 @@ type NetAppVolumeQuotaRuleDataSourceModel struct {
 	CapacityPoolName  string `tfschema:"pool_name"`
 	VolumeName        string `tfschema:"volume_name"`
 	QuotaTarget       string `tfschema:"quota_target"`
-	QuotaSizeInKiB    int    `tfschema:"quota_size_in_kib"`
-	QuotaSizeInMiB    int    `tfschema:"quota_size_in_mib"`
+	QuotaSizeInKiB    int64  `tfschema:"quota_size_in_kib"`
 	QuotaType         string `tfschema:"quota_type"`
 }

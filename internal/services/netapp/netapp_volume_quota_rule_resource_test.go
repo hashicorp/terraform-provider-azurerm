@@ -79,21 +79,6 @@ func TestAccNetAppVolumeQuotaRule_defaultUserQuotaType(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeQuotaRule_individualUserQuotaTypeBothQuotaSizes(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_quota_rule", "test")
-	r := NetAppVolumeQuotaRuleResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.individualUserQuotaTypeBothQuotaSizes(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (t NetAppVolumeQuotaRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := volumequotarules.ParseVolumeQuotaRuleID(state.ID)
 	if err != nil {
@@ -125,7 +110,7 @@ resource "azurerm_netapp_volume_quota_rule" "test" {
   pool_name           = azurerm_netapp_pool.test.name
   volume_name         = azurerm_netapp_volume.test.name
   quota_target        = "3001"
-  quota_size_in_mib   = 1024
+  quota_size_in_kib   = 1024
   quota_type          = "IndividualGroupQuota"
 }
 `, template, data.RandomInteger)
@@ -144,27 +129,7 @@ resource "azurerm_netapp_volume_quota_rule" "test" {
   pool_name           = azurerm_netapp_pool.test.name
   volume_name         = azurerm_netapp_volume.test.name
   quota_target        = "3001"
-  quota_size_in_mib   = 1024
-  quota_type          = "IndividualUserQuota"
-}
-`, template, data.RandomInteger)
-}
-
-func (NetAppVolumeQuotaRuleResource) individualUserQuotaTypeBothQuotaSizes(data acceptance.TestData) string {
-	template := NetAppVolumeQuotaRuleResource{}.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_netapp_volume_quota_rule" "test" {
-  name                = "acctest-NetAppVolumeQuotaRule-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.test.name
-  quota_target        = "3001"
-  quota_size_in_mib   = 1024
-  quota_size_in_kib   = 2048
+  quota_size_in_kib   = 1024
   quota_type          = "IndividualUserQuota"
 }
 `, template, data.RandomInteger)
