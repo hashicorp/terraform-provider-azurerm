@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 )
 
@@ -47,13 +46,13 @@ func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, er
 }
 
 func ValidateWindowsSID(v interface{}, k string) (warnings []string, errors []error) {
-	value, ok := v.(*string)
+	value, ok := v.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("%q must be a string", k))
 		return warnings, errors
 	}
 
-	if !regexp.MustCompile(`^S-1-5-(0|18|\d{1,9})(-\d{1,10}){0,14}$`).MatchString(pointer.From(value)) {
+	if !regexp.MustCompile(`^S-1-5-(0|18|\d{1,9})(-\d{1,10}){0,14}$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf("%q must be a valid Windows security identifier (SID)", k))
 		return warnings, errors
 	}
