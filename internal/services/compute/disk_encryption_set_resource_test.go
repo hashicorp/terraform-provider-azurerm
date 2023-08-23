@@ -341,7 +341,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
-}`, r.dependencies(data, true))
+}
+`, r.dependencies(data, true))
 }
 
 func (r DiskEncryptionSetResource) basic(data acceptance.TestData) string {

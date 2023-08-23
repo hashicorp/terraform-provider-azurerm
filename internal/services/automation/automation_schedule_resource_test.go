@@ -230,7 +230,7 @@ func (t AutomationScheduleResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Automation.ScheduleClient.Get(ctx, *id)
+	resp, err := clients.Automation.Schedule.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
