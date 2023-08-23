@@ -9,9 +9,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 )
-
-const maxQuotaTargetIDSizeInKiB int64 = 4294967295
 
 func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, errors []error) {
 	var value int64
@@ -39,7 +38,7 @@ func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, er
 		return warnings, errors
 	}
 
-	if value < 1 || value > maxQuotaTargetIDSizeInKiB {
+	if value < 1 || value > models.MaxQuotaTargetIDSizeInKiB {
 		errors = append(errors, fmt.Errorf("%q must be between 1 and 4294967295", k))
 		return warnings, errors
 	}

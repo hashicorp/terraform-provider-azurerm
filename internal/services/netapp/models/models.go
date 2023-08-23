@@ -3,6 +3,11 @@
 
 package models
 
+const (
+	MaxQuotaSizeInMiB         int   = 107374182400 / 1024 / 1024
+	MaxQuotaTargetIDSizeInKiB int64 = 4294967295
+)
+
 type NetAppVolumeGroupVolume struct {
 	Id                           string                         `tfschema:"id"`
 	Name                         string                         `tfschema:"name"`
@@ -89,7 +94,8 @@ type NetAppVolumeQuotaRuleModel struct {
 	CapacityPoolName  string `tfschema:"pool_name"`
 	VolumeName        string `tfschema:"volume_name"`
 	QuotaTarget       string `tfschema:"quota_target"`
-	QuotaSizeInKiB    int64  `tfschema:"quota_size_in_kib"`
+	QuotaSizeInKiB    int    `tfschema:"quota_size_in_kib"`
+	QuotaSizeInMiB    int    `tfschema:"quota_size_in_mib"`
 	QuotaType         string `tfschema:"quota_type"`
 }
 
@@ -101,6 +107,7 @@ type NetAppVolumeQuotaRuleDataSourceModel struct {
 	CapacityPoolName  string `tfschema:"pool_name"`
 	VolumeName        string `tfschema:"volume_name"`
 	QuotaTarget       string `tfschema:"quota_target"`
-	QuotaSizeInKiB    int64  `tfschema:"quota_size_in_kib"`
+	QuotaSizeInKiB    int    `tfschema:"quota_size_in_kib"`
+	QuotaSizeInMiB    int    `tfschema:"quota_size_in_mib"`
 	QuotaType         string `tfschema:"quota_type"`
 }

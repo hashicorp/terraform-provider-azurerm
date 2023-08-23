@@ -6,6 +6,7 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumequotarules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -81,8 +83,16 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 
 		"quota_size_in_kib": {
 			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntBetween(4, 107374182400),
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(4, math.MaxInt32),
+			ExactlyOneOf: []string{"quota_size_in_kib", "quota_size_in_mib"},
+		},
+
+		"quota_size_in_mib": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, models.MaxQuotaSizeInMiB),
+			ExactlyOneOf: []string{"quota_size_in_kib", "quota_size_in_mib"},
 		},
 
 		"quota_type": {
@@ -127,10 +137,17 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
+			var quotaSize int64 = 0
+			if model.QuotaSizeInKiB != 0 {
+				quotaSize = int64(model.QuotaSizeInKiB)
+			} else {
+				quotaSize = int64(model.QuotaSizeInMiB) * 1024
+			}
+
 			parameters := volumequotarules.VolumeQuotaRule{
 				Location: location.Normalize(model.Location),
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{
-					QuotaSizeInKiBs: utils.Int64(model.QuotaSizeInKiB),
+					QuotaSizeInKiBs: pointer.To(quotaSize),
 					QuotaType:       pointer.To(volumequotarules.Type(model.QuotaType)),
 					QuotaTarget:     utils.String(model.QuotaTarget),
 				},
@@ -179,7 +196,12 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("quota_size_in_kib") {
 				shouldUpdate = true
-				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
+				update.Properties.QuotaSizeInKiBs = utils.Int64(int64(state.QuotaSizeInKiB))
+			}
+
+			if metadata.ResourceData.HasChange("quota_size_in_mib") {
+				shouldUpdate = true
+				update.Properties.QuotaSizeInKiBs = utils.Int64(int64(state.QuotaSizeInMiB) * 1024)
 			}
 
 			if shouldUpdate {
@@ -226,6 +248,15 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
+			var quotaSizeInKiB int = 0
+			var quotaSizeInMiB int = 0
+
+			if pointer.From(existing.Model.Properties.QuotaSizeInKiBs) > math.MaxInt32 {
+				quotaSizeInMiB = int(pointer.From(existing.Model.Properties.QuotaSizeInKiBs) / 1024)
+			} else {
+				quotaSizeInKiB = int(pointer.From(existing.Model.Properties.QuotaSizeInKiBs))
+			}
+
 			model := netAppModels.NetAppVolumeQuotaRuleModel{
 				Name:              id.VolumeQuotaRuleName,
 				AccountName:       id.NetAppAccountName,
@@ -234,7 +265,8 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				Location:          location.NormalizeNilable(pointer.To(existing.Model.Location)),
 				ResourceGroupName: id.ResourceGroupName,
 				QuotaTarget:       pointer.From(existing.Model.Properties.QuotaTarget),
-				QuotaSizeInKiB:    pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
+				QuotaSizeInKiB:    int(quotaSizeInKiB),
+				QuotaSizeInMiB:    int(quotaSizeInMiB),
 				QuotaType:         string(pointer.From(existing.Model.Properties.QuotaType)),
 			}
 

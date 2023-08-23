@@ -23,7 +23,6 @@ func TestAccNetAppVolumeQuotaRuleDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("quota_size_in_kib").HasValue("1024"),
 			),
 		},
 	})

@@ -6,6 +6,7 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
@@ -76,6 +77,11 @@ func (r NetAppVolumeQuotaRuleDataSource) Attributes() map[string]*pluginsdk.Sche
 			Computed: true,
 		},
 
+		"quota_size_in_mib": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
 		"quota_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -110,8 +116,18 @@ func (r NetAppVolumeQuotaRuleDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
+			var quotaSizeInKiB int = 0
+			var quotaSizeInMiB int = 0
+
+			if pointer.From(model.Properties.QuotaSizeInKiBs) > math.MaxInt32 {
+				quotaSizeInMiB = int(pointer.From(model.Properties.QuotaSizeInKiBs) / 1024)
+			} else {
+				quotaSizeInKiB = int(pointer.From(model.Properties.QuotaSizeInKiBs))
+			}
+
 			state.Location = location.Normalize(model.Location)
-			state.QuotaSizeInKiB = pointer.From(model.Properties.QuotaSizeInKiBs)
+			state.QuotaSizeInKiB = quotaSizeInKiB
+			state.QuotaSizeInMiB = quotaSizeInMiB
 			state.QuotaTarget = pointer.From(model.Properties.QuotaTarget)
 			state.QuotaType = string(pointer.From(model.Properties.QuotaType))
 
