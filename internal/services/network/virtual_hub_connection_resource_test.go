@@ -242,12 +242,12 @@ func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	nameSuffix := randString()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.withRoutingConfiguration(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
+		{
+			Config: r.withRoutingConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		{
 			Config: r.updateRoutingConfiguration(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
