@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `automation`: upgrade remaining resources to `2022-08-08` [GH-22989]
 * `azurerm_storage_management_policy` - move to `hashicorp/go-azure-sdk` [GH-23035]
 * Data Source: `azurerm_disk_encryption_set` - add support for the `identity` block [GH-23005]
+* `azurerm_container_group` - Support `sku` and `(init_)container.*.security` [GH-23034]
 * `azurerm_linux_virtual_machine_scale_set` - cancel rolling upgrades that are in progress before destroying the resource [GH-22991]
 * `azurerm_windows_virtual_machine_scale_set` - cancel rolling upgrades that are in progress before destroying the resource [GH-22991]
 * `azurerm_synapse_spark_pool` - support addtional values for the `node_size_family` property [GH-23040]
