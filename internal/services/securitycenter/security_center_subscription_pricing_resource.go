@@ -133,15 +133,36 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
+	// The existing extensions per bundle
+	bundlesExtensions := map[string][]string{
+		"StorageAccounts": {"OnUploadMalwareScanning", "SensitiveDataDiscovery"},
+		"CloudPosture":    {"SensitiveDataDiscovery", "ContainerRegistriesVulnerabilityAssessments", "AgentlessDiscoveryForKubernetes", "AgentlessVmScanning"},
+	}
+
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
-	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.Extensions != nil {
-		extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+	isCurrentlyInFree := false
+	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil {
+		if apiResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+		}
+
+		if apiResponse.Model.Properties.PricingTier == "Free" {
+			isCurrentlyInFree = true
+		}
+
+		defaultExtensions, bundleWithDefaultExtensions := bundlesExtensions[*apiResponse.Model.Name]
+		// Since the API response does not return the existing extensions when it is free, take them from the predefined list
+		if len(extensionsStatusFromBackend) == 0 && bundleWithDefaultExtensions {
+			for _, defaultExtensionName := range defaultExtensions {
+				extensionsStatusFromBackend = append(extensionsStatusFromBackend, pricings_v2023_01_01.Extension{Name: defaultExtensionName, IsEnabled: pricings_v2023_01_01.IsEnabledFalse})
+			}
+		}
 	}
 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
 		pricing.Properties.SubPlan = utils.String(vSub.(string))
 	}
-	if d.HasChange("extension") || d.IsNewResource() {
+	if d.HasChange("extension") || d.IsNewResource() || isCurrentlyInFree {
 		// can not set extensions for free tier
 		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
