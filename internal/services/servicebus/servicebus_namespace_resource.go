@@ -662,7 +662,7 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 	if features.FourPointOhBeta() {
 		if defaultAction == string(namespaces.DefaultActionAllow) &&
 			publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled &&
-			trustedServiceEnabled == false &&
+			!trustedServiceEnabled &&
 			len(networkRules) == 0 &&
 			len(ipRules) == 0 {
 
