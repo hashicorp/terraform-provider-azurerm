@@ -1,4 +1,4 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
+import jetbrains.buildServer.configs.kotlin.ParametrizedWithType
 
 class ClientConfiguration(var clientId: String,
                           var clientSecret: String,
@@ -8,6 +8,7 @@ class ClientConfiguration(var clientId: String,
                           val clientSecretAlt: String,
                           val subscriptionIdAlt : String,
                           val subscriptionIdDevTest : String,
+                          val vcsRootId : String,
                           val enableTestTriggersGlobally : Boolean) {
 }
 

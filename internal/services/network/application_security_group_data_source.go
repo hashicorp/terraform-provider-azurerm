@@ -1,17 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApplicationSecurityGroup() *pluginsdk.Resource {
@@ -32,21 +35,21 @@ func dataSourceApplicationSecurityGroup() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
+	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApplicationSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := applicationsecuritygroups.NewApplicationSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -55,10 +58,14 @@ func dataSourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta inte
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ApplicationSecurityGroupName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	return tags.FlattenAndSet(d, resp.Tags)
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+
+	return nil
 }

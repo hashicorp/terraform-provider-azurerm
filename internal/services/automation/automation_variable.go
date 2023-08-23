@@ -1,6 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
@@ -10,7 +14,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -23,7 +27,7 @@ import (
 func ParseAzureAutomationVariableValue(resource string, input *string) (interface{}, error) {
 	if input == nil {
 		if resource != "azurerm_automation_variable_null" {
-			return nil, fmt.Errorf("Expected value \"nil\" to be %q, actual type is \"azurerm_automation_variable_null\"", resource)
+			return nil, fmt.Errorf("expected value \"nil\" to be %q, actual type is \"azurerm_automation_variable_null\"", resource)
 		}
 		return nil, nil
 	}
@@ -46,10 +50,13 @@ func ParseAzureAutomationVariableValue(resource string, input *string) (interfac
 		actualResource = "azurerm_automation_variable_int"
 	} else if value, err = strconv.ParseBool(*input); err == nil {
 		actualResource = "azurerm_automation_variable_bool"
+	} else if err := json.Unmarshal([]byte(*input), &value); err == nil {
+		value = *input
+		actualResource = "azurerm_automation_variable_object"
 	}
 
 	if actualResource != resource {
-		return nil, fmt.Errorf("Expected value %q to be %q, actual type is %q", *input, resource, actualResource)
+		return nil, fmt.Errorf("expected value %q to be %q, actual type is %q", *input, resource, actualResource)
 	}
 	return value, nil
 }
@@ -125,7 +132,7 @@ func datasourceAutomationVariableCommonSchema(attType pluginsdk.ValueType) map[s
 }
 
 func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,6 +169,9 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		value = strconv.FormatBool(d.Get("value").(bool))
 	case "int":
 		value = strconv.Itoa(d.Get("value").(int))
+	case "object":
+		// We don't quote the object so it gets saved as a JSON object
+		value = d.Get("value").(string)
 	case "string":
 		value = strconv.Quote(d.Get("value").(string))
 	}
@@ -188,7 +198,7 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -236,7 +246,7 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 }
 
 func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -283,7 +293,7 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

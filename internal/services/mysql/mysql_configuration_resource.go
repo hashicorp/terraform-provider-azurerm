@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
@@ -5,10 +8,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -22,7 +25,7 @@ func resourceMySQLConfiguration() *pluginsdk.Resource {
 		Delete: resourceMySQLConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConfigurationID(id)
+			_, err := configurations.ParseConfigurationID(id)
 			return err
 		}),
 
@@ -59,15 +62,15 @@ func resourceMySQLConfiguration() *pluginsdk.Resource {
 }
 
 func resourceMySQLConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ConfigurationsClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.Configurations
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
 
-	properties := mysql.Configuration{
-		ConfigurationProperties: &mysql.ConfigurationProperties{
+	properties := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
 			Value: utils.String(d.Get("value").(string)),
 		},
 	}
@@ -75,14 +78,9 @@ func resourceMySQLConfigurationCreate(d *pluginsdk.ResourceData, meta interface{
 	// NOTE: this resource intentionally doesn't support Requires Import
 	//       since a fallback route is created by default
 
-	id := parse.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
-	if err != nil {
+	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -90,18 +88,18 @@ func resourceMySQLConfigurationCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceMySQLConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ConfigurationsClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.Configurations
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s was not found", id)
 			d.SetId("")
 			return nil
@@ -110,12 +108,15 @@ func resourceMySQLConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ConfigurationName)
 	d.Set("server_name", id.ServerName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	value := ""
-	if props := resp.ConfigurationProperties; props != nil && props.Value != nil {
-		value = *props.Value
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil && props.Value != nil {
+			value = *props.Value
+		}
 	}
 	d.Set("value", value)
 
@@ -123,31 +124,30 @@ func resourceMySQLConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceMySQLConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ConfigurationsClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.Configurations
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 	// "delete" = resetting this to the default value
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	defaultValue := ""
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.DefaultValue != nil {
+		defaultValue = *resp.Model.Properties.DefaultValue
+	}
 
-	properties := mysql.Configuration{
-		ConfigurationProperties: &mysql.ConfigurationProperties{
+	properties := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
 			// we can alternatively set `source: "system-default"`
-			Value: resp.DefaultValue,
+			Value: utils.String(defaultValue),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
-	if err != nil {
-		return err
-	}
-
-	return future.WaitForCompletionRef(ctx, client.Client)
+	return client.CreateOrUpdateThenPoll(ctx, *id, properties)
 }

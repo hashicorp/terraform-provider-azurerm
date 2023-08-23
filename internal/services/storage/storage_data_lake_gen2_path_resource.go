@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -6,15 +9,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/paths"
 	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
@@ -67,7 +70,7 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"filesystem_name": {
@@ -144,29 +147,29 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
+	storageID, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
 	// confirm the storage account exists, otherwise Data Plane API requests will fail
-	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroup, storageID.Name, "")
+	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroupName, storageID.StorageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
-			return fmt.Errorf("Storage Account %q was not found in Resource Group %q!", storageID.Name, storageID.ResourceGroup)
+			return fmt.Errorf("%s was not found", storageID)
 		}
 
-		return fmt.Errorf("checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
+		return fmt.Errorf("checking for existence of %s: %+v", storageID, err)
 	}
 
 	fileSystemName := d.Get("filesystem_name").(string)
 	path := d.Get("path").(string)
 
-	id := client.GetResourceID(storageID.Name, fileSystemName, path)
-	resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
+	id := client.GetResourceID(storageID.StorageAccountName, fileSystemName, path)
+	resp, err := client.GetProperties(ctx, storageID.StorageAccountName, fileSystemName, path, paths.GetPropertiesActionGetStatus)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for existence of existing Path %q in  File System %q (Account %q): %+v", path, fileSystemName, storageID.Name, err)
+			return fmt.Errorf("checking for existence of existing Path %q in File System %q in %s: %+v", path, fileSystemName, storageID, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(resp.Response) {
@@ -198,13 +201,13 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 		group = &sv
 	}
 
-	log.Printf("[INFO] Creating Path %q in File System %q in Storage Account %q.", path, fileSystemName, storageID.Name)
+	log.Printf("[INFO] Creating Path %q in File System %q in %s.", path, fileSystemName, storageID)
 	input := paths.CreateInput{
 		Resource: resource,
 	}
 
-	if _, err := client.Create(ctx, storageID.Name, fileSystemName, path, input); err != nil {
-		return fmt.Errorf("creating Path %q in File System %q in Storage Account %q: %s", path, fileSystemName, storageID.Name, err)
+	if _, err := client.Create(ctx, storageID.StorageAccountName, fileSystemName, path, input); err != nil {
+		return fmt.Errorf("creating Path %q in File System %q in %s: %+v", path, fileSystemName, storageID.StorageAccountName, err)
 	}
 
 	if acl != nil || owner != nil || group != nil {
@@ -218,8 +221,8 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 			Owner: owner,
 			Group: group,
 		}
-		if _, err := client.SetAccessControl(ctx, storageID.Name, fileSystemName, path, accessControlInput); err != nil {
-			return fmt.Errorf("setting access control for Path %q in File System %q in Storage Account %q: %s", path, fileSystemName, storageID.Name, err)
+		if _, err := client.SetAccessControl(ctx, storageID.StorageAccountName, fileSystemName, path, accessControlInput); err != nil {
+			return fmt.Errorf("setting access control for Path %q in File System %q in %s: %+v", path, fileSystemName, storageID, err)
 		}
 	}
 
@@ -238,7 +241,7 @@ func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
+	storageID, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -263,13 +266,13 @@ func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// confirm the storage account exists, otherwise Data Plane API requests will fail
-	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroup, storageID.Name, "")
+	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroupName, storageID.StorageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
-			return fmt.Errorf("Storage Account %q was not found in Resource Group %q!", storageID.Name, storageID.ResourceGroup)
+			return fmt.Errorf("%s was not found", storageID)
 		}
 
-		return fmt.Errorf("checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
+		return fmt.Errorf("checking for existence of %s: %+v", storageID, err)
 	}
 
 	if acl != nil || owner != nil || group != nil {

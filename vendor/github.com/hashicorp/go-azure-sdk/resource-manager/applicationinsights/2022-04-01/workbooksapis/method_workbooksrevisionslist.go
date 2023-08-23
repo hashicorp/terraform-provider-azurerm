@@ -25,7 +25,7 @@ type WorkbooksRevisionsListCompleteResult struct {
 // WorkbooksRevisionsList ...
 func (c WorkbooksAPIsClient) WorkbooksRevisionsList(ctx context.Context, id WorkbookId) (result WorkbooksRevisionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

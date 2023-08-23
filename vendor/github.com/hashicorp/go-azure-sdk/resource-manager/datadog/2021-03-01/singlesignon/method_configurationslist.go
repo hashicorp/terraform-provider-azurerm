@@ -25,7 +25,7 @@ type ConfigurationsListCompleteResult struct {
 // ConfigurationsList ...
 func (c SingleSignOnClient) ConfigurationsList(ctx context.Context, id MonitorId) (result ConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

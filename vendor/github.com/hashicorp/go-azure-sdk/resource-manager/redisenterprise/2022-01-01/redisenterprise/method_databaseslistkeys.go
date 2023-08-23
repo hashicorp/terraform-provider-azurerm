@@ -21,7 +21,7 @@ type DatabasesListKeysOperationResponse struct {
 // DatabasesListKeys ...
 func (c RedisEnterpriseClient) DatabasesListKeys(ctx context.Context, id DatabaseId) (result DatabasesListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

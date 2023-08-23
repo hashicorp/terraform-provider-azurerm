@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance_test
 
 import (
@@ -9,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -64,19 +66,17 @@ func TestAccMaintenanceAssignmentVirtualMachine_linkMultipleMaintenanceAssignmen
 }
 
 func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	maintenanceAssignmentVirtualMachineId, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
+	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	id := configurationassignments.NewProviderID(maintenanceAssignmentVirtualMachineId.VirtualMachineId.SubscriptionId, maintenanceAssignmentVirtualMachineId.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", maintenanceAssignmentVirtualMachineId.VirtualMachineId.Name)
-
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id)
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", maintenanceAssignmentVirtualMachineId.VirtualMachineIdRaw, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineResource) basic(data acceptance.TestData) string {

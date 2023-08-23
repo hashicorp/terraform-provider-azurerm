@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,11 +8,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/identityprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,7 +28,7 @@ func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 		Update: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
 		Delete: resourceArmApiManagementIdentityProviderAADB2CDelete,
 
-		Importer: identityProviderImportFunc(apimanagement.IdentityProviderTypeAadB2C),
+		Importer: identityProviderImportFunc(identityprovider.IdentityProviderTypeAadBTwoC),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -119,12 +123,12 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	profileEditingPolicy := d.Get("profile_editing_policy").(string)
 	passwordResetPolicy := d.Get("password_reset_policy").(string)
 
-	id := parse.NewIdentityProviderID(client.SubscriptionID, resourceGroup, serviceName, string(apimanagement.IdentityProviderTypeAadB2C))
+	id := identityprovider.NewIdentityProviderID(meta.(*clients.Client).Account.SubscriptionId, resourceGroup, serviceName, identityprovider.IdentityProviderTypeAadBTwoC)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeAadB2C)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
 			}
 		} else {
@@ -132,23 +136,23 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 		}
 	}
 
-	parameters := apimanagement.IdentityProviderCreateContract{
-		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
-			ClientID:                 utils.String(clientID),
-			ClientSecret:             utils.String(clientSecret),
-			Type:                     apimanagement.IdentityProviderTypeAadB2C,
+	parameters := identityprovider.IdentityProviderCreateContract{
+		Properties: &identityprovider.IdentityProviderCreateContractProperties{
+			ClientId:                 clientID,
+			ClientSecret:             clientSecret,
+			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
 			AllowedTenants:           utils.ExpandStringSlice([]interface{}{allowedTenant}),
-			SigninTenant:             utils.String(signinTenant),
-			Authority:                utils.String(authority),
-			SignupPolicyName:         utils.String(signupPolicy),
-			SigninPolicyName:         utils.String(signinPolicy),
-			ProfileEditingPolicyName: utils.String(profileEditingPolicy),
-			PasswordResetPolicyName:  utils.String(passwordResetPolicy),
+			SigninTenant:             pointer.To(signinTenant),
+			Authority:                pointer.To(authority),
+			SignupPolicyName:         pointer.To(signupPolicy),
+			SigninPolicyName:         pointer.To(signinPolicy),
+			ProfileEditingPolicyName: pointer.To(profileEditingPolicy),
+			PasswordResetPolicyName:  pointer.To(passwordResetPolicy),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeAadB2C, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeAadB2C, resourceGroup, serviceName, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -160,40 +164,42 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IdentityProviderID(d.Id())
+	id, err := identityprovider.ParseIdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.IdentityProviderType(id.Name))
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Identity Provider %q (Resource Group %q / API Management Service %q) was not found - removing from state!", id.Name, id.ResourceGroup, id.ServiceName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Identity Provider %q (Resource Group %q / API Management Service %q): %+v", id.Name, id.ResourceGroup, id.ServiceName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if props := resp.IdentityProviderContractProperties; props != nil {
-		d.Set("client_id", props.ClientID)
-		d.Set("signin_tenant", props.SigninTenant)
-		d.Set("authority", props.Authority)
-		d.Set("signup_policy", props.SignupPolicyName)
-		d.Set("signin_policy", props.SigninPolicyName)
-		d.Set("profile_editing_policy", props.ProfileEditingPolicyName)
-		d.Set("password_reset_policy", props.PasswordResetPolicyName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("client_id", props.ClientId)
+			d.Set("signin_tenant", props.SigninTenant)
+			d.Set("authority", props.Authority)
+			d.Set("signup_policy", props.SignupPolicyName)
+			d.Set("signin_policy", props.SigninPolicyName)
+			d.Set("profile_editing_policy", props.ProfileEditingPolicyName)
+			d.Set("password_reset_policy", props.PasswordResetPolicyName)
 
-		allowedTenant := ""
-		if allowedTenants := props.AllowedTenants; allowedTenants != nil && len(*allowedTenants) > 0 {
-			t := *allowedTenants
-			allowedTenant = t[0]
+			allowedTenant := ""
+			if allowedTenants := props.AllowedTenants; allowedTenants != nil && len(*allowedTenants) > 0 {
+				t := *allowedTenants
+				allowedTenant = t[0]
+			}
+			d.Set("allowed_tenant", allowedTenant)
 		}
-		d.Set("allowed_tenant", allowedTenant)
 	}
 
 	return nil
@@ -204,14 +210,14 @@ func resourceArmApiManagementIdentityProviderAADB2CDelete(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IdentityProviderID(d.Id())
+	id, err := identityprovider.ParseIdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, apimanagement.IdentityProviderType(id.Name), ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Identity Provider %q (Resource Group %q / API Management Service %q): %+v", id.Name, id.ResourceGroup, id.ServiceName, err)
+	if resp, err := client.Delete(ctx, *id, identityprovider.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

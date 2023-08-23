@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_sql_server" "example" {
+resource "azurerm_mssql_server" "example" {
   name                         = "my-sql-server"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = azurerm_resource_group.example.location
@@ -31,7 +31,7 @@ resource "azurerm_mssql_elasticpool" "example" {
   name                = "test-epool"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  server_name         = azurerm_sql_server.example.name
+  server_name         = azurerm_mssql_server.example.name
   license_type        = "LicenseIncluded"
   max_size_gb         = 756
 

@@ -1,8 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices_test
 
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -71,10 +75,42 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiActions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// to check the actions are in the correct order
-				check.That(data.ResourceName).Key("recovery_group.0.pre_action.0.name").HasValue("testPreAction1"),
-				check.That(data.ResourceName).Key("recovery_group.0.pre_action.1.name").HasValue("testPreAction2"),
-				check.That(data.ResourceName).Key("recovery_group.0.post_action.0.name").HasValue("testPostAction1"),
-				check.That(data.ResourceName).Key("recovery_group.0.post_action.1.name").HasValue("testPostAction2"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.0.name").HasValue("testPreAction1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.1.name").HasValue("testPreAction2"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.0.name").HasValue("testPostAction1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.1.name").HasValue("testPostAction2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicationRecoveryPlan_updateWithmultiActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withMultiActions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// to check the actions are in the correct order
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.0.name").HasValue("testPreAction1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.1.name").HasValue("testPreAction2"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.0.name").HasValue("testPostAction1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.1.name").HasValue("testPostAction2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateWithMultiActions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// to check the actions are in the correct order
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.0.name").HasValue("testPreAction1-new"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.1.name").HasValue("testPreAction2-new"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.0.name").HasValue("testPostAction1-new"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.1.name").HasValue("testPostAction2-new"),
 			),
 		},
 		data.ImportStep(),
@@ -108,6 +144,47 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withEdgeZones(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiBootGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withMultiBootGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.replicated_protected_items.#").HasValue("1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.1.pre_action.0.name").HasValue("testPreAction"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicationRecoveryPlan_wrongSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.wrongSettingsWithDeprecatedGroup(data),
+			ExpectError: regexp.MustCompile("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type."),
+		},
+	})
+}
+
+func TestAccSiteRecoveryReplicationRecoveryPlan_wrongActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.wrongActions(data),
+			ExpectError: regexp.MustCompile("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type"),
+		},
 	})
 }
 
@@ -344,18 +421,14 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type                       = "Boot"
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
-  recovery_group {
-    type = "Failover"
-  }
-
-  recovery_group {
-    type = "Shutdown"
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -370,8 +443,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type                       = "Boot"
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     pre_action {
       name                      = "testPreAction"
@@ -382,13 +458,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
     }
   }
 
-  recovery_group {
-    type = "Failover"
-  }
-
-  recovery_group {
-    type = "Shutdown"
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -403,8 +472,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type                       = "Boot"
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     post_action {
       name                      = "testPreAction"
@@ -413,14 +485,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
       fail_over_types           = ["TestFailover"]
       manual_action_instruction = "test instruction"
     }
-  }
-
-  recovery_group {
-    type = "Failover"
-  }
-
-  recovery_group {
-    type = "Shutdown"
   }
 
 }
@@ -438,8 +502,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type                       = "Boot"
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     pre_action {
       name                      = "testPreAction1"
@@ -474,13 +541,59 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
     }
   }
 
-  recovery_group {
-    type = "Failover"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) updateWithMultiActions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+    pre_action {
+      name                      = "testPreAction1-new"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+
+    pre_action {
+      name                      = "testPreAction2-new"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+
+    post_action {
+      name                      = "testPostAction1-new"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+
+    post_action {
+      name                      = "testPostAction2-new"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
   }
 
-  recovery_group {
-    type = "Shutdown"
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -495,17 +608,12 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type                       = "Boot"
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-  }
-
-  recovery_group {
-    type = "Failover"
-  }
-
-  recovery_group {
-    type = "Shutdown"
   }
 
   azure_to_azure_settings {
@@ -533,8 +641,66 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+  }
+
+  azure_to_azure_settings {
+    primary_edge_zone  = data.azurerm_extended_locations.test.extended_locations[0]
+    recovery_edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) withMultiBootGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+  }
+
+  boot_recovery_group {
+    pre_action {
+      name                      = "testPreAction"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+  }
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) wrongSettingsWithDeprecatedGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
   recovery_group {
-    type                       = "Boot"
+    type                       = "Shutdown"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
@@ -543,13 +709,41 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   }
 
   recovery_group {
-    type = "Shutdown"
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
-  azure_to_azure_settings {
-    primary_edge_zone  = data.azurerm_extended_locations.test.extended_locations[0]
-    recovery_edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) wrongActions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+
+    post_action {
+      name                      = "testPreAction"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+      fabric_location           = "Primary"
+    }
   }
+
 }
 `, r.template(data), data.RandomInteger)
 }

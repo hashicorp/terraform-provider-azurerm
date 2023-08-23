@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dns_test
 
 import (
@@ -23,7 +26,6 @@ func TestAccDataSourceDnsSoaRecord_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("name").HasValue("@"),
 				check.That(data.ResourceName).Key("email").HasValue("testemail.com"),
-				check.That(data.ResourceName).Key("host_name").HasValue("testhost.contoso.com"),
 				check.That(data.ResourceName).Key("expire_time").HasValue("2419200"),
 				check.That(data.ResourceName).Key("minimum_ttl").HasValue("300"),
 				check.That(data.ResourceName).Key("refresh_time").HasValue("3600"),
@@ -52,8 +54,7 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   soa_record {
-    email     = "testemail.com"
-    host_name = "testhost.contoso.com"
+    email = "testemail.com"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

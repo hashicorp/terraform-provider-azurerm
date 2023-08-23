@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -41,6 +44,23 @@ func TestAccDataSourceDiskEncryptionSet_update(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceDiskEncryptionSet_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetDataSource{}
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+			),
+		},
+	})
+}
+
 func (DiskEncryptionSetDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -61,4 +81,15 @@ data "azurerm_disk_encryption_set" "test" {
   resource_group_name = azurerm_disk_encryption_set.test.resource_group_name
 }
 `, DiskEncryptionSetResource{}.complete(data))
+}
+
+func (DiskEncryptionSetDataSource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_disk_encryption_set" "test" {
+  name                = azurerm_disk_encryption_set.test.name
+  resource_group_name = azurerm_disk_encryption_set.test.resource_group_name
+}
+`, DiskEncryptionSetResource{}.systemAssignedUserAssignedIdentity(data))
 }

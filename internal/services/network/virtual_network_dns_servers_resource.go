@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,10 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -40,7 +43,7 @@ func resourceVirtualNetworkDnsServers() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualNetworkID,
+				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"dns_servers": {
@@ -60,13 +63,13 @@ func resourceVirtualNetworkDnsServersCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vnetId, err := parse.VirtualNetworkID(d.Get("virtual_network_id").(string))
+	vnetId, err := commonids.ParseVirtualNetworkID(d.Get("virtual_network_id").(string))
 	if err != nil {
 		return err
 	}
 
 	// This is a virtual resource so the last segment is hardcoded
-	id := parse.NewVirtualNetworkDnsServersID(vnetId.SubscriptionId, vnetId.ResourceGroup, vnetId.Name, "default")
+	id := parse.NewVirtualNetworkDnsServersID(vnetId.SubscriptionId, vnetId.ResourceGroupName, vnetId.VirtualNetworkName, "default")
 
 	vnet, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, "")
 	if err != nil {
@@ -133,7 +136,7 @@ func resourceVirtualNetworkDnsServersRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	vnetId := parse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
 	d.Set("virtual_network_id", vnetId.ID())
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
@@ -155,7 +158,7 @@ func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	vnetId := parse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
 
 	vnet, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, "")
 	if err != nil {

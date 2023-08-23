@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -42,7 +43,7 @@ func (o ListClusterMonitoringUserCredentialsOperationOptions) toQueryString() ma
 }
 
 // ListClusterMonitoringUserCredentials ...
-func (c ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.Context, id ManagedClusterId, options ListClusterMonitoringUserCredentialsOperationOptions) (result ListClusterMonitoringUserCredentialsOperationResponse, err error) {
+func (c ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.Context, id commonids.KubernetesClusterId, options ListClusterMonitoringUserCredentialsOperationOptions) (result ListClusterMonitoringUserCredentialsOperationResponse, err error) {
 	req, err := c.preparerForListClusterMonitoringUserCredentials(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "ListClusterMonitoringUserCredentials", nil, "Failure preparing request")
@@ -65,7 +66,7 @@ func (c ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.
 }
 
 // preparerForListClusterMonitoringUserCredentials prepares the ListClusterMonitoringUserCredentials request.
-func (c ManagedClustersClient) preparerForListClusterMonitoringUserCredentials(ctx context.Context, id ManagedClusterId, options ListClusterMonitoringUserCredentialsOperationOptions) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForListClusterMonitoringUserCredentials(ctx context.Context, id commonids.KubernetesClusterId, options ListClusterMonitoringUserCredentialsOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

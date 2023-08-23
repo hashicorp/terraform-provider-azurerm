@@ -21,7 +21,7 @@ type ListSkusOperationResponse struct {
 // ListSkus ...
 func (c SignalRClient) ListSkus(ctx context.Context, id SignalRId) (result ListSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

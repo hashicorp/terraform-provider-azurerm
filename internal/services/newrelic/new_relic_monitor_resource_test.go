@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package newrelic_test
 
 import (
@@ -6,9 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

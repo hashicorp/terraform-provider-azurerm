@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementApiResource struct{}
@@ -267,6 +270,29 @@ func TestAccApiManagementApi_importWsdl(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApi_importWsdlWithSelector(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importWsdlWithSelector(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
+			},
+		},
+	})
+}
+
 func TestAccApiManagementApi_importUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
@@ -396,17 +422,17 @@ func TestAccApiManagementApi_contact(t *testing.T) {
 }
 
 func (ApiManagementApiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApiID(state.ID)
+	id, err := api.ParseApiID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.ApiClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := clients.ApiManagement.ApiClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (r ApiManagementApiResource) basic(data acceptance.TestData) string {
@@ -595,6 +621,27 @@ resource "azurerm_api_management_api" "test" {
 
   import {
     content_value  = file("testdata/api_management_api_wsdl.xml")
+    content_format = "wsdl"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importWsdlWithSelector(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+
+  import {
+    content_value  = file("testdata/api_management_api_wsdl_multiple.xml")
     content_format = "wsdl"
 
     wsdl_selector {

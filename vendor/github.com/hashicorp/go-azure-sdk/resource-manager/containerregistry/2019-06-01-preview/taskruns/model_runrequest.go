@@ -12,6 +12,15 @@ import (
 type RunRequest interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawRunRequestImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalRunRequestImplementation(input []byte) (RunRequest, error) {
 	if input == nil {
 		return nil, nil
@@ -59,10 +68,6 @@ func unmarshalRunRequestImplementation(input []byte) (RunRequest, error) {
 		return out, nil
 	}
 
-	type RawRunRequestImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawRunRequestImpl{
 		Type:   value,
 		Values: temp,

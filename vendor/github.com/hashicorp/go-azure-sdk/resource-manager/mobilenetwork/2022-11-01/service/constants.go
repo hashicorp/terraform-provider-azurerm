@@ -1,6 +1,10 @@
 package service
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForPreemptionCapability() []string {
 		string(PreemptionCapabilityMayPreempt),
 		string(PreemptionCapabilityNotPreempt),
 	}
+}
+
+func (s *PreemptionCapability) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePreemptionCapability(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePreemptionCapability(input string) (*PreemptionCapability, error) {
@@ -45,6 +62,19 @@ func PossibleValuesForPreemptionVulnerability() []string {
 		string(PreemptionVulnerabilityNotPreemptable),
 		string(PreemptionVulnerabilityPreemptable),
 	}
+}
+
+func (s *PreemptionVulnerability) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePreemptionVulnerability(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePreemptionVulnerability(input string) (*PreemptionVulnerability, error) {
@@ -85,6 +115,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"accepted":  ProvisioningStateAccepted,
@@ -120,6 +163,19 @@ func PossibleValuesForSdfDirection() []string {
 	}
 }
 
+func (s *SdfDirection) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSdfDirection(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSdfDirection(input string) (*SdfDirection, error) {
 	vals := map[string]SdfDirection{
 		"bidirectional": SdfDirectionBidirectional,
@@ -147,6 +203,19 @@ func PossibleValuesForTrafficControlPermission() []string {
 		string(TrafficControlPermissionBlocked),
 		string(TrafficControlPermissionEnabled),
 	}
+}
+
+func (s *TrafficControlPermission) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTrafficControlPermission(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTrafficControlPermission(input string) (*TrafficControlPermission, error) {

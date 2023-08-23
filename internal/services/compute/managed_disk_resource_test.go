@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -2607,12 +2610,11 @@ func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.C
 	wasShutDown := false
 	for logs.NotDone() {
 		val := logs.Value()
-		if val.Authorization == nil || val.Authorization.Action == nil {
-			return fmt.Errorf("parsing activity log for Virtual Machine %q: `model.Authorization` or `model.Authorization.Action` was nil", state.ID)
-		}
-		if strings.EqualFold(*val.Authorization.Action, "Microsoft.Compute/virtualMachines/stop/action") {
-			wasShutDown = true
-			break
+		if val.Authorization != nil && val.Authorization.Action != nil {
+			if strings.EqualFold(*val.Authorization.Action, "Microsoft.Compute/virtualMachines/powerOff/action") {
+				wasShutDown = true
+				break
+			}
 		}
 
 		if err := logs.NextWithContext(ctx); err != nil {

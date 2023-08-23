@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package hpccache_test
 
 import (
@@ -43,7 +46,21 @@ func TestAccHPCCacheNFSTarget_usageModel(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.usageModel(data),
+			Config: r.usageModel(data, "READ_HEAVY_CHECK_180"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.usageModel(data, "READ_WRITE"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.usageModel(data, "READ_ONLY"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -176,7 +193,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) usageModel(data acceptance.TestData) string {
+func (r HPCCacheNFSTargetResource) usageModel(data acceptance.TestData, modelName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,7 +202,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
   resource_group_name = azurerm_resource_group.test.name
   cache_name          = azurerm_hpc_cache.test.name
   target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
-  usage_model         = "READ_HEAVY_CHECK_180"
+  usage_model         = "%s"
   namespace_junction {
     namespace_path = "/nfs/a1"
     nfs_export     = "/export/a"
@@ -196,7 +213,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
     nfs_export     = "/export/b"
   }
 }
-`, r.cacheTemplate(data), data.RandomString)
+`, r.cacheTemplate(data), data.RandomString, modelName)
 }
 
 func (r HPCCacheNFSTargetResource) namespaceJunction(data acceptance.TestData) string {

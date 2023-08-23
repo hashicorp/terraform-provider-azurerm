@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package costmanagement_test
 
 import (
@@ -82,6 +85,28 @@ func TestAccCostManagementScheduledAction_requiresImport(t *testing.T) {
 			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_cost_management_scheduled_action"),
 		},
+	})
+}
+
+func TestAccCostManagementScheduledAction_emailAddressSender(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emailAddressSender(data, "test@test.com"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.emailAddressSender(data, "test2@test2.com"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -240,4 +265,32 @@ resource "azurerm_cost_management_scheduled_action" "import" {
   end_date   = azurerm_cost_management_scheduled_action.test.end_date
 }
 `, template)
+}
+
+func (CostManagementScheduledAction) emailAddressSender(data acceptance.TestData, emailAddressSender string) string {
+	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
+	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_cost_management_scheduled_action" "test" {
+  name = "testcostview%s"
+
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+
+  display_name         = "CostByServiceView%s"
+  email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
+  email_addresses      = ["test@test.com", "hashicorp@test.com"]
+  email_address_sender = "%s"
+
+  frequency  = "Daily"
+  start_date = "%s"
+  end_date   = "%s"
+}
+`, data.RandomString, data.RandomString, emailAddressSender, start, end)
 }

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -93,7 +96,7 @@ resource "azurerm_netapp_volume" "example" {
   protocols           = ["NFSv3"]
   subnet_id           = azurerm_subnet.example.id
   storage_quota_in_gb = 100
-  security_style      = "Unix"
+  security_style      = "unix"
 
   data_protection_snapshot_policy {
     snapshot_policy_id = azurerm_netapp_snapshot_policy.example.id

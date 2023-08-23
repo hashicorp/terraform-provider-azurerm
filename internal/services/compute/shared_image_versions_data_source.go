@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -154,6 +157,7 @@ func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags 
 				// If the tags don't match, return false
 				if imageVersion.Tags[k] == nil || *v != *imageVersion.Tags[k] {
 					found = false
+					break
 				}
 			}
 		}

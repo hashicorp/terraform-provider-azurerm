@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -283,18 +286,33 @@ func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_LogScrubbing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withLogScrubbing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationGatewayWebApplicationFirewallPolicyID(state.ID)
+	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.WebApplicationFirewallPoliciesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.WebApplicationFirewallPolicies.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (WebApplicationFirewallResource) basic(data acceptance.TestData) string {
@@ -1026,4 +1044,59 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) withLogScrubbing(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+    log_scrubbing {
+      enabled = true
+      rule {
+        enabled                 = true
+        match_variable          = "RequestHeaderNames"
+        selector_match_operator = "Equals"
+        selector                = "User-Agent"
+      }
+    }
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        rule {
+          id      = "920300"
+          enabled = true
+          action  = "Log"
+        }
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

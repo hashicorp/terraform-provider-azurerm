@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkProfileResource struct{}
@@ -88,30 +91,30 @@ func TestAccNetworkProfile_disappears(t *testing.T) {
 }
 
 func (t NetworkProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkProfileID(state.ID)
+	id, err := networkprofiles.ParseNetworkProfileID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ProfileClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.NetworkProfiles.Get(ctx, *id, networkprofiles.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetworkProfileResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkProfileID(state.ID)
+	id, err := networkprofiles.ParseNetworkProfileID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err = client.Network.ProfileClient.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	if _, err = client.Network.NetworkProfiles.Delete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting on %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (NetworkProfileResource) basic(data acceptance.TestData) string {

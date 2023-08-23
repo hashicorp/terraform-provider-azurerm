@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,18 +8,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tenantaccess"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementService() *pluginsdk.Resource {
@@ -221,7 +226,7 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -235,18 +240,14 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := apimanagementservice.NewServiceID(meta.(*clients.Client).Account.SubscriptionId, resourceGroup, name)
+
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("API Management Service %q (Resource Group %q) was not found", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 		}
-
-		return fmt.Errorf("retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	id, err := parse.ApiManagementID(*resp.ID)
-	if err != nil {
-		return fmt.Errorf("parsing API Management ID: %q", *resp.ID)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -254,62 +255,65 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
 
-	identity, err := flattenIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
-	if props := resp.ServiceProperties; props != nil {
-		d.Set("publisher_email", props.PublisherEmail)
-		d.Set("publisher_name", props.PublisherName)
-		d.Set("notification_sender_email", props.NotificationSenderEmail)
-		d.Set("gateway_url", props.GatewayURL)
-		d.Set("gateway_regional_url", props.GatewayRegionalURL)
-		d.Set("portal_url", props.PortalURL)
-		d.Set("developer_portal_url", props.DeveloperPortalURL)
-		d.Set("management_api_url", props.ManagementAPIURL)
-		d.Set("scm_url", props.ScmURL)
-		d.Set("public_ip_addresses", props.PublicIPAddresses)
-		d.Set("public_ip_address_id", props.PublicIPAddressID)
-		d.Set("private_ip_addresses", props.PrivateIPAddresses)
+		d.Set("publisher_email", model.Properties.PublisherEmail)
+		d.Set("publisher_name", model.Properties.PublisherName)
+		d.Set("notification_sender_email", pointer.From(model.Properties.NotificationSenderEmail))
+		d.Set("gateway_url", pointer.From(model.Properties.GatewayUrl))
+		d.Set("gateway_regional_url", pointer.From(model.Properties.GatewayRegionalUrl))
+		d.Set("portal_url", pointer.From(model.Properties.PortalUrl))
+		d.Set("developer_portal_url", pointer.From(model.Properties.DeveloperPortalUrl))
+		d.Set("management_api_url", pointer.From(model.Properties.ManagementApiUrl))
+		d.Set("scm_url", pointer.From(model.Properties.ScmUrl))
+		d.Set("public_ip_addresses", pointer.From(model.Properties.PublicIPAddresses))
+		d.Set("public_ip_address_id", pointer.From(model.Properties.PublicIPAddressId))
+		d.Set("private_ip_addresses", pointer.From(model.Properties.PrivateIPAddresses))
 
-		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
+		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(model.Properties.HostnameConfigurations)); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
 
-		if err := d.Set("additional_location", flattenDataSourceApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
+		if err := d.Set("additional_location", flattenDataSourceApiManagementAdditionalLocations(model.Properties.AdditionalLocations)); err != nil {
 			return fmt.Errorf("setting `additional_location`: %+v", err)
 		}
-	}
 
-	d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku))
+		d.Set("sku_name", flattenApiManagementServiceSkuName(&model.Sku))
 
-	tenantAccess := make([]interface{}, 0)
-	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
-		tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName, "access")
-		if err != nil {
-			if !utils.ResponseWasForbidden(tenantAccessInformationContract.Response) {
-				return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
+		tenantAccess := make([]interface{}, 0)
+		if model.Sku.Name != apimanagementservice.SkuTypeConsumption {
+			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
+			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
+			if err != nil {
+				if !response.WasForbidden(tenantAccessInformationContract.HttpResponse) {
+					return fmt.Errorf("retrieving tenant access properties for %s: %+v", id, err)
+				}
+			} else {
+				tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
 			}
-		} else {
-			tenantAccess = flattenApiManagementTenantAccessSettings(tenantAccessInformationContract)
+		}
+		if err := d.Set("tenant_access", tenantAccess); err != nil {
+			return fmt.Errorf("setting `tenant_access`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
-	if err := d.Set("tenant_access", tenantAccess); err != nil {
-		return fmt.Errorf("setting `tenant_access`: %+v", err)
-	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration) []interface{} {
+func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagementservice.HostnameConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -324,36 +328,30 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 	for _, config := range *input {
 		output := make(map[string]interface{})
 
-		if config.HostName != nil {
-			output["host_name"] = *config.HostName
-		}
+		output["host_name"] = config.HostName
 
-		if config.NegotiateClientCertificate != nil {
-			output["negotiate_client_certificate"] = *config.NegotiateClientCertificate
-		}
+		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 
-		if config.KeyVaultID != nil {
-			output["key_vault_id"] = *config.KeyVaultID
-		}
+		output["key_vault_id"] = pointer.From(config.KeyVaultId)
 
 		switch strings.ToLower(string(config.Type)) {
-		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
 			if config.DefaultSslBinding != nil {
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
 
-		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
 
-		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
 
-		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeDeveloperPortal)):
 			developerPortalResults = append(developerPortalResults, output)
 
-		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
 		}
 	}
@@ -369,45 +367,20 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 	}
 }
 
-func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
+func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementservice.AdditionalLocation) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, prop := range *input {
-		var capacity *int32
-		if prop.Sku.Capacity != nil {
-			capacity = prop.Sku.Capacity
-		}
-
-		var publicIpAddresses []string
-		if prop.PublicIPAddresses != nil {
-			publicIpAddresses = *prop.PublicIPAddresses
-		}
-
-		publicIpAddressId := ""
-		if prop.PublicIPAddressID != nil {
-			publicIpAddressId = *prop.PublicIPAddressID
-		}
-
-		var privateIpAddresses []string
-		if prop.PrivateIPAddresses != nil {
-			privateIpAddresses = *prop.PrivateIPAddresses
-		}
-
-		gatewayRegionalUrl := ""
-		if prop.GatewayRegionalURL != nil {
-			gatewayRegionalUrl = *prop.GatewayRegionalURL
-		}
-
 		results = append(results, map[string]interface{}{
-			"capacity":             capacity,
-			"gateway_regional_url": gatewayRegionalUrl,
-			"location":             location.NormalizeNilable(prop.Location),
-			"private_ip_addresses": privateIpAddresses,
-			"public_ip_address_id": publicIpAddressId,
-			"public_ip_addresses":  publicIpAddresses,
+			"capacity":             int32(prop.Sku.Capacity),
+			"gateway_regional_url": pointer.From(prop.GatewayRegionalUrl),
+			"location":             location.NormalizeNilable(pointer.To(prop.Location)),
+			"private_ip_addresses": pointer.From(prop.PrivateIPAddresses),
+			"public_ip_address_id": pointer.From(prop.PublicIPAddressId),
+			"public_ip_addresses":  pointer.From(prop.PublicIPAddresses),
 			"zones":                zones.FlattenUntyped(prop.Zones),
 		})
 	}

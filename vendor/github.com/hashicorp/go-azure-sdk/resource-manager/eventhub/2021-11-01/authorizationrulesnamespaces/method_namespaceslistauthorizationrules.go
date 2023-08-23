@@ -25,7 +25,7 @@ type NamespacesListAuthorizationRulesCompleteResult struct {
 // NamespacesListAuthorizationRules ...
 func (c AuthorizationRulesNamespacesClient) NamespacesListAuthorizationRules(ctx context.Context, id NamespaceId) (result NamespacesListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

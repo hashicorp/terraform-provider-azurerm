@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package redis_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

@@ -20,7 +20,7 @@ type ConfigurationsGetOperationResponse struct {
 // ConfigurationsGet ...
 func (c NginxConfigurationClient) ConfigurationsGet(ctx context.Context, id ConfigurationId) (result ConfigurationsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

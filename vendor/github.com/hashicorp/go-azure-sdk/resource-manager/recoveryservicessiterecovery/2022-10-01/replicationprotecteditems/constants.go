@@ -1,6 +1,10 @@
 package replicationprotecteditems
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -43,6 +47,19 @@ func PossibleValuesForAgentUpgradeBlockedReason() []string {
 	}
 }
 
+func (s *AgentUpgradeBlockedReason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgentUpgradeBlockedReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAgentUpgradeBlockedReason(input string) (*AgentUpgradeBlockedReason, error) {
 	vals := map[string]AgentUpgradeBlockedReason{
 		"agentnoheartbeat":              AgentUpgradeBlockedReasonAgentNoHeartbeat,
@@ -83,6 +100,19 @@ func PossibleValuesForAutoProtectionOfDataDisk() []string {
 	}
 }
 
+func (s *AutoProtectionOfDataDisk) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAutoProtectionOfDataDisk(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAutoProtectionOfDataDisk(input string) (*AutoProtectionOfDataDisk, error) {
 	vals := map[string]AutoProtectionOfDataDisk{
 		"disabled": AutoProtectionOfDataDiskDisabled,
@@ -109,6 +139,19 @@ func PossibleValuesForDisableProtectionReason() []string {
 		string(DisableProtectionReasonMigrationComplete),
 		string(DisableProtectionReasonNotSpecified),
 	}
+}
+
+func (s *DisableProtectionReason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDisableProtectionReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDisableProtectionReason(input string) (*DisableProtectionReason, error) {
@@ -139,6 +182,19 @@ func PossibleValuesForDiskAccountType() []string {
 		string(DiskAccountTypeStandardLRS),
 		string(DiskAccountTypeStandardSSDLRS),
 	}
+}
+
+func (s *DiskAccountType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDiskAccountType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDiskAccountType(input string) (*DiskAccountType, error) {
@@ -176,6 +232,19 @@ func PossibleValuesForDiskReplicationProgressHealth() []string {
 	}
 }
 
+func (s *DiskReplicationProgressHealth) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDiskReplicationProgressHealth(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDiskReplicationProgressHealth(input string) (*DiskReplicationProgressHealth, error) {
 	vals := map[string]DiskReplicationProgressHealth{
 		"inprogress":   DiskReplicationProgressHealthInProgress,
@@ -207,6 +276,19 @@ func PossibleValuesForEthernetAddressType() []string {
 	}
 }
 
+func (s *EthernetAddressType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEthernetAddressType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEthernetAddressType(input string) (*EthernetAddressType, error) {
 	vals := map[string]EthernetAddressType{
 		"dynamic": EthernetAddressTypeDynamic,
@@ -233,6 +315,19 @@ func PossibleValuesForHealthErrorCustomerResolvability() []string {
 		string(HealthErrorCustomerResolvabilityAllowed),
 		string(HealthErrorCustomerResolvabilityNotAllowed),
 	}
+}
+
+func (s *HealthErrorCustomerResolvability) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHealthErrorCustomerResolvability(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseHealthErrorCustomerResolvability(input string) (*HealthErrorCustomerResolvability, error) {
@@ -263,6 +358,19 @@ func PossibleValuesForInMageRcmFailbackRecoveryPointType() []string {
 	}
 }
 
+func (s *InMageRcmFailbackRecoveryPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInMageRcmFailbackRecoveryPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseInMageRcmFailbackRecoveryPointType(input string) (*InMageRcmFailbackRecoveryPointType, error) {
 	vals := map[string]InMageRcmFailbackRecoveryPointType{
 		"applicationconsistent": InMageRcmFailbackRecoveryPointTypeApplicationConsistent,
@@ -291,6 +399,19 @@ func PossibleValuesForLicenseType() []string {
 		string(LicenseTypeNotSpecified),
 		string(LicenseTypeWindowsServer),
 	}
+}
+
+func (s *LicenseType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLicenseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLicenseType(input string) (*LicenseType, error) {
@@ -326,6 +447,19 @@ func PossibleValuesForMobilityAgentUpgradeState() []string {
 	}
 }
 
+func (s *MobilityAgentUpgradeState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMobilityAgentUpgradeState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseMobilityAgentUpgradeState(input string) (*MobilityAgentUpgradeState, error) {
 	vals := map[string]MobilityAgentUpgradeState{
 		"commit":    MobilityAgentUpgradeStateCommit,
@@ -354,6 +488,19 @@ func PossibleValuesForMultiVMGroupCreateOption() []string {
 		string(MultiVMGroupCreateOptionAutoCreated),
 		string(MultiVMGroupCreateOptionUserSpecified),
 	}
+}
+
+func (s *MultiVMGroupCreateOption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMultiVMGroupCreateOption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseMultiVMGroupCreateOption(input string) (*MultiVMGroupCreateOption, error) {
@@ -388,6 +535,19 @@ func PossibleValuesForPlannedFailoverStatus() []string {
 	}
 }
 
+func (s *PlannedFailoverStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePlannedFailoverStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePlannedFailoverStatus(input string) (*PlannedFailoverStatus, error) {
 	vals := map[string]PlannedFailoverStatus{
 		"cancelled": PlannedFailoverStatusCancelled,
@@ -420,6 +580,19 @@ func PossibleValuesForRecoveryPointType() []string {
 	}
 }
 
+func (s *RecoveryPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecoveryPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRecoveryPointType(input string) (*RecoveryPointType, error) {
 	vals := map[string]RecoveryPointType{
 		"custom":     RecoveryPointTypeCustom,
@@ -449,6 +622,19 @@ func PossibleValuesForResyncState() []string {
 		string(ResyncStatePreparedForResynchronization),
 		string(ResyncStateStartedResynchronization),
 	}
+}
+
+func (s *ResyncState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResyncState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseResyncState(input string) (*ResyncState, error) {
@@ -484,6 +670,19 @@ func PossibleValuesForSqlServerLicenseType() []string {
 	}
 }
 
+func (s *SqlServerLicenseType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSqlServerLicenseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSqlServerLicenseType(input string) (*SqlServerLicenseType, error) {
 	vals := map[string]SqlServerLicenseType{
 		"ahub":          SqlServerLicenseTypeAHUB,
@@ -514,6 +713,19 @@ func PossibleValuesForVMEncryptionType() []string {
 		string(VMEncryptionTypeOnePassEncrypted),
 		string(VMEncryptionTypeTwoPassEncrypted),
 	}
+}
+
+func (s *VMEncryptionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVMEncryptionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVMEncryptionType(input string) (*VMEncryptionType, error) {
@@ -547,6 +759,19 @@ func PossibleValuesForVMReplicationProgressHealth() []string {
 		string(VMReplicationProgressHealthNone),
 		string(VMReplicationProgressHealthSlowProgress),
 	}
+}
+
+func (s *VMReplicationProgressHealth) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVMReplicationProgressHealth(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVMReplicationProgressHealth(input string) (*VMReplicationProgressHealth, error) {

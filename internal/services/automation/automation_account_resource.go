@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -12,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -154,7 +157,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 }
 
 func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +216,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -260,7 +263,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	registrationClient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -348,7 +351,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -412,7 +415,7 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 	userAssignedIdentityId := ""
 
 	if keyProp := encryption.KeyVaultProperties; keyProp != nil {
-		keyId, err := keyVaultParse.NewNestedItemID(*keyProp.KeyvaultUri, "keys", *keyProp.KeyName, *keyProp.KeyVersion)
+		keyId, err := keyVaultParse.NewNestedItemID(*keyProp.KeyvaultUri, keyVaultParse.NestedItemTypeKey, *keyProp.KeyName, *keyProp.KeyVersion)
 		if err == nil {
 			keyVaultKeyId = keyId.ID()
 		}

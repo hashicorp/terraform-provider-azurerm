@@ -1,3 +1,8 @@
+<!--
+ Copyright (c) HashiCorp, Inc.
+ SPDX-License-Identifier: MPL-2.0
+-->
+
 <!-- source: https://svn.apache.org/repos/asf/airavata/sandbox/xbaya-web/test/Calculator.wsdl -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://c.b.a"
                   xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
@@ -75,21 +80,6 @@
     <wsdl:service name="Calculator">
         <wsdl:port name="CalculatorHttpsSoap11Endpoint" binding="ns:CalculatorSoap11Binding">
             <soap:address location="https://acceptancetests.terraform.io/services/Calculator.CalculatorHttpsSoap11Endpoint/" />
-        </wsdl:port>
-        <wsdl:port name="CalculatorHttpSoap11Endpoint" binding="ns:CalculatorSoap11Binding">
-            <soap:address location="http://acceptancetests.terraform.io/services/Calculator.CalculatorHttpSoap11Endpoint/" />
-        </wsdl:port>
-        <wsdl:port name="CalculatorHttpSoap12Endpoint" binding="ns:CalculatorSoap12Binding">
-            <soap12:address location="http://acceptancetests.terraform.io/services/Calculator.CalculatorHttpSoap12Endpoint/" />
-        </wsdl:port>
-        <wsdl:port name="CalculatorHttpsSoap12Endpoint" binding="ns:CalculatorSoap12Binding">
-            <soap12:address location="https://acceptancetests.terraform.io/services/Calculator.CalculatorHttpsSoap12Endpoint/" />
-        </wsdl:port>
-        <wsdl:port name="CalculatorHttpsEndpoint" binding="ns:CalculatorHttpBinding">
-            <http:address location="https://acceptancetests.terraform.io/services/Calculator.CalculatorHttpsEndpoint/" />
-        </wsdl:port>
-        <wsdl:port name="CalculatorHttpEndpoint" binding="ns:CalculatorHttpBinding">
-            <http:address location="http://acceptancetests.terraform.io/services/Calculator.CalculatorHttpEndpoint/" />
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>

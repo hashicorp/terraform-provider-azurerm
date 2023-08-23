@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -27,8 +30,8 @@ resource "azurerm_windows_web_app" "example" {
 
   site_config {
     application_stack {
-      docker_container_name = "jackofallops/azure-containerapps-python-acctest"
-      docker_container_tag  = "v0.0.1"
+      docker_image_name   = "traefik:windowsservercore-1809"
+      docker_registry_url = "https://index.docker.io"
     }
   }
 }

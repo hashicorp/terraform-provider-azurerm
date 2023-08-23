@@ -1,7 +1,9 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -9,13 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	validateCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,9 +36,20 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MaintenanceAssignmentVirtualMachineID(id)
+			parsed, err := configurationassignments.ParseScopedConfigurationAssignmentID(id)
+			if err != nil {
+				return err
+			}
+			if _, err := virtualmachines.ParseVirtualMachineID(parsed.Scope); err != nil {
+				return fmt.Errorf("parsing %q as Virtual Machine ID: %+v", parsed.Scope, err)
+			}
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AssignmentVirtualMachineV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"location": commonschema.Location(),
@@ -47,15 +59,14 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
-				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0 with a work around or when https://github.com/Azure/azure-rest-api-specs/issues/8653 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"virtual_machine_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     validateCompute.VirtualMachineID,
-				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: virtualmachines.ValidateVirtualMachineID,
 			},
 		},
 	}
@@ -66,7 +77,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineId, err := parseCompute.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	virtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return err
 	}
@@ -76,23 +87,16 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	existingList, err := getMaintenanceAssignmentVirtualMachine(ctx, client, virtualMachineId, virtualMachineId.ID())
-	if err != nil {
-		return err
-	}
-	if existingList != nil && len(*existingList) > 0 {
-		isExist := false
-		for _, existing := range *existingList {
-			// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. So here it has to ignore case sensitivity. Once this issue is fixed, here will be updated to respect case sensitivity
-			if existing.Name != nil && strings.EqualFold(*existing.Name, configurationId.MaintenanceConfigurationName) {
-				isExist = true
-				break
-			}
-		}
+	id := configurationassignments.NewScopedConfigurationAssignmentID(virtualMachineId.ID(), configurationId.MaintenanceConfigurationName)
 
-		if isExist {
-			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", configurationId.ID())
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", id.ID())
 	}
 
 	// set assignment name to configuration name
@@ -106,15 +110,13 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		},
 	}
 
-	id := configurationassignments.NewConfigurationAssignmentID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", virtualMachineId.Name, assignmentName)
-
 	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, id, configurationAssignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
 				return pluginsdk.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("issuing creating request for Maintenance Assignment (virtual machine ID %q): %+v", virtualMachineId.ID(), err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("issuing creating request for %s: %+v", id, err))
 		}
 
 		return nil
@@ -132,49 +134,46 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MaintenanceAssignmentVirtualMachineID(d.Id())
+	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := getMaintenanceAssignmentVirtualMachine(ctx, client, id.VirtualMachineId, id.VirtualMachineIdRaw)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return err
-	}
-	if resp == nil || len(*resp) == 0 {
-		d.SetId("")
-		return nil
-	}
-
-	var assignment configurationassignments.ConfigurationAssignment
-	for _, v := range *resp {
-		// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. So here it has to ignore case sensitivity. Once this issue is fixed, here will be updated to respect case sensitivity
-		if v.Name != nil && strings.EqualFold(*v.Name, id.Name) {
-			assignment = v
-			break
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
 		}
+		return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
 	}
 
-	if assignment.Id == nil || *assignment.Id == "" {
-		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine ID id: %q", id.VirtualMachineIdRaw)
+	vmId, err := virtualmachines.ParseVirtualMachineID(id.Scope)
+	if err != nil {
+		return err
 	}
 
-	// in list api, `ResourceID` returned is always nil
-	virtualMachineId := ""
-	if id.VirtualMachineId != nil {
-		virtualMachineId = id.VirtualMachineId.ID()
-	}
-	d.Set("virtual_machine_id", virtualMachineId)
-	if props := assignment.Properties; props != nil {
-		maintenanceConfigurationId := ""
-		if props.MaintenanceConfigurationId != nil {
-			parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
-			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+	d.Set("virtual_machine_id", vmId.ID())
+
+	if model := resp.Model; model != nil {
+		loc := location.NormalizeNilable(model.Location)
+		// location isn't returned by the API
+		if loc == "" {
+			loc = d.Get("location").(string)
+		}
+		d.Set("location", loc)
+
+		if props := model.Properties; props != nil {
+			maintenanceConfigurationId := ""
+			if props.MaintenanceConfigurationId != nil {
+				parsedId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
+				if err != nil {
+					return fmt.Errorf("parsing %q: %+v", *props.MaintenanceConfigurationId, err)
+				}
+				maintenanceConfigurationId = parsedId.ID()
 			}
-			maintenanceConfigurationId = parsedId.ID()
+			d.Set("maintenance_configuration_id", maintenanceConfigurationId)
 		}
-		d.Set("maintenance_configuration_id", maintenanceConfigurationId)
 	}
 	return nil
 }
@@ -184,32 +183,14 @@ func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmId, err := parse.MaintenanceAssignmentVirtualMachineID(d.Id())
+	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id := configurationassignments.NewConfigurationAssignmentID(vmId.VirtualMachineId.SubscriptionId, vmId.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", vmId.VirtualMachineId.Name, vmId.Name)
-
-	if _, err := client.Delete(ctx, id); err != nil {
-		return fmt.Errorf("deleting Maintenance Assignment to resource %q: %+v", vmId.VirtualMachineIdRaw, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func getMaintenanceAssignmentVirtualMachine(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, vmId *parseCompute.VirtualMachineId, virtualMachineId string) (result *[]configurationassignments.ConfigurationAssignment, err error) {
-	id := configurationassignments.NewProviderID(vmId.SubscriptionId, vmId.ResourceGroup, "Microsoft.Compute", "virtualMachines", vmId.Name)
-	resp, err := client.List(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			err = fmt.Errorf("checking for presence of existing Maintenance assignment (virtual machine ID: %q): %+v", virtualMachineId, err)
-			return
-		}
-	}
-
-	if resp.Model != nil {
-		result = resp.Model.Value
-	}
-	return
 }

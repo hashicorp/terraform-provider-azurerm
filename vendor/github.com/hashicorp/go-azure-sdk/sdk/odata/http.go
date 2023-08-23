@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-// FromResponse parses an http.Response and returns an unmarshaled OData
+// FromResponse parses a http.Response and returns an unmarshalled OData
 // If no odata is present in the response, or the content type is invalid, returns nil
 func FromResponse(resp *http.Response) (*OData, error) {
 	if resp == nil {

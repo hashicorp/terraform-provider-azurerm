@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 // NOTE: in a Production Environment you're likely to have Network Security Rules
 // which lock down traffic between Subnets. These are omited below to keep the
 // examples easy to understand - and should be added before being used in Production.

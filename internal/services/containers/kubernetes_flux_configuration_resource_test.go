@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -194,7 +197,7 @@ func TestAccKubernetesFluxConfiguration_kustomizationNameDuplicated(t *testing.T
 }
 
 func (r KubernetesFluxConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := fluxconfiguration.ParseFluxConfigurationID(state.ID)
+	id, err := fluxconfiguration.ParseScopedFluxConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}

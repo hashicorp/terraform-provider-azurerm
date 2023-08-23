@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -9,18 +12,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,7 +35,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 		Delete: resourceComputeInstanceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ComputeID(id)
+			_, err := machinelearningcomputes.ParseComputeID(id)
 			return err
 		}),
 
@@ -58,7 +59,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"location": commonschema.Location(),
@@ -145,7 +146,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"node_public_ip_enabled": {
@@ -161,7 +162,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 }
 
 func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.ComputeClient
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +226,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
 	}
 
@@ -235,7 +236,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.ComputeClient
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -296,7 +297,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.ComputeClient
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
@@ -311,7 +312,7 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of the Machine Learning Compute (%q): %+v", id, err)
 	}
 	return nil

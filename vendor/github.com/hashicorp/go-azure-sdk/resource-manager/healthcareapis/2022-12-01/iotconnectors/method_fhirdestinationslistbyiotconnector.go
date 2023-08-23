@@ -25,7 +25,7 @@ type FhirDestinationsListByIotConnectorCompleteResult struct {
 // FhirDestinationsListByIotConnector ...
 func (c IotConnectorsClient) FhirDestinationsListByIotConnector(ctx context.Context, id IotConnectorId) (result FhirDestinationsListByIotConnectorOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

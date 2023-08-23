@@ -23,7 +23,7 @@ type DatabasesImportOperationResponse struct {
 // DatabasesImport ...
 func (c RedisEnterpriseClient) DatabasesImport(ctx context.Context, id DatabaseId, input ImportClusterParameters) (result DatabasesImportOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

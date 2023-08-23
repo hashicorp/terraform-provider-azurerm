@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package costmanagement
 
 import (
@@ -320,6 +323,10 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 						return err
 					}
 					model.Properties.ViewId = id.ID()
+				}
+
+				if metadata.ResourceData.HasChange("email_address_sender") {
+					model.Properties.NotificationEmail = utils.String(metadata.ResourceData.Get("email_address_sender").(string))
 				}
 
 				if metadata.ResourceData.HasChange("email_subject") {

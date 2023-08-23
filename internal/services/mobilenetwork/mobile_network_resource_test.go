@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -18,9 +21,6 @@ type MobileNetworkResource struct{}
 
 func TestAccMobileNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,10 +35,6 @@ func TestAccMobileNetwork_basic(t *testing.T) {
 
 func TestAccMobileNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,10 +49,6 @@ func TestAccMobileNetwork_requiresImport(t *testing.T) {
 
 func TestAccMobileNetwork_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,9 +63,6 @@ func TestAccMobileNetwork_complete(t *testing.T) {
 
 func TestAccMobileNetwork_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks_test
 
 import (
@@ -99,7 +102,7 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.test.id

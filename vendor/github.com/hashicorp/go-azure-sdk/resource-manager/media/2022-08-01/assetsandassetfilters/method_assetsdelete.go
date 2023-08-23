@@ -19,7 +19,7 @@ type AssetsDeleteOperationResponse struct {
 // AssetsDelete ...
 func (c AssetsAndAssetFiltersClient) AssetsDelete(ctx context.Context, id AssetId) (result AssetsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

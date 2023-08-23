@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
@@ -16,12 +19,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -140,7 +142,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"geo_redundant_backup_enabled": {
@@ -236,7 +238,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
 
 			"storage": {
@@ -304,7 +306,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -457,7 +459,7 @@ func mySqlFlexibleServerCreationRefreshFunc(ctx context.Context, client *servers
 }
 
 func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -541,7 +543,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -614,7 +616,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if requireFailover {
-		failoverClient := meta.(*clients.Client).MySQL.FlexibleServerFailoverClient
+		failoverClient := meta.(*clients.Client).MySQL.FlexibleServers.ServerFailover
 		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
 		if err := failoverClient.ServersFailoverThenPoll(ctx, failoverID); err != nil {
@@ -703,7 +705,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceMysqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

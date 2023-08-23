@@ -20,7 +20,7 @@ type NamespacesCreateOrUpdateAuthorizationRuleOperationResponse struct {
 // NamespacesCreateOrUpdateAuthorizationRule ...
 func (c NamespacesAuthorizationRuleClient) NamespacesCreateOrUpdateAuthorizationRule(ctx context.Context, id AuthorizationRuleId, input SBAuthorizationRule) (result NamespacesCreateOrUpdateAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

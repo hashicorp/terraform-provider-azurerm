@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,16 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/user"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementUser() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 		Update: resourceApiManagementUserCreateUpdate,
 		Delete: resourceApiManagementUserDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.UserID(id)
+			_, err := user.ParseUserID(id)
 			return err
 		}),
 
@@ -65,8 +68,8 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.ConfirmationInvite),
-					string(apimanagement.ConfirmationSignup),
+					string(user.ConfirmationInvite),
+					string(user.ConfirmationSignup),
 				}, false),
 			},
 
@@ -86,9 +89,9 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.UserStateActive),
-					string(apimanagement.UserStateBlocked),
-					string(apimanagement.UserStatePending),
+					string(user.UserStateActive),
+					string(user.UserStateBlocked),
+					string(user.UserStatePending),
 				}, false),
 			},
 		},
@@ -103,7 +106,7 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	log.Printf("[INFO] preparing arguments for API Management User creation.")
 
-	id := parse.NewUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("user_id").(string))
+	id := user.NewUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("user_id").(string))
 
 	firstName := d.Get("first_name").(string)
 	lastName := d.Get("last_name").(string)
@@ -113,42 +116,41 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	password := d.Get("password").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_user", id.ID())
 		}
 	}
 
-	properties := apimanagement.UserCreateParameters{
-		UserCreateParameterProperties: &apimanagement.UserCreateParameterProperties{
-			FirstName: utils.String(firstName),
-			LastName:  utils.String(lastName),
-			Email:     utils.String(email),
+	properties := user.UserCreateParameters{
+		Properties: &user.UserCreateParameterProperties{
+			FirstName: firstName,
+			LastName:  lastName,
+			Email:     email,
 		},
 	}
 
 	confirmation := d.Get("confirmation").(string)
 	if confirmation != "" {
-		properties.UserCreateParameterProperties.Confirmation = apimanagement.Confirmation(confirmation)
+		properties.Properties.Confirmation = pointer.To(user.Confirmation(confirmation))
 	}
 	if note != "" {
-		properties.UserCreateParameterProperties.Note = utils.String(note)
+		properties.Properties.Note = pointer.To(note)
 	}
 	if password != "" {
-		properties.UserCreateParameterProperties.Password = utils.String(password)
+		properties.Properties.Password = pointer.To(password)
 	}
 	if state != "" {
-		properties.UserCreateParameterProperties.State = apimanagement.UserState(state)
+		properties.Properties.State = pointer.To(user.UserState(state))
 	}
 
-	notify := utils.Bool(false)
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, properties, notify, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, properties, user.CreateOrUpdateOperationOptions{Notify: pointer.To(false)}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -162,32 +164,34 @@ func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.UserID(d.Id())
+	id, err := user.ParseUserID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("user_id", id.Name)
+	d.Set("user_id", id.UserId)
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.UserContractProperties; props != nil {
-		d.Set("first_name", props.FirstName)
-		d.Set("last_name", props.LastName)
-		d.Set("email", props.Email)
-		d.Set("note", props.Note)
-		d.Set("state", string(props.State))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("first_name", pointer.From(props.FirstName))
+			d.Set("last_name", pointer.From(props.LastName))
+			d.Set("email", pointer.From(props.Email))
+			d.Set("note", pointer.From(props.Note))
+			d.Set("state", string(pointer.From(props.State)))
+		}
 	}
 
 	return nil
@@ -198,17 +202,15 @@ func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.UserID(d.Id())
+	id, err := user.ParseUserID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Deleting %s", *id)
-	deleteSubscriptions := utils.Bool(true)
-	notify := utils.Bool(false)
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "", deleteSubscriptions, notify, apimanagement.AppTypeDeveloperPortal)
+	resp, err := client.Delete(ctx, *id, user.DeleteOperationOptions{AppType: pointer.To(user.AppTypeDeveloperPortal), DeleteSubscriptions: pointer.To(true), Notify: pointer.To(false)})
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -6,7 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -49,7 +54,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryID,
+				ValidateFunc: factories.ValidateFactoryID,
 			},
 
 			"target_resource_id": {
@@ -81,18 +86,18 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 }
 
 func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpointsClient
-	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
+	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
 
-	managedVirtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName)
+	managedVirtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName)
 	if err != nil {
 		return err
 	}
@@ -100,8 +105,8 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("managed Private endpoints are only available after managed virtual network for %s is enabled", dataFactoryId)
 	}
 
-	id := parse.NewManagedPrivateEndpointID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, *managedVirtualNetworkName, d.Get("name").(string))
-	existing, err := getManagedPrivateEndpoint(ctx, client, id.ResourceGroup, id.FactoryName, *managedVirtualNetworkName, id.Name)
+	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, *managedVirtualNetworkName, d.Get("name").(string))
+	existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 	}
@@ -131,21 +136,21 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	managedPrivateEndpoint := datafactory.ManagedPrivateEndpointResource{
-		Properties: &datafactory.ManagedPrivateEndpoint{
-			PrivateLinkResourceID: utils.String(targetResourceId),
+	payload := managedprivateendpoints.ManagedPrivateEndpointResource{
+		Properties: managedprivateendpoints.ManagedPrivateEndpoint{
+			PrivateLinkResourceId: utils.String(targetResourceId),
 		},
 	}
 
 	if len(subResourceName) > 0 {
-		managedPrivateEndpoint.Properties.GroupID = utils.String(subResourceName)
+		payload.Properties.GroupId = utils.String(subResourceName)
 	}
 
 	if len(fqdns) > 0 {
-		managedPrivateEndpoint.Properties.Fqdns = utils.ExpandStringSlice(fqdns)
+		payload.Properties.Fqdns = utils.ExpandStringSlice(fqdns)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload, managedprivateendpoints.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -166,19 +171,19 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 }
 
 func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpointsClient
+	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedPrivateEndpointID(d.Id())
+	id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName, id.Name, "")
+	resp, err := client.Get(ctx, *id, managedprivateendpoints.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -186,31 +191,30 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("data_factory_id", parse.NewDataFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
+	d.Set("name", id.ManagedPrivateEndpointName)
+	d.Set("data_factory_id", factories.NewFactoryID(subscriptionId, id.ResourceGroupName, id.FactoryName).ID())
 
-	if props := resp.Properties; props != nil {
-		d.Set("target_resource_id", props.PrivateLinkResourceID)
-		d.Set("subresource_name", props.GroupID)
-		if props.Fqdns != nil {
-			d.Set("fqdns", props.Fqdns)
-		}
+	if model := resp.Model; model != nil {
+		props := model.Properties
+		d.Set("target_resource_id", props.PrivateLinkResourceId)
+		d.Set("subresource_name", props.GroupId)
+		d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns))
 	}
 
 	return nil
 }
 
 func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpointsClient
+	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedPrivateEndpointID(d.Id())
+	id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName, id.Name); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -219,31 +223,39 @@ func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, 
 
 // if ManagedPrivateEndpoint not exist, get rest api will return 400 bad request
 // invoke list rets api and then filter by name
-func getManagedPrivateEndpoint(ctx context.Context, client *datafactory.ManagedPrivateEndpointsClient, resourceGroupName, factoryName, managedVirtualNetworkName, name string) (*datafactory.ManagedPrivateEndpointResource, error) {
-	iter, err := client.ListByFactoryComplete(ctx, resourceGroupName, factoryName, managedVirtualNetworkName)
+func getManagedPrivateEndpoint(ctx context.Context, client *managedprivateendpoints.ManagedPrivateEndpointsClient, subscriptionId, resourceGroupName, factoryName, managedVirtualNetworkName, privateEndpointName string) (*managedprivateendpoints.ManagedPrivateEndpointResource, error) {
+	managedVirtualNetworkId := managedprivateendpoints.NewManagedVirtualNetworkID(subscriptionId, resourceGroupName, factoryName, managedVirtualNetworkName)
+	iter, err := client.ListByFactoryComplete(ctx, managedVirtualNetworkId)
 	if err != nil {
 		return nil, err
 	}
-	for iter.NotDone() {
-		managedPrivateEndpoint := iter.Value()
-		if managedPrivateEndpoint.Name != nil && *managedPrivateEndpoint.Name == name {
-			return &managedPrivateEndpoint, nil
+
+	for _, item := range iter.Items {
+		if item.Name != nil && *item.Name == privateEndpointName {
+			return &item, nil
 		}
 
-		if err := iter.NextWithContext(ctx); err != nil {
-			return nil, err
-		}
 	}
 	return nil, nil
 }
 
-func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *datafactory.ManagedPrivateEndpointsClient, id parse.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
+func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *managedprivateendpoints.ManagedPrivateEndpointsClient, id managedprivateendpoints.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName, id.Name, "")
-		if err != nil || resp.Properties == nil || resp.Properties.ProvisioningState == nil {
+		// TODO: it should be possible to remove this function https://github.com/hashicorp/go-azure-sdk/issues/307 has been fixed
+		resp, err := client.Get(ctx, id, managedprivateendpoints.DefaultGetOperationOptions())
+		if err != nil {
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		return resp, *resp.Properties.ProvisioningState, nil
+		model := resp.Model
+		if model == nil {
+			return nil, "", fmt.Errorf("retrieving %s: `model` was nil", id)
+		}
+
+		if model.Properties.ProvisioningState == nil {
+			return nil, "", fmt.Errorf("retrieving %s: `provisioningState` is nil", id)
+		}
+
+		return resp, *resp.Model.Properties.ProvisioningState, nil
 	}
 }

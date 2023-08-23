@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
@@ -34,7 +39,7 @@ type Client struct {
 	TableClient                      *documentdb.TableResourcesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	cassandraClient := documentdb.NewCassandraResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&cassandraClient.Client, o.ResourceManagerAuthorizer)
 
@@ -44,11 +49,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	cassandraDatacentersClient := documentdb.NewCassandraDataCentersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&cassandraDatacentersClient.Client, o.ResourceManagerAuthorizer)
 
-	clustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
+	clustersClient, err := clusters.NewClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Clusters client: %+v", err)
+	}
+	o.Configure(clustersClient.Client, o.Authorizers.ResourceManager)
 
-	configurationsClient := configurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
+	configurationsClient, err := configurations.NewConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Configurations client: %+v", err)
+	}
+	o.Configure(configurationsClient.Client, o.Authorizers.ResourceManager)
 
 	cosmosdbClient := cosmosdb.NewCosmosDBClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&cosmosdbClient.Client, o.ResourceManagerAuthorizer)
@@ -56,8 +67,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
 
-	firewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
+	firewallRulesClient, err := firewallrules.NewFirewallRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building FirewallRules client: %+v", err)
+	}
+	o.Configure(firewallRulesClient.Client, o.Authorizers.ResourceManager)
 
 	gremlinClient := documentdb.NewGremlinResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gremlinClient.Client, o.ResourceManagerAuthorizer)
@@ -74,8 +88,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	restorableDatabaseAccountsClient := documentdb.NewRestorableDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDatabaseAccountsClient.Client, o.ResourceManagerAuthorizer)
 
-	rolesClient := roles.NewRolesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&rolesClient.Client, o.ResourceManagerAuthorizer)
+	rolesClient, err := roles.NewRolesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Roles client: %+v", err)
+	}
+	o.Configure(rolesClient.Client, o.Authorizers.ResourceManager)
 
 	sqlDedicatedGatewayClient := sqldedicatedgateway.NewSqlDedicatedGatewayClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&sqlDedicatedGatewayClient.Client, o.ResourceManagerAuthorizer)
@@ -93,20 +110,20 @@ func NewClient(o *common.ClientOptions) *Client {
 		CassandraClient:                  &cassandraClient,
 		CassandraClustersClient:          &cassandraClustersClient,
 		CassandraDatacentersClient:       &cassandraDatacentersClient,
-		ClustersClient:                   &clustersClient,
-		ConfigurationsClient:             &configurationsClient,
+		ClustersClient:                   clustersClient,
+		ConfigurationsClient:             configurationsClient,
 		CosmosDBClient:                   &cosmosdbClient,
 		DatabaseClient:                   &databaseClient,
-		FirewallRulesClient:              &firewallRulesClient,
+		FirewallRulesClient:              firewallRulesClient,
 		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
 		MongoRBACClient:                  &mongorbacsClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
 		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,
-		RolesClient:                      &rolesClient,
+		RolesClient:                      rolesClient,
 		SqlDedicatedGatewayClient:        &sqlDedicatedGatewayClient,
 		SqlClient:                        &sqlClient,
 		SqlResourceClient:                &sqlResourceClient,
 		TableClient:                      &tableClient,
-	}
+	}, nil
 }

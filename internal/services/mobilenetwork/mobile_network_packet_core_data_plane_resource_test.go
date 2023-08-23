@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -18,9 +21,6 @@ type MobileNetworkPacketCoreDataPlaneResource struct{}
 
 func TestAccMobileNetworkPacketCoreDataPlane_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,9 +35,6 @@ func TestAccMobileNetworkPacketCoreDataPlane_basic(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreDataPlane_withAccessInterface(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,9 +49,6 @@ func TestAccMobileNetworkPacketCoreDataPlane_withAccessInterface(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreDataPlane_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,9 +63,6 @@ func TestAccMobileNetworkPacketCoreDataPlane_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreDataPlane_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,9 +77,6 @@ func TestAccMobileNetworkPacketCoreDataPlane_complete(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreDataPlane_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreDataPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

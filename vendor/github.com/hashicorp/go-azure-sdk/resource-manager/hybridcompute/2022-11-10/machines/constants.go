@@ -1,6 +1,10 @@
 package machines
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAgentConfigurationMode() []string {
 		string(AgentConfigurationModeFull),
 		string(AgentConfigurationModeMonitor),
 	}
+}
+
+func (s *AgentConfigurationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgentConfigurationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAgentConfigurationMode(input string) (*AgentConfigurationMode, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForAssessmentModeTypes() []string {
 	}
 }
 
+func (s *AssessmentModeTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAssessmentModeTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAssessmentModeTypes(input string) (*AssessmentModeTypes, error) {
 	vals := map[string]AssessmentModeTypes{
 		"automaticbyplatform": AssessmentModeTypesAutomaticByPlatform,
@@ -71,6 +101,19 @@ func PossibleValuesForInstanceViewTypes() []string {
 	return []string{
 		string(InstanceViewTypesInstanceView),
 	}
+}
+
+func (s *InstanceViewTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInstanceViewTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseInstanceViewTypes(input string) (*InstanceViewTypes, error) {
@@ -102,6 +145,19 @@ func PossibleValuesForPatchModeTypes() []string {
 		string(PatchModeTypesImageDefault),
 		string(PatchModeTypesManual),
 	}
+}
+
+func (s *PatchModeTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePatchModeTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePatchModeTypes(input string) (*PatchModeTypes, error) {
@@ -136,6 +192,19 @@ func PossibleValuesForStatusLevelTypes() []string {
 	}
 }
 
+func (s *StatusLevelTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatusLevelTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStatusLevelTypes(input string) (*StatusLevelTypes, error) {
 	vals := map[string]StatusLevelTypes{
 		"error":   StatusLevelTypesError,
@@ -165,6 +234,19 @@ func PossibleValuesForStatusTypes() []string {
 		string(StatusTypesDisconnected),
 		string(StatusTypesError),
 	}
+}
+
+func (s *StatusTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatusTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStatusTypes(input string) (*StatusTypes, error) {

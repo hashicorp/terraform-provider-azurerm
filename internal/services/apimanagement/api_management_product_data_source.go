@@ -1,17 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/product"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementProduct() *pluginsdk.Resource {
@@ -73,27 +76,28 @@ func dataSourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
+	id := product.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 		}
-
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	if props := resp.ProductContractProperties; props != nil {
-		d.Set("approval_required", props.ApprovalRequired)
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("published", props.State == apimanagement.ProductStatePublished)
-		d.Set("subscriptions_limit", props.SubscriptionsLimit)
-		d.Set("subscription_required", props.SubscriptionRequired)
-		d.Set("terms", props.Terms)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("approval_required", pointer.From(props.ApprovalRequired))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("published", pointer.From(props.State) == product.ProductStatePublished)
+			d.Set("subscriptions_limit", pointer.From(props.SubscriptionsLimit))
+			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
+			d.Set("terms", pointer.From(props.Terms))
+		}
 	}
 
 	return nil

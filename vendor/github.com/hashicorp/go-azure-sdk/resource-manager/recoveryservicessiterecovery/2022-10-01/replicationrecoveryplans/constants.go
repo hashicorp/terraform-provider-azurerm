@@ -1,6 +1,10 @@
 package replicationrecoveryplans
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForA2ARpRecoveryPointType() []string {
 		string(A2ARpRecoveryPointTypeLatestCrashConsistent),
 		string(A2ARpRecoveryPointTypeLatestProcessed),
 	}
+}
+
+func (s *A2ARpRecoveryPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseA2ARpRecoveryPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseA2ARpRecoveryPointType(input string) (*A2ARpRecoveryPointType, error) {
@@ -53,6 +70,19 @@ func PossibleValuesForAlternateLocationRecoveryOption() []string {
 	}
 }
 
+func (s *AlternateLocationRecoveryOption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAlternateLocationRecoveryOption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAlternateLocationRecoveryOption(input string) (*AlternateLocationRecoveryOption, error) {
 	vals := map[string]AlternateLocationRecoveryOption{
 		"createvmifnotfound": AlternateLocationRecoveryOptionCreateVMIfNotFound,
@@ -79,6 +109,19 @@ func PossibleValuesForDataSyncStatus() []string {
 		string(DataSyncStatusForDownTime),
 		string(DataSyncStatusForSynchronization),
 	}
+}
+
+func (s *DataSyncStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataSyncStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDataSyncStatus(input string) (*DataSyncStatus, error) {
@@ -109,6 +152,19 @@ func PossibleValuesForFailoverDeploymentModel() []string {
 		string(FailoverDeploymentModelNotApplicable),
 		string(FailoverDeploymentModelResourceManager),
 	}
+}
+
+func (s *FailoverDeploymentModel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFailoverDeploymentModel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseFailoverDeploymentModel(input string) (*FailoverDeploymentModel, error) {
@@ -142,6 +198,19 @@ func PossibleValuesForHyperVReplicaAzureRpRecoveryPointType() []string {
 	}
 }
 
+func (s *HyperVReplicaAzureRpRecoveryPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHyperVReplicaAzureRpRecoveryPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseHyperVReplicaAzureRpRecoveryPointType(input string) (*HyperVReplicaAzureRpRecoveryPointType, error) {
 	vals := map[string]HyperVReplicaAzureRpRecoveryPointType{
 		"latest":                      HyperVReplicaAzureRpRecoveryPointTypeLatest,
@@ -169,6 +238,19 @@ func PossibleValuesForInMageRcmFailbackRecoveryPointType() []string {
 		string(InMageRcmFailbackRecoveryPointTypeApplicationConsistent),
 		string(InMageRcmFailbackRecoveryPointTypeCrashConsistent),
 	}
+}
+
+func (s *InMageRcmFailbackRecoveryPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInMageRcmFailbackRecoveryPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseInMageRcmFailbackRecoveryPointType(input string) (*InMageRcmFailbackRecoveryPointType, error) {
@@ -203,6 +285,19 @@ func PossibleValuesForInMageV2RpRecoveryPointType() []string {
 	}
 }
 
+func (s *InMageV2RpRecoveryPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInMageV2RpRecoveryPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseInMageV2RpRecoveryPointType(input string) (*InMageV2RpRecoveryPointType, error) {
 	vals := map[string]InMageV2RpRecoveryPointType{
 		"latest":                      InMageV2RpRecoveryPointTypeLatest,
@@ -233,6 +328,19 @@ func PossibleValuesForMultiVMSyncPointOption() []string {
 	}
 }
 
+func (s *MultiVMSyncPointOption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMultiVMSyncPointOption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseMultiVMSyncPointOption(input string) (*MultiVMSyncPointOption, error) {
 	vals := map[string]MultiVMSyncPointOption{
 		"usemultivmsyncrecoverypoint": MultiVMSyncPointOptionUseMultiVMSyncRecoveryPoint,
@@ -259,6 +367,19 @@ func PossibleValuesForPossibleOperationsDirections() []string {
 		string(PossibleOperationsDirectionsPrimaryToRecovery),
 		string(PossibleOperationsDirectionsRecoveryToPrimary),
 	}
+}
+
+func (s *PossibleOperationsDirections) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePossibleOperationsDirections(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePossibleOperationsDirections(input string) (*PossibleOperationsDirections, error) {
@@ -289,6 +410,19 @@ func PossibleValuesForRecoveryPlanActionLocation() []string {
 	}
 }
 
+func (s *RecoveryPlanActionLocation) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecoveryPlanActionLocation(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRecoveryPlanActionLocation(input string) (*RecoveryPlanActionLocation, error) {
 	vals := map[string]RecoveryPlanActionLocation{
 		"primary":  RecoveryPlanActionLocationPrimary,
@@ -317,6 +451,19 @@ func PossibleValuesForRecoveryPlanGroupType() []string {
 		string(RecoveryPlanGroupTypeFailover),
 		string(RecoveryPlanGroupTypeShutdown),
 	}
+}
+
+func (s *RecoveryPlanGroupType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecoveryPlanGroupType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRecoveryPlanGroupType(input string) (*RecoveryPlanGroupType, error) {
@@ -350,6 +497,19 @@ func PossibleValuesForRecoveryPlanPointType() []string {
 		string(RecoveryPlanPointTypeLatestCrashConsistent),
 		string(RecoveryPlanPointTypeLatestProcessed),
 	}
+}
+
+func (s *RecoveryPlanPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecoveryPlanPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRecoveryPlanPointType(input string) (*RecoveryPlanPointType, error) {
@@ -406,6 +566,19 @@ func PossibleValuesForReplicationProtectedItemOperation() []string {
 	}
 }
 
+func (s *ReplicationProtectedItemOperation) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReplicationProtectedItemOperation(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseReplicationProtectedItemOperation(input string) (*ReplicationProtectedItemOperation, error) {
 	vals := map[string]ReplicationProtectedItemOperation{
 		"cancelfailover":      ReplicationProtectedItemOperationCancelFailover,
@@ -448,6 +621,19 @@ func PossibleValuesForRpInMageRecoveryPointType() []string {
 	}
 }
 
+func (s *RpInMageRecoveryPointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRpInMageRecoveryPointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRpInMageRecoveryPointType(input string) (*RpInMageRecoveryPointType, error) {
 	vals := map[string]RpInMageRecoveryPointType{
 		"custom":     RpInMageRecoveryPointTypeCustom,
@@ -475,6 +661,19 @@ func PossibleValuesForSourceSiteOperations() []string {
 		string(SourceSiteOperationsNotRequired),
 		string(SourceSiteOperationsRequired),
 	}
+}
+
+func (s *SourceSiteOperations) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSourceSiteOperations(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSourceSiteOperations(input string) (*SourceSiteOperations, error) {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -253,6 +256,39 @@ func TestAccBatchAccount_autoStorageBatchAuthMode(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_account_authentication_mode").HasValue("BatchAccountManagedIdentity"),
 			),
 		},
+	})
+}
+
+func TestAccBatchAccount_networkProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithNetworkProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.account_access.0.default_action").HasValue("Deny"),
+				check.That(data.ResourceName).Key("network_profile.0.node_management_access.0.default_action").HasValue("Deny"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithNetworkProfileUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.account_access.0.ip_rule.0.action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("network_profile.0.node_management_access.0.ip_rule.0.action").HasValue("Allow"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -982,6 +1018,79 @@ resource "azurerm_batch_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchAccountResource) basicWithNetworkProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  network_profile {
+    account_access {
+    }
+
+    node_management_access {
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) basicWithNetworkProfileUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  network_profile {
+    account_access {
+      default_action = "Allow"
+      ip_rule {
+        ip_range = "10.0.1.0"
+      }
+
+      ip_rule {
+        ip_range = "10.0.3.0/24"
+      }
+    }
+
+    node_management_access {
+      default_action = "Allow"
+
+      ip_rule {
+        ip_range = "10.0.2.0"
+      }
+
+      ip_rule {
+        ip_range = "10.0.4.0/24"
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (BatchAccountResource) basicWithPublicNetWorkAccessDisabled(data acceptance.TestData) string {

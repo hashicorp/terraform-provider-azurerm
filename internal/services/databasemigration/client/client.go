@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/projectresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/serviceresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -11,15 +16,21 @@ type Client struct {
 	ProjectsClient *projectresource.ProjectResourceClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	servicesClient := serviceresource.NewServiceResourceClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	servicesClient, err := serviceresource.NewServiceResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ServicesClient client: %+v", err)
+	}
+	o.Configure(servicesClient.Client, o.Authorizers.ResourceManager)
 
-	projectsClient := projectresource.NewProjectResourceClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&projectsClient.Client, o.ResourceManagerAuthorizer)
+	projectsClient, err := projectresource.NewProjectResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ProjectsClient client: %+v", err)
+	}
+	o.Configure(projectsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ServicesClient: &servicesClient,
-		ProjectsClient: &projectsClient,
-	}
+		ServicesClient: servicesClient,
+		ProjectsClient: projectsClient,
+	}, nil
 }
