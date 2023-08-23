@@ -76,7 +76,7 @@ func TestValidateNetAppVolumeQuotaRules(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			_, errors := ValidateWindowsSID(*tc.VolumeQuotaRulesData.QuotaTarget, string(pointer.From(tc.VolumeQuotaRulesData.QuotaTarget)))
+			_, errors := ValidateWindowsSID(*tc.VolumeQuotaRulesData.QuotaTarget, pointer.From(tc.VolumeQuotaRulesData.QuotaTarget))
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("expected ValidateWindowsSID to return %d error(s) not %d\nError List: \n%v", tc.Errors, len(errors), errors)

@@ -55,7 +55,7 @@ func TestValidateNetAppVolumeQuotaRulesUnix(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			_, errors := ValidateUnixUserIDOrGroupID(*tc.VolumeQuotaRulesData.QuotaTarget, string(pointer.From(tc.VolumeQuotaRulesData.QuotaTarget)))
+			_, errors := ValidateUnixUserIDOrGroupID(*tc.VolumeQuotaRulesData.QuotaTarget, pointer.From(tc.VolumeQuotaRulesData.QuotaTarget))
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("expected ValidateUnixUserIDOrGroupID to return %d error(s) not %d\nError List: \n%v", tc.Errors, len(errors), errors)

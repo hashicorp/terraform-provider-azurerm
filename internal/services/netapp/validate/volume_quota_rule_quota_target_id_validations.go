@@ -16,19 +16,19 @@ func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, er
 	var value int64
 	var err error
 
-	switch v.(type) {
+	switch v := v.(type) {
 	case int:
-		value = v.(int64)
+		value = int64(v)
 	case string:
-		if _, err := strconv.ParseInt(v.(string), 10, 64); err != nil {
+		if _, err := strconv.ParseInt(v, 10, 64); err != nil {
 			errors = append(errors, fmt.Errorf("%q must be an integer or a string that can be converted to an integer", k))
 			return warnings, errors
 		}
-		if _, err := strconv.ParseInt(v.(string), 10, 64); err == nil && !regexp.MustCompile(`^\d+$`).MatchString(v.(string)) {
+		if _, err := strconv.ParseInt(v, 10, 64); err == nil && !regexp.MustCompile(`^\d+$`).MatchString(v) {
 			errors = append(errors, fmt.Errorf("%q must be an integer or a string that contains only digits", k))
 			return warnings, errors
 		}
-		value, err = strconv.ParseInt(v.(string), 10, 64)
+		value, err = strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("%q must be an integer or a string that can be converted to an integer", k))
 			return warnings, errors

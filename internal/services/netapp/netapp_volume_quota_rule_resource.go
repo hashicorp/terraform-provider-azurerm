@@ -130,7 +130,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 			parameters := volumequotarules.VolumeQuotaRule{
 				Location: location.Normalize(model.Location),
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{
-					QuotaSizeInKiBs: pointer.To(int64(model.QuotaSizeInKiB)),
+					QuotaSizeInKiBs: pointer.To(model.QuotaSizeInKiB),
 					QuotaType:       pointer.To(volumequotarules.Type(model.QuotaType)),
 					QuotaTarget:     utils.String(model.QuotaTarget),
 				},
@@ -179,7 +179,7 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("quota_size_in_kib") {
 				shouldUpdate = true
-				update.Properties.QuotaSizeInKiBs = utils.Int64(int64(state.QuotaSizeInKiB))
+				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
 			}
 
 			if shouldUpdate {
@@ -234,7 +234,7 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				Location:          location.NormalizeNilable(pointer.To(existing.Model.Location)),
 				ResourceGroupName: id.ResourceGroupName,
 				QuotaTarget:       pointer.From(existing.Model.Properties.QuotaTarget),
-				QuotaSizeInKiB:    int64(pointer.From(existing.Model.Properties.QuotaSizeInKiBs)),
+				QuotaSizeInKiB:    pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
 				QuotaType:         string(pointer.From(existing.Model.Properties.QuotaType)),
 			}
 
