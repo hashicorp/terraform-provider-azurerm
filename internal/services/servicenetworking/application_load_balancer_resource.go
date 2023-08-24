@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ALBResource struct{}
+type ApplicationLoadBalancerResource struct{}
 
-type ContainerApplicationGatewayModel struct {
+type ApplicationLoadBalancerModel struct {
 	Name                   string            `tfschema:"name"`
 	ResourceGroupName      string            `tfschema:"resource_group_name"`
 	Location               string            `tfschema:"location"`
@@ -26,9 +26,9 @@ type ContainerApplicationGatewayModel struct {
 	Tags                   map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithUpdate = ALBResource{}
+var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerResource{}
 
-func (t ALBResource) Arguments() map[string]*schema.Schema {
+func (t ApplicationLoadBalancerResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -44,7 +44,7 @@ func (t ALBResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (t ALBResource) Attributes() map[string]*schema.Schema {
+func (t ApplicationLoadBalancerResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"configuration_endpoint": {
 			Type:     pluginsdk.TypeList,
@@ -56,23 +56,23 @@ func (t ALBResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (t ALBResource) ModelObject() interface{} {
-	return &ContainerApplicationGatewayModel{}
+func (t ApplicationLoadBalancerResource) ModelObject() interface{} {
+	return &ApplicationLoadBalancerModel{}
 }
 
-func (t ALBResource) ResourceType() string {
-	return "azurerm_alb"
+func (t ApplicationLoadBalancerResource) ResourceType() string {
+	return "azurerm_application_load_balancer"
 }
 
-func (t ALBResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (t ApplicationLoadBalancerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return trafficcontrollerinterface.ValidateTrafficControllerID
 }
 
-func (t ALBResource) Create() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var plan ContainerApplicationGatewayModel
+			var plan ApplicationLoadBalancerModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %v", err)
 			}
@@ -108,7 +108,7 @@ func (t ALBResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (t ALBResource) Read() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -127,7 +127,7 @@ func (t ALBResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			state := ContainerApplicationGatewayModel{
+			state := ApplicationLoadBalancerModel{
 				Name:              id.TrafficControllerName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -146,11 +146,11 @@ func (t ALBResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (t ALBResource) Update() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var plan ContainerApplicationGatewayModel
+			var plan ApplicationLoadBalancerModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %v", err)
 			}
@@ -189,7 +189,7 @@ func (t ALBResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (t ALBResource) Delete() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

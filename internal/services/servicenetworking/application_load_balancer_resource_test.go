@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AlbResource struct{}
+type ApplicationLoadBalancerResource struct{}
 
-func (r AlbResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApplicationLoadBalancerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trafficcontrollerinterface.ParseTrafficControllerID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
@@ -33,11 +33,11 @@ func (r AlbResource) Exists(ctx context.Context, clients *clients.Client, state 
 }
 
 func TestAccServiceNetworkingALB_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_alb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
 	// it's available on limited regions.
 	data.Locations.Primary = "northeurope"
-	r := AlbResource{}
+	r := ApplicationLoadBalancerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -51,11 +51,11 @@ func TestAccServiceNetworkingALB_basic(t *testing.T) {
 }
 
 func TestAccServiceNetworkingALB_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_alb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
 	// it's available on limited regions.
 	data.Locations.Primary = "northeurope"
-	r := AlbResource{}
+	r := ApplicationLoadBalancerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -69,11 +69,11 @@ func TestAccServiceNetworkingALB_complete(t *testing.T) {
 }
 
 func TestAccServiceNetworkingALB_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_alb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
 	// it's available on limited regions.
 	data.Locations.Primary = "northeurope"
-	r := AlbResource{}
+	r := ApplicationLoadBalancerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -94,7 +94,7 @@ func TestAccServiceNetworkingALB_update(t *testing.T) {
 	})
 }
 
-func (r AlbResource) template(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -108,11 +108,11 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AlbResource) basic(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-resource "azurerm_alb" "test" {
+resource "azurerm_application_load_balancer" "test" {
   name                = "acct-%d"
   location            = "%s"
   resource_group_name = azurerm_resource_group.test.name
@@ -120,11 +120,11 @@ resource "azurerm_alb" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AlbResource) complete(data acceptance.TestData) string {
+func (r ApplicationLoadBalancerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-resource "azurerm_alb" "test" {
+resource "azurerm_application_load_balancer" "test" {
   name                = "acct-%d"
   location            = "%s"
   resource_group_name = azurerm_resource_group.test.name
