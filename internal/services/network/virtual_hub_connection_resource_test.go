@@ -239,7 +239,6 @@ func TestAccVirtualHubConnection_requiresLocking(t *testing.T) {
 func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
-	nameSuffix := randString()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -249,7 +248,23 @@ func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 			),
 		},
 		{
-			Config: r.updateRoutingConfiguration(data, nameSuffix),
+			Config: r.updateRoutingConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualHubConnection_routeMapAndStaticVnetLocalRouteOverrideCriteria(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+	nameSuffix := randString()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.routeMapAndStaticVnetLocalRouteOverrideCriteria(data, nameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -554,7 +569,34 @@ resource "azurerm_virtual_hub_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubConnectionResource) updateRoutingConfiguration(data acceptance.TestData, nameSuffix string) string {
+func (r VirtualHubConnectionResource) updateRoutingConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%[2]d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing {
+    inbound_route_map_id  = azurerm_route_map.test.id
+    outbound_route_map_id = azurerm_route_map.test2.id
+
+    propagated_route_table {
+      labels = ["label3"]
+    }
+
+    static_vnet_route {
+      name                = "testvnetroute6"
+      address_prefixes    = ["10.0.6.0/24", "10.0.7.0/24"]
+      next_hop_ip_address = "10.0.6.5"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualHubConnectionResource) routeMapAndStaticVnetLocalRouteOverrideCriteria(data acceptance.TestData, nameSuffix string) string {
 	return fmt.Sprintf(`
 %[1]s
 

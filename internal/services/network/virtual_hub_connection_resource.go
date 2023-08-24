@@ -134,6 +134,17 @@ func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
 						AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 					},
 
+					"static_vnet_local_route_override_criteria": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(network.VnetLocalRouteOverrideCriteriaContains),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.VnetLocalRouteOverrideCriteriaContains),
+							string(network.VnetLocalRouteOverrideCriteriaEqual),
+						}, false),
+					},
+
 					//lintignore:XS003
 					"static_vnet_route": {
 						Type:     pluginsdk.TypeList,
@@ -316,7 +327,15 @@ func expandVirtualHubConnectionRouting(input []interface{}) *network.RoutingConf
 	}
 
 	v := input[0].(map[string]interface{})
-	result := network.RoutingConfiguration{}
+
+	result := &network.RoutingConfiguration{
+		VnetRoutes: &network.VnetRoute{
+			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]interface{})),
+			StaticRoutesConfig: &network.StaticRoutesConfig{
+				VnetLocalRouteOverrideCriteria: network.VnetLocalRouteOverrideCriteria(v["static_vnet_local_route_override_criteria"].(string)),
+			},
+		},
+	}
 
 	if associatedRouteTableId := v["associated_route_table_id"].(string); associatedRouteTableId != "" {
 		result.AssociatedRouteTable = &network.SubResource{
@@ -336,15 +355,11 @@ func expandVirtualHubConnectionRouting(input []interface{}) *network.RoutingConf
 		}
 	}
 
-	if vnetStaticRoute := v["static_vnet_route"].([]interface{}); len(vnetStaticRoute) != 0 {
-		result.VnetRoutes = expandVirtualHubConnectionVnetStaticRoute(vnetStaticRoute)
-	}
-
 	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
 		result.PropagatedRouteTables = expandVirtualHubConnectionPropagatedRouteTable(propagatedRouteTable)
 	}
 
-	return &result
+	return result
 }
 
 func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
@@ -367,9 +382,9 @@ func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *networ
 	return &result
 }
 
-func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.VnetRoute {
+func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]network.StaticRoute {
 	if len(input) == 0 {
-		return &network.VnetRoute{}
+		return nil
 	}
 
 	results := make([]network.StaticRoute, 0)
@@ -398,9 +413,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.Vne
 		results = append(results, result)
 	}
 
-	return &network.VnetRoute{
-		StaticRoutes: &results,
-	}
+	return &results
 }
 
 func expandIDsToSubResources(input []interface{}) *[]network.SubResource {
@@ -435,13 +448,19 @@ func flattenVirtualHubConnectionRouting(input *network.RoutingConfiguration) []i
 		outboundRouteMapId = *input.OutboundRouteMap.ID
 	}
 
+	staticVnetLocalRouteOverrideCriteria := ""
+	if input.VnetRoutes != nil && input.VnetRoutes.StaticRoutesConfig != nil && input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria != "" {
+		staticVnetLocalRouteOverrideCriteria = string(input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"associated_route_table_id": associatedRouteTableId,
-			"inbound_route_map_id":      inboundRouteMapId,
-			"outbound_route_map_id":     outboundRouteMapId,
-			"propagated_route_table":    flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"static_vnet_route":         flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
+			"associated_route_table_id":                 associatedRouteTableId,
+			"inbound_route_map_id":                      inboundRouteMapId,
+			"outbound_route_map_id":                     outboundRouteMapId,
+			"propagated_route_table":                    flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"static_vnet_route":                         flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
+			"static_vnet_local_route_override_criteria": staticVnetLocalRouteOverrideCriteria,
 		},
 	}
 }
