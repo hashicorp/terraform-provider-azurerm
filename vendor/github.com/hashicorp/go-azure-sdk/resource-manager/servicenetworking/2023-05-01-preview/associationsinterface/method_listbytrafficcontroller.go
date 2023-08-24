@@ -25,7 +25,7 @@ type ListByTrafficControllerCompleteResult struct {
 // ListByTrafficController ...
 func (c AssociationsInterfaceClient) ListByTrafficController(ctx context.Context, id TrafficControllerId) (result ListByTrafficControllerOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
