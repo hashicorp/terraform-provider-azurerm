@@ -336,6 +336,9 @@ func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFu
 		client := metadata.Client.Resource.ResourceProvidersClient
 		account := metadata.Client.Account
 
+		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+		defer cancel()
+
 		id, err := providers.ParseSubscriptionProviderID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
