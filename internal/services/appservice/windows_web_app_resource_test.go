@@ -2703,7 +2703,7 @@ resource "azurerm_windows_web_app" "test" {
           count             = 1
           status_code_range = 500
           sub_status        = 30
-          win32_status      = 0
+          win32_status_code = 0
           interval          = "00:10:00"
         }
       }
