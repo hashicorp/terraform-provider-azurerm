@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_storage_management_policy` - move to `hashicorp/go-azure-sdk` [GH-23035]
 * Data Source: `azurerm_disk_encryption_set` - add support for the `identity` block [GH-23005]
 * `azurerm_container_group` - Support `sku` and `(init_)container.*.security` [GH-23034]
+* `azurerm_kubernetes_cluster`/`azurerm_kubernetes_cluster_node_pool` -  extend allowed ranges for various `sysctl_config` attribute ranges [GH-23077]
 * `azurerm_kubernetes_cluster` - clusters can be updated to use the `cilium` dataplane by setting the value in `ebpf_data_plane` [GH-22952]
 * `azurerm_linux_virtual_machine_scale_set` - cancel rolling upgrades that are in progress before destroying the resource [GH-22991]
 * `azurerm_servicebus_namespace` - add support for `network_rule_set` [GH-23057]
