@@ -597,7 +597,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication
-github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkvirtualappliances
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/adminrulecollections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/adminrules
