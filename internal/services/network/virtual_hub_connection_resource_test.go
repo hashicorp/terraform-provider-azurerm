@@ -649,8 +649,9 @@ resource "azurerm_virtual_hub_connection" "test" {
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
   routing {
-    inbound_route_map_id  = azurerm_route_map.test.id
-    outbound_route_map_id = azurerm_route_map.test2.id
+    inbound_route_map_id                      = azurerm_route_map.test.id
+    outbound_route_map_id                     = azurerm_route_map.test2.id
+    static_vnet_local_route_override_criteria = "Equal"
 
     propagated_route_table {
       labels = ["label3"]
