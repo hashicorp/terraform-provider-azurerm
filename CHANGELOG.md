@@ -6,6 +6,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `trafficmanager`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22579]
+* `webpubsub`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22579]
 * `automation`: upgrade remaining resources to `2022-08-08` [GH-22989]
 * `azurerm_storage_management_policy` - move to `hashicorp/go-azure-sdk` [GH-23035]
 * Data Source: `azurerm_disk_encryption_set` - add support for the `identity` block [GH-23005]
