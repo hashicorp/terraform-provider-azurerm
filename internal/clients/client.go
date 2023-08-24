@@ -578,7 +578,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
 	client.Synapse = synapse.NewClient(o)
-	client.TrafficManager = trafficManager.NewClient(o)
+	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Traffic Manager: %+v", err)
+	}
 	if client.VideoAnalyzer, err = videoAnalyzer.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Video Analyzer: %+v", err)
 	}
