@@ -1,5 +1,9 @@
 ## 3.71.0 (Unreleased)
 
+BREAKING CHANGES:
+
+* **App Service `win32_status` property** - Due to a change made in the service to the underlying type of the Auto Heal property `win32_status` combined with a prior bug (in `v3.62.1` and earlier) causing the value of this property to be stored incorrectly in state as an empty string, the value of this property could not be updated or state migrated to accommodate the necessary type change in the state. This results in the resources named above returning an error of a number is needed when decoding the state for this value. Unfortunately a limitation within the terraform-plugin-sdk means that it is not possible to introduce an automated migration for this field, and as such we are reluctantly requiring a breaking change for users of this field. The field win32_status has been replaced by win32_status_code (this remains an int, as in 3.63.0 onwards) and will require a breaking change to your Terraform Configuration, if this field is used. The affects the `azurerm_linux_web_app`, `azurerm_linux_web_app_slot`, `azurerm_windows_web_app`, `azurerm_windows_web_app_slot` resources. [GH-23075]
+
 FEATURES:
 
 * **New Resource**: `azurerm_databricks_workspace_root_dbfs_customer_managed_key` [GH-22579]
@@ -19,7 +23,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-`azurerm_api_management_policy` - fixes an error caused by a migration [GH-23018]
+* `azurerm_api_management_policy` - fixes an error caused by a migration [GH-23018]
 * `azurerm_kubernetes_cluster` - deprecate `public_network_access_enabled` and prevent sending it to the API since it isn't functional [GH-22478]
 
 ## 3.70.0 (August 17, 2023)
