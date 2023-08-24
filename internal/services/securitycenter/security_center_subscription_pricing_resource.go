@@ -133,10 +133,18 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	// The existing extensions per bundle
-	bundlesExtensions := map[string][]string{
-		"StorageAccounts": {"OnUploadMalwareScanning", "SensitiveDataDiscovery"},
-		"CloudPosture":    {"SensitiveDataDiscovery", "ContainerRegistriesVulnerabilityAssessments", "AgentlessDiscoveryForKubernetes", "AgentlessVmScanning"},
+	// The existing extensions per bundle & sub plan
+	bundlesExtensions := map[string]map[string][]string{
+		"StorageAccounts": {
+			"DefenderForStorageV2": {"OnUploadMalwareScanning", "SensitiveDataDiscovery"},
+		},
+		"VirtualMachines": {
+			"P1": {"MdeDesignatedSubscription"},
+			"P2": {"MdeDesignatedSubscription", "AgentlessVmScanning"},
+		},
+		"CloudPosture": {
+			"Default": {"SensitiveDataDiscovery", "ContainerRegistriesVulnerabilityAssessments", "AgentlessDiscoveryForKubernetes", "AgentlessVmScanning"},
+		},
 	}
 
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
@@ -150,13 +158,23 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 			isCurrentlyInFree = true
 		}
 
-		defaultExtensions, bundleWithDefaultExtensions := bundlesExtensions[*apiResponse.Model.Name]
-		// Since the API response does not return the existing extensions when it is free, take them from the predefined list
-		if len(extensionsStatusFromBackend) == 0 && bundleWithDefaultExtensions {
-			for _, defaultExtensionName := range defaultExtensions {
-				extensionsStatusFromBackend = append(extensionsStatusFromBackend, pricings_v2023_01_01.Extension{Name: defaultExtensionName, IsEnabled: pricings_v2023_01_01.IsEnabledFalse})
+		// Get the extensions for the specific bundle
+		bundleExtensionsPerSubPlan, bundleWithDefaultExtensions := bundlesExtensions[*apiResponse.Model.Name]
+		if bundleWithDefaultExtensions {
+			// Get the extensions for the specific subPlan
+			subPlanName := "Default"
+			if apiResponse.Model.Properties.SubPlan != nil {
+				subPlanName = *apiResponse.Model.Properties.SubPlan
+			}
+			bundleSubPlanExtensions, bundleWithSubPlanDefaultExtensions := bundleExtensionsPerSubPlan[subPlanName]
+			// Since the API response does not return the existing extensions when it is free, take them from the predefined list
+			if len(extensionsStatusFromBackend) == 0 && bundleWithSubPlanDefaultExtensions {
+				for _, defaultExtensionName := range bundleSubPlanExtensions {
+					extensionsStatusFromBackend = append(extensionsStatusFromBackend, pricings_v2023_01_01.Extension{Name: defaultExtensionName, IsEnabled: pricings_v2023_01_01.IsEnabledFalse})
+				}
 			}
 		}
+
 	}
 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
