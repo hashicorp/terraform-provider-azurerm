@@ -155,10 +155,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // execute too quickly as we run out of namespaces in the sub
         "servicebus" to testConfiguration(parallelism = 10),
 
-        // SignalR only allows provisioning one "Free" instance at a time,
-        // which is used in multiple tests
-        "signalr" to testConfiguration(parallelism = 1),
-
         // Spring Cloud only allows a max of 10 provisioned
         "springcloud" to testConfiguration(parallelism = 5),
 
