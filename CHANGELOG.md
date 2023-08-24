@@ -10,6 +10,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20230824.1130652` of `github.com/hashicorp/go-azure-sdk` [GH-23076]
 * `trafficmanager`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22579]
 * `webpubsub`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22579]
 * `automation`: upgrade remaining resources to `2022-08-08` [GH-22989]
