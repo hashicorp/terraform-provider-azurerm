@@ -7,10 +7,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -18,7 +18,7 @@ import (
 type Client struct {
 	DeploymentsClient           *resources.DeploymentsClient
 	DeploymentScriptsClient     *deploymentscripts.DeploymentScriptsClient
-	FeaturesClient              *features.Client
+	FeaturesClient              *features.FeaturesClient
 	GroupsClient                *resources.GroupsClient
 	LocksClient                 *managementlocks.ManagementLocksClient
 	ResourceProvidersClient     *providers.ProvidersClient
@@ -39,8 +39,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(deploymentScriptsClient.Client, o.Authorizers.ResourceManager)
 
-	featuresClient := features.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&featuresClient.Client, o.ResourceManagerAuthorizer)
+	featuresClient, err := features.NewFeaturesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Features client: %+v", err)
+	}
+	o.Configure(featuresClient.Client, o.Authorizers.ResourceManager)
 
 	groupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
@@ -70,7 +73,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		GroupsClient:                &groupsClient,
 		DeploymentsClient:           &deploymentsClient,
 		DeploymentScriptsClient:     deploymentScriptsClient,
-		FeaturesClient:              &featuresClient,
+		FeaturesClient:              featuresClient,
 		LocksClient:                 locksClient,
 		ResourceProvidersClient:     resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
