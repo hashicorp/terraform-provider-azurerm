@@ -119,11 +119,23 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
+			"auto_grow_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"storage_mb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33553408}),
+			},
+
+			"tier": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForAzureManagedDiskPerformanceTiers(), false),
 			},
 
 			"version": {
@@ -557,8 +569,18 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `maintenance_window`: %+v", err)
 			}
 
-			if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
-				d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+			if storage := props.Storage; storage != nil {
+				if storage.AutoGrow != nil {
+					d.Set("auto_grow_enabled", *storage.AutoGrow == servers.StorageAutoGrowEnabled)
+				}
+
+				if storage.StorageSizeGB != nil {
+					d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+				}
+
+				if storage.Tier != nil {
+					d.Set("tier", string(*storage.Tier))
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
@@ -873,8 +895,19 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage := servers.Storage{}
 
+	autoGrow := servers.StorageAutoGrowDisabled
+	if v, ok := d.GetOk("auto_grow_enabled"); ok && v.(bool) {
+		autoGrow = servers.StorageAutoGrowEnabled
+		storage.AutoGrow = &autoGrow
+	}
+
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))
+	}
+
+	if v, ok := d.GetOk("tier"); ok {
+		tier := servers.AzureManagedDiskPerformanceTiers(v.(string))
+		storage.Tier = &tier
 	}
 
 	return &storage
