@@ -744,7 +744,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, storageUpdateParameters); err != nil {
-			return fmt.Errorf("updating `storage_mb` for %s: %+v", *id, err)
+			return fmt.Errorf("updating `auto_grow_enabled` / `storage_mb` for %s: %+v", *id, err)
 		}
 	}
 
@@ -888,8 +888,8 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	autoGrow := servers.StorageAutoGrowDisabled
 	if v, ok := d.GetOk("auto_grow_enabled"); ok && v.(bool) {
 		autoGrow = servers.StorageAutoGrowEnabled
-		storage.AutoGrow = &autoGrow
 	}
+	storage.AutoGrow = &autoGrow
 
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))
