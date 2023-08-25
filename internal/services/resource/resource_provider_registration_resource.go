@@ -294,7 +294,6 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.ResourceProvidersClient
 			account := metadata.Client.Account
-			featureClient := metadata.Client.Resource.FeaturesClient
 
 			id, err := providers.ParseSubscriptionProviderID(metadata.ResourceData.Id())
 			if err != nil {
@@ -305,28 +304,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			existingFeatures := make([]interface{}, 0)
-			result, err := featureClient.ListComplete(ctx, id.ProviderName)
-			if err != nil {
-				return fmt.Errorf("retrieving features for %s: %+v", *id, err)
-			}
-			for result.NotDone() {
-				value := result.Value()
-				if value.Properties != nil && value.Properties.State != nil && value.Name != nil {
-					featureName := (*value.Name)[len(id.ProviderName)+1:]
-					switch *value.Properties.State {
-					case Registering, Registered:
-						existingFeatures = append(existingFeatures, map[string]interface{}{"name": featureName, "registered": true})
-					case Unregistering, Unregistered:
-						existingFeatures = append(existingFeatures, map[string]interface{}{"name": featureName, "registered": false})
-					}
-				}
-				if err := result.NextWithContext(ctx); err != nil {
-					return fmt.Errorf("enumerating features: %+v", err)
-				}
-			}
-
-			err = r.applyFeatures(ctx, metadata, *id, existingFeatures, make([]interface{}, 0))
+			err = r.applyFeatures(ctx, metadata, *id, metadata.ResourceData.Get("feature").(*pluginsdk.Set).List(), make([]interface{}, 0))
 			if err != nil {
 				return fmt.Errorf("applying features for %s: %+v", *id, err)
 			}
