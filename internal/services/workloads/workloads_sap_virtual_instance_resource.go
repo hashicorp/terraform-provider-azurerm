@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -271,7 +272,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
-												ValidateFunc: storageValidate.StorageAccountID,
+												ValidateFunc: commonids.ValidateStorageAccountID,
 											},
 
 											"url": {
