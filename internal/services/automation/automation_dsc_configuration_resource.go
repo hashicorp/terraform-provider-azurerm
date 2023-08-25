@@ -94,7 +94,7 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 }
 
 func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.DscConfigurationClient
+	client := meta.(*clients.Client).Automation.DscConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +144,7 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.DscConfigurationClient
+	client := meta.(*clients.Client).Automation.DscConfiguration
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -208,7 +208,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.DscConfigurationClient
+	client := meta.(*clients.Client).Automation.DscConfiguration
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

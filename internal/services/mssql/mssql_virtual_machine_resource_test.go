@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
@@ -311,6 +312,42 @@ func TestAccMsSqlVirtualMachine_assessmentSettings(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlVirtualMachine_sqlVirtualMachineGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: MsSqlVirtualMachineAvailabilityGroupListenerResource{}.configureDomain(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(12 * time.Minute) },
+			Config:    MsSqlVirtualMachineAvailabilityGroupListenerResource{}.setDomainUser(data),
+		},
+		{
+			Config: r.sqlVirtualMachineGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("wsfc_domain_credential"),
+		{
+			Config: r.sqlVirtualMachineGroupRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sqlVirtualMachineGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("wsfc_domain_credential"),
 	})
 }
 
@@ -1074,4 +1111,134 @@ resource "azurerm_mssql_virtual_machine" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r MsSqlVirtualMachineResource) sqlVirtualMachineGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id           = azurerm_windows_virtual_machine.client.id
+  sql_license_type             = "PAYG"
+  sql_virtual_machine_group_id = azurerm_mssql_virtual_machine_group.test.id
+
+  wsfc_domain_credential {
+    cluster_bootstrap_account_password = local.admin_password
+    cluster_operator_account_password  = local.admin_password
+    sql_service_account_password       = local.admin_password
+  }
+
+  depends_on = [
+    azurerm_virtual_machine_extension.join_domain
+  ]
+}
+`, r.sqlVirtualMachineGroupDependencies(data))
+}
+func (r MsSqlVirtualMachineResource) sqlVirtualMachineGroupRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_windows_virtual_machine.client.id
+  sql_license_type   = "PAYG"
+}
+`, r.sqlVirtualMachineGroupDependencies(data))
+}
+
+func (MsSqlVirtualMachineResource) sqlVirtualMachineGroupDependencies(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_subnet" "domain_clients" {
+  name                 = "domain-clients"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "client" {
+  name                = "acctestnic-client-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "primary"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.domain_clients.id
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "client" {
+  name                = "acctest-%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  size                = "Standard_F2"
+  admin_username      = local.admin_username
+  admin_password      = local.admin_password
+  custom_data         = local.custom_data
+
+  network_interface_ids = [
+    azurerm_network_interface.client.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftSQLServer"
+    offer     = "SQL2019-WS2019"
+    sku       = "SQLDEV"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_virtual_machine_extension" "join_domain" {
+  name                 = "join-domain"
+  virtual_machine_id   = azurerm_windows_virtual_machine.client.id
+  publisher            = "Microsoft.Compute"
+  type                 = "JsonADDomainExtension"
+  type_handler_version = "1.3"
+
+  settings = jsonencode({
+    Name    = local.active_directory_domain_name,
+    OUPath  = "",
+    User    = "${local.active_directory_domain_name}\\${local.admin_username}",
+    Restart = "true",
+    Options = "3"
+  })
+
+  protected_settings = jsonencode({
+    Password = local.admin_password
+  })
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_virtual_machine_group" "test" {
+  name                = "acctestgr-%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sql_image_offer     = "SQL2019-WS2019"
+  sql_image_sku       = "Developer"
+
+  wsfc_domain_profile {
+    fqdn = local.active_directory_domain_name
+
+    cluster_bootstrap_account_name = "${local.admin_username}@${local.active_directory_domain_name}"
+    cluster_operator_account_name  = "${local.admin_username}@${local.active_directory_domain_name}"
+    sql_service_account_name       = "${local.admin_username}@${local.active_directory_domain_name}"
+    storage_account_url            = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_primary_key    = azurerm_storage_account.test.primary_access_key
+    cluster_subnet_type            = "SingleSubnet"
+  }
+}
+`, MsSqlVirtualMachineAvailabilityGroupListenerResource{}.setDomainUser(data), data.RandomInteger, data.RandomString)
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -67,7 +68,7 @@ func (o QueueListOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // QueueList ...
-func (c QueueServiceClient) QueueList(ctx context.Context, id StorageAccountId, options QueueListOperationOptions) (resp QueueListOperationResponse, err error) {
+func (c QueueServiceClient) QueueList(ctx context.Context, id commonids.StorageAccountId, options QueueListOperationOptions) (resp QueueListOperationResponse, err error) {
 	req, err := c.preparerForQueueList(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "queueservice.QueueServiceClient", "QueueList", nil, "Failure preparing request")
@@ -89,7 +90,7 @@ func (c QueueServiceClient) QueueList(ctx context.Context, id StorageAccountId, 
 }
 
 // preparerForQueueList prepares the QueueList request.
-func (c QueueServiceClient) preparerForQueueList(ctx context.Context, id StorageAccountId, options QueueListOperationOptions) (*http.Request, error) {
+func (c QueueServiceClient) preparerForQueueList(ctx context.Context, id commonids.StorageAccountId, options QueueListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -176,12 +177,12 @@ func (c QueueServiceClient) responderForQueueList(resp *http.Response) (result Q
 }
 
 // QueueListComplete retrieves all of the results into a single object
-func (c QueueServiceClient) QueueListComplete(ctx context.Context, id StorageAccountId, options QueueListOperationOptions) (QueueListCompleteResult, error) {
+func (c QueueServiceClient) QueueListComplete(ctx context.Context, id commonids.StorageAccountId, options QueueListOperationOptions) (QueueListCompleteResult, error) {
 	return c.QueueListCompleteMatchingPredicate(ctx, id, options, ListQueueOperationPredicate{})
 }
 
 // QueueListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c QueueServiceClient) QueueListCompleteMatchingPredicate(ctx context.Context, id StorageAccountId, options QueueListOperationOptions, predicate ListQueueOperationPredicate) (resp QueueListCompleteResult, err error) {
+func (c QueueServiceClient) QueueListCompleteMatchingPredicate(ctx context.Context, id commonids.StorageAccountId, options QueueListOperationOptions, predicate ListQueueOperationPredicate) (resp QueueListCompleteResult, err error) {
 	items := make([]ListQueue, 0)
 
 	page, err := c.QueueList(ctx, id, options)

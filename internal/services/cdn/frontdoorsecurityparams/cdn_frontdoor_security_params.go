@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -86,16 +87,22 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]cd
 	return &results
 }
 
-func FlattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedResourceReference) []interface{} {
+func FlattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedResourceReference) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, item := range *input {
 		frontDoorDomainId := ""
 		if item.ID != nil {
-			frontDoorDomainId = *item.ID
+			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := parse.FrontDoorCustomDomainIDInsensitively(*item.ID); frontDoorCustomDomainIdErr == nil {
+				frontDoorDomainId = parsedFrontDoorCustomDomainId.ID()
+			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := parse.FrontDoorEndpointIDInsensitively(*item.ID); frontDoorEndpointIdErr == nil {
+				frontDoorDomainId = parsedFrontDoorEndpointId.ID()
+			} else {
+				return nil, fmt.Errorf("flattening `cdn_frontdoor_domain_id`: %+v; %+v", frontDoorCustomDomainIdErr, frontDoorEndpointIdErr)
+			}
 		}
 
 		active := false
@@ -109,5 +116,5 @@ func FlattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedRes
 		})
 	}
 
-	return results
+	return results, nil
 }

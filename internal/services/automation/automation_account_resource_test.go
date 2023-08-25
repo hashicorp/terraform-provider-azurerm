@@ -186,7 +186,7 @@ func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.Automation.AccountClient.Get(ctx, *id)
+	resp, err := clients.Automation.AutomationAccount.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", id.AutomationAccountName, id.ResourceGroupName, err)
 	}

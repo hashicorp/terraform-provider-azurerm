@@ -653,7 +653,7 @@ A `status_code` block exports the following:
 
 * `sub_status` - The Request Sub Status of the Status Code.
 
-* `win32_status` - The Win32 Status Code of the Request.
+* `win32_status_code` - The Win32 Status Code of the Request.
 
 ---
 

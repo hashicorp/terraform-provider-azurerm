@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -79,7 +80,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"enabled": {
@@ -188,17 +189,15 @@ func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	networkWatcherName := d.Get("network_watcher_name").(string)
-	name := d.Get("name").(string)
-	id := flowlogs.NewFlowLogID(subscriptionId, resourceGroupName, networkWatcherName, name)
-
-	networkSecurityGroupID := d.Get("network_security_group_id").(string)
-	nsgId, _ := parse.NetworkSecurityGroupID(networkSecurityGroupID)
+	id := flowlogs.NewFlowLogID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
+	nsgId, err := parse.NetworkSecurityGroupID(d.Get("network_security_group_id").(string))
+	if err != nil {
+		return err
+	}
 
 	if d.IsNewResource() {
 		// For newly created resources, the "name" is required, it is set as Optional and Computed is merely for the existing ones for the sake of backward compatibility.
-		if name == "" {
+		if id.NetworkWatcherName == "" {
 			return fmt.Errorf("`name` is required for Network Watcher Flow Log")
 		}
 
@@ -220,13 +219,14 @@ func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta i
 	loc := d.Get("location").(string)
 	if loc == "" {
 		// Get the containing network watcher in order to reuse its location if the "location" is not specified.
-		watcherClient := meta.(*clients.Client).Network.WatcherClient
-		resp, err := watcherClient.Get(ctx, id.ResourceGroupName, id.NetworkWatcherName)
+		watcherClient := meta.(*clients.Client).Network.NetworkWatchers
+		watcherId := networkwatchers.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroupName, id.NetworkWatcherName)
+		resp, err := watcherClient.Get(ctx, watcherId)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %v", parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroupName, id.NetworkWatcherName).ID(), err)
+			return fmt.Errorf("retrieving %s: %v", watcherId, err)
 		}
-		if resp.Location != nil {
-			loc = *resp.Location
+		if model := resp.Model; model != nil && model.Location != nil {
+			loc = *model.Location
 		}
 	}
 

@@ -756,7 +756,7 @@ A `status_code` block supports the following:
 
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
-* `win32_status` - (Optional) The Win32 Status Code of the Request.
+* `win32_status_code` - (Optional) The Win32 Status Code of the Request.
 
 ---
 

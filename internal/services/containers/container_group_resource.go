@@ -149,6 +149,14 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
+			"sku": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(containerinstance.ContainerGroupSkuStandard),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupSku(), false),
+			},
+
 			"restart_policy": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -261,6 +269,8 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 
 						"volume": containerVolumeSchema(),
+
+						"security": containerSecurityContextSchema(),
 					},
 				},
 			},
@@ -426,6 +436,8 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 
 						"volume": containerVolumeSchema(),
+
+						"security": containerSecurityContextSchema(),
 
 						"liveness_probe": SchemaContainerGroupProbe(),
 
@@ -644,6 +656,23 @@ func containerVolumeSchema() *pluginsdk.Schema {
 	}
 }
 
+func containerSecurityContextSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"privilege_enabled": {
+					Type:     pluginsdk.TypeBool,
+					ForceNew: true,
+					Required: true,
+				},
+			},
+		},
+	}
+}
+
 func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ContainerInstanceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -700,6 +729,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: containerinstance.ContainerGroupPropertiesProperties{
+			Sku:                      pointer.To(containerinstance.ContainerGroupSku(d.Get("sku").(string))),
 			InitContainers:           initContainers,
 			Containers:               containers,
 			Diagnostics:              diagnostics,
@@ -833,6 +863,13 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		props := model.Properties
+
+		var sku string
+		if v := props.Sku; v != nil {
+			sku = string(*v)
+		}
+		d.Set("sku", sku)
+
 		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
@@ -995,7 +1032,8 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 		container := containerinstance.InitContainerDefinition{
 			Name: name,
 			Properties: containerinstance.InitContainerPropertiesDefinition{
-				Image: pointer.FromString(image),
+				Image:           pointer.FromString(image),
+				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
 			},
 		}
 
@@ -1049,6 +1087,37 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 	return &containers, containerGroupVolumes, nil
 }
 
+func expandContainerSecurityContext(input []interface{}) *containerinstance.SecurityContextDefinition {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	output := &containerinstance.SecurityContextDefinition{
+		Privileged: pointer.To(raw["privilege_enabled"].(bool)),
+	}
+
+	return output
+}
+
+func flattenContainerSecurityContext(input *containerinstance.SecurityContextDefinition) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var privileged bool
+	if v := input.Privileged; v != nil {
+		privileged = *v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"privilege_enabled": privileged,
+		},
+	}
+}
+
 func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs map[string]bool) ([]containerinstance.Container, []containerinstance.Port, []containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
@@ -1074,6 +1143,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 						Cpu:        cpu,
 					},
 				},
+				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
 			},
 		}
 
@@ -1594,6 +1664,9 @@ func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContaine
 			containersConfigRaw := d.Get("container").([]interface{})
 			flattenContainerVolume(containerConfig, containersConfigRaw, container.Name, container.Properties.VolumeMounts, containerGroupVolumes)
 		}
+
+		containerConfig["security"] = flattenContainerSecurityContext(container.Properties.SecurityContext)
+
 		containerCfg = append(containerCfg, containerConfig)
 	}
 
@@ -1680,6 +1753,7 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 
 		containerConfig["liveness_probe"] = flattenContainerProbes(container.Properties.LivenessProbe)
 		containerConfig["readiness_probe"] = flattenContainerProbes(container.Properties.ReadinessProbe)
+		containerConfig["security"] = flattenContainerSecurityContext(container.Properties.SecurityContext)
 
 		containerCfg = append(containerCfg, containerConfig)
 	}

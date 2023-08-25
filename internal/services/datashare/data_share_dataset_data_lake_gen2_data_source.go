@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
-	storageParsers "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -89,19 +89,19 @@ func dataSourceDataShareDatasetDataLakeGen2Read(d *pluginsdk.ResourceData, meta 
 		m := *model
 		if ds, ok := m.(dataset.ADLSGen2FileDataSet); ok {
 			props := ds.Properties
-			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
+			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("file_path", props.FilePath)
 			d.Set("display_name", props.DataSetId)
 		} else if ds, ok := m.(dataset.ADLSGen2FolderDataSet); ok {
 			props := ds.Properties
-			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
+			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("folder_path", props.FolderPath)
 			d.Set("display_name", props.DataSetId)
 		} else if ds, ok := m.(dataset.ADLSGen2FileSystemDataSet); ok {
 			props := ds.Properties
-			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
+			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("display_name", props.DataSetId)
 		} else {

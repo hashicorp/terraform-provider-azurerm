@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type FailoverOperationResponse struct {
 }
 
 // Failover ...
-func (c StorageAccountsClient) Failover(ctx context.Context, id StorageAccountId) (result FailoverOperationResponse, err error) {
+func (c StorageAccountsClient) Failover(ctx context.Context, id commonids.StorageAccountId) (result FailoverOperationResponse, err error) {
 	req, err := c.preparerForFailover(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "Failover", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c StorageAccountsClient) Failover(ctx context.Context, id StorageAccountId
 }
 
 // FailoverThenPoll performs Failover then polls until it's completed
-func (c StorageAccountsClient) FailoverThenPoll(ctx context.Context, id StorageAccountId) error {
+func (c StorageAccountsClient) FailoverThenPoll(ctx context.Context, id commonids.StorageAccountId) error {
 	result, err := c.Failover(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Failover: %+v", err)
@@ -50,7 +51,7 @@ func (c StorageAccountsClient) FailoverThenPoll(ctx context.Context, id StorageA
 }
 
 // preparerForFailover prepares the Failover request.
-func (c StorageAccountsClient) preparerForFailover(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForFailover(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
