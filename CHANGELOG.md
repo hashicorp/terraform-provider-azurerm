@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_automation_account` - fixes logic for `local_authentication_enabled` [GH-23082]
 * `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
 
 ## 3.71.0 (August 24, 2023)
