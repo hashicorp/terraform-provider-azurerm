@@ -195,9 +195,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
-		parameters.Properties.DisableLocalAuth = utils.Bool(true)
-	}
+	parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
 
 	// for create account do not set identity property (even TypeNone is not allowed), or api will response error
 	if identityVal.Type != identity.TypeNone {
@@ -247,8 +245,8 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
-		parameters.Properties.DisableLocalAuth = utils.Bool(true)
+	if d.HasChange("local_authentication_enabled") {
+		parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
 	}
 
 	if tagsVal := tags.Expand(d.Get("tags").(map[string]interface{})); tagsVal != nil {
