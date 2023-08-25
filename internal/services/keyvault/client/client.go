@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -19,14 +21,21 @@ type Client struct {
 	MHSMRoleClient *dataplane.RoleDefinitionsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	managedHsmClient := managedhsms.NewManagedHsmsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&managedHsmClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	managedHsmClient, err := managedhsms.NewManagedHsmsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedHsms client: %+v", err)
+	}
+	o.Configure(managedHsmClient.Client, o.Authorizers.ResourceManager)
 
 	managementClient := dataplane.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
-	vaultsClient := vaults.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint)
+	vaultsClient, err := vaults.NewVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Vaults client: %+v", err)
+	}
+	o.Configure(vaultsClient.Client, o.Authorizers.ResourceManager)
 
 	sdClient := dataplane.NewHSMSecurityDomainClient()
 	o.ConfigureClient(&sdClient.Client, o.ManagedHSMAuthorizer)
@@ -34,13 +43,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	mhsmRoleDefineClient := dataplane.NewRoleDefinitionsClient()
 	o.ConfigureClient(&mhsmRoleDefineClient.Client, o.ManagedHSMAuthorizer)
 
-	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		ManagedHsmClient: &managedHsmClient,
+		ManagedHsmClient: managedHsmClient,
+		VaultsClient:     vaultsClient,
+
 		ManagementClient: &managementClient,
-		VaultsClient:     &vaultsClient,
 		MHSMSDClient:     &sdClient,
 		MHSMRoleClient:   &mhsmRoleDefineClient,
-	}
+	}, nil
 }
