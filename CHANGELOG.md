@@ -1,3 +1,9 @@
+## 3.72.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_container_app_environment` - support for `dapr_application_insights_connection_string` [GH-23080]
+
 ## 3.71.0 (August 24, 2023)
 
 BREAKING CHANGES:
