@@ -68,9 +68,10 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"storage_data_lake_gen2_filesystem_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsURLWithPath,
 			},
 
 			"sql_administrator_login": {
