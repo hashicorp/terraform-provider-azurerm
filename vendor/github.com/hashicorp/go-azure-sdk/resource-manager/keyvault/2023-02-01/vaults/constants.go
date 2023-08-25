@@ -165,23 +165,27 @@ func parseCreateMode(input string) (*CreateMode, error) {
 type KeyPermissions string
 
 const (
-	KeyPermissionsAll       KeyPermissions = "all"
-	KeyPermissionsBackup    KeyPermissions = "backup"
-	KeyPermissionsCreate    KeyPermissions = "create"
-	KeyPermissionsDecrypt   KeyPermissions = "decrypt"
-	KeyPermissionsDelete    KeyPermissions = "delete"
-	KeyPermissionsEncrypt   KeyPermissions = "encrypt"
-	KeyPermissionsGet       KeyPermissions = "get"
-	KeyPermissionsImport    KeyPermissions = "import"
-	KeyPermissionsList      KeyPermissions = "list"
-	KeyPermissionsPurge     KeyPermissions = "purge"
-	KeyPermissionsRecover   KeyPermissions = "recover"
-	KeyPermissionsRestore   KeyPermissions = "restore"
-	KeyPermissionsSign      KeyPermissions = "sign"
-	KeyPermissionsUnwrapKey KeyPermissions = "unwrapKey"
-	KeyPermissionsUpdate    KeyPermissions = "update"
-	KeyPermissionsVerify    KeyPermissions = "verify"
-	KeyPermissionsWrapKey   KeyPermissions = "wrapKey"
+	KeyPermissionsAll               KeyPermissions = "all"
+	KeyPermissionsBackup            KeyPermissions = "backup"
+	KeyPermissionsCreate            KeyPermissions = "create"
+	KeyPermissionsDecrypt           KeyPermissions = "decrypt"
+	KeyPermissionsDelete            KeyPermissions = "delete"
+	KeyPermissionsEncrypt           KeyPermissions = "encrypt"
+	KeyPermissionsGet               KeyPermissions = "get"
+	KeyPermissionsGetrotationpolicy KeyPermissions = "getrotationpolicy"
+	KeyPermissionsImport            KeyPermissions = "import"
+	KeyPermissionsList              KeyPermissions = "list"
+	KeyPermissionsPurge             KeyPermissions = "purge"
+	KeyPermissionsRecover           KeyPermissions = "recover"
+	KeyPermissionsRelease           KeyPermissions = "release"
+	KeyPermissionsRestore           KeyPermissions = "restore"
+	KeyPermissionsRotate            KeyPermissions = "rotate"
+	KeyPermissionsSetrotationpolicy KeyPermissions = "setrotationpolicy"
+	KeyPermissionsSign              KeyPermissions = "sign"
+	KeyPermissionsUnwrapKey         KeyPermissions = "unwrapKey"
+	KeyPermissionsUpdate            KeyPermissions = "update"
+	KeyPermissionsVerify            KeyPermissions = "verify"
+	KeyPermissionsWrapKey           KeyPermissions = "wrapKey"
 )
 
 func PossibleValuesForKeyPermissions() []string {
@@ -193,11 +197,15 @@ func PossibleValuesForKeyPermissions() []string {
 		string(KeyPermissionsDelete),
 		string(KeyPermissionsEncrypt),
 		string(KeyPermissionsGet),
+		string(KeyPermissionsGetrotationpolicy),
 		string(KeyPermissionsImport),
 		string(KeyPermissionsList),
 		string(KeyPermissionsPurge),
 		string(KeyPermissionsRecover),
+		string(KeyPermissionsRelease),
 		string(KeyPermissionsRestore),
+		string(KeyPermissionsRotate),
+		string(KeyPermissionsSetrotationpolicy),
 		string(KeyPermissionsSign),
 		string(KeyPermissionsUnwrapKey),
 		string(KeyPermissionsUpdate),
@@ -208,23 +216,27 @@ func PossibleValuesForKeyPermissions() []string {
 
 func parseKeyPermissions(input string) (*KeyPermissions, error) {
 	vals := map[string]KeyPermissions{
-		"all":       KeyPermissionsAll,
-		"backup":    KeyPermissionsBackup,
-		"create":    KeyPermissionsCreate,
-		"decrypt":   KeyPermissionsDecrypt,
-		"delete":    KeyPermissionsDelete,
-		"encrypt":   KeyPermissionsEncrypt,
-		"get":       KeyPermissionsGet,
-		"import":    KeyPermissionsImport,
-		"list":      KeyPermissionsList,
-		"purge":     KeyPermissionsPurge,
-		"recover":   KeyPermissionsRecover,
-		"restore":   KeyPermissionsRestore,
-		"sign":      KeyPermissionsSign,
-		"unwrapkey": KeyPermissionsUnwrapKey,
-		"update":    KeyPermissionsUpdate,
-		"verify":    KeyPermissionsVerify,
-		"wrapkey":   KeyPermissionsWrapKey,
+		"all":               KeyPermissionsAll,
+		"backup":            KeyPermissionsBackup,
+		"create":            KeyPermissionsCreate,
+		"decrypt":           KeyPermissionsDecrypt,
+		"delete":            KeyPermissionsDelete,
+		"encrypt":           KeyPermissionsEncrypt,
+		"get":               KeyPermissionsGet,
+		"getrotationpolicy": KeyPermissionsGetrotationpolicy,
+		"import":            KeyPermissionsImport,
+		"list":              KeyPermissionsList,
+		"purge":             KeyPermissionsPurge,
+		"recover":           KeyPermissionsRecover,
+		"release":           KeyPermissionsRelease,
+		"restore":           KeyPermissionsRestore,
+		"rotate":            KeyPermissionsRotate,
+		"setrotationpolicy": KeyPermissionsSetrotationpolicy,
+		"sign":              KeyPermissionsSign,
+		"unwrapkey":         KeyPermissionsUnwrapKey,
+		"update":            KeyPermissionsUpdate,
+		"verify":            KeyPermissionsVerify,
+		"wrapkey":           KeyPermissionsWrapKey,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

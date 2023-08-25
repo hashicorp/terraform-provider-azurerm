@@ -30,6 +30,40 @@ func parseActionsRequired(input string) (*ActionsRequired, error) {
 	return &out, nil
 }
 
+type ActivationStatus string
+
+const (
+	ActivationStatusActive       ActivationStatus = "Active"
+	ActivationStatusFailed       ActivationStatus = "Failed"
+	ActivationStatusNotActivated ActivationStatus = "NotActivated"
+	ActivationStatusUnknown      ActivationStatus = "Unknown"
+)
+
+func PossibleValuesForActivationStatus() []string {
+	return []string{
+		string(ActivationStatusActive),
+		string(ActivationStatusFailed),
+		string(ActivationStatusNotActivated),
+		string(ActivationStatusUnknown),
+	}
+}
+
+func parseActivationStatus(input string) (*ActivationStatus, error) {
+	vals := map[string]ActivationStatus{
+		"active":       ActivationStatusActive,
+		"failed":       ActivationStatusFailed,
+		"notactivated": ActivationStatusNotActivated,
+		"unknown":      ActivationStatusUnknown,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ActivationStatus(input)
+	return &out, nil
+}
+
 type CreateMode string
 
 const (
@@ -55,6 +89,46 @@ func parseCreateMode(input string) (*CreateMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := CreateMode(input)
+	return &out, nil
+}
+
+type GeoReplicationRegionProvisioningState string
+
+const (
+	GeoReplicationRegionProvisioningStateCleanup         GeoReplicationRegionProvisioningState = "Cleanup"
+	GeoReplicationRegionProvisioningStateDeleting        GeoReplicationRegionProvisioningState = "Deleting"
+	GeoReplicationRegionProvisioningStateFailed          GeoReplicationRegionProvisioningState = "Failed"
+	GeoReplicationRegionProvisioningStatePreprovisioning GeoReplicationRegionProvisioningState = "Preprovisioning"
+	GeoReplicationRegionProvisioningStateProvisioning    GeoReplicationRegionProvisioningState = "Provisioning"
+	GeoReplicationRegionProvisioningStateSucceeded       GeoReplicationRegionProvisioningState = "Succeeded"
+)
+
+func PossibleValuesForGeoReplicationRegionProvisioningState() []string {
+	return []string{
+		string(GeoReplicationRegionProvisioningStateCleanup),
+		string(GeoReplicationRegionProvisioningStateDeleting),
+		string(GeoReplicationRegionProvisioningStateFailed),
+		string(GeoReplicationRegionProvisioningStatePreprovisioning),
+		string(GeoReplicationRegionProvisioningStateProvisioning),
+		string(GeoReplicationRegionProvisioningStateSucceeded),
+	}
+}
+
+func parseGeoReplicationRegionProvisioningState(input string) (*GeoReplicationRegionProvisioningState, error) {
+	vals := map[string]GeoReplicationRegionProvisioningState{
+		"cleanup":         GeoReplicationRegionProvisioningStateCleanup,
+		"deleting":        GeoReplicationRegionProvisioningStateDeleting,
+		"failed":          GeoReplicationRegionProvisioningStateFailed,
+		"preprovisioning": GeoReplicationRegionProvisioningStatePreprovisioning,
+		"provisioning":    GeoReplicationRegionProvisioningStateProvisioning,
+		"succeeded":       GeoReplicationRegionProvisioningStateSucceeded,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := GeoReplicationRegionProvisioningState(input)
 	return &out, nil
 }
 
@@ -315,5 +389,33 @@ func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := PublicNetworkAccess(input)
+	return &out, nil
+}
+
+type Reason string
+
+const (
+	ReasonAccountNameInvalid Reason = "AccountNameInvalid"
+	ReasonAlreadyExists      Reason = "AlreadyExists"
+)
+
+func PossibleValuesForReason() []string {
+	return []string{
+		string(ReasonAccountNameInvalid),
+		string(ReasonAlreadyExists),
+	}
+}
+
+func parseReason(input string) (*Reason, error) {
+	vals := map[string]Reason{
+		"accountnameinvalid": ReasonAccountNameInvalid,
+		"alreadyexists":      ReasonAlreadyExists,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Reason(input)
 	return &out, nil
 }

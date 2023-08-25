@@ -59,7 +59,7 @@ func (c ManagedHsmsClient) preparerForGet(ctx context.Context, id ManagedHSMId) 
 func (c ManagedHsmsClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted, http.StatusNoContent, http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
