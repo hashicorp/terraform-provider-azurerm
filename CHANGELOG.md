@@ -5,6 +5,10 @@ ENHANCEMENTS:
 * `azurerm_container_app_environment` - support for `dapr_application_insights_connection_string` [GH-23080]
 * `azurerm_virtual_network_gateway`: increasing the default timeout for create to `90m` [GH-23003]
 
+BUG FIXES:
+
+* `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` without a path (GH-23019)
+
 ## 3.71.0 (August 24, 2023)
 
 BREAKING CHANGES:
