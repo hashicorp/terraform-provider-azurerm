@@ -7,7 +7,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` (GH-23019)
+* `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
 
 ## 3.71.0 (August 24, 2023)
 
