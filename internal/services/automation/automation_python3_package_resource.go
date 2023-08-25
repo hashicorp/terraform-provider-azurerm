@@ -51,7 +51,7 @@ func (m Python3PackageResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"content_version": {
@@ -133,7 +133,7 @@ func (m Python3PackageResource) Create() sdk.ResourceFunc {
 			}
 			req.Tags = &model.Tags
 
-			if _, err = client.CreateOrUpdate(ctx, id, req); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, req); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
@@ -161,10 +161,23 @@ func (m Python3PackageResource) Read() sdk.ResourceFunc {
 			if result.Model == nil {
 				return fmt.Errorf("retrieving %s got nil model", id)
 			}
-			var output = Python3PackageModel{
+
+			var stateModel Python3PackageModel
+			if err = meta.Decode(&stateModel); err != nil {
+				return err
+			}
+
+			output := Python3PackageModel{
 				ResourceGroupName:     id.ResourceGroupName,
 				AutomationAccountName: id.AutomationAccountName,
 				Name:                  id.Python3PackageName,
+
+				// the fields below don't return by the API, remove it when issue fixed
+				// https://github.com/Azure/azure-rest-api-specs/issues/25538
+				ContentVersion: stateModel.ContentVersion,
+				ContentUri:     stateModel.ContentUri,
+				HashValue:      stateModel.HashValue,
+				HashAlgorithm:  stateModel.HashAlgorithm,
 			}
 
 			model := result.Model

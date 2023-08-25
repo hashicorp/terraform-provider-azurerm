@@ -38,7 +38,7 @@ func TestAccPython3Package_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("content_uri", "content_version"),
 	})
 }
 
@@ -52,14 +52,14 @@ func TestAccPython3Package_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("content_uri", "content_version"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("content_uri", "content_version", "hash_algorithm", "hash_value"),
 	})
 }
 
