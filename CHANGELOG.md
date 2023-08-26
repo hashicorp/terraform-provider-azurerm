@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `azurerm_container_app_environment` - support for the `dapr_application_insights_connection_string` [GH-23080]
 * `azurerm_postgresql_flexible_server` - support for the `auto_grow_enabled` property [GH-23069]
 * `azurerm_virtual_network_gateway` - increasing the default timeout for create to `90m` [GH-23003]
+* `azurerm_virtual_hub_connection` - support for `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` properties [GH-23049]
 
 BUG FIXES:
 
