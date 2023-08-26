@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `azurerm_batch_pool` - support for `automatic_upgrade_enabled` [GH-23021]
 * `azurerm_container_app_environment` - support for `dapr_application_insights_connection_string` [GH-23080]
 * `azurerm_virtual_network_gateway`: increasing the default timeout for create to `90m` [GH-23003]
 
