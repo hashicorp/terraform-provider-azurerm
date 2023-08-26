@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms` Documentation
 
-The `managedhsms` SDK allows for interaction with the Azure Resource Manager Service `keyvault` (API Version `2021-10-01`).
+The `managedhsms` SDK allows for interaction with the Azure Resource Manager Service `keyvault` (API Version `2023-02-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
 ```
 
 
@@ -17,6 +17,27 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/m
 ```go
 client := managedhsms.NewManagedHsmsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `ManagedHsmsClient.CheckMhsmNameAvailability`
+
+```go
+ctx := context.TODO()
+id := managedhsms.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+payload := managedhsms.CheckMhsmNameAvailabilityParameters{
+	// ...
+}
+
+
+read, err := client.CheckMhsmNameAvailability(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
 ```
 
 
