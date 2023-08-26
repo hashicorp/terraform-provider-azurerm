@@ -2161,7 +2161,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return blobProps, "Available", nil
 			},
 			MinTimeout: 10 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+			Timeout:    d.Timeout(pluginsdk.TimeoutRead),
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -2193,7 +2193,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return queueProps, "Available", nil
 			},
 			MinTimeout: 10 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+			Timeout:    d.Timeout(pluginsdk.TimeoutRead),
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -2222,7 +2222,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return shareProps, "Available", nil
 			},
 			MinTimeout: 10 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+			Timeout:    d.Timeout(pluginsdk.TimeoutRead),
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -2261,7 +2261,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return staticWebsiteProps, "Available", nil
 			},
 			MinTimeout: 10 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+			Timeout:    d.Timeout(pluginsdk.TimeoutRead),
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
