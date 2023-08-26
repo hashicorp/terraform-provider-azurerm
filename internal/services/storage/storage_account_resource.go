@@ -2176,7 +2176,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if supportLevel.supportQueue {
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
-			log.Printf("building Queues Client: %s", err)
+			return fmt.Errorf("building Queues Client: %s", err)
 		}
 		var queueProps *queues.StorageServiceProperties
 
@@ -2238,12 +2238,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
 		if err != nil {
-			log.Printf("retrieving %s: %+v", *id, err)
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
 		if err != nil {
-			log.Printf("building Accounts Data Plane Client: %s", err)
+			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
 
 		var staticWebsiteProps accounts.GetServicePropertiesResult
