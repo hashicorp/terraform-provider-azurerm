@@ -1,5 +1,9 @@
 ## 3.72.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_automation_python3_package` [GH-23087]
+
 ENHANCEMENTS:
 
 * `keyvault`: upgrade remaining resources to `2023-02-01` [GH-23089]
