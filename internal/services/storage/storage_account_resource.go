@@ -2238,7 +2238,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
 		if err != nil {
-			log.Printf("retrieving %s: %+v", *id, err)
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
