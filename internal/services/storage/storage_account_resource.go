@@ -2176,7 +2176,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if supportLevel.supportQueue {
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
-			log.Printf("building Queues Client: %s", err)
+			return fmt.Errorf("building Queues Client: %s", err)
 		}
 		var queueProps *queues.StorageServiceProperties
 
