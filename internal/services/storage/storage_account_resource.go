@@ -2243,7 +2243,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
 		if err != nil {
-			log.Printf("building Accounts Data Plane Client: %s", err)
+			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
 
 		var staticWebsiteProps accounts.GetServicePropertiesResult
