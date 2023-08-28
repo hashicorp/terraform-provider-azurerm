@@ -20,7 +20,7 @@ type TransformsUpdateOperationResponse struct {
 // TransformsUpdate ...
 func (c EncodingsClient) TransformsUpdate(ctx context.Context, id TransformId, input Transform) (result TransformsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

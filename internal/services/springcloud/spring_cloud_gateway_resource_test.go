@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud_test
 
 import (
@@ -193,12 +196,13 @@ resource "azurerm_spring_cloud_gateway" "test" {
   }
 
   cors {
-    credentials_allowed = false
-    allowed_headers     = ["*"]
-    allowed_methods     = ["PUT"]
-    allowed_origins     = ["test.com"]
-    exposed_headers     = ["x-test-header"]
-    max_age_seconds     = 86400
+    credentials_allowed     = false
+    allowed_headers         = ["*"]
+    allowed_methods         = ["PUT"]
+    allowed_origins         = ["test.com"]
+    allowed_origin_patterns = ["test*.com"]
+    exposed_headers         = ["x-test-header"]
+    max_age_seconds         = 86400
   }
 
   environment_variables = {

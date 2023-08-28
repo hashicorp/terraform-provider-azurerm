@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -61,20 +64,17 @@ func TestAccAzureRMStorageSyncCloudEndpoint_requiresImport(t *testing.T) {
 }
 
 func (r StorageSyncCloudEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageSyncCloudEndpointID(state.Attributes["id"])
+	id, err := cloudendpointresource.ParseCloudEndpointID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Storage.CloudEndpointsClient.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName, id.CloudEndpointName)
+	resp, err := client.Storage.SyncCloudEndpointsClient.CloudEndpointsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("bad: Get on CloudEndpointsClient: %+v", err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.CloudEndpointProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r StorageSyncCloudEndpointResource) basic(data acceptance.TestData) string {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -6,16 +9,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apischema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementApiSchema() *pluginsdk.Resource {
@@ -25,7 +28,7 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 		Update: resourceApiManagementApiSchemaCreateUpdate,
 		Delete: resourceApiManagementApiSchemaDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApiSchemaID(id)
+			_, err := apischema.ParseApiSchemaID(id)
 			return err
 		}),
 
@@ -87,67 +90,45 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApiSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("schema_id").(string))
+	id := apischema.NewApiSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("schema_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_api_schema", id.ID())
 		}
 	}
 
-	contentType := d.Get("content_type").(string)
-	parameters := apimanagement.SchemaContract{
-		SchemaContractProperties: &apimanagement.SchemaContractProperties{
-			ContentType:              &contentType,
-			SchemaDocumentProperties: &apimanagement.SchemaDocumentProperties{},
+	parameters := apischema.SchemaContract{
+		Properties: &apischema.SchemaContractProperties{
+			ContentType: d.Get("content_type").(string),
+			Document:    &apischema.SchemaDocumentProperties{},
 		},
 	}
 
 	if v, ok := d.GetOk("value"); ok {
-		parameters.SchemaContractProperties.SchemaDocumentProperties.Value = utils.String(v.(string))
+		parameters.Properties.Document.Value = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("components"); ok {
-		parameters.SchemaContractProperties.SchemaDocumentProperties.Components = v.(string)
+		parameters.Properties.Document.Components = pointer.To(v)
 	}
 
 	if v, ok := d.GetOk("definitions"); ok {
-		parameters.SchemaContractProperties.SchemaDocumentProperties.Definitions = v.(string)
+		parameters.Properties.Document.Definitions = pointer.To(v)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, parameters, "")
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, apischema.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
-	}
 
-	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return pluginsdk.RetryableError(fmt.Errorf("expected schema %s to be created but was in non existent state, retrying", id))
-			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("getting schema %s: %+v", id, err))
-		}
-		if resp.ID == nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("cannot read ID for %s: %s", id, err))
-		}
-		d.SetId(id.ID())
-		return nil
-	})
-
-	if err != nil {
-		return fmt.Errorf("getting %s: %+v", id, err)
-	}
+	d.SetId(id.ID())
 	return resourceApiManagementApiSchemaRead(d, meta)
 }
 
@@ -156,14 +137,14 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiSchemaID(d.Id())
+	id, err := apischema.ParseApiSchemaID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -172,32 +153,34 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("making Read request for %s: %s", *id, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("api_name", id.ApiName)
-	d.Set("schema_id", id.SchemaName)
+	d.Set("api_name", id.ApiId)
+	d.Set("schema_id", id.SchemaId)
 
-	if properties := resp.SchemaContractProperties; properties != nil {
-		d.Set("content_type", properties.ContentType)
-		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
-			if documentProperties.Value != nil {
-				d.Set("value", documentProperties.Value)
-			}
-
-			if properties.Components != nil {
-				value, err := convert2Str(properties.Components)
-				if err != nil {
-					return err
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("content_type", props.ContentType)
+			if documentProperties := props.Document; documentProperties != nil {
+				if documentProperties.Value != nil {
+					d.Set("value", pointer.From(documentProperties.Value))
 				}
-				d.Set("components", value)
-			}
 
-			if properties.Definitions != nil {
-				value, err := convert2Str(properties.Definitions)
-				if err != nil {
-					return err
+				if documentProperties.Components != nil {
+					value, err := convert2Str(pointer.From(documentProperties.Components))
+					if err != nil {
+						return err
+					}
+					d.Set("components", value)
 				}
-				d.Set("definitions", value)
+
+				if documentProperties.Definitions != nil {
+					value, err := convert2Str(documentProperties.Definitions)
+					if err != nil {
+						return err
+					}
+					d.Set("definitions", value)
+				}
 			}
 		}
 	}
@@ -209,13 +192,13 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiSchemaID(d.Id())
+	id, err := apischema.ParseApiSchemaID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, "", utils.Bool(false)); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, apischema.DeleteOperationOptions{Force: pointer.To(false)}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %s", *id, err)
 		}
 	}

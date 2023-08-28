@@ -25,7 +25,7 @@ type ListPrivateLinkResourcesCompleteResult struct {
 // ListPrivateLinkResources ...
 func (c RegistriesClient) ListPrivateLinkResources(ctx context.Context, id RegistryId) (result ListPrivateLinkResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

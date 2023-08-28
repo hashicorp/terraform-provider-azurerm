@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault
 
 // KeyVault Access Policies are Terraform specific, but can be either an Object ID or an Application ID

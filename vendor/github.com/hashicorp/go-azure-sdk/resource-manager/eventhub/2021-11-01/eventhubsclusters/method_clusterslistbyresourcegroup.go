@@ -26,7 +26,7 @@ type ClustersListByResourceGroupCompleteResult struct {
 // ClustersListByResourceGroup ...
 func (c EventHubsClustersClient) ClustersListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ClustersListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c FhirServicesClient) Update(ctx context.Context, id FhirServiceId, input FhirServicePatchResource) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

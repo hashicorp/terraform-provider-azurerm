@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos_test
 
 import (
@@ -113,7 +116,8 @@ resource "azurerm_key_vault_access_policy" "current_user" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 
@@ -131,7 +135,8 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 
@@ -207,7 +212,8 @@ resource "azurerm_key_vault_access_policy" "current_user" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 
@@ -225,7 +231,8 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -5,13 +8,15 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 )
 
 var _ resourceids.Id = PrivateEndpointApplicationSecurityGroupAssociationId{}
 
 type PrivateEndpointApplicationSecurityGroupAssociationId struct {
-	PrivateEndpointId          PrivateEndpointId
-	ApplicationSecurityGroupId ApplicationSecurityGroupId
+	PrivateEndpointId          privateendpoints.PrivateEndpointId
+	ApplicationSecurityGroupId applicationsecuritygroups.ApplicationSecurityGroupId
 }
 
 func (p PrivateEndpointApplicationSecurityGroupAssociationId) ID() string {
@@ -26,7 +31,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationId) String() string {
 	return fmt.Sprintf("Private Endpoint Application Security Group Association: %s", strings.Join(components, " / "))
 }
 
-func NewPrivateEndpointApplicationSecurityGroupAssociationId(endpointId PrivateEndpointId, securityGroupId ApplicationSecurityGroupId) PrivateEndpointApplicationSecurityGroupAssociationId {
+func NewPrivateEndpointApplicationSecurityGroupAssociationId(endpointId privateendpoints.PrivateEndpointId, securityGroupId applicationsecuritygroups.ApplicationSecurityGroupId) PrivateEndpointApplicationSecurityGroupAssociationId {
 	return PrivateEndpointApplicationSecurityGroupAssociationId{
 		PrivateEndpointId:          endpointId,
 		ApplicationSecurityGroupId: securityGroupId,
@@ -39,12 +44,12 @@ func PrivateEndpointApplicationSecurityGroupAssociationID(input string) (Private
 		return PrivateEndpointApplicationSecurityGroupAssociationId{}, fmt.Errorf("expected ID to be in the format {PrivateEndpointId}|{ApplicationSecurityGroupId} but got %q", input)
 	}
 
-	endpointId, err := PrivateEndpointID(splitId[0])
+	endpointId, err := privateendpoints.ParsePrivateEndpointID(splitId[0])
 	if err != nil {
 		return PrivateEndpointApplicationSecurityGroupAssociationId{}, err
 	}
 
-	securityGroupId, err := ApplicationSecurityGroupID(splitId[1])
+	securityGroupId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(splitId[1])
 	if err != nil {
 		return PrivateEndpointApplicationSecurityGroupAssociationId{}, err
 	}

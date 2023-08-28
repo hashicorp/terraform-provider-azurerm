@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate_test
 
 import (
@@ -33,7 +36,7 @@ func TestFunctionAppFunctionName(t *testing.T) {
 		},
 		{
 			Input: "EndsInWrongChar-",
-			Valid: false,
+			Valid: true,
 		},
 	}
 

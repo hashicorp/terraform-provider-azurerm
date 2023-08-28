@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -49,6 +52,7 @@ func friendlyValidRedisEnterpriseClusterLocations() []string {
 		"Central US EUAP",
 		"East Asia",
 		"East US",
+		"North Central US",
 		"North Europe",
 		"South Central US",
 		"South India",
@@ -60,5 +64,6 @@ func friendlyValidRedisEnterpriseClusterLocations() []string {
 		"West Europe",
 		"West US",
 		"West US 2",
+		"West US 3",
 	}
 }

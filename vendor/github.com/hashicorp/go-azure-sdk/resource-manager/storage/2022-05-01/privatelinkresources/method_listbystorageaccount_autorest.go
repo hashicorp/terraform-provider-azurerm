@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type ListByStorageAccountOperationResponse struct {
 }
 
 // ListByStorageAccount ...
-func (c PrivateLinkResourcesClient) ListByStorageAccount(ctx context.Context, id StorageAccountId) (result ListByStorageAccountOperationResponse, err error) {
+func (c PrivateLinkResourcesClient) ListByStorageAccount(ctx context.Context, id commonids.StorageAccountId) (result ListByStorageAccountOperationResponse, err error) {
 	req, err := c.preparerForListByStorageAccount(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatelinkresources.PrivateLinkResourcesClient", "ListByStorageAccount", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c PrivateLinkResourcesClient) ListByStorageAccount(ctx context.Context, id
 }
 
 // preparerForListByStorageAccount prepares the ListByStorageAccount request.
-func (c PrivateLinkResourcesClient) preparerForListByStorageAccount(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c PrivateLinkResourcesClient) preparerForListByStorageAccount(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

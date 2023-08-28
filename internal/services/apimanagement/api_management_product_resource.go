@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,16 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/product"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementProduct() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 		Update: resourceApiManagementProductCreateUpdate,
 		Delete: resourceApiManagementProductDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProductID(id)
+			_, err := product.ParseProductID(id)
 			return err
 		}),
 
@@ -90,7 +93,7 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	log.Printf("[INFO] preparing arguments for API Management Product creation.")
 
-	id := parse.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
+	id := product.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
@@ -101,42 +104,42 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 	published := d.Get("published").(bool)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_product", id.ID())
 		}
 	}
-	publishedVal := apimanagement.ProductStateNotPublished
+	publishedVal := product.ProductStateNotPublished
 	if published {
-		publishedVal = apimanagement.ProductStatePublished
+		publishedVal = product.ProductStatePublished
 	}
 
-	properties := apimanagement.ProductContract{
-		ProductContractProperties: &apimanagement.ProductContractProperties{
-			Description:          utils.String(description),
-			DisplayName:          utils.String(displayName),
-			State:                publishedVal,
-			SubscriptionRequired: utils.Bool(subscriptionRequired),
-			Terms:                utils.String(terms),
+	properties := product.ProductContract{
+		Properties: &product.ProductContractProperties{
+			Description:          pointer.To(description),
+			DisplayName:          displayName,
+			State:                pointer.To(publishedVal),
+			SubscriptionRequired: pointer.To(subscriptionRequired),
+			Terms:                pointer.To(terms),
 		},
 	}
 
 	// Swagger says: Can be present only if subscriptionRequired property is present and has a value of false.
 	// API/Portal says: Cannot provide values for approvalRequired and subscriptionsLimit when subscriptionRequired is set to false in the request payload
 	if subscriptionRequired && subscriptionsLimit > 0 {
-		properties.ProductContractProperties.ApprovalRequired = utils.Bool(approvalRequired)
-		properties.ProductContractProperties.SubscriptionsLimit = utils.Int32(int32(subscriptionsLimit))
+		properties.Properties.ApprovalRequired = pointer.To(approvalRequired)
+		properties.Properties.SubscriptionsLimit = pointer.To(int64(subscriptionsLimit))
 	} else if approvalRequired {
 		return fmt.Errorf("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, properties, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, properties, product.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -150,34 +153,35 @@ func resourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProductID(d.Id())
+	id, err := product.ParseProductID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("%s was not found - removing from state!", *id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("making Read request on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("product_id", id.Name)
+	d.Set("product_id", id.ProductId)
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ProductContractProperties; props != nil {
-		d.Set("approval_required", props.ApprovalRequired)
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("published", props.State == apimanagement.ProductStatePublished)
-		d.Set("subscriptions_limit", props.SubscriptionsLimit)
-		d.Set("subscription_required", props.SubscriptionRequired)
-		d.Set("terms", props.Terms)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("approval_required", pointer.From(props.ApprovalRequired))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("published", pointer.From(props.State) == product.ProductStatePublished)
+			d.Set("subscriptions_limit", pointer.From(props.SubscriptionsLimit))
+			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
+			d.Set("terms", pointer.From(props.Terms))
+		}
 	}
 
 	return nil
@@ -188,16 +192,14 @@ func resourceApiManagementProductDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProductID(d.Id())
+	id, err := product.ParseProductID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Deleting %s", *id)
-	deleteSubscriptions := true
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "", utils.Bool(deleteSubscriptions))
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

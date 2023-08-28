@@ -9,7 +9,7 @@ type OutboundEnvironmentEndpointOperationPredicate struct {
 
 func (p OutboundEnvironmentEndpointOperationPredicate) Matches(input OutboundEnvironmentEndpoint) bool {
 
-	if p.Category != nil && (input.Category == nil && *p.Category != *input.Category) {
+	if p.Category != nil && (input.Category == nil || *p.Category != *input.Category) {
 		return false
 	}
 

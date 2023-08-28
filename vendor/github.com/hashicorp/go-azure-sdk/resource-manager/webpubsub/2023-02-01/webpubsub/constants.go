@@ -1,6 +1,10 @@
 package webpubsub
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForACLAction() []string {
 		string(ACLActionAllow),
 		string(ACLActionDeny),
 	}
+}
+
+func (s *ACLAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseACLAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseACLAction(input string) (*ACLAction, error) {
@@ -45,6 +62,19 @@ func PossibleValuesForEventListenerEndpointDiscriminator() []string {
 	}
 }
 
+func (s *EventListenerEndpointDiscriminator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventListenerEndpointDiscriminator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEventListenerEndpointDiscriminator(input string) (*EventListenerEndpointDiscriminator, error) {
 	vals := map[string]EventListenerEndpointDiscriminator{
 		"eventhub": EventListenerEndpointDiscriminatorEventHub,
@@ -68,6 +98,19 @@ func PossibleValuesForEventListenerFilterDiscriminator() []string {
 	return []string{
 		string(EventListenerFilterDiscriminatorEventName),
 	}
+}
+
+func (s *EventListenerFilterDiscriminator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventListenerFilterDiscriminator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEventListenerFilterDiscriminator(input string) (*EventListenerFilterDiscriminator, error) {
@@ -97,6 +140,19 @@ func PossibleValuesForKeyType() []string {
 		string(KeyTypeSalt),
 		string(KeyTypeSecondary),
 	}
+}
+
+func (s *KeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKeyType(input string) (*KeyType, error) {
@@ -130,6 +186,19 @@ func PossibleValuesForPrivateLinkServiceConnectionStatus() []string {
 		string(PrivateLinkServiceConnectionStatusPending),
 		string(PrivateLinkServiceConnectionStatusRejected),
 	}
+}
+
+func (s *PrivateLinkServiceConnectionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkServiceConnectionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceConnectionStatus, error) {
@@ -176,6 +245,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -213,6 +295,19 @@ func PossibleValuesForScaleType() []string {
 	}
 }
 
+func (s *ScaleType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScaleType(input string) (*ScaleType, error) {
 	vals := map[string]ScaleType{
 		"automatic": ScaleTypeAutomatic,
@@ -248,6 +343,19 @@ func PossibleValuesForSharedPrivateLinkResourceStatus() []string {
 	}
 }
 
+func (s *SharedPrivateLinkResourceStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSharedPrivateLinkResourceStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSharedPrivateLinkResourceStatus(input string) (*SharedPrivateLinkResourceStatus, error) {
 	vals := map[string]SharedPrivateLinkResourceStatus{
 		"approved":     SharedPrivateLinkResourceStatusApproved,
@@ -277,6 +385,19 @@ func PossibleValuesForUpstreamAuthType() []string {
 		string(UpstreamAuthTypeManagedIdentity),
 		string(UpstreamAuthTypeNone),
 	}
+}
+
+func (s *UpstreamAuthType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpstreamAuthType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseUpstreamAuthType(input string) (*UpstreamAuthType, error) {
@@ -311,6 +432,19 @@ func PossibleValuesForWebPubSubRequestType() []string {
 	}
 }
 
+func (s *WebPubSubRequestType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWebPubSubRequestType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseWebPubSubRequestType(input string) (*WebPubSubRequestType, error) {
 	vals := map[string]WebPubSubRequestType{
 		"clientconnection": WebPubSubRequestTypeClientConnection,
@@ -343,6 +477,19 @@ func PossibleValuesForWebPubSubSkuTier() []string {
 		string(WebPubSubSkuTierPremium),
 		string(WebPubSubSkuTierStandard),
 	}
+}
+
+func (s *WebPubSubSkuTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWebPubSubSkuTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWebPubSubSkuTier(input string) (*WebPubSubSkuTier, error) {

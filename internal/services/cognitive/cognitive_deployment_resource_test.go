@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,14 +24,14 @@ func TestAccCognitiveDeploymentSequential(t *testing.T) {
 	// Refer to : https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quotas-limits
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"deployment": {
-			"basic":          testAccCognitiveDeployment_basic,
+			"basic":          TestAccCognitiveDeployment_basic,
 			"requiresImport": testAccCognitiveDeployment_requiresImport,
 			"complete":       testAccCognitiveDeployment_complete,
 		},
 	})
 }
 
-func testAccCognitiveDeployment_basic(t *testing.T) {
+func TestAccCognitiveDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 	r := CognitiveDeploymentTestResource{}
 
@@ -111,8 +114,8 @@ resource "azurerm_cognitive_account" "test" {
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data, "OpenAI")
-
 	return fmt.Sprintf(`
+
 
 %s
 
@@ -121,10 +124,9 @@ resource "azurerm_cognitive_deployment" "test" {
   cognitive_account_id = azurerm_cognitive_account.test.id
   model {
     format  = "OpenAI"
-    name    = "text-curie-001"
+    name    = "text-embedding-ada-002"
     version = "1"
   }
-
   scale {
     type = "Standard"
   }
@@ -142,7 +144,7 @@ resource "azurerm_cognitive_deployment" "import" {
   cognitive_account_id = azurerm_cognitive_account.test.id
   model {
     format  = "OpenAI"
-    name    = "text-curie-001"
+    name    = "text-embedding-ada-002"
     version = "1"
   }
   scale {
@@ -163,14 +165,12 @@ resource "azurerm_cognitive_deployment" "test" {
 
   model {
     format  = "OpenAI"
-    name    = "text-davinci-002"
-    version = "1"
+    name    = "text-embedding-ada-002"
+    version = "2"
   }
-
   scale {
     type = "Standard"
   }
-
   rai_policy_name = "RAI policy"
 }
 `, template, data.RandomInteger)

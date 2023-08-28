@@ -17,7 +17,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c ConfigurationAssignmentsClient) Get(ctx context.Context, id ConfigurationAssignmentId) (result GetOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) Get(ctx context.Context, id ScopedConfigurationAssignmentId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationassignments.ConfigurationAssignmentsClient", "Get", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ConfigurationAssignmentsClient) Get(ctx context.Context, id Configuratio
 }
 
 // preparerForGet prepares the Get request.
-func (c ConfigurationAssignmentsClient) preparerForGet(ctx context.Context, id ConfigurationAssignmentId) (*http.Request, error) {
+func (c ConfigurationAssignmentsClient) preparerForGet(ctx context.Context, id ScopedConfigurationAssignmentId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

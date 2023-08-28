@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -13,11 +16,12 @@ func FirewallRuleName(i interface{}, k string) (warnings []string, errors []erro
 	}
 
 	// The name attribute rules are :
-	// 1. can contain only letters, numbers, underscore and hyphen.
+	// 1. Can't contain '<,>,*,%,&,:,\,/,?'.
+	// 2. Can't end with '.'
 	// 2. The value must be between 1 and 128 characters long
 
-	if !regexp.MustCompile(`^[a-zA-Z\d-_]{1,128}$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s can contain only letters, numbers, underscore and hyphen, and be between 1 and 128 characters long", k))
+	if !regexp.MustCompile(`^[^<>*%&:\\/?]{0,127}[^.<>*%&:\\/?]$`).MatchString(v) {
+		errors = append(errors, fmt.Errorf("%s can't contain '<,>,*,%%,&,:,\\,/,?', can't end with '.', and must be between 1 and 128 characters long", k))
 		return
 	}
 

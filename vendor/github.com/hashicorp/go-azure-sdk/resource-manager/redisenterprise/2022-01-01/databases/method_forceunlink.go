@@ -23,7 +23,7 @@ type ForceUnlinkOperationResponse struct {
 // ForceUnlink ...
 func (c DatabasesClient) ForceUnlink(ctx context.Context, id DatabaseId, input ForceUnlinkParameters) (result ForceUnlinkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

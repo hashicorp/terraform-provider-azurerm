@@ -23,7 +23,7 @@ type CustomDomainsCreateOrUpdateOperationResponse struct {
 // CustomDomainsCreateOrUpdate ...
 func (c SignalRClient) CustomDomainsCreateOrUpdate(ctx context.Context, id CustomDomainId, input CustomDomain) (result CustomDomainsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

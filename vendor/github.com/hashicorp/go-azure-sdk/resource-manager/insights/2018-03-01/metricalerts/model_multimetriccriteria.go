@@ -12,6 +12,15 @@ import (
 type MultiMetricCriteria interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawMultiMetricCriteriaImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalMultiMetricCriteriaImplementation(input []byte) (MultiMetricCriteria, error) {
 	if input == nil {
 		return nil, nil
@@ -43,10 +52,6 @@ func unmarshalMultiMetricCriteriaImplementation(input []byte) (MultiMetricCriter
 		return out, nil
 	}
 
-	type RawMultiMetricCriteriaImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawMultiMetricCriteriaImpl{
 		Type:   value,
 		Values: temp,

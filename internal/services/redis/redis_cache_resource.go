@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package redis
 
 import (
@@ -598,18 +601,20 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	patchSchedule := expandRedisPatchSchedule(d)
+	if d.HasChange("patch_schedule") {
+		patchSchedule := expandRedisPatchSchedule(d)
 
-	patchSchedulesRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
-	if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
-		_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
-		if err != nil {
-			return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
-		}
-	} else {
-		_, err = patchClient.CreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
-		if err != nil {
-			return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
+		patchSchedulesRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+		if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
+			_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
+			if err != nil {
+				return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
+			}
+		} else {
+			_, err = patchClient.CreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
+			if err != nil {
+				return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
+			}
 		}
 	}
 
@@ -820,12 +825,20 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	// nolint : staticcheck
 	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
-		if v := raw["rdb_backup_enabled"].(bool); v {
-			if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
-				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+		skuName := d.Get("sku_name").(string)
+		rdbBackupEnabled := raw["rdb_backup_enabled"].(bool)
+
+		// rdb_backup_enabled is available when SKU is Premium
+		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			if rdbBackupEnabled {
+				if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
+					return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+				}
 			}
+			output.RdbBackupEnabled = utils.String(strconv.FormatBool(rdbBackupEnabled))
+		} else if rdbBackupEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			return nil, fmt.Errorf("The `rdb_backup_enabled` property requires a `Premium` sku to be set")
 		}
-		output.RdbBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {

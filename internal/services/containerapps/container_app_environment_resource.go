@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps
 
 import (
@@ -16,18 +19,20 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ContainerAppEnvironmentResource struct{}
 
 type ContainerAppEnvironmentModel struct {
-	Name                        string                 `tfschema:"name"`
-	ResourceGroup               string                 `tfschema:"resource_group_name"`
-	Location                    string                 `tfschema:"location"`
-	LogAnalyticsWorkspaceId     string                 `tfschema:"log_analytics_workspace_id"`
-	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
+	Name                                    string                 `tfschema:"name"`
+	ResourceGroup                           string                 `tfschema:"resource_group_name"`
+	Location                                string                 `tfschema:"location"`
+	DaprApplicationInsightsConnectionString string                 `tfschema:"dapr_application_insights_connection_string"`
+	LogAnalyticsWorkspaceId                 string                 `tfschema:"log_analytics_workspace_id"`
+	InfrastructureSubnetId                  string                 `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled             bool                   `tfschema:"internal_load_balancer_enabled"`
+	Tags                                    map[string]interface{} `tfschema:"tags"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -64,9 +69,18 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
+		"dapr_application_insights_connection_string": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "Application Insights connection string used by Dapr to export Service to Service communication telemetry.",
+		},
+
 		"log_analytics_workspace_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
@@ -153,47 +167,52 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
-			if err != nil {
-				return err
-			}
-
-			workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
-			if err != nil {
-				return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
-			}
-
-			if workspace.Model == nil || workspace.Model.Properties == nil {
-				return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
-			}
-
-			if workspace.Model.Properties.CustomerId == nil {
-				return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
-			}
-
-			keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
-			if err != nil {
-				return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
-			}
-
-			if keys.Model.PrimarySharedKey == nil {
-				return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
-			}
-
 			managedEnvironment := managedenvironments.ManagedEnvironment{
 				Location: containerAppEnvironment.Location,
 				Name:     pointer.To(containerAppEnvironment.Name),
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
-					AppLogsConfiguration: &managedenvironments.AppLogsConfiguration{
-						Destination: pointer.To("log-analytics"),
-						LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
-							CustomerId: workspace.Model.Properties.CustomerId,
-							SharedKey:  keys.Model.PrimarySharedKey,
-						},
-					},
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
+			}
+
+			if containerAppEnvironment.DaprApplicationInsightsConnectionString != "" {
+				managedEnvironment.Properties.DaprAIConnectionString = pointer.To(containerAppEnvironment.DaprApplicationInsightsConnectionString)
+			}
+
+			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
+				logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
+				if err != nil {
+					return err
+				}
+
+				workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
+				}
+
+				if workspace.Model == nil || workspace.Model.Properties == nil {
+					return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
+				}
+
+				if workspace.Model.Properties.CustomerId == nil {
+					return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
+				}
+
+				keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
+				}
+				if keys.Model.PrimarySharedKey == nil {
+					return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
+				}
+				managedEnvironment.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					Destination: pointer.To("log-analytics"),
+					LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
+						CustomerId: workspace.Model.Properties.CustomerId,
+						SharedKey:  keys.Model.PrimarySharedKey,
+					},
+				}
 			}
 
 			if containerAppEnvironment.InfrastructureSubnetId != "" {
@@ -249,6 +268,11 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 				}
+			}
+
+			// `dapr_application_insights_connection_string` is sensitive and not returned by API
+			if v := metadata.ResourceData.Get("dapr_application_insights_connection_string").(string); v != "" {
+				state.DaprApplicationInsightsConnectionString = v
 			}
 
 			// Reading in log_analytics_workspace_id is not possible, so reading from config. Import will need to ignore_changes unfortunately

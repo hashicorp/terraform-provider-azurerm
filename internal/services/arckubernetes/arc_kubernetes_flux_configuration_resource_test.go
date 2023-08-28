@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package arckubernetes_test
 
 import (
@@ -193,7 +196,7 @@ func TestAccArcKubernetesFluxConfiguration_kustomizationNameDuplicated(t *testin
 }
 
 func (r ArcKubernetesFluxConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := fluxconfiguration.ParseFluxConfigurationID(state.ID)
+	id, err := fluxconfiguration.ParseScopedFluxConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}

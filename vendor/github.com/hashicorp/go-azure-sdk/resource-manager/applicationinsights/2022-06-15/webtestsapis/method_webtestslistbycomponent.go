@@ -25,7 +25,7 @@ type WebTestsListByComponentCompleteResult struct {
 // WebTestsListByComponent ...
 func (c WebTestsAPIsClient) WebTestsListByComponent(ctx context.Context, id ComponentId) (result WebTestsListByComponentOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

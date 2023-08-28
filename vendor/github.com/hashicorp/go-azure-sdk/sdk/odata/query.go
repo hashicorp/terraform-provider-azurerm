@@ -11,12 +11,14 @@ import (
 	"strings"
 )
 
+// ConsistencyLevel is included in the API request headers when making advanced data queries
 type ConsistencyLevel string
 
 const (
 	ConsistencyLevelEventual ConsistencyLevel = "eventual"
 )
 
+// Metadata specifies the level of control information desired in the response for an API request and is appended to the Accept header
 type Metadata string
 
 const (
@@ -25,6 +27,7 @@ const (
 	MetadataNone    Metadata = "none"
 )
 
+// Query describes OData query parameters that can be included in an API request.
 type Query struct {
 	// ConsistencyLevel sets the corresponding http header
 	ConsistencyLevel ConsistencyLevel
@@ -63,7 +66,7 @@ type Query struct {
 	DeltaToken string
 }
 
-// Headers returns an http.Header map containing OData specific headers
+// Headers returns a http.Header map containing OData specific headers
 func (q Query) Headers() http.Header {
 	// Take extra care over canonicalization of header names
 	headers := http.Header{}

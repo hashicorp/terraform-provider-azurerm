@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storagemover
 
 import (
@@ -9,6 +12,10 @@ type Registration struct{}
 var (
 	_ sdk.TypedServiceRegistration = Registration{}
 )
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/storagemover"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

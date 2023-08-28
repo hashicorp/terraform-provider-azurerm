@@ -53,7 +53,7 @@ func (o LedgerListByResourceGroupOperationOptions) ToQuery() *client.QueryParams
 // LedgerListByResourceGroup ...
 func (c ConfidentialLedgerClient) LedgerListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (result LedgerListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

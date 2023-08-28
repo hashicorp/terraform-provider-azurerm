@@ -23,7 +23,7 @@ type DeploymentsUpdateOperationResponse struct {
 // DeploymentsUpdate ...
 func (c NginxDeploymentClient) DeploymentsUpdate(ctx context.Context, id NginxDeploymentId, input NginxDeploymentUpdateParameters) (result DeploymentsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

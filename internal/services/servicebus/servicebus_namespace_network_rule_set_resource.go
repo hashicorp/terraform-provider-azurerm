@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
@@ -26,6 +29,8 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 		Read:   resourceServiceBusNamespaceNetworkRuleSetRead,
 		Update: resourceServiceBusNamespaceNetworkRuleSetCreateUpdate,
 		Delete: resourceServiceBusNamespaceNetworkRuleSetDelete,
+
+		DeprecationMessage: "The `azurerm_servicebus_namespace_network_rule_set` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use `network_rule_set` inside the `azurerm_servicebus_namespace` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)

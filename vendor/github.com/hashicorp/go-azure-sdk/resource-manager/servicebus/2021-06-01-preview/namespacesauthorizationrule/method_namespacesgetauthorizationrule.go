@@ -20,7 +20,7 @@ type NamespacesGetAuthorizationRuleOperationResponse struct {
 // NamespacesGetAuthorizationRule ...
 func (c NamespacesAuthorizationRuleClient) NamespacesGetAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (result NamespacesGetAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

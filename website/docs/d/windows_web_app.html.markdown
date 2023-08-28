@@ -131,11 +131,13 @@ An `application_stack` block exports the following:
 
 * `current_stack` - The Current Stack value of the Windows Web App.
 
-* `docker_container_name` - The name of the Docker Container in used.
+* `docker_image_name` - The docker image, including tag, used by this Windows Web App.
 
-* `docker_container_registry` - The Container Registry where the Docker Container is pulled from.
+* `docker_registry_url` - The URL of the container registry where the `docker_image_name` is located.
 
-* `docker_container_tag` - The Docker Container Tag of the Container in use.
+* `docker_registry_username` - The User Name to use for authentication against the registry to pull the image.
+
+* `docker_registry_password` - The User Name to use for authentication against the registry to pull the image.
 
 * `dotnet_version` - The version of .NET in use.
 
@@ -657,7 +659,7 @@ A `status_code` block exports the following:
 
 * `sub_status` - The Request Sub Status of the Status Code.
 
-* `win32_status` - The Win32 Status Code of the Request.
+* `win32_status_code` - The Win32 Status Code of the Request.
 
 ---
 

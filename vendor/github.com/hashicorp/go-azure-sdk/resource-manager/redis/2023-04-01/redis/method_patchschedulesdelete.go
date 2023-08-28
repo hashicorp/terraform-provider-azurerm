@@ -20,7 +20,7 @@ type PatchSchedulesDeleteOperationResponse struct {
 // PatchSchedulesDelete ...
 func (c RedisClient) PatchSchedulesDelete(ctx context.Context, id RediId) (result PatchSchedulesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

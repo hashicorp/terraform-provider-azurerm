@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -6,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -196,6 +200,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"azure_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"current_kubernetes_version": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -678,6 +687,27 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"service_mesh_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"internal_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"external_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -714,11 +744,12 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("dns_prefix", props.DnsPrefix)
-			d.Set("fqdn", props.Fqdn)
-			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
-			d.Set("private_fqdn", props.PrivateFQDN)
-			d.Set("kubernetes_version", props.KubernetesVersion)
+			d.Set("dns_prefix", pointer.From(props.DnsPrefix))
+			d.Set("fqdn", pointer.From(props.Fqdn))
+			d.Set("disk_encryption_set_id", pointer.From(props.DiskEncryptionSetID))
+			d.Set("private_fqdn", pointer.From(props.PrivateFQDN))
+			d.Set("kubernetes_version", pointer.From(props.KubernetesVersion))
+			d.Set("current_kubernetes_version", pointer.From(props.CurrentKubernetesVersion))
 
 			nodeResourceGroup := ""
 			if v := props.NodeResourceGroup; v != nil {
@@ -763,6 +794,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
 			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
 				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
+			}
+
+			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
+			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
+				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
 
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)

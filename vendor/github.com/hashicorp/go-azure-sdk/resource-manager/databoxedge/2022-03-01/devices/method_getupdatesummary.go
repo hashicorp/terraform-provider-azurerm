@@ -21,7 +21,7 @@ type GetUpdateSummaryOperationResponse struct {
 // GetUpdateSummary ...
 func (c DevicesClient) GetUpdateSummary(ctx context.Context, id DataBoxEdgeDeviceId) (result GetUpdateSummaryOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -65,7 +65,7 @@ func (o WorkbooksListByResourceGroupOperationOptions) ToQuery() *client.QueryPar
 // WorkbooksListByResourceGroup ...
 func (c WorkbooksAPIsClient) WorkbooksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (result WorkbooksListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

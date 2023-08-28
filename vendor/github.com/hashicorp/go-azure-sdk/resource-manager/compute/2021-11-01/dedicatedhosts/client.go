@@ -1,18 +1,26 @@
 package dedicatedhosts
 
-import "github.com/Azure/go-autorest/autorest"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DedicatedHostsClient struct {
-	Client  autorest.Client
-	baseUri string
+	Client *resourcemanager.Client
 }
 
-func NewDedicatedHostsClientWithBaseURI(endpoint string) DedicatedHostsClient {
-	return DedicatedHostsClient{
-		Client:  autorest.NewClientWithUserAgent(userAgent()),
-		baseUri: endpoint,
+func NewDedicatedHostsClientWithBaseURI(sdkApi sdkEnv.Api) (*DedicatedHostsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dedicatedhosts", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating DedicatedHostsClient: %+v", err)
 	}
+
+	return &DedicatedHostsClient{
+		Client: client,
+	}, nil
 }

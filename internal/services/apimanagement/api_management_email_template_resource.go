@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,17 +8,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/emailtemplates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
@@ -25,7 +28,7 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 		Update: resourceApiManagementEmailTemplateCreateUpdate,
 		Delete: resourceApiManagementEmailTemplateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EmailTemplateID(id)
+			_, err := emailtemplates.ParseTemplateIDInsensitively(id)
 			return err
 		}),
 
@@ -47,20 +50,20 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					azure.TitleCase(string(apimanagement.TemplateNameAccountClosedDeveloper)),
-					azure.TitleCase(string(apimanagement.TemplateNameApplicationApprovedNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNameConfirmSignUpIdentityDefault)),
-					azure.TitleCase(string(apimanagement.TemplateNameEmailChangeIdentityDefault)),
-					azure.TitleCase(string(apimanagement.TemplateNameInviteUserNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNameNewCommentNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNameNewDeveloperNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNameNewIssueNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNamePasswordResetByAdminNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNamePasswordResetIdentityDefault)),
-					azure.TitleCase(string(apimanagement.TemplateNamePurchaseDeveloperNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNameQuotaLimitApproachingDeveloperNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNameRejectDeveloperNotificationMessage)),
-					azure.TitleCase(string(apimanagement.TemplateNameRequestDeveloperNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameAccountClosedDeveloper)),
+					azure.TitleCase(string(emailtemplates.TemplateNameApplicationApprovedNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameConfirmSignUpIdentityDefault)),
+					azure.TitleCase(string(emailtemplates.TemplateNameEmailChangeIdentityDefault)),
+					azure.TitleCase(string(emailtemplates.TemplateNameInviteUserNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameNewCommentNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameNewDeveloperNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameNewIssueNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNamePasswordResetByAdminNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNamePasswordResetIdentityDefault)),
+					azure.TitleCase(string(emailtemplates.TemplateNamePurchaseDeveloperNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameQuotaLimitApproachingDeveloperNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameRejectDeveloperNotificationMessage)),
+					azure.TitleCase(string(emailtemplates.TemplateNameRequestDeveloperNotificationMessage)),
 				}, false),
 			},
 			"body": {
@@ -86,41 +89,39 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 }
 
 func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.EmailTemplateClient
+	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	templateName := apimanagement.TemplateName(d.Get("template_name").(string))
-
-	id := parse.NewEmailTemplateID(subscriptionId, resourceGroup, serviceName, d.Get("template_name").(string))
+	id := emailtemplates.NewTemplateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), emailtemplates.TemplateName(d.Get("template_name").(string)))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, templateName)
+		existing, err := client.EmailTemplateGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
 		// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
-		if !utils.ResponseWasNotFound(existing.Response) && (existing.IsDefault != nil && !*existing.IsDefault) {
-			return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			if model := existing.Model; model != nil && model.Properties != nil && model.Properties.IsDefault != nil && !*model.Properties.IsDefault {
+				return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
+			}
 		}
 	}
 
 	subject := d.Get("subject").(string)
 	body := d.Get("body").(string)
 
-	emailTemplateUpdateParameters := apimanagement.EmailTemplateUpdateParameters{
-		EmailTemplateUpdateParameterProperties: &apimanagement.EmailTemplateUpdateParameterProperties{
-			Subject: utils.String(subject),
-			Body:    utils.String(body),
+	emailTemplateUpdateParameters := emailtemplates.EmailTemplateUpdateParameters{
+		Properties: &emailtemplates.EmailTemplateUpdateParameterProperties{
+			Subject: pointer.To(subject),
+			Body:    pointer.To(body),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, templateName, emailTemplateUpdateParameters, ""); err != nil {
+	if _, err := client.EmailTemplateCreateOrUpdate(ctx, id, emailTemplateUpdateParameters, emailtemplates.EmailTemplateCreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -130,61 +131,59 @@ func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceApiManagementEmailTemplateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.EmailTemplateClient
+	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EmailTemplateID(d.Id())
+	id, err := emailtemplates.ParseTemplateIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-
-	templateName := apimanagement.TemplateName(id.TemplateName)
-
-	resp, err := client.Get(ctx, resourceGroup, serviceName, templateName)
+	templateName := emailtemplates.TemplateName(azure.TitleCase(string(id.TemplateName)))
+	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, templateName)
+	resp, err := client.EmailTemplateGet(ctx, newId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s does not exist - removing from state!", *id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s does not exist - removing from state!", newId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
 	d.Set("template_name", templateName)
-	if properties := resp.EmailTemplateContractProperties; properties != nil {
-		d.Set("title", properties.Title)
-		d.Set("description", properties.Description)
-		d.Set("subject", properties.Subject)
-		d.Set("body", properties.Body)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("title", pointer.From(props.Title))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("subject", props.Subject)
+			d.Set("body", props.Body)
+		}
 	}
 
 	return nil
 }
 
 func resourceApiManagementEmailTemplateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.EmailTemplateClient
+	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EmailTemplateID(d.Id())
+	id, err := emailtemplates.ParseTemplateIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	templateName := apimanagement.TemplateName(id.TemplateName)
+	templateName := emailtemplates.TemplateName(azure.TitleCase(string(id.TemplateName)))
+	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, templateName)
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, templateName, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting %s: %s", *id, err)
+	if resp, err := client.EmailTemplateDelete(ctx, newId, emailtemplates.EmailTemplateDeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %s", newId, err)
 		}
 	}
 
