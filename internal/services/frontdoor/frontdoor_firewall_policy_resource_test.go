@@ -130,7 +130,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -162,7 +162,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -226,7 +226,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d"
+  name     = "acctestRG-%d"
   location = "%[2]s"
 }
 
