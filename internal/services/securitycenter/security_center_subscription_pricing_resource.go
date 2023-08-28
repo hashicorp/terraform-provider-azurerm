@@ -145,6 +145,9 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		"CloudPosture": {
 			"Default": {"SensitiveDataDiscovery", "ContainerRegistriesVulnerabilityAssessments", "AgentlessDiscoveryForKubernetes", "AgentlessVmScanning"},
 		},
+		"Containers": {
+			"Default": {"ContainerRegistriesVulnerabilityAssessments", "AgentlessDiscoveryForKubernetes"},
+		},
 	}
 
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
