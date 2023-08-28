@@ -107,6 +107,12 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			}, false),
 		},
 
+		"local_auth_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"luis_app_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -127,6 +133,13 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+
+		"tenant_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
 		},
 
 		"tags": tags.Schema(),
@@ -180,6 +193,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightKey:            utils.String(metadata.ResourceData.Get("developer_app_insights_key").(string)),
 					DeveloperAppInsightsAPIKey:        utils.String(metadata.ResourceData.Get("developer_app_insights_api_key").(string)),
 					DeveloperAppInsightsApplicationID: utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
+					DisableLocalAuth:                  utils.Bool(!metadata.ResourceData.Get("local_auth_enabled").(bool)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           utils.String(metadata.ResourceData.Get("luis_key").(string)),
 					IsStreamingSupported:              utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
@@ -197,6 +211,10 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 
 			if v, ok := metadata.ResourceData.GetOk("microsoft_app_msi_id"); ok {
 				props.Properties.MsaAppMSIResourceID = utils.String(v.(string))
+			}
+
+			if v, ok := metadata.ResourceData.GetOk("tenant_id"); ok {
+				props.Properties.TenantID = utils.String(v.(string))
 			}
 
 			if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
@@ -295,6 +313,12 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				}
 				metadata.ResourceData.Set("microsoft_app_msi_id", msaAppMSIId)
 
+				localAuthEnabled := true
+				if v := props.DisableLocalAuth; v != nil {
+					localAuthEnabled = !*v
+				}
+				metadata.ResourceData.Set("local_auth_enabled", localAuthEnabled)
+
 				var luisAppIds []string
 				if v := props.LuisAppIds; v != nil {
 					luisAppIds = *v
@@ -306,6 +330,12 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 					streamingEndpointEnabled = *v
 				}
 				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
+
+				tenantId := ""
+				if v := props.TenantID; v != nil {
+					tenantId = *v
+				}
+				metadata.ResourceData.Set("tenant_id", tenantId)
 			}
 
 			return nil
@@ -365,6 +395,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("developer_app_insights_application_id") {
 				existing.Properties.DeveloperAppInsightsApplicationID = utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string))
+			}
+
+			if metadata.ResourceData.HasChange("local_auth_enabled") {
+				existing.Properties.DisableLocalAuth = utils.Bool(!metadata.ResourceData.Get("local_auth_enabled").(bool))
 			}
 
 			if metadata.ResourceData.HasChange("luis_app_ids") {

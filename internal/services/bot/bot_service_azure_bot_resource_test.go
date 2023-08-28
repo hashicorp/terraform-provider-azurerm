@@ -188,6 +188,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
   location            = "global"
   microsoft_app_id    = data.azurerm_client_config.current.client_id
   sku                 = "F0"
+  local_auth_enabled  = false
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
@@ -241,6 +242,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
   location            = "global"
   sku                 = "F0"
   microsoft_app_id    = data.azurerm_client_config.current.client_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   microsoft_app_type      = "UserAssignedMSI"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
