@@ -106,13 +106,9 @@ func (r NewRelicTagRuleResource) Exists(ctx context.Context, clients *clients.Cl
 
 func (r NewRelicTagRuleResource) template(data acceptance.TestData, email string) string {
 	year, month, day := time.Now().Add(time.Hour * 72).Date()
-	effectiveDate := time.Date(year, month, day, 0, 0, 0, 0, time.Now().Location()).Format(time.RFC3339)
+	effectiveDate := time.Date(year, month, day, 0, 0, 0, 0, time.UTC).Format(time.RFC3339)
 
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[1]d"
   location = "%[2]s"
@@ -140,6 +136,9 @@ resource "azurerm_new_relic_monitor" "test" {
 func (r NewRelicTagRuleResource) basic(data acceptance.TestData, email string) string {
 	template := r.template(data, email)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 				%s
 
 resource "azurerm_new_relic_tag_rule" "test" {
@@ -162,14 +161,17 @@ resource "azurerm_new_relic_tag_rule" "import" {
 func (r NewRelicTagRuleResource) complete(data acceptance.TestData, email string) string {
 	template := r.template(data, email)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 			%s
 
 resource "azurerm_new_relic_tag_rule" "test" {
-  monitor_id               = azurerm_new_relic_monitor.test.id
-  aad_log_enabled          = true
-  activity_log_enabled     = true
-  metric_enabled           = true
-  subscription_log_enabled = true
+  monitor_id                         = azurerm_new_relic_monitor.test.id
+  azure_active_directory_log_enabled = true
+  activity_log_enabled               = true
+  metric_enabled                     = true
+  subscription_log_enabled           = true
 
   log_tag_filter {
     name   = "log1"
@@ -201,14 +203,17 @@ resource "azurerm_new_relic_tag_rule" "test" {
 func (r NewRelicTagRuleResource) update(data acceptance.TestData, email string) string {
 	template := r.template(data, email)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 			%s
 
 resource "azurerm_new_relic_tag_rule" "test" {
-  monitor_id               = azurerm_new_relic_monitor.test.id
-  aad_log_enabled          = false
-  activity_log_enabled     = false
-  metric_enabled           = false
-  subscription_log_enabled = false
+  monitor_id                         = azurerm_new_relic_monitor.test.id
+  azure_active_directory_log_enabled = false
+  activity_log_enabled               = false
+  metric_enabled                     = false
+  subscription_log_enabled           = false
 
   log_tag_filter {
     name   = "log2"

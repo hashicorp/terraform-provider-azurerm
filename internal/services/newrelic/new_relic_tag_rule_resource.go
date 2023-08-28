@@ -16,7 +16,7 @@ import (
 
 type NewRelicTagRuleModel struct {
 	NewRelicMonitorId      string              `tfschema:"monitor_id"`
-	AadLogEnabled          bool                `tfschema:"aad_log_enabled"`
+	AadLogEnabled          bool                `tfschema:"azure_active_directory_log_enabled"`
 	ActivityLogEnabled     bool                `tfschema:"activity_log_enabled"`
 	LogTagFilter           []FilteringTagModel `tfschema:"log_tag_filter"`
 	MetricEnabled          bool                `tfschema:"metric_enabled"`
@@ -55,7 +55,7 @@ func (r NewRelicTagRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: monitors.ValidateMonitorID,
 		},
 
-		"aad_log_enabled": {
+		"azure_active_directory_log_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -67,7 +67,33 @@ func (r NewRelicTagRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"log_tag_filter": r.tagFilterSchema(),
+		"log_tag_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"action": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(tagrules.TagActionExclude),
+							string(tagrules.TagActionInclude),
+						}, false),
+					},
+
+					"value": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
 
 		"metric_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -75,7 +101,33 @@ func (r NewRelicTagRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"metric_tag_filter": r.tagFilterSchema(),
+		"metric_tag_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"action": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(tagrules.TagActionExclude),
+							string(tagrules.TagActionInclude),
+						}, false),
+					},
+
+					"value": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
 
 		"subscription_log_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -211,7 +263,7 @@ func (r NewRelicTagRuleResource) Update() sdk.ResourceFunc {
 
 			properties.Properties.MetricRules.UserEmail = &email
 
-			if metadata.ResourceData.HasChange("aad_log_enabled") {
+			if metadata.ResourceData.HasChange("azure_active_directory_log_enabled") {
 				if model.AadLogEnabled {
 					properties.Properties.LogRules.SendAadLogs = pointer.To(tagrules.SendAadLogsStatusEnabled)
 				} else {
@@ -324,36 +376,6 @@ func (r NewRelicTagRuleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r NewRelicTagRuleResource) tagFilterSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"action": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(tagrules.TagActionExclude),
-						string(tagrules.TagActionInclude),
-					}, false),
-				},
-
-				"value": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-				},
-			},
-		},
-	}
-}
-
 func (r NewRelicTagRuleResource) getEmail(ctx context.Context, metadata sdk.ResourceMetaData, monitorId *monitors.MonitorId) (string, error) {
 	monitorClient := metadata.Client.NewRelic.MonitorsClient
 	monitor, err := monitorClient.Get(ctx, *monitorId)
@@ -389,25 +411,18 @@ func expandFilteringTagModelArray(inputList []FilteringTagModel) *[]tagrules.Fil
 }
 
 func flattenFilteringTagModelArray(inputList *[]tagrules.FilteringTag) []FilteringTagModel {
-	var outputList []FilteringTagModel
+	outputList := make([]FilteringTagModel, 0)
 	if inputList == nil {
 		return outputList
 	}
+
 	for _, input := range *inputList {
-		output := FilteringTagModel{}
-
-		if input.Action != nil {
-			output.Action = *input.Action
-		}
-
-		if input.Name != nil {
-			output.Name = *input.Name
-		}
-
-		if input.Value != nil {
-			output.Value = *input.Value
-		}
-		outputList = append(outputList, output)
+		outputList = append(outputList, FilteringTagModel{
+			Action: pointer.From(input.Action),
+			Name:   pointer.From(input.Name),
+			Value:  pointer.From(input.Value),
+		})
 	}
+
 	return outputList
 }

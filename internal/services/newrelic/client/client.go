@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -15,17 +17,16 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
 	monitorsClient, err := monitors.NewMonitorsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building Monitors client: %+v", err)
 	}
 
 	o.Configure(monitorsClient.Client, o.Authorizers.ResourceManager)
 
 	tagRulesClient, err := tagrules.NewTagRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building TagRules client: %+v", err)
 	}
 
 	o.Configure(tagRulesClient.Client, o.Authorizers.ResourceManager)

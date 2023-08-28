@@ -36,11 +36,11 @@ resource "azurerm_new_relic_monitor" "example" {
 }
 
 resource "azurerm_new_relic_tag_rule" "example" {
-  monitor_id               = azurerm_new_relic_monitor.example.id
-  aad_log_enabled          = true
-  activity_log_enabled     = true
-  metric_enabled           = true
-  subscription_log_enabled = true
+  monitor_id                         = azurerm_new_relic_monitor.example.id
+  azure_active_directory_log_enabled = true
+  activity_log_enabled               = true
+  metric_enabled                     = true
+  subscription_log_enabled           = true
 
   log_tag_filter {
     name   = "key"
@@ -60,9 +60,9 @@ resource "azurerm_new_relic_tag_rule" "example" {
 
 The following arguments are supported:
 
-* `monitor_id` - (Required) Specifies the monitor ID of the Azure Native New Relic Tag Rule. Changing this forces a new Azure Native New Relic Tag Rule to be created.
+* `monitor_id` - (Required) Specifies the ID of the New Relic Monitor this Tag Rule should be created within. Changing this forces a new Azure Native New Relic Tag Rule to be created.
 
-* `aad_log_enabled` - (Optional) Whether AAD logs should be sent for the Monitor resource. Defaults to `false`.
+* `azure_active_directory_log_enabled` - (Optional) Whether Azure Active Directory logs should be sent for the Monitor resource. Defaults to `false`.
 
 * `activity_log_enabled` - (Optional) Whether activity logs from Azure resources should be sent for the Monitor resource. Defaults to `false`.
 
