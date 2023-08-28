@@ -88,8 +88,6 @@ The following arguments are supported:
 
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
 
-* `tenant_id` - (Optional) The Tenant ID for the Azure Bot Service. Changing this forces a new resource to be created.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to this Azure Bot Service.
 
 ## Attributes Reference

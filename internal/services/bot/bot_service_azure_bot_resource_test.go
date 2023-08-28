@@ -242,7 +242,6 @@ resource "azurerm_bot_service_azure_bot" "test" {
   location            = "global"
   sku                 = "F0"
   microsoft_app_id    = data.azurerm_client_config.current.client_id
-  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   microsoft_app_type      = "UserAssignedMSI"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id

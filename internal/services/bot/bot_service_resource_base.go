@@ -135,13 +135,6 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Default:  false,
 		},
 
-		"tenant_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsUUID,
-		},
-
 		"tags": tags.Schema(),
 	}
 
@@ -211,10 +204,6 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 
 			if v, ok := metadata.ResourceData.GetOk("microsoft_app_msi_id"); ok {
 				props.Properties.MsaAppMSIResourceID = utils.String(v.(string))
-			}
-
-			if v, ok := metadata.ResourceData.GetOk("tenant_id"); ok {
-				props.Properties.TenantID = utils.String(v.(string))
 			}
 
 			if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
@@ -330,12 +319,6 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 					streamingEndpointEnabled = *v
 				}
 				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
-
-				tenantId := ""
-				if v := props.TenantID; v != nil {
-					tenantId = *v
-				}
-				metadata.ResourceData.Set("tenant_id", tenantId)
 			}
 
 			return nil
