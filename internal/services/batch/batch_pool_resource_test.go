@@ -779,7 +779,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -841,7 +841,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -900,7 +900,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -964,7 +964,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1002,7 +1002,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1075,7 +1075,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1210,7 +1210,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%[1]d"
+  name     = "acctestRG-batch-%[1]d"
   location = "%[2]s"
 }
 
@@ -1268,7 +1268,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1330,7 +1330,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1392,7 +1392,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1454,7 +1454,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1515,7 +1515,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1581,7 +1581,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1650,7 +1650,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1705,7 +1705,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1772,7 +1772,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1942,7 +1942,7 @@ resource "azurerm_batch_pool" "test" {
 func (BatchPoolResource) networkConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%[1]d-batchpool"
+  name     = "acctestRG-%[1]d-batchpool"
   location = "%[2]s"
 }
 
@@ -2260,7 +2260,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -2373,7 +2373,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 resource "azurerm_batch_account" "test" {
@@ -2495,7 +2495,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 resource "azurerm_network_security_group" "test" {
