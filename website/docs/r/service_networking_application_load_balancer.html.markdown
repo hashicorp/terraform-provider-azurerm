@@ -6,7 +6,7 @@ description: |-
   Manages an Application Gateway for Containers (ALB).
 ---
 
-# azurerm_alb
+# azurerm_application_load_balancer
 
 Manages an Application Gateway for Containers (ALB).
 
@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the resource should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the resource should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the resource should exist. Changing this forces a new resource to be created. The available regions could be found [here](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/overview#supported-regions)
 
 **Note:** The available values of `location` are `northeurope` and `north central us`.
 
@@ -48,10 +48,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Application Load Balancer.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Application Load Balancer.
-* `update` - (Defaults to 30 minutes) Used when updating the Application Load Balancer.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Application Load Balancer.
+* `create` - (Defaults to 30 minutes) Used when creating the Application Gateway for Containers resource
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway for Containers resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Gateway for Containers resource
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Gateway for Containers resource.
 
 ## Import
 
