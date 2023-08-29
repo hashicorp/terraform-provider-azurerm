@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -1339,9 +1340,28 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
 		}
 
-		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
-			return fmt.Errorf("updating `blob_properties`: %+v", err)
+		// wait for blob service endpoint to become available (issue when re-creating a storage account)
+		log.Printf("[DEBUG] waiting for %s blob service to become available", id.ID())
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
+					return handleStorageServiceError("updating", "blob", err)
+				}
+				return true, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("updating %s blob service properties: %+v", id.ID(), err)
+		}
+
+		//if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
+		//	return fmt.Errorf("updating `blob_properties`: %+v", err)
+		//}
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
@@ -1367,9 +1387,28 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("expanding `queue_properties`: %+v", err)
 		}
 
-		if err = queueClient.UpdateServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, queueProperties); err != nil {
-			return fmt.Errorf("updating Queue Properties: %+v", err)
+		// wait for queue service endpoint to become available (issue when re-creating a storage account)
+		log.Printf("[DEBUG] waiting for %s queue service to become available", id.ID())
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				if err = queueClient.UpdateServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, queueProperties); err != nil {
+					return handleStorageServiceError("updating", "queue", err)
+				}
+				return true, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("updating %s queue service properties: %+v", id.ID(), err)
+		}
+
+		//if err = queueClient.UpdateServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, queueProperties); err != nil {
+		//	return fmt.Errorf("updating Queue Properties: %+v", err)
+		//}
 	}
 
 	if val, ok := d.GetOk("share_properties"); ok {
@@ -1395,9 +1434,28 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
-			return fmt.Errorf("updating `share_properties`: %+v", err)
+		// wait for file service endpoint to become available
+		log.Printf("[DEBUG] waiting for %s file service to become available", id.ID())
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
+					return handleStorageServiceError("updating", "file", err)
+				}
+				return true, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("updating %s `share_properties` properties: %+v", id.ID(), err)
+		}
+
+		//if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
+		//	return fmt.Errorf("updating `share_properties`: %+v", err)
+		//}
 	}
 
 	if val, ok := d.GetOk("static_website"); ok {
@@ -1421,9 +1479,28 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		staticWebsiteProps := expandStaticWebsiteProperties(val.([]interface{}))
 
-		if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-			return fmt.Errorf("updating `static_website`: %+v", err)
+		// wait for static website endpoint to become available
+		log.Printf("[DEBUG] waiting for %s static website service to become available", id.ID())
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+					return handleStorageServiceError("updating", "static_website", err)
+				}
+				return true, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("updating %s `static_website` properties: %+v", id.ID(), err)
+		}
+
+		//if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+		//	return fmt.Errorf("updating `static_website`: %+v", err)
+		//}
 	}
 
 	return resourceStorageAccountRead(d, meta)
@@ -2156,7 +2233,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			Refresh: func() (interface{}, string, error) {
 				blobProps, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					return handleStorageServiceError("blob", err)
+					return handleStorageServiceError("reading", "blob", err)
 				}
 				return blobProps, "Available", nil
 			},
@@ -2188,7 +2265,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			Refresh: func() (interface{}, string, error) {
 				queueProps, err = queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					return handleStorageServiceError("queue", err)
+					return handleStorageServiceError("reading", "queue", err)
 				}
 				return queueProps, "Available", nil
 			},
@@ -2210,14 +2287,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var shareProps storage.FileServiceProperties
 
 		// wait for file service endpoint to become available
-		log.Printf("[DEBUG] waiting for %s file service properties to become available", *id)
+		log.Printf("[DEBUG] waiting for %s file service to become available", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				shareProps, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 				if err != nil {
-					return handleStorageServiceError("file", err)
+					return handleStorageServiceError("reading", "file", err)
 				}
 				return shareProps, "Available", nil
 			},
@@ -2249,14 +2326,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		var staticWebsiteProps accounts.GetServicePropertiesResult
 
 		// wait for static website endpoint to become available
-		log.Printf("[DEBUG] waiting for %s static website properties to become available", *id)
+		log.Printf("[DEBUG] waiting for %s static website service to become available", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
 				if err != nil {
-					return handleStorageServiceError("static website", err)
+					return handleStorageServiceError("reading", "static website", err)
 				}
 				return staticWebsiteProps, "Available", nil
 			},
@@ -2343,18 +2420,19 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func handleStorageServiceError(service string, err error) (interface{}, string, error) {
+func handleStorageServiceError(operation string, service string, err error) (interface{}, string, error) {
 	// if the error is a DetailedError type, check the status code and return the appropriate state
-	if respErr, ok := err.(azautorest.DetailedError); ok {
-		log.Printf("[DEBUG] error retrieving %s service properties: method=%s, statusCode=%d, message=%s\n", service, respErr.Method, respErr.StatusCode.(int), respErr.Message)
-		if respErr.StatusCode == 404 {
+	var respErr azautorest.DetailedError
+	if errors.As(err, &respErr) {
+		log.Printf("[DEBUG] error %s %s service properties: method=%s, statusCode=%d, message=%s\n", operation, service, respErr.Method, respErr.StatusCode.(int), respErr.Message)
+		if respErr.StatusCode.(int) == 404 {
 			// if the status code is 404 (not found), retry the request
-			log.Printf("[DEBUG] %s service properties not available: retrying...\n", service)
+			log.Printf("[DEBUG] %s service properties not available, retrying...\n", service)
 			return nil, "Pending", nil
 		}
 	}
 	// if the error is unhandled type or status, log the error and return the error state
-	log.Printf("[DEBUG] unexpected error while polling %s service properties: %v\n", service, err)
+	log.Printf("[DEBUG] unexpected error while %s %s service properties: %v\n", operation, service, err)
 	return nil, "Error", err
 }
 
