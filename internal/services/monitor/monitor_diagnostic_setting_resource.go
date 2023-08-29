@@ -241,6 +241,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 		}
 
 		resource.Schema["metric"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
+		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
 		resource.Schema["enabled_log"].ConflictsWith = []string{"log"}
 	}
 
