@@ -135,6 +135,12 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Default:  false,
 		},
 
+		"icon_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"tags": tags.Schema(),
 	}
 
@@ -190,6 +196,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           utils.String(metadata.ResourceData.Get("luis_key").(string)),
 					IsStreamingSupported:              utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
+					IconURL:                           utils.String(metadata.ResourceData.Get("icon_url").(string)),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
@@ -319,6 +326,12 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 					streamingEndpointEnabled = *v
 				}
 				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
+
+				iconUrl := ""
+				if v := props.IconURL; v != nil {
+					iconUrl = *v
+				}
+				metadata.ResourceData.Set("icon_url", iconUrl)
 			}
 
 			return nil
@@ -394,6 +407,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
 				existing.Properties.IsStreamingSupported = utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool))
+			}
+
+			if metadata.ResourceData.HasChange("icon_url") {
+				existing.Properties.IconURL = utils.String(metadata.ResourceData.Get("icon_url").(string))
 			}
 
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {
