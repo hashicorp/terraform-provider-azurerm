@@ -5,6 +5,7 @@ package managedcassandras
 
 type CassandraClusterPublicStatusDataCentersInlinedNodesInlined struct {
 	Address                  *string    `json:"address,omitempty"`
+	CassandraProcessStatus   *string    `json:"cassandraProcessStatus,omitempty"`
 	CpuUsage                 *float64   `json:"cpuUsage,omitempty"`
 	DiskFreeKB               *int64     `json:"diskFreeKB,omitempty"`
 	DiskUsedKB               *int64     `json:"diskUsedKB,omitempty"`

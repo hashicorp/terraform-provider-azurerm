@@ -17,6 +17,7 @@ type ClusterResourceProperties struct {
 	HoursBetweenBackups           *int64                             `json:"hoursBetweenBackups,omitempty"`
 	InitialCassandraAdminPassword *string                            `json:"initialCassandraAdminPassword,omitempty"`
 	PrometheusEndpoint            *SeedNode                          `json:"prometheusEndpoint,omitempty"`
+	ProvisionError                *CassandraError                    `json:"provisionError,omitempty"`
 	ProvisioningState             *ManagedCassandraProvisioningState `json:"provisioningState,omitempty"`
 	RepairEnabled                 *bool                              `json:"repairEnabled,omitempty"`
 	RestoreFromBackupId           *string                            `json:"restoreFromBackupId,omitempty"`

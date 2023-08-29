@@ -9,12 +9,14 @@ type AuthenticationMethod string
 
 const (
 	AuthenticationMethodCassandra AuthenticationMethod = "Cassandra"
+	AuthenticationMethodLdap      AuthenticationMethod = "Ldap"
 	AuthenticationMethodNone      AuthenticationMethod = "None"
 )
 
 func PossibleValuesForAuthenticationMethod() []string {
 	return []string{
 		string(AuthenticationMethodCassandra),
+		string(AuthenticationMethodLdap),
 		string(AuthenticationMethodNone),
 	}
 }
@@ -22,6 +24,7 @@ func PossibleValuesForAuthenticationMethod() []string {
 func parseAuthenticationMethod(input string) (*AuthenticationMethod, error) {
 	vals := map[string]AuthenticationMethod{
 		"cassandra": AuthenticationMethodCassandra,
+		"ldap":      AuthenticationMethodLdap,
 		"none":      AuthenticationMethodNone,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
