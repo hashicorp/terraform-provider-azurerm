@@ -173,6 +173,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Synapse is only available in certain locations
         "synapse" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+        // ServiceNetworking is available in certain locations
+        "servicenetworking" to testConfiguration(locationOverride = LocationConfiguration("eastus","westus","westeurope", false)),
+
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 

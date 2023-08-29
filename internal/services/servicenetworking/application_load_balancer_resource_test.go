@@ -35,8 +35,6 @@ func (r ApplicationLoadBalancerResource) Exists(ctx context.Context, clients *cl
 func TestAccServiceNetworkingALB_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
-	// it's available on limited regions.
-	data.Locations.Primary = "northeurope"
 	r := ApplicationLoadBalancerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,8 +51,6 @@ func TestAccServiceNetworkingALB_basic(t *testing.T) {
 func TestAccServiceNetworkingALB_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
-	// it's available on limited regions.
-	data.Locations.Primary = "northeurope"
 	r := ApplicationLoadBalancerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,8 +67,6 @@ func TestAccServiceNetworkingALB_complete(t *testing.T) {
 func TestAccServiceNetworkingALB_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
-	// it's available on limited regions.
-	data.Locations.Primary = "northeurope"
 	r := ApplicationLoadBalancerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
