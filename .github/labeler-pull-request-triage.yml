@@ -286,6 +286,9 @@ service/redis:
 service/relay:
   - internal/services/relay/**/*
 
+service/resource-connector:
+  - internal/services/resourceconnector/**/*
+
 service/search:
   - internal/services/search/**/*
 
