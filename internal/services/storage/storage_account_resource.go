@@ -1358,10 +1358,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("updating %s blob service properties: %+v", id.ID(), err)
 		}
-
-		//if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
-		//	return fmt.Errorf("updating `blob_properties`: %+v", err)
-		//}
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
@@ -1405,10 +1401,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("updating %s queue service properties: %+v", id.ID(), err)
 		}
-
-		//if err = queueClient.UpdateServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, queueProperties); err != nil {
-		//	return fmt.Errorf("updating Queue Properties: %+v", err)
-		//}
 	}
 
 	if val, ok := d.GetOk("share_properties"); ok {
@@ -1452,10 +1444,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("updating %s `share_properties` properties: %+v", id.ID(), err)
 		}
-
-		//if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
-		//	return fmt.Errorf("updating `share_properties`: %+v", err)
-		//}
 	}
 
 	if val, ok := d.GetOk("static_website"); ok {
@@ -1497,10 +1485,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("updating %s `static_website` properties: %+v", id.ID(), err)
 		}
-
-		//if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-		//	return fmt.Errorf("updating `static_website`: %+v", err)
-		//}
 	}
 
 	return resourceStorageAccountRead(d, meta)
