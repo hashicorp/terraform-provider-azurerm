@@ -34,7 +34,7 @@ The following arguments are supported:
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Application Load Balancer.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Application Gateway for Containers.
 
 ## Attributes Reference
 
