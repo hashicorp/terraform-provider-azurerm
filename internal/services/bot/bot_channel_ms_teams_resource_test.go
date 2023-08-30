@@ -101,7 +101,7 @@ resource "azurerm_bot_channel_ms_teams" "test" {
   calling_web_hook       = "https://example.com/"
   enable_calling         = true
   accepted_terms_enabled = true
-  deployment_environment = "GCCModerateDeployment"
+  deployment_environment = "CommercialDeployment"
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
