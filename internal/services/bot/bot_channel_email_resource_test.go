@@ -66,6 +66,25 @@ func testAccBotChannelEmail_update(t *testing.T) {
 	})
 }
 
+func testAccBotChannelEmail_magicCode(t *testing.T) {
+	if os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME") == "" || os.Getenv("ARM_TEST_BOT_LOCATION") == "" || os.Getenv("ARM_TEST_BOT_NAME") == "" || os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_MAGIC_CODE") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_BOT_RESOURCE_GROUP_NAME`, `ARM_TEST_BOT_LOCATION`, `ARM_TEST_BOT_NAME`, `ARM_TEST_EMAIL`, AND `ARM_TEST_MAGIC_CODE` was not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
+	r := BotChannelEmailResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.magicCode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("email_password", "magic_code"),
+	})
+}
+
 func (t BotChannelEmailResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotChannelID(state.ID)
 	if err != nil {
@@ -108,8 +127,24 @@ resource "azurerm_bot_channel_email" "test" {
 `, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_EMAIL_PASSWORD"))
 }
 
+func (BotChannelEmailResource) magicCode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_bot_channel_email" "test" {
+  bot_name            = "%s"
+  location            = "%s"
+  resource_group_name = "%s"
+  email_address       = "%s"
+  magic_code          = "%s"
+}
+`, os.Getenv("ARM_TEST_BOT_NAME"), os.Getenv("ARM_TEST_BOT_LOCATION"), os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_MAGIC_CODE"))
+}
+
 func skipEmailChannel() bool {
-	if os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_EMAIL_PASSWORD") == "" {
+	if os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_EMAIL_PASSWORD") == "" || os.Getenv("ARM_TEST_MAGIC_CODE") == "" {
 		return true
 	}
 

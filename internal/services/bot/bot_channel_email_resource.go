@@ -61,9 +61,18 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 
 			"email_password": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"email_password", "magic_code"},
+			},
+
+			"magic_code": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"email_password", "magic_code"},
 			},
 		},
 	}
@@ -92,13 +101,23 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: botservice.EmailChannel{
 			Properties: &botservice.EmailChannelProperties{
 				EmailAddress: utils.String(d.Get("email_address").(string)),
-				Password:     utils.String(d.Get("email_password").(string)),
 				IsEnabled:    utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameEmailChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
+	}
+
+	if v, ok := d.GetOk("email_password"); ok {
+		channel, _ := channel.Properties.AsEmailChannel()
+		channel.Properties.Password = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("magic_code"); ok {
+		channel, _ := channel.Properties.AsEmailChannel()
+		channel.Properties.AuthMethod = utils.Float(1)
+		channel.Properties.MagicCode = utils.String(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameEmailChannel, channel); err != nil {
@@ -159,13 +178,23 @@ func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: botservice.EmailChannel{
 			Properties: &botservice.EmailChannelProperties{
 				EmailAddress: utils.String(d.Get("email_address").(string)),
-				Password:     utils.String(d.Get("email_password").(string)),
 				IsEnabled:    utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameEmailChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
+	}
+
+	if v, ok := d.GetOk("email_password"); ok {
+		channel, _ := channel.Properties.AsEmailChannel()
+		channel.Properties.Password = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("magic_code"); ok {
+		channel, _ := channel.Properties.AsEmailChannel()
+		channel.Properties.AuthMethod = utils.Float(1)
+		channel.Properties.MagicCode = utils.String(v.(string))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameEmailChannel, channel); err != nil {
