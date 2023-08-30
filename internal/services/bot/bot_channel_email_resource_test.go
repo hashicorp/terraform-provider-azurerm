@@ -144,7 +144,7 @@ resource "azurerm_bot_channel_email" "test" {
 }
 
 func skipEmailChannel() bool {
-	if os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_EMAIL_PASSWORD") == "" || os.Getenv("ARM_TEST_MAGIC_CODE") == "" {
+	if os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_EMAIL_PASSWORD") == "" {
 		return true
 	}
 
