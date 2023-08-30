@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the resource should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the resource should exist. Changing this forces a new resource to be created. The available regions could be found [here](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/overview#supported-regions)
+* `location` - (Required) The Azure Region where the resource should exist. Changing this forces a new resource to be created. Available regions can be found [here](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/overview#supported-regions)
 
 **Note:** The available values of `location` are `northeurope` and `north central us`.
 
