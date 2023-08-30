@@ -143,7 +143,7 @@ provider "azurerm" {
 %s
 resource "azurerm_iotcentral_organization" "test" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	organization_id = "org-test-id"
+  organization_id = "org-test-id"
   display_name    = "Org basic"
 }
 `, r.template(data))
@@ -157,12 +157,12 @@ provider "azurerm" {
 %s
 resource "azurerm_iotcentral_organization" "test_parent" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	organization_id = "org-test-parent-id"
+  organization_id = "org-test-parent-id"
   display_name    = "Org parent"
 }
 resource "azurerm_iotcentral_organization" "test" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	organization_id = "org-test-id"
+  organization_id = "org-test-id"
   display_name    = "Org child"
   parent          = azurerm_iotcentral_organization.test_parent.organization_id
 }
@@ -177,7 +177,7 @@ provider "azurerm" {
 %s
 resource "azurerm_iotcentral_organization" "test" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	organization_id = "org-test-id"
+  organization_id = "org-test-id"
   display_name    = "Org basic updated"
 }
 `, r.template(data))
@@ -191,17 +191,17 @@ provider "azurerm" {
 %s
 resource "azurerm_iotcentral_organization" "test_parent" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	organization_id = "org-test-parent-id"
+  organization_id = "org-test-parent-id"
   display_name    = "Org parent"
 }
 resource "azurerm_iotcentral_organization" "test_parent_2" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	organization_id = "org-test-parent-2-id"
+  organization_id = "org-test-parent-2-id"
   display_name    = "Org parent 2"
 }
 resource "azurerm_iotcentral_organization" "test" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	organization_id = "org-test-id"
+  organization_id = "org-test-id"
   display_name    = "Org child"
   parent          = azurerm_iotcentral_organization.test_parent_2.organization_id
 }
