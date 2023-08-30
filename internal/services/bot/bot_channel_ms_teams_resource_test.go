@@ -82,9 +82,10 @@ func (BotChannelMsTeamsResource) basicConfig(data acceptance.TestData) string {
 %s
 
 resource "azurerm_bot_channel_ms_teams" "test" {
-  bot_name            = azurerm_bot_channels_registration.test.name
-  location            = azurerm_bot_channels_registration.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  bot_name               = azurerm_bot_channels_registration.test.name
+  location               = azurerm_bot_channels_registration.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  accepted_terms_enabled = true
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
@@ -94,11 +95,13 @@ func (BotChannelMsTeamsResource) basicUpdate(data acceptance.TestData) string {
 %s
 
 resource "azurerm_bot_channel_ms_teams" "test" {
-  bot_name            = azurerm_bot_channels_registration.test.name
-  location            = azurerm_bot_channels_registration.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  calling_web_hook    = "https://example.com/"
-  enable_calling      = true
+  bot_name               = azurerm_bot_channels_registration.test.name
+  location               = azurerm_bot_channels_registration.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  calling_web_hook       = "https://example.com/"
+  enable_calling         = true
+  accepted_terms_enabled = true
+  deployment_environment = "GCCModerateDeployment"
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }

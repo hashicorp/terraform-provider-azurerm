@@ -47,7 +47,11 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
+* `accepted_terms_enabled` - (Optional) Is accepted terms for Microsoft Teams channel calls enabled? Defaults to `false`.
+
 * `calling_web_hook` - (Optional) Specifies the webhook for Microsoft Teams channel calls.
+
+* `deployment_environment` - (Optional) The deployment environment for Microsoft Teams channel calls. Possible values are `CommercialDeployment` and `GCCModerateDeployment`. Defaults to `CommercialDeployment`.
 
 * `enable_calling` - (Optional) Specifies whether to enable Microsoft Teams channel calls. This defaults to `false`.
 
