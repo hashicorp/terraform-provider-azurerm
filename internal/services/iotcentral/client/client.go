@@ -4,14 +4,22 @@
 package client
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
+	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type Client struct {
-	AppsClient *apps.AppsClient
+	AppsClient          *apps.AppsClient
+	authorizerFunc      common.ApiAuthorizerFunc
+	configureClientFunc func(c *autorest.Client, authorizer autorest.Authorizer)
+	endpoint            string
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -21,6 +29,22 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(appsClient.Client, o.Authorizers.ResourceManager)
 	return &Client{
-		AppsClient: appsClient,
+		AppsClient:          appsClient,
+		authorizerFunc:      o.Authorizers.AuthorizerFunc,
+		configureClientFunc: o.ConfigureClient,
+		endpoint:            "https://apps.azureiotcentral.com",
 	}, nil
+}
+
+func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*dataplane.OrganizationsClient, error) {
+	api := environments.NewApiEndpoint("IotCentral", c.endpoint, nil)
+	iotCentralAuth, err := c.authorizerFunc(api)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.endpoint, err)
+	}
+
+	client := dataplane.NewOrganizationsClient(subdomain)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(iotCentralAuth))
+
+	return &client, nil
 }
