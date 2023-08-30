@@ -76,7 +76,7 @@ func testAccBotChannelEmail_magicCode(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.magicCode(data),
+			Config: r.magicCode(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -127,7 +127,7 @@ resource "azurerm_bot_channel_email" "test" {
 `, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_EMAIL_PASSWORD"))
 }
 
-func (BotChannelEmailResource) magicCode(data acceptance.TestData) string {
+func (BotChannelEmailResource) magicCode() string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
