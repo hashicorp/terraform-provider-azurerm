@@ -127,6 +127,9 @@ The following arguments are supported:
 
 * `key_vault_id` - (Optional) The ID of the Key Vault. Exactly one of `key_vault_id`, or `key_vault_uri` must be specified.
 
+~> Note: When the principal running Terraform has access to the subscription containing the Key Vault, it's recommended to use the `key_vault_id` property for maximum compatibility, rather than the `key_vault_uri` property.
+
+
 * `key_vault_uri` - (Optional) URI pointing at the Key Vault. Required when using `federated_identity_client_id`. Exactly one of `key_vault_id`, or `key_vault_uri` must be specified.
 
 * `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
