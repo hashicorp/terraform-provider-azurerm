@@ -98,6 +98,7 @@ func TestAccKeyVaultSecret_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("expiration_date").HasValue("2020-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/secrets/secret-%s", data.RandomString, data.RandomString)),
 			),
 		},
@@ -374,6 +375,7 @@ resource "azurerm_key_vault_secret" "test" {
   value           = "<rick><morty /></rick>"
   key_vault_id    = azurerm_key_vault.test.id
   content_type    = "application/xml"
+  enabled         = true
   not_before_date = "2019-01-01T01:02:03Z"
   expiration_date = "2020-01-01T01:02:03Z"
 
@@ -396,6 +398,7 @@ resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%s"
   value        = "szechuan"
   key_vault_id = azurerm_key_vault.test.id
+  enabled      = false
 }
 `, r.template(data), data.RandomString)
 }

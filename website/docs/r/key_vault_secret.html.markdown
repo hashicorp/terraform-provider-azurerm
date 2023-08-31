@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `enabled` - (Optional) Whether the secret data can be retrieved. Defaults to `true`. The `enabled` property is used with `not_before_date` and `expiration_date` when an operation occurs between `not_before_date` and `expiration_date`, it will only be permitted if `enabled` is set to true. Operations outside the `not_before_date` and `expiration_date` window are automatically disallowed.
+
 * `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
 * `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').

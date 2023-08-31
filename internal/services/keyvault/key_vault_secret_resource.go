@@ -11,6 +11,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -78,6 +79,12 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -138,10 +145,12 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
-		Value:            utils.String(value),
-		ContentType:      utils.String(contentType),
-		Tags:             tags.Expand(t),
-		SecretAttributes: &keyvault.SecretAttributes{},
+		Value:       utils.String(value),
+		ContentType: utils.String(contentType),
+		Tags:        tags.Expand(t),
+		SecretAttributes: &keyvault.SecretAttributes{
+			Enabled: pointer.To(d.Get("enabled").(bool)),
+		},
 	}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
@@ -260,6 +269,10 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		secretAttributes.Expires = &expirationUnixTime
 	}
 
+	if d.HasChanges("enabled") {
+		secretAttributes.Enabled = pointer.To(d.Get("enabled").(bool))
+	}
+
 	if d.HasChange("value") {
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
@@ -368,6 +381,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if v := attributes.Expires; v != nil {
 			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
 		}
+		d.Set("enabled", attributes.Enabled)
 	}
 
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
