@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `internal/sdk`: typed resources using a custom importer now get a timed context [GH-23081]
 * `azurerm_batch_pool` - support for `automatic_upgrade_enabled` [GH-23021]
 * `azurerm_container_app_environment` - support for the `dapr_application_insights_connection_string` [GH-23080]
+* `azurerm_monitor_diagnostic_setting` - deprecating `retention_policy` within `enabled_log` [GH-23029]
 * `azurerm_postgresql_flexible_server` - support for the `auto_grow_enabled` property [GH-23069]
 * `azurerm_resource_provider_registration` - refactoring to use `hashicorp/go-azure-sdk` [GH-23072]
 * `azurerm_virtual_network_gateway` - increasing the default timeout for create to `90m` [GH-23003]
