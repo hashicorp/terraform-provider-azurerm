@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Secret. Changing this forces a new resource to be created.
 
-* `value` - (Required) Specifies the value of the Key Vault Secret.
+* `value` - (Required) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
 
 ~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively.
 
