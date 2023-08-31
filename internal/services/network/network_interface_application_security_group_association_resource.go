@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -6,11 +9,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,10 +30,10 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			splitId := strings.Split(id, "|")
-			if _, err := parse.NetworkInterfaceID(splitId[0]); err != nil {
+			if _, err := commonids.ParseNetworkInterfaceID(splitId[0]); err != nil {
 				return err
 			}
-			if _, err := parse.ApplicationSecurityGroupID(splitId[1]); err != nil {
+			if _, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(splitId[1]); err != nil {
 				return err
 			}
 			return nil
@@ -57,14 +63,14 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApplicationSecurityGroupID,
+				ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
 			},
 		},
 	}
 }
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -73,17 +79,17 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	networkInterfaceId := d.Get("network_interface_id").(string)
 	applicationSecurityGroupId := d.Get("application_security_group_id").(string)
 
-	id, err := parse.NetworkInterfaceID(networkInterfaceId)
+	id, err := commonids.ParseNetworkInterfaceID(networkInterfaceId)
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
+	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	read, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			log.Printf("[INFO] Network Interface %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -92,7 +98,11 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	props := read.InterfacePropertiesFormat
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	props := read.Model.Properties
 	if props == nil {
 		return fmt.Errorf("Error: `properties` was nil for %s", *id)
 	}
@@ -108,15 +118,11 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 
 	info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId)
 
-	read.InterfacePropertiesFormat.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
+	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, read)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *read.Model)
 	if err != nil {
 		return fmt.Errorf("updating Application Security Group Association for %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Application Security Group Association for %s: %+v", *id, err)
 	}
 
 	d.SetId(resourceId)
@@ -125,7 +131,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 }
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -134,16 +140,16 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
-	nicID, err := parse.NetworkInterfaceID(splitId[0])
+	nicID, err := commonids.ParseNetworkInterfaceID(splitId[0])
 	if err != nil {
 		return err
 	}
 
 	applicationSecurityGroupId := splitId[1]
 
-	read, err := client.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
+	read, err := client.Get(ctx, *nicID, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *nicID)
 			d.SetId("")
 			return nil
@@ -152,33 +158,35 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 		return fmt.Errorf("retrieving %s: %+v", *nicID, err)
 	}
 
-	nicProps := read.InterfacePropertiesFormat
-	if nicProps == nil {
-		return fmt.Errorf("Error: `properties` was nil for %s", *nicID)
-	}
-
-	info := parseFieldsFromNetworkInterface(*nicProps)
-	exists := false
-	for _, groupId := range info.applicationSecurityGroupIDs {
-		if groupId == applicationSecurityGroupId {
-			exists = true
+	if model := read.Model; model != nil {
+		nicProps := read.Model.Properties
+		if nicProps == nil {
+			return fmt.Errorf("Error: `properties` was nil for %s", *nicID)
 		}
-	}
 
-	if !exists {
-		log.Printf("[DEBUG] Association between %s and Application Security Group %q was not found - removing from state!", *nicID, applicationSecurityGroupId)
-		d.SetId("")
-		return nil
-	}
+		info := parseFieldsFromNetworkInterface(*nicProps)
+		exists := false
+		for _, groupId := range info.applicationSecurityGroupIDs {
+			if groupId == applicationSecurityGroupId {
+				exists = true
+			}
+		}
 
-	d.Set("application_security_group_id", applicationSecurityGroupId)
-	d.Set("network_interface_id", read.ID)
+		if !exists {
+			log.Printf("[DEBUG] Association between %s and Application Security Group %q was not found - removing from state!", *nicID, applicationSecurityGroupId)
+			d.SetId("")
+			return nil
+		}
+
+		d.Set("application_security_group_id", applicationSecurityGroupId)
+		d.Set("network_interface_id", model.Id)
+	}
 
 	return nil
 }
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -187,26 +195,30 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
-	nicID, err := parse.NetworkInterfaceID(splitId[0])
+	nicID, err := commonids.ParseNetworkInterfaceID(splitId[0])
 	if err != nil {
 		return err
 	}
 
 	applicationSecurityGroupId := splitId[1]
 
-	locks.ByName(nicID.Name, networkInterfaceResourceName)
-	defer locks.UnlockByName(nicID.Name, networkInterfaceResourceName)
+	locks.ByName(nicID.NetworkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(nicID.NetworkInterfaceName, networkInterfaceResourceName)
 
-	read, err := client.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
+	read, err := client.Get(ctx, *nicID, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			return fmt.Errorf("%s was not found!", *nicID)
 		}
 
 		return fmt.Errorf("retrieving  %s: %+v", *nicID, err)
 	}
 
-	props := read.InterfacePropertiesFormat
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *nicID)
+	}
+
+	props := read.Model.Properties
 	if props == nil {
 		return fmt.Errorf("Error: `properties` was nil for %s", *nicID)
 	}
@@ -224,15 +236,11 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 		}
 	}
 	info.applicationSecurityGroupIDs = applicationSecurityGroupIds
-	read.InterfacePropertiesFormat.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
+	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	future, err := client.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
+	err = client.CreateOrUpdateThenPoll(ctx, *nicID, *read.Model)
 	if err != nil {
 		return fmt.Errorf("removing Application Security Group for %s: %+v", *nicID, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Application Security Group for %s: %+v", *nicID, err)
 	}
 
 	return nil

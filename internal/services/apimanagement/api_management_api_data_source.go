@@ -1,19 +1,22 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementApi() *pluginsdk.Resource {
@@ -126,50 +129,50 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	revision := d.Get("revision").(string)
-	id := parse.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	apiId := fmt.Sprintf("%s;rev=%s", d.Get("name").(string), revision)
 
-	apiId := fmt.Sprintf("%s;rev=%s", id.Name, revision)
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apiId)
+	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("api %s Revision %q does not exist", id, revision)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s does not exist", id)
 		}
-
-		return fmt.Errorf("retrieving API %s / Revision %q : %+v", id, revision, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	name := getApiName(id.ApiId)
+	d.Set("name", name)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.APIContractProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("is_current", props.IsCurrent)
-		d.Set("is_online", props.IsOnline)
-		d.Set("path", props.Path)
-		d.Set("revision", props.APIRevision)
-		d.Set("service_url", props.ServiceURL)
-		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapAPITypeSoapPassThrough))
-		d.Set("subscription_required", props.SubscriptionRequired)
-		d.Set("version", props.APIVersion)
-		d.Set("version_set_id", props.APIVersionSetID)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", pointer.From(props.DisplayName))
+			d.Set("is_current", pointer.From(props.IsCurrent))
+			d.Set("is_online", pointer.From(props.IsOnline))
+			d.Set("path", props.Path)
+			d.Set("revision", pointer.From(props.ApiRevision))
+			d.Set("service_url", pointer.From(props.ServiceUrl))
+			d.Set("soap_pass_through", pointer.From(props.Type) == api.ApiTypeSoap)
+			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
+			d.Set("version", pointer.From(props.ApiVersion))
+			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))
+			if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(props.Protocols)); err != nil {
+				return fmt.Errorf("setting `protocols`: %s", err)
+			}
 
-		if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(props.Protocols)); err != nil {
-			return fmt.Errorf("setting `protocols`: %s", err)
-		}
-
-		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiDataSourceSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
-			return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
+			if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiDataSourceSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
+				return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
+			}
 		}
 	}
-
 	return nil
 }
 
-func flattenApiManagementApiDataSourceProtocols(input *[]apimanagement.Protocol) []string {
+func flattenApiManagementApiDataSourceProtocols(input *[]api.Protocol) []string {
 	if input == nil {
 		return []string{}
 	}
@@ -182,20 +185,15 @@ func flattenApiManagementApiDataSourceProtocols(input *[]apimanagement.Protocol)
 	return results
 }
 
-func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *apimanagement.SubscriptionKeyParameterNamesContract) []interface{} {
+func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *api.SubscriptionKeyParameterNamesContract) []interface{} {
 	if paramNames == nil {
 		return make([]interface{}, 0)
 	}
 
 	result := make(map[string]interface{})
 
-	if paramNames.Header != nil {
-		result["header"] = *paramNames.Header
-	}
-
-	if paramNames.Query != nil {
-		result["query"] = *paramNames.Query
-	}
+	result["header"] = pointer.From(paramNames.Header)
+	result["query"] = pointer.From(paramNames.Query)
 
 	return []interface{}{result}
 }

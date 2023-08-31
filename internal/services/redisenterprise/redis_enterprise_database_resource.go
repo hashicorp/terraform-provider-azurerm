@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package redisenterprise
 
 import (
@@ -296,7 +299,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("retrieving %s: %+v", *clusterId, err)
 			}
 
-			if strings.Contains(strings.ToLower(string(resp.Model.Sku.Name)), "flash") {
+			if resp.Model != nil && strings.Contains(strings.ToLower(string(resp.Model.Sku.Name)), "flash") {
 				return fmt.Errorf("creating a Redis Enterprise Database with modules in a Redis Enterprise Cluster that has an incompatible Flash SKU type %q - please remove the Redis Enterprise Database modules or change the Redis Enterprise Cluster SKU type %s", string(resp.Model.Sku.Name), id)
 			}
 		}
@@ -507,8 +510,8 @@ func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]da
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		moduleName := v["name"].(string)
-		if moduleName != "RediSearch" && isGeoEnabled {
-			return nil, fmt.Errorf("Only RediSearch module is allowed with geo-replication")
+		if moduleName != "RediSearch" && moduleName != "RedisJSON" && isGeoEnabled {
+			return nil, fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
 		}
 		results = append(results, databases.Module{
 			Name: moduleName,

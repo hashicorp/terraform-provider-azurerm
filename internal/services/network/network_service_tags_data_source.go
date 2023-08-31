@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -8,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/servicetags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,12 +33,7 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"location_filter": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				StateFunc:        azure.NormalizeLocation,
-				DiffSuppressFunc: location.DiffSuppressFunc,
-			},
+			"location_filter": commonschema.LocationOptional(),
 
 			"address_prefixes": {
 				Type:     pluginsdk.TypeList,
@@ -65,34 +63,34 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 }
 
 func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ServiceTagsClient
+	client := meta.(*clients.Client).Network.ServiceTags
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	location := azure.NormalizeLocation(d.Get("location"))
-	res, err := client.List(ctx, location)
+	locationId := servicetags.NewLocationID(subscriptionId, location.Normalize(d.Get("location").(string)))
+	resp, err := client.ServiceTagsList(ctx, locationId)
 	if err != nil {
 		return fmt.Errorf("listing network service tags: %+v", err)
 	}
 
-	if res.Values == nil {
-		return fmt.Errorf("unexpected nil value for service tag information")
+	if resp.Model == nil || resp.Model.Values == nil {
+		return fmt.Errorf("listing network service tags: `model.Values` was nil")
 	}
 
 	service := d.Get("service").(string)
-	locationFilter := azure.NormalizeLocation(d.Get("location_filter"))
-
-	for _, sti := range *res.Values {
-		if sti.Name == nil || !isServiceTagOf(*sti.Name, service) {
+	locationFilter := location.Normalize(d.Get("location_filter").(string))
+	for _, value := range *resp.Model.Values {
+		if value.Name == nil || !isServiceTagOf(*value.Name, service) {
 			continue
 		}
 
-		if props := sti.Properties; props != nil {
+		if props := value.Properties; props != nil {
 			if props.Region == nil {
 				continue
 			}
 
-			if azure.NormalizeLocation(*props.Region) == locationFilter {
+			if location.NormalizeNilable(props.Region) == locationFilter {
 				addressPrefixes := make([]string, 0)
 				if props.AddressPrefixes != nil {
 					addressPrefixes = *props.AddressPrefixes
@@ -102,8 +100,8 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 					return fmt.Errorf("setting `address_prefixes`: %+v", err)
 				}
 
-				var IPv4 []string
-				var IPv6 []string
+				var ipv4Cidrs []string
+				var ipv6Cidrs []string
 
 				for _, prefix := range addressPrefixes {
 					ip, ipNet, err := net.ParseCIDR(prefix)
@@ -112,31 +110,29 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 					}
 
 					if ip.To4() != nil {
-						IPv4 = append(IPv4, ipNet.String())
+						ipv4Cidrs = append(ipv4Cidrs, ipNet.String())
 					} else {
-						IPv6 = append(IPv6, ipNet.String())
+						ipv6Cidrs = append(ipv6Cidrs, ipNet.String())
 					}
 				}
 
-				err = d.Set("ipv4_cidrs", IPv4)
+				err = d.Set("ipv4_cidrs", ipv4Cidrs)
 				if err != nil {
 					return fmt.Errorf("setting `ipv4_cidrs`: %+v", err)
 				}
 
-				err = d.Set("ipv6_cidrs", IPv6)
+				err = d.Set("ipv6_cidrs", ipv6Cidrs)
 				if err != nil {
 					return fmt.Errorf("setting `ipv6_cidrs`: %+v", err)
 				}
 
-				if sti.ID == nil {
-					return fmt.Errorf("unexcepted nil ID for service tag")
-				}
+				d.SetId(fmt.Sprintf("%s-%s", locationId.LocationName, service))
 
-				d.SetId(*sti.ID)
 				return nil
 			}
 		}
 	}
+
 	errSuffix := "globally"
 	if locationFilter != "" {
 		errSuffix = "for region " + locationFilter

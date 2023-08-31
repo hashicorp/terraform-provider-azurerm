@@ -25,7 +25,7 @@ type AccountFiltersListCompleteResult struct {
 // AccountFiltersList ...
 func (c AccountFiltersClient) AccountFiltersList(ctx context.Context, id MediaServiceId) (result AccountFiltersListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

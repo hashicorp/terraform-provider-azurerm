@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
@@ -5,16 +8,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/serveradministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMySQLAdministrator() *pluginsdk.Resource {
@@ -65,7 +67,7 @@ func resourceMySQLAdministrator() *pluginsdk.Resource {
 }
 
 func resourceMySQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.ServerAdministrators
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,39 +75,33 @@ func resourceMySQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	login := d.Get("login").(string)
-	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
-	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 
-	id := parse.NewAzureActiveDirectoryAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), "activeDirectory")
+	id := parse.NewAzureActiveDirectoryAdministratorID(subscriptionId, resGroup, serverName, "activeDirectory")
+	serverId := serveradministrators.NewServerID(subscriptionId, resGroup, serverName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, serverName)
+		existing, err := client.Get(ctx, serverId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mysql_active_directory_administrator", id.ID())
 		}
 	}
 
-	parameters := mysql.ServerAdministratorResource{
-		ServerAdministratorProperties: &mysql.ServerAdministratorProperties{
-			AdministratorType: utils.String("ActiveDirectory"),
-			Login:             utils.String(login),
-			Sid:               &objectId,
-			TenantID:          &tenantId,
+	parameters := serveradministrators.ServerAdministratorResource{
+		Properties: &serveradministrators.ServerAdministratorProperties{
+			AdministratorType: serveradministrators.AdministratorTypeActiveDirectory,
+			Login:             login,
+			Sid:               d.Get("object_id").(string),
+			TenantId:          d.Get("tenant_id").(string),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, serverId, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -113,7 +109,7 @@ func resourceMySQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceMySQLAdministratorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.ServerAdministrators
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,9 +118,11 @@ func resourceMySQLAdministratorRead(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName)
+	serverId := serveradministrators.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := client.Get(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -135,15 +133,20 @@ func resourceMySQLAdministratorRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("server_name", id.ServerName)
-	d.Set("login", resp.Login)
-	d.Set("object_id", resp.Sid.String())
-	d.Set("tenant_id", resp.TenantID.String())
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("login", props.Login)
+			d.Set("object_id", props.Sid)
+			d.Set("tenant_id", props.TenantId)
+		}
+	}
 
 	return nil
 }
 
 func resourceMySQLAdministratorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.ServerAdministrators
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -152,13 +155,10 @@ func resourceMySQLAdministratorDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
+	serverId := serveradministrators.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	if err = client.DeleteThenPoll(ctx, serverId); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

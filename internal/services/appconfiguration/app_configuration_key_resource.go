@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration
 
 import (
@@ -150,14 +153,15 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
-			// allow some time for role permission to be done propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", model.Key)
+			// allow some time for role permission to be propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:      []string{"Forbidden"},
-				Target:       []string{"Error", "Exists"},
-				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
-				PollInterval: 20 * time.Second,
-				Timeout:      time.Until(deadline),
+				Pending:                   []string{"Forbidden"},
+				Target:                    []string{"Error", "Exists", "NotFound"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -205,6 +209,21 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("while locking key/label pair %q/%q: %+v", model.Key, model.Label, err)
 				}
+			}
+
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be provisioned", model.Key)
+			stateConf = &pluginsdk.StateChangeConf{
+				Pending:                   []string{"NotFound", "Forbidden"},
+				Target:                    []string{"Exists"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Key %q to be provisioned: %+v", model.Key, err)
 			}
 
 			metadata.SetID(nestedItemId)

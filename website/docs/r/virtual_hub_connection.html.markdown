@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
-  address_space       = ["172.0.0.0/16"]
+  address_space       = ["172.16.0.0/12"]
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
@@ -68,7 +68,13 @@ A `routing` block supports the following:
 
 * `associated_route_table_id` - (Optional) The ID of the route table associated with this Virtual Hub connection.
 
+* `inbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for inbound learned routes.
+
+* `outbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for outbound advertised routes.
+
 * `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
+
+* `static_vnet_local_route_override_criteria` - (Optional) The static VNet local route override criteria that is used to determine whether NVA in spoke VNet is bypassed for traffic with destination in spoke VNet. Possible values are `Contains` and `Equal`. Defaults to `Contains`. Changing this forces a new resource to be created.
 
 * `static_vnet_route` - (Optional) A `static_vnet_route` block as defined below.
 

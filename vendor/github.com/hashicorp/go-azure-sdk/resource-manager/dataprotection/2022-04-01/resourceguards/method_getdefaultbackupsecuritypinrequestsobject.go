@@ -20,7 +20,7 @@ type GetDefaultBackupSecurityPINRequestsObjectOperationResponse struct {
 // GetDefaultBackupSecurityPINRequestsObject ...
 func (c ResourceGuardsClient) GetDefaultBackupSecurityPINRequestsObject(ctx context.Context, id GetBackupSecurityPINRequestId) (result GetDefaultBackupSecurityPINRequestsObjectOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

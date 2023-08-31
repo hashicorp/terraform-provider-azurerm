@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package common
 
 import (
@@ -69,8 +72,8 @@ func SchemaCorsRule() *pluginsdk.Schema {
 
 				"max_age_in_seconds": {
 					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 2000000000),
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 2147483647),
 				},
 			},
 		},
@@ -94,7 +97,10 @@ func ExpandCosmosCorsRule(input []interface{}) *[]documentdb.CorsPolicy {
 		corsRule.ExposedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ","))
 		corsRule.AllowedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ","))
 		corsRule.AllowedMethods = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ","))
-		corsRule.MaxAgeInSeconds = utils.Int64(int64(corsRuleAttr["max_age_in_seconds"].(int)))
+
+		if corsRuleAttr["max_age_in_seconds"].(int) != 0 {
+			corsRule.MaxAgeInSeconds = utils.Int64(int64(corsRuleAttr["max_age_in_seconds"].(int)))
+		}
 
 		corsRules = append(corsRules, corsRule)
 	}

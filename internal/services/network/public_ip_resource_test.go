@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -359,7 +362,7 @@ func TestAccPublicIpStatic_importIdError(t *testing.T) {
 			ImportState:       true,
 			ImportStateVerify: true,
 			ImportStateId:     fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/publicIPAdresses/acctestpublicip-%d", os.Getenv("ARM_SUBSCRIPTION_ID"), data.RandomInteger, data.RandomInteger),
-			ExpectError:       regexp.MustCompile("Error: parsing Resource ID"),
+			ExpectError:       regexp.MustCompile("ID was missing the `publicIPAddresses` element"),
 		},
 	})
 }

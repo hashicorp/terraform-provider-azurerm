@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -11,7 +14,6 @@ resource "azurerm_network_interface" "example" {
   name                      = "${azurerm_resource_group.example.name}-nic"
   location                  = "${azurerm_resource_group.example.location}"
   resource_group_name       = "${azurerm_resource_group.example.name}"
-  network_security_group_id = "${azurerm_network_security_group.bastion.id}"
 
   ip_configuration {
     name                          = "internal"
@@ -19,6 +21,11 @@ resource "azurerm_network_interface" "example" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.example.id}"
   }
+}
+
+resource "azurerm_network_interface_security_group_association" "example" {
+  network_interface_id      = azurerm_network_interface.example.id
+  network_security_group_id = azurerm_network_security_group.bastion.id
 }
 
 resource "azurerm_public_ip" "example" {

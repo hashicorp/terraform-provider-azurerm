@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,15 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apirelease"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementApiRelease() *pluginsdk.Resource {
@@ -31,7 +35,7 @@ func resourceApiManagementApiRelease() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApiReleaseID(id)
+			_, err := apirelease.ParseReleaseID(id)
 			return err
 		}),
 
@@ -47,7 +51,7 @@ func resourceApiManagementApiRelease() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApiID,
+				ValidateFunc: api.ValidateApiID,
 			},
 
 			"notes": {
@@ -66,34 +70,37 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 
 	name := d.Get("name").(string)
-	apiId, err := parse.ApiID(d.Get("api_id").(string))
+	apiId, err := api.ParseApiID(d.Get("api_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewApiReleaseID(subscriptionId, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, name)
+
+	apiName := getApiName(apiId.ApiId)
+
+	id := apirelease.NewReleaseID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiName, name)
 	ifMatch := "*"
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_api_release", id.ID())
 		}
 		ifMatch = ""
 	}
 
-	parameters := apimanagement.APIReleaseContract{
-		APIReleaseContractProperties: &apimanagement.APIReleaseContractProperties{
-			APIID: utils.String(d.Get("api_id").(string)),
-			Notes: utils.String(d.Get("notes").(string)),
+	parameters := apirelease.ApiReleaseContract{
+		Properties: &apirelease.ApiReleaseContractProperties{
+			ApiId: pointer.To(d.Get("api_id").(string)),
+			Notes: pointer.To(d.Get("notes").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, name, parameters, ifMatch); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, apirelease.CreateOrUpdateOperationOptions{IfMatch: pointer.To(ifMatch)}); err != nil {
 		return fmt.Errorf("creating/ updating %s: %+v", id, err)
 	}
 
@@ -107,24 +114,27 @@ func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiReleaseID(d.Id())
+	id, err := apirelease.ParseReleaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.ReleaseName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] apimanagement %s does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	d.Set("name", id.ReleaseName)
-	if props := resp.APIReleaseContractProperties; props != nil {
-		d.Set("api_id", parse.NewApiID(subscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName).ID())
-		d.Set("notes", props.Notes)
+	d.Set("name", id.ReleaseId)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			apiName := getApiName(id.ApiId)
+			d.Set("api_id", api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName).ID())
+			d.Set("notes", pointer.From(props.Notes))
+		}
 	}
 	return nil
 }
@@ -134,13 +144,16 @@ func resourceApiManagementApiReleaseDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiReleaseID(d.Id())
+	id, err := apirelease.ParseReleaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.ReleaseName, "*"); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	name := getApiName(id.ApiId)
+
+	newId := apirelease.NewReleaseID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name, id.ReleaseId)
+	if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+		return fmt.Errorf("deleting %s: %+v", newId, err)
 	}
 	return nil
 }

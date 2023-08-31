@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package managedidentity_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,7 +54,7 @@ func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.ManagedIdentity.ManagedIdentities.FederatedIdentityCredentialsGet(ctx, *id)
+	resp, err := clients.ManagedIdentity.V20230131.ManagedIdentities.FederatedIdentityCredentialsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

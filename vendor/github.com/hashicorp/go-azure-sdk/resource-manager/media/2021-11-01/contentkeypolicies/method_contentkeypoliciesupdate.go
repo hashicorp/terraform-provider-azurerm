@@ -20,7 +20,7 @@ type ContentKeyPoliciesUpdateOperationResponse struct {
 // ContentKeyPoliciesUpdate ...
 func (c ContentKeyPoliciesClient) ContentKeyPoliciesUpdate(ctx context.Context, id ContentKeyPolicyId, input ContentKeyPolicy) (result ContentKeyPoliciesUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

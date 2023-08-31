@@ -19,7 +19,7 @@ type TopicsDeleteAuthorizationRuleOperationResponse struct {
 // TopicsDeleteAuthorizationRule ...
 func (c TopicsAuthorizationRuleClient) TopicsDeleteAuthorizationRule(ctx context.Context, id TopicAuthorizationRuleId) (result TopicsDeleteAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

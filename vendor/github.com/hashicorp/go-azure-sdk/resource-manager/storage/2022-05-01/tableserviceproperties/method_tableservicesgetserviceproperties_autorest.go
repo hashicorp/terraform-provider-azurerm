@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type TableServicesGetServicePropertiesOperationResponse struct {
 }
 
 // TableServicesGetServiceProperties ...
-func (c TableServicePropertiesClient) TableServicesGetServiceProperties(ctx context.Context, id StorageAccountId) (result TableServicesGetServicePropertiesOperationResponse, err error) {
+func (c TableServicePropertiesClient) TableServicesGetServiceProperties(ctx context.Context, id commonids.StorageAccountId) (result TableServicesGetServicePropertiesOperationResponse, err error) {
 	req, err := c.preparerForTableServicesGetServiceProperties(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "tableserviceproperties.TableServicePropertiesClient", "TableServicesGetServiceProperties", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c TableServicePropertiesClient) TableServicesGetServiceProperties(ctx cont
 }
 
 // preparerForTableServicesGetServiceProperties prepares the TableServicesGetServiceProperties request.
-func (c TableServicePropertiesClient) preparerForTableServicesGetServiceProperties(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c TableServicePropertiesClient) preparerForTableServicesGetServiceProperties(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

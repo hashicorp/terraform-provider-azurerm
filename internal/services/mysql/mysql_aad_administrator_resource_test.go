@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql_test
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/serveradministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -75,12 +79,14 @@ func (r MySqlAdministratorResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.ServerAdministratorsClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	serverId := serveradministrators.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := clients.MySQL.MySqlClient.ServerAdministrators.Get(ctx, serverId)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MySqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -89,13 +95,10 @@ func (r MySqlAdministratorResource) Destroy(ctx context.Context, client *clients
 		return nil, err
 	}
 
-	future, err := client.MySQL.ServerAdministratorsClient.Delete(ctx, id.ResourceGroup, id.ServerName)
-	if err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
-	}
+	serverId := serveradministrators.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	if err := future.WaitForCompletionRef(ctx, client.MySQL.ServerAdministratorsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	if err = client.MySQL.MySqlClient.ServerAdministrators.DeleteThenPoll(ctx, serverId); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil

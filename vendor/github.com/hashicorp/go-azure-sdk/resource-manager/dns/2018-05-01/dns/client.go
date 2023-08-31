@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type DnsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewDnsClientWithBaseURI(api environments.Api) (*DnsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "dns", defaultApiVersion)
+func NewDnsClientWithBaseURI(sdkApi sdkEnv.Api) (*DnsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dns", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DnsClient: %+v", err)
 	}

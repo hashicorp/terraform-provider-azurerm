@@ -9,7 +9,9 @@ Application Insights
 ArcKubernetes
 Attestation
 Authorization
+Automanage
 Automation
+Azure Managed Lustre File System
 Azure Stack HCI
 Base
 Batch
@@ -45,6 +47,7 @@ Digital Twins
 Disks
 Elastic
 Fluid Relay
+Graph Services
 HDInsight
 Hardware Security Module
 Healthcare
@@ -71,8 +74,11 @@ Mobile Network
 Monitor
 NetApp
 Network
+Network Function
+New Relic
 Nginx
 Orbital
+Palo Alto
 Policy
 Portal
 PowerBI

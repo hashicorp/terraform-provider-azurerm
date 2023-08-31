@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -70,6 +73,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryTokenPasswordResource{},
 		ContainerConnectedRegistryResource{},
 		KubernetesClusterExtensionResource{},
+		KubernetesFluxConfigurationResource{},
 	}
 	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources

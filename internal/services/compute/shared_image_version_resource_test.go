@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -13,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type SharedImageVersionResource struct{}
@@ -279,6 +282,12 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 	snapShotName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
 
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+	}
+
 	snapshotId := snapshots.NewSnapshotID(subscriptionId, resourceGroup, snapShotName)
 	if err := client.Compute.SnapshotsClient.RevokeAccessThenPoll(ctx, snapshotId); err != nil {
 		return fmt.Errorf("revoking SAS on %s: %+v", snapshotId, err)
@@ -289,11 +298,11 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 
 // nolint: unparam
 func (SharedImageVersionResource) setup(data acceptance.TestData) string {
-	return ImageResource{}.setupUnmanagedDisks(data, "LRS")
+	return ImageResource{}.setupUnmanagedDisks(data)
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData) string {
-	template := ImageResource{}.standaloneImageProvision(data, "LRS", "")
+	template := ImageResource{}.standaloneImageProvision(data, "")
 	return fmt.Sprintf(`
 %s
 

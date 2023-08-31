@@ -1,12 +1,12 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_network_security_admin_configuration"
+page_title: "Azure Resource Manager: azurerm_network_manager_security_admin_configuration"
 description: |-
   Manages a Network Manager Security Admin Configuration.
 ---
 
-# azurerm_network_security_admin_configuration
+# azurerm_network_manager_security_admin_configuration
 
 Manages a Network Manager Security Admin Configuration.
 
@@ -77,5 +77,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Network Manager Security Admin Configuration can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_security_admin_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/securityAdminConfigurations/configuration1
+terraform import azurerm_network_manager_security_admin_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/securityAdminConfigurations/configuration1
 ```

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -23,7 +26,7 @@ resource "azurerm_databricks_workspace" "example" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "example" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.example.id

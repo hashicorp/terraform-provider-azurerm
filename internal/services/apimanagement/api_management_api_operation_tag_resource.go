@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,15 +8,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationtag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tag"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 		Delete: resourceApiManagementApiOperationTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OperationTagID(id)
+			_, err := apioperationtag.ParseOperationTagID(id)
 			return err
 		}),
 
@@ -61,42 +64,45 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 
 func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).ApiManagement.TagClient
+	tagClient := meta.(*clients.Client).ApiManagement.TagClient
+	client := meta.(*clients.Client).ApiManagement.ApiOperationTagClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apiOperationId, err := parse.ApiOperationID(d.Get("api_operation_id").(string))
+	apiOperationId, err := apioperationtag.ParseOperationID(d.Get("api_operation_id").(string))
 	if err != nil {
 		return err
 	}
-	name := d.Get("name").(string)
 
-	id := parse.NewOperationTagID(subscriptionId, apiOperationId.ResourceGroup, apiOperationId.ServiceName, apiOperationId.ApiName, apiOperationId.OperationName, name)
+	apiName := getApiName(apiOperationId.ApiId)
+
+	id := apioperationtag.NewOperationTagID(subscriptionId, apiOperationId.ResourceGroupName, apiOperationId.ServiceName, apiName, apiOperationId.OperationId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetByOperation(ctx, apiOperationId.ResourceGroup, apiOperationId.ServiceName, apiOperationId.ApiName, apiOperationId.OperationName, name)
+		existing, err := client.TagGetByOperation(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_api_operation_tag", id.ID())
 		}
 	}
 
-	parameters := apimanagement.TagCreateUpdateParameters{
-		TagContractProperties: &apimanagement.TagContractProperties{
-			DisplayName: utils.String(d.Get("display_name").(string)),
+	parameters := tag.TagCreateUpdateParameters{
+		Properties: &tag.TagContractProperties{
+			DisplayName: d.Get("display_name").(string),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, apiOperationId.ResourceGroup, apiOperationId.ServiceName, name, parameters, ""); err != nil {
+	tagId := tag.NewTagID(subscriptionId, apiOperationId.ResourceGroupName, apiOperationId.ServiceName, d.Get("name").(string))
+	if _, err := tagClient.CreateOrUpdate(ctx, tagId, parameters, tag.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
 
-	if _, err := client.AssignToOperation(ctx, apiOperationId.ResourceGroup, apiOperationId.ServiceName, apiOperationId.ApiName, apiOperationId.OperationName, name); err != nil {
+	if _, err := client.TagAssignToOperation(ctx, id); err != nil {
 		return fmt.Errorf("assigning to operation %q: %+v", id, err)
 	}
 
@@ -107,48 +113,56 @@ func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData,
 
 func resourceApiManagementApiOperationTagRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).ApiManagement.TagClient
+	client := meta.(*clients.Client).ApiManagement.ApiOperationTagClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OperationTagID(d.Id())
+	id, err := apioperationtag.ParseOperationTagID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.TagName)
+	apiName := getApiName(id.ApiId)
+
+	newId := apioperationtag.NewOperationTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.OperationId, id.TagId)
+	resp, err := client.TagGetByOperation(ctx, newId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %q was not found - removing from state!", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %q was not found - removing from state!", newId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %q: %+v", newId, err)
 	}
 
-	d.Set("api_operation_id", parse.NewApiOperationID(subscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName).ID())
-	d.Set("name", id.TagName)
+	d.Set("api_operation_id", apioperationtag.NewOperationID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.OperationId).ID())
+	d.Set("name", id.TagId)
 
-	if props := resp.TagContractProperties; props != nil {
-		d.Set("display_name", props.DisplayName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("display_name", props.DisplayName)
+		}
 	}
 
 	return nil
 }
 
 func resourceApiManagementApiOperationTagDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.TagClient
+	client := meta.(*clients.Client).ApiManagement.ApiOperationTagClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OperationTagID(d.Id())
+	id, err := apioperationtag.ParseOperationTagID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.TagName, ""); err != nil {
-		return fmt.Errorf("deleting %q: %+v", id, err)
+	apiName := getApiName(id.ApiId)
+
+	newId := apioperationtag.NewOperationTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.OperationId, id.TagId)
+	if _, err = client.TagDetachFromOperation(ctx, newId); err != nil {
+		return fmt.Errorf("deleting %q: %+v", newId, err)
 	}
 
 	return nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package acceptance
 
 // Subscriptions is a list of AAD Subscriptions  which can be used for test purposes

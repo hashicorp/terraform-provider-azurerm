@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   virtual_machine_name = "${var.prefix}-dc"
   virtual_machine_fqdn = "${local.virtual_machine_name}.${var.active_directory_domain}"

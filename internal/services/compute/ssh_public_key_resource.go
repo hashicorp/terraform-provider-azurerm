@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -150,12 +153,8 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	existing, err := client.Get(ctx, *id)
+	_, err = client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
-			return nil
-		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 

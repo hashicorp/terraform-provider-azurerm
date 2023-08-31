@@ -23,7 +23,7 @@ type ResetOperationResponse struct {
 // Reset ...
 func (c LiveEventsClient) Reset(ctx context.Context, id LiveEventId) (result ResetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

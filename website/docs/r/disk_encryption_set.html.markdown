@@ -108,6 +108,106 @@ resource "azurerm_role_assignment" "example-disk" {
 
 ```
 
+## Example Usage with Automatic Key Rotation Enabled
+
+```hcl
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_key_vault" "example" {
+  name                        = "des-example-keyvault"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  enabled_for_disk_encryption = true
+  purge_protection_enabled    = true
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "des-example-key"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  depends_on = [
+    azurerm_key_vault_access_policy.example-user
+  ]
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_disk_encryption_set" "example" {
+  name                = "des"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  key_vault_key_id    = azurerm_key_vault_key.example.versionless_id
+
+  auto_key_rotation_enabled = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "example-disk" {
+  key_vault_id = azurerm_key_vault.example.id
+
+  tenant_id = azurerm_disk_encryption_set.example.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.example.identity.0.principal_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "example-user" {
+  key_vault_id = azurerm_key_vault.example.id
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign",
+    "GetRotationPolicy",
+  ]
+}
+
+resource "azurerm_role_assignment" "example-disk" {
+  scope                = azurerm_key_vault.example.id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azurerm_disk_encryption_set.example.identity.0.principal_id
+}
+
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -125,7 +225,13 @@ The following arguments are supported:
 -> **NOTE** A KeyVault using [enable_rbac_authorization](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault#enable_rbac_authorization) requires to use `azurerm_role_assignment` to assigne the role `Key Vault Crypto Service Encryption User` to this Disk Encryption Set.
 In this case, `azurerm_key_vault_access_policy` is not needed.
 
-* `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates encryption Key to latest version.
+* `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates the encryption Key to latest version or not. Possible values are `true` or `false`. Defaults to `false`.
+
+-> **NOTE** When `auto_key_rotation_enabled` is set to `true` the `key_vault_key_id` must use the `versionless_id`.
+
+-> **NOTE** To validate which Key Vault Key version is currently being used by the service it is recommended that you use the `azurerm_disk_encryption_set` data source or run a `terraform refresh` command and check the value of the exported `key_vault_key_url` field.
+
+-> **NOTE** It may take between 10 to 20 minutes for the service to update the Key Vault Key URL once the keys have been rotated.
 
 * `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey`, `EncryptionAtRestWithPlatformAndCustomerKeys` and `ConfidentialVmEncryptedWithCustomerKey`. Defaults to `EncryptionAtRestWithCustomerKey`. Changing this forces a new resource to be created.
 
@@ -150,6 +256,8 @@ An `identity` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Disk Encryption Set.
+
+* `key_vault_key_url` - The URL for the Key Vault Key or Key Vault Secret that is currently being used by the service.
 
 ---
 

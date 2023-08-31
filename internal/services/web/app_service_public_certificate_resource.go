@@ -1,12 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package web
 
 import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 func resourceAppServicePublicCertificate() *pluginsdk.Resource {
@@ -161,9 +165,36 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	resp, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not determine context deadline for create for %s", id)
+	}
+
+	// (@mbfrahry) - similar to what @jackofallops noted above, the Get call sometimes does not return the public certificate so we'll do a get multiple times to confirm
+	// that it's not there before removing the resource from state
+	readWait := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"notfound"},
+		Target:                    []string{"ok"},
+		MinTimeout:                10 * time.Second,
+		Timeout:                   time.Until(deadline),
+		NotFoundChecks:            10,
+		ContinuousTargetOccurence: 1,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return nil, "notfound", nil
+				} else {
+					return nil, "error", err
+				}
+			}
+			return resp, "ok", nil
+		},
+	}
+
+	resp, err := readWait.WaitForStateContext(ctx)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if strings.Contains(err.Error(), "couldn't find resource") {
 			log.Printf("[DEBUG] App Service Public Certificate %q (Resource Group %q, App Service %q) was not found - removing from state", id.Name, id.ResourceGroup, id.SiteName)
 			d.SetId("")
 			return nil
@@ -175,10 +206,12 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 	d.Set("app_service_name", id.SiteName)
 	d.Set("certificate_name", id.Name)
 
-	if properties := resp.PublicCertificateProperties; properties != nil {
-		d.Set("certificate_location", properties.PublicCertificateLocation)
-		d.Set("blob", base64.StdEncoding.EncodeToString(*properties.Blob))
-		d.Set("thumbprint", properties.Thumbprint)
+	if model, ok := resp.(web.PublicCertificate); ok {
+		if properties := model.PublicCertificateProperties; properties != nil {
+			d.Set("certificate_location", properties.PublicCertificateLocation)
+			d.Set("blob", base64.StdEncoding.EncodeToString(*properties.Blob))
+			d.Set("thumbprint", properties.Thumbprint)
+		}
 	}
 
 	return nil

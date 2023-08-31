@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -658,7 +661,7 @@ func TestAccContainerGroup_withInitContainer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("ip_address_type"),
+		data.ImportStep("ip_address_type", "init_container.0.secure_environment_variables", "container.0.secure_environment_variables"),
 	})
 }
 
@@ -684,6 +687,28 @@ func TestAccContainerGroup_encryption(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerGroup_securityContext(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityContextPriviledged(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityContextPriviledged(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2236,6 +2261,9 @@ resource "azurerm_container_group" "test" {
     name     = "init"
     image    = "busybox"
     commands = ["echo", "hello from init"]
+    secure_environment_variables = {
+      PASSWORD = "something_very_secure_for_init"
+    }
   }
 
   container {
@@ -2245,6 +2273,9 @@ resource "azurerm_container_group" "test" {
     memory = "1.5"
 
     commands = ["echo", "hello from ubuntu"]
+    secure_environment_variables = {
+      PASSWORD = "something_very_secure"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -2388,6 +2419,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "List",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -2425,7 +2457,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   key_permissions = [
     "Get",
     "UnwrapKey",
-    "WrapKey"
+    "WrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id  = data.azurerm_client_config.current.tenant_id
@@ -2454,4 +2487,40 @@ resource "azurerm_container_group" "test" {
   depends_on       = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) securityContextPriviledged(data acceptance.TestData, v bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+  sku                 = "Confidential"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+    security {
+      privilege_enabled = %[3]t
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, v)
 }

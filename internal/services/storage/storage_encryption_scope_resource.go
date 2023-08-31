@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -7,10 +10,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/encryptionscopes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,7 +30,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 		Delete: resourceStorageEncryptionScopeDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EncryptionScopeID(id)
+			_, err := encryptionscopes.ParseEncryptionScopeID(id)
 			return err
 		}),
 
@@ -49,7 +53,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"source": {
@@ -81,21 +85,20 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountId, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
+	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resourceId := parse.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID()
-	existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
+	id := encryptionscopes.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.StorageAccountName, id.EncryptionScopeName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
+			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 		}
 	}
 	if existing.EncryptionScopeProperties != nil && strings.EqualFold(string(existing.EncryptionScopeProperties.State), string(storage.EncryptionScopeStateEnabled)) {
-		return tf.ImportAsExistsError("azurerm_storage_encryption_scope", resourceId)
+		return tf.ImportAsExistsError("azurerm_storage_encryption_scope", id.ID())
 	}
 
 	if d.Get("source").(string) == string(storage.EncryptionScopeSourceMicrosoftKeyVault) {
@@ -118,11 +121,11 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 		props.EncryptionScopeProperties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
 	}
 
-	if _, err := client.Put(ctx, accountId.ResourceGroup, accountId.Name, name, props); err != nil {
-		return fmt.Errorf("creating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
+	if _, err := client.Put(ctx, id.ResourceGroupName, id.StorageAccountName, id.EncryptionScopeName, props); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
@@ -131,7 +134,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EncryptionScopeID(d.Id())
+	id, err := encryptionscopes.ParseEncryptionScopeID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,8 +154,8 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 			},
 		},
 	}
-	if _, err := client.Patch(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, props); err != nil {
-		return fmt.Errorf("updating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
+	if _, err := client.Patch(ctx, id.ResourceGroupName, id.StorageAccountName, id.EncryptionScopeName, props); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceStorageEncryptionScopeRead(d, meta)
@@ -163,13 +166,12 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EncryptionScopeID(d.Id())
+	id, err := encryptionscopes.ParseEncryptionScopeID(d.Id())
 	if err != nil {
 		return err
 	}
-	accountId := parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.StorageAccountName, id.EncryptionScopeName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Storage Encryption Scope %q does not exist - removing from state", d.Id())
@@ -177,22 +179,21 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
 	if resp.EncryptionScopeProperties == nil {
-		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): `properties` was nil", id.Name, id.StorageAccountName, id.ResourceGroup)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	props := *resp.EncryptionScopeProperties
 	if strings.EqualFold(string(props.State), string(storage.EncryptionScopeStateDisabled)) {
-		log.Printf("[INFO] Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) does not exist - removing from state", id.Name, id.StorageAccountName, id.ResourceGroup)
+		log.Printf("[INFO] %s was not configured - removing from state", id)
 		d.SetId("")
 		return nil
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("storage_account_id", accountId.ID())
+	d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
 	if props := resp.EncryptionScopeProperties; props != nil {
 		d.Set("source", flattenEncryptionScopeSource(props.Source))
 		var keyId string
@@ -215,7 +216,7 @@ func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EncryptionScopeID(d.Id())
+	id, err := encryptionscopes.ParseEncryptionScopeID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -226,15 +227,15 @@ func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if _, err = client.Put(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, props); err != nil {
-		return fmt.Errorf("disabling Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
+	if _, err = client.Put(ctx, id.ResourceGroupName, id.StorageAccountName, id.EncryptionScopeName, props); err != nil {
+		return fmt.Errorf("disabling %s: %+v", id, err)
 	}
 
 	return nil
 }
 
 func flattenEncryptionScopeSource(input storage.EncryptionScopeSource) string {
-	// TODO: file a bug
+	// TODO: remove this logic when migrated to hashicorp/go-azure-sdk and the new base layer
 	// the Storage API differs from every other API in Azure in that these Enum's can be returned case-insensitively
 	if strings.EqualFold(string(input), string(storage.EncryptionScopeSourceMicrosoftKeyVault)) {
 		return string(storage.EncryptionScopeSourceMicrosoftKeyVault)

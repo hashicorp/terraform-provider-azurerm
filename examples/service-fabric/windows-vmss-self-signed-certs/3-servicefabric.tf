@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 resource "azurerm_service_fabric_cluster" "example" {
   name                = "${var.prefix}servicefabric"

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks
 
 import (
@@ -7,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -58,6 +62,7 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
+				Deprecated:   "this resource has been deprecated in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource and will be removed from the v4.0 azurerm provider.",
 				Required:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
@@ -99,12 +104,24 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
+	keySource := workspaces.KeySourceDefault
+	var params *workspaces.WorkspaceCustomParameters
+
 	if model := workspace.Model; model != nil {
-		if parameters := model.Properties.Parameters; parameters != nil {
-			if parameters.PrepareEncryption != nil {
+		if params = model.Properties.Parameters; params != nil {
+			if params.PrepareEncryption != nil {
 				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
 			}
+
+			if params.Encryption != nil && params.Encryption.Value != nil && params.Encryption.Value.KeySource != nil {
+				keySource = pointer.From(params.Encryption.Value.KeySource)
+			}
+		} else {
+			return fmt.Errorf("`WorkspaceCustomParameters` were nil")
 		}
+	} else {
+		return fmt.Errorf("`Workspace` was nil")
 	}
 
 	if !encryptionEnabled {
@@ -117,10 +134,9 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	if d.IsNewResource() {
-		if workspace.Model != nil && workspace.Model.Properties.Parameters != nil && workspace.Model.Properties.Parameters.Encryption != nil {
-			return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
-		}
+	// Only throw the import error if the keysource value has been set to something other than default...
+	if params.Encryption != nil && params.Encryption.Value != nil && keySource != workspaces.KeySourceDefault {
+		return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
 	}
 
 	// We need to pull all of the custom params from the parent
@@ -129,14 +145,12 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	// resource will be lost and overwritten as nil. ¯\_(ツ)_/¯
 	// NOTE: 'workspace.Parameters' will never be nil as 'customer_managed_key_enabled' and 'infrastructure_encryption_enabled'
 	// fields have a default value in the parent workspace resource.
-	keySource := workspaces.KeySourceMicrosoftPointKeyvault
-	params := workspace.Model.Properties.Parameters
 	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
 		Value: &workspaces.Encryption{
-			KeySource:   &keySource,
-			KeyName:     &key.Name,
-			Keyversion:  &key.Version,
-			Keyvaulturi: &key.KeyVaultBaseUrl,
+			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
+			KeyName:     pointer.To(key.Name),
+			Keyversion:  pointer.To(key.Version),
+			Keyvaulturi: pointer.To(key.KeyVaultBaseUrl),
 		},
 	}
 
@@ -179,6 +193,7 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	if model := resp.Model; model != nil {
 		if model.Properties.Parameters != nil {
 			if props := model.Properties.Parameters.Encryption; props != nil {
+
 				if props.Value.KeySource != nil {
 					keySource = string(*props.Value.KeySource)
 				}
@@ -204,7 +219,7 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	d.Set("workspace_id", id.ID())
 
 	if keyVaultURI != "" {
-		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
+		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 		if err == nil {
 			d.Set("key_vault_key_id", key.ID())
 		}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps
 
 import (
@@ -7,6 +10,10 @@ import (
 var _ sdk.TypedServiceRegistration = Registration{}
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/container-apps"
+}
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{

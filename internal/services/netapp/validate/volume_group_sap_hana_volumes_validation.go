@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -56,21 +59,6 @@ func PossibleValuesForProtocolTypeVolumeGroupSapHana() []string {
 	return []string{
 		string(ProtocolTypeNfsV41),
 		string(ProtocolTypeNfsV3),
-	}
-}
-
-// Diverging from the SDK volumegroups.SecurityStyle since it is defined as lower case
-// but the backend changes it to Pascal case on GET. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-type SecurityStyle string
-
-const (
-	SecurityStyleUnix SecurityStyle = "Unix"
-	SecurityStyleNtfs SecurityStyle = "Ntfs"
-)
-
-func PossibleValuesForSecurityStyle() []string {
-	return []string{
-		string(SecurityStyleUnix),
 	}
 }
 

@@ -23,7 +23,7 @@ type ScheduleRunOperationResponse struct {
 // ScheduleRun ...
 func (c RegistriesClient) ScheduleRun(ctx context.Context, id RegistryId, input RunRequest) (result ScheduleRunOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

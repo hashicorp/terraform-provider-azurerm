@@ -41,11 +41,13 @@ The following arguments are supported:
 
 -> **NOTE:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
 
-* `open_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the TPM Policy.
+* `open_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
-* `sgx_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the TPM Policy.
+* `sgx_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
-* `tpm_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the TPM Policy.
+* `tpm_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
+
+* `sev_snp_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
 -> [More information on the JWT Policies can be found in this article on `learn.microsoft.com`](https://learn.microsoft.com/azure/attestation/author-sign-policy).
 

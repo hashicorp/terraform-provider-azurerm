@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres_test
 
 import (
@@ -396,6 +399,12 @@ func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.C
 	id, err := servers.ParseServerID(state.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
 	}
 
 	resp, err := clients.Postgres.ServersClient.Get(ctx, *id)

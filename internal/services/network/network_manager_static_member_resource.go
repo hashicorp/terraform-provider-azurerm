@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,13 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerStaticMemberModel struct {
@@ -34,7 +36,7 @@ func (r ManagerStaticMemberResource) ModelObject() interface{} {
 }
 
 func (r ManagerStaticMemberResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerStaticMemberID
+	return staticmembers.ValidateStaticMemberID
 }
 
 func (r ManagerStaticMemberResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,14 +52,14 @@ func (r ManagerStaticMemberResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerNetworkGroupID,
+			ValidateFunc: staticmembers.ValidateNetworkGroupID,
 		},
 
 		"target_virtual_network_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.VirtualNetworkID,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 	}
 }
@@ -80,29 +82,29 @@ func (r ManagerStaticMemberResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerStaticMembersClient
-			networkGroupId, err := parse.NetworkManagerNetworkGroupID(model.NetworkGroupId)
+			client := metadata.Client.Network.StaticMembers
+			networkGroupId, err := staticmembers.ParseNetworkGroupID(model.NetworkGroupId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewNetworkManagerStaticMemberID(networkGroupId.SubscriptionId, networkGroupId.ResourceGroup, networkGroupId.NetworkManagerName, networkGroupId.NetworkGroupName, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName, id.StaticMemberName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			id := staticmembers.NewStaticMemberID(networkGroupId.SubscriptionId, networkGroupId.ResourceGroupName, networkGroupId.NetworkManagerName, networkGroupId.NetworkGroupName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			staticMember := &network.StaticMember{
-				StaticMemberProperties: &network.StaticMemberProperties{
-					ResourceID: &model.TargetVNetId,
+			staticMember := staticmembers.StaticMember{
+				Properties: &staticmembers.StaticMemberProperties{
+					ResourceId: &model.TargetVNetId,
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *staticMember, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName, id.StaticMemberName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, staticMember); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -116,38 +118,40 @@ func (r ManagerStaticMemberResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerStaticMembersClient
+			client := metadata.Client.Network.StaticMembers
 
-			id, err := parse.NetworkManagerStaticMemberID(metadata.ResourceData.Id())
+			id, err := staticmembers.ParseStaticMemberID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName, id.StaticMemberName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-
-			properties := existing.StaticMemberProperties
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
 			}
 
+			properties := existing.Model.Properties
 			state := ManagerStaticMemberModel{
 				Name:           id.StaticMemberName,
-				NetworkGroupId: parse.NewNetworkManagerNetworkGroupID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName).ID(),
+				NetworkGroupId: staticmembers.NewNetworkGroupID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName, id.NetworkGroupName).ID(),
 			}
 
 			if properties.Region != nil {
 				state.Region = *properties.Region
 			}
 
-			if properties.ResourceID != nil {
-				state.TargetVNetId = *properties.ResourceID
+			if properties.ResourceId != nil {
+				state.TargetVNetId = *properties.ResourceId
 			}
 
 			return metadata.Encode(&state)
@@ -159,14 +163,14 @@ func (r ManagerStaticMemberResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerStaticMembersClient
+			client := metadata.Client.Network.StaticMembers
 
-			id, err := parse.NetworkManagerStaticMemberID(metadata.ResourceData.Id())
+			id, err := staticmembers.ParseStaticMemberID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName, id.StaticMemberName); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

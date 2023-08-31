@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice_test
 
 import (
@@ -27,6 +30,7 @@ func TestAccLinuxFunctionAppDataSource_standardComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").MatchesRegex(ipListRegex),
 				check.That(data.ResourceName).Key("possible_outbound_ip_address_list.#").Exists(),
 				check.That(data.ResourceName).Key("default_hostname").HasValue(fmt.Sprintf("acctest-lfa-%d.azurewebsites.net", data.RandomInteger)),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 	})

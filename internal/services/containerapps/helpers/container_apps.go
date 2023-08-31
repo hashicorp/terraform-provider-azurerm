@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
@@ -5,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -665,34 +668,6 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 	}
 }
 
-func ContainerAppEnvironmentDaprMetadataDataSourceSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The name of the Metadata configuration item.",
-				},
-
-				"value": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The value for this metadata configuration item.",
-				},
-
-				"secret_name": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.",
-				},
-			},
-		},
-	}
-}
-
 type ContainerTemplate struct {
 	Containers  []Container       `tfschema:"container"`
 	Suffix      string            `tfschema:"revision_suffix"`
@@ -714,7 +689,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 30),
+					ValidateFunc: validation.IntBetween(0, 300),
 					Description:  "The minimum number of replicas for this container.",
 				},
 
@@ -722,7 +697,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
-					ValidateFunc: validation.IntBetween(1, 30),
+					ValidateFunc: validation.IntBetween(1, 300),
 					Description:  "The maximum number of replicas for this container.",
 				},
 
@@ -1082,10 +1057,9 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Default:  "EmptyDir",
-					ValidateFunc: validation.StringInSlice([]string{
-						"EmptyDir",
-						"AzureFile",
-					}, false),
+					ValidateFunc: validation.StringInSlice(
+						containerapps.PossibleValuesForStorageType(),
+						false),
 					Description: "The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.",
 				},
 
@@ -1109,8 +1083,10 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 
 	for _, v := range input {
 		volume := containerapps.Volume{
-			Name:        pointer.To(v.Name),
-			StorageName: pointer.To(v.StorageName),
+			Name: pointer.To(v.Name),
+		}
+		if v.StorageName != "" {
+			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
 			storageType := containerapps.StorageType(v.StorageType)
@@ -2267,7 +2243,11 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 
 	result := make([]daprcomponents.Secret, 0)
 	for _, v := range input.Value {
-		result = append(result, daprcomponents.Secret(v))
+		result = append(result, daprcomponents.Secret{
+			// TODO: add support for Identity & KeyVaultUrl
+			Name:  v.Name,
+			Value: v.Value,
+		})
 	}
 
 	return &result

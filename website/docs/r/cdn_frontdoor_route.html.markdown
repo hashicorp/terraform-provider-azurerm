@@ -26,11 +26,18 @@ resource "azurerm_dns_zone" "example" {
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                     = "example-originGroup"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
@@ -48,8 +55,13 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   weight             = 1
 }
 
-resource "azurerm_frontdoor_endpoint" "example" {
+resource "azurerm_cdn_frontdoor_endpoint" "example" {
   name                     = "example-endpoint"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "example" {
+  name                     = "ExampleRuleSet"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 
