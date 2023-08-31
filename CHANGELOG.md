@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20230825.1030756` of `github.com/hashicorp/go-azure-sdk` [GH-23088]
 * `containerapps`: updating to API Version `2023-05-01` [GH-22804]
 * `keyvault`: upgrade remaining resources to `2023-02-01` [GH-23089]
 * `internal/sdk`: typed resources using a custom importer now get a timed context [GH-23081]
