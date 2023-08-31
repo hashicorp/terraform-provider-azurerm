@@ -455,7 +455,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
-	client.LogAnalytics = loganalytics.NewClient(o)
+	if client.LogAnalytics, err = loganalytics.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LogAnalytics: %+v", err)
+	}
 	client.LoadBalancers = loadbalancers.NewClient(o)
 	if client.Logic, err = logic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Logic: %+v", err)
