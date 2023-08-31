@@ -236,9 +236,9 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault where the Certificate should be created. Changing this forces a new resource to be created.
 
-* `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
+* `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate. Changing this will create a new version of the Key Vault Certificate.
 
-* `certificate_policy` - (Optional) A `certificate_policy` block as defined below. Changing this forces a new resource to be created.
+* `certificate_policy` - (Optional) A `certificate_policy` block as defined below. Changing this will create a new version of the Key Vault Certificate.
 
 ~> **NOTE:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
 
