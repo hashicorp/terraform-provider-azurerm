@@ -133,23 +133,6 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	// The existing extensions per bundle & sub plan
-	bundlesExtensions := map[string]map[string][]string{
-		"StorageAccounts": {
-			"DefenderForStorageV2": {"OnUploadMalwareScanning", "SensitiveDataDiscovery"},
-		},
-		"VirtualMachines": {
-			"P1": {"MdeDesignatedSubscription"},
-			"P2": {"MdeDesignatedSubscription", "AgentlessVmScanning"},
-		},
-		"CloudPosture": {
-			"Default": {"SensitiveDataDiscovery", "ContainerRegistriesVulnerabilityAssessments", "AgentlessDiscoveryForKubernetes", "AgentlessVmScanning"},
-		},
-		"Containers": {
-			"Default": {"ContainerRegistriesVulnerabilityAssessments", "AgentlessDiscoveryForKubernetes"},
-		},
-	}
-
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
 	isCurrentlyInFree := false
 	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil {
@@ -160,30 +143,12 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		if apiResponse.Model.Properties.PricingTier == "Free" {
 			isCurrentlyInFree = true
 		}
-
-		// Get the extensions for the specific bundle
-		bundleExtensionsPerSubPlan, bundleWithDefaultExtensions := bundlesExtensions[*apiResponse.Model.Name]
-		if bundleWithDefaultExtensions {
-			// Get the extensions for the specific subPlan
-			subPlanName := "Default"
-			if apiResponse.Model.Properties.SubPlan != nil {
-				subPlanName = *apiResponse.Model.Properties.SubPlan
-			}
-			bundleSubPlanExtensions, bundleWithSubPlanDefaultExtensions := bundleExtensionsPerSubPlan[subPlanName]
-			// Since the API response does not return the existing extensions when it is free, take them from the predefined list
-			if len(extensionsStatusFromBackend) == 0 && bundleWithSubPlanDefaultExtensions {
-				for _, defaultExtensionName := range bundleSubPlanExtensions {
-					extensionsStatusFromBackend = append(extensionsStatusFromBackend, pricings_v2023_01_01.Extension{Name: defaultExtensionName, IsEnabled: pricings_v2023_01_01.IsEnabledFalse})
-				}
-			}
-		}
-
 	}
 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
 		pricing.Properties.SubPlan = utils.String(vSub.(string))
 	}
-	if d.HasChange("extension") || d.IsNewResource() || isCurrentlyInFree {
+	if d.HasChange("extension") {
 		// can not set extensions for free tier
 		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
@@ -191,8 +156,27 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if _, err := client.Update(ctx, id, pricing); err != nil {
-		return fmt.Errorf("setting %s: %+v", id, err)
+	updateResponse, updateErr := client.Update(ctx, id, pricing)
+	if updateErr != nil {
+		return fmt.Errorf("setting %s: %+v", id, updateErr)
+	}
+
+	if updateErr == nil && updateResponse.Model != nil && updateResponse.Model.Properties != nil {
+		if updateResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
+		}
+	}
+
+	// after turning on the bundle, we have now the extensions list
+	if d.IsNewResource() || isCurrentlyInFree {
+		var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
+		pricing.Properties.Extensions = extensions
+		_, updateErr := client.Update(ctx, id, pricing)
+		if err != nil {
+			if updateErr != nil {
+				return fmt.Errorf("setting %s: %+v", id, updateErr)
+			}
+		}
 	}
 
 	d.SetId(id.ID())
