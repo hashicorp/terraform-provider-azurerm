@@ -310,7 +310,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataAuthIdentity = serviceDataAuth
 
-			containerId := commonids.NewStorageContainerID(subscriptionId, workspaceId.ResourceGroupName, *data.AccountName, *data.ContainerName)
+			containerId := commonids.NewStorageContainerID(subscriptionId, *data.ResourceGroupName, *data.AccountName, *data.ContainerName)
 			model.StorageContainerID = containerId.ID()
 			model.IsDefault = *data.IsDefault
 
