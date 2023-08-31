@@ -301,7 +301,7 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
+			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, data.ResourceGroupName, data.AccountName, "default", data.FileShareName)
 			model.StorageFileShareID = fileShareId.ID()
 			model.IsDefault = *data.IsDefault
 
