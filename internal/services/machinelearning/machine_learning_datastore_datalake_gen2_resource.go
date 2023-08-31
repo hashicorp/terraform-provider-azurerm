@@ -310,7 +310,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			containerId := commonids.NewStorageContainerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, data.Filesystem)
+			containerId := commonids.NewStorageContainerID(subscriptionId, data.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault
