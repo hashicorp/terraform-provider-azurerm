@@ -161,8 +161,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		body.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
 	}
 
-	err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, body)
-	if err != nil {
+	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, body); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -196,18 +195,16 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("cassandra_cluster_id", clusterId.ID())
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if res := props; res != nil {
-				d.Set("delegated_management_subnet_id", props.DelegatedSubnetId)
-				d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
-				d.Set("backup_storage_customer_key_uri", props.BackupStorageCustomerKeyUri)
-				d.Set("base64_encoded_yaml_fragment", props.Base64EncodedCassandraYamlFragment)
-				d.Set("managed_disk_customer_key_uri", props.ManagedDiskCustomerKeyUri)
-				d.Set("node_count", props.NodeCount)
-				d.Set("disk_count", int(*props.DiskCapacity))
-				d.Set("disk_sku", props.DiskSku)
-				d.Set("sku_name", props.Sku)
-				d.Set("availability_zones_enabled", props.AvailabilityZone)
-			}
+			d.Set("delegated_management_subnet_id", props.DelegatedSubnetId)
+			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
+			d.Set("backup_storage_customer_key_uri", props.BackupStorageCustomerKeyUri)
+			d.Set("base64_encoded_yaml_fragment", props.Base64EncodedCassandraYamlFragment)
+			d.Set("managed_disk_customer_key_uri", props.ManagedDiskCustomerKeyUri)
+			d.Set("node_count", props.NodeCount)
+			d.Set("disk_count", int(*props.DiskCapacity))
+			d.Set("disk_sku", props.DiskSku)
+			d.Set("sku_name", props.Sku)
+			d.Set("availability_zones_enabled", props.AvailabilityZone)
 		}
 	}
 	return nil
@@ -244,13 +241,8 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 		body.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
 	}
 
-	future, err := client.CassandraDataCentersCreateUpdate(ctx, *id, body)
-	if err != nil {
+	if err := client.CassandraDataCentersCreateUpdateThenPoll(ctx, *id, body); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting on update for %q: %+v", id, err)
 	}
 
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/19078
@@ -283,15 +275,8 @@ func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	future, err := client.CassandraDataCentersDelete(ctx, *id)
-	if err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
-			return fmt.Errorf("deleting %q: %+v", id, err)
-		}
-	}
-
-	if err = future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting on deleting for %q: %+v", id, err)
+	if err := client.CassandraDataCentersDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
 	return nil
