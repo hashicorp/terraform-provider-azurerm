@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access the properties of a Log Profile.
 
--> **NOTE:** Azure Log profiles will be retired on 30th September 2026 and will be automatically converted to Diagnostic settings, for more details, please see https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log?tabs=powershell#legacy-collection-methods.
+-> **NOTE:** Azure Log profiles will be retired on 30th September 2026, for more details, please see the [doc](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log?tabs=powershell#legacy-collection-methods).
 
 ## Example Usage
 
