@@ -113,16 +113,22 @@ func (r BotChannelDirectlineResource) completeConfig(data acceptance.TestData) s
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
   site {
     name                            = "test"
+    application_id                  = "testAppId"
     enabled                         = true
     v1_allowed                      = true
     v3_allowed                      = true
     enhanced_authentication_enabled = true
     trusted_origins                 = ["https://example.com"]
+    tenant_id                       = data.azurerm_client_config.current.tenant_id
+    block_user_upload_enabled       = true
+    endpoint_parameters_enabled     = true
+    no_storage_enabled              = true
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))

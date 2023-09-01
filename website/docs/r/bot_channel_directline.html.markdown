@@ -58,13 +58,23 @@ A `site` block has the following properties:
 
 * `name` - (Required) The name of the site
 
+* `application_id` - (Optional) The application ID for this site for this site.
+
+* `block_user_upload_enabled` - (Optional) Is the block user upload enabled for this site? Defaults to `false`.
+
 * `enabled` - (Optional) Enables/Disables this site. Enabled by default Defaults to `true`.
+
+* `endpoint_parameters_enabled` - (Optional) Is the endpoint parameters enabled for this site?
+
+* `no_storage_enabled` - (Optional) Is no storage enabled for this site?
 
 * `v1_allowed` - (Optional) Enables v1 of the Directline protocol for this site. Enabled by default Defaults to `true`.
 
 * `v3_allowed` - (Optional) Enables v3 of the Directline protocol for this site. Enabled by default Defaults to `true`.
 
 * `enhanced_authentication_enabled` - (Optional) Enables additional security measures for this site, see [Enhanced Directline Authentication Features](https://blog.botframework.com/2018/09/25/enhanced-direct-line-authentication-features). Disabled by default.
+
+* `tenant_id` - (Optional) The Tenant ID for this site.
 
 * `trusted_origins` - (Optional) This field is required when `is_secure_site_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.
 

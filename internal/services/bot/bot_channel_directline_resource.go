@@ -64,10 +64,32 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"application_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"block_user_upload_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
+						},
+
+						"endpoint_parameters_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"no_storage_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 
 						"v1_allowed": {
@@ -86,6 +108,12 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Default:  false,
 							Optional: true,
+						},
+
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 
 						"trusted_origins": {
@@ -268,10 +296,20 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 		}
 
 		site := element.(map[string]interface{})
-		expanded := botservice.DirectLineSite{}
+		expanded := botservice.DirectLineSite{
+			IsBlockUserUploadEnabled:    utils.Bool(site["block_user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          utils.Bool(site["no_storage_enabled"].(bool)),
+		}
 
 		if v, ok := site["name"].(string); ok {
 			expanded.SiteName = &v
+		}
+		if v := site["application_id"].(string); v != "" {
+			expanded.AppID = utils.String(v)
+		}
+		if v := site["tenant_id"].(string); v != "" {
+			expanded.TenantID = utils.String(v)
 		}
 		if v, ok := site["enabled"].(bool); ok {
 			expanded.IsEnabled = &v
@@ -308,6 +346,26 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 
 		if v := element.SiteName; v != nil {
 			site["name"] = *v
+		}
+
+		if v := element.AppID; v != nil {
+			site["application_id"] = *v
+		}
+
+		if v := element.IsBlockUserUploadEnabled; v != nil {
+			site["block_user_upload_enabled"] = *v
+		}
+
+		if v := element.IsEndpointParametersEnabled; v != nil {
+			site["endpoint_parameters_enabled"] = *v
+		}
+
+		if v := element.IsNoStorageEnabled; v != nil {
+			site["no_storage_enabled"] = *v
+		}
+
+		if v := element.TenantID; v != nil {
+			site["tenant_id"] = *v
 		}
 
 		if element.Key != nil {
