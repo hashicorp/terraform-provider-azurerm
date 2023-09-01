@@ -58,7 +58,7 @@ A `site` block has the following properties:
 
 * `name` - (Required) The name of the site
 
-* `application_id` - (Optional) The application ID for this site for this site.
+* `application_id` - (Optional) The application ID for this site.
 
 * `block_user_upload_enabled` - (Optional) Is the block user upload enabled for this site? Defaults to `false`.
 
