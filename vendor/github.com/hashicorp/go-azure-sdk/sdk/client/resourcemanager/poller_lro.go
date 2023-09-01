@@ -183,6 +183,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"newReplicaGroup": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
 			"Provisioning": pollers.PollingStatusInProgress,
+			// Resources @ 2020-10-01 (DeploymentScripts) returns `ProvisioningResources` during Creation
+			"ProvisioningResources": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers Resume) returns `Resuming` during Update
 			"Resuming": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Scaling` during Update
