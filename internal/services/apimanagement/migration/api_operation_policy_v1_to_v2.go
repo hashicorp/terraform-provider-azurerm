@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -62,8 +63,12 @@ func (ApiManagementApiOperationPolicyV1ToV2) UpgradeFunc() pluginsdk.StateUpgrad
 		// So after migrating pandora SDK (starting from v3.70.0), these two cases need to be migrated.
 		// In ApiManagementApiPolicyV0ToV1, only the case where the ID ends with "/policies/xml" is processed, so the case where the ID ends with "/policies/policy" is processed here to solve the parse id error.
 		newId := strings.TrimSuffix(oldId, "/policies/policy")
-
-		log.Printf("[DEBUG] Updating ID from %q tmakeo %q", oldId, newId)
+		parsed, err := apioperationpolicy.ParseOperationID(newId)
+		if err != nil {
+			return rawState, err
+		}
+		newId = parsed.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 		rawState["id"] = newId
 
 		return rawState, nil
