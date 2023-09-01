@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
 
-* `local_auth_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
+* `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
 
 * `luis_app_ids` - (Optional) A list of LUIS App IDs to associate with this Azure Bot Service.
 

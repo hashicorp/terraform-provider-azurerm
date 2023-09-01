@@ -107,7 +107,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			}, false),
 		},
 
-		"local_auth_enabled": {
+		"local_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -186,7 +186,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightKey:            utils.String(metadata.ResourceData.Get("developer_app_insights_key").(string)),
 					DeveloperAppInsightsAPIKey:        utils.String(metadata.ResourceData.Get("developer_app_insights_api_key").(string)),
 					DeveloperAppInsightsApplicationID: utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
-					DisableLocalAuth:                  utils.Bool(!metadata.ResourceData.Get("local_auth_enabled").(bool)),
+					DisableLocalAuth:                  utils.Bool(!metadata.ResourceData.Get("local_authentication_enabled").(bool)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           utils.String(metadata.ResourceData.Get("luis_key").(string)),
 					IsStreamingSupported:              utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
@@ -306,7 +306,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				if v := props.DisableLocalAuth; v != nil {
 					localAuthEnabled = !*v
 				}
-				metadata.ResourceData.Set("local_auth_enabled", localAuthEnabled)
+				metadata.ResourceData.Set("local_authentication_enabled", localAuthEnabled)
 
 				var luisAppIds []string
 				if v := props.LuisAppIds; v != nil {
@@ -380,8 +380,8 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 				existing.Properties.DeveloperAppInsightsApplicationID = utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string))
 			}
 
-			if metadata.ResourceData.HasChange("local_auth_enabled") {
-				existing.Properties.DisableLocalAuth = utils.Bool(!metadata.ResourceData.Get("local_auth_enabled").(bool))
+			if metadata.ResourceData.HasChange("local_authentication_enabled") {
+				existing.Properties.DisableLocalAuth = utils.Bool(!metadata.ResourceData.Get("local_authentication_enabled").(bool))
 			}
 
 			if metadata.ResourceData.HasChange("luis_app_ids") {
