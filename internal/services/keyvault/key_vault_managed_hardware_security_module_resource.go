@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"io"
 	"log"
 	"time"
@@ -120,6 +121,26 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"region": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"is_primary": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"network_acls": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -210,6 +231,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
 			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
 			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
+			Regions:                   expandMHSMRegions(d.Get("region").([]interface{})),
 		},
 		Sku: &managedhsms.ManagedHsmSku{
 			Family: managedhsms.ManagedHsmSkuFamilyB,
@@ -325,6 +347,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 			if err := d.Set("network_acls", flattenMHSMNetworkAcls(props.NetworkAcls)); err != nil {
 				return fmt.Errorf("setting `network_acls`: %+v", err)
 			}
+
+			d.Set("region", flattenMHSMRegions(props.Regions))
 		}
 
 		skuName := ""
@@ -398,6 +422,20 @@ func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet 
 	return res
 }
 
+func expandMHSMRegions(regions []interface{}) *[]managedhsms.MHSMGeoReplicatedRegion {
+	res := make([]managedhsms.MHSMGeoReplicatedRegion, 0)
+	for _, v := range regions {
+		if region, ok := v.(map[string]interface{}); ok {
+			res = append(res, managedhsms.MHSMGeoReplicatedRegion{
+				IsPrimary: pointer.To(region["is_primary"].(bool)),
+				Name:      pointer.To(region["name"].(string)),
+			})
+		}
+	}
+
+	return &res
+}
+
 func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 	bypass := string(managedhsms.NetworkRuleBypassOptionsAzureServices)
 	defaultAction := string(managedhsms.NetworkRuleActionAllow)
@@ -417,6 +455,22 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 			"default_action": defaultAction,
 		},
 	}
+}
+
+func flattenMHSMRegions(regions *[]managedhsms.MHSMGeoReplicatedRegion) interface{} {
+	if regions == nil {
+		return []interface{}{}
+	}
+
+	res := make([]interface{}, 0)
+	for _, region := range *regions {
+		res = append(res, map[string]interface{}{
+			"name":       pointer.From(region.Name),
+			"is_primary": pointer.From(region.IsPrimary),
+		})
+	}
+
+	return res
 }
 
 func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {

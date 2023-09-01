@@ -300,6 +300,16 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
     bypass         = "None"
   }
 
+  region {
+    name       = "US East"
+    is_primary = true
+  }
+
+  region {
+    name       = "US East2"
+    is_primary = fals
+  }
+
   public_network_access_enabled = true
 
   tags = {
