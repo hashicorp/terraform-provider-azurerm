@@ -32,6 +32,8 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 		Update: resourceLogProfileCreateUpdate,
 		Delete: resourceLogProfileDelete,
 
+		DeprecationMessage: "Azure Log profiles will be retired on 30th September 2026 and will be automatically converted to Diagnostic settings, for more details, please see https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log?tabs=powershell#legacy-collection-methods",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := logprofiles.ParseLogProfileID(id)
 			return err
