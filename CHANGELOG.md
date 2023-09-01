@@ -21,8 +21,9 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_automation_account` - fixes logic for `local_authentication_enabled` [GH-23082]
-* `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
 * `azurerm_monitor_diagnostic_setting` - fix `enabled_log` feature flagged schema [GH-23093]
+* `azurerm_pim_active_role_assignment`: polling for the duration of the timeout, rather than a fixed 5 minute value [GH-22932]
+* `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
 
 ## 3.71.0 (August 24, 2023)
 
