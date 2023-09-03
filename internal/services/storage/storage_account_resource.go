@@ -2421,7 +2421,7 @@ func handleStorageServiceError(operation string, service string, err error) (int
 	var respErr azautorest.DetailedError
 	if errors.As(err, &respErr) {
 		log.Printf("[DEBUG] error %s %s service properties: method=%s, statusCode=%d, message=%s\n", operation, service, respErr.Method, respErr.StatusCode.(int), respErr.Message)
-		if respErr.StatusCode.(int) == 404 {
+		if response.WasNotFound(respErr.StatusCode.(int)) {
 			// if the status code is 404 (not found), retry the request
 			log.Printf("[DEBUG] %s service properties not available, retrying...\n", service)
 			return nil, "Pending", nil
