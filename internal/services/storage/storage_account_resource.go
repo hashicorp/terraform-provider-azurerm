@@ -1350,8 +1350,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
-				if properties, err := blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
-					return handleStorageServiceError("blob", properties.Response.Response, err)
+				if _, err := blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
+					return handleStorageServiceError("blob", "updating", err)
 				}
 				return true, "Available", nil
 			},
@@ -1398,12 +1398,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				if err = queueClient.UpdateServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, queueProperties); err != nil {
-					// workaround for UpdateServiceProperties return response in error only
-					var respErr azautorest.DetailedError
-					if errors.As(err, &respErr) {
-						return handleStorageServiceError("queue", respErr.Response, err)
-					}
-					return handleStorageServiceError("queue", nil, err)
+					return handleStorageServiceError("queue", "updating", err)
 				}
 				return true, "Available", nil
 			},
@@ -1449,8 +1444,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
-				if properties, err := fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
-					return handleStorageServiceError("file", properties.Response.Response, err)
+				if _, err := fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
+					return handleStorageServiceError("file", "updating", err)
 				}
 				return true, "Available", nil
 			},
@@ -1494,8 +1489,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
-				if properties, err := accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-					return handleStorageServiceError("static_website", properties.Response.Response, err)
+				if _, err := accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+					return handleStorageServiceError("static_website", "updating", err)
 				}
 				return true, "Available", nil
 			},
@@ -2228,10 +2223,32 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if supportLevel.supportBlob {
 		blobClient := storageClient.BlobServicesClient
-		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
+		var blobProps storage.BlobServiceProperties
+
+		// wait for blob service endpoint to become available
+		log.Printf("[DEBUG] waiting for %s blob service to become available", *id)
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
 		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				blobProps, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("blob", "reading", err)
+				}
+				return blobProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s blob service properties: %+v", *id, err)
+		}
+
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
 		}
@@ -2242,10 +2259,30 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
+		var queueProps *queues.StorageServiceProperties
 
-		queueProps, err := queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
+		// wait for queue service endpoint to become available
+		log.Printf("[DEBUG] waiting for %s queue service to become available", *id)
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				queueProps, err = queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("queue", "reading", err)
+				}
+				return queueProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s queue service properties: %+v", *id, err)
 		}
 
 		if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
@@ -2255,10 +2292,30 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if supportLevel.supportShare {
 		fileServiceClient := storageClient.FileServicesClient
+		var shareProps storage.FileServiceProperties
 
-		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
+		// wait for file service endpoint to become available
+		log.Printf("[DEBUG] waiting for %s file service to become available", *id)
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				shareProps, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("file", "reading", err)
+				}
+				return shareProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s file service properties: %+v", *id, err)
 		}
 
 		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
@@ -2278,10 +2335,32 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
 
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving static website for %s: %+v", *id, err)
+		var staticWebsiteProps accounts.GetServicePropertiesResult
+
+		// wait for static website endpoint to become available
+		log.Printf("[DEBUG] waiting for %s static website service to become available", *id)
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
 		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Available"},
+			Refresh: func() (interface{}, string, error) {
+				staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("static website", "reading", err)
+				}
+				return staticWebsiteProps, "Available", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("reading %s static website properties: %+v", *id, err)
+		}
+
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {
 			return fmt.Errorf("setting `static_website`: %+v", err)
@@ -2357,18 +2436,20 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func handleStorageServiceError(service string, res *http.Response, err error) (interface{}, string, error) {
-	log.Printf("[DEBUG] error updating %s service properties: statusCode=%d, status=%s, message=%s\n", service, res.StatusCode, res.Status, err)
-	// if http response is not nil, check the status code
-	if res != nil {
+func handleStorageServiceError(service string, operation string, err error) (interface{}, string, error) {
+	// if the error is a DetailedError type, check the status code and return the appropriate state
+	var respErr azautorest.DetailedError
+	if errors.As(err, &respErr) {
+		log.Printf("[DEBUG] error %s %s service properties: statusCode=%d, message=%s, error=%s\n", operation, service, respErr.StatusCode.(int), respErr.Message, err)
 		// if the status code is 404 (not found), retry the request
-		if response.WasNotFound(res) {
+		if respErr.StatusCode.(int) == http.StatusNotFound {
+			// if the status code is 404 (not found), retry the request
 			log.Printf("[DEBUG] %s service properties not available, retrying...\n", service)
 			return false, "Pending", nil
 		}
 	}
-	// if http response is nil, log the error and return the error state
-	log.Printf("[DEBUG] unexpected error while updating %s service properties: %v\n", service, err)
+	// if the error is unhandled type or status, log the error and return the error state
+	log.Printf("[DEBUG] unexpected error while %s %s service properties: %v\n", operation, service, err)
 	return nil, "Error", err
 }
 
