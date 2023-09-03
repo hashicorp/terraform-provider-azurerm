@@ -2223,32 +2223,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if supportLevel.supportBlob {
 		blobClient := storageClient.BlobServicesClient
-		var blobProps storage.BlobServiceProperties
-
-		// wait for blob service endpoint to become available
-		log.Printf("[DEBUG] waiting for %s blob service to become available", *id)
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
+		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+		if err != nil {
+			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
 		}
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{"Pending"},
-			Target:  []string{"Available"},
-			Refresh: func() (interface{}, string, error) {
-				blobProps, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-				if err != nil {
-					return handleStorageServiceError("reading", "blob", err)
-				}
-				return blobProps, "Available", nil
-			},
-			MinTimeout: 10 * time.Second,
-			Timeout:    time.Until(deadline),
-		}
-
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("reading %s blob service properties: %+v", *id, err)
-		}
-
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
 		}
@@ -2259,30 +2237,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
-		var queueProps *queues.StorageServiceProperties
 
-		// wait for queue service endpoint to become available
-		log.Printf("[DEBUG] waiting for %s queue service to become available", *id)
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
-		}
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{"Pending"},
-			Target:  []string{"Available"},
-			Refresh: func() (interface{}, string, error) {
-				queueProps, err = queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-				if err != nil {
-					return handleStorageServiceError("reading", "queue", err)
-				}
-				return queueProps, "Available", nil
-			},
-			MinTimeout: 10 * time.Second,
-			Timeout:    time.Until(deadline),
-		}
-
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("reading %s queue service properties: %+v", *id, err)
+		queueProps, err := queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
 		}
 
 		if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
@@ -2292,30 +2250,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if supportLevel.supportShare {
 		fileServiceClient := storageClient.FileServicesClient
-		var shareProps storage.FileServiceProperties
 
-		// wait for file service endpoint to become available
-		log.Printf("[DEBUG] waiting for %s file service to become available", *id)
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
-		}
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{"Pending"},
-			Target:  []string{"Available"},
-			Refresh: func() (interface{}, string, error) {
-				shareProps, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
-				if err != nil {
-					return handleStorageServiceError("reading", "file", err)
-				}
-				return shareProps, "Available", nil
-			},
-			MinTimeout: 10 * time.Second,
-			Timeout:    time.Until(deadline),
-		}
-
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("reading %s file service properties: %+v", *id, err)
+		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
 		}
 
 		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
@@ -2335,32 +2273,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
 
-		var staticWebsiteProps accounts.GetServicePropertiesResult
-
-		// wait for static website endpoint to become available
-		log.Printf("[DEBUG] waiting for %s static website service to become available", *id)
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
+		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving static website for %s: %+v", *id, err)
 		}
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{"Pending"},
-			Target:  []string{"Available"},
-			Refresh: func() (interface{}, string, error) {
-				staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
-				if err != nil {
-					return handleStorageServiceError("reading", "static website", err)
-				}
-				return staticWebsiteProps, "Available", nil
-			},
-			MinTimeout: 10 * time.Second,
-			Timeout:    time.Until(deadline),
-		}
-
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("reading %s static website properties: %+v", *id, err)
-		}
-
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {
 			return fmt.Errorf("setting `static_website`: %+v", err)
