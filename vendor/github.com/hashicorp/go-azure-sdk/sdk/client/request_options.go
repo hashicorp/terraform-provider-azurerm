@@ -31,9 +31,6 @@ type RequestOptions struct {
 }
 
 func (ro RequestOptions) Validate() error {
-	if ro.ContentType == "" {
-		return fmt.Errorf("missing `ContentType`")
-	}
 	if len(ro.ExpectedStatusCodes) == 0 {
 		return fmt.Errorf("missing `ExpectedStatusCodes`")
 	}

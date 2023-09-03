@@ -126,9 +126,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						},
 
 						"retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							Deprecated: "`retention_policy` has been deprecated - to learn more https://aka.ms/diagnostic_settings_log_retention",
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
@@ -241,6 +242,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 		}
 
 		resource.Schema["metric"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
+		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
 		resource.Schema["enabled_log"].ConflictsWith = []string{"log"}
 	}
 

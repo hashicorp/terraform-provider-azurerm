@@ -681,6 +681,7 @@ func TestAccBatchPool_extensions(t *testing.T) {
 				check.That(data.ResourceName).Key("extensions.0.type").HasValue("KeyVaultForLinux"),
 				check.That(data.ResourceName).Key("extensions.0.type_handler_version").HasValue("2.0"),
 				check.That(data.ResourceName).Key("extensions.0.auto_upgrade_minor_version").HasValue("true"),
+				check.That(data.ResourceName).Key("extensions.0.automatic_upgrade_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("extensions.0.settings_json").HasValue("{}"),
 				check.That(data.ResourceName).Key("extensions.0.protected_settings").HasValue("sensitive"),
 				check.That(data.ResourceName).Key("extensions.0.provision_after_extensions.0").HasValue("newProv1"),
@@ -778,7 +779,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -840,7 +841,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -899,7 +900,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -963,7 +964,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1001,7 +1002,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1074,7 +1075,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1209,7 +1210,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%[1]d"
+  name     = "acctestRG-batch-%[1]d"
   location = "%[2]s"
 }
 
@@ -1267,7 +1268,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1329,7 +1330,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1391,7 +1392,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1453,7 +1454,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1514,7 +1515,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1580,7 +1581,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1649,7 +1650,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1704,7 +1705,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
+  name     = "acctestbatch%d"
   location = "%s"
 }
 
@@ -1771,7 +1772,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -1941,7 +1942,7 @@ resource "azurerm_batch_pool" "test" {
 func (BatchPoolResource) networkConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%[1]d-batchpool"
+  name     = "acctestRG-%[1]d-batchpool"
   location = "%[2]s"
 }
 
@@ -2259,7 +2260,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -2313,6 +2314,7 @@ resource "azurerm_batch_pool" "test" {
     type                       = "KeyVaultForLinux"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
+    automatic_upgrade_enabled  = true
     settings_json              = "{}"
     protected_settings         = "sensitive"
     provision_after_extensions = ["newProv1"]
@@ -2371,7 +2373,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 resource "azurerm_batch_account" "test" {
@@ -2493,7 +2495,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 resource "azurerm_network_security_group" "test" {

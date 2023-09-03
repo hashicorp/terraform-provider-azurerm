@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -2243,7 +2243,11 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 
 	result := make([]daprcomponents.Secret, 0)
 	for _, v := range input.Value {
-		result = append(result, daprcomponents.Secret(v))
+		result = append(result, daprcomponents.Secret{
+			// TODO: add support for Identity & KeyVaultUrl
+			Name:  v.Name,
+			Value: v.Value,
+		})
 	}
 
 	return &result

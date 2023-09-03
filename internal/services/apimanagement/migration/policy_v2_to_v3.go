@@ -2,9 +2,11 @@ package migration
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -39,6 +41,13 @@ func (ApiManagementPolicyV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// new id : /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1
 		oldId := rawState["id"].(string)
 		newId := strings.TrimSuffix(oldId, "/policies/policy")
+
+		// ensure the casing on the non-user-specifiable segments is correct
+		apiManagementId, err := apimanagementservice.ParseServiceID(newId)
+		if err != nil {
+			return rawState, fmt.Errorf("parsing updated ID %q as an API Management ID: %+v", newId, err)
+		}
+		newId = apiManagementId.ID()
 
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 		rawState["id"] = newId

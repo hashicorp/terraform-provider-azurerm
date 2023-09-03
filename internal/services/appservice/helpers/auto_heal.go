@@ -34,7 +34,7 @@ type AutoHealRequestTrigger struct {
 type AutoHealStatusCodeTrigger struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
 	SubStatus       int    `tfschema:"sub_status"`
-	Win32Status     int    `tfschema:"win32_status"`
+	Win32Status     int    `tfschema:"win32_status_code"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
@@ -240,7 +240,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 								Optional: true,
 							},
 
-							"win32_status": {
+							"win32_status_code": {
 								Type:     pluginsdk.TypeInt,
 								Optional: true,
 							},
@@ -345,7 +345,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 								Computed: true,
 							},
 
-							"win32_status": {
+							"win32_status_code": {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},

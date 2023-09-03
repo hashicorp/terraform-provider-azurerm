@@ -42,6 +42,9 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 	if err := input.Validate(); err != nil {
 		return nil, fmt.Errorf("pre-validating request payload: %+v", err)
 	}
+	if input.ContentType == "" {
+		return nil, fmt.Errorf("pre-validating request payload: missing `ContentType`")
+	}
 
 	req, err := c.Client.NewRequest(ctx, input)
 	if err != nil {
