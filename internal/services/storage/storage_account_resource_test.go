@@ -67,6 +67,33 @@ func TestAccStorageAccount_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_recreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:  r.basic(data),
+			Destroy: true,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).DoesNotExistInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccStorageAccount_noCrossTenantReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}

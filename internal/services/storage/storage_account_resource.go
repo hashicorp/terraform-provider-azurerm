@@ -1350,8 +1350,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
-				if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
-					return handleStorageServiceError("updating", "blob", err)
+				if properties, err := blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
+					return handleStorageServiceError("blob", properties.Response.Response, err)
 				}
 				return true, "Available", nil
 			},
@@ -1398,7 +1398,12 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
 				if err = queueClient.UpdateServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, queueProperties); err != nil {
-					return handleStorageServiceError("updating", "queue", err)
+					// workaround for UpdateServiceProperties return response in error only
+					var respErr azautorest.DetailedError
+					if errors.As(err, &respErr) {
+						return handleStorageServiceError("queue", respErr.Response, err)
+					}
+					return handleStorageServiceError("queue", nil, err)
 				}
 				return true, "Available", nil
 			},
@@ -1444,8 +1449,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
-				if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
-					return handleStorageServiceError("updating", "file", err)
+				if properties, err := fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
+					return handleStorageServiceError("file", properties.Response.Response, err)
 				}
 				return true, "Available", nil
 			},
@@ -1489,8 +1494,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
 			Refresh: func() (interface{}, string, error) {
-				if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-					return handleStorageServiceError("updating", "static_website", err)
+				if properties, err := accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+					return handleStorageServiceError("static_website", properties.Response.Response, err)
 				}
 				return true, "Available", nil
 			},
@@ -2352,19 +2357,18 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func handleStorageServiceError(operation string, service string, err error) (interface{}, string, error) {
-	// if the error is a DetailedError type, check the status code and return the appropriate state
-	var respErr azautorest.DetailedError
-	if errors.As(err, &respErr) {
-		log.Printf("[DEBUG] error %s %s service properties: method=%s, statusCode=%d, message=%s\n", operation, service, respErr.Method, respErr.StatusCode.(int), respErr.Message)
-		if response.WasNotFound(respErr.StatusCode.(int)) {
-			// if the status code is 404 (not found), retry the request
+func handleStorageServiceError(service string, res *http.Response, err error) (interface{}, string, error) {
+	log.Printf("[DEBUG] error updating %s service properties: statusCode=%d, status=%s, message=%s\n", service, res.StatusCode, res.Status, err)
+	// if http response is not nil, check the status code
+	if res != nil {
+		// if the status code is 404 (not found), retry the request
+		if response.WasNotFound(res) {
 			log.Printf("[DEBUG] %s service properties not available, retrying...\n", service)
-			return nil, "Pending", nil
+			return false, "Pending", nil
 		}
 	}
-	// if the error is unhandled type or status, log the error and return the error state
-	log.Printf("[DEBUG] unexpected error while %s %s service properties: %v\n", operation, service, err)
+	// if http response is nil, log the error and return the error state
+	log.Printf("[DEBUG] unexpected error while updating %s service properties: %v\n", service, err)
 	return nil, "Error", err
 }
 
