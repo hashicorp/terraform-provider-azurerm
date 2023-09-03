@@ -1385,6 +1385,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// wait for queue service endpoint to become available (issue when re-creating a storage account)
 		log.Printf("[DEBUG] waiting for %s queue service to become available", id.ID())
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"Pending"},
 			Target:  []string{"Available"},
@@ -1395,7 +1399,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				return true, "Available", nil
 			},
 			MinTimeout: 10 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+			Timeout:    time.Until(deadline),
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
