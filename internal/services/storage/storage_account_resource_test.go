@@ -1641,7 +1641,11 @@ resource "azurerm_storage_account" "test" {
   }
 
   static_website {
-    index_document     = "test.html"
+    index_document = "test.html"
+  }
+
+  tags = {
+    environment = "production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
