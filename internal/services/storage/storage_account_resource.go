@@ -2442,7 +2442,8 @@ func handleStorageServiceError(service string, operation string, err error) (int
 	if errors.As(err, &respErr) {
 		log.Printf("[DEBUG] error %s %s service properties: statusCode=%d, message=%s, error=%s\n", operation, service, respErr.StatusCode.(int), respErr.Message, err)
 		// if the status code is 404 (not found), retry the request
-		if respErr.StatusCode.(int) == http.StatusNotFound {
+		//if respErr.StatusCode.(int) == http.StatusNotFound {
+		if response.WasNotFound(respErr.Response) {
 			// if the status code is 404 (not found), retry the request
 			log.Printf("[DEBUG] %s service properties not available, retrying...\n", service)
 			return false, "Pending", nil
