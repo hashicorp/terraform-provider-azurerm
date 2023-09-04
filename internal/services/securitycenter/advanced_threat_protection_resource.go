@@ -109,8 +109,9 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 			}
 			return resp, "error", fmt.Errorf("Properties was nil")
 		},
-		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(deadline),
+		MinTimeout:                1 * time.Minute,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
