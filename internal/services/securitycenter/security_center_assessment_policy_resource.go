@@ -269,7 +269,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if existing.Model == nil || &existing.Model.Properties == nil {
+	if existing.Model == nil || existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
