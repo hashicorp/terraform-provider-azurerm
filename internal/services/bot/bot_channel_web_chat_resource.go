@@ -5,6 +5,8 @@ package bot
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -23,7 +25,7 @@ import (
 )
 
 func resourceBotChannelWebChat() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBotChannelWebChatCreate,
 		Read:   resourceBotChannelWebChatRead,
 		Delete: resourceBotChannelWebChatDelete,
@@ -53,16 +55,44 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
-			"site_names": {
+			"site": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
 				},
+				ExactlyOneOf: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"site_names", "site"}
+					}
+					return []string{}
+				}(),
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["site_names"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			Deprecated:   "`site_names` will be removed in favour of the property `site` in version 4.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"site_names", "site"},
+		}
+	}
+
+	return resource
 }
 
 func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -100,7 +130,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
 			Properties: &botservice.WebChatChannelProperties{
-				Sites: expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List()),
+				Sites: expandSites(d.Get("site_names").(*pluginsdk.Set).List(), d.Get("site").(*pluginsdk.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
@@ -144,9 +174,13 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsWebChatChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				if err := d.Set("site_names", flattenSiteNames(channelProps.Sites)); err != nil {
-					return fmt.Errorf("setting `site_names`: %+v", err)
+				siteNames, sites := flattenSites(channelProps.Sites)
+
+				if !features.FourPointOhBeta() {
+					d.Set("site_names", siteNames)
 				}
+
+				d.Set("site", sites)
 			}
 		}
 	}
@@ -167,7 +201,7 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
 			Properties: &botservice.WebChatChannelProperties{
-				Sites: expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List()),
+				Sites: expandSites(d.Get("site_names").(*pluginsdk.Set).List(), d.Get("site").(*pluginsdk.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
@@ -217,35 +251,52 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandSiteNames(input []interface{}) *[]botservice.WebChatSite {
+func expandSites(siteNames []interface{}, sites []interface{}) *[]botservice.WebChatSite {
 	results := make([]botservice.WebChatSite, 0)
 
-	for _, item := range input {
-		results = append(results, botservice.WebChatSite{
-			SiteName:  utils.String(item.(string)),
+	if !features.FourPointOhBeta() {
+		for _, item := range siteNames {
+			results = append(results, botservice.WebChatSite{
+				SiteName:  utils.String(item.(string)),
+				IsEnabled: utils.Bool(true),
+			})
+		}
+	}
+
+	for _, v := range sites {
+		site := v.(map[string]interface{})
+		result := botservice.WebChatSite{
 			IsEnabled: utils.Bool(true),
-		})
+		}
+
+		if siteName := site["name"].(string); siteName != "" {
+			result.SiteName = utils.String(siteName)
+		}
+
+		results = append(results, result)
 	}
 
 	return &results
 }
 
-func flattenSiteNames(input *[]botservice.WebChatSite) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
+func flattenSites(input *[]botservice.WebChatSite) ([]interface{}, []interface{}) {
+	siteNames := make([]interface{}, 0)
+	for _, item := range *input {
+		siteNames = append(siteNames, pointer.From(item.SiteName))
 	}
 
-	for _, item := range *input {
-		var siteName string
-		if item.SiteName != nil {
-			siteName = *item.SiteName
+	sites := make([]interface{}, len(pointer.From(input)))
+	for i, element := range *input {
+		site := make(map[string]interface{})
+
+		if v := element.SiteName; v != nil {
+			site["name"] = *v
 		}
 
-		results = append(results, siteName)
+		sites[i] = site
 	}
 
-	return results
+	return siteNames, sites
 }
 
 func includeDefaultWebChatSite(sites *[]botservice.WebChatSite) bool {
