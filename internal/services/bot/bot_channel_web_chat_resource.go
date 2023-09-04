@@ -298,7 +298,7 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(existing.Location)),
+		Location: utils.String(azure.NormalizeLocation(*existing.Location)),
 		Kind:     botservice.KindBot,
 	}
 
