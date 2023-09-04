@@ -281,6 +281,11 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
+	if err != nil {
+		return err
+	}
+
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
 			Properties: &botservice.WebChatChannelProperties{
@@ -293,7 +298,7 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(existing.Location)),
 		Kind:     botservice.KindBot,
 	}
 
