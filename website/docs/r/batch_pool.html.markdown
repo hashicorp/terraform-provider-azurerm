@@ -462,6 +462,8 @@ A `network_configuration` block supports the following:
 
 * `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `none`, `job`. Changing this forces a new resource to be created.
 
+* `accelerated_networking_enabled` - (Optional) Whether to enable accelerated networking. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
