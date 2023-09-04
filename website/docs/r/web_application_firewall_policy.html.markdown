@@ -134,6 +134,8 @@ The following arguments are supported:
 
 The `custom_rules` block supports the following:
 
+* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `true`.
+
 * `name` - (Optional) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
