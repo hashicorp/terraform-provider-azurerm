@@ -3,6 +3,7 @@ package qumulo
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -33,17 +34,17 @@ func (r FileSystemResource) ModelObject() interface{} {
 }
 
 type FileSystemResourceSchema struct {
-	AvailabilityZone  string                 `tfschema:"availability_zone"`
 	AdminPassword     string                 `tfschema:"admin_password"`
-	DelegatedSubnetId string                 `tfschema:"delegated_subnet_id"`
 	InitialCapacity   int64                  `tfschema:"initial_capacity"`
 	Location          string                 `tfschema:"location"`
 	MarketplacePlanId string                 `tfschema:"marketplace_plan_id"`
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
 	StorageSku        string                 `tfschema:"storage_sku"`
+	SubnetId          string                 `tfschema:"subnet_id"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 	UserEmailAddress  string                 `tfschema:"user_email_address"`
+	Zone              string                 `tfschema:"zone"`
 }
 
 func (r FileSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -72,13 +73,6 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 
-		"delegated_subnet_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		},
-
 		"initial_capacity": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
@@ -100,6 +94,13 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(filesystems.PossibleValuesForStorageSku(), false),
 		},
 
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
 		"user_email_address": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -107,7 +108,7 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"availability_zone": commonschema.ZoneSingleOptionalForceNew(),
+		"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 		"location": commonschema.Location(),
 
@@ -121,7 +122,7 @@ func (r FileSystemResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r FileSystemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
 
@@ -144,13 +145,18 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			// check the subnet is valid: https://learn.microsoft.com/en-us/azure/partner-solutions/qumulo/qumulo-troubleshoot#you-cant-create-a-resource
+			if err := checkSubnet(ctx, config.SubnetId, metadata); err != nil {
+				return err
+			}
+
 			payload := filesystems.FileSystemResource{
 				Location: location.Normalize(config.Location),
 				Tags:     tags.Expand(config.Tags),
 				Properties: filesystems.FileSystemResourceProperties{
 					AdminPassword:     config.AdminPassword,
-					AvailabilityZone:  pointer.To(config.AvailabilityZone),
-					DelegatedSubnetId: config.DelegatedSubnetId,
+					AvailabilityZone:  pointer.To(config.Zone),
+					DelegatedSubnetId: config.SubnetId,
 					InitialCapacity:   config.InitialCapacity,
 					StorageSku:        filesystems.StorageSku(config.StorageSku),
 					UserDetails: filesystems.UserDetails{
@@ -179,19 +185,11 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
-			schema := FileSystemResourceSchema{}
 
 			id, err := filesystems.ParseFileSystemID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-
-			var config FileSystemResourceSchema
-			if err := metadata.Decode(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-			schema.AdminPassword = config.AdminPassword
-			schema.UserEmailAddress = config.UserEmailAddress
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -200,31 +198,39 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if model := resp.Model; model != nil {
-				schema.Name = id.FileSystemName
-				schema.ResourceGroupName = id.ResourceGroupName
-				schema.AvailabilityZone = pointer.From(model.Properties.AvailabilityZone)
-				schema.InitialCapacity = model.Properties.InitialCapacity
-				schema.MarketplacePlanId = model.Properties.MarketplaceDetails.PlanId
-				schema.StorageSku = string(model.Properties.StorageSku)
-				schema.Location = location.Normalize(model.Location)
-				schema.Tags = tags.Flatten(model.Tags)
 
-				subnetId, err := commonids.ParseSubnetID(model.Properties.DelegatedSubnetId)
+			var config FileSystemResourceSchema
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			config.Name = id.FileSystemName
+			config.ResourceGroupName = id.ResourceGroupName
+
+			if model := resp.Model; model != nil {
+				// model.Properties and model.Properties.MarketplaceDetails is not pointer, so we don't need to check nil
+				config.Zone = pointer.From(model.Properties.AvailabilityZone)
+				config.InitialCapacity = model.Properties.InitialCapacity
+				config.MarketplacePlanId = model.Properties.MarketplaceDetails.PlanId
+				config.StorageSku = string(model.Properties.StorageSku)
+				config.Location = location.Normalize(model.Location)
+				config.Tags = tags.Flatten(model.Tags)
+
+				subnetId, err := commonids.ParseSubnetIDInsensitively(model.Properties.DelegatedSubnetId)
 				if err != nil {
 					return err
 				}
-				schema.DelegatedSubnetId = subnetId.ID()
+				config.SubnetId = subnetId.ID()
 			}
 
-			return metadata.Encode(&schema)
+			return metadata.Encode(&config)
 		},
 	}
 }
 
 func (r FileSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 120 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
 
@@ -244,7 +250,7 @@ func (r FileSystemResource) Delete() sdk.ResourceFunc {
 
 func (r FileSystemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
 
@@ -271,4 +277,37 @@ func (r FileSystemResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func checkSubnet(ctx context.Context, rawSubnetId string, metadata sdk.ResourceMetaData) error {
+	const (
+		delegationAction = "Microsoft.Network/virtualNetworks/subnets/join/action"
+		delegationName   = "Qumulo.Storage/fileSystems"
+	)
+	subnetClient := metadata.Client.Network.SubnetsClient
+	subnetId, err := commonids.ParseSubnetID(rawSubnetId)
+	if err != nil {
+		return err
+	}
+
+	subnet, err := subnetClient.Get(ctx, subnetId.ResourceGroupName, subnetId.VirtualNetworkName, subnetId.SubnetName, "")
+	if err != nil {
+		return fmt.Errorf("checking the subnet: %+v", err)
+	}
+
+	if subnet.SubnetPropertiesFormat != nil && subnet.Delegations != nil {
+		for _, delegation := range *subnet.Delegations {
+			if delegation.ServiceDelegationPropertiesFormat != nil && delegation.ServiceDelegationPropertiesFormat.Actions != nil &&
+				delegation.ServiceDelegationPropertiesFormat.ServiceName != nil && strings.EqualFold(*delegation.ServiceDelegationPropertiesFormat.ServiceName, delegationName) {
+				for _, action := range *delegation.ServiceDelegationPropertiesFormat.Actions {
+					if strings.EqualFold(action, delegationAction) {
+						return nil
+					}
+				}
+
+			}
+		}
+	}
+
+	return fmt.Errorf("subnet %q is not delegated %q to %q", rawSubnetId, delegationAction, delegationName)
 }

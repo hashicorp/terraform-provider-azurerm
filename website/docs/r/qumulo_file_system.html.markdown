@@ -69,17 +69,17 @@ The following arguments are supported:
  
 * `admin_password` - (Required) Initial administrator password of the Qumulo File System. Changing this forces a new resource to be created.
 
-* `delegated_subnet_id` - (Required) Delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
-
 * `initial_capacity` - (Required) Storage capacity in TB. Changing this forces a new resource to be created.
 
 * `marketplace_plan_id` - (Required) Specifies the marketplace plan ID. Changing this forces a new resource to be created.
 
 * `storage_sku` - (Required) Storage Sku. Possible values are `Performance` and `Standard`. Changing this forces a new resource to be created.
 
+* `subnet_id` - (Required) Delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
+
 * `user_email_address` - (Required) The email address. Changing this forces a new resource to be created.
 
-* `availability_zone` - (Optional) Availability zone. Changing this forces a new resource to be created.
+* `zone` - (Optional) Availability zone. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the File System.
 
@@ -95,10 +95,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating this File System.
-* `delete` - (Defaults to 120 minutes) Used when deleting this File System.
+* `create` - (Defaults to 90 minutes) Used when creating this File System.
+* `delete` - (Defaults to 60 minutes) Used when deleting this File System.
 * `read` - (Defaults to 5 minutes) Used when retrieving this File System.
-* `update` - (Defaults to 120 minutes) Used when updating this File System.
+* `update` - (Defaults to 90 minutes) Used when updating this File System.
 
 ## Import
 

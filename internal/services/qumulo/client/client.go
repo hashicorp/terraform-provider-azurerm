@@ -15,7 +15,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	fileSystemsClient, err := filesystems.NewFileSystemsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building client for qumulostorage V20221012: %+v", err)
+		return nil, fmt.Errorf("building FileSystems client: %+v", err)
 	}
 	o.Configure(fileSystemsClient.Client, o.Authorizers.ResourceManager)
 

@@ -112,10 +112,10 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
   marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
   storage_sku         = "Standard"
+  subnet_id           = azurerm_subnet.test.id
   user_email_address  = "test@test.com"
 }
 `, r.template(data), data.RandomString)
@@ -130,10 +130,10 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
   marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
   storage_sku         = "Standard"
+  subnet_id           = azurerm_subnet.test.id
   user_email_address  = "test@test.com"
   tags = {
     environment = "terraform-acctests"
@@ -152,10 +152,10 @@ resource "azurerm_qumulo_file_system" "import" {
   resource_group_name = azurerm_qumulo_file_system.test.resource_group_name
   location            = azurerm_qumulo_file_system.test.location
   admin_password      = azurerm_qumulo_file_system.test.admin_password
-  delegated_subnet_id = azurerm_qumulo_file_system.test.delegated_subnet_id
   initial_capacity    = azurerm_qumulo_file_system.test.initial_capacity
   marketplace_plan_id = azurerm_qumulo_file_system.test.marketplace_plan_id
   storage_sku         = azurerm_qumulo_file_system.test.storage_sku
+  subnet_id           = azurerm_qumulo_file_system.test.subnet_id
   user_email_address  = azurerm_qumulo_file_system.test.user_email_address
 }
 `, r.basic(data))
@@ -170,12 +170,12 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  availability_zone   = "1"
-  delegated_subnet_id = azurerm_subnet.test.id
   initial_capacity    = 21
   marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
   storage_sku         = "Performance"
+  subnet_id           = azurerm_subnet.test.id
   user_email_address  = "test@test.com"
+  zone                = "1"
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
