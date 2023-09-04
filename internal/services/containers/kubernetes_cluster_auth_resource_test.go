@@ -32,7 +32,7 @@ func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("3"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -52,7 +52,7 @@ func TestAccKubernetesCluster_managedClusterIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("service_principal.%").HasValue("0"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -68,7 +68,7 @@ func TestAccKubernetesCluster_userAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -83,14 +83,14 @@ func TestAccKubernetesCluster_updateWithUserAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 		{
 			Config: r.updateWithUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -107,7 +107,7 @@ func TestAccKubernetesCluster_userAssignedKubeletIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("kubelet_identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -122,7 +122,7 @@ func TestAccKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -137,7 +137,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -154,7 +154,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			// should be no changes since the default for Tenant ID comes from the Provider block
 			Config:   r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, clientData.TenantID),
@@ -181,14 +181,14 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			Config: r.roleBasedAccessControlAADUpdateConfig(data, altAlt.ClientID, altAlt.ClientSecret, clientData.TenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -205,14 +205,14 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -228,7 +228,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			// should be no changes since the default for Tenant ID comes from the Provider block
 			Config:   r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
@@ -237,7 +237,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -253,7 +253,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -269,21 +269,21 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			Config: r.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, clientData.TenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			Config: r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -299,7 +299,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			Config: r.roleBasedAccessControlAADManagedConfigScale(data, clientData.TenantID),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -307,7 +307,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.
 				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -323,14 +323,14 @@ func TestAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			Config: r.roleBasedAccessControlAzureConfig(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 		{
 			// should be no changes since the default for Tenant ID comes from the Provider block
 			Config:   r.roleBasedAccessControlAzureConfig(data, clientData.TenantID),
@@ -339,7 +339,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAzure(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -356,7 +356,7 @@ func TestAccKubernetesCluster_servicePrincipal(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep("service_principal.0.client_secret"),
+		data.ImportStep("service_principal.0.client_secret", "public_network_access_enabled"),
 		{
 			Config: r.servicePrincipalConfig(data, clientData.Alternate.ClientID, clientData.Alternate.ClientSecret),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -364,7 +364,7 @@ func TestAccKubernetesCluster_servicePrincipal(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep("service_principal.0.client_secret"),
+		data.ImportStep("service_principal.0.client_secret", "public_network_access_enabled"),
 	})
 }
 
@@ -381,7 +381,7 @@ func TestAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t *testin
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep("service_principal.0.client_secret"),
+		data.ImportStep("service_principal.0.client_secret", "public_network_access_enabled"),
 		{
 			Config: r.managedClusterIdentityConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -393,7 +393,7 @@ func TestAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity(t *testin
 				check.That(data.ResourceName).Key("service_principal.%").HasValue("0"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
@@ -410,7 +410,7 @@ func TestAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
 		},
-		data.ImportStep("service_principal.0.client_secret"),
+		data.ImportStep("service_principal.0.client_secret", "public_network_access_enabled"),
 		{
 			Config: r.userAssignedIdentityConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -418,7 +418,7 @@ func TestAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("public_network_access_enabled"),
 	})
 }
 
