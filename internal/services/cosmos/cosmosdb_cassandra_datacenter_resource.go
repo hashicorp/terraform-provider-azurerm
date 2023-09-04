@@ -4,7 +4,6 @@
 package cosmos
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -123,7 +122,10 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterId, _ := managedcassandras.ParseCassandraClusterID(d.Get("cassandra_cluster_id").(string))
+	clusterId, err := managedcassandras.ParseCassandraClusterID(d.Get("cassandra_cluster_id").(string))
+	if err != nil {
+		return err
+	}
 	id := managedcassandras.NewDataCenterID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.CassandraClusterName, d.Get("name").(string))
 
 	existing, err := client.CassandraDataCentersGet(ctx, id)
@@ -244,23 +246,6 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
-	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/19078
-	// There is a long running issue on updating this resource.
-	// The API cannot update the property after WaitForCompletionRef is returned.
-	// It has to wait a while after that. Then the property can be updated successfully.
-	stateConf := &pluginsdk.StateChangeConf{
-		Delay:      1 * time.Minute,
-		Pending:    []string{string(managedcassandras.ManagedCassandraProvisioningStateUpdating)},
-		Target:     []string{string(managedcassandras.ManagedCassandraProvisioningStateSucceeded)},
-		Refresh:    cassandraDatacenterStateRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
-	}
-
 	return resourceCassandraDatacenterRead(d, meta)
 }
 
@@ -279,20 +264,4 @@ func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcassandras.ManagedCassandrasClient, id managedcassandras.DataCenterId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CassandraDataCentersGet(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
-		}
-
-		if model := res.Model; model != nil {
-			if model.Properties != nil && model.Properties.ProvisioningState != nil {
-				return res, string(*model.Properties.ProvisioningState), nil
-			}
-		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
-	}
 }
