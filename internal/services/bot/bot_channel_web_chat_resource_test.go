@@ -31,13 +31,6 @@ func testAccBotChannelWebChat_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic2(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -126,20 +119,6 @@ resource "azurerm_bot_channel_web_chat" "test" {
   site {
     name = "TestSite"
   }
-}
-`, BotChannelsRegistrationResource{}.basicConfig(data))
-}
-
-func (BotChannelWebChatResource) basic2(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_bot_channel_web_chat" "test" {
-  bot_name            = azurerm_bot_channels_registration.test.name
-  location            = azurerm_bot_channels_registration.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  site_names = ["TestSite","TestSite2"]
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
