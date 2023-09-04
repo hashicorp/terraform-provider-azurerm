@@ -66,6 +66,34 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
+						"application_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"block_user_upload_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"endpoint_parameters_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"no_storage_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
 					},
 				},
 				ExactlyOneOf: func() []string {
@@ -143,6 +171,12 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
+
+	// Unable to create a new site with block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	return resourceBotChannelWebChatRead(d, meta)
 }
 
@@ -266,11 +300,22 @@ func expandSites(siteNames []interface{}, sites []interface{}) *[]botservice.Web
 	for _, v := range sites {
 		site := v.(map[string]interface{})
 		result := botservice.WebChatSite{
-			IsEnabled: utils.Bool(true),
+			IsEnabled:                   utils.Bool(true),
+			IsBlockUserUploadEnabled:    utils.Bool(site["block_user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          utils.Bool(site["no_storage_enabled"].(bool)),
 		}
 
 		if siteName := site["name"].(string); siteName != "" {
 			result.SiteName = utils.String(siteName)
+		}
+
+		if v := site["application_id"].(string); v != "" {
+			result.AppID = utils.String(v)
+		}
+
+		if v := site["tenant_id"].(string); v != "" {
+			result.TenantID = utils.String(v)
 		}
 
 		results = append(results, result)
@@ -291,6 +336,26 @@ func flattenSites(input *[]botservice.WebChatSite) ([]interface{}, []interface{}
 
 		if v := element.SiteName; v != nil {
 			site["name"] = *v
+		}
+
+		if v := element.AppID; v != nil {
+			site["application_id"] = *v
+		}
+
+		if v := element.IsBlockUserUploadEnabled; v != nil {
+			site["block_user_upload_enabled"] = *v
+		}
+
+		if v := element.IsEndpointParametersEnabled; v != nil {
+			site["endpoint_parameters_enabled"] = *v
+		}
+
+		if v := element.IsNoStorageEnabled; v != nil {
+			site["no_storage_enabled"] = *v
+		}
+
+		if v := element.TenantID; v != nil {
+			site["tenant_id"] = *v
 		}
 
 		sites[i] = site

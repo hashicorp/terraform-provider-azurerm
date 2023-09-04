@@ -115,7 +115,10 @@ resource "azurerm_bot_channel_web_chat" "test" {
   bot_name            = azurerm_bot_channels_registration.test.name
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
-  site_names          = ["TestSite"]
+
+  site {
+    name = "TestSite"
+  }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
@@ -128,7 +131,10 @@ resource "azurerm_bot_channel_web_chat" "import" {
   bot_name            = azurerm_bot_channel_web_chat.test.bot_name
   location            = azurerm_bot_channel_web_chat.test.location
   resource_group_name = azurerm_bot_channel_web_chat.test.resource_group_name
-  site_names          = ["TestSite"]
+
+  site {
+    name = "TestSite"
+  }
 }
 `, r.basic(data))
 }
@@ -141,7 +147,23 @@ resource "azurerm_bot_channel_web_chat" "test" {
   bot_name            = azurerm_bot_channels_registration.test.name
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
-  site_names          = ["TestSite2", "TestSite3"]
+
+  site {
+    name                        = "TestSite2"
+    application_id              = "testAppId"
+    tenant_id                   = data.azurerm_client_config.current.tenant_id
+    block_user_upload_enabled   = true
+    endpoint_parameters_enabled = true
+    no_storage_enabled          = true
+  }
+
+  site {
+    name                        = "TestSite3"
+    tenant_id                   = data.azurerm_client_config.current.tenant_id
+    block_user_upload_enabled   = false
+    endpoint_parameters_enabled = false
+    no_storage_enabled          = false
+  }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
