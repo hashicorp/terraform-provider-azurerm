@@ -1045,9 +1045,9 @@ resource "azurerm_batch_pool" "test" {
     sku       = "2016-datacenter-smalldisk"
     version   = "latest"
   }
-  
+
   network_configuration {
-	accelerated_networking_enabled = true
+    accelerated_networking_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
