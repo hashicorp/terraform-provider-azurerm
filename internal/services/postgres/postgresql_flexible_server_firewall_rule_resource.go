@@ -64,6 +64,12 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validation.IsIPAddress,
 			},
+
+			"resource_lock_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -81,8 +87,10 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 
 	id := firewallrules.NewFirewallRuleID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, d.Get("name").(string))
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	if d.Get("resource_lock_enabled").(bool) {
+		locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+		defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -151,8 +159,10 @@ func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	if d.Get("resource_lock_enabled").(bool) {
+		locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+		defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	}
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
