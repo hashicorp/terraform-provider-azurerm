@@ -101,7 +101,7 @@ resource "azurerm_bot_channel_directline" "test" {
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   site {
-    name    = "test"
+    name    = "testSite"
     enabled = true
   }
 }
@@ -116,9 +116,10 @@ resource "azurerm_bot_channel_directline" "test" {
   bot_name            = "${azurerm_bot_channels_registration.test.name}"
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   site {
-    name                            = "test"
-    application_id                  = "testAppId"
+    name                            = "testSite1"
+    application_id                  = "testAppId1"
     enabled                         = true
     v1_allowed                      = true
     v3_allowed                      = true
@@ -128,6 +129,17 @@ resource "azurerm_bot_channel_directline" "test" {
     block_user_upload_enabled       = true
     endpoint_parameters_enabled     = true
     no_storage_enabled              = true
+  }
+
+  site {
+    name                            = "testSite2"
+    application_id                  = "testAppId2"
+    enabled                         = true
+    enhanced_authentication_enabled = false
+    tenant_id                       = data.azurerm_client_config.current.tenant_id
+    block_user_upload_enabled       = false
+    endpoint_parameters_enabled     = false
+    no_storage_enabled              = false
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
@@ -142,7 +154,7 @@ resource "azurerm_bot_channel_directline" "test" {
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   site {
-    name    = "test"
+    name    = "testSite"
     enabled = false
   }
 }
