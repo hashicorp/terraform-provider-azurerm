@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `end_ip_address` - (Required) The End IP Address associated with this PostgreSQL Flexible Server Firewall Rule.
 
+* `resource_locks_enabled` - (Optional) Determines if the PostgreSQL Flexible Server should be locked when creating or updating the Firewall Rule. Defaults to `true`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
