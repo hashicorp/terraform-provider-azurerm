@@ -85,9 +85,15 @@ The following arguments are supported:
 
 A `secret` block supports the following:
 
+* `identity` - (Optional) The identity to use for accessing Key Vault reference (Required if `key_vault_url` is used).
+
+* `key_vault_url` - (Optional) The URL to a Key Vault secret.
+
 * `name` - (Required) The Secret name.
 
-* `value` - (Required) The value for this secret.
+* `value` - (Optional) The value for this secret.
+
+!> **Note:** `value` and `key_vault_url`/`identity` are mutually exclusive.
 
 !> **Note:** Secrets cannot be removed from the service once added, attempting to do so will result in an error. Their values may be zeroed, i.e. set to `""`, but the named secret must persist. This is due to a technical limitation on the service which causes the service to become unmanageable. See [this issue](https://github.com/microsoft/azure-container-apps/issues/395) for more details.
 

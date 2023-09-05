@@ -2545,8 +2545,10 @@ func expandContainerProbes(input Container) *[]containerapps.ContainerAppProbe {
 }
 
 type Secret struct {
-	Name  string `tfschema:"name"`
-	Value string `tfschema:"value"`
+	Identity    string `tfschema:"identity"`
+	KeyVaultUrl string `tfschema:"key_vault_url"`
+	Name        string `tfschema:"name"`
+	Value       string `tfschema:"value"`
 }
 
 func SecretsSchema() *pluginsdk.Schema {
@@ -2556,6 +2558,20 @@ func SecretsSchema() *pluginsdk.Schema {
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"identity": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Sensitive:   false,
+					Description: "The identity to use for accessing key vault reference.",
+				},
+
+				"key_vault_url": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Sensitive:   true,
+					Description: "The key vault reference URL for this secret.",
+				},
+
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -2566,7 +2582,8 @@ func SecretsSchema() *pluginsdk.Schema {
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Required:    true,
+					Optional:    true,
+					Computed:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2582,6 +2599,20 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"identity": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   false,
+					Description: "The identity to use for accessing key vault reference.",
+				},
+
+				"key_vault_url": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The key vault reference URL for this secret.",
+				},
+
 				"name": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
@@ -2599,21 +2630,36 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandContainerSecrets(input []Secret) *[]containerapps.Secret {
+func ValidateContainerSecret(s Secret) error {
+	if s.KeyVaultUrl != "" && s.Value != "" {
+		return fmt.Errorf("key vault url and value are mutually exclusive")
+	}
+	if s.KeyVaultUrl != "" && s.Identity == "" {
+		return fmt.Errorf("must supply identity for key vault url")
+	}
+	return nil
+}
+
+func ExpandContainerSecrets(input []Secret) (*[]containerapps.Secret, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	result := make([]containerapps.Secret, 0)
 
 	for _, v := range input {
+		if err := ValidateContainerSecret(v); err != nil {
+			return nil, err
+		}
 		result = append(result, containerapps.Secret{
-			Name:  pointer.To(v.Name),
-			Value: pointer.To(v.Value),
+			Identity:    pointer.To(v.Identity),
+			KeyVaultUrl: pointer.To(v.KeyVaultUrl),
+			Name:        pointer.To(v.Name),
+			Value:       pointer.To(v.Value),
 		})
 	}
 
-	return &result
+	return &result, nil
 }
 
 func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapps.Secret {
@@ -2624,8 +2670,10 @@ func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapp
 		for _, secret := range secrets {
 			if v, ok := secret.(map[string]interface{}); ok {
 				result = append(result, containerapps.Secret{
-					Name:  pointer.To(v["name"].(string)),
-					Value: pointer.To(v["value"].(string)),
+					Identity:    pointer.To(v["Identity"].(string)),
+					KeyVaultUrl: pointer.To(v["KeyVaultUrl"].(string)),
+					Name:        pointer.To(v["name"].(string)),
+					Value:       pointer.To(v["value"].(string)),
 				})
 			}
 		}
@@ -2655,7 +2703,6 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 	result := make([]daprcomponents.Secret, 0)
 	for _, v := range input.Value {
 		result = append(result, daprcomponents.Secret{
-			// TODO: add support for Identity & KeyVaultUrl
 			Name:  v.Name,
 			Value: v.Value,
 		})
@@ -2664,7 +2711,62 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 	return &result
 }
 
-func ExpandDaprSecrets(input []Secret) *[]daprcomponents.Secret {
+type DaprSecret struct {
+	Name  string `tfschema:"name"`
+	Value string `tfschema:"value"`
+}
+
+func DaprSecretsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:      pluginsdk.TypeSet,
+		Optional:  true,
+		Sensitive: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validate.SecretName,
+					Sensitive:    true,
+					Description:  "The Secret name.",
+				},
+
+				"value": {
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					Sensitive:   true,
+					Description: "The value for this secret.",
+				},
+			},
+		},
+	}
+}
+
+func DaprSecretsDataSourceSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:      pluginsdk.TypeList,
+		Computed:  true,
+		Sensitive: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Secret name.",
+				},
+
+				"value": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The value for this secret.",
+				},
+			},
+		},
+	}
+}
+
+func ExpandDaprSecrets(input []DaprSecret) *[]daprcomponents.Secret {
 	if len(input) == 0 {
 		return nil
 	}
@@ -2681,8 +2783,8 @@ func ExpandDaprSecrets(input []Secret) *[]daprcomponents.Secret {
 	return &result
 }
 
-func FlattenSecrets(input []interface{}) []Secret {
-	secrets := make([]Secret, 0)
+func FlattenSecrets(input []interface{}) []DaprSecret {
+	secrets := make([]DaprSecret, 0)
 	for _, s := range input {
 		secret := s.(map[string]interface{})
 		name, ok := secret["name"].(string)
@@ -2693,7 +2795,7 @@ func FlattenSecrets(input []interface{}) []Secret {
 		if val, ok := secret["value"].(string); ok {
 			value = val
 		}
-		secrets = append(secrets, Secret{
+		secrets = append(secrets, DaprSecret{
 			Name:  name,
 			Value: value,
 		})
@@ -2709,21 +2811,23 @@ func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
 		result = append(result, Secret{
-			Name:  pointer.From(v.Name),
-			Value: pointer.From(v.Value),
+			Identity:    pointer.From(v.Identity),
+			KeyVaultUrl: pointer.From(v.KeyVaultUrl),
+			Name:        pointer.From(v.Name),
+			Value:       pointer.From(v.Value),
 		})
 	}
 
 	return result
 }
 
-func FlattenContainerAppDaprSecrets(input *daprcomponents.DaprSecretsCollection) []Secret {
+func FlattenContainerAppDaprSecrets(input *daprcomponents.DaprSecretsCollection) []DaprSecret {
 	if input == nil || input.Value == nil {
-		return []Secret{}
+		return []DaprSecret{}
 	}
-	result := make([]Secret, 0)
+	result := make([]DaprSecret, 0)
 	for _, v := range input.Value {
-		result = append(result, Secret{
+		result = append(result, DaprSecret{
 			Name:  pointer.From(v.Name),
 			Value: pointer.From(v.Value),
 		})

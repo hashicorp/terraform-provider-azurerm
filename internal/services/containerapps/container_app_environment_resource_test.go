@@ -194,6 +194,19 @@ resource "azurerm_container_app_environment" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentResource) basicNoProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 

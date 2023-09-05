@@ -55,7 +55,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `secret` block supports the following:
 
-* `name` - The Secret name.
+* `identity` - The identity used for accessing Key Vault reference.
+
+* `key_vault_url` - The URL to the Key Vault secret.
+
+* `name` - The secret name.
 
 * `value` - The value for this secret.
 
