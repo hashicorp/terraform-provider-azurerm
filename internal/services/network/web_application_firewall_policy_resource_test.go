@@ -42,7 +42,8 @@ func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_rules.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.#").HasValue("3"),
+				check.That(data.ResourceName).Key("custom_rules.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("custom_rules.0.name").HasValue("Rule1"),
 				check.That(data.ResourceName).Key("custom_rules.0.priority").HasValue("1"),
 				check.That(data.ResourceName).Key("custom_rules.0.rule_type").HasValue("MatchRule"),
@@ -73,6 +74,19 @@ func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_values.#").HasValue("1"),
 				check.That(data.ResourceName).Key("custom_rules.1.match_conditions.1.match_values.0").HasValue("windows"),
 				check.That(data.ResourceName).Key("custom_rules.1.action").HasValue("Block"),
+				check.That(data.ResourceName).Key("custom_rules.2.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.2.name").HasValue("Rule3"),
+				check.That(data.ResourceName).Key("custom_rules.2.priority").HasValue("3"),
+				check.That(data.ResourceName).Key("custom_rules.2.rule_type").HasValue("MatchRule"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_variables.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_variables.0.variable_name").HasValue("RemoteAddr"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.operator").HasValue("IPMatch"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.negation_condition").HasValue("false"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_values.#").HasValue("2"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_values.0").HasValue("192.168.1.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.2.match_conditions.0.match_values.1").HasValue("10.0.0.0/24"),
+				check.That(data.ResourceName).Key("custom_rules.2.action").HasValue("Block"),
 				check.That(data.ResourceName).Key("managed_rules.#").HasValue("1"),
 				check.That(data.ResourceName).Key("managed_rules.0.exclusion.#").HasValue("2"),
 				check.That(data.ResourceName).Key("managed_rules.0.exclusion.0.match_variable").HasValue("RequestHeaderNames"),
@@ -368,6 +382,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
+    enabled = true
     name      = "Rule1"
     priority  = 1
     rule_type = "MatchRule"
@@ -410,6 +425,25 @@ resource "azurerm_web_application_firewall_policy" "test" {
       negation_condition = false
       match_values       = ["windows"]
       transforms         = ["Lowercase"]
+    }
+
+    action = "Block"
+  }
+
+  custom_rules {
+    enabled = false
+    name      = "Rule3"
+    priority  = 3
+    rule_type = "MatchRule"
+
+    match_conditions {
+      match_variables {
+        variable_name = "RemoteAddr"
+      }
+
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
     }
 
     action = "Block"
