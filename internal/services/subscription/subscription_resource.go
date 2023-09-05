@@ -411,15 +411,21 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Cancel the Subscription
-	if _, err := subscriptionClient.Cancel(ctx, subscriptionId); err != nil {
-		return fmt.Errorf("failed to cancel Subscription: %+v", err)
-	}
+	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
+		log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
 
-	deadline, _ := ctx.Deadline()
-	deleteDeadline := time.Until(deadline)
+		if _, err := subscriptionClient.Cancel(ctx, subscriptionId); err != nil {
+			return fmt.Errorf("failed to cancel Subscription: %+v", err)
+		}
 
-	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Cancelled", deleteDeadline); err != nil {
-		return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.AliasName, err)
+		deadline, _ := ctx.Deadline()
+		deleteDeadline := time.Until(deadline)
+
+		if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Cancelled", deleteDeadline); err != nil {
+			return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.AliasName, err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping subscription %s cancellation due to feature flag.", *id)
 	}
 
 	return nil
