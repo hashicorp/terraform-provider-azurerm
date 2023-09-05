@@ -88,7 +88,7 @@ func (r SecurityCenterAssessmentPolicyResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("retrieving %q: %+v", *id, err)
 	}
 
-	return pointer.To(resp.Model != nil && resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SecurityCenterAssessmentPolicyResource) basic() string {
