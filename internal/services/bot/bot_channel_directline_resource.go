@@ -190,7 +190,7 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 	d.SetId(resourceId.ID())
 
-	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
+	// Unable to add a new site with enhanced_authentication_enabled, block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
@@ -260,6 +260,11 @@ func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interfac
 		Kind:     botservice.KindBot,
 	}
 
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+	}
+
+	// Unable to add a new site with enhanced_authentication_enabled, block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
