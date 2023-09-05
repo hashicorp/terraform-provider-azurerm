@@ -327,11 +327,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				}
 				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
 
-				iconUrl := ""
-				if v := props.IconURL; v != nil {
-					iconUrl = *v
-				}
-				metadata.ResourceData.Set("icon_url", iconUrl)
+				metadata.ResourceData.Set("icon_url", pointer.To(props.IconURL))
 			}
 
 			return nil
