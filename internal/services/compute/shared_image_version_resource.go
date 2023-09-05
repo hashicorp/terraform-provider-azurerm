@@ -184,7 +184,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"replicated_region_deletion_enabled": {
+			"deletion_of_replicated_locations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -237,7 +237,7 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 				TargetRegions:     targetRegions,
 			},
 			SafetyProfile: &compute.GalleryImageVersionSafetyProfile{
-				AllowDeletionOfReplicatedLocations: utils.Bool(d.Get("replicated_region_deletion_enabled").(bool)),
+				AllowDeletionOfReplicatedLocations: utils.Bool(d.Get("deletion_of_replicated_locations_enabled").(bool)),
 			},
 			StorageProfile: &compute.GalleryImageVersionStorageProfile{},
 		},
@@ -362,7 +362,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if safetyProfile := props.SafetyProfile; safetyProfile != nil {
-			d.Set("replicated_region_deletion_enabled", pointer.From(safetyProfile.AllowDeletionOfReplicatedLocations))
+			d.Set("deletion_of_replicated_locations_enabled", pointer.From(safetyProfile.AllowDeletionOfReplicatedLocations))
 		}
 	}
 

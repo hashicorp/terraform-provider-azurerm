@@ -727,13 +727,13 @@ func (r SharedImageVersionResource) replicatedRegionDeletion(data acceptance.Tes
 %s
 
 resource "azurerm_shared_image_version" "test" {
-  name                               = "0.0.1"
-  gallery_name                       = azurerm_shared_image_gallery.test.name
-  image_name                         = azurerm_shared_image.test.name
-  resource_group_name                = azurerm_resource_group.test.name
-  location                           = azurerm_resource_group.test.location
-  managed_image_id                   = azurerm_image.test.id
-  replicated_region_deletion_enabled = true
+  name                                     = "0.0.1"
+  gallery_name                             = azurerm_shared_image_gallery.test.name
+  image_name                               = azurerm_shared_image.test.name
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
+  managed_image_id                         = azurerm_image.test.id
+  deletion_of_replicated_locations_enabled = true
 
   target_region {
     name                        = azurerm_resource_group.test.location
