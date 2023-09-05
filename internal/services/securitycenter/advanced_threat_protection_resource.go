@@ -88,7 +88,10 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.TargetResourceID, err)
 	}
 
-	deadline, _ := ctx.Deadline()
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
 
 	// the API appears to be eventually consistent, tracked on https://github.com/Azure/azure-rest-api-specs/issues/25232
 	stateConf := &pluginsdk.StateChangeConf{
