@@ -258,11 +258,11 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			input1 := val["instance_1_bgp_peering_address"].([]interface{})
 
 			if len(input0) > 0 || len(input1) > 0 {
-				if len(input0) > 0 {
+				if len(input0) > 0 && input0[0] != nil {
 					val := input0[0].(map[string]interface{})
 					(*props.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 				}
-				if len(input1) > 0 {
+				if len(input1) > 0 && input1[0] != nil {
 					val := input1[0].(map[string]interface{})
 					(*props.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 				}
