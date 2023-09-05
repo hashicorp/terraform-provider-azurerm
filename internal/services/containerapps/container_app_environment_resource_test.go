@@ -196,7 +196,6 @@ resource "azurerm_container_app_environment" "test" {
 
 func (r ContainerAppEnvironmentResource) basicNoProvider(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
