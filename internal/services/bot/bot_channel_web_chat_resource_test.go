@@ -149,8 +149,8 @@ resource "azurerm_bot_channel_web_chat" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   site {
-    name                        = "TestSite2"
-    application_id              = "testAppId"
+    name                        = "TestSite1"
+    application_id              = "testAppId1"
     tenant_id                   = data.azurerm_client_config.current.tenant_id
     block_user_upload_enabled   = true
     endpoint_parameters_enabled = true
@@ -158,7 +158,8 @@ resource "azurerm_bot_channel_web_chat" "test" {
   }
 
   site {
-    name                        = "TestSite3"
+    name                        = "TestSite2"
+    application_id              = "testAppId2"
     tenant_id                   = data.azurerm_client_config.current.tenant_id
     block_user_upload_enabled   = false
     endpoint_parameters_enabled = false

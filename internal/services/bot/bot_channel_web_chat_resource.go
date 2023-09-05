@@ -179,7 +179,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	// Unable to create a new site with block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
+	// Unable to add a new site with block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -264,6 +264,11 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 		channel.Properties.Sites = expandSites(d.Get("site").(*pluginsdk.Set).List())
 	}
 
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	// Unable to add a new site with block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
