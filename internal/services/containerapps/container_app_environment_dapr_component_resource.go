@@ -27,7 +27,7 @@ type ContainerAppEnvironmentDaprComponentModel struct {
 	Version              string                 `tfschema:"version"`
 	IgnoreErrors         bool                   `tfschema:"ignore_errors"`
 	InitTimeout          string                 `tfschema:"init_timeout"`
-	Secrets              []helpers.Secret       `tfschema:"secret"`
+	Secrets              []helpers.DaprSecret   `tfschema:"secret"`
 	Scopes               []string               `tfschema:"scopes"`
 	Metadata             []helpers.DaprMetadata `tfschema:"metadata"`
 }

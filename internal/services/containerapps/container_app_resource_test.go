@@ -65,6 +65,21 @@ func TestAccContainerAppResource_withUserAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_withKeyVaultSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withKeyVaultSecret(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppResource_withSystemAndUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -432,6 +447,95 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) withKeyVaultSecret(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                      = "acctest-kv-%[3]s"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  enable_rbac_authorization = true
+  sku_name                  = "standard"
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[3]s"
+  value        = "test-secret"
+  key_vault_id = azurerm_key_vault.test.id
+
+  depends_on   = [
+    azurerm_role_assignment.self_key_vault_admin
+  ]
+}
+
+resource "azurerm_role_assignment" "self_key_vault_admin" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "mi_key_vault_secrets" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "key-vault-secret"
+        secret_name = "key-vault-secret"
+      }
+    }
+  }
+  secret {
+    name          = "key-vault-secret"
+    identity      = azurerm_user_assigned_identity.test.id
+    key_vault_url = azurerm_key_vault_secret.test.versionless_id
+  }
+
+  depends_on = [
+    azurerm_role_assignment.mi_key_vault_secrets
+  ]
+}
+`, r.templateNoProvider(data), data.RandomInteger, data.RandomString)
+
 }
 
 func (r ContainerAppResource) basicUpdate(data acceptance.TestData) string {
@@ -1327,6 +1431,10 @@ resource "azurerm_container_app" "test" {
 
 func (ContainerAppResource) template(data acceptance.TestData) string {
 	return ContainerAppEnvironmentResource{}.basic(data)
+}
+
+func (ContainerAppResource) templateNoProvider(data acceptance.TestData) string {
+	return ContainerAppEnvironmentResource{}.basicNoProvider(data)
 }
 
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
