@@ -478,7 +478,7 @@ resource "azurerm_key_vault_secret" "test" {
   value        = "test-secret"
   key_vault_id = azurerm_key_vault.test.id
 
-  depends_on   = [
+  depends_on = [
     azurerm_role_assignment.self_key_vault_admin
   ]
 }
