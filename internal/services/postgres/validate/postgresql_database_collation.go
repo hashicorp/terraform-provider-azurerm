@@ -271,12 +271,13 @@ var languageCodes = map[string]struct{}{
 }
 
 var specialCases = map[string]struct{}{
-	".utf8":                      {},
-	"C":                          {},
-	"POSIX":                      {},
-	"English_United States.1252": {},
-	"ucs_basic":                  {},
-	"default":                    {},
+	".utf8":                       {},
+	"C":                           {},
+	"POSIX":                       {},
+	"English_United Kingdom.1252": {},
+	"English_United States.1252":  {},
+	"ucs_basic":                   {},
+	"default":                     {},
 }
 
 var databaseCollationDidNotMatchError = func(fieldName, value string) error {
