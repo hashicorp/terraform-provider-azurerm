@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_automation_python3_package` [GH-23087]
+* Provider Feature: subscription cancellation on `destroy` can now be disabled via the provider `features` block [GH-19936]
+*  **New Resource**: `azurerm_automation_python3_package` [GH-23087]
 
 ENHANCEMENTS:
 
