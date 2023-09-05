@@ -23,14 +23,14 @@ func TestAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 5, 8),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -47,7 +47,7 @@ func TestAccKubernetesCluster_upgradeControlPlane(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.upgradeControlPlaneConfig(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -58,7 +58,7 @@ func TestAccKubernetesCluster_upgradeControlPlane(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -75,7 +75,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t *t
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.upgradeControlPlaneDefaultNodePoolConfig(data, currentKubernetesVersion, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -84,7 +84,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t *t
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(currentKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -101,7 +101,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *t
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.upgradeControlPlaneDefaultNodePoolConfig(data, currentKubernetesVersion, olderKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -110,7 +110,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *t
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.upgradeControlPlaneDefaultNodePoolConfig(data, currentKubernetesVersion, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -119,7 +119,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *t
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(currentKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -136,7 +136,7 @@ func TestAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *testing.
 				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config:      r.upgradeControlPlaneDefaultNodePoolConfig(data, olderKubernetesVersion, currentKubernetesVersion),
 			ExpectError: regexp.MustCompile(fmt.Sprintf("Node pool version %s and control plane version %s are incompatible.", currentKubernetesVersion, olderKubernetesVersion)),
@@ -160,7 +160,7 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *testing.
 				acceptance.TestCheckResourceAttr(nodePoolName, "orchestrator_version", olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// upgrade the control plane
 			Config: r.upgradeVersionsConfig(data, currentKubernetesVersion, olderKubernetesVersion, olderKubernetesVersion),
@@ -171,7 +171,7 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *testing.
 				acceptance.TestCheckResourceAttr(nodePoolName, "orchestrator_version", olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// upgrade the node pool
 			Config: r.upgradeVersionsConfig(data, currentKubernetesVersion, olderKubernetesVersion, currentKubernetesVersion),
@@ -182,7 +182,7 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *testing.
 				acceptance.TestCheckResourceAttr(nodePoolName, "orchestrator_version", currentKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -202,7 +202,7 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t *te
 				acceptance.TestCheckResourceAttr(nodePoolName, "orchestrator_version", olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// upgrade the node pool
 			Config:      r.upgradeVersionsConfig(data, olderKubernetesVersion, olderKubernetesVersion, currentKubernetesVersion),
@@ -227,7 +227,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherVersionAlias
 				check.That(nodePoolName).Key("orchestrator_version").HasValue(olderKubernetesVersionAlias),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// upgrade control plane, default and custom node pools
 			Config: r.upgradeVersionsConfig(data, currentKubernetesVersionAlias, currentKubernetesVersionAlias, currentKubernetesVersionAlias),
@@ -238,7 +238,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherVersionAlias
 				check.That(nodePoolName).Key("orchestrator_version").HasValue(currentKubernetesVersionAlias),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -258,7 +258,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherSpot(t *test
 				check.That(nodePoolName).Key("orchestrator_version").HasValue(olderKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// upgrade control plane, default and custom node pools
 			Config: r.upgradeVersionsConfigSpot(data, currentKubernetesVersion, currentKubernetesVersion, currentKubernetesVersion),
@@ -269,7 +269,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherSpot(t *test
 				check.That(nodePoolName).Key("orchestrator_version").HasValue(currentKubernetesVersion),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -286,7 +286,7 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.upgradeSettingsConfig(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -294,7 +294,7 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.upgradeSettingsConfig(data, "2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -303,7 +303,7 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 

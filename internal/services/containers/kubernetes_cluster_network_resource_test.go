@@ -26,7 +26,7 @@ func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -44,7 +44,7 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.serviceMeshProfile(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -54,7 +54,7 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -72,7 +72,7 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.serviceMeshProfile(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -82,7 +82,7 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.serviceMeshProfileDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -92,7 +92,7 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -106,7 +106,7 @@ func TestAccKubernetesCluster_advancedNetworkingIPVersionsIPv4(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -121,7 +121,7 @@ func TestAccKubernetesCluster_advancedNetworkingIPVersionsDualStack(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -137,7 +137,7 @@ func TestAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
 			),
 		},
-		data.ImportStep("network_profile.0.docker_bridge_cidr", "public_network_access_enabled"),
+		data.ImportStep("network_profile.0.docker_bridge_cidr"),
 	})
 }
 
@@ -153,7 +153,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -169,7 +169,7 @@ func TestAccKubernetesCluster_advancedNetworkingNone(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("none"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -185,7 +185,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 			),
 		},
-		data.ImportStep("network_profile.0.docker_bridge_cidr", "public_network_access_enabled"),
+		data.ImportStep("network_profile.0.docker_bridge_cidr"),
 	})
 }
 
@@ -201,7 +201,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureWithoutDockerBridgeCidr(t *
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -218,7 +218,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) 
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -235,7 +235,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *tes
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -253,7 +253,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTran
 				check.That(data.ResourceName).Key("network_profile.0.network_mode").HasValue("transparent"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -270,7 +270,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -287,7 +287,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testin
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -303,7 +303,7 @@ func TestAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -319,7 +319,7 @@ func TestAccKubernetesCluster_internalNetwork(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").HasValue("60"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -336,7 +336,7 @@ func TestAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -351,7 +351,7 @@ func TestAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -369,7 +369,7 @@ func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("10"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 
 		{
 			Config: r.natGatewayProfileConfig(data, 4, 5),
@@ -379,7 +379,7 @@ func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("5"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -397,7 +397,7 @@ func TestAccKubernetesCluster_managedNatGateway(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -412,7 +412,7 @@ func TestAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -429,7 +429,7 @@ func TestAccKubernetesCluster_privateClusterOn(t *testing.T) {
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -445,7 +445,7 @@ func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -492,7 +492,7 @@ func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem(t *testin
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -508,7 +508,7 @@ func TestAccKubernetesCluster_privateClusterOff(t *testing.T) {
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -523,7 +523,7 @@ func TestAccKubernetesCluster_podCidrs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -538,7 +538,7 @@ func TestAccKubernetesCluster_podCidrsDualStack(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -553,7 +553,7 @@ func TestAccKubernetesCluster_serviceCidrs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -568,7 +568,7 @@ func TestAccKubernetesCluster_serviceCidrsDualStack(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -584,7 +584,7 @@ func TestAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -600,7 +600,7 @@ func TestAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -620,7 +620,7 @@ func TestAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ports_allocated").HasValue("0"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -638,7 +638,7 @@ func TestAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) 
 			),
 			PreventPostDestroyRefresh: true,
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -687,14 +687,14 @@ func TestAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.unsetPrefixedLoadBalancerProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -712,7 +712,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.changingLoadBalancerProfileConfigManagedIPs(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -722,7 +722,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.changingLoadBalancerProfileConfigIPIds(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -732,7 +732,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -741,7 +741,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -761,7 +761,7 @@ func TestAccKubernetesCluster_httpProxyConfig(t *testing.T) {
 			),
 			ExpectNonEmptyPlan: true,
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.httpProxyConfig(data, newNoProxy),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -772,7 +772,7 @@ func TestAccKubernetesCluster_httpProxyConfig(t *testing.T) {
 			),
 			ExpectNonEmptyPlan: true,
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -790,7 +790,7 @@ func TestAccKubernetesCluster_httpProxyConfigWithTrustedCa(t *testing.T) {
 				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -807,7 +807,7 @@ func TestAccKubernetesCluster_httpProxyConfigWithSubnet(t *testing.T) {
 				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -822,7 +822,7 @@ func TestAccKubernetesCluster_networkPluginMode(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -837,14 +837,14 @@ func TestAccKubernetesCluster_ebpfDataPlane(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.ebpfDataPlane(data, "cilium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -859,7 +859,7 @@ func TestAccKubernetesCluster_apiServerInManagedSubnet(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -874,7 +874,7 @@ func TestAccKubernetesCluster_apiServerInBYOSubnet(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -889,7 +889,7 @@ func TestAccKubernetesCluster_clusterPoolNodePublicIPTags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 

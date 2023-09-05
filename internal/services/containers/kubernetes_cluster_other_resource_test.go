@@ -30,7 +30,7 @@ func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -45,7 +45,7 @@ func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -60,7 +60,7 @@ func TestAccKubernetesCluster_basicVMSS(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -94,7 +94,7 @@ func TestAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.only_critical_addons_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -109,7 +109,7 @@ func TestAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -124,7 +124,7 @@ func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -146,7 +146,7 @@ func TestAccKubernetesCluster_linuxProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("linux_profile.0.admin_username").Exists(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -161,7 +161,7 @@ func TestAccKubernetesCluster_linuxProfileUpdateSshKey(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.linuxProfileConfig(data, "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDuiot/laqt5Bxhy0Kaj+g9GqBkr+PEjB18ty59MZC+QXmG7pgOb98FT3BrHUoCtqWWqUASMyMjKIL1fR9HCsV5hJdiecuksldGoWIg9Idr6+5hYDBpPJrm/JHbQBf259YfEi8pQtzAL1ppAv/FqL//MZo2vztnrPi5yDWl+G7ItzF5XeURPtG9DC97T9stUOeLl8bqM4X2ZtydsCkoCia/tajBcp1dFf13kZL9SCsxW452fgXGipx/LvSQQAFcT+xt6mZSgFfSCHUZm4JnxLjSweefRpIOxkO09QS4BlK1MUeBx/EL1Cxv4ql0Uu5x9m64G8E3m1PIJabLp/8Dw84d"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -169,7 +169,7 @@ func TestAccKubernetesCluster_linuxProfileUpdateSshKey(t *testing.T) {
 				check.That(data.ResourceName).Key("linux_profile.0.ssh_key.0.key_data").HasValue("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDuiot/laqt5Bxhy0Kaj+g9GqBkr+PEjB18ty59MZC+QXmG7pgOb98FT3BrHUoCtqWWqUASMyMjKIL1fR9HCsV5hJdiecuksldGoWIg9Idr6+5hYDBpPJrm/JHbQBf259YfEi8pQtzAL1ppAv/FqL//MZo2vztnrPi5yDWl+G7ItzF5XeURPtG9DC97T9stUOeLl8bqM4X2ZtydsCkoCia/tajBcp1dFf13kZL9SCsxW452fgXGipx/LvSQQAFcT+xt6mZSgFfSCHUZm4JnxLjSweefRpIOxkO09QS4BlK1MUeBx/EL1Cxv4ql0Uu5x9m64G8E3m1PIJabLp/8Dw84d"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -220,7 +220,7 @@ func TestAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 				check.That(data.ResourceName).Key("node_resource_group_id").HasValue(nodeResourceGroupId.ID()),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -235,7 +235,7 @@ func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -250,7 +250,7 @@ func TestAccKubernetesCluster_nodePoolKataMshvVmIsolation(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -265,21 +265,21 @@ func TestAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.skuConfigStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.skuConfigFree(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -294,7 +294,7 @@ func TestAccKubernetesCluster_podSubnet(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -331,14 +331,14 @@ func TestAccKubernetesCluster_scaleDownMode(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.scaleDownMode(data, "Deallocate"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -353,14 +353,14 @@ func TestAccKubernetesCluster_tags(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.tagsUpdatedConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -386,7 +386,6 @@ func TestAccKubernetesCluster_windowsProfile(t *testing.T) {
 		},
 		data.ImportStep(
 			"windows_profile.0.admin_password",
-			"public_network_access_enabled",
 		),
 	})
 }
@@ -404,7 +403,6 @@ func TestAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
 		},
 		data.ImportStep(
 			"windows_profile.0.admin_password",
-			"public_network_access_enabled",
 		),
 	})
 }
@@ -420,21 +418,21 @@ func TestAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("windows_profile.0.admin_password", "public_network_access_enabled"),
+		data.ImportStep("windows_profile.0.admin_password"),
 		{
 			Config: r.windowsProfileLicense(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("windows_profile.0.admin_password", "public_network_access_enabled"),
+		data.ImportStep("windows_profile.0.admin_password"),
 		{
 			Config: r.windowsProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("windows_profile.0.admin_password", "public_network_access_enabled"),
+		data.ImportStep("windows_profile.0.admin_password"),
 	})
 }
 
@@ -452,7 +450,6 @@ func TestAccKubernetesCluster_diskEncryption(t *testing.T) {
 		},
 		data.ImportStep(
 			"windows_profile.0.admin_password",
-			"public_network_access_enabled",
 		),
 	})
 }
@@ -470,7 +467,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade", "public_network_access_enabled"),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -479,7 +476,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade", "public_network_access_enabled"),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -488,7 +485,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("node-image"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade", "public_network_access_enabled"),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			// unset = none
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
@@ -498,7 +495,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue(""),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade", "public_network_access_enabled"),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -507,7 +504,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("stable"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade", "public_network_access_enabled"),
+		data.ImportStep("node_os_channel_upgrade"),
 	})
 }
 
@@ -522,7 +519,7 @@ func TestAccKubernetesCluster_basicMaintenanceConfigAutoUpgrade(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -537,7 +534,7 @@ func TestAccKubernetesCluster_basicMaintenanceConfigDefault(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -552,7 +549,7 @@ func TestAccKubernetesCluster_basicMaintenanceConfigNodeOs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -567,7 +564,7 @@ func TestAccKubernetesCluster_capacityReservationGroup(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -582,7 +579,7 @@ func TestAccKubernetesCluster_completeMaintenanceConfigAutoUpgrade(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -597,7 +594,7 @@ func TestAccKubernetesCluster_completeMaintenanceConfigDefault(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -612,7 +609,7 @@ func TestAccKubernetesCluster_completeMaintenanceConfigNodeOs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -627,42 +624,42 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.completeMaintenanceConfigDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.basicMaintenanceConfigDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.basicMaintenanceConfigAutoUpgrade(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.completeMaintenanceConfigAutoUpgrade(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.basicMaintenanceConfigAutoUpgrade(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 
 		{
 			Config: r.basicMaintenanceConfigNodeOs(data),
@@ -670,21 +667,21 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.completeMaintenanceConfigNodeOs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.basicMaintenanceConfigNodeOs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -699,21 +696,21 @@ func TestAccKubernetesCluster_ultraSSD(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -728,14 +725,14 @@ func TestAccKubernetesCluster_privateClusterPublicFqdn(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.privateClusterPublicFqdn(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -751,7 +748,7 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -766,14 +763,14 @@ func TestAccKubernetesCluster_microsoftDefender(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.microsoftDefenderDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -790,7 +787,7 @@ func TestAccKubernetesCluster_oidcIssuer(t *testing.T) {
 				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.oidcIssuer(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -799,7 +796,7 @@ func TestAccKubernetesCluster_oidcIssuer(t *testing.T) {
 				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -815,7 +812,7 @@ func TestAccKubernetesCluster_workloadIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.workloadIdentity(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -823,7 +820,7 @@ func TestAccKubernetesCluster_workloadIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -838,14 +835,14 @@ func TestAccKubernetesCluster_customCATrustEnabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.customCATrustEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -861,21 +858,21 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.webAppRoutingDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.webAppRoutingWithDnsZone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -890,21 +887,21 @@ func TestAccKubernetesCluster_azureMonitorKubernetesMetrics(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.azureMonitorKubernetesMetricsComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.azureMonitorKubernetesMetricsDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -968,7 +965,7 @@ func TestAccKubernetesCluster_customCaTrustCerts(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.1").Exists(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.customCATrustCertificates(data, nil),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -977,7 +974,7 @@ func TestAccKubernetesCluster_customCaTrustCerts(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.1").DoesNotExist(),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -1019,7 +1016,7 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -24,7 +24,7 @@ func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -39,7 +39,7 @@ func TestAccKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -55,7 +55,7 @@ func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// Disable it
 			Config: r.addonProfileAzurePolicyConfig(data, false),
@@ -63,7 +63,7 @@ func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// Enable with V2
 			Config: r.addonProfileAzurePolicyConfig(data, true),
@@ -71,7 +71,7 @@ func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -86,7 +86,7 @@ func TestAccKubernetesCluster_addonProfileOMS(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -101,7 +101,7 @@ func TestAccKubernetesCluster_addonProfileOMSWithMSI(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -116,21 +116,21 @@ func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSDisabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.addonProfileOMSConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -145,14 +145,14 @@ func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.addonProfileRoutingConfig(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -167,7 +167,7 @@ func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_appGatewayId
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -182,14 +182,14 @@ func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.addonProfileIngressApplicationGatewayDisabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -204,7 +204,7 @@ func TestAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -220,7 +220,7 @@ func TestAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// Disable OSM
 			Config: r.addonProfileOpenServiceMeshConfig(data, false),
@@ -228,7 +228,7 @@ func TestAccKubernetesCluster_addonProfileOpenServiceMesh(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -244,7 +244,7 @@ func TestAccKubernetesCluster_addonProfileAzureKeyVaultSecretsProvider(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			// Disable AzureKeyvaultSecretsProvider
 			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, false, "2m"),
@@ -252,7 +252,7 @@ func TestAccKubernetesCluster_addonProfileAzureKeyVaultSecretsProvider(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -267,28 +267,28 @@ func TestAccKubernetesCluster_addonProfileConfidentialComputing(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.addonProfileConfidentialComputingConfig(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.addonProfileConfidentialComputingConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.addonProfileDisableThroughOmission(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 

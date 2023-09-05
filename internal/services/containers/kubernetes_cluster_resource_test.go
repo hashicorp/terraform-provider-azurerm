@@ -124,7 +124,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -132,7 +132,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -170,14 +170,14 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerTogg
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 

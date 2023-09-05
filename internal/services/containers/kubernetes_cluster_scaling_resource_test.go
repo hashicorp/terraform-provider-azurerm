@@ -29,14 +29,14 @@ func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.updateVmSize(data, "Standard_DS3_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -88,7 +88,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 
 }
@@ -152,7 +152,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -167,35 +167,35 @@ func TestAccKubernetesCluster_cycleSystemNodePool(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.updateOsDisk(data, "Ephemeral", 75),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.updateOsSku(data, "Mariner"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.updateZones(data, "Standard_D2ads_v5", "[1,2,3]"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.updateLinuxKernelSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation", "public_network_access_enabled"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -312,7 +312,7 @@ func TestAccKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -354,7 +354,7 @@ func TestAccKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scan_interval").HasValue("10s"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -373,7 +373,7 @@ func TestAccKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -388,7 +388,7 @@ func TestAccKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
@@ -405,7 +405,7 @@ func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.expander").HasValue("random"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 		{
 			Config: r.autoScalingProfileConfigComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -429,7 +429,7 @@ func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.skip_nodes_with_system_pods").HasValue("false"),
 			),
 		},
-		data.ImportStep("public_network_access_enabled"),
+		data.ImportStep(),
 	})
 }
 
