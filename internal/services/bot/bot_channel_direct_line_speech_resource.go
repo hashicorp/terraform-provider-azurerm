@@ -65,7 +65,7 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 
 			"cognitive_service_location": commonschema.LocationWithoutForceNew(),
 
-			"cognitive_service_id": {
+			"cognitive_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
@@ -119,7 +119,7 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 		Kind:     botservice.KindBot,
 	}
 
-	if v, ok := d.GetOk("cognitive_service_id"); ok {
+	if v, ok := d.GetOk("cognitive_account_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
 		channel.Properties.CognitiveServiceResourceID = utils.String(v.(string))
 	}
@@ -170,7 +170,7 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineSpeechChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("cognitive_service_id", channelProps.CognitiveServiceResourceID)
+				d.Set("cognitive_account_id", channelProps.CognitiveServiceResourceID)
 				d.Set("custom_speech_model_id", channelProps.CustomSpeechModelID)
 				d.Set("custom_voice_deployment_id", channelProps.CustomVoiceDeploymentID)
 			}
@@ -204,7 +204,7 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 		Kind:     botservice.KindBot,
 	}
 
-	if v, ok := d.GetOk("cognitive_service_id"); ok {
+	if v, ok := d.GetOk("cognitive_account_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
 		channel.Properties.CognitiveServiceResourceID = utils.String(v.(string))
 	}
