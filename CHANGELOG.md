@@ -13,6 +13,8 @@ ENHANCEMENTS:
 * `internal/sdk`: typed resources using a custom importer now get a timed context [GH-23081]
 * `azurerm_batch_pool` - support for `automatic_upgrade_enabled` [GH-23021]
 * `azurerm_container_app_environment` - support for the `dapr_application_insights_connection_string` [GH-23080]
+* `azurerm_cosmosdb_cassandra_datacenter` - refactoring to use `hashicorp/go-azure-sdk` [GH-23110]
+* `azurerm_cosmosdb_cassandra_datacenter` - updating to API Version `2023-04-15` [GH-23110]
 * `azurerm_monitor_diagnostic_setting` - deprecating `retention_policy` within `enabled_log` [GH-23029]
 * `azurerm_postgresql_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
 * `azurerm_postgresql_flexible_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
