@@ -301,13 +301,11 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   }
 
   region {
-    name       = "US East"
-    is_primary = true
+    name = "West Europe"
   }
 
   region {
-    name       = "US East2"
-    is_primary = fals
+    name = "US East2"
   }
 
   public_network_access_enabled = true

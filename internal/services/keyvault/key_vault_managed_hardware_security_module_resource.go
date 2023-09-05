@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"io"
 	"log"
 	"time"
@@ -116,7 +115,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				//Computed: true,
+				// Computed: true,
 				Default:  true,
 				ForceNew: true,
 			},
@@ -126,16 +125,21 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*schema.Schema{
-						"is_primary": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"is_primary": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"state": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -427,8 +431,7 @@ func expandMHSMRegions(regions []interface{}) *[]managedhsms.MHSMGeoReplicatedRe
 	for _, v := range regions {
 		if region, ok := v.(map[string]interface{}); ok {
 			res = append(res, managedhsms.MHSMGeoReplicatedRegion{
-				IsPrimary: pointer.To(region["is_primary"].(bool)),
-				Name:      pointer.To(region["name"].(string)),
+				Name: pointer.To(region["name"].(string)),
 			})
 		}
 	}
@@ -467,6 +470,7 @@ func flattenMHSMRegions(regions *[]managedhsms.MHSMGeoReplicatedRegion) interfac
 		res = append(res, map[string]interface{}{
 			"name":       pointer.From(region.Name),
 			"is_primary": pointer.From(region.IsPrimary),
+			"state":      pointer.From(region.ProvisioningState),
 		})
 	}
 
