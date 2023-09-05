@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) The Azure Bot Service endpoint.
 
-* `icon_url` - (Optional) The Icon Url of the bot.
+* `icon_url` - (Optional) The Icon Url of the Azure Bot Service.
 
 * `microsoft_app_msi_id` - (Optional) The ID of the Microsoft App Managed Identity for this Azure Bot Service. Changing this forces a new resource to be created.
 
