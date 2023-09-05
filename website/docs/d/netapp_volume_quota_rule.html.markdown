@@ -14,11 +14,8 @@ Use this data source to access information about an existing Volume Quota Rule.
 
 ```hcl
 data "azurerm_netapp_volume_quota_rule" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
-  volume_name         = "existing"
-  account_name        = "existing"
-  pool_name           = "existing"
+  name      = "exampleQuotaRule"
+  volume_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/vol1"
 }
 
 output "id" {
@@ -30,15 +27,9 @@ output "id" {
 
 The following arguments are supported:
 
-* `account_name` - (Required) The name of the NetApp Account where the volume is located.
-
 * `name` - (Required) The name of this Volume Quota Rule.
 
-* `pool_name` - (Required) The name of the NetApp pool in which the NetApp Volume belongs to.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Volume Quota Rule exists. Changing this forces a new Volume Quota Rule to be created.
-
-* `volume_name` - (Required) The name of the NetApp Volume where the quota is assigned to.
+* `volume_id` - (Required) The NetApp volume ID where the Volume Quota Rule is assigned to.
 
 ## Attributes Reference
 
@@ -48,9 +39,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Volume Quota Rule exists.
 
-* `quota_size_in_kib` - Quota size in kibibytes.
+* `quota_size_in_kib` - The quota size in kibibytes.
 
-* `quota_target` -Quota Target.
+* `quota_target` - The Quota Target.
 
 * `quota_type` - Quota type.
 

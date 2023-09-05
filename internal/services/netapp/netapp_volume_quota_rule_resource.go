@@ -7,11 +7,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumequotarules"
@@ -49,46 +47,33 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: netAppValidate.VolumeQuotaRuleName,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
 		"location": commonschema.Location(),
 
-		"account_name": {
+		"volume_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.AccountName,
-		},
-
-		"pool_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: netAppValidate.PoolName,
-		},
-
-		"volume_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeName,
-		},
-
-		"quota_target": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-		},
-
-		"quota_size_in_kib": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(4),
+			ValidateFunc: netAppValidate.VolumeID,
 		},
 
 		"quota_type": {
 			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForType(), false),
+		},
+
+		"quota_target": {
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"quota_size_in_kib": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(4),
 		},
 	}
 }
@@ -109,8 +94,12 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := volumequotarules.NewVolumeQuotaRuleID(subscriptionId, model.ResourceGroupName, model.AccountName, model.CapacityPoolName, model.VolumeName, model.Name)
-			volumeID := volumes.NewVolumeID(subscriptionId, model.ResourceGroupName, model.AccountName, model.CapacityPoolName, model.VolumeName)
+			volumeID, err := volumes.ParseVolumeID(model.VolumeID)
+			if err != nil {
+				return fmt.Errorf("error parsing volume id %s: %+v", model.VolumeID, err)
+			}
+
+			id := volumequotarules.NewVolumeQuotaRuleID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)
 
 			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
@@ -123,7 +112,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			// Performing some validations that are not possible in the schema
-			if errorList := netAppValidate.ValidateNetAppVolumeQuotaRule(ctx, volumeID, metadata.Client, pointer.To(model)); len(errorList) > 0 {
+			if errorList := netAppValidate.ValidateNetAppVolumeQuotaRule(ctx, pointer.From(volumeID), metadata.Client, pointer.To(model)); len(errorList) > 0 {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
@@ -139,11 +128,6 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 			err = client.CreateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			// Waiting for volume quota rule to be completely provisioned
-			if err := waitForVolumeQuotaRuleCreateOrUpdate(ctx, client, id); err != nil {
-				return err
 			}
 
 			metadata.SetID(id)
@@ -172,25 +156,13 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			shouldUpdate := false
 			update := volumequotarules.VolumeQuotaRulePatch{
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{},
 			}
 
-			if metadata.ResourceData.HasChange("quota_size_in_kib") {
-				shouldUpdate = true
-				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
-			}
-
-			if shouldUpdate {
-				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
-					return fmt.Errorf("updating %s: %+v", id, err)
-				}
-
-				// Waiting for volume quota rule to be completely provisioned
-				if err := waitForVolumeQuotaRuleCreateOrUpdate(ctx, client, pointer.From(id)); err != nil {
-					return err
-				}
+			update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
+			if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -227,15 +199,12 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			model := netAppModels.NetAppVolumeQuotaRuleModel{
-				Name:              id.VolumeQuotaRuleName,
-				AccountName:       id.NetAppAccountName,
-				CapacityPoolName:  id.CapacityPoolName,
-				VolumeName:        id.VolumeName,
-				Location:          location.NormalizeNilable(pointer.To(existing.Model.Location)),
-				ResourceGroupName: id.ResourceGroupName,
-				QuotaTarget:       pointer.From(existing.Model.Properties.QuotaTarget),
-				QuotaSizeInKiB:    pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
-				QuotaType:         string(pointer.From(existing.Model.Properties.QuotaType)),
+				Name:           id.VolumeQuotaRuleName,
+				VolumeID:       volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName).String(),
+				Location:       location.NormalizeNilable(pointer.To(existing.Model.Location)),
+				QuotaTarget:    pointer.From(existing.Model.Properties.QuotaTarget),
+				QuotaSizeInKiB: pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
+				QuotaType:      string(pointer.From(existing.Model.Properties.QuotaType)),
 			}
 
 			metadata.SetID(id)
@@ -271,44 +240,5 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
-	}
-}
-
-func waitForVolumeQuotaRuleCreateOrUpdate(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"204", "404"},
-		Target:                    []string{"200", "202"},
-		Refresh:                   netappVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish creating: %+v", id, err)
-	}
-
-	return nil
-}
-
-func netappVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
-			}
-		}
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		return res, statusCode, nil
 	}
 }

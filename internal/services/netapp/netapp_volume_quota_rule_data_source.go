@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -42,22 +43,11 @@ func (r NetAppVolumeQuotaRuleDataSource) Arguments() map[string]*pluginsdk.Schem
 			Required: true,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"account_name": {
+		"volume_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: netAppValidate.AccountName,
-		},
-
-		"pool_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-
-		"volume_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			ForceNew:     true,
+			ValidateFunc: netAppValidate.VolumeID,
 		},
 	}
 }
@@ -95,7 +85,12 @@ func (r NetAppVolumeQuotaRuleDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := volumequotarules.NewVolumeQuotaRuleID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.CapacityPoolName, state.VolumeName, state.Name)
+			volumeID, err := volumes.ParseVolumeID(state.VolumeID)
+			if err != nil {
+				return fmt.Errorf("error parsing volume id %s: %+v", state.VolumeID, err)
+			}
+
+			id := volumequotarules.NewVolumeQuotaRuleID(metadata.Client.Account.SubscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {

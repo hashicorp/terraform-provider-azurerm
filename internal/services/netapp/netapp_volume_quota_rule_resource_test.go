@@ -105,10 +105,7 @@ func (NetAppVolumeQuotaRuleResource) individualGroupQuotaType(data acceptance.Te
 resource "azurerm_netapp_volume_quota_rule" "test" {
   name                = "acctest-NetAppVolumeQuotaRule-%[2]d"
   location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.test.name
+  volume_id           = azurerm_netapp_volume.test.id
   quota_target        = "3001"
   quota_size_in_kib   = 1024
   quota_type          = "IndividualGroupQuota"
@@ -124,10 +121,7 @@ func (NetAppVolumeQuotaRuleResource) individualUserQuotaType(data acceptance.Tes
 resource "azurerm_netapp_volume_quota_rule" "test" {
   name                = "acctest-NetAppVolumeQuotaRule-%[2]d"
   location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.test.name
+  volume_id           = azurerm_netapp_volume.test.id
   quota_target        = "3001"
   quota_size_in_kib   = 1024
   quota_type          = "IndividualUserQuota"
@@ -143,10 +137,7 @@ func (NetAppVolumeQuotaRuleResource) defaultUserQuotaType(data acceptance.TestDa
 resource "azurerm_netapp_volume_quota_rule" "test" {
   name                = "acctest-NetAppVolumeQuotaRule-Default-Usr-%[2]d"
   location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.test.name
+  volume_id           = azurerm_netapp_volume.test.id
   quota_size_in_kib   = 2048
   quota_type          = "DefaultUserQuota"
 }
@@ -161,10 +152,7 @@ func (NetAppVolumeQuotaRuleResource) defaultGroupQuotaType(data acceptance.TestD
 resource "azurerm_netapp_volume_quota_rule" "test" {
   name                = "acctest-NetAppVolumeQuotaRule-Default-Grp-%[2]d"
   location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_name         = azurerm_netapp_volume.test.name
+  volume_id           = azurerm_netapp_volume.test.id
   quota_size_in_kib   = 2048
   quota_type          = "DefaultGroupQuota"
 }

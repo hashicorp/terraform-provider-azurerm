@@ -33,11 +33,8 @@ func (d NetAppVolumeQuotaRuleDataSource) basic(data acceptance.TestData) string 
 %s
 
 data "azurerm_netapp_volume_quota_rule" "test" {
-  name                = azurerm_netapp_volume_quota_rule.test.name
-  resource_group_name = azurerm_netapp_volume_quota_rule.test.resource_group_name
-  account_name        = azurerm_netapp_volume_quota_rule.test.account_name
-  pool_name           = azurerm_netapp_volume_quota_rule.test.pool_name
-  volume_name         = azurerm_netapp_volume_quota_rule.test.volume_name
+  name      = azurerm_netapp_volume_quota_rule.test.name
+  volume_id = azurerm_netapp_volume_quota_rule.test.id
 }
 `, NetAppVolumeQuotaRuleResource{}.individualUserQuotaType(data))
 }

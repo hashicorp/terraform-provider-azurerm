@@ -87,25 +87,19 @@ func PossibleValuesForReplicationSchedule() []string {
 }
 
 type NetAppVolumeQuotaRuleModel struct {
-	Name              string `tfschema:"name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	Location          string `tfschema:"location"`
-	AccountName       string `tfschema:"account_name"`
-	CapacityPoolName  string `tfschema:"pool_name"`
-	VolumeName        string `tfschema:"volume_name"`
-	QuotaTarget       string `tfschema:"quota_target"`
-	QuotaSizeInKiB    int64  `tfschema:"quota_size_in_kib"`
-	QuotaType         string `tfschema:"quota_type"`
+	Name           string `tfschema:"name"`
+	Location       string `tfschema:"location"`
+	VolumeID       string `tfschema:"volume_id"`
+	QuotaTarget    string `tfschema:"quota_target"`
+	QuotaSizeInKiB int64  `tfschema:"quota_size_in_kib"`
+	QuotaType      string `tfschema:"quota_type"`
 }
 
 type NetAppVolumeQuotaRuleDataSourceModel struct {
-	Name              string `tfschema:"name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	Location          string `tfschema:"location"`
-	AccountName       string `tfschema:"account_name"`
-	CapacityPoolName  string `tfschema:"pool_name"`
-	VolumeName        string `tfschema:"volume_name"`
-	QuotaTarget       string `tfschema:"quota_target"`
-	QuotaSizeInKiB    int64  `tfschema:"quota_size_in_kib"`
-	QuotaType         string `tfschema:"quota_type"`
+	Name           string `tfschema:"name"`
+	Location       string `tfschema:"location"`
+	VolumeID       string `tfschema:"volume_id"`
+	QuotaTarget    string `tfschema:"quota_target"`
+	QuotaSizeInKiB int64  `tfschema:"quota_size_in_kib"`
+	QuotaType      string `tfschema:"quota_type"`
 }
