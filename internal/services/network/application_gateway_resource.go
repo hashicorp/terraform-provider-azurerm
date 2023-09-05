@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -1243,6 +1244,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+
+						"verify_client_cert_revocation": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(network.ApplicationGatewayClientRevocationOptionsNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ApplicationGatewayClientRevocationOptionsOCSP),
+								string(network.ApplicationGatewayClientRevocationOptionsNone),
+							}, false),
 						},
 
 						// lintignore:XS003
@@ -4218,11 +4229,15 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 
 		name := v["name"].(string)
 		verifyClientCertIssuerDn := v["verify_client_cert_issuer_dn"].(bool)
+		verifyClientCertRevocation := v["verify_client_cert_revocation"].(string)
 
 		output := network.ApplicationGatewaySslProfile{
-			Name: utils.String(name),
+			Name: pointer.To(name),
 			ApplicationGatewaySslProfilePropertiesFormat: &network.ApplicationGatewaySslProfilePropertiesFormat{
-				ClientAuthConfiguration: &network.ApplicationGatewayClientAuthConfiguration{VerifyClientCertIssuerDN: utils.Bool(verifyClientCertIssuerDn)},
+				ClientAuthConfiguration: &network.ApplicationGatewayClientAuthConfiguration{
+					VerifyClientCertIssuerDN: pointer.To(verifyClientCertIssuerDn),
+					VerifyClientRevocation:   network.ApplicationGatewayClientRevocationOptions(verifyClientCertRevocation),
+				},
 			},
 		}
 
@@ -4272,7 +4287,15 @@ func flattenApplicationGatewaySslProfiles(input *[]network.ApplicationGatewaySsl
 		}
 
 		output["name"] = name
-		output["verify_client_cert_issuer_dn"] = *v.ClientAuthConfiguration.VerifyClientCertIssuerDN
+
+		verifyClientCertIssuerDn := false
+		verifyClientCertRevocation := "None"
+		if v.ClientAuthConfiguration != nil {
+			verifyClientCertIssuerDn = pointer.From(v.ClientAuthConfiguration.VerifyClientCertIssuerDN)
+			verifyClientCertRevocation = string(v.ClientAuthConfiguration.VerifyClientRevocation)
+		}
+		output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
+		output["verify_client_cert_revocation"] = verifyClientCertRevocation
 
 		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.SslPolicy)
 
