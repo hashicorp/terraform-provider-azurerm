@@ -382,7 +382,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = true
+    enabled   = true
     name      = "Rule1"
     priority  = 1
     rule_type = "MatchRule"
@@ -431,7 +431,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = false
+    enabled   = false
     name      = "Rule3"
     priority  = 3
     rule_type = "MatchRule"
