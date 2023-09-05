@@ -5,14 +5,6 @@ provider "azurerm" {
   features {}
 }
 
-locals {
-  custom_data = <<CUSTOMDATA
-
-  echo 1 > C:/custom_data_exampe
-
-CUSTOMDATA
-}
-
 resource "azurerm_resource_group" "main" {
   name     = "${var.prefix}-resources"
   location = var.location
@@ -51,7 +43,7 @@ resource "azurerm_windows_virtual_machine" "main" {
   size                            = "Standard_F2"
   admin_username                  = "adminuser"
   admin_password                  = "P@ssw0rd1234!"
-  custom_data                     = base64encode(local.custom_data)
+  user_data                       = base64encode("Hello World!")
   network_interface_ids = [
     azurerm_network_interface.main.id,
   ]

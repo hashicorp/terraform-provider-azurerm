@@ -5,14 +5,6 @@ provider "azurerm" {
   features {}
 }
 
-locals {
-  custom_data = <<CUSTOMDATA
-
-  echo 1 > C:/custom_data_exampe
-
-CUSTOMDATA
-}
-
 resource "azurerm_resource_group" "main" {
   name     = "${var.prefix}-resources"
   location = var.location
@@ -44,22 +36,23 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
-resource "azurerm_windows_virtual_machine" "main" {
+resource "azurerm_linux_virtual_machine" "main" {
   name                            = "${var.prefix}-vm"
   resource_group_name             = azurerm_resource_group.main.name
   location                        = azurerm_resource_group.main.location
   size                            = "Standard_F2"
   admin_username                  = "adminuser"
   admin_password                  = "P@ssw0rd1234!"
-  custom_data                     = base64encode(local.custom_data)
+  user_data                       = base64encode("Hello World!")
+  disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.main.id,
   ]
 
   source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
