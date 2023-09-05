@@ -53,10 +53,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseKubernetesClusterID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(
+			func(id string) error {
+				_, err := commonids.ParseKubernetesClusterID(id)
+				return err
+			},
+			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+				d.Set("public_network_access_enabled", true)
+				return []*pluginsdk.ResourceData{d}, nil
+			},
+		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
