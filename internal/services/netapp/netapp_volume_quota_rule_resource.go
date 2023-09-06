@@ -200,11 +200,6 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 
 			volumeID := fmt.Sprintf("/subscriptions/%v/resourceGroups/%v/providers/Microsoft.NetApp/netAppAccounts/%v/capacityPools/%v/volumes/%v", id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
 
-			// volumeID, err := volumes.ParseVolumeID(state.VolumeID)
-			// if err != nil {
-			// 	return fmt.Errorf("error parsing volume id %s: %+v", state.VolumeID, err)
-			// }
-
 			model := netAppModels.NetAppVolumeQuotaRuleModel{
 				Name:           id.VolumeQuotaRuleName,
 				VolumeID:       volumeID,

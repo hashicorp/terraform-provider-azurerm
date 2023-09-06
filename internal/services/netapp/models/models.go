@@ -4,7 +4,6 @@
 package models
 
 const (
-	MaxQuotaSizeInMiB         int   = 107374182400 / 1024 / 1024
 	MaxQuotaTargetIDSizeInKiB int64 = 4294967295
 )
 
