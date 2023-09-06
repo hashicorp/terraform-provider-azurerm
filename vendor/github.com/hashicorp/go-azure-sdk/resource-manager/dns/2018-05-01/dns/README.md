@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `DnsClient.DnsResourceReferenceGetByTargetResources`
+### Example Usage: `DnsClient.ResourceReferenceGetByTargetResources`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := dns.DnsResourceReferenceRequest{
 }
 
 
-read, err := client.DnsResourceReferenceGetByTargetResources(ctx, id, payload)
+read, err := client.ResourceReferenceGetByTargetResources(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

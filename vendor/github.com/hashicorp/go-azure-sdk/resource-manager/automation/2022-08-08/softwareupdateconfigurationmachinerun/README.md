@@ -20,13 +20,13 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `SoftwareUpdateConfigurationMachineRunClient.SoftwareUpdateConfigurationMachineRunsGetById`
+### Example Usage: `SoftwareUpdateConfigurationMachineRunClient.GetById`
 
 ```go
 ctx := context.TODO()
 id := softwareupdateconfigurationmachinerun.NewSoftwareUpdateConfigurationMachineRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "softwareUpdateConfigurationMachineRunIdValue")
 
-read, err := client.SoftwareUpdateConfigurationMachineRunsGetById(ctx, id, softwareupdateconfigurationmachinerun.DefaultSoftwareUpdateConfigurationMachineRunsGetByIdOperationOptions())
+read, err := client.GetById(ctx, id, softwareupdateconfigurationmachinerun.DefaultGetByIdOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -36,13 +36,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `SoftwareUpdateConfigurationMachineRunClient.SoftwareUpdateConfigurationMachineRunsList`
+### Example Usage: `SoftwareUpdateConfigurationMachineRunClient.List`
 
 ```go
 ctx := context.TODO()
 id := softwareupdateconfigurationmachinerun.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
 
-read, err := client.SoftwareUpdateConfigurationMachineRunsList(ctx, id, softwareupdateconfigurationmachinerun.DefaultSoftwareUpdateConfigurationMachineRunsListOperationOptions())
+read, err := client.List(ctx, id, softwareupdateconfigurationmachinerun.DefaultListOperationOptions())
 if err != nil {
 	// handle the error
 }
