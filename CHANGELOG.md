@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_pim_active_role_assignment`: polling for the duration of the timeout, rather than a fixed 5 minute value [GH-22932]
 * `azurerm_policy_set_definition` - only sending `parameters` when a value is configured [GH-23155]
 * `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
+* `machine_learning_datastore_*` - fixes container ids [GH-23140]
 
 ## 3.71.0 (August 24, 2023)
 
