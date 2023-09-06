@@ -41,9 +41,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `quota_size_in_kib` - The quota size in kibibytes.
 
-* `quota_target` - The Quota Target.
+* `quota_target` - The quota Target.
 
-* `quota_type` - Quota type.
+* `quota_type` - The quota type.
 
 ## Timeouts
 

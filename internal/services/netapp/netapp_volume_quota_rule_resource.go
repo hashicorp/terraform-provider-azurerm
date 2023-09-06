@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumequotarules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -53,7 +55,7 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeID,
+			ValidateFunc: volumequotarules.ValidateVolumeID,
 		},
 
 		"quota_type": {
@@ -63,17 +65,17 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForType(), false),
 		},
 
+		"quota_size_in_kib": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(4),
+		},
+
 		"quota_target": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"quota_size_in_kib": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntAtLeast(4),
 		},
 	}
 }
@@ -103,12 +105,14 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
-			if err != nil && existing.HttpResponse.StatusCode != http.StatusNotFound {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
 			// Performing some validations that are not possible in the schema
@@ -198,11 +202,11 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			volumeID := fmt.Sprintf("/subscriptions/%v/resourceGroups/%v/providers/Microsoft.NetApp/netAppAccounts/%v/capacityPools/%v/volumes/%v", id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
+			volumeID := volumequotarules.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
 
 			model := netAppModels.NetAppVolumeQuotaRuleModel{
 				Name:           id.VolumeQuotaRuleName,
-				VolumeID:       volumeID,
+				VolumeID:       volumeID.ID(),
 				Location:       location.NormalizeNilable(pointer.To(existing.Model.Location)),
 				QuotaTarget:    pointer.From(existing.Model.Properties.QuotaTarget),
 				QuotaSizeInKiB: pointer.From(existing.Model.Properties.QuotaSizeInKiBs),

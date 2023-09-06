@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -47,7 +46,7 @@ func (r NetAppVolumeQuotaRuleDataSource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeID,
+			ValidateFunc: volumequotarules.ValidateVolumeID,
 		},
 	}
 }
@@ -101,7 +100,7 @@ func (r NetAppVolumeQuotaRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			model := resp.Model
-			if model == nil {
+			if model == nil || model.Properties == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
