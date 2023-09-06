@@ -708,7 +708,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
 	existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
-		return fmt.Errorf("retrieving Orchestrated %s: %+v", id.VirtualMachineScaleSetName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving Orchestrated %s: %+v", id, err)
 	}
 	if existing.Sku != nil {
 		isLegacy = false
