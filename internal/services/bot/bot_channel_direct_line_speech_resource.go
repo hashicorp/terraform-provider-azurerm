@@ -204,9 +204,9 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 		Kind:     botservice.KindBot,
 	}
 
-	if v, ok := d.GetOk("cognitive_account_id"); ok {
+	if d.HasChange("cognitive_account_id") {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceResourceID = utils.String(v.(string))
+		channel.Properties.CognitiveServiceResourceID = utils.String(d.Get("cognitive_account_id").(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
