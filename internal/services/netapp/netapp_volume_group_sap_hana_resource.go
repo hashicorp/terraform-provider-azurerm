@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,20 +30,10 @@ import (
 
 type NetAppVolumeGroupSapHanaResource struct{}
 
-type NetAppVolumeGroupSapHanaModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
-}
-
 var _ sdk.Resource = NetAppVolumeGroupSapHanaResource{}
 
 func (r NetAppVolumeGroupSapHanaResource) ModelObject() interface{} {
-	return &NetAppVolumeGroupSapHanaModel{}
+	return &netAppModels.NetAppVolumeGroupSapHanaModel{}
 }
 
 func (r NetAppVolumeGroupSapHanaResource) ResourceType() string {
@@ -274,7 +265,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 								"replication_frequency": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(PossibleValuesForReplicationSchedule(), false),
+									ValidateFunc: validation.StringInSlice(netAppModels.PossibleValuesForReplicationSchedule(), false),
 								},
 							},
 						},
@@ -313,7 +304,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model NetAppVolumeGroupSapHanaModel
+			var model netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -439,7 +430,7 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Decoding state for %s", id)
-			var state NetAppVolumeGroupSapHanaModel
+			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -562,7 +553,7 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Decoding state for %s", id)
-			var state NetAppVolumeGroupSapHanaModel
+			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -577,7 +568,7 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			model := NetAppVolumeGroupSapHanaModel{
+			model := netAppModels.NetAppVolumeGroupSapHanaModel{
 				Name:              id.VolumeGroupName,
 				AccountName:       id.NetAppAccountName,
 				Location:          location.NormalizeNilable(existing.Model.Location),
