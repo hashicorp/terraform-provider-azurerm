@@ -207,6 +207,7 @@ resource "azurerm_bot_channel_direct_line_speech" "test" {
   bot_name                     = azurerm_bot_channels_registration.test.name
   location                     = azurerm_bot_channels_registration.test.location
   resource_group_name          = azurerm_resource_group.test.name
+  cognitive_account_id         = azurerm_cognitive_account.test2.id
   cognitive_service_location   = azurerm_cognitive_account.test2.location
   cognitive_service_access_key = azurerm_cognitive_account.test2.primary_access_key
   custom_speech_model_id       = "cf7a4202-9be3-4195-9619-5a747260626d"
