@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/databases` Documentation
 
-The `databases` SDK allows for interaction with the Azure Resource Manager Service `redisenterprise` (API Version `2022-01-01`).
+The `databases` SDK allows for interaction with the Azure Resource Manager Service `redisenterprise` (API Version `2023-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/databases"
 ```
 
 
@@ -61,6 +61,23 @@ payload := databases.ExportClusterParameters{
 
 
 if err := client.ExportThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `DatabasesClient.Flush`
+
+```go
+ctx := context.TODO()
+id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+
+payload := databases.FlushParameters{
+	// ...
+}
+
+
+if err := client.FlushThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
