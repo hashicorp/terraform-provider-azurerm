@@ -6,6 +6,7 @@ package datadog
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -375,18 +376,21 @@ func isDefaultSettings(input *rules.MonitoringTagRules) bool {
 		return false
 	}
 
-	if name := input.Name; name != nil && *input.Name == "default" {
-		if props := input.Properties; props != nil {
-			logRules := props.LogRules
-			metricRules := props.MetricRules
-
-			if logRules != nil && metricRules != nil {
-				if (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) && (logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) && (logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) && (logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) && (metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0) {
-					return true
-				}
-			}
-		}
+	if input.Name == nil || !strings.EqualFold(*input.Name, "default") {
+		return false
 	}
 
-	return false
+	if input.Properties == nil || input.Properties.LogRules == nil || input.Properties.MetricRules == nil {
+		return false
+	}
+
+	logRules := input.Properties.LogRules
+	metricRules := input.Properties.MetricRules
+	result := (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
+		(logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) &&
+		(logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) &&
+		(logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) &&
+		(metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0)
+
+	return result
 }

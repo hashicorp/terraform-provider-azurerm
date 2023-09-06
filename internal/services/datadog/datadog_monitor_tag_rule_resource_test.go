@@ -108,10 +108,6 @@ func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clie
 
 func (r TagRulesDatadogMonitorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-datadogrg-%[1]d"
   location = %[2]q
@@ -139,6 +135,10 @@ resource "azurerm_datadog_monitor" "test" {
 
 func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_datadog_monitor_tag_rule" "test" {
@@ -180,6 +180,10 @@ resource "azurerm_datadog_monitor_tag_rule" "import" {
 
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_datadog_monitor_tag_rule" "test" {
