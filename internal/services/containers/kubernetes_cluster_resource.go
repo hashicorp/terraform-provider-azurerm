@@ -58,6 +58,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				_, err := commonids.ParseKubernetesClusterID(id)
 				return err
 			},
+			// TODO 4.0: we're defaulting this at import time because the property is non-functional.
+			// In the lead up to 4.0 planning if the feature still isn't functional we should look at
+			// removing this entirely.
 			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 				d.Set("public_network_access_enabled", true)
 				return []*pluginsdk.ResourceData{d}, nil
