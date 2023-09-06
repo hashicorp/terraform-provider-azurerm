@@ -1240,19 +1240,18 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						// TODO: replace cert by certificate in 4.0
 						"verify_client_cert_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
-						"verify_client_cert_revocation": {
+						"verify_client_certificate_revocation": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(network.ApplicationGatewayClientRevocationOptionsNone),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayClientRevocationOptionsOCSP),
-								string(network.ApplicationGatewayClientRevocationOptionsNone),
 							}, false),
 						},
 
@@ -4229,14 +4228,14 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 
 		name := v["name"].(string)
 		verifyClientCertIssuerDn := v["verify_client_cert_issuer_dn"].(bool)
-		verifyClientCertRevocation := v["verify_client_cert_revocation"].(string)
+		verifyClientCertificateRevocation := v["verify_client_certificate_revocation"].(string)
 
 		output := network.ApplicationGatewaySslProfile{
 			Name: pointer.To(name),
 			ApplicationGatewaySslProfilePropertiesFormat: &network.ApplicationGatewaySslProfilePropertiesFormat{
 				ClientAuthConfiguration: &network.ApplicationGatewayClientAuthConfiguration{
 					VerifyClientCertIssuerDN: pointer.To(verifyClientCertIssuerDn),
-					VerifyClientRevocation:   network.ApplicationGatewayClientRevocationOptions(verifyClientCertRevocation),
+					VerifyClientRevocation:   network.ApplicationGatewayClientRevocationOptions(verifyClientCertificateRevocation),
 				},
 			},
 		}
@@ -4289,13 +4288,15 @@ func flattenApplicationGatewaySslProfiles(input *[]network.ApplicationGatewaySsl
 		output["name"] = name
 
 		verifyClientCertIssuerDn := false
-		verifyClientCertRevocation := ""
+		verifyClientCertificateRevocation := ""
 		if v.ClientAuthConfiguration != nil {
 			verifyClientCertIssuerDn = pointer.From(v.ClientAuthConfiguration.VerifyClientCertIssuerDN)
-			verifyClientCertRevocation = string(v.ClientAuthConfiguration.VerifyClientRevocation)
+			if v.ClientAuthConfiguration.VerifyClientRevocation != network.ApplicationGatewayClientRevocationOptionsNone {
+				verifyClientCertificateRevocation = string(v.ClientAuthConfiguration.VerifyClientRevocation)
+			}
 		}
 		output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
-		output["verify_client_cert_revocation"] = verifyClientCertRevocation
+		output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 
 		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.SslPolicy)
 
