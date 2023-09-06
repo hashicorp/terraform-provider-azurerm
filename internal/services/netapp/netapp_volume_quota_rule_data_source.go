@@ -112,7 +112,7 @@ func (r NetAppVolumeQuotaRuleDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&model)
+			return metadata.Encode(&state)
 		},
 	}
 }
