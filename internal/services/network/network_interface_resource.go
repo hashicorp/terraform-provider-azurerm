@@ -127,24 +127,16 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 
 			// Optional
 			"auxiliary_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(networkinterfaces.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
-					string(networkinterfaces.NetworkInterfaceAuxiliaryModeFloating),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
 				RequiredWith: []string{"auxiliary_sku"},
 			},
 
 			"auxiliary_sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAEight),
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAOne),
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuATwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
 				RequiredWith: []string{"auxiliary_mode"},
 			},
 
