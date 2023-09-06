@@ -716,7 +716,7 @@ func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesCl
 
 func netappVolumeGroupStateRefreshFunc(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.VolumeGroupsGet(ctx, id)
+		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
 				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)

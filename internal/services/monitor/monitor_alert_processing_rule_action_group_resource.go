@@ -73,7 +73,7 @@ func (r AlertProcessingRuleActionGroupResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := alertprocessingrules.NewActionRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.AlertProcessingRulesGetByName(ctx, id)
+			existing, err := client.GetByName(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -98,7 +98,7 @@ func (r AlertProcessingRuleActionGroupResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, id, alertProcessingRule); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, alertProcessingRule); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -124,7 +124,7 @@ func (r AlertProcessingRuleActionGroupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.AlertProcessingRulesGetByName(ctx, *id)
+			resp, err := client.GetByName(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -168,7 +168,7 @@ func (r AlertProcessingRuleActionGroupResource) Update() sdk.ResourceFunc {
 				model.Tags = &resourceModel.Tags
 			}
 
-			if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, *id, *model); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
@@ -187,7 +187,7 @@ func (r AlertProcessingRuleActionGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.AlertProcessingRulesGetByName(ctx, *id)
+			resp, err := client.GetByName(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -247,12 +247,12 @@ func (r AlertProcessingRuleActionGroupResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Monitor.AlertProcessingRulesClient
 
-			id, err := alertprocessingrules.ParseActionRuleIDInsensitively(metadata.ResourceData.Id())
+			id, err := alertprocessingrules.ParseActionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.AlertProcessingRulesDelete(ctx, *id); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

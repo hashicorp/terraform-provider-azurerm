@@ -763,7 +763,7 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 
 			subscriptionID := meta.Client.Account.SubscriptionId
 			id := softwareupdateconfiguration.NewSoftwareUpdateConfigurationID(subscriptionID, automationID.ResourceGroupName, automationID.AutomationAccountName, model.Name)
-			existing, err := client.SoftwareUpdateConfigurationsGetByName(ctx, id, softwareupdateconfiguration.SoftwareUpdateConfigurationsGetByNameOperationOptions{})
+			existing, err := client.GetByName(ctx, id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return meta.ResourceRequiresImport(m.ResourceType(), id)
@@ -771,7 +771,7 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			updateConfig := expandUpdateConfig(model)
-			if _, err = client.SoftwareUpdateConfigurationsCreate(ctx, id, *updateConfig, softwareupdateconfiguration.SoftwareUpdateConfigurationsCreateOperationOptions{}); err != nil {
+			if _, err = client.Create(ctx, id, *updateConfig, softwareupdateconfiguration.DefaultCreateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
@@ -790,7 +790,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 				return err
 			}
 			client := meta.Client.Automation.SoftwareUpdateConfigClient
-			resp, err := client.SoftwareUpdateConfigurationsGetByName(ctx, *id, softwareupdateconfiguration.SoftwareUpdateConfigurationsGetByNameOperationOptions{})
+			resp, err := client.GetByName(ctx, *id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return meta.MarkAsGone(id)
@@ -798,167 +798,169 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state SoftwareUpdateConfigurationModel
-
-			state.AutomationAccountID = softwareupdateconfiguration.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID()
-
-			props := resp.Model.Properties
-			updateConfiguration := props.UpdateConfiguration
-			scheduleConfiguration := props.ScheduleInfo
-
-			state.Name = id.SoftwareUpdateConfigurationName
-			state.Duration = pointer.From(updateConfiguration.Duration)
-			if linux := updateConfiguration.Linux; linux != nil {
-				l := Linux{
-					Reboot:           pointer.From(linux.RebootSetting),
-					Classifications:  strings.Split(string(pointer.From(linux.IncludedPackageClassifications)), ", "),
-					ExcludedPackages: pointer.From(linux.ExcludedPackageNameMasks),
-					IncludedPackages: pointer.From(linux.IncludedPackageNameMasks),
-				}
-
-				if !features.FourPointOhBeta() && len(strings.Split(string(pointer.From(linux.IncludedPackageClassifications)), ", ")) == 1 {
-					l.Classification = string(pointer.From(linux.IncludedPackageClassifications))
-				}
-
-				state.Linux = []Linux{l}
-				state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeLinux)
+			state := SoftwareUpdateConfigurationModel{
+				AutomationAccountID: softwareupdateconfiguration.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID(),
+				Name:                id.SoftwareUpdateConfigurationName,
 			}
-			if windows := updateConfiguration.Windows; windows != nil {
-				w := Windows{
-					Classifications: strings.Split(strings.ReplaceAll(string(pointer.From(windows.IncludedUpdateClassifications)), " ", ""), ","),
-					ExcludedKbs:     pointer.From(windows.ExcludedKbNumbers),
-					IncludedKbs:     pointer.From(windows.IncludedKbNumbers),
-					RebootSetting:   pointer.From(windows.RebootSetting),
-				}
 
-				if !features.FourPointOhBeta() && len(strings.Split(string(pointer.From(windows.IncludedUpdateClassifications)), ", ")) == 1 {
-					w.Classification = string(pointer.From(windows.IncludedUpdateClassifications))
-				}
+			if model := resp.Model; model != nil {
+				props := resp.Model.Properties
+				updateConfiguration := props.UpdateConfiguration
+				scheduleConfiguration := props.ScheduleInfo
 
-				state.Windows = []Windows{w}
-				state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeWindows)
-			}
-			if targets := updateConfiguration.Targets; targets != nil {
-				t := Target{}
-				aq := make([]AzureQuery, 0)
-				for _, v := range pointer.From(targets.AzureQueries) {
-					tagsList := make([]Tag, 0)
-					tagFilter := ""
-					if tags := v.TagSettings; tags != nil {
-						for k, vals := range pointer.From(tags.Tags) {
-							tagsList = append(tagsList, Tag{
-								Tag:    k,
-								Values: vals,
-							})
+				state.Duration = pointer.From(updateConfiguration.Duration)
+				if linux := updateConfiguration.Linux; linux != nil {
+					l := Linux{
+						Reboot:           pointer.From(linux.RebootSetting),
+						Classifications:  strings.Split(string(pointer.From(linux.IncludedPackageClassifications)), ", "),
+						ExcludedPackages: pointer.From(linux.ExcludedPackageNameMasks),
+						IncludedPackages: pointer.From(linux.IncludedPackageNameMasks),
+					}
+
+					if !features.FourPointOhBeta() && len(strings.Split(string(pointer.From(linux.IncludedPackageClassifications)), ", ")) == 1 {
+						l.Classification = string(pointer.From(linux.IncludedPackageClassifications))
+					}
+
+					state.Linux = []Linux{l}
+					state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeLinux)
+				}
+				if windows := updateConfiguration.Windows; windows != nil {
+					w := Windows{
+						Classifications: strings.Split(strings.ReplaceAll(string(pointer.From(windows.IncludedUpdateClassifications)), " ", ""), ","),
+						ExcludedKbs:     pointer.From(windows.ExcludedKbNumbers),
+						IncludedKbs:     pointer.From(windows.IncludedKbNumbers),
+						RebootSetting:   pointer.From(windows.RebootSetting),
+					}
+
+					if !features.FourPointOhBeta() && len(strings.Split(string(pointer.From(windows.IncludedUpdateClassifications)), ", ")) == 1 {
+						w.Classification = string(pointer.From(windows.IncludedUpdateClassifications))
+					}
+
+					state.Windows = []Windows{w}
+					state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeWindows)
+				}
+				if targets := updateConfiguration.Targets; targets != nil {
+					t := Target{}
+					aq := make([]AzureQuery, 0)
+					for _, v := range pointer.From(targets.AzureQueries) {
+						tagsList := make([]Tag, 0)
+						tagFilter := ""
+						if tags := v.TagSettings; tags != nil {
+							for k, vals := range pointer.From(tags.Tags) {
+								tagsList = append(tagsList, Tag{
+									Tag:    k,
+									Values: vals,
+								})
+							}
+							tagFilter = string(pointer.From(tags.FilterOperator))
 						}
-						tagFilter = string(pointer.From(tags.FilterOperator))
-					}
-					aq = append(aq, AzureQuery{
-						Scope:     pointer.From(v.Scope),
-						Locations: pointer.From(v.Locations),
-						Tags:      tagsList,
-						TagFilter: tagFilter,
-					})
-				}
-
-				t.AzureQueries = aq
-
-				naq := make([]NonAzureQuery, 0)
-				for _, v := range pointer.From(targets.NonAzureQueries) {
-					naq = append(naq, NonAzureQuery{
-						FunctionAlias: pointer.From(v.FunctionAlias),
-						WorkspaceId:   pointer.From(v.WorkspaceId),
-					})
-				}
-
-				t.NonAzureQueries = naq
-				state.Targets = []Target{t}
-			}
-
-			state.VirtualMachines = pointer.From(updateConfiguration.AzureVirtualMachines)
-			state.NonAzureComputerNames = pointer.From(updateConfiguration.NonAzureComputerNames)
-
-			schedule := Schedule{
-				Description:             pointer.From(scheduleConfiguration.Description),
-				StartTime:               pointer.From(scheduleConfiguration.StartTime),
-				StartTimeOffsetMinutes:  pointer.From(scheduleConfiguration.StartTimeOffsetMinutes),
-				ExpiryTime:              pointer.From(scheduleConfiguration.ExpiryTime),
-				ExpiryTimeOffsetMinutes: pointer.From(scheduleConfiguration.ExpiryTimeOffsetMinutes),
-				IsEnabled:               pointer.From(scheduleConfiguration.IsEnabled),
-				NextRun:                 pointer.From(scheduleConfiguration.NextRun),
-				NextRunOffsetMinutes:    pointer.From(scheduleConfiguration.NextRunOffsetMinutes),
-				Interval:                int(pointer.From(scheduleConfiguration.Interval)),
-				Frequency:               string(pointer.From(scheduleConfiguration.Frequency)),
-				CreationTime:            pointer.From(scheduleConfiguration.CreationTime),
-				LastModifiedTime:        pointer.From(scheduleConfiguration.LastModifiedTime),
-				TimeZone:                pointer.From(scheduleConfiguration.TimeZone),
-			}
-
-			// (@jackofallops) - Advanced Schedule info is never returned so we'll pull it in from Config until the tracked issue is resolved
-			// Tracking Issue: https://github.com/Azure/azure-rest-api-specs/issues/24436
-			if advSchedule := scheduleConfiguration.AdvancedSchedule; advSchedule != nil {
-				schedule.AdvancedWeekDays = pointer.From(advSchedule.WeekDays)
-				if monthDays := pointer.From(advSchedule.MonthDays); len(monthDays) > 0 {
-					advMonthDays := make([]int, 0)
-					for _, v := range monthDays {
-						advMonthDays = append(advMonthDays, int(v))
-					}
-					schedule.AdvancedMonthDays = advMonthDays
-				}
-				if monthlyOccurrence := pointer.From(advSchedule.MonthlyOccurrences); len(monthlyOccurrence) > 0 {
-					mo := make([]MonthlyOccurrence, 0)
-					for _, v := range monthlyOccurrence {
-						mo = append(mo, MonthlyOccurrence{
-							Occurrence: int(pointer.From(v.Occurrence)),
-							Day:        string(pointer.From(v.Day)),
+						aq = append(aq, AzureQuery{
+							Scope:     pointer.From(v.Scope),
+							Locations: pointer.From(v.Locations),
+							Tags:      tagsList,
+							TagFilter: tagFilter,
 						})
 					}
-					schedule.MonthlyOccurrence = mo
-				}
-			} else {
-				if weekDays, ok := meta.ResourceData.GetOk("schedule.0.advanced_week_days"); ok {
-					wd := make([]string, 0)
-					for _, v := range weekDays.([]interface{}) {
-						wd = append(wd, v.(string))
+
+					t.AzureQueries = aq
+
+					naq := make([]NonAzureQuery, 0)
+					for _, v := range pointer.From(targets.NonAzureQueries) {
+						naq = append(naq, NonAzureQuery{
+							FunctionAlias: pointer.From(v.FunctionAlias),
+							WorkspaceId:   pointer.From(v.WorkspaceId),
+						})
 					}
-					schedule.AdvancedWeekDays = wd
+
+					t.NonAzureQueries = naq
+					state.Targets = []Target{t}
 				}
-				if monthDays, ok := meta.ResourceData.GetOk("schedule.0.advanced_month_days"); ok {
-					md := make([]int, 0)
-					for _, v := range monthDays.([]interface{}) {
-						md = append(md, v.(int))
+
+				state.VirtualMachines = pointer.From(updateConfiguration.AzureVirtualMachines)
+				state.NonAzureComputerNames = pointer.From(updateConfiguration.NonAzureComputerNames)
+
+				schedule := Schedule{
+					Description:             pointer.From(scheduleConfiguration.Description),
+					StartTime:               pointer.From(scheduleConfiguration.StartTime),
+					StartTimeOffsetMinutes:  pointer.From(scheduleConfiguration.StartTimeOffsetMinutes),
+					ExpiryTime:              pointer.From(scheduleConfiguration.ExpiryTime),
+					ExpiryTimeOffsetMinutes: pointer.From(scheduleConfiguration.ExpiryTimeOffsetMinutes),
+					IsEnabled:               pointer.From(scheduleConfiguration.IsEnabled),
+					NextRun:                 pointer.From(scheduleConfiguration.NextRun),
+					NextRunOffsetMinutes:    pointer.From(scheduleConfiguration.NextRunOffsetMinutes),
+					Interval:                int(pointer.From(scheduleConfiguration.Interval)),
+					Frequency:               string(pointer.From(scheduleConfiguration.Frequency)),
+					CreationTime:            pointer.From(scheduleConfiguration.CreationTime),
+					LastModifiedTime:        pointer.From(scheduleConfiguration.LastModifiedTime),
+					TimeZone:                pointer.From(scheduleConfiguration.TimeZone),
+				}
+
+				// (@jackofallops) - Advanced Schedule info is never returned so we'll pull it in from Config until the tracked issue is resolved
+				// Tracking Issue: https://github.com/Azure/azure-rest-api-specs/issues/24436
+				if advSchedule := scheduleConfiguration.AdvancedSchedule; advSchedule != nil {
+					schedule.AdvancedWeekDays = pointer.From(advSchedule.WeekDays)
+					if monthDays := pointer.From(advSchedule.MonthDays); len(monthDays) > 0 {
+						advMonthDays := make([]int, 0)
+						for _, v := range monthDays {
+							advMonthDays = append(advMonthDays, int(v))
+						}
+						schedule.AdvancedMonthDays = advMonthDays
 					}
-					schedule.AdvancedMonthDays = md
-				}
-				if monthlyOccurrence, ok := meta.ResourceData.GetOk("schedule.0.monthly_occurrence"); ok {
-					mos := make([]MonthlyOccurrence, 0)
-					if moRaw, ok := monthlyOccurrence.([]interface{}); ok {
-						for _, v := range moRaw {
-							mo := v.(map[string]interface{})
-							mos = append(mos, MonthlyOccurrence{
-								Occurrence: mo["occurrence"].(int),
-								Day:        mo["day"].(string),
+					if monthlyOccurrence := pointer.From(advSchedule.MonthlyOccurrences); len(monthlyOccurrence) > 0 {
+						mo := make([]MonthlyOccurrence, 0)
+						for _, v := range monthlyOccurrence {
+							mo = append(mo, MonthlyOccurrence{
+								Occurrence: int(pointer.From(v.Occurrence)),
+								Day:        string(pointer.From(v.Day)),
 							})
 						}
+						schedule.MonthlyOccurrence = mo
 					}
-					schedule.MonthlyOccurrence = mos
+				} else {
+					if weekDays, ok := meta.ResourceData.GetOk("schedule.0.advanced_week_days"); ok {
+						wd := make([]string, 0)
+						for _, v := range weekDays.([]interface{}) {
+							wd = append(wd, v.(string))
+						}
+						schedule.AdvancedWeekDays = wd
+					}
+					if monthDays, ok := meta.ResourceData.GetOk("schedule.0.advanced_month_days"); ok {
+						md := make([]int, 0)
+						for _, v := range monthDays.([]interface{}) {
+							md = append(md, v.(int))
+						}
+						schedule.AdvancedMonthDays = md
+					}
+					if monthlyOccurrence, ok := meta.ResourceData.GetOk("schedule.0.monthly_occurrence"); ok {
+						mos := make([]MonthlyOccurrence, 0)
+						if moRaw, ok := monthlyOccurrence.([]interface{}); ok {
+							for _, v := range moRaw {
+								mo := v.(map[string]interface{})
+								mos = append(mos, MonthlyOccurrence{
+									Occurrence: mo["occurrence"].(int),
+									Day:        mo["day"].(string),
+								})
+							}
+						}
+						schedule.MonthlyOccurrence = mos
+					}
 				}
-			}
 
-			state.Schedule = []Schedule{schedule}
+				state.Schedule = []Schedule{schedule}
 
-			if tasks := props.Tasks; tasks != nil {
-				if pre := tasks.PreTask; pre != nil {
-					state.PreTask = []UpdateTask{{
-						Source:     pointer.From(pre.Source),
-						Parameters: pointer.From(pre.Parameters),
-					}}
-				}
-				if post := tasks.PostTask; post != nil {
-					state.PostTask = []UpdateTask{{
-						Source:     pointer.From(post.Source),
-						Parameters: pointer.From(post.Parameters),
-					}}
+				if tasks := props.Tasks; tasks != nil {
+					if pre := tasks.PreTask; pre != nil {
+						state.PreTask = []UpdateTask{{
+							Source:     pointer.From(pre.Source),
+							Parameters: pointer.From(pre.Parameters),
+						}}
+					}
+					if post := tasks.PostTask; post != nil {
+						state.PostTask = []UpdateTask{{
+							Source:     pointer.From(post.Source),
+							Parameters: pointer.From(post.Parameters),
+						}}
+					}
 				}
 			}
 
@@ -983,7 +985,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.SoftwareUpdateConfigurationsGetByName(ctx, *id, softwareupdateconfiguration.SoftwareUpdateConfigurationsGetByNameOperationOptions{})
+			resp, err := client.GetByName(ctx, *id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
@@ -1171,7 +1173,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err = client.SoftwareUpdateConfigurationsCreate(ctx, *id, *existing, softwareupdateconfiguration.SoftwareUpdateConfigurationsCreateOperationOptions{}); err != nil {
+			if _, err = client.Create(ctx, *id, *existing, softwareupdateconfiguration.DefaultCreateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
@@ -1190,7 +1192,7 @@ func (m SoftwareUpdateConfigurationResource) Delete() sdk.ResourceFunc {
 			}
 			meta.Logger.Infof("deleting %s", *id)
 			client := meta.Client.Automation.SoftwareUpdateConfigClient
-			if _, err = client.SoftwareUpdateConfigurationsDelete(ctx, *id, softwareupdateconfiguration.SoftwareUpdateConfigurationsDeleteOperationOptions{}); err != nil {
+			if _, err = client.Delete(ctx, *id, softwareupdateconfiguration.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)
 			}
 			return nil
