@@ -3,7 +3,9 @@
 FEATURES:
 
 * Provider Feature: subscription cancellation on `destroy` can now be disabled via the provider `features` block [GH-19936]
-*  **New Resource**: `azurerm_automation_python3_package` [GH-23087]
+* **New Data Source**: `netapp_volume_quota_rule` [GH-23042]
+* **New Resource**: `azurerm_automation_python3_package` [GH-23087]
+* **New Resource**: `netapp_volume_quota_rule` [GH-23042]
 
 ENHANCEMENTS:
 
