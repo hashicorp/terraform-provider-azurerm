@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `virtual_hub_id` - (Required) The resource ID of the Virtual Hub. Changing this forces a new resource to be created.
 
-* `routing_policy` - (Required) A `routing_policy` block as defined below.
+* `routing_policy` - (Required) One or more `routing_policy` blocks as defined below.
 
 ---
 

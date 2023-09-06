@@ -134,7 +134,7 @@ resource "azurerm_virtual_hub_routing_intent" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   routing_policy {
-    name         = "InternetTrafficPolicy"
+    name         = "InternetTrafficPolicy1"
     destinations = ["Internet"]
     next_hop     = azurerm_firewall.test.id
   }
@@ -168,13 +168,13 @@ resource "azurerm_virtual_hub_routing_intent" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   routing_policy {
-    name         = "PrivateTrafficPolicy"
+    name         = "PrivateTrafficPolicy2"
     destinations = ["PrivateTraffic"]
     next_hop     = azurerm_firewall.test.id
   }
 
   routing_policy {
-    name         = "InternetTrafficRoutingPolicy"
+    name         = "InternetTrafficRoutingPolicy3"
     destinations = ["Internet"]
     next_hop     = azurerm_firewall.test.id
   }
