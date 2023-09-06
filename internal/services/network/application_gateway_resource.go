@@ -4289,7 +4289,7 @@ func flattenApplicationGatewaySslProfiles(input *[]network.ApplicationGatewaySsl
 		output["name"] = name
 
 		verifyClientCertIssuerDn := false
-		verifyClientCertRevocation := "None"
+		verifyClientCertRevocation := ""
 		if v.ClientAuthConfiguration != nil {
 			verifyClientCertIssuerDn = pointer.From(v.ClientAuthConfiguration.VerifyClientCertIssuerDN)
 			verifyClientCertRevocation = string(v.ClientAuthConfiguration.VerifyClientRevocation)
