@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
@@ -31,8 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -287,7 +286,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_virtual_machine_scale_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+				ValidateFunc: virtualmachinescalesets.ValidateVirtualMachineScaleSetID,
 			},
 
 			"network_interface": {
@@ -817,7 +816,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			vmssId := ""
 			if respVmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); respVmssId != "" {
-				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(respVmssId)
+				parsedVmssId, err := virtualmachinescalesets.ParseVirtualMachineScaleSetIDInsensitively(respVmssId)
 				if err != nil {
 					return err
 				}
