@@ -59,7 +59,14 @@ func TestAccVirtualHubRoutingIntent_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.updateRoutingPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRoutingPolicies(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -134,7 +141,7 @@ resource "azurerm_virtual_hub_routing_intent" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   routing_policy {
-    name         = "InternetTrafficPolicy1"
+    name         = "InternetTrafficPolicy"
     destinations = ["Internet"]
     next_hop     = azurerm_firewall.test.id
   }
@@ -159,7 +166,7 @@ resource "azurerm_virtual_hub_routing_intent" "import" {
 `, r.basic(data))
 }
 
-func (r VirtualHubRoutingIntentResource) update(data acceptance.TestData) string {
+func (r VirtualHubRoutingIntentResource) updateRoutingPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,14 +175,31 @@ resource "azurerm_virtual_hub_routing_intent" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   routing_policy {
-    name         = "PrivateTrafficPolicy2"
+    name         = "PrivateTrafficPolicy"
     destinations = ["PrivateTraffic"]
+    next_hop     = azurerm_firewall.test.id
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualHubRoutingIntentResource) multipleRoutingPolicies(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_routing_intent" "test" {
+  name           = "acctest-routingintent-%d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+
+  routing_policy {
+    name         = "InternetTrafficPolicy"
+    destinations = ["Internet"]
     next_hop     = azurerm_firewall.test.id
   }
 
   routing_policy {
-    name         = "InternetTrafficRoutingPolicy3"
-    destinations = ["Internet"]
+    name         = "PrivateTrafficPolicy"
+    destinations = ["PrivateTraffic"]
     next_hop     = azurerm_firewall.test.id
   }
 }
