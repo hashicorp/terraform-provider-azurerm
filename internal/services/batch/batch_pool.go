@@ -1312,11 +1312,6 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 		dynamicVNetAssignmentScope = string(*input.DynamicVnetAssignmentScope)
 	}
 
-	acceleratedNetworkingEnabled := false
-	if input.EnableAcceleratedNetworking != nil && *input.EnableAcceleratedNetworking {
-		acceleratedNetworkingEnabled = true
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"dynamic_vnet_assignment_scope":    dynamicVNetAssignmentScope,
