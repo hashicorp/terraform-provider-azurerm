@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230901.1104643` of `github.com/hashicorp/go-azure-sdk` [GH-23153]
 * `containerapps`: updating to API Version `2023-05-01` [GH-22804]
 * `keyvault`: upgrade remaining resources to `2023-02-01` [GH-23089]
+* `redisenterprise`: updating to API Version `2023-07-01` [GH-23178]
 * `internal/sdk`: typed resources using a custom importer now get a timed context [GH-23081]
 * `azurerm_batch_pool` - support for `automatic_upgrade_enabled` [GH-23021]
 * `azurerm_container_app_environment` - support for the `dapr_application_insights_connection_string` [GH-23080]
