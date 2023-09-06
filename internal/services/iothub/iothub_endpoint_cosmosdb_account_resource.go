@@ -204,7 +204,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("`primary_key` and `secondary_key` must be specified when `authentication_type` is `keyBased`")
 				}
 				cosmosDBAccountEndpoint.PrimaryKey = pointer.To(state.PrimaryKey)
-				cosmosDBAccountEndpoint.SecondaryKey = pointer.To(state.PrimaryKey)
+				cosmosDBAccountEndpoint.SecondaryKey = pointer.To(state.SecondaryKey)
 			} else {
 				if state.PrimaryKey != "" || state.SecondaryKey != "" {
 					return fmt.Errorf("`primary_key` or `secondary_key` cannot be specified when `authentication_type` is `identityBased`")
@@ -363,7 +363,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Update() sdk.ResourceFunc {
 						}
 
 						endpoint.PrimaryKey = pointer.To(state.PrimaryKey)
-						endpoint.SecondaryKey = pointer.To(state.PrimaryKey)
+						endpoint.SecondaryKey = pointer.To(state.SecondaryKey)
 						endpoint.Identity = nil
 					} else {
 						if state.PrimaryKey != "" || state.SecondaryKey != "" {
@@ -437,7 +437,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Delete() sdk.ResourceFunc {
 			iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 			if err != nil {
 				if utils.ResponseWasNotFound(iothub.Response) {
-					return nil
+					return fmt.Errorf("%q was not found", id)
 				}
 				return fmt.Errorf("retrieving %q: %+v", id, err)
 			}
