@@ -13,16 +13,22 @@ ENHANCEMENTS:
 * `containerapps`: updating to API Version `2023-05-01` [GH-22804]
 * `keyvault`: upgrade remaining resources to `2023-02-01` [GH-23089]
 * `redisenterprise`: updating to API Version `2023-07-01` [GH-23178]
-* `internal/sdk`: typed resources using a custom importer now get a timed context [GH-23081]
+* `vpngateway`: updating to use `hashicorp/go-azure-sdk` [GH-22906]
+* `internal/sdk`: typed resources using a custom importer now get a timed context [GH-23160]
+* `azurerm_batch_pool` - support for `accelerated_networking_enabled` [GH-23021]
 * `azurerm_batch_pool` - support for `automatic_upgrade_enabled` [GH-23021]
+* `azurerm_bot_channel_direct_line_speech` - support for the `cognitive_account_id` property [GH-23106]
+* `azurerm_bot_service_azure_bot` - support for the `local_authentication_enabled` property [GH-23096]
 * `azurerm_container_app_environment` - support for the `dapr_application_insights_connection_string` [GH-23080]
 * `azurerm_cosmosdb_cassandra_datacenter` - refactoring to use `hashicorp/go-azure-sdk` [GH-23110]
 * `azurerm_cosmosdb_cassandra_datacenter` - updating to API Version `2023-04-15` [GH-23110]
+* `azurerm_kubernetes_cluster` - Azure CNI can be updated to use `overlay` [GH-22709]
 * `azurerm_monitor_diagnostic_setting` - deprecating `retention_policy` within `enabled_log` [GH-23029]
 * `azurerm_postgresql_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
 * `azurerm_postgresql_flexible_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
 * `azurerm_postgresql_flexible_server` - support for the `auto_grow_enabled` property [GH-23069]
 * `azurerm_resource_provider_registration` - refactoring to use `hashicorp/go-azure-sdk` [GH-23072]
+* `azurerm_virtual_machine_extension` - support for `provision_after_extensions` [GH-23124]
 * `azurerm_virtual_network_gateway` - increasing the default timeout for create to `90m` [GH-23003]
 * `azurerm_virtual_hub_connection` - support for `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` properties [GH-23049]
 
@@ -34,6 +40,11 @@ BUG FIXES:
 * `azurerm_policy_set_definition` - only sending `parameters` when a value is configured [GH-23155]
 * `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
 * `machine_learning_datastore_*` - fixes container ids [GH-23140]
+
+DEPRECATION:
+
+* Data Source: `azure_monitor_log_profile` - Azure is retiring Azure Log Profiles on the 30th of September 2026 [GH-23146]
+* `azure_monitor_log_profile` - Azure is retiring Azure Log Profiles on the 30th of September 2026 [GH-23146]
 
 ## 3.71.0 (August 24, 2023)
 
