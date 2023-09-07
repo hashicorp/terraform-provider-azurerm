@@ -16,7 +16,7 @@ type SasDefinitionId struct {
 }
 
 func (i SasDefinitionId) ID() string {
-	fmtString := "%sstorage/%s/sas/%s"
+	fmtString := "%s/storage/%s/sas/%s"
 	return fmt.Sprintf(fmtString, i.KeyVaultBaseUrl, i.StorageAccountName, i.Name)
 }
 
@@ -43,7 +43,7 @@ func SasDefinitionID(id string) (*SasDefinitionId, error) {
 	}
 
 	sasDefinitionId := SasDefinitionId{
-		KeyVaultBaseUrl:    fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
+		KeyVaultBaseUrl:    fmt.Sprintf("https://%s", idURL.Host),
 		StorageAccountName: components[1],
 		Name:               components[3],
 	}
