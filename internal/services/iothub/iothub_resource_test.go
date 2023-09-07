@@ -1436,67 +1436,67 @@ resource "azurerm_iothub" "test" {
 
 func (IotHubResource) disableLocalAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  provider "azurerm" {
-    features {}
-  }
-  
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-iothub-%d"
-    location = "%s"
-    tags = {
-      purpose = "testing"
-    }
-  }
-  
-  resource "azurerm_iothub" "test" {
-    name                = "acctestIoTHub-%d"
-    resource_group_name = azurerm_resource_group.test.name
-    location            = azurerm_resource_group.test.location
-    
-    local_authentication_enabled = false
+provider "azurerm" {
+  features {}
+}
 
-    sku {
-      name     = "B1"
-      capacity = "1"
-    }
-
-    tags = {
-      purpose = "testing"
-    }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+  tags = {
+    purpose = "testing"
   }
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  local_authentication_enabled = false
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
   `, data.RandomInteger, "eastus", data.RandomInteger)
 }
 
 func (IotHubResource) enableLocalAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  provider "azurerm" {
-    features {}
-  }
-  
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-iothub-%d"
-    location = "%s"
-    tags = {
-      purpose = "testing"
-    }
-  }
-  
-  resource "azurerm_iothub" "test" {
-    name                = "acctestIoTHub-%d"
-    resource_group_name = azurerm_resource_group.test.name
-    location            = azurerm_resource_group.test.location
-    
-    local_authentication_enabled = true
+provider "azurerm" {
+  features {}
+}
 
-    sku {
-      name     = "B1"
-      capacity = "1"
-    }
-
-    tags = {
-      purpose = "testing"
-    }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+  tags = {
+    purpose = "testing"
   }
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  local_authentication_enabled = true
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
   `, data.RandomInteger, "eastus", data.RandomInteger)
 }
 

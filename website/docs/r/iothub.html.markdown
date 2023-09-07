@@ -66,10 +66,10 @@ resource "azurerm_eventhub_authorization_rule" "example" {
 }
 
 resource "azurerm_iothub" "example" {
-  name                = "Example-IoTHub"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  local_authentication  = false
+  name                         = "Example-IoTHub"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  local_authentication_enabled = false
 
   sku {
     name     = "S1"
