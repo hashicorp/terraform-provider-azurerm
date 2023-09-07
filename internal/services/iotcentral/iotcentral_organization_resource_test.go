@@ -43,7 +43,7 @@ func TestAccIoTCentralOrganization_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("organization_id").HasValue("org-test-id"),
 				check.That(data.ResourceName).Key("display_name").HasValue("Org child"),
-				check.That(data.ResourceName).Key("parent").IsNotEmpty(),
+				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -69,6 +69,7 @@ func TestAccIoTCentralOrganization_updateDisplayName(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").HasValue("Org basic updated"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -81,16 +82,17 @@ func TestAccIoTCentralOrganization_setParent(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent").IsEmpty(),
+				check.That(data.ResourceName).Key("parent_organization_id").IsEmpty(),
 			),
 		},
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent").IsNotEmpty(),
+				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -103,16 +105,40 @@ func TestAccIoTCentralOrganization_updateParent(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent").IsNotEmpty(),
+				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
 			),
 		},
 		{
 			Config: r.completeUpdateParent(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent").IsNotEmpty(),
+				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralOrganization_unsetParent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
+	r := IoTCentralOrganizationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parent_organization_id").IsNotEmpty(),
+			),
+		},
+		{
+			Config: r.completeUnsetParent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parent_organization_id").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -164,7 +190,8 @@ resource "azurerm_iotcentral_organization" "test" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
   organization_id = "org-test-id"
   display_name    = "Org child"
-  parent          = azurerm_iotcentral_organization.test_parent.organization_id
+
+  parent_organization_id = azurerm_iotcentral_organization.test_parent.organization_id
 }
 `, r.template(data))
 }
@@ -203,7 +230,27 @@ resource "azurerm_iotcentral_organization" "test" {
   sub_domain      = azurerm_iotcentral_application.test.sub_domain
   organization_id = "org-test-id"
   display_name    = "Org child"
-  parent          = azurerm_iotcentral_organization.test_parent_2.organization_id
+
+  parent_organization_id = azurerm_iotcentral_organization.test_parent_2.organization_id
+}
+`, r.template(data))
+}
+
+func (r IoTCentralOrganizationResource) completeUnsetParent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_iotcentral_organization" "test_parent" {
+  sub_domain      = azurerm_iotcentral_application.test.sub_domain
+  organization_id = "org-test-parent-id"
+  display_name    = "Org parent"
+}
+resource "azurerm_iotcentral_organization" "test" {
+  sub_domain      = azurerm_iotcentral_application.test.sub_domain
+  organization_id = "org-test-id"
+  display_name    = "Org child"
 }
 `, r.template(data))
 }

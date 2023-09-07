@@ -22,10 +22,10 @@ var (
 )
 
 type IotCentralOrganizationModel struct {
-	SubDomain      string `tfschema:"sub_domain"`
-	OrganizationId string `tfschema:"organization_id"`
-	DisplayName    string `tfschema:"display_name"`
-	Parent         string `tfschema:"parent"`
+	SubDomain            string `tfschema:"sub_domain"`
+	OrganizationId       string `tfschema:"organization_id"`
+	DisplayName          string `tfschema:"display_name"`
+	ParentOrganizationId string `tfschema:"parent_organization_id"`
 }
 
 func (r IotCentralOrganizationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -44,9 +44,10 @@ func (r IotCentralOrganizationResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"parent": {
+		"parent_organization_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			ForceNew: true,
 		},
 	}
 }
@@ -85,8 +86,8 @@ func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
 				DisplayName: &state.DisplayName,
 			}
 
-			if state.Parent != "" {
-				model.Parent = &state.Parent
+			if state.ParentOrganizationId != "" {
+				model.Parent = &state.ParentOrganizationId
 			}
 
 			org, err := orgClient.Create(ctx, state.OrganizationId, model)
@@ -136,7 +137,7 @@ func (r IotCentralOrganizationResource) Read() sdk.ResourceFunc {
 			}
 
 			if org.Parent != nil {
-				state.Parent = *org.Parent
+				state.ParentOrganizationId = *org.Parent
 			}
 
 			return metadata.Encode(&state)
@@ -171,14 +172,6 @@ func (r IotCentralOrganizationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("display_name") {
 				existing.DisplayName = &state.DisplayName
-			}
-
-			if metadata.ResourceData.HasChange("parent") {
-				if state.Parent != "" {
-					// A bug in the Client, currently doesn't allow you to unset the parent
-					// autorest/azure: Service returned an error. Status=422 Code="InvalidBody" Message="ID exceeds maximum character limit of 48 ..."
-					existing.Parent = &state.Parent
-				}
 			}
 
 			_, err = orgClient.Update(ctx, *existing.ID, existing, "*")
