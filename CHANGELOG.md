@@ -9,7 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230901.1104643` of `github.com/hashicorp/go-azure-sdk` [GH-23153]
+* dependencies: updating to `v0.20230906.1160501` of `github.com/hashicorp/go-azure-sdk` [GH-23191]
 * `containerapps`: updating to API Version `2023-05-01` [GH-22804]
 * `keyvault`: upgrade remaining resources to `2023-02-01` [GH-23089]
 * `redisenterprise`: updating to API Version `2023-07-01` [GH-23178]
