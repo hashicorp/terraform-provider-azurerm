@@ -3,12 +3,12 @@ subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_management_private_link"
 description: |-
-  Manages a Resource Management Private Link to restrict access for managing resources in your Subscriptions.
+  Manages a Resource Management Private Link to restrict access for managing resources in the tenant.
 ---
 
 # azurerm_resource_management_private_link
 
-Manages a Resource Management Private Link to restrict access for managing resources in your Subscriptions.
+Manages a Resource Management Private Link to restrict access for managing resources in the tenant.
 
 ## Example Usage
 
