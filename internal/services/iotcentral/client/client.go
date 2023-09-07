@@ -19,7 +19,7 @@ type Client struct {
 	AppsClient          *apps.AppsClient
 	authorizerFunc      common.ApiAuthorizerFunc
 	configureClientFunc func(c *autorest.Client, authorizer autorest.Authorizer)
-	endpoint            string
+	Endpoint            environments.Api
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -27,20 +27,25 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Apps Client: %+v", err)
 	}
+
 	o.Configure(appsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AppsClient:          appsClient,
 		authorizerFunc:      o.Authorizers.AuthorizerFunc,
 		configureClientFunc: o.ConfigureClient,
-		endpoint:            "https://apps.azureiotcentral.com",
+		Endpoint:            o.Environment.IoTCentral,
 	}, nil
 }
 
 func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*dataplane.OrganizationsClient, error) {
-	api := environments.NewApiEndpoint("IotCentral", c.endpoint, nil)
-	iotCentralAuth, err := c.authorizerFunc(api)
+	if !c.Endpoint.Available() {
+		return nil, fmt.Errorf("unable to build SDK Client since IoTCentral is not available in this Azure Environment")
+	}
+
+	iotCentralAuth, err := c.authorizerFunc(c.Endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.endpoint, err)
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.Endpoint.Name(), err)
 	}
 
 	client := dataplane.NewOrganizationsClient(subdomain)
