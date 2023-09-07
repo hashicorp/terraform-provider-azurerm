@@ -797,6 +797,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/re
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments
