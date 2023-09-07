@@ -143,6 +143,18 @@ The following arguments are supported:
 
 * `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
 
+* `bgp_route_translation_for_nat_enabled` - (Optional) Is BGP Route Translation for NAT enabled? Defaults to `false`.
+
+* `dns_forwarding_enabled` - (Optional) Is DNS forwarding enabled?
+
+* `ip_sec_replay_protection_enabled` - (Optional) Is IP Sec Replay Protection enabled? Defaults to `true`.
+
+* `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.
+
+* `virtual_network_extended_location_id` - (Optional) The ID of the customer Virtual Network that is associated with the Virtual Network Gateway.
+
+* `virtual_wan_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from remote Virtual WAN networks enabled? Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is documented below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.

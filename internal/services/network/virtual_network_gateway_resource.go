@@ -6,6 +6,7 @@ package network
 import (
 	"bytes"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
@@ -389,6 +390,41 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.LocalNetworkGatewayID,
 		},
 
+		"bgp_route_translation_for_nat_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"dns_forwarding_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"ip_sec_replay_protection_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"remote_vnet_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"virtual_network_extended_location_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
+		},
+
+		"virtual_wan_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"tags": tags.Schema(),
 	}
 }
@@ -475,6 +511,12 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
+		d.Set("bgp_route_translation_for_nat_enabled", gw.EnableBgpRouteTranslationForNat)
+		d.Set("virtual_network_extended_location_id", gw.VNetExtendedLocationResourceID)
+		d.Set("dns_forwarding_enabled", gw.EnableDNSForwarding)
+		d.Set("ip_sec_replay_protection_enabled", !*gw.DisableIPSecReplayProtection)
+		d.Set("remote_vnet_traffic_enabled", gw.AllowRemoteVnetTraffic)
+		d.Set("virtual_wan_traffic_enabled", gw.AllowVirtualWanTraffic)
 		d.Set("generation", string(gw.VpnGatewayGeneration))
 
 		if string(gw.VpnType) != "" {
@@ -543,17 +585,33 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *plu
 	activeActive := d.Get("active_active").(bool)
 	generation := network.VpnGatewayGeneration(d.Get("generation").(string))
 	customRoute := d.Get("custom_route").([]interface{})
+	bgpRouteTranslationForNatEnabled := d.Get("bgp_route_translation_for_nat_enabled").(bool)
+	ipSecReplayProtectionEnabled := d.Get("ip_sec_replay_protection_enabled").(bool)
+	remoteVnetTrafficEnabled := d.Get("remote_vnet_traffic_enabled").(bool)
+	virtualWanTrafficEnabled := d.Get("virtual_wan_traffic_enabled").(bool)
 
 	props := &network.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:            gatewayType,
-		VpnType:                vpnType,
-		EnableBgp:              &enableBgp,
-		EnablePrivateIPAddress: &enablePrivateIpAddress,
-		ActiveActive:           &activeActive,
-		VpnGatewayGeneration:   generation,
-		Sku:                    expandVirtualNetworkGatewaySku(d),
-		IPConfigurations:       expandVirtualNetworkGatewayIPConfigurations(d),
-		CustomRoutes:           expandVirtualNetworkGatewayAddressSpace(customRoute),
+		GatewayType:                     gatewayType,
+		VpnType:                         vpnType,
+		EnableBgp:                       &enableBgp,
+		EnablePrivateIPAddress:          &enablePrivateIpAddress,
+		ActiveActive:                    &activeActive,
+		VpnGatewayGeneration:            generation,
+		EnableBgpRouteTranslationForNat: utils.Bool(bgpRouteTranslationForNatEnabled),
+		DisableIPSecReplayProtection:    utils.Bool(!ipSecReplayProtectionEnabled),
+		AllowRemoteVnetTraffic:          utils.Bool(remoteVnetTrafficEnabled),
+		AllowVirtualWanTraffic:          utils.Bool(virtualWanTrafficEnabled),
+		Sku:                             expandVirtualNetworkGatewaySku(d),
+		IPConfigurations:                expandVirtualNetworkGatewayIPConfigurations(d),
+		CustomRoutes:                    expandVirtualNetworkGatewayAddressSpace(customRoute),
+	}
+
+	if v, ok := d.GetOk("dns_forwarding_enabled"); ok {
+		props.EnableDNSForwarding = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("virtual_network_extended_location_id"); ok {
+		props.VNetExtendedLocationResourceID = utils.String(v.(string))
 	}
 
 	if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
