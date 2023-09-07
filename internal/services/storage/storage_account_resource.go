@@ -2449,7 +2449,7 @@ func handleStorageServiceError(service string, operation string, err error) (int
 		}
 	}
 	// if the error is unhandled type or status, log the error and return the error state
-	log.Printf("[DEBUG] unexpected error while %s %s service properties: %v\n", operation, service, err)
+	log.Printf("[DEBUG] unexpected error while %s %s service properties: %+v\n", operation, service, err)
 	return nil, "Error", err
 }
 
