@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_cassandra_datacenter` - updating to API Version `2023-04-15` [GH-23110]
 * `azurerm_kubernetes_cluster` - Azure CNI can be updated to use `overlay` [GH-22709]
 * `azurerm_monitor_diagnostic_setting` - deprecating `retention_policy` within `enabled_log` [GH-23029]
+* `azurerm_mssql_database` - split create and update methods [GH-23209]
 * `azurerm_postgresql_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
 * `azurerm_postgresql_flexible_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
 * `azurerm_postgresql_flexible_server` - support for the `auto_grow_enabled` property [GH-23069]
