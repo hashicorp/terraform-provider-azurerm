@@ -64,7 +64,7 @@ func (r IotCentralOrganizationResource) ModelObject() interface{} {
 }
 
 func (r IotCentralOrganizationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NestedItemId
+	return validate.OrganizationID
 }
 
 func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
@@ -94,12 +94,7 @@ func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", state.OrganizationId, err)
 			}
 
-			baseUrl, err := parse.ParseBaseUrl(state.SubDomain)
-			if err != nil {
-				return err
-			}
-
-			orgId, err := parse.NewNestedItemID(baseUrl, parse.NestedItemTypeOrganization, *org.ID)
+			orgId, err := parse.NewOrganizationID(state.SubDomain, client.Endpoint.Name(), *org.ID)
 			if err != nil {
 				return err
 			}
@@ -115,7 +110,7 @@ func (r IotCentralOrganizationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			id, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
+			id, err := parse.ParseOrganizationID(metadata.ResourceData.Id(), metadata.ResourceData.Get("sub_domain").(string), client.Endpoint.Name())
 			if err != nil {
 				return err
 			}
@@ -125,7 +120,7 @@ func (r IotCentralOrganizationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("creating organization client: %+v", err)
 			}
 
-			org, err := orgClient.Get(ctx, id.Id)
+			org, err := orgClient.Get(ctx, id.OrganizationId)
 			if err != nil {
 				if org.ID == nil || *org.ID == "" {
 					return metadata.MarkAsGone(id)
@@ -136,7 +131,7 @@ func (r IotCentralOrganizationResource) Read() sdk.ResourceFunc {
 
 			state := IotCentralOrganizationModel{
 				SubDomain:      id.SubDomain,
-				OrganizationId: *org.ID,
+				OrganizationId: id.OrganizationId,
 				DisplayName:    *org.DisplayName,
 			}
 
@@ -154,13 +149,13 @@ func (r IotCentralOrganizationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			id, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
-			if err != nil {
+			var state IotCentralOrganizationModel
+			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			var state IotCentralOrganizationModel
-			if err := metadata.Decode(&state); err != nil {
+			id, err := parse.ParseOrganizationID(metadata.ResourceData.Id(), state.SubDomain, client.Endpoint.Name())
+			if err != nil {
 				return err
 			}
 
@@ -169,7 +164,7 @@ func (r IotCentralOrganizationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("creating organization client: %+v", err)
 			}
 
-			existing, err := orgClient.Get(ctx, id.Id)
+			existing, err := orgClient.Get(ctx, id.OrganizationId)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
@@ -201,7 +196,12 @@ func (r IotCentralOrganizationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			id, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
+			var state IotCentralOrganizationModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			id, err := parse.ParseOrganizationID(metadata.ResourceData.Id(), state.SubDomain, client.Endpoint.Name())
 			if err != nil {
 				return err
 			}
@@ -211,7 +211,7 @@ func (r IotCentralOrganizationResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("creating organization client: %+v", err)
 			}
 
-			_, err = orgClient.Remove(ctx, id.Id)
+			_, err = orgClient.Remove(ctx, id.OrganizationId)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}

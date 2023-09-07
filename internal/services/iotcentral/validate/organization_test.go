@@ -40,7 +40,7 @@ func TestNestedItemId(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		warnings, err := NestedItemId(tc.Input, "example")
+		warnings, err := OrganizationID(tc.Input, "example")
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for input %q: %+v", tc.Input, err)

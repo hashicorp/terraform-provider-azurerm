@@ -117,7 +117,7 @@ func TestAccIoTCentralOrganization_updateParent(t *testing.T) {
 }
 
 func (IoTCentralOrganizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ParseNestedItemID(state.ID)
+	id, err := parse.ParseOrganizationID(state.ID, state.Attributes["sub_domain"], clients.IoTCentral.Endpoint.Name())
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (IoTCentralOrganizationResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("creating organization client: %+v", err)
 	}
 
-	resp, err := orgClient.Get(ctx, id.Id)
+	resp, err := orgClient.Get(ctx, id.OrganizationId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
