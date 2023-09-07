@@ -169,7 +169,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("cannot read Managed Storage Account ID %q (Key Vault %q)", name, *keyVaultId)
 	}
 
-	storageId, err := commonids.ParseStorageAccountID(*read.ID)
+	storageId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(*read.ID)
 	if err != nil {
 		return err
 	}
