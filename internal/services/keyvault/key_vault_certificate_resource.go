@@ -605,9 +605,16 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			if err != nil {
 				return err
 			}
-			if resp.ID != nil {
-				d.SetId(id.ID())
+
+			if resp.ID == nil {
+				return fmt.Errorf("error: Certificate %q in Vault %q get nil ID from server", id.Name, id.KeyVaultBaseUrl)
 			}
+
+			certificateId, err := parse.ParseNestedItemID(*resp.ID)
+			if err != nil {
+				return err
+			}
+			d.SetId(certificateId.ID())
 		}
 	}
 	if d.HasChange("certificate_policy") {
