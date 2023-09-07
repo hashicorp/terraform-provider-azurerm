@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -186,7 +187,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											},
 										},
 									},
-									//lintignore:XS003
+									// lintignore:XS003
 									"trigger": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -653,6 +654,12 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 		}
 
 		if strings.EqualFold(*operation.Status, "inProgress") {
+			if issuer := operation.IssuerParameters; issuer != nil {
+				if strings.EqualFold(pointer.From(issuer.Name), "unknown") {
+					return operation, "Ready", nil
+				}
+			}
+
 			return operation, "Provisioning", nil
 		}
 
