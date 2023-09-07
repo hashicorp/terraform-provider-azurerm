@@ -6,7 +6,6 @@ package network
 import (
 	"bytes"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
@@ -413,12 +412,6 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"virtual_network_extended_location_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
-
 		"virtual_wan_traffic_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -512,7 +505,6 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
 		d.Set("bgp_route_translation_for_nat_enabled", gw.EnableBgpRouteTranslationForNat)
-		d.Set("virtual_network_extended_location_id", gw.VNetExtendedLocationResourceID)
 		d.Set("dns_forwarding_enabled", gw.EnableDNSForwarding)
 		d.Set("ip_sec_replay_protection_enabled", !*gw.DisableIPSecReplayProtection)
 		d.Set("remote_vnet_traffic_enabled", gw.AllowRemoteVnetTraffic)
@@ -608,10 +600,6 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *plu
 
 	if v, ok := d.GetOk("dns_forwarding_enabled"); ok {
 		props.EnableDNSForwarding = utils.Bool(v.(bool))
-	}
-
-	if v, ok := d.GetOk("virtual_network_extended_location_id"); ok {
-		props.VNetExtendedLocationResourceID = utils.String(v.(string))
 	}
 
 	if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
