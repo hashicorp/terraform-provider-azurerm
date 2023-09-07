@@ -30,11 +30,12 @@ func (id OrganizationId) ID() string {
 
 func (id OrganizationId) String() string {
 	components := []string{
-		fmt.Sprintf("DomainSuffix %q", id.DomainSuffix),
-		fmt.Sprintf("Sub Domain %q", id.SubDomain),
-		fmt.Sprintf("Id %q", id.OrganizationId),
+		fmt.Sprintf("DomainSuffix: %q", id.DomainSuffix),
+		fmt.Sprintf("SubDomain: %q", id.SubDomain),
+		fmt.Sprintf("Path: %q", "/api/organizations/"),
+		fmt.Sprintf("OrganizationId: %q", id.OrganizationId),
 	}
-	return fmt.Sprintf("Iot Central OrganizationId %s", strings.Join(components, " / "))
+	return fmt.Sprintf("Iot Central OrganizationId %s", strings.Join(components, "\n"))
 }
 
 func ParseOrganizationID(id string, subDomain string, domainSuffix string) (*OrganizationId, error) {
