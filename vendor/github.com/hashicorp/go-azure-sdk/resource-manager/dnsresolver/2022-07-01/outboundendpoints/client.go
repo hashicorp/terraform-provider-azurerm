@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type OutboundEndpointsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewOutboundEndpointsClientWithBaseURI(api environments.Api) (*OutboundEndpointsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "outboundendpoints", defaultApiVersion)
+func NewOutboundEndpointsClientWithBaseURI(sdkApi sdkEnv.Api) (*OutboundEndpointsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "outboundendpoints", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OutboundEndpointsClient: %+v", err)
 	}

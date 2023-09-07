@@ -68,9 +68,10 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"storage_data_lake_gen2_filesystem_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsURLWithPath,
 			},
 
 			"sql_administrator_login": {
@@ -795,7 +796,7 @@ func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2Filesyst
 	uri, _ := url.Parse(storageDataLakeGen2FilesystemId)
 	return &synapse.DataLakeStorageAccountDetails{
 		AccountURL: utils.String(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)), // https://storageaccountname.dfs.core.windows.net/filesystemname -> https://storageaccountname.dfs.core.windows.net
-		Filesystem: utils.String(uri.Path[1:]),                                 // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
+		Filesystem: utils.String(strings.TrimPrefix(uri.Path, "/")),            // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
 	}
 }
 

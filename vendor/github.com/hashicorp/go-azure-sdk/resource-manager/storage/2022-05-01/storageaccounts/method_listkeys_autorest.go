@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -42,7 +43,7 @@ func (o ListKeysOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // ListKeys ...
-func (c StorageAccountsClient) ListKeys(ctx context.Context, id StorageAccountId, options ListKeysOperationOptions) (result ListKeysOperationResponse, err error) {
+func (c StorageAccountsClient) ListKeys(ctx context.Context, id commonids.StorageAccountId, options ListKeysOperationOptions) (result ListKeysOperationResponse, err error) {
 	req, err := c.preparerForListKeys(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "ListKeys", nil, "Failure preparing request")
@@ -65,7 +66,7 @@ func (c StorageAccountsClient) ListKeys(ctx context.Context, id StorageAccountId
 }
 
 // preparerForListKeys prepares the ListKeys request.
-func (c StorageAccountsClient) preparerForListKeys(ctx context.Context, id StorageAccountId, options ListKeysOperationOptions) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForListKeys(ctx context.Context, id commonids.StorageAccountId, options ListKeysOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

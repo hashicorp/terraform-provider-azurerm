@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type RouteFilterRulesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewRouteFilterRulesClientWithBaseURI(api environments.Api) (*RouteFilterRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "routefilterrules", defaultApiVersion)
+func NewRouteFilterRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*RouteFilterRulesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "routefilterrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RouteFilterRulesClient: %+v", err)
 	}

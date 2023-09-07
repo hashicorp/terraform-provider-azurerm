@@ -137,6 +137,8 @@ az vm extension image list --location westus -o table
 
 ~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
 
+* `provision_after_extensions` - (Optional) Specifies the collection of extension names after which this extension needs to be provisioned.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

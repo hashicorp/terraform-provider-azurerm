@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type FlowLogsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewFlowLogsClientWithBaseURI(api environments.Api) (*FlowLogsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "flowlogs", defaultApiVersion)
+func NewFlowLogsClientWithBaseURI(sdkApi sdkEnv.Api) (*FlowLogsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "flowlogs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FlowLogsClient: %+v", err)
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type ListOperationResponse struct {
 }
 
 // List ...
-func (c BlobServiceClient) List(ctx context.Context, id StorageAccountId) (result ListOperationResponse, err error) {
+func (c BlobServiceClient) List(ctx context.Context, id commonids.StorageAccountId) (result ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobservice.BlobServiceClient", "List", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c BlobServiceClient) List(ctx context.Context, id StorageAccountId) (resul
 }
 
 // preparerForList prepares the List request.
-func (c BlobServiceClient) preparerForList(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c BlobServiceClient) preparerForList(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

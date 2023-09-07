@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ExpressRouteCircuitRoutesTableSummaryClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewExpressRouteCircuitRoutesTableSummaryClientWithBaseURI(api environments.Api) (*ExpressRouteCircuitRoutesTableSummaryClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "expressroutecircuitroutestablesummary", defaultApiVersion)
+func NewExpressRouteCircuitRoutesTableSummaryClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCircuitRoutesTableSummaryClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecircuitroutestablesummary", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCircuitRoutesTableSummaryClient: %+v", err)
 	}

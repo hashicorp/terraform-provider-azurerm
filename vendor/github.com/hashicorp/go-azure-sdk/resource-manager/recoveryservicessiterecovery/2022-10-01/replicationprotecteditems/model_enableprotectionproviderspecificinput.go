@@ -12,6 +12,15 @@ import (
 type EnableProtectionProviderSpecificInput interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawEnableProtectionProviderSpecificInputImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalEnableProtectionProviderSpecificInputImplementation(input []byte) (EnableProtectionProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
@@ -75,10 +84,6 @@ func unmarshalEnableProtectionProviderSpecificInputImplementation(input []byte) 
 		return out, nil
 	}
 
-	type RawEnableProtectionProviderSpecificInputImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawEnableProtectionProviderSpecificInputImpl{
 		Type:   value,
 		Values: temp,

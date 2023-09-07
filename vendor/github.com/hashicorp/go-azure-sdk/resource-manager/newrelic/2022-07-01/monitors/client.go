@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type MonitorsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewMonitorsClientWithBaseURI(api environments.Api) (*MonitorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "monitors", defaultApiVersion)
+func NewMonitorsClientWithBaseURI(sdkApi sdkEnv.Api) (*MonitorsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "monitors", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MonitorsClient: %+v", err)
 	}

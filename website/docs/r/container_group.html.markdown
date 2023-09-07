@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `sku` - (Optional) Specifies the sku of the Container Group. Possible values are `Confidential`, `Dedicated` and `Standard`. Defaults to `Standard`. Changing this forces a new resource to be created.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `init_container` - (Optional) The definition of an init container that is part of the group as documented in the `init_container` block below. Changing this forces a new resource to be created.
@@ -137,6 +139,8 @@ An `init_container` block supports:
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
+* `security` - (Optional) The definition of the security context for this container as documented in the `security` block below. Changing this forces a new resource to be created.
+
 ---
 
 A `container` block supports:
@@ -172,6 +176,8 @@ A `container` block supports:
 * `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
+
+* `security` - (Optional) The definition of the security context for this container as documented in the `security` block below. Changing this forces a new resource to be created.
 
 ---
 
@@ -334,6 +340,14 @@ The `dns_config` block supports:
 * `search_domains` - (Optional) A list of search domains that DNS requests will search along. Changing this forces a new resource to be created.
 
 * `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html). Changing this forces a new resource to be created.
+
+---
+
+The `security` block supports:
+
+* `privilege_enabled` - (Required) Whether the container's permission is elevated to privileged? Changing this forces a new resource to be created.
+
+~> **NOTE:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`. 
 
 ## Attributes Reference
 

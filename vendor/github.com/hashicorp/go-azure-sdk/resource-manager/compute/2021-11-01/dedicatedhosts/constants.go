@@ -1,6 +1,10 @@
 package dedicatedhosts
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForDedicatedHostLicenseTypes() []string {
 		string(DedicatedHostLicenseTypesWindowsServerHybrid),
 		string(DedicatedHostLicenseTypesWindowsServerPerpetual),
 	}
+}
+
+func (s *DedicatedHostLicenseTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDedicatedHostLicenseTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDedicatedHostLicenseTypes(input string) (*DedicatedHostLicenseTypes, error) {
@@ -50,6 +67,19 @@ func PossibleValuesForInstanceViewTypes() []string {
 	}
 }
 
+func (s *InstanceViewTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInstanceViewTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseInstanceViewTypes(input string) (*InstanceViewTypes, error) {
 	vals := map[string]InstanceViewTypes{
 		"instanceview": InstanceViewTypesInstanceView,
@@ -78,6 +108,19 @@ func PossibleValuesForStatusLevelTypes() []string {
 		string(StatusLevelTypesInfo),
 		string(StatusLevelTypesWarning),
 	}
+}
+
+func (s *StatusLevelTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatusLevelTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStatusLevelTypes(input string) (*StatusLevelTypes, error) {

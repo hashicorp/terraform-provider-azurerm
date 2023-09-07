@@ -604,7 +604,7 @@ func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) 
 }
 
 func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
-	criteria := make([]metricalerts.MultiMetricCriteria, 0)
+	criteria := make([]metricalerts.MetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
@@ -739,11 +739,11 @@ func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) [
 	}
 }
 
-func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
+func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MetricCriteria) []interface{} {
 	if input == nil || len(*input) == 0 {
 		return nil
 	}
-	criteria := (*input)[0].(metricalerts.MetricCriteria)
+	criteria := (*input)[0]
 	metricName := criteria.MetricName
 	metricNamespace := criteria.MetricNamespace
 	timeAggregation := criteria.TimeAggregation

@@ -268,6 +268,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"subscription": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"prevent_cancellation_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -451,6 +466,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			managedDiskRaw := items[0].(map[string]interface{})
 			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
 				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["subscription"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			subscriptionRaw := items[0].(map[string]interface{})
+			if v, ok := subscriptionRaw["prevent_cancellation_on_destroy"]; ok {
+				featuresMap.Subscription.PreventCancellationOnDestroy = v.(bool)
 			}
 		}
 	}

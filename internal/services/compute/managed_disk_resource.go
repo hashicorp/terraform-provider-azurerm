@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -130,7 +130,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true, // Not supported by disk update
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"image_reference_id": {
@@ -888,7 +888,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					return fmt.Errorf("removing Disk %q from Virtual Machine %q : %+v", id.DiskName, virtualMachine.String(), err)
 				}
 
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				if err = future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 					return fmt.Errorf("waiting for Disk %q to be removed from Virtual Machine %q : %+v", id.DiskName, virtualMachine.String(), err)
 				}
 			}
@@ -903,7 +903,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("sending Power Off to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err := future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for Power Off of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
@@ -919,7 +919,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("Deallocating to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
-			if err := deAllocFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err := deAllocFuture.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for Deallocation of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
@@ -954,7 +954,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("updating Virtual Machine %q to reattach Disk %q: %+v", virtualMachine.String(), name, err)
 			}
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err = future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for Virtual Machine %q to finish reattaching Disk %q: %+v", virtualMachine.String(), name, err)
 			}
 		}
@@ -966,7 +966,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("starting Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err := future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for start of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 

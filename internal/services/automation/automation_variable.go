@@ -4,6 +4,7 @@
 package automation
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
@@ -49,6 +50,9 @@ func ParseAzureAutomationVariableValue(resource string, input *string) (interfac
 		actualResource = "azurerm_automation_variable_int"
 	} else if value, err = strconv.ParseBool(*input); err == nil {
 		actualResource = "azurerm_automation_variable_bool"
+	} else if err := json.Unmarshal([]byte(*input), &value); err == nil {
+		value = *input
+		actualResource = "azurerm_automation_variable_object"
 	}
 
 	if actualResource != resource {
@@ -128,7 +132,7 @@ func datasourceAutomationVariableCommonSchema(attType pluginsdk.ValueType) map[s
 }
 
 func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,6 +169,9 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		value = strconv.FormatBool(d.Get("value").(bool))
 	case "int":
 		value = strconv.Itoa(d.Get("value").(int))
+	case "object":
+		// We don't quote the object so it gets saved as a JSON object
+		value = d.Get("value").(string)
 	case "string":
 		value = strconv.Quote(d.Get("value").(string))
 	}
@@ -191,7 +198,7 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,7 +246,7 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 }
 
 func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,7 +293,7 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
-	client := meta.(*clients.Client).Automation.VariableClient
+	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

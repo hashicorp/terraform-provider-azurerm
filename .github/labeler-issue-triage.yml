@@ -45,6 +45,9 @@ service/automation:
 service/azure-stack-hci:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_cluster((.|\n)*)###'
 
+service/azuremanagedlustrefilesystem:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_lustre_file_system((.|\n)*)###'
+
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
 
@@ -142,7 +145,7 @@ service/frontdoor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_frontdoor((.|\n)*)###'
 
 service/graph:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_graph_account((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_graph_((.|\n)*)###'
 
 service/hdinsight:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_hdinsight_((.|\n)*)###'
@@ -226,7 +229,7 @@ service/monitor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_monitor_((.|\n)*)###'
 
 service/mssql:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(mssql_database\W+|mssql_database_extended_auditing_policy\W+|mssql_database_vulnerability_assessment_rule_baseline\W+|mssql_elasticpool\W+|mssql_failover_group\W+|mssql_firewall_rule\W+|mssql_job_agent\W+|mssql_job_credential\W+|mssql_outbound_firewall_rule\W+|mssql_server\W+|mssql_server_dns_alias\W+|mssql_server_extended_auditing_policy\W+|mssql_server_microsoft_support_auditing_policy\W+|mssql_server_security_alert_policy\W+|mssql_server_transparent_data_encryption\W+|mssql_server_vulnerability_assessment\W+|mssql_virtual_machine\W+|mssql_virtual_network_rule\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(mssql_database\W+|mssql_database_extended_auditing_policy\W+|mssql_database_vulnerability_assessment_rule_baseline\W+|mssql_elasticpool\W+|mssql_failover_group\W+|mssql_firewall_rule\W+|mssql_job_agent\W+|mssql_job_credential\W+|mssql_outbound_firewall_rule\W+|mssql_server\W+|mssql_server_dns_alias\W+|mssql_server_extended_auditing_policy\W+|mssql_server_microsoft_support_auditing_policy\W+|mssql_server_security_alert_policy\W+|mssql_server_transparent_data_encryption\W+|mssql_server_vulnerability_assessment\W+|mssql_virtual_machine\W+|mssql_virtual_machine_availability_group_listener\W+|mssql_virtual_machine_group\W+|mssql_virtual_network_rule\W+)((.|\n)*)###'
 
 service/mssqlmanagedinstance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mssql_managed_((.|\n)*)###'
@@ -251,6 +254,9 @@ service/notifications:
 
 service/orbital:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_orbital_((.|\n)*)###'
+
+service/paloalto:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_palo_alto_((.|\n)*)###'
 
 service/policy:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(management_group_policy_|policy_|resource_group_policy_assignment\W+|resource_group_policy_exemption\W+|resource_group_policy_remediation\W+|resource_policy_assignment\W+|resource_policy_exemption\W+|resource_policy_remediation\W+|subscription_policy_)((.|\n)*)###'

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SliceClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSliceClientWithBaseURI(api environments.Api) (*SliceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "slice", defaultApiVersion)
+func NewSliceClientWithBaseURI(sdkApi sdkEnv.Api) (*SliceClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "slice", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SliceClient: %+v", err)
 	}

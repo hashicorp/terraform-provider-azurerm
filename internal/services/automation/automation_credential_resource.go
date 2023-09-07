@@ -73,7 +73,7 @@ func resourceAutomationCredential() *pluginsdk.Resource {
 }
 
 func resourceAutomationCredentialCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CredentialClient
+	client := meta.(*clients.Client).Automation.Credential
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +118,7 @@ func resourceAutomationCredentialCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAutomationCredentialRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CredentialClient
+	client := meta.(*clients.Client).Automation.Credential
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -152,7 +152,7 @@ func resourceAutomationCredentialRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceAutomationCredentialDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CredentialClient
+	client := meta.(*clients.Client).Automation.Credential
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

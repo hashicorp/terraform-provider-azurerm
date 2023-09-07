@@ -1,6 +1,10 @@
 package capacityreservationgroups
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -15,6 +19,19 @@ func PossibleValuesForCapacityReservationGroupInstanceViewTypes() []string {
 	return []string{
 		string(CapacityReservationGroupInstanceViewTypesInstanceView),
 	}
+}
+
+func (s *CapacityReservationGroupInstanceViewTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCapacityReservationGroupInstanceViewTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCapacityReservationGroupInstanceViewTypes(input string) (*CapacityReservationGroupInstanceViewTypes, error) {
@@ -42,6 +59,19 @@ func PossibleValuesForExpandTypesForGetCapacityReservationGroups() []string {
 		string(ExpandTypesForGetCapacityReservationGroupsVirtualMachineScaleSetVMsRef),
 		string(ExpandTypesForGetCapacityReservationGroupsVirtualMachinesRef),
 	}
+}
+
+func (s *ExpandTypesForGetCapacityReservationGroups) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseExpandTypesForGetCapacityReservationGroups(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseExpandTypesForGetCapacityReservationGroups(input string) (*ExpandTypesForGetCapacityReservationGroups, error) {
@@ -72,6 +102,19 @@ func PossibleValuesForStatusLevelTypes() []string {
 		string(StatusLevelTypesInfo),
 		string(StatusLevelTypesWarning),
 	}
+}
+
+func (s *StatusLevelTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatusLevelTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStatusLevelTypes(input string) (*StatusLevelTypes, error) {
