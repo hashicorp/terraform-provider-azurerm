@@ -44,6 +44,7 @@ BUG FIXES:
 * `azurerm_policy_set_definition` - only sending `parameters` when a value is configured [GH-23155]
 * `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
 * `machine_learning_datastore_*` - fixes container ids [GH-23140]
+* `azurerm_key_vault_certificate` - id now points to new version when certificate is updated [GH-23135]
 
 DEPRECATION:
 
