@@ -903,11 +903,11 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		d.Set("min_tls_version", properties.MinTLSVersion)
 
+		localAuthenticationEnabled := true
 		if properties.DisableLocalAuth != nil {
-			if err := d.Set("local_authentication_enabled", !*properties.DisableLocalAuth); err != nil {
-				return fmt.Errorf("setting `local_authentication_enabled` in IoTHub %q: %+v", id.Name, err)
-			}
+			localAuthenticationEnabled = !*properties.DisableLocalAuth
 		}
+		d.Set("local_authentication_enabled", localAuthenticationEnabled)
 	}
 
 	identity, err := flattenIotHubIdentity(hub.Identity)
