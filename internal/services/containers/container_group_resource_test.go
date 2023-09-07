@@ -695,6 +695,28 @@ func TestAccContainerGroup_encryption(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_securityContext(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityContextPriviledged(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityContextPriviledged(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ContainerGroupResource) SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2465,4 +2487,40 @@ resource "azurerm_container_group" "test" {
   depends_on       = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) securityContextPriviledged(data acceptance.TestData, v bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+  sku                 = "Confidential"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+    security {
+      privilege_enabled = %[3]t
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, v)
 }

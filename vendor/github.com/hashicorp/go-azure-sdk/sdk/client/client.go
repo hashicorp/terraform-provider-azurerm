@@ -290,7 +290,10 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 	req.Method = input.HttpMethod
 
 	req.Header = make(http.Header)
-	req.Header.Add("Content-Type", input.ContentType)
+
+	if input.ContentType != "" {
+		req.Header.Add("Content-Type", input.ContentType)
+	}
 
 	if c.UserAgent != "" {
 		req.Header.Add("User-Agent", c.UserAgent)

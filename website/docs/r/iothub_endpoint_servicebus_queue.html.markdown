@@ -1,5 +1,5 @@
 ---
-subcategory: "Messaging"
+subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_endpoint_servicebus_queue"
 description: |-

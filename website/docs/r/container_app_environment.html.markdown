@@ -46,6 +46,8 @@ The following arguments are supported:
 
 ---
 
+* `dapr_application_insights_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry.
+
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
 ~> **NOTE:** The Subnet must have a `/21` or larger address space. 

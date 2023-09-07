@@ -106,7 +106,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -136,7 +136,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -165,7 +165,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 
@@ -194,7 +194,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 

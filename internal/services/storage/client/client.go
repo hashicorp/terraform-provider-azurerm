@@ -33,7 +33,6 @@ type Client struct {
 	AccountsClient              *storage.AccountsClient
 	FileSystemsClient           *filesystems.Client
 	ADLSGen2PathsClient         *paths.Client
-	ManagementPoliciesClient    *storage.ManagementPoliciesClient
 	BlobServicesClient          *storage.BlobServicesClient
 	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
@@ -59,9 +58,6 @@ func NewClient(options *common.ClientOptions) (*Client, error) {
 
 	adlsGen2PathsClient := paths.NewWithEnvironment(options.AzureEnvironment)
 	options.ConfigureClient(&adlsGen2PathsClient.Client, options.StorageAuthorizer)
-
-	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&managementPoliciesClient.Client, options.ResourceManagerAuthorizer)
 
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
@@ -103,7 +99,6 @@ func NewClient(options *common.ClientOptions) (*Client, error) {
 		AccountsClient:              &accountsClient,
 		FileSystemsClient:           &fileSystemsClient,
 		ADLSGen2PathsClient:         &adlsGen2PathsClient,
-		ManagementPoliciesClient:    &managementPoliciesClient,
 		BlobServicesClient:          &blobServicesClient,
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
 		EncryptionScopesClient:      &encryptionScopesClient,

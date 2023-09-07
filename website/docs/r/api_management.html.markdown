@@ -97,7 +97,9 @@ The following arguments are supported:
 
 ~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
-* `public_network_access_enabled` - (Optional) Is public access to the service allowed?. Defaults to `true`
+* `public_network_access_enabled` - (Optional) Is public access to the service allowed? Defaults to `true`.
+
+~> **NOTE:** This option is applicable only to the Management plane, not the API gateway or Developer portal. It is required to be `true` on the creation.
 
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
 

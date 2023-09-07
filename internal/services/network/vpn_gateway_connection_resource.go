@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -54,7 +53,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VpnGatewayID,
+				ValidateFunc: virtualwans.ValidateVpnGatewayID,
 			},
 
 			"remote_vpn_site_id": {
@@ -336,12 +335,12 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 	defer cancel()
 
 	name := d.Get("name").(string)
-	gatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
+	gatewayId, err := virtualwans.ParseVpnGatewayID(d.Get("vpn_gateway_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := commonids.NewVPNConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroup, gatewayId.Name, name)
+	id := commonids.NewVPNConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroupName, gatewayId.VpnGatewayName, name)
 	if d.IsNewResource() {
 		resp, err := client.VpnConnectionsGet(ctx, id)
 		if err != nil {
@@ -355,8 +354,8 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	locks.ByName(gatewayId.Name, VPNGatewayResourceName)
-	defer locks.UnlockByName(gatewayId.Name, VPNGatewayResourceName)
+	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
+	defer locks.UnlockByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
 
 	payload := virtualwans.VpnConnection{
 		Properties: &virtualwans.VpnConnectionProperties{
@@ -403,7 +402,7 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.Set("name", id.ConnectionName)
-	d.Set("vpn_gateway_id", parse.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.GatewayName).ID())
+	d.Set("vpn_gateway_id", virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.GatewayName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

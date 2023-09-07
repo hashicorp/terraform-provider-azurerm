@@ -41,7 +41,7 @@ func resourceApiManagementGatewayApi() *pluginsdk.Resource {
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.ApiManagementApiPolicyV0ToV1{},
+			0: migration.ApiManagementGatewayApiV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{

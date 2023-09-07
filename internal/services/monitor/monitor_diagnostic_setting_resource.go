@@ -109,11 +109,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"enabled_log": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      !features.FourPointOhBeta(),
-				ConflictsWith: []string{"log"},
-				AtLeastOneOf:  []string{"enabled_log", "log", "metric"},
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				Computed:     !features.FourPointOhBeta(),
+				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -127,9 +126,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						},
 
 						"retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							Deprecated: "`retention_policy` has been deprecated - to learn more https://aka.ms/diagnostic_settings_log_retention",
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
@@ -153,7 +153,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"metric": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				AtLeastOneOf: []string{"enabled_log", "log", "metric"},
+				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -240,6 +240,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 			Set: resourceMonitorDiagnosticLogSettingHash,
 		}
+
+		resource.Schema["metric"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
+		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
+		resource.Schema["enabled_log"].ConflictsWith = []string{"log"}
 	}
 
 	return resource
