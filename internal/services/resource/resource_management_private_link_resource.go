@@ -24,10 +24,9 @@ func (r ResourceManagementPrivateLinkResource) ModelObject() interface{} {
 }
 
 type ResourceManagementPrivateLinkResourceSchema struct {
-	Location                   string   `tfschema:"location"`
-	Name                       string   `tfschema:"name"`
-	PrivateEndpointConnections []string `tfschema:"private_endpoint_connections"`
-	ResourceGroupName          string   `tfschema:"resource_group_name"`
+	Location          string `tfschema:"location"`
+	Name              string `tfschema:"name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
 }
 
 func (r ResourceManagementPrivateLinkResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -52,15 +51,7 @@ func (r ResourceManagementPrivateLinkResource) Arguments() map[string]*pluginsdk
 }
 
 func (r ResourceManagementPrivateLinkResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"private_endpoint_connections": {
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-			Type: pluginsdk.TypeList,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r ResourceManagementPrivateLinkResource) Create() sdk.ResourceFunc {
@@ -107,7 +98,6 @@ func (r ResourceManagementPrivateLinkResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.ResourceManagementPrivateLinkClient
-			schema := ResourceManagementPrivateLinkResourceSchema{}
 
 			id, err := resourcemanagementprivatelink.ParseResourceManagementPrivateLinkID(metadata.ResourceData.Id())
 			if err != nil {
@@ -122,9 +112,12 @@ func (r ResourceManagementPrivateLinkResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			schema := ResourceManagementPrivateLinkResourceSchema{
+				Name:              id.ResourceManagementPrivateLinkName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
+
 			if model := resp.Model; model != nil {
-				schema.Name = id.ResourceManagementPrivateLinkName
-				schema.ResourceGroupName = id.ResourceGroupName
 				schema.Location = location.NormalizeNilable(model.Location)
 			}
 

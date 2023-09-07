@@ -61,6 +61,10 @@ func (r ResourceManagementPrivateLinkTestResource) Exists(ctx context.Context, c
 
 func (r ResourceManagementPrivateLinkTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_resource_management_private_link" "test" {
@@ -73,6 +77,10 @@ resource "azurerm_resource_management_private_link" "test" {
 
 func (r ResourceManagementPrivateLinkTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_resource_management_private_link" "import" {
@@ -93,10 +101,6 @@ variable "random_integer" {
 }
 variable "random_string" {
   default = %q
-}
-
-provider "azurerm" {
-  features {}
 }
 
 resource "azurerm_resource_group" "test" {

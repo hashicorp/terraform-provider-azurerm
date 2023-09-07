@@ -3,12 +3,12 @@ subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_management_private_link"
 description: |-
-  Manages a Resource Management Private Link.
+  Manages a Resource Management Private Link to restrict access for managing resources in your Subscriptions.
 ---
 
 # azurerm_resource_management_private_link
 
-Manages a Resource Management Private Link.
+Manages a Resource Management Private Link to restrict access for managing resources in your Subscriptions.
 
 ## Example Usage
 
@@ -39,8 +39,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Resource Management Private Link.
-
-* `private_endpoint_connections` - A list of private endpoint connections.
 
 ---
 
