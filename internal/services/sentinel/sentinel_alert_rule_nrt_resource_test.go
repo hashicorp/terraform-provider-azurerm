@@ -135,7 +135,7 @@ func (t SentinelAlertRuleNrtResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.AlertRulesGet(ctx, *id)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %v", id, err)
 	}
