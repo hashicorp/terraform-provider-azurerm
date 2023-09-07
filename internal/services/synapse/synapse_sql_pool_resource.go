@@ -162,11 +162,16 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 
 			"geo_backup_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
-				Optional: true,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"tags": tags.Schema(),
+
+			"sql_pool_storage_account_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -200,11 +205,19 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
 	}
 
+	geoBackupEnabled := d.Get("geo_backup_policy_enabled").(bool)
+	storageAccountType := synapse.StorageAccountTypeGRS
+
+	if !geoBackupEnabled {
+		storageAccountType = synapse.StorageAccountTypeLRS
+	}
+
 	mode := d.Get("create_mode").(string)
 	sqlPoolInfo := synapse.SQLPool{
 		Location: workspace.Location,
 		SQLPoolResourceProperties: &synapse.SQLPoolResourceProperties{
-			CreateMode: synapse.CreateMode(*utils.String(mode)),
+			CreateMode:         synapse.CreateMode(*utils.String(mode)),
+			StorageAccountType: storageAccountType,
 		},
 		Sku: &synapse.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
@@ -255,7 +268,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if !d.Get("geo_backup_policy_enabled").(bool) {
+	if !geoBackupEnabled {
 		geoBackupParams := synapse.GeoBackupPolicy{
 			GeoBackupPolicyProperties: &synapse.GeoBackupPolicyProperties{
 				State: synapse.GeoBackupPolicyStateDisabled,
@@ -274,7 +287,6 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
-	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -299,21 +311,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("geo_backup_policy_enabled") {
-		state := synapse.GeoBackupPolicyStateEnabled
-		if !d.Get("geo_backup_policy_enabled").(bool) {
-			state = synapse.GeoBackupPolicyStateDisabled
-		}
-
-		geoBackupParams := synapse.GeoBackupPolicy{
-			GeoBackupPolicyProperties: &synapse.GeoBackupPolicyProperties{
-				State: state,
-			},
-		}
-		if _, err := geoBackUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, geoBackupParams); err != nil {
-			return fmt.Errorf("updating `geo_backup_policy_enabled`: %+v", err)
-		}
-	}
+	// NOTE: Per the service team geo_backup_policy cannot be changed once it has been created
 
 	if d.HasChanges("sku_name", "tags") {
 		sqlPoolInfo := synapse.SQLPoolPatchInfo{
@@ -395,6 +393,7 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	if props := resp.SQLPoolResourceProperties; props != nil {
 		d.Set("collation", props.Collation)
+		d.Set("sql_pool_storage_account_type", props.StorageAccountType)
 	}
 
 	geoBackupEnabled := true

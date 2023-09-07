@@ -27,6 +27,8 @@ func TestAccSynapseSqlPool_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("sql_pool_storage_account_type").HasValue("GRS"),
 			),
 		},
 		data.ImportStep(),
@@ -107,7 +109,7 @@ func TestAccSynapseSqlPool_update(t *testing.T) {
 	})
 }
 
-func TestAccSynapseSqlPool_geoBackupPolicy(t *testing.T) {
+func TestAccSynapseSqlPool_geoBackupPolicyDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
 	r := SynapseSqlPoolResource{}
 
@@ -117,22 +119,7 @@ func TestAccSynapseSqlPool_geoBackupPolicy(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.geoBackupEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.geoBackupDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("sql_pool_storage_account_type").HasValue("LRS"),
 			),
 		},
 		data.ImportStep(),
@@ -166,10 +153,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "acctestSP%s"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW100c"
-  create_mode          = "Default"
+  name                      = "acctestSP%s"
+  synapse_workspace_id      = azurerm_synapse_workspace.test.id
+  sku_name                  = "DW100c"
+  create_mode               = "Default"
+  geo_backup_policy_enabled = true
 }
 `, template, data.RandomString)
 }
@@ -184,10 +172,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "販売管理"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW100c"
-  create_mode          = "Default"
+  name                      = "販売管理"
+  synapse_workspace_id      = azurerm_synapse_workspace.test.id
+  sku_name                  = "DW100c"
+  create_mode               = "Default"
+  geo_backup_policy_enabled = true
 }
 `, template)
 }
@@ -198,10 +187,11 @@ func (r SynapseSqlPoolResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_synapse_sql_pool" "import" {
-  name                 = azurerm_synapse_sql_pool.test.name
-  synapse_workspace_id = azurerm_synapse_sql_pool.test.synapse_workspace_id
-  sku_name             = azurerm_synapse_sql_pool.test.sku_name
-  create_mode          = azurerm_synapse_sql_pool.test.create_mode
+  name                      = azurerm_synapse_sql_pool.test.name
+  synapse_workspace_id      = azurerm_synapse_sql_pool.test.synapse_workspace_id
+  sku_name                  = azurerm_synapse_sql_pool.test.sku_name
+  create_mode               = azurerm_synapse_sql_pool.test.create_mode
+  geo_backup_policy_enabled = true
 }
 `, config)
 }
@@ -216,12 +206,13 @@ provider "azurerm" {
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "acctestSP%s"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW500c"
-  create_mode          = "Default"
-  collation            = "SQL_Latin1_General_CP1_CI_AS"
-  data_encrypted       = true
+  name                      = "acctestSP%s"
+  synapse_workspace_id      = azurerm_synapse_workspace.test.id
+  sku_name                  = "DW500c"
+  create_mode               = "Default"
+  collation                 = "SQL_Latin1_General_CP1_CI_AS"
+  data_encrypted            = true
+  geo_backup_policy_enabled = true
 
   tags = {
     ENV = "Test"
@@ -280,25 +271,6 @@ resource "azurerm_synapse_sql_pool" "test" {
   sku_name                  = "DW100c"
   create_mode               = "Default"
   geo_backup_policy_enabled = false
-}
-`, template, data.RandomString)
-}
-
-func (r SynapseSqlPoolResource) geoBackupEnabled(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_synapse_sql_pool" "test" {
-  name                      = "acctestSP%s"
-  synapse_workspace_id      = azurerm_synapse_workspace.test.id
-  sku_name                  = "DW100c"
-  create_mode               = "Default"
-  geo_backup_policy_enabled = true
 }
 `, template, data.RandomString)
 }
