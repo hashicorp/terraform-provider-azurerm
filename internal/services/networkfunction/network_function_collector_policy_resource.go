@@ -23,20 +23,15 @@ import (
 type NetworkFunctionCollectorPolicyModel struct {
 	Name                                   string                                  `tfschema:"name"`
 	NetworkFunctionAzureTrafficCollectorId string                                  `tfschema:"traffic_collector_id"`
-	EmissionPolicies                       []EmissionPoliciesPropertiesFormatModel `tfschema:"emission_policy"`
+	IpfxEmission                           []IpfxEmissionModel                     `tfschema:"ipfx_emission"`
 	IngestionSources                       []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_source"`
 	IngestionType                          collectorpolicies.IngestionType         `tfschema:"ingestion_type"`
 	Location                               string                                  `tfschema:"location"`
 	Tags                                   map[string]interface{}                  `tfschema:"tags"`
 }
 
-type EmissionPoliciesPropertiesFormatModel struct {
-	EmissionDestinations []EmissionPolicyDestinationModel `tfschema:"emission_destination"`
-	EmissionType         collectorpolicies.EmissionType   `tfschema:"emission_type"`
-}
-
-type EmissionPolicyDestinationModel struct {
-	DestinationType collectorpolicies.DestinationType `tfschema:"destination_type"`
+type IpfxEmissionModel struct {
+	DestinationTypes []string `tfschema:"destination_types"`
 }
 
 type IngestionSourcesPropertiesFormatModel struct {
@@ -81,39 +76,22 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			ValidateFunc: azuretrafficcollectors.ValidateAzureTrafficCollectorID,
 		},
 
-		"emission_policy": {
+		"ipfx_emission": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"emission_destination": {
+					"destination_types": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						ForceNew: true,
 						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"destination_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(collectorpolicies.DestinationTypeAzureMonitor),
-									}, false),
-								},
-							},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(collectorpolicies.PossibleValuesForDestinationType(), false),
 						},
-					},
-
-					"emission_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(collectorpolicies.EmissionTypeIPFIX),
-						}, false),
 					},
 				},
 			},
@@ -134,24 +112,20 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 					},
 
 					"source_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(collectorpolicies.SourceTypeResource),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(collectorpolicies.PossibleValuesForSourceType(), false),
 					},
 				},
 			},
 		},
 
 		"ingestion_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(collectorpolicies.IngestionTypeIPFIX),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(collectorpolicies.PossibleValuesForIngestionType(), false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -190,7 +164,7 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 			properties := &collectorpolicies.CollectorPolicy{
 				Location: location.Normalize(model.Location),
 				Properties: &collectorpolicies.CollectorPolicyPropertiesFormat{
-					EmissionPolicies: expandEmissionPoliciesPropertiesFormatModelArray(model.EmissionPolicies),
+					EmissionPolicies: expandEmissionPoliciesPropertiesFormatModelArray(model.IpfxEmission),
 					IngestionPolicy: &collectorpolicies.IngestionPolicyPropertiesFormat{
 						IngestionSources: expandIngestionSourcesPropertiesFormatModelArray(model.IngestionSources),
 						IngestionType:    &model.IngestionType,
@@ -277,7 +251,7 @@ func (r NetworkFunctionCollectorPolicyResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				if properties := model.Properties; properties != nil {
-					state.EmissionPolicies = flattenEmissionPoliciesPropertiesFormatModelArray(properties.EmissionPolicies)
+					state.IpfxEmission = flattenEmissionPoliciesPropertiesFormatModelArray(properties.EmissionPolicies)
 					if properties.IngestionPolicy != nil {
 						state.IngestionSources = flattenIngestionSourcesPropertiesFormatModelArray(properties.IngestionPolicy.IngestionSources)
 						state.IngestionType = pointer.From(properties.IngestionPolicy.IngestionType)
@@ -348,13 +322,13 @@ func collectorPolicyDeletedRefreshFunc(ctx context.Context, client *collectorpol
 	}
 }
 
-func expandEmissionPoliciesPropertiesFormatModelArray(inputList []EmissionPoliciesPropertiesFormatModel) *[]collectorpolicies.EmissionPoliciesPropertiesFormat {
+func expandEmissionPoliciesPropertiesFormatModelArray(inputList []IpfxEmissionModel) *[]collectorpolicies.EmissionPoliciesPropertiesFormat {
 	var outputList []collectorpolicies.EmissionPoliciesPropertiesFormat
 	for _, v := range inputList {
 		input := v
 		output := collectorpolicies.EmissionPoliciesPropertiesFormat{
-			EmissionType:         &input.EmissionType,
-			EmissionDestinations: expandEmissionPolicyDestinationModelArray(input.EmissionDestinations),
+			EmissionType:         pointer.To(collectorpolicies.EmissionTypeIPFIX),
+			EmissionDestinations: expandEmissionPolicyDestinationModelArray(input.DestinationTypes),
 		}
 
 		outputList = append(outputList, output)
@@ -363,12 +337,11 @@ func expandEmissionPoliciesPropertiesFormatModelArray(inputList []EmissionPolici
 	return &outputList
 }
 
-func expandEmissionPolicyDestinationModelArray(inputList []EmissionPolicyDestinationModel) *[]collectorpolicies.EmissionPolicyDestination {
+func expandEmissionPolicyDestinationModelArray(inputList []string) *[]collectorpolicies.EmissionPolicyDestination {
 	var outputList []collectorpolicies.EmissionPolicyDestination
 	for _, v := range inputList {
-		input := v
 		output := collectorpolicies.EmissionPolicyDestination{
-			DestinationType: &input.DestinationType,
+			DestinationType: pointer.To(collectorpolicies.DestinationType(v)),
 		}
 
 		outputList = append(outputList, output)
@@ -395,19 +368,15 @@ func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourc
 	return &outputList
 }
 
-func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpolicies.EmissionPoliciesPropertiesFormat) []EmissionPoliciesPropertiesFormatModel {
-	outputList := make([]EmissionPoliciesPropertiesFormatModel, 0)
+func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpolicies.EmissionPoliciesPropertiesFormat) []IpfxEmissionModel {
+	outputList := make([]IpfxEmissionModel, 0)
 	if inputList == nil {
 		return outputList
 	}
 
 	for _, input := range *inputList {
-		output := EmissionPoliciesPropertiesFormatModel{
-			EmissionDestinations: flattenEmissionPolicyDestinationModelArray(input.EmissionDestinations),
-		}
-
-		if input.EmissionType != nil {
-			output.EmissionType = *input.EmissionType
+		output := IpfxEmissionModel{
+			DestinationTypes: flattenEmissionPolicyDestinationModelArray(input.EmissionDestinations),
 		}
 
 		outputList = append(outputList, output)
@@ -416,20 +385,16 @@ func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpol
 	return outputList
 }
 
-func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.EmissionPolicyDestination) []EmissionPolicyDestinationModel {
-	outputList := make([]EmissionPolicyDestinationModel, 0)
+func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.EmissionPolicyDestination) []string {
+	outputList := make([]string, 0)
 	if inputList == nil {
 		return outputList
 	}
 
 	for _, input := range *inputList {
-		output := EmissionPolicyDestinationModel{}
-
 		if input.DestinationType != nil {
-			output.DestinationType = *input.DestinationType
+			outputList = append(outputList, string(*input.DestinationType))
 		}
-
-		outputList = append(outputList, output)
 	}
 
 	return outputList

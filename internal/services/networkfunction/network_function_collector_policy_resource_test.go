@@ -179,11 +179,8 @@ resource "azurerm_network_function_collector_policy" "test" {
     source_type = "Resource"
   }
 
-  emission_policy {
-    emission_type = "IPFIX"
-    emission_destination {
-      destination_type = "AzureMonitor"
-    }
+  ipfx_emission {
+    destination_types = ["AzureMonitor"]
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -204,11 +201,8 @@ resource "azurerm_network_function_collector_policy" "import" {
     source_type = "Resource"
   }
 
-  emission_policy {
-    emission_type = "IPFIX"
-    emission_destination {
-      destination_type = "AzureMonitor"
-    }
+  ipfx_emission {
+    destination_types = ["AzureMonitor"]
   }
 }
 `, config, data.Locations.Primary)
@@ -229,11 +223,8 @@ resource "azurerm_network_function_collector_policy" "test" {
     source_type = "Resource"
   }
 
-  emission_policy {
-    emission_type = "IPFIX"
-    emission_destination {
-      destination_type = "AzureMonitor"
-    }
+  ipfx_emission {
+    destination_types = ["AzureMonitor"]
   }
 
   tags = {
@@ -258,11 +249,8 @@ resource "azurerm_network_function_collector_policy" "test" {
     source_type = "Resource"
   }
 
-  emission_policy {
-    emission_type = "IPFIX"
-    emission_destination {
-      destination_type = "AzureMonitor"
-    }
+  ipfx_emission {
+    destination_types = ["AzureMonitor"]
   }
 
   tags = {
