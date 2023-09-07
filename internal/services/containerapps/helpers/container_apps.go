@@ -669,11 +669,15 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 }
 
 type ContainerTemplate struct {
-	Containers  []Container       `tfschema:"container"`
-	Suffix      string            `tfschema:"revision_suffix"`
-	MinReplicas int               `tfschema:"min_replicas"`
-	MaxReplicas int               `tfschema:"max_replicas"`
-	Volumes     []ContainerVolume `tfschema:"volume"`
+	Containers           []Container           `tfschema:"container"`
+	Suffix               string                `tfschema:"revision_suffix"`
+	MinReplicas          int                   `tfschema:"min_replicas"`
+	MaxReplicas          int                   `tfschema:"max_replicas"`
+	AzureQueueScaleRules []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
+	CustomScaleRules     []CustomScaleRule     `tfschema:"custom_scale_rule"`
+	HTTPScaleRules       []HTTPScaleRule       `tfschema:"http_scale_rule"`
+	TCPScaleRules        []TCPScaleRule        `tfschema:"tcp_scale_rule"`
+	Volumes              []ContainerVolume     `tfschema:"volume"`
 }
 
 func ContainerTemplateSchema() *pluginsdk.Schema {
@@ -700,6 +704,14 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 300),
 					Description:  "The maximum number of replicas for this container.",
 				},
+
+				"azure_queue_scale_rule": AzureQueueScaleRuleSchema(),
+
+				"custom_scale_rule": CustomScaleRuleSchema(),
+
+				"http_scale_rule": HTTPScaleRuleSchema(),
+
+				"tcp_scale_rule": TCPScaleRuleSchema(),
 
 				"volume": ContainerVolumeSchema(),
 
@@ -2346,4 +2358,185 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 	}
 
 	return !(hasLiveness || hasReadiness || hasStartup)
+}
+
+type AzureQueueScaleRule struct {
+	Name             string `tfschema:"name"`
+	QueueLength      string `tfschema:"queue_length"`
+	QueueName        string `tfschema:"queue_name"`
+	AuthSecretRef    string `tfschema:"authentication_secret_reference"`
+	AuthTriggerParam string `tfschema:"authentication_trigger_parameter"`
+}
+
+func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"queue_length": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+				},
+
+				"queue_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"authentication_secret_reference": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.SecretName,
+				},
+
+				"authentication_trigger_parameter": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+type CustomScaleRule struct {
+	Metadata         map[string]string `tfschema:"metadata"`
+	CustomRuleType   string            `tfschema:"custom_rule_type"`
+	AuthSecretRef    string            `tfschema:"authentication_secret_reference"`
+	AuthTriggerParam string            `tfschema:"authentication_trigger_parameter"`
+}
+
+func CustomScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"metadata": {
+					Type:     pluginsdk.TypeMap,
+					Required: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"custom_rule_type": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty, // Note - this can be any KEDA compatible source in a user's environment
+				},
+
+				"authentication_secret_reference": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.SecretName,
+				},
+
+				"authentication_trigger_parameter": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+type HTTPScaleRule struct {
+	Metadata         map[string]string `tfschema:"metadata"`
+	AuthSecretRef    string            `tfschema:"authentication_secret_reference"`
+	AuthTriggerParam string            `tfschema:"authentication_trigger_parameter"`
+}
+
+func HTTPScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"metadata": {
+					Type:     pluginsdk.TypeMap,
+					Required: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"authentication_secret_reference": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.SecretName,
+				},
+
+				"authentication_trigger_parameter": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+type TCPScaleRule struct {
+	Metadata         map[string]string `tfschema:"metadata"`
+	AuthSecretRef    string            `tfschema:"authentication_secret_reference"`
+	AuthTriggerParam string            `tfschema:"authentication_trigger_parameter"`
+}
+
+func TCPScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"metadata": {
+					Type:     pluginsdk.TypeMap,
+					Required: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"authentication_secret_reference": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.SecretName,
+				},
+
+				"authentication_trigger_parameter": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
 }
