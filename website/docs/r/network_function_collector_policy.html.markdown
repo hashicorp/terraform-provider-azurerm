@@ -75,11 +75,8 @@ resource "azurerm_network_function_collector_policy" "example" {
     source_type = "Resource"
   }
 
-  emission_policy {
-    emission_type = "IPFIX"
-    emission_destination {
-      destination_type = "AzureMonitor"
-    }
+  ipfx_emission {
+    destination_types = ["AzureMonitor"]
   }
 
   tags = {
@@ -98,7 +95,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Network Function Collector Policy should exist. Changing this forces a new Network Function Collector Policy to be created.
 
-* `emission_policy` - (Required) An `emission_policy` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
+* `ipfx_emission` - (Required) An `ipfx_emission` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
 * `ingestion_source` - (Required) An `ingestion_source` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
@@ -108,17 +105,9 @@ The following arguments are supported:
 
 ---
 
-An `emission_policy` block supports the following:
+An `ipfx_emission` block supports the following:
 
-* `emission_destination` - (Required) An `emission_destination` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
-
-* `emission_type` - (Required) Emission format type. The only possible value is `IPFIX`. Changing this forces a new Network Function Collector Policy to be created.
-
----
-
-An `emission_destination` block supports the following:
-
-* `destination_type` - (Required) Emission destination type. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
+* `destination_types` - (Required) Emission destination type. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
 
 ---
 
