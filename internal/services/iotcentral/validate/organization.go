@@ -87,7 +87,7 @@ func validateOrganizationId(id string) error {
 	}
 
 	if !formatRegex.MatchString(id) {
-		return fmt.Errorf("iot central organizationId %q is invalid", id)
+		return fmt.Errorf("iot central organizationId %q is invalid, regex pattern: ^(?!-)[a-z0-9-]{1,48}[a-z0-9]$", id)
 	}
 
 	// Ensure the string does not start with a hyphen.
@@ -99,7 +99,7 @@ func validateOrganizationId(id string) error {
 	}
 
 	if startHyphenRegex.MatchString(id) {
-		return fmt.Errorf("iot central organizationId %q is invalid", id)
+		return fmt.Errorf("iot central organizationId %q is invalid, regex pattern: ^(?!-)[a-z0-9-]{1,48}[a-z0-9]$", id)
 	}
 
 	return nil
