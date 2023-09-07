@@ -15,6 +15,11 @@ type SasDefinitionId struct {
 	Name               string
 }
 
+func (i SasDefinitionId) ID() string {
+	fmtString := "%sstorage/%s/sas/%s"
+	return fmt.Sprintf(fmtString, i.KeyVaultBaseUrl, i.StorageAccountName, i.Name)
+}
+
 func SasDefinitionID(id string) (*SasDefinitionId, error) {
 	// example: https://example-keyvault.vault.azure.net/storage/exampleStorageAcc01/sas/exampleSasDefinition01
 	idURL, err := url.ParseRequestURI(id)
