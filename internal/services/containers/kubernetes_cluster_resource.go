@@ -105,6 +105,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta interface{}) bool {
+				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -1072,7 +1075,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_plugin_mode": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginModeOverlay),
 							}, false),
@@ -1546,7 +1548,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["network_plugin_mode"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.NetworkPluginModeOverlay),
 				"Overlay",
