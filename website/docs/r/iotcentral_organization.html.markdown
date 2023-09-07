@@ -77,5 +77,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 The IoT Central Organization can be imported using the `id`, e.g.
 
 ```shell
-terraform import azurerm_iotcentral_organization.example {subdomain}.{baseDomain}/api/organizations/{organizationId}
+terraform import azurerm_iotcentral_organization.example https://example.azureiotcentral.com/api/organizations/abc123
 ```
