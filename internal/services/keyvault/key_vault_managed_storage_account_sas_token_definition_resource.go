@@ -180,12 +180,12 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 		return fmt.Errorf("cannot read Managed Storage Account Sas Definition  %q (Storage Account %q, Key Vault %q)", name, storageAccount.Name, *keyVaultId)
 	}
 
-	storageId, err := parse.SasDefinitionID(*read.ID)
+	sasId, err := parse.SasDefinitionID(*read.ID)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(storageId.ID())
+	d.SetId(sasId.ID())
 
 	return resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d, meta)
 }
