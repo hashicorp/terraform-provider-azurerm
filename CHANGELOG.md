@@ -27,6 +27,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
 * `azurerm_postgresql_flexible_database` - `collation` can now be set to `English_United Kingdom.1252` [GH-23171]
 * `azurerm_postgresql_flexible_server` - support for the `auto_grow_enabled` property [GH-23069]
+* `azurerm_redis_enterprise_cluster` - support for Flash clusters in Brazil South [GH-23200]
 * `azurerm_resource_provider_registration` - refactoring to use `hashicorp/go-azure-sdk` [GH-23072]
 * `azurerm_virtual_machine_extension` - support for `provision_after_extensions` [GH-23124]
 * `azurerm_virtual_network_gateway` - increasing the default timeout for create to `90m` [GH-23003]
