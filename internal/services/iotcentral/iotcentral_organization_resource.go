@@ -36,18 +36,20 @@ func (r IotCentralOrganizationResource) Arguments() map[string]*pluginsdk.Schema
 			ForceNew: true,
 		},
 		"organization_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.OrganizationID,
 		},
 		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 		"parent_organization_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.OrganizationID,
 		},
 	}
 }
@@ -65,7 +67,7 @@ func (r IotCentralOrganizationResource) ModelObject() interface{} {
 }
 
 func (r IotCentralOrganizationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.OrganizationID
+	return validate.ID
 }
 
 func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
