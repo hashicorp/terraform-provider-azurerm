@@ -35,6 +35,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management_api_policy` - added state migration to mutate id's ending in `policies/policy` [GH-23128]
+* `azurerm_api_management_api_operation_policy` - added state migration to mutate id's ending in `policies/policy` [GH-23128]
+* `azurerm_api_management_product_policy` - added state migration to mutate id's ending in `policies/policy` [GH-23128]
 * `azurerm_automation_account` - fixes logic for `local_authentication_enabled` [GH-23082]
 * `azurerm_monitor_diagnostic_setting` - fix `enabled_log` feature flagged schema [GH-23093]
 * `azurerm_pim_active_role_assignment`: polling for the duration of the timeout, rather than a fixed 5 minute value [GH-22932]
