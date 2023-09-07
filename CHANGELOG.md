@@ -45,6 +45,7 @@ BUG FIXES:
 * `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
 * `machine_learning_datastore_*` - fixes container ids [GH-23140]
 * `azurerm_key_vault_certificate` - id now points to new version when certificate is updated [GH-23135]
+* `azurerm_site_recovery_replicated_vm` - update `network_interface` diff so replicated items now can be updated [GH-23199]
 
 DEPRECATION:
 
