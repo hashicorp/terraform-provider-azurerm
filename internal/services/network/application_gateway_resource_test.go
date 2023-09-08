@@ -7257,8 +7257,9 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_profile {
-    name                         = local.ssl_profile_name
-    verify_client_cert_issuer_dn = true
+    name                                 = local.ssl_profile_name
+    verify_client_cert_issuer_dn         = true
+    verify_client_certificate_revocation = "OCSP"
     ssl_policy {
       policy_type = "Predefined"
       policy_name = "AppGwSslPolicy20170401"
