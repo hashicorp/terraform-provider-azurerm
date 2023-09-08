@@ -66,12 +66,6 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"application_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
 						"user_upload_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -86,12 +80,6 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 						"storage_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-						},
-
-						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -345,14 +333,6 @@ func expandSites(input []interface{}) *[]botservice.WebChatSite {
 			result.SiteName = utils.String(siteName)
 		}
 
-		if v := site["application_id"].(string); v != "" {
-			result.AppID = utils.String(v)
-		}
-
-		if v := site["tenant_id"].(string); v != "" {
-			result.TenantID = utils.String(v)
-		}
-
 		results = append(results, result)
 	}
 
@@ -387,10 +367,6 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 			result["name"] = *v
 		}
 
-		if v := item.AppID; v != nil {
-			result["application_id"] = *v
-		}
-
 		if v := item.IsBlockUserUploadEnabled; v != nil {
 			result["user_upload_enabled"] = *v
 		}
@@ -401,10 +377,6 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 
 		if v := item.IsNoStorageEnabled; v != nil {
 			result["storage_enabled"] = *v
-		}
-
-		if v := item.TenantID; v != nil {
-			result["tenant_id"] = *v
 		}
 
 		results[k] = result
