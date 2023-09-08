@@ -360,7 +360,7 @@ func flattenSiteNames(input *[]botservice.WebChatSite) []interface{} {
 func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 	results := make([]interface{}, 0)
 
-	for k, item := range *input {
+	for _, item := range *input {
 		result := make(map[string]interface{})
 
 		if v := item.SiteName; v != nil {
@@ -379,7 +379,7 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 			result["storage_enabled"] = *v
 		}
 
-		results[k] = result
+		results = append(results, result)
 	}
 
 	return results
