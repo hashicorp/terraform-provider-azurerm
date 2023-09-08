@@ -1798,10 +1798,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku                                   = "Basic"
   remote_vnet_traffic_enabled           = true
   virtual_wan_traffic_enabled           = true
-  ip_sec_replay_protection_enabled      = true
   bgp_route_translation_for_nat_enabled = true
-  dns_forwarding_enabled                = true
-  virtual_network_extended_location_id  = azurerm_virtual_network.test2.id
+  ip_sec_replay_protection_enabled      = true
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1867,10 +1865,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku                                   = "Basic"
   remote_vnet_traffic_enabled           = false
   virtual_wan_traffic_enabled           = false
-  ip_sec_replay_protection_enabled      = false
   bgp_route_translation_for_nat_enabled = false
-  dns_forwarding_enabled                = false
-  virtual_network_extended_location_id  = azurerm_virtual_network.test3.id
+  ip_sec_replay_protection_enabled      = false
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id

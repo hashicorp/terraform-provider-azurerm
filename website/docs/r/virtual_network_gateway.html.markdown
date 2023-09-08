@@ -151,8 +151,6 @@ The following arguments are supported:
 
 * `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.
 
-* `virtual_network_extended_location_id` - (Optional) The ID of the customer Virtual Network that is associated with the Virtual Network Gateway.
-
 * `virtual_wan_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from remote Virtual WAN networks enabled? Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
