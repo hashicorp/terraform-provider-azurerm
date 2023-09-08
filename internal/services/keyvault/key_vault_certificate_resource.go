@@ -186,7 +186,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											},
 										},
 									},
-									//lintignore:XS003
+									// lintignore:XS003
 									"trigger": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -514,7 +514,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
-					return fmt.Errorf("recover deleted certificqate: %+v", err)
+					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
 				newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
 				if err != nil {
@@ -530,7 +530,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
-					return fmt.Errorf("recover deleted certificqate: %+v", err)
+					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
 				// after we recovered the existing certificate we still have to apply our changes
 				newCert, err = createCertificate(d, meta)
