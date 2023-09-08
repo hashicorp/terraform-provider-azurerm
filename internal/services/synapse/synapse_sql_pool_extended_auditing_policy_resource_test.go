@@ -224,6 +224,8 @@ resource "azurerm_synapse_sql_pool" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   sku_name             = "DW100c"
   create_mode          = "Default"
+
+  geo_backup_policy_enabled = true
 }
 
 resource "azurerm_storage_account" "test" {
