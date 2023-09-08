@@ -6,13 +6,14 @@ package pluginsdk
 import (
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // TODO: work through and switch these out for WaitForState funcs
 
 // RetryFunc is the function retried until it succeeds.
-type RetryFunc = resource.RetryFunc
+type RetryFunc = retry.RetryFunc
 
 // RetryError is the required return type of RetryFunc. It forces client code
 // to choose whether or not a given error is retryable.
