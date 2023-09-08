@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_maps_account` - Support for `local_authentication_enabled` [GH-23216]
 
+FEATURES:
+
+* **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
+
 ## 3.72.0 (September 07, 2023)
 
 FEATURES:
