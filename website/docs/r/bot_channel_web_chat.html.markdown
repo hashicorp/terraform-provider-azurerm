@@ -63,11 +63,11 @@ A `site` block has the following properties:
 
 * `application_id` - (Optional) The application ID for this site.
 
-* `block_user_upload_enabled` - (Optional) Is the block user upload enabled for this site? Defaults to `false`.
+* `user_upload_enabled` - (Optional) Is the block user upload enabled for this site? Defaults to `false`.
 
 * `endpoint_parameters_enabled` - (Optional) Is the endpoint parameters enabled for this site?
 
-* `no_storage_enabled` - (Optional) Is no storage enabled for this site?
+* `storage_enabled` - (Optional) Is no storage enabled for this site?
 
 * `tenant_id` - (Optional) The Tenant ID for this site.
 
