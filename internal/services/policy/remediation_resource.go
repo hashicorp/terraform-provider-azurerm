@@ -134,14 +134,14 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 	id := remediations.NewScopedRemediationID(resourceId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.RemediationsGetAtResource(ctx, id)
+		existing, err := client.GetAtResource(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", *existing.Model.Id)
+		if existing.Model != nil {
+			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
 		}
 	}
 
@@ -149,7 +149,7 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 		Properties: readRemediationProperties(d),
 	}
 
-	if _, err := client.RemediationsCreateOrUpdateAtResource(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdateAtResource(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
@@ -167,7 +167,7 @@ func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
 	}
-	resp, err := client.RemediationsGetAtResource(ctx, *id)
+	resp, err := client.GetAtResource(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", id.ID())
@@ -195,7 +195,7 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
 	// therefore we first retrieve the remediation to see if the resource_discovery_mode is switched to ReEvaluateCompliance
-	existing, err := client.RemediationsGetAtResource(ctx, *id)
+	existing, err := client.GetAtResource(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return nil
@@ -208,7 +208,7 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		id.ID(),
 		d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
-			_, err := client.RemediationsCancelAtResource(ctx, *id)
+			_, err := client.CancelAtResource(ctx, *id)
 			return err
 		},
 		resourcePolicyRemediationCancellationRefreshFunc(ctx, client, *id),
@@ -216,14 +216,14 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	_, err = client.RemediationsDeleteAtResource(ctx, *id)
+	_, err = client.DeleteAtResource(ctx, *id)
 
 	return err
 }
 
 func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.ScopedRemediationId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.RemediationsGetAtResource(ctx, id)
+		resp, err := client.GetAtResource(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
 		}

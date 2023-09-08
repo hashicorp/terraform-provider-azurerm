@@ -19,9 +19,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_maps_account" "example" {
-  name                = "example-maps-account"
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "S1"
+  name                         = "example-maps-account"
+  resource_group_name          = azurerm_resource_group.example.name
+  sku_name                     = "S1"
+  local_authentication_enabled = true
 
   tags = {
     environment = "Test"
@@ -38,6 +39,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group in which the Azure Maps Account should exist. Changing this forces a new resource to be created.
 
 * `sku_name` - (Required) The SKU of the Azure Maps Account. Possible values are `S0`, `S1` and `G2`. Changing this forces a new resource to be created.
+
+* `local_authentication_enabled` - (Optional) Is local authentication enabled for this Azure Maps Account? When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 

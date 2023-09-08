@@ -22,7 +22,7 @@ func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.Impo
 		}
 
 		client := meta.(*clients.Client).Sentinel.AlertRulesClient
-		resp, err := client.AlertRulesGet(ctx, *id)
+		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
@@ -42,7 +42,7 @@ func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 		}
 
 		client := metadata.Client.Sentinel.AlertRulesClient
-		resp, err := client.AlertRulesGet(ctx, *id)
+		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}

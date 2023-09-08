@@ -236,8 +236,12 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 }
 
 type operationResult struct {
-	Name      *string    `json:"name"`
-	StartTime *time.Time `json:"startTime"`
+	Name *string `json:"name"`
+	// Some APIs (such as CosmosDbPostgreSQLCluster) return a DateTime value that doesn't match RFC3339
+	// as such we're intentionally parsing this as a string (for info) rather than as a time.Time due to:
+	// > parsing time "2023-08-11 01:58:30 +0000" as "2006-01-02T15:04:05Z07:00":
+	// >  cannot parse " 01:58:30 +0000" as "T"
+	StartTime *string `json:"startTime"`
 
 	Properties struct {
 		// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState

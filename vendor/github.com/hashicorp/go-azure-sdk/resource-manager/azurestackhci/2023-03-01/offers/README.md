@@ -20,13 +20,13 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `OffersClient.OffersGet`
+### Example Usage: `OffersClient.Get`
 
 ```go
 ctx := context.TODO()
 id := offers.NewOfferID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "publisherValue", "offerValue")
 
-read, err := client.OffersGet(ctx, id, offers.DefaultOffersGetOperationOptions())
+read, err := client.Get(ctx, id, offers.DefaultGetOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -36,14 +36,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `OffersClient.OffersListByCluster`
+### Example Usage: `OffersClient.ListByCluster`
 
 ```go
 ctx := context.TODO()
 id := offers.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-// alternatively `client.OffersListByCluster(ctx, id, offers.DefaultOffersListByClusterOperationOptions())` can be used to do batched pagination
-items, err := client.OffersListByClusterComplete(ctx, id, offers.DefaultOffersListByClusterOperationOptions())
+// alternatively `client.ListByCluster(ctx, id, offers.DefaultListByClusterOperationOptions())` can be used to do batched pagination
+items, err := client.ListByClusterComplete(ctx, id, offers.DefaultListByClusterOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -53,14 +53,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `OffersClient.OffersListByPublisher`
+### Example Usage: `OffersClient.ListByPublisher`
 
 ```go
 ctx := context.TODO()
 id := offers.NewPublisherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "publisherValue")
 
-// alternatively `client.OffersListByPublisher(ctx, id, offers.DefaultOffersListByPublisherOperationOptions())` can be used to do batched pagination
-items, err := client.OffersListByPublisherComplete(ctx, id, offers.DefaultOffersListByPublisherOperationOptions())
+// alternatively `client.ListByPublisher(ctx, id, offers.DefaultListByPublisherOperationOptions())` can be used to do batched pagination
+items, err := client.ListByPublisherComplete(ctx, id, offers.DefaultListByPublisherOperationOptions())
 if err != nil {
 	// handle the error
 }

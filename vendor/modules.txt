@@ -56,10 +56,6 @@ github.com/Azure/go-autorest/tracing
 # github.com/agext/levenshtein v1.2.3
 ## explicit
 github.com/agext/levenshtein
-# github.com/agiledragon/gomonkey/v2 v2.9.0
-## explicit; go 1.14
-github.com/agiledragon/gomonkey/v2
-github.com/agiledragon/gomonkey/v2/creflect
 # github.com/apparentlymart/go-textseg v1.0.0
 ## explicit
 github.com/apparentlymart/go-textseg/textseg
@@ -126,7 +122,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230901.1104643
+# github.com/hashicorp/go-azure-sdk v0.20230906.1160501
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -330,10 +326,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-p
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb
-github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb
+github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions
@@ -594,6 +590,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccou
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumequotarules
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01
@@ -795,8 +792,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/patchschedul
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/privateendpointconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/privatelinkresources
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis
-github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise
+github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks

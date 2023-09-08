@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -48,13 +48,14 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// TODO: we should be able to remove this in 4.0 since it can be inferred from `vpn_gateway_id`?
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"vpn_gateway_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VpnGatewayID,
+				ValidateFunc: virtualwans.ValidateVpnGatewayID,
 			},
 
 			"external_mapping": {
@@ -201,12 +202,12 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vpnGatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
+	vpnGatewayId, err := virtualwans.ParseVpnGatewayID(d.Get("vpn_gateway_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.Name, d.Get("name").(string))
+	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.VpnGatewayName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
 	if err != nil {
@@ -284,7 +285,7 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.NatRuleName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	gatewayId := parse.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName)
+	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName)
 	d.Set("vpn_gateway_id", gatewayId.ID())
 
 	if props := resp.VpnGatewayNatRuleProperties; props != nil {
@@ -320,12 +321,12 @@ func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vpnGatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
+	vpnGatewayId, err := virtualwans.ParseVpnGatewayID(d.Get("vpn_gateway_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.Name, d.Get("name").(string))
+	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.VpnGatewayName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
 	if err != nil {

@@ -20,13 +20,13 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ApplicationGatewayWafDynamicManifestsClient.ApplicationGatewayWafDynamicManifestsDefaultGet`
+### Example Usage: `ApplicationGatewayWafDynamicManifestsClient.DefaultGet`
 
 ```go
 ctx := context.TODO()
 id := applicationgatewaywafdynamicmanifests.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
 
-read, err := client.ApplicationGatewayWafDynamicManifestsDefaultGet(ctx, id)
+read, err := client.DefaultGet(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -36,14 +36,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ApplicationGatewayWafDynamicManifestsClient.ApplicationGatewayWafDynamicManifestsGet`
+### Example Usage: `ApplicationGatewayWafDynamicManifestsClient.Get`
 
 ```go
 ctx := context.TODO()
 id := applicationgatewaywafdynamicmanifests.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
 
-// alternatively `client.ApplicationGatewayWafDynamicManifestsGet(ctx, id)` can be used to do batched pagination
-items, err := client.ApplicationGatewayWafDynamicManifestsGetComplete(ctx, id)
+// alternatively `client.Get(ctx, id)` can be used to do batched pagination
+items, err := client.GetComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

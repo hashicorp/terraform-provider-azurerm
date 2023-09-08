@@ -115,7 +115,7 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := contactprofile.NewContactProfileID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.ContactProfilesGet(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -152,7 +152,7 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -172,7 +172,7 @@ func (r ContactProfileResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.ContactProfilesGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -220,7 +220,7 @@ func (r ContactProfileResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if err := client.ContactProfilesDeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -273,7 +273,7 @@ func (r ContactProfileResource) Update() sdk.ResourceFunc {
 					Tags: &state.Tags,
 				}
 
-				if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

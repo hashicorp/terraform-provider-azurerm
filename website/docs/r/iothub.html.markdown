@@ -66,9 +66,10 @@ resource "azurerm_eventhub_authorization_rule" "example" {
 }
 
 resource "azurerm_iothub" "example" {
-  name                = "Example-IoTHub"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name                         = "Example-IoTHub"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  local_authentication_enabled = false
 
   sku {
     name     = "S1"
@@ -141,6 +142,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as defined below.
+
+* `local_authentication_enabled` - (Optional) If false, SAS tokens with Iot hub scoped SAS keys cannot be used for authentication. Defaults to `true`.
 
 * `event_hub_partition_count` - (Optional) The number of device-to-cloud partitions used by backing event hubs. Must be between `2` and `128`.
 
