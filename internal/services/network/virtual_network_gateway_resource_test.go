@@ -1782,13 +1782,6 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Dynamic"
 }
 
-resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvn2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
 resource "azurerm_virtual_network_gateway" "test" {
   name                                  = "acctestvng-%d"
   location                              = azurerm_resource_group.test.location
@@ -1800,6 +1793,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   virtual_wan_traffic_enabled           = true
   bgp_route_translation_for_nat_enabled = true
   ip_sec_replay_protection_enabled      = true
+  dns_forwarding_enabled                = false
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1807,7 +1801,7 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (VirtualNetworkGatewayResource) update(data acceptance.TestData) string {
@@ -1842,20 +1836,6 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Dynamic"
 }
 
-resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvn2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_virtual_network" "test3" {
-  name                = "acctestvn3-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
 resource "azurerm_virtual_network_gateway" "test" {
   name                                  = "acctestvng-%d"
   location                              = azurerm_resource_group.test.location
@@ -1867,6 +1847,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   virtual_wan_traffic_enabled           = false
   bgp_route_translation_for_nat_enabled = false
   ip_sec_replay_protection_enabled      = false
+  dns_forwarding_enabled                = false
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -1874,5 +1855,5 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
