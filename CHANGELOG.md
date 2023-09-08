@@ -7,6 +7,7 @@ ENHANCEMENTS:
 FEATURES:
 
 * **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
+* **New Resource**: `azurerm_iothub_endpoint_cosmosdb_account` [GH-23065]
 
 ## 3.72.0 (September 07, 2023)
 
