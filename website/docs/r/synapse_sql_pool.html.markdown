@@ -10,6 +10,8 @@ description: |-
 
 Manages a Synapse SQL Pool.
 
+!> **BREAKING CHANGE:** In v4.0 of the AzureRM Provider the `geo_backup_policy_enabled` field will be `Required` and will force a new Synapse SQL Pool to be created if changed.
+
 ## Example Usage
 
 ```hcl
@@ -65,8 +67,6 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this Synapse SQL Pool. Possible values are `DW100c`, `DW200c`, `DW300c`, `DW400c`, `DW500c`, `DW1000c`, `DW1500c`, `DW2000c`, `DW2500c`, `DW3000c`, `DW5000c`, `DW6000c`, `DW7500c`, `DW10000c`, `DW15000c` or `DW30000c`.
 
-* `geo_backup_policy_enabled` - (Required) Is geo-backup policy enabled? Changing this forces a new Synapse SQL Pool to be created.
-
 * `create_mode` - (Optional) Specifies how to create the SQL Pool. Valid values are: `Default`, `Recovery` or `PointInTimeRestore`. Must be `Default` to create a new database. Defaults to `Default`. Changing this forces a new Synapse SQL Pool to be created.
 
 * `collation` - (Optional) The name of the collation to use with this pool, only applicable when `create_mode` is set to `Default`. Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new Synapse SQL Pool to be created.
@@ -76,6 +76,8 @@ The following arguments are supported:
 * `recovery_database_id` - (Optional) The ID of the Synapse SQL Pool or SQL Database which is to back up, only applicable when `create_mode` is set to `Recovery`. Changing this forces a new Synapse SQL Pool to be created.
 
 * `restore` - (Optional) A `restore` block as defined below. Only applicable when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new Synapse SQL Pool to be created.
+
+* `geo_backup_policy_enabled` - (Optional) Is geo-backup policy enabled? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse SQL Pool.
 

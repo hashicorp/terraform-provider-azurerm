@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mssqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -31,7 +32,7 @@ const (
 )
 
 func resourceSynapseSqlPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSynapseSqlPoolCreate,
 		Read:   resourceSynapseSqlPoolRead,
 		Update: resourceSynapseSqlPoolUpdate,
@@ -160,12 +161,6 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"geo_backup_policy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Required: true,
-				ForceNew: true,
-			},
-
 			"tags": tags.Schema(),
 
 			"sql_pool_storage_account_type": {
@@ -174,6 +169,22 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["geo_backup_policy_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Default:  true,
+			Optional: true,
+		}
+	} else {
+		resource.Schema["geo_backup_policy_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Required: true,
+			ForceNew: true,
+		}
+	}
+
+	return resource
 }
 
 func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -205,6 +216,8 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
 	}
 
+	// NOTE: There is no need to test for FourPointOhBeta in the Create function as we
+	// want all of the net new Sql Pools to inherit the new behavior...
 	geoBackupEnabled := d.Get("geo_backup_policy_enabled").(bool)
 	storageAccountType := synapse.StorageAccountTypeGRS
 
@@ -311,7 +324,13 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// NOTE: Per the service team geo_backup_policy cannot be changed once it has been created
+	// NOTE: Per the service team instructions the `geo_backup_policy_enabled` field
+	// cannot be changed once it has been created...
+	if !features.FourPointOhBeta() {
+		if d.HasChange("geo_backup_policy_enabled") {
+			return fmt.Errorf("`geo_backup_policy_enabled` field cannot be changed once it has been set")
+		}
+	}
 
 	if d.HasChanges("sku_name", "tags") {
 		sqlPoolInfo := synapse.SQLPoolPatchInfo{

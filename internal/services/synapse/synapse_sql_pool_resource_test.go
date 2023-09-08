@@ -6,11 +6,13 @@ package synapse_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -32,6 +34,52 @@ func TestAccSynapseSqlPool_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSynapseSqlPool_threePointOhBasic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as 'geo_backup_policy_enabled' is now a Required field in 4.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicThreePointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("sql_pool_storage_account_type").HasValue("GRS"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSynapseSqlPool_threePointOhUpdate(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as 'geo_backup_policy_enabled' is now a Required field in 4.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicThreePointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("sql_pool_storage_account_type").HasValue("GRS"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.geoBackupDisabled(data),
+			ExpectError: regexp.MustCompile("`geo_backup_policy_enabled` field cannot be changed once it has been set"),
+		},
 	})
 }
 
@@ -158,6 +206,24 @@ resource "azurerm_synapse_sql_pool" "test" {
   sku_name                  = "DW100c"
   create_mode               = "Default"
   geo_backup_policy_enabled = true
+}
+`, template, data.RandomString)
+}
+
+func (r SynapseSqlPoolResource) basicThreePointOh(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_synapse_sql_pool" "test" {
+  name                 = "acctestSP%s"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
 }
 `, template, data.RandomString)
 }
