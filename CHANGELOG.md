@@ -1,3 +1,9 @@
+## 3.73.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_maps_account` - Support for `local_authentication_enabled` [GH-23216]
+
 ## 3.72.0 (September 07, 2023)
 
 FEATURES:
