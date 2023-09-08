@@ -174,13 +174,12 @@ resource "azurerm_network_function_collector_policy" "test" {
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
   ingestion_type       = "IPFIX"
 
-  ingestion_source {
-    resource_id = azurerm_express_route_circuit.test.id
-    source_type = "Resource"
-  }
-
   ipfx_emission {
     destination_types = ["AzureMonitor"]
+  }
+
+  ipfx_ingestion {
+    source_resource_ids = [azurerm_express_route_circuit.test.id]
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -195,14 +194,13 @@ resource "azurerm_network_function_collector_policy" "import" {
   name                 = azurerm_network_function_collector_policy.test.name
   location             = "%s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  ingestion_type       = "IPFIX"
-  ingestion_source {
-    resource_id = azurerm_express_route_circuit.test.id
-    source_type = "Resource"
-  }
 
   ipfx_emission {
     destination_types = ["AzureMonitor"]
+  }
+
+  ipfx_ingestion {
+    source_resource_ids = [azurerm_express_route_circuit.test.id]
   }
 }
 `, config, data.Locations.Primary)
@@ -217,14 +215,13 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                 = "acctest-nfcp-%d"
   location             = "%s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  ingestion_type       = "IPFIX"
-  ingestion_source {
-    resource_id = azurerm_express_route_circuit.test.id
-    source_type = "Resource"
-  }
 
   ipfx_emission {
     destination_types = ["AzureMonitor"]
+  }
+
+  ipfx_ingestion {
+    source_resource_ids = [azurerm_express_route_circuit.test.id]
   }
 
   tags = {
@@ -243,14 +240,13 @@ resource "azurerm_network_function_collector_policy" "test" {
   name                 = "acctest-nfcp-%d"
   location             = "%s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  ingestion_type       = "IPFIX"
-  ingestion_source {
-    resource_id = azurerm_express_route_circuit.test.id
-    source_type = "Resource"
-  }
 
   ipfx_emission {
     destination_types = ["AzureMonitor"]
+  }
+
+  ipfx_ingestion {
+    source_resource_ids = [azurerm_express_route_circuit.test.id]
   }
 
   tags = {

@@ -68,15 +68,13 @@ resource "azurerm_network_function_collector_policy" "example" {
   name                 = "example-nfcp"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.example.id
   location             = azurerm_resource_group.example.location
-  ingestion_type       = "IPFIX"
-
-  ingestion_source {
-    resource_id = azurerm_express_route_circuit.example.id
-    source_type = "Resource"
-  }
 
   ipfx_emission {
     destination_types = ["AzureMonitor"]
+  }
+
+  ipfx_ingestion {
+    source_resource_ids = [azurerm_express_route_circuit.example.id]
   }
 
   tags = {
@@ -97,9 +95,7 @@ The following arguments are supported:
 
 * `ipfx_emission` - (Required) An `ipfx_emission` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
-* `ingestion_source` - (Required) An `ingestion_source` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
-
-* `ingestion_type` - (Required) Specifies the ingestion type. The only possible value is `IPFIX`. Changing this forces a new Network Function Collector Policy to be created.
+* `ipfx_ingestion` - (Required) An `ipfx_ingestion` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Function Collector Policy.
 
@@ -107,15 +103,13 @@ The following arguments are supported:
 
 An `ipfx_emission` block supports the following:
 
-* `destination_types` - (Required) Emission destination type. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
+* `destination_types` - (Required) A list of emission destination types. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
 
 ---
 
-An `ingestion_source` block supports the following:
+An `ipfx_ingestion` block supports the following:
 
-* `resource_id` - (Required) Resource ID.
-
-* `source_type` - (Required) Ingestion source type. The only possible value is `Resource`.
+* `source_resource_ids` - (Required) A list of ingestion source resource IDs. Changing this forces a new Network Function Collector Policy to be created.
 
 ## Attributes Reference
 

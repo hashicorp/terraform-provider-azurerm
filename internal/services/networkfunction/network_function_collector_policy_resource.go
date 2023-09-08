@@ -21,22 +21,20 @@ import (
 )
 
 type NetworkFunctionCollectorPolicyModel struct {
-	Name                                   string                                  `tfschema:"name"`
-	NetworkFunctionAzureTrafficCollectorId string                                  `tfschema:"traffic_collector_id"`
-	IpfxEmission                           []IpfxEmissionModel                     `tfschema:"ipfx_emission"`
-	IngestionSources                       []IngestionSourcesPropertiesFormatModel `tfschema:"ingestion_source"`
-	IngestionType                          collectorpolicies.IngestionType         `tfschema:"ingestion_type"`
-	Location                               string                                  `tfschema:"location"`
-	Tags                                   map[string]interface{}                  `tfschema:"tags"`
+	Name                                   string                 `tfschema:"name"`
+	NetworkFunctionAzureTrafficCollectorId string                 `tfschema:"traffic_collector_id"`
+	IpfxEmission                           []IpfxEmissionModel    `tfschema:"ipfx_emission"`
+	IpfxIngestion                          []IpfxIngestionModel   `tfschema:"ipfx_ingestion"`
+	Location                               string                 `tfschema:"location"`
+	Tags                                   map[string]interface{} `tfschema:"tags"`
 }
 
 type IpfxEmissionModel struct {
 	DestinationTypes []string `tfschema:"destination_types"`
 }
 
-type IngestionSourcesPropertiesFormatModel struct {
-	ResourceId string                       `tfschema:"resource_id"`
-	SourceType collectorpolicies.SourceType `tfschema:"source_type"`
+type IpfxIngestionModel struct {
+	SourceResourceIds []string `tfschema:"source_resource_ids"`
 }
 
 type NetworkFunctionCollectorPolicyResource struct{}
@@ -97,35 +95,25 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			},
 		},
 
-		"ingestion_source": {
+		"ipfx_ingestion": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"resource_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-
-					"source_type": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(collectorpolicies.PossibleValuesForSourceType(), false),
+					"source_resource_ids": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: azure.ValidateResourceID,
+						},
 					},
 				},
 			},
-		},
-
-		"ingestion_type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(collectorpolicies.PossibleValuesForIngestionType(), false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -166,8 +154,8 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 				Properties: &collectorpolicies.CollectorPolicyPropertiesFormat{
 					EmissionPolicies: expandEmissionPoliciesPropertiesFormatModelArray(model.IpfxEmission),
 					IngestionPolicy: &collectorpolicies.IngestionPolicyPropertiesFormat{
-						IngestionSources: expandIngestionSourcesPropertiesFormatModelArray(model.IngestionSources),
-						IngestionType:    &model.IngestionType,
+						IngestionSources: expandIngestionSourcesPropertiesFormatModelArray(model.IpfxIngestion),
+						IngestionType:    pointer.To(collectorpolicies.IngestionTypeIPFIX),
 					},
 				},
 
@@ -253,8 +241,7 @@ func (r NetworkFunctionCollectorPolicyResource) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					state.IpfxEmission = flattenEmissionPoliciesPropertiesFormatModelArray(properties.EmissionPolicies)
 					if properties.IngestionPolicy != nil {
-						state.IngestionSources = flattenIngestionSourcesPropertiesFormatModelArray(properties.IngestionPolicy.IngestionSources)
-						state.IngestionType = pointer.From(properties.IngestionPolicy.IngestionType)
+						state.IpfxIngestion = flattenIngestionSourcesPropertiesFormatModelArray(properties.IngestionPolicy.IngestionSources)
 					}
 
 				}
@@ -350,16 +337,16 @@ func expandEmissionPolicyDestinationModelArray(inputList []string) *[]collectorp
 	return &outputList
 }
 
-func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourcesPropertiesFormatModel) *[]collectorpolicies.IngestionSourcesPropertiesFormat {
-	var outputList []collectorpolicies.IngestionSourcesPropertiesFormat
-	for _, v := range inputList {
-		input := v
-		output := collectorpolicies.IngestionSourcesPropertiesFormat{
-			SourceType: &input.SourceType,
-		}
+func expandIngestionSourcesPropertiesFormatModelArray(inputList []IpfxIngestionModel) *[]collectorpolicies.IngestionSourcesPropertiesFormat {
+	if len(inputList) == 0 {
+		return nil
+	}
 
-		if input.ResourceId != "" {
-			output.ResourceId = &input.ResourceId
+	var outputList []collectorpolicies.IngestionSourcesPropertiesFormat
+	for _, v := range inputList[0].SourceResourceIds {
+		output := collectorpolicies.IngestionSourcesPropertiesFormat{
+			SourceType: pointer.To(collectorpolicies.SourceTypeResource),
+			ResourceId: &v,
 		}
 
 		outputList = append(outputList, output)
@@ -400,23 +387,23 @@ func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.E
 	return outputList
 }
 
-func flattenIngestionSourcesPropertiesFormatModelArray(inputList *[]collectorpolicies.IngestionSourcesPropertiesFormat) []IngestionSourcesPropertiesFormatModel {
-	outputList := make([]IngestionSourcesPropertiesFormatModel, 0)
+func flattenIngestionSourcesPropertiesFormatModelArray(inputList *[]collectorpolicies.IngestionSourcesPropertiesFormat) []IpfxIngestionModel {
+	outputList := make([]IpfxIngestionModel, 0)
 	if inputList == nil {
 		return outputList
 	}
 
+	output := IpfxIngestionModel{
+		SourceResourceIds: make([]string, 0),
+	}
+
 	for _, input := range *inputList {
-		output := IngestionSourcesPropertiesFormatModel{}
-
-		if input.ResourceId != nil {
-			output.ResourceId = *input.ResourceId
+		if input.ResourceId != nil && input.SourceType != nil && *input.SourceType == collectorpolicies.SourceTypeResource {
+			output.SourceResourceIds = append(output.SourceResourceIds, *input.ResourceId)
 		}
+	}
 
-		if input.SourceType != nil {
-			output.SourceType = *input.SourceType
-		}
-
+	if len(output.SourceResourceIds) > 0 {
 		outputList = append(outputList, output)
 	}
 
