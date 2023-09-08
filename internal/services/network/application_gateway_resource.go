@@ -4228,14 +4228,17 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 
 		name := v["name"].(string)
 		verifyClientCertIssuerDn := v["verify_client_cert_issuer_dn"].(bool)
-		verifyClientCertificateRevocation := v["verify_client_certificate_revocation"].(string)
+		verifyClientCertificateRevocation := network.ApplicationGatewayClientRevocationOptionsNone
+		if v["verify_client_certificate_revocation"].(string) != "" {
+			verifyClientCertificateRevocation = network.ApplicationGatewayClientRevocationOptions(v["verify_client_certificate_revocation"].(string))
+		}
 
 		output := network.ApplicationGatewaySslProfile{
 			Name: pointer.To(name),
 			ApplicationGatewaySslProfilePropertiesFormat: &network.ApplicationGatewaySslProfilePropertiesFormat{
 				ClientAuthConfiguration: &network.ApplicationGatewayClientAuthConfiguration{
 					VerifyClientCertIssuerDN: pointer.To(verifyClientCertIssuerDn),
-					VerifyClientRevocation:   network.ApplicationGatewayClientRevocationOptions(verifyClientCertificateRevocation),
+					VerifyClientRevocation:   verifyClientCertificateRevocation,
 				},
 			},
 		}
