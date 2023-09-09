@@ -547,7 +547,7 @@ func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsCon
 
 func flattenApiManagementBackendCredentialsObject(input *map[string][]string) map[string]interface{} {
 	results := make(map[string]interface{})
-	if input == nil || *input == nil {
+	if input == nil {
 		return results
 	}
 	for k, v := range *input {
