@@ -20,14 +20,14 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `AvailableServiceAliasesClient.AvailableServiceAliasesList`
+### Example Usage: `AvailableServiceAliasesClient.List`
 
 ```go
 ctx := context.TODO()
 id := availableservicealiases.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
 
-// alternatively `client.AvailableServiceAliasesList(ctx, id)` can be used to do batched pagination
-items, err := client.AvailableServiceAliasesListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -37,14 +37,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `AvailableServiceAliasesClient.AvailableServiceAliasesListByResourceGroup`
+### Example Usage: `AvailableServiceAliasesClient.ListByResourceGroup`
 
 ```go
 ctx := context.TODO()
 id := availableservicealiases.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationValue")
 
-// alternatively `client.AvailableServiceAliasesListByResourceGroup(ctx, id)` can be used to do batched pagination
-items, err := client.AvailableServiceAliasesListByResourceGroupComplete(ctx, id)
+// alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

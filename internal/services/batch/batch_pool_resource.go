@@ -463,9 +463,15 @@ func resourceBatchPool() *pluginsdk.Resource {
 								string(pool.DynamicVNetAssignmentScopeJob),
 							}, false),
 						},
+						"accelerated_networking_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+							ForceNew: true,
+						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},

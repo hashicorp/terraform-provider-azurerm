@@ -20,13 +20,13 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `PublishersClient.PublishersGet`
+### Example Usage: `PublishersClient.Get`
 
 ```go
 ctx := context.TODO()
 id := publishers.NewPublisherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "publisherValue")
 
-read, err := client.PublishersGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -36,14 +36,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `PublishersClient.PublishersListByCluster`
+### Example Usage: `PublishersClient.ListByCluster`
 
 ```go
 ctx := context.TODO()
 id := publishers.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-// alternatively `client.PublishersListByCluster(ctx, id)` can be used to do batched pagination
-items, err := client.PublishersListByClusterComplete(ctx, id)
+// alternatively `client.ListByCluster(ctx, id)` can be used to do batched pagination
+items, err := client.ListByClusterComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

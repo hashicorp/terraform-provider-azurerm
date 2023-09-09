@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ContentKeyPoliciesClient.ContentKeyPoliciesCreateOrUpdate`
+### Example Usage: `ContentKeyPoliciesClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := contentkeypolicies.ContentKeyPolicy{
 }
 
 
-read, err := client.ContentKeyPoliciesCreateOrUpdate(ctx, id, payload)
+read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -41,13 +41,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ContentKeyPoliciesClient.ContentKeyPoliciesDelete`
+### Example Usage: `ContentKeyPoliciesClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := contentkeypolicies.NewContentKeyPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "contentKeyPolicyValue")
 
-read, err := client.ContentKeyPoliciesDelete(ctx, id)
+read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -57,13 +57,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ContentKeyPoliciesClient.ContentKeyPoliciesGet`
+### Example Usage: `ContentKeyPoliciesClient.Get`
 
 ```go
 ctx := context.TODO()
 id := contentkeypolicies.NewContentKeyPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "contentKeyPolicyValue")
 
-read, err := client.ContentKeyPoliciesGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -73,13 +73,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ContentKeyPoliciesClient.ContentKeyPoliciesGetPolicyPropertiesWithSecrets`
+### Example Usage: `ContentKeyPoliciesClient.GetPolicyPropertiesWithSecrets`
 
 ```go
 ctx := context.TODO()
 id := contentkeypolicies.NewContentKeyPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "contentKeyPolicyValue")
 
-read, err := client.ContentKeyPoliciesGetPolicyPropertiesWithSecrets(ctx, id)
+read, err := client.GetPolicyPropertiesWithSecrets(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -89,14 +89,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ContentKeyPoliciesClient.ContentKeyPoliciesList`
+### Example Usage: `ContentKeyPoliciesClient.List`
 
 ```go
 ctx := context.TODO()
 id := contentkeypolicies.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
-// alternatively `client.ContentKeyPoliciesList(ctx, id, contentkeypolicies.DefaultContentKeyPoliciesListOperationOptions())` can be used to do batched pagination
-items, err := client.ContentKeyPoliciesListComplete(ctx, id, contentkeypolicies.DefaultContentKeyPoliciesListOperationOptions())
+// alternatively `client.List(ctx, id, contentkeypolicies.DefaultListOperationOptions())` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id, contentkeypolicies.DefaultListOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -106,7 +106,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `ContentKeyPoliciesClient.ContentKeyPoliciesUpdate`
+### Example Usage: `ContentKeyPoliciesClient.Update`
 
 ```go
 ctx := context.TODO()
@@ -117,7 +117,7 @@ payload := contentkeypolicies.ContentKeyPolicy{
 }
 
 
-read, err := client.ContentKeyPoliciesUpdate(ctx, id, payload)
+read, err := client.Update(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

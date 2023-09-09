@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceVPNGateway() *pluginsdk.Resource {
@@ -143,58 +143,62 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VpnGatewaysClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewVpnGatewayID(subscriptionId, resourceGroup, name)
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := virtualwans.NewVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.VpnGatewaysGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+
+	d.Set("name", id.VpnGatewayName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			if err := d.Set("bgp_settings", dataSourceFlattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
+				return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+			}
+
+			scaleUnit := 0
+			if props.VpnGatewayScaleUnit != nil {
+				scaleUnit = int(*props.VpnGatewayScaleUnit)
+			}
+			d.Set("scale_unit", scaleUnit)
+
+			virtualHubId := ""
+			if props.VirtualHub != nil && props.VirtualHub.Id != nil {
+				virtualHubId = *props.VirtualHub.Id
+			}
+			d.Set("virtual_hub_id", virtualHubId)
+
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
+		}
 	}
 
-	if props := resp.VpnGatewayProperties; props != nil {
-		if err := d.Set("bgp_settings", dataSourceFlattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
-			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
-		}
-
-		scaleUnit := 0
-		if props.VpnGatewayScaleUnit != nil {
-			scaleUnit = int(*props.VpnGatewayScaleUnit)
-		}
-		d.Set("scale_unit", scaleUnit)
-
-		virtualHubId := ""
-		if props.VirtualHub != nil && props.VirtualHub.ID != nil {
-			virtualHubId = *props.VirtualHub.ID
-		}
-		d.Set("virtual_hub_id", virtualHubId)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func dataSourceFlattenVPNGatewayBGPSettings(input *network.BgpSettings) []interface{} {
+func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -233,10 +237,10 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *network.BgpSettings) []interf
 	}
 }
 
-func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input network.IPConfigurationBgpPeeringAddress) []interface{} {
+func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfigurationBgpPeeringAddress) []interface{} {
 	ipConfigurationID := ""
-	if input.IpconfigurationID != nil {
-		ipConfigurationID = *input.IpconfigurationID
+	if input.IPconfigurationId != nil {
+		ipConfigurationID = *input.IPconfigurationId
 	}
 
 	return []interface{}{

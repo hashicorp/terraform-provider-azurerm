@@ -139,7 +139,7 @@ A `application_rule` (application rule) block supports the following:
 
 * `description` - (Optional) The description which should be used for this rule.
 
-* `protocols` - (Optional) One or more `protocols` blocks as defined below. Not required when specifying `destination_fqdn_tags`, but required when specifying `destination_fqdns`.
+* `protocols` - (Required) One or more `protocols` blocks as defined below.
 
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 
