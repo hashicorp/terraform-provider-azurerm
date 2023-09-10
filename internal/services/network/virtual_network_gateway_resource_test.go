@@ -1792,7 +1792,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   remote_vnet_traffic_enabled           = true
   virtual_wan_traffic_enabled           = true
   bgp_route_translation_for_nat_enabled = true
-  ip_sec_replay_protection_enabled      = true
+  ip_sec_replay_protection_enabled      = false
   dns_forwarding_enabled                = false
 
   ip_configuration {
@@ -1846,7 +1846,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   remote_vnet_traffic_enabled           = false
   virtual_wan_traffic_enabled           = false
   bgp_route_translation_for_nat_enabled = false
-  ip_sec_replay_protection_enabled      = false
+  ip_sec_replay_protection_enabled      = true
   dns_forwarding_enabled                = false
 
   ip_configuration {
