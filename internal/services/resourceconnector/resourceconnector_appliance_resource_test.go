@@ -86,7 +86,7 @@ func TestAccResourceConnectorAppliance_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 		},
 		{
-			Config:      r.requiresImport(data, r.generatePublicKey()),
+			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_resource_connector_appliance"),
 		},
 	})
@@ -169,7 +169,7 @@ resource "azurerm_resource_connector_appliance" "test" {
 `, r.template(data), data.RandomInteger, publicKey)
 }
 
-func (r ResourceConnectorApplianceResource) requiresImport(data acceptance.TestData, publicKey string) string {
+func (r ResourceConnectorApplianceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_resource_connector_appliance" "import" {
