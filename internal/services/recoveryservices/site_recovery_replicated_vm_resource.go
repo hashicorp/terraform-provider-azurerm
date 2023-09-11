@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
@@ -292,7 +292,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"network_interface": {
 				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
-				Set:        resourceSiteRecoveryReplicatedVMNicHash,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Computed:   true,
 				Optional:   true,
@@ -977,19 +976,6 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["disk_id"]; ok {
-			buf.WriteString(strings.ToLower(v.(string)))
-		}
-	}
-
-	return pluginsdk.HashString(buf.String())
-}
-
-// the default hash function will not ignore Option + Computed properties, which will cause diff.
-func resourceSiteRecoveryReplicatedVMNicHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		if v, ok := m["source_network_interface_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
 		}
 	}

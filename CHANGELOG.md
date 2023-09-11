@@ -1,29 +1,85 @@
-## 3.72.0 (Unreleased)
+## 3.73.0 (Unreleased)
 
 FEATURES:
 
-* **New Resource**: `azurerm_automation_python3_package` [GH-23087]
+* **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
+* **New Resource**: `azurerm_iothub_endpoint_cosmosdb_account` [GH-23065]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230901.1104643` of `github.com/hashicorp/go-azure-sdk` [GH-23153]
-* `containerapps`: updating to API Version `2023-05-01` [GH-22804]
-* `keyvault`: upgrade remaining resources to `2023-02-01` [GH-23089]
-* `internal/sdk`: typed resources using a custom importer now get a timed context [GH-23081]
-* `azurerm_batch_pool` - support for `automatic_upgrade_enabled` [GH-23021]
-* `azurerm_container_app_environment` - support for the `dapr_application_insights_connection_string` [GH-23080]
-* `azurerm_monitor_diagnostic_setting` - deprecating `retention_policy` within `enabled_log` [GH-23029]
-* `azurerm_postgresql_flexible_server` - support for the `auto_grow_enabled` property [GH-23069]
-* `azurerm_resource_provider_registration` - refactoring to use `hashicorp/go-azure-sdk` [GH-23072]
-* `azurerm_virtual_network_gateway` - increasing the default timeout for create to `90m` [GH-23003]
-* `azurerm_virtual_hub_connection` - support for `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` properties [GH-23049]
+* dependencies: updating to `v0.1.1` of `github.com/btubbs/datetime` [GH-23221]
+* dependencies: updating to `v1.3.1` of `github.com/google/uuid` [GH-23221]
+* dependencies: updating to `v0.20230907.1113401` of `github.com/hashicorp/go-azure-sdk` [GH-23221]
+* dependencies: updating to `v1.5.0` of `github.com/hashicorp/go-hclog` [GH-23221]
+* dependencies: updating to `v2.29.0` of `github.com/hashicorp/terraform-plugin-sdk/v2` [GH-23221]
+* dependencies: updating to `v1.5.1` of `github.com/hashicorp/terraform-plugin-testing` [GH-23221]
+* dependencies: updating to `v1.20.2` of `github.com/rickb777/date` [GH-23221]
+* dependencies: updating to `v0.13.0` of `golang.org/x/crypto` [GH-23221]
+* dependencies: updating to `v0.15.0` of `golang.org/x/net` [GH-23221]
+* dependencies: updating to `v0.13.0` of `golang.org/x/tools` [GH-23221]
+* `azurerm_managed_disk` - updating to use API Version `2023-04-02` [GH-23233]
+* `azurerm_maps_account` - support for `local_authentication_enabled` [GH-23216]
+* `azurerm_security_center_assessment_policy` - refactoring to use `hashicorp/go-azure-sdk` [GH-23158]
 
 BUG FIXES:
 
-* `azurerm_automation_account` - fixes logic for `local_authentication_enabled` [GH-23082]
-* `azurerm_monitor_diagnostic_setting` - fix `enabled_log` feature flagged schema [GH-23093]
-* `azurerm_pim_active_role_assignment`: polling for the duration of the timeout, rather than a fixed 5 minute value [GH-22932]
-* `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` [GH-23019]
+* `azurerm_api_management_backend` - fixing a panic when flattening the `credentials` block [GH-23219]
+
+## 3.72.0 (September 07, 2023)
+
+FEATURES:
+
+* Provider Feature: subscription cancellation on `destroy` can now be disabled via the provider `features` block ([#19936](https://github.com/hashicorp/terraform-provider-azurerm/issues/19936))
+* **New Data Source**: `netapp_volume_quota_rule` ([#23042](https://github.com/hashicorp/terraform-provider-azurerm/issues/23042))
+* **New Resource**: `azurerm_automation_python3_package` ([#23087](https://github.com/hashicorp/terraform-provider-azurerm/issues/23087))
+* **New Resource**: `netapp_volume_quota_rule` ([#23042](https://github.com/hashicorp/terraform-provider-azurerm/issues/23042))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230906.1160501` of `github.com/hashicorp/go-azure-sdk` ([#23191](https://github.com/hashicorp/terraform-provider-azurerm/issues/23191))
+* `containerapps`: updating to API Version `2023-05-01` ([#22804](https://github.com/hashicorp/terraform-provider-azurerm/issues/22804))
+* `keyvault`: upgrade remaining resources to `2023-02-01` ([#23089](https://github.com/hashicorp/terraform-provider-azurerm/issues/23089))
+* `redisenterprise`: updating to API Version `2023-07-01` ([#23178](https://github.com/hashicorp/terraform-provider-azurerm/issues/23178))
+* `vpngateway`: updating to use `hashicorp/go-azure-sdk` ([#22906](https://github.com/hashicorp/terraform-provider-azurerm/issues/22906))
+* `internal/sdk`: typed resources using a custom importer now get a timed context ([#23160](https://github.com/hashicorp/terraform-provider-azurerm/issues/23160))
+* `azurerm_batch_pool` - support for `accelerated_networking_enabled` ([#23021](https://github.com/hashicorp/terraform-provider-azurerm/issues/23021))
+* `azurerm_batch_pool` - support for `automatic_upgrade_enabled` ([#23021](https://github.com/hashicorp/terraform-provider-azurerm/issues/23021))
+* `azurerm_bot_channel_direct_line_speech` - support for the `cognitive_account_id` property ([#23106](https://github.com/hashicorp/terraform-provider-azurerm/issues/23106))
+* `azurerm_bot_service_azure_bot` - support for the `local_authentication_enabled` property ([#23096](https://github.com/hashicorp/terraform-provider-azurerm/issues/23096))
+* `azurerm_container_app_environment` - support for the `dapr_application_insights_connection_string` ([#23080](https://github.com/hashicorp/terraform-provider-azurerm/issues/23080))
+* `azurerm_cosmosdb_cassandra_datacenter` - refactoring to use `hashicorp/go-azure-sdk` ([#23110](https://github.com/hashicorp/terraform-provider-azurerm/issues/23110))
+* `azurerm_cosmosdb_cassandra_datacenter` - updating to API Version `2023-04-15` ([#23110](https://github.com/hashicorp/terraform-provider-azurerm/issues/23110))
+* `azurerm_kubernetes_cluster` - Azure CNI can be updated to use `overlay` ([#22709](https://github.com/hashicorp/terraform-provider-azurerm/issues/22709))
+* `azurerm_monitor_diagnostic_setting` - deprecating `retention_policy` within `enabled_log` ([#23029](https://github.com/hashicorp/terraform-provider-azurerm/issues/23029))
+* `azurerm_mssql_database` - split create and update methods ([#23209](https://github.com/hashicorp/terraform-provider-azurerm/issues/23209))
+* `azurerm_postgresql_database` - `collation` can now be set to `English_United Kingdom.1252` ([#23171](https://github.com/hashicorp/terraform-provider-azurerm/issues/23171))
+* `azurerm_postgresql_flexible_database` - `collation` can now be set to `English_United Kingdom.1252` ([#23171](https://github.com/hashicorp/terraform-provider-azurerm/issues/23171))
+* `azurerm_postgresql_flexible_server` - support for the `auto_grow_enabled` property ([#23069](https://github.com/hashicorp/terraform-provider-azurerm/issues/23069))
+* `azurerm_redis_enterprise_cluster` - support for Flash clusters in Brazil South ([#23200](https://github.com/hashicorp/terraform-provider-azurerm/issues/23200))
+* `azurerm_resource_provider_registration` - refactoring to use `hashicorp/go-azure-sdk` ([#23072](https://github.com/hashicorp/terraform-provider-azurerm/issues/23072))
+* `azurerm_virtual_machine_extension` - support for `provision_after_extensions` ([#23124](https://github.com/hashicorp/terraform-provider-azurerm/issues/23124))
+* `azurerm_virtual_network_gateway` - increasing the default timeout for create to `90m` ([#23003](https://github.com/hashicorp/terraform-provider-azurerm/issues/23003))
+* `azurerm_virtual_hub_connection` - support for `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` properties ([#23049](https://github.com/hashicorp/terraform-provider-azurerm/issues/23049))
+
+BUG FIXES:
+
+* `azurerm_api_management_api_policy` - added state migration to mutate id's ending in `policies/policy` ([#23128](https://github.com/hashicorp/terraform-provider-azurerm/issues/23128))
+* `azurerm_api_management_api_operation_policy` - added state migration to mutate id's ending in `policies/policy` ([#23128](https://github.com/hashicorp/terraform-provider-azurerm/issues/23128))
+* `azurerm_api_management_product_policy` - added state migration to mutate id's ending in `policies/policy` ([#23128](https://github.com/hashicorp/terraform-provider-azurerm/issues/23128))
+* `azurerm_automation_account` - fixes logic for `local_authentication_enabled` ([#23082](https://github.com/hashicorp/terraform-provider-azurerm/issues/23082))
+* `azurerm_key_vault_managed_storage_account` - check id can be parsed correctly before setting it in state ([#23022](https://github.com/hashicorp/terraform-provider-azurerm/issues/23022))
+* `azurerm_monitor_diagnostic_setting` - fix `enabled_log` feature flagged schema ([#23093](https://github.com/hashicorp/terraform-provider-azurerm/issues/23093))
+* `azurerm_pim_active_role_assignment`: polling for the duration of the timeout, rather than a fixed 5 minute value ([#22932](https://github.com/hashicorp/terraform-provider-azurerm/issues/22932))
+* `azurerm_policy_set_definition` - only sending `parameters` when a value is configured ([#23155](https://github.com/hashicorp/terraform-provider-azurerm/issues/23155))
+* `azurerm_synapse_workspace` - fixes index out-of-range panic when parsing `storage_data_lake_gen2_filesystem_id` ([#23019](https://github.com/hashicorp/terraform-provider-azurerm/issues/23019))
+* `machine_learning_datastore_*` - fixes container ids ([#23140](https://github.com/hashicorp/terraform-provider-azurerm/issues/23140))
+* `azurerm_key_vault_certificate` - id now points to new version when certificate is updated ([#23135](https://github.com/hashicorp/terraform-provider-azurerm/issues/23135))
+* `azurerm_site_recovery_replicated_vm` - update `network_interface` diff so replicated items now can be updated ([#23199](https://github.com/hashicorp/terraform-provider-azurerm/issues/23199))
+
+DEPRECATION:
+
+* Data Source: `azure_monitor_log_profile` - Azure is retiring Azure Log Profiles on the 30th of September 2026 ([#23146](https://github.com/hashicorp/terraform-provider-azurerm/issues/23146))
+* `azure_monitor_log_profile` - Azure is retiring Azure Log Profiles on the 30th of September 2026 ([#23146](https://github.com/hashicorp/terraform-provider-azurerm/issues/23146))
 
 ## 3.71.0 (August 24, 2023)
 

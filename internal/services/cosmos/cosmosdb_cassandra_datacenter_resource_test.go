@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -56,17 +56,17 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 }
 
 func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CassandraDatacenterID(state.ID)
+	id, err := managedcassandras.ParseDataCenterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraDatacentersClient.Get(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName)
+	resp, err := clients.Cosmos.ManagedCassandraClient.CassandraDataCentersGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r CassandraDatacenterResource) basic(data acceptance.TestData, nodeCount int) string {

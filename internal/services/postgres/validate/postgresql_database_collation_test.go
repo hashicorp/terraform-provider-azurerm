@@ -136,13 +136,14 @@ func TestPostgresqlDatabaseCollation_LocalesThirdComponent(t *testing.T) {
 func TestPostgresqlDatabaseCollation_SpecialCases(t *testing.T) {
 	cases := map[string]struct{}{
 		// these are special-cases
-		".utf8":                      {},
-		"C":                          {},
-		"POSIX":                      {},
-		"English_United States.1252": {},
-		"En-US":                      {},
-		"ucs_basic":                  {},
-		"default":                    {},
+		".utf8":                       {},
+		"C":                           {},
+		"POSIX":                       {},
+		"English_United Kingdom.1252": {},
+		"English_United States.1252":  {},
+		"En-US":                       {},
+		"ucs_basic":                   {},
+		"default":                     {},
 	}
 	for value := range cases {
 		t.Run(fmt.Sprintf("Value %q", value), func(t *testing.T) {

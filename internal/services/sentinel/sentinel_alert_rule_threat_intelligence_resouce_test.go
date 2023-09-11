@@ -100,7 +100,7 @@ func (r SentinelAlertRuleThreatIntelligenceResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := alertRuleClient.AlertRulesGet(ctx, *id)
+	resp, err := alertRuleClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

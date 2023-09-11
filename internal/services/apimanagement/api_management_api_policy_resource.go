@@ -39,9 +39,10 @@ func resourceApiManagementApiPolicy() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiManagementApiPolicyV0ToV1{},
+			1: migration.ApiManagementApiPolicyV1ToV2{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{

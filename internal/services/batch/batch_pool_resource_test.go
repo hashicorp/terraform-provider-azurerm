@@ -44,6 +44,22 @@ func TestAccBatchPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_acceleratedNetworkingEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acceleratedNetworkingEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_configuration.0.accelerated_networking_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -990,6 +1006,48 @@ resource "azurerm_batch_pool" "test" {
     offer     = "UbuntuServer"
     sku       = "18.04-lts"
     version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) acceleratedNetworkingEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.windows amd64"
+  vm_size             = "Standard_D1_v2"
+
+  fixed_scale {
+    target_dedicated_nodes = 2
+  }
+
+  storage_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-datacenter-smalldisk"
+    version   = "latest"
+  }
+
+  network_configuration {
+    accelerated_networking_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
