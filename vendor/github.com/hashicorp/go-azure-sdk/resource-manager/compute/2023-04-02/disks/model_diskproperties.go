@@ -11,6 +11,7 @@ import (
 
 type DiskProperties struct {
 	BurstingEnabled              *bool                         `json:"burstingEnabled,omitempty"`
+	BurstingEnabledTime          *string                       `json:"burstingEnabledTime,omitempty"`
 	CompletionPercent            *float64                      `json:"completionPercent,omitempty"`
 	CreationData                 CreationData                  `json:"creationData"`
 	DataAccessAuthMode           *DataAccessAuthMode           `json:"dataAccessAuthMode,omitempty"`
@@ -25,8 +26,10 @@ type DiskProperties struct {
 	Encryption                   *Encryption                   `json:"encryption,omitempty"`
 	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	HyperVGeneration             *HyperVGeneration             `json:"hyperVGeneration,omitempty"`
+	LastOwnershipUpdateTime      *string                       `json:"LastOwnershipUpdateTime,omitempty"`
 	MaxShares                    *int64                        `json:"maxShares,omitempty"`
 	NetworkAccessPolicy          *NetworkAccessPolicy          `json:"networkAccessPolicy,omitempty"`
+	OptimizedForFrequentAttach   *bool                         `json:"optimizedForFrequentAttach,omitempty"`
 	OsType                       *OperatingSystemTypes         `json:"osType,omitempty"`
 	PropertyUpdatesInProgress    *PropertyUpdatesInProgress    `json:"propertyUpdatesInProgress,omitempty"`
 	ProvisioningState            *string                       `json:"provisioningState,omitempty"`
@@ -39,6 +42,30 @@ type DiskProperties struct {
 	Tier                         *string                       `json:"tier,omitempty"`
 	TimeCreated                  *string                       `json:"timeCreated,omitempty"`
 	UniqueId                     *string                       `json:"uniqueId,omitempty"`
+}
+
+func (o *DiskProperties) GetBurstingEnabledTimeAsTime() (*time.Time, error) {
+	if o.BurstingEnabledTime == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.BurstingEnabledTime, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o *DiskProperties) SetBurstingEnabledTimeAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.BurstingEnabledTime = &formatted
+}
+
+func (o *DiskProperties) GetLastOwnershipUpdateTimeAsTime() (*time.Time, error) {
+	if o.LastOwnershipUpdateTime == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.LastOwnershipUpdateTime, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o *DiskProperties) SetLastOwnershipUpdateTimeAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.LastOwnershipUpdateTime = &formatted
 }
 
 func (o *DiskProperties) GetTimeCreatedAsTime() (*time.Time, error) {

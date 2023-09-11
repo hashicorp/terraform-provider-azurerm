@@ -140,6 +140,7 @@ type DiskCreateOption string
 const (
 	DiskCreateOptionAttach               DiskCreateOption = "Attach"
 	DiskCreateOptionCopy                 DiskCreateOption = "Copy"
+	DiskCreateOptionCopyFromSanSnapshot  DiskCreateOption = "CopyFromSanSnapshot"
 	DiskCreateOptionCopyStart            DiskCreateOption = "CopyStart"
 	DiskCreateOptionEmpty                DiskCreateOption = "Empty"
 	DiskCreateOptionFromImage            DiskCreateOption = "FromImage"
@@ -154,6 +155,7 @@ func PossibleValuesForDiskCreateOption() []string {
 	return []string{
 		string(DiskCreateOptionAttach),
 		string(DiskCreateOptionCopy),
+		string(DiskCreateOptionCopyFromSanSnapshot),
 		string(DiskCreateOptionCopyStart),
 		string(DiskCreateOptionEmpty),
 		string(DiskCreateOptionFromImage),
@@ -182,6 +184,7 @@ func parseDiskCreateOption(input string) (*DiskCreateOption, error) {
 	vals := map[string]DiskCreateOption{
 		"attach":               DiskCreateOptionAttach,
 		"copy":                 DiskCreateOptionCopy,
+		"copyfromsansnapshot":  DiskCreateOptionCopyFromSanSnapshot,
 		"copystart":            DiskCreateOptionCopyStart,
 		"empty":                DiskCreateOptionEmpty,
 		"fromimage":            DiskCreateOptionFromImage,
@@ -403,6 +406,47 @@ func parseEncryptionType(input string) (*EncryptionType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := EncryptionType(input)
+	return &out, nil
+}
+
+type FileFormat string
+
+const (
+	FileFormatVHD  FileFormat = "VHD"
+	FileFormatVHDX FileFormat = "VHDX"
+)
+
+func PossibleValuesForFileFormat() []string {
+	return []string{
+		string(FileFormatVHD),
+		string(FileFormatVHDX),
+	}
+}
+
+func (s *FileFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFileFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseFileFormat(input string) (*FileFormat, error) {
+	vals := map[string]FileFormat{
+		"vhd":  FileFormatVHD,
+		"vhdx": FileFormatVHDX,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := FileFormat(input)
 	return &out, nil
 }
 

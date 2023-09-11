@@ -5,9 +5,11 @@ package disks
 
 type CreationData struct {
 	CreateOption          DiskCreateOption    `json:"createOption"`
+	ElasticSanResourceId  *string             `json:"elasticSanResourceId,omitempty"`
 	GalleryImageReference *ImageDiskReference `json:"galleryImageReference,omitempty"`
 	ImageReference        *ImageDiskReference `json:"imageReference,omitempty"`
 	LogicalSectorSize     *int64              `json:"logicalSectorSize,omitempty"`
+	PerformancePlus       *bool               `json:"performancePlus,omitempty"`
 	SecurityDataUri       *string             `json:"securityDataUri,omitempty"`
 	SourceResourceId      *string             `json:"sourceResourceId,omitempty"`
 	SourceUniqueId        *string             `json:"sourceUniqueId,omitempty"`

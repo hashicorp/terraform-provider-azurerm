@@ -16,6 +16,7 @@ type DiskUpdateProperties struct {
 	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	MaxShares                    *int64                        `json:"maxShares,omitempty"`
 	NetworkAccessPolicy          *NetworkAccessPolicy          `json:"networkAccessPolicy,omitempty"`
+	OptimizedForFrequentAttach   *bool                         `json:"optimizedForFrequentAttach,omitempty"`
 	OsType                       *OperatingSystemTypes         `json:"osType,omitempty"`
 	PropertyUpdatesInProgress    *PropertyUpdatesInProgress    `json:"propertyUpdatesInProgress,omitempty"`
 	PublicNetworkAccess          *PublicNetworkAccess          `json:"publicNetworkAccess,omitempty"`

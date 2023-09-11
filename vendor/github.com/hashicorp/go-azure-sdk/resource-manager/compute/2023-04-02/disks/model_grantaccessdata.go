@@ -6,5 +6,6 @@ package disks
 type GrantAccessData struct {
 	Access                   AccessLevel `json:"access"`
 	DurationInSeconds        int64       `json:"durationInSeconds"`
+	FileFormat               *FileFormat `json:"fileFormat,omitempty"`
 	GetSecureVMGuestStateSAS *bool       `json:"getSecureVMGuestStateSAS,omitempty"`
 }
