@@ -187,7 +187,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											},
 										},
 									},
-									// lintignore:XS003
+									//lintignore:XS003
 									"trigger": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
