@@ -146,7 +146,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 
 	id := assessmentsmetadata.NewProviderAssessmentMetadataID(subscriptionId, name)
 
-	existing, err := client.AssessmentsMetadataGetInSubscription(ctx, id)
+	existing, err := client.GetInSubscription(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -194,7 +194,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 		params.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(v.(string)))
 	}
 
-	if _, err := client.AssessmentsMetadataCreateInSubscription(ctx, id, params); err != nil {
+	if _, err := client.CreateInSubscription(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -213,7 +213,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	resp, err := client.AssessmentsMetadataGetInSubscription(ctx, *id)
+	resp, err := client.GetInSubscription(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
@@ -265,7 +265,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	existing, err := client.AssessmentsMetadataGetInSubscription(ctx, *id)
+	existing, err := client.GetInSubscription(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -313,7 +313,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 		existing.Model.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(d.Get("user_impact").(string)))
 	}
 
-	if _, err := client.AssessmentsMetadataCreateInSubscription(ctx, *id, *existing.Model); err != nil {
+	if _, err := client.CreateInSubscription(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -330,7 +330,7 @@ func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	if _, err := client.AssessmentsMetadataDeleteInSubscription(ctx, *id); err != nil {
+	if _, err := client.DeleteInSubscription(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

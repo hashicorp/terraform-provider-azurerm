@@ -79,7 +79,7 @@ func (r SecurityCenterAssessmentPolicyResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	resp, err := assessmentMetadataClient.AssessmentsMetadataGetInSubscription(ctx, *id)
+	resp, err := assessmentMetadataClient.GetInSubscription(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
