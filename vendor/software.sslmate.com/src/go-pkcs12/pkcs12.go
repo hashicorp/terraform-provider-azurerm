@@ -27,6 +27,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -138,8 +139,8 @@ func unmarshal(in []byte, out interface{}) error {
 //
 // Deprecated: ToPEM creates invalid PEM blocks (private keys
 // are encoded as raw RSA or EC private keys rather than PKCS#8 despite being
-// labeled "PRIVATE KEY").  To decode a PKCS#12 file, use DecodeChain instead,
-// and use the encoding/pem package to convert to PEM if necessary.
+// labeled "PRIVATE KEY").  To decode a PKCS#12 file, use [DecodeChain] instead,
+// and use the [encoding/pem] package to convert to PEM if necessary.
 func ToPEM(pfxData []byte, password string) ([]*pem.Block, error) {
 	encodedPassword, err := bmpStringZeroTerminated(password)
 	if err != nil {
@@ -248,7 +249,7 @@ func convertAttribute(attribute *pkcs12Attribute) (key, value string, err error)
 // Decode extracts a certificate and private key from pfxData, which must be a DER-encoded PKCS#12 file. This function
 // assumes that there is only one certificate and only one private key in the
 // pfxData.  Since PKCS#12 files often contain more than one certificate, you
-// probably want to use DecodeChain instead.
+// probably want to use [DecodeChain] instead.
 func Decode(pfxData []byte, password string) (privateKey interface{}, certificate *x509.Certificate, err error) {
 	var caCerts []*x509.Certificate
 	privateKey, certificate, caCerts, err = DecodeChain(pfxData, password)
@@ -403,7 +404,7 @@ func getSafeContents(p12Data, password []byte, expectedItems int) (bags []safeBa
 	}
 
 	if len(authenticatedSafe) != expectedItems {
-		return nil, nil, NotImplementedError("expected exactly two items in the authenticated safe")
+		return nil, nil, NotImplementedError(fmt.Sprintf("expected exactly %d items in the authenticated safe", expectedItems))
 	}
 
 	for _, ci := range authenticatedSafe {
@@ -445,11 +446,11 @@ func getSafeContents(p12Data, password []byte, expectedItems int) (bags []safeBa
 //
 // The private key is encrypted with the provided password, but due to the
 // weak encryption primitives used by PKCS#12, it is RECOMMENDED that you
-// specify a hard-coded password (such as pkcs12.DefaultPassword) and protect
+// specify a hard-coded password (such as [DefaultPassword]) and protect
 // the resulting pfxData using other means.
 //
 // The rand argument is used to provide entropy for the encryption, and
-// can be set to rand.Reader from the crypto/rand package.
+// can be set to [crypto/rand.Reader].
 //
 // Encode emulates the behavior of OpenSSL's PKCS12_create: it creates two
 // SafeContents: one that's encrypted with RC2 and contains the certificates,
@@ -546,11 +547,11 @@ func Encode(rand io.Reader, privateKey interface{}, certificate *x509.Certificat
 // allow it to be used as a Java TrustStore in Java 1.8 and newer.
 //
 // Due to the weak encryption primitives used by PKCS#12, it is RECOMMENDED that
-// you specify a hard-coded password (such as pkcs12.DefaultPassword) and protect
+// you specify a hard-coded password (such as [DefaultPassword]) and protect
 // the resulting pfxData using other means.
 //
 // The rand argument is used to provide entropy for the encryption, and
-// can be set to rand.Reader from the crypto/rand package.
+// can be set to [crypto/rand.Reader].
 //
 // EncodeTrustStore creates a single SafeContents that's encrypted with RC2
 // and contains the certificates.
@@ -559,7 +560,7 @@ func Encode(rand io.Reader, privateKey interface{}, certificate *x509.Certificat
 // within the resulting pfxData. If certificates share a Subject, then the
 // resulting Friendly Names (Aliases) will be identical, which Java may treat as
 // the same entry when used as a Java TrustStore, e.g. with `keytool`.  To
-// customize the Friendly Names, use EncodeTrustStoreEntries.
+// customize the Friendly Names, use [EncodeTrustStoreEntries].
 func EncodeTrustStore(rand io.Reader, certs []*x509.Certificate, password string) (pfxData []byte, err error) {
 	var certsWithFriendlyNames []TrustStoreEntry
 	for _, cert := range certs {
@@ -581,7 +582,7 @@ type TrustStoreEntry struct {
 // certificates (entries) to be trusted. The certificates will be marked with a
 // special OID that allow it to be used as a Java TrustStore in Java 1.8 and newer.
 //
-// This is identical to EncodeTrustStore, but also allows for setting specific
+// This is identical to [EncodeTrustStore], but also allows for setting specific
 // Friendly Names (Aliases) to be used per certificate, by specifying a slice
 // of TrustStoreEntry.
 //
@@ -590,11 +591,11 @@ type TrustStoreEntry struct {
 // may treat as the same entry when used as a Java TrustStore, e.g. with `keytool`.
 //
 // Due to the weak encryption primitives used by PKCS#12, it is RECOMMENDED that
-// you specify a hard-coded password (such as pkcs12.DefaultPassword) and protect
+// you specify a hard-coded password (such as [DefaultPassword]) and protect
 // the resulting pfxData using other means.
 //
 // The rand argument is used to provide entropy for the encryption, and
-// can be set to rand.Reader from the crypto/rand package.
+// can be set to [crypto/rand.Reader].
 //
 // EncodeTrustStoreEntries creates a single SafeContents that's encrypted
 // with RC2 and contains the certificates.
