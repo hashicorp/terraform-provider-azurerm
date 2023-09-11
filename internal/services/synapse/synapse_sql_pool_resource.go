@@ -324,11 +324,11 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// NOTE: Per the service team instructions the `geo_backup_policy_enabled` field
+	// NOTE: Per the Synapse service team, the `geo_backup_policy_enabled` field
 	// cannot be changed once it has been created...
 	if !features.FourPointOhBeta() {
 		if d.HasChange("geo_backup_policy_enabled") {
-			return fmt.Errorf("`geo_backup_policy_enabled` field cannot be changed once it has been set")
+			return fmt.Errorf("the `geo_backup_policy_enabled` field cannot be changed once it has been set")
 		}
 	}
 

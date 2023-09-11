@@ -78,7 +78,7 @@ func TestAccSynapseSqlPool_threePointOhUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.geoBackupDisabled(data),
-			ExpectError: regexp.MustCompile("`geo_backup_policy_enabled` field cannot be changed once it has been set"),
+			ExpectError: regexp.MustCompile("the `geo_backup_policy_enabled` field cannot be changed once it has been set"),
 		},
 	})
 }

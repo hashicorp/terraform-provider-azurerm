@@ -10,7 +10,7 @@ description: |-
 
 Manages a Synapse SQL Pool.
 
-!> **BREAKING CHANGE:** In v4.0 of the AzureRM Provider the `geo_backup_policy_enabled` field will be `Required` and will force a new Synapse SQL Pool to be created if changed.
+!> **BREAKING CHANGE:** In version 4.0 of the AzureRM Provider, the `geo_backup_policy_enabled` will no longer be an `Optional` field with a preset `default` value. Instead, it be transitioned into a `Required` field, mandating its presence in the configuration file, and subsequently, any modification of the `geo_backup_policy_enabled` field will cause a new Synapse SQL Pool resource to be created.
 
 ## Example Usage
 
