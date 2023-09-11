@@ -2,6 +2,10 @@ package resourceconnector_test
 
 import (
 	"context"
+	cryptoRand "crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"testing"
 
@@ -17,13 +21,13 @@ type ResourceConnectorApplianceResource struct{}
 
 func TestAccResourceConnectorAppliance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_connector_appliance", "test")
-	l := ResourceConnectorApplianceResource{}
+	r := ResourceConnectorApplianceResource{}
 
-	data.ResourceTest(t, l, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: l.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(l),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -32,20 +36,27 @@ func TestAccResourceConnectorAppliance_basic(t *testing.T) {
 
 func TestAccResourceConnectorAppliance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_connector_appliance", "test")
-	l := ResourceConnectorApplianceResource{}
+	r := ResourceConnectorApplianceResource{}
 
-	data.ResourceTest(t, l, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: l.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(l),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: l.update(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(l),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -54,13 +65,13 @@ func TestAccResourceConnectorAppliance_update(t *testing.T) {
 
 func TestAccResourceConnectorAppliance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_connector_appliance", "test")
-	l := ResourceConnectorApplianceResource{}
+	r := ResourceConnectorApplianceResource{}
 
-	data.ResourceTest(t, l, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: l.complete(data),
+			Config: r.complete(data, r.generatePublicKey()),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(l),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -69,13 +80,13 @@ func TestAccResourceConnectorAppliance_complete(t *testing.T) {
 
 func TestAccResourceConnectorAppliance_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_connector_appliance", "test")
-	l := ResourceConnectorApplianceResource{}
-	data.ResourceTest(t, l, []acceptance.TestStep{
+	r := ResourceConnectorApplianceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: l.basic(data),
+			Config: r.basic(data),
 		},
 		{
-			Config:      l.requiresImport(data),
+			Config:      r.requiresImport(data, r.generatePublicKey()),
 			ExpectError: acceptance.RequiresImportError("azurerm_resource_connector_appliance"),
 		},
 	})
@@ -99,15 +110,11 @@ func (r ResourceConnectorApplianceResource) Exists(ctx context.Context, clients 
 
 func (r ResourceConnectorApplianceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-Appliances-%[1]d"
-  location = "%[2]s"
-}
+
+%s
+
 resource "azurerm_resource_connector_appliance" "test" {
-  name                    = "acctestAppliances-%[1]d"
+  name                    = "acctestrcapplicance-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   distro                  = "AKSEdge"
@@ -116,25 +123,20 @@ resource "azurerm_resource_connector_appliance" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ResourceConnectorApplianceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-Appliances-%[1]d"
-  location = "%[2]s"
-}
+
+%s
+
 resource "azurerm_resource_connector_appliance" "test" {
-  name                    = "acctestAppliances-%[1]d"
+  name                    = "acctestrcapplicance-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   distro                  = "AKSEdge"
   infrastructure_provider = "VMWare"
-  public_key              = "MIGJAoGBALXhHAjXWcYsF5oMPrYPfYwA/Jim7ErxlRM7laOhvUqFuMkEGxOGf76W4NhMoouFty7SUeio+IWgHjwUmiXDBhVsNie2Pe5XSyuSmvhRIFOoULfKUgv3qEBIHq0ylZOoaNIFN/HFALRIqejEh2MF5URi3fBxJA4tDV4tgR+KdYJ9AgMBAAE="
   identity {
     type = "SystemAssigned"
   }
@@ -142,24 +144,21 @@ resource "azurerm_resource_connector_appliance" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r ResourceConnectorApplianceResource) complete(data acceptance.TestData) string {
+func (r ResourceConnectorApplianceResource) complete(data acceptance.TestData, publicKey string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appliances-%[1]d"
-  location = "%[2]s"
-}
+
+%s
+
 resource "azurerm_resource_connector_appliance" "test" {
-  name                    = "acctestappliances-%[1]d"
+  name                    = "acctestrcapplicance-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   distro                  = "AKSEdge"
   infrastructure_provider = "VMWare"
+  public_key              = "%[3]s"
   identity {
     type = "SystemAssigned"
   }
@@ -167,10 +166,10 @@ resource "azurerm_resource_connector_appliance" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, publicKey)
 }
 
-func (r ResourceConnectorApplianceResource) requiresImport(data acceptance.TestData) string {
+func (r ResourceConnectorApplianceResource) requiresImport(data acceptance.TestData, publicKey string) string {
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_resource_connector_appliance" "import" {
@@ -184,4 +183,25 @@ resource "azurerm_resource_connector_appliance" "import" {
   }
 }
 `, r.basic(data), data.RandomInteger)
+}
+
+func (r ResourceConnectorApplianceResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-appliances-%[1]d"
+  location = "%[2]s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ResourceConnectorApplianceResource) generatePublicKey() string {
+	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 4096)
+	if err != nil {
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&privateKey.PublicKey))
 }

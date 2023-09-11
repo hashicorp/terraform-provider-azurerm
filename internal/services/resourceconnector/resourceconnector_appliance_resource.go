@@ -13,14 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = ResourceConnectorApplianceResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = ResourceConnectorApplianceResource{}
 
 type ResourceConnectorApplianceResource struct{}
 
@@ -76,17 +75,16 @@ func (r ResourceConnectorApplianceResource) Arguments() map[string]*schema.Schem
 		"public_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
+			ValidateFunc: validate.Base64EncodedString,
 		},
 
 		"tags": commonschema.Tags(),
 
 		"version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"latest",
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -124,16 +122,13 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			if model.PublicKey != "" {
-				return fmt.Errorf("the public key can not be set when creating %s. it could be set after a deploy as an update operation", id)
-			}
-
-			if model.Version != "" {
-				return fmt.Errorf("the version cannot be set when creating %s. it could be set from upgrade call", id)
+			identity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
+			if err != nil {
+				return err
 			}
 
 			parameters := appliances.Appliance{
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Properties: &appliances.ApplianceProperties{
 					Distro: pointer.To(model.Distro),
 					InfrastructureConfig: &appliances.AppliancePropertiesInfrastructureConfig{
@@ -143,15 +138,25 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			identity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding SystemAssigned Identity: %+v", err)
-			}
-
 			parameters.Identity = identity
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// since the public key and version could not be set during creation, update after creation
+			if model.PublicKey != "" || model.Version != "" {
+				if model.PublicKey != "" {
+					parameters.Properties.PublicKey = pointer.To(model.PublicKey)
+				}
+
+				if model.Version != "" {
+					parameters.Properties.Version = pointer.To(model.Version)
+				}
+
+				if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -187,27 +192,29 @@ func (r ResourceConnectorApplianceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			identity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding SystemAssigned Identity: %+v", err)
-			}
+			if metadata.ResourceData.HasChange("identity") {
+				identity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
+				if err != nil {
+					return err
+				}
 
-			parameters.Identity = identity
+				parameters.Identity = identity
+			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = pointer.To(model.Tags)
 			}
 
-			if parameters.Properties == nil {
-				parameters.Properties = &appliances.ApplianceProperties{}
-			}
-
-			if metadata.ResourceData.HasChange("public_key") {
-				parameters.Properties.PublicKey = pointer.To(model.PublicKey)
-			}
-
-			if metadata.ResourceData.HasChange("version") {
-				parameters.Properties.Version = pointer.To(model.Version)
+			if metadata.ResourceData.HasChanges("public_key", "version") {
+				if parameters.Properties == nil {
+					parameters.Properties = &appliances.ApplianceProperties{}
+				}
+				if metadata.ResourceData.HasChange("public_key") {
+					parameters.Properties.PublicKey = pointer.To(model.PublicKey)
+				}
+				if metadata.ResourceData.HasChange("version") {
+					parameters.Properties.Version = pointer.To(model.Version)
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
@@ -238,24 +245,24 @@ func (r ResourceConnectorApplianceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %q: %+v", *id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-
 			state := ApplianceModel{
-				Name:              pointer.From(resp.Model.Name),
+				Name:              id.ApplianceName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.NormalizeNilable(pointer.To(resp.Model.Location)),
-				Identity:          identity.FlattenSystemAssignedToModel(resp.Model.Identity),
 			}
 
-			state.Tags = pointer.From(resp.Model.Tags)
-			if v := resp.Model.Properties; v != nil {
-				state.Distro = pointer.From(v.Distro)
-				state.PublicKey = pointer.From(v.PublicKey)
-				state.Version = pointer.From(v.Version)
-				if p := v.InfrastructureConfig; p != nil {
-					state.Provider = pointer.From(p.Provider)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
+				state.Tags = pointer.From(resp.Model.Tags)
+
+				if props := model.Properties; props != nil {
+					state.Distro = pointer.From(props.Distro)
+					state.PublicKey = pointer.From(props.PublicKey)
+
+					state.Version = pointer.From(props.Version)
+					if infraConfig := props.InfrastructureConfig; infraConfig != nil {
+						state.Provider = pointer.From(infraConfig.Provider)
+					}
 				}
 			}
 			return metadata.Encode(&state)
@@ -277,21 +284,6 @@ func (r ResourceConnectorApplianceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			return nil
-		},
-	}
-}
-
-func (r ResourceConnectorApplianceResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			rd := metadata.ResourceDiff
-			if rd.HasChange("public_key") {
-				old, _ := rd.GetChange("public_key")
-				if old.(string) != "" {
-					return fmt.Errorf("the public_key can not be updated once it is set")
-				}
-			}
 			return nil
 		},
 	}
