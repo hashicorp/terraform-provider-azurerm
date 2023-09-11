@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -68,9 +69,16 @@ func testAccBotChannelWebChat_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
+	var basicConfig string
+	if features.FourPointOhBeta() {
+		basicConfig = r.basic(data)
+	} else {
+		basicConfig = r.siteNames(data)
+	}
+
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: basicConfig,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -160,6 +168,22 @@ resource "azurerm_bot_channel_web_chat" "test" {
     user_upload_enabled         = false
     endpoint_parameters_enabled = false
     storage_enabled             = false
+  }
+}
+`, BotChannelsRegistrationResource{}.basicConfig(data))
+}
+
+func (BotChannelWebChatResource) siteNames(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_web_chat" "test" {
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  site {
+    name = "TestSite"
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
