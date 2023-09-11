@@ -1221,7 +1221,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = true
+    enabled   = true
     name      = "Rule3"
     priority  = 3
     rule_type = "MatchRule"
@@ -1240,16 +1240,16 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = false
+    enabled   = false
     name      = "Rule4"
     priority  = 4
     rule_type = "MatchRule"
-  
+
     match_conditions {
       match_variables {
         variable_name = "RemoteAddr"
       }
-  
+
       operator           = "IPMatch"
       negation_condition = false
       match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
@@ -1259,7 +1259,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = true
+    enabled   = true
     name      = "Rule5"
     priority  = 5
     rule_type = "MatchRule"
@@ -1278,7 +1278,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = false
+    enabled   = false
     name      = "Rule6"
     priority  = 6
     rule_type = "MatchRule"
@@ -1328,7 +1328,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
 
   custom_rules {
-    enabled = true
+    enabled   = true
     name      = "Rule1"
     priority  = 1
     rule_type = "MatchRule"
@@ -1347,7 +1347,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = false
+    enabled   = false
     name      = "Rule2"
     priority  = 2
     rule_type = "MatchRule"
@@ -1413,7 +1413,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = false
+    enabled   = false
     name      = "Rule5"
     priority  = 5
     rule_type = "MatchRule"
@@ -1432,7 +1432,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   custom_rules {
-    enabled = true
+    enabled   = true
     name      = "Rule6"
     priority  = 6
     rule_type = "MatchRule"
