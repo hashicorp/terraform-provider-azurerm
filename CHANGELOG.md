@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.13.0` of `golang.org/x/crypto` [GH-23221]
 * dependencies: updating to `v0.15.0` of `golang.org/x/net` [GH-23221]
 * dependencies: updating to `v0.13.0` of `golang.org/x/tools` [GH-23221]
+* `azurerm_managed_disk` - updating to use API Version `2023-04-02` [GH-23233]
 * `azurerm_maps_account` - support for `local_authentication_enabled` [GH-23216]
 * `azurerm_security_center_assessment_policy` - refactoring to use `hashicorp/go-azure-sdk` [GH-23158]
 
