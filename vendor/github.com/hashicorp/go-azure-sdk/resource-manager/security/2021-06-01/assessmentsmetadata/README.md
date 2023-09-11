@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `AssessmentsMetadataClient.AssessmentsMetadataCreateInSubscription`
+### Example Usage: `AssessmentsMetadataClient.CreateInSubscription`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := assessmentsmetadata.SecurityAssessmentMetadataResponse{
 }
 
 
-read, err := client.AssessmentsMetadataCreateInSubscription(ctx, id, payload)
+read, err := client.CreateInSubscription(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -41,13 +41,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AssessmentsMetadataClient.AssessmentsMetadataDeleteInSubscription`
+### Example Usage: `AssessmentsMetadataClient.DeleteInSubscription`
 
 ```go
 ctx := context.TODO()
 id := assessmentsmetadata.NewProviderAssessmentMetadataID("12345678-1234-9876-4563-123456789012", "assessmentMetadataValue")
 
-read, err := client.AssessmentsMetadataDeleteInSubscription(ctx, id)
+read, err := client.DeleteInSubscription(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -57,13 +57,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AssessmentsMetadataClient.AssessmentsMetadataGet`
+### Example Usage: `AssessmentsMetadataClient.Get`
 
 ```go
 ctx := context.TODO()
 id := assessmentsmetadata.NewAssessmentMetadataID("assessmentMetadataValue")
 
-read, err := client.AssessmentsMetadataGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -73,13 +73,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AssessmentsMetadataClient.AssessmentsMetadataGetInSubscription`
+### Example Usage: `AssessmentsMetadataClient.GetInSubscription`
 
 ```go
 ctx := context.TODO()
 id := assessmentsmetadata.NewProviderAssessmentMetadataID("12345678-1234-9876-4563-123456789012", "assessmentMetadataValue")
 
-read, err := client.AssessmentsMetadataGetInSubscription(ctx, id)
+read, err := client.GetInSubscription(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -89,14 +89,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AssessmentsMetadataClient.AssessmentsMetadataList`
+### Example Usage: `AssessmentsMetadataClient.List`
 
 ```go
 ctx := context.TODO()
 
 
-// alternatively `client.AssessmentsMetadataList(ctx)` can be used to do batched pagination
-items, err := client.AssessmentsMetadataListComplete(ctx)
+// alternatively `client.List(ctx)` can be used to do batched pagination
+items, err := client.ListComplete(ctx)
 if err != nil {
 	// handle the error
 }
@@ -106,14 +106,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `AssessmentsMetadataClient.AssessmentsMetadataListBySubscription`
+### Example Usage: `AssessmentsMetadataClient.ListBySubscription`
 
 ```go
 ctx := context.TODO()
 id := assessmentsmetadata.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-// alternatively `client.AssessmentsMetadataListBySubscription(ctx, id)` can be used to do batched pagination
-items, err := client.AssessmentsMetadataListBySubscriptionComplete(ctx, id)
+// alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
+items, err := client.ListBySubscriptionComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
