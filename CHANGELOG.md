@@ -19,6 +19,10 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.13.0` of `golang.org/x/tools` [GH-23221]
 * `azurerm_maps_account` - Support for `local_authentication_enabled` [GH-23216]
 
+BUG FIXES:
+
+* `azurerm_api_management_backend` - fixing a panic when flattening the `credentials` block [GH-23219]
+
 ## 3.72.0 (September 07, 2023)
 
 FEATURES:
