@@ -1,13 +1,23 @@
 ## 3.73.0 (Unreleased)
 
-ENHANCEMENTS:
-
-* `azurerm_maps_account` - Support for `local_authentication_enabled` [GH-23216]
-
 FEATURES:
 
 * **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
 * **New Resource**: `azurerm_iothub_endpoint_cosmosdb_account` [GH-23065]
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.1.1` of `github.com/btubbs/datetime` [GH-23221]
+* dependencies: updating to `v1.3.1` of `github.com/google/uuid` [GH-23221]
+* dependencies: updating to `v0.20230907.1113401` of `github.com/hashicorp/go-azure-sdk` [GH-23221]
+* dependencies: updating to `v1.5.0` of `github.com/hashicorp/go-hclog` [GH-23221]
+* dependencies: updating to `v2.29.0` of `github.com/hashicorp/terraform-plugin-sdk/v2` [GH-23221]
+* dependencies: updating to `v1.5.1` of `github.com/hashicorp/terraform-plugin-testing` [GH-23221]
+* dependencies: updating to `v1.20.2` of `github.com/rickb777/date` [GH-23221]
+* dependencies: updating to `v0.13.0` of `golang.org/x/crypto` [GH-23221]
+* dependencies: updating to `v0.15.0` of `golang.org/x/net` [GH-23221]
+* dependencies: updating to `v0.13.0` of `golang.org/x/tools` [GH-23221]
+* `azurerm_maps_account` - Support for `local_authentication_enabled` [GH-23216]
 
 ## 3.72.0 (September 07, 2023)
 
