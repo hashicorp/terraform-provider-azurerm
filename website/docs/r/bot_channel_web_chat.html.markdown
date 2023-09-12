@@ -61,11 +61,11 @@ A `site` block has the following properties:
 
 * `name` - (Required) The name of the site.
 
-* `user_upload_enabled` - (Optional) Is the block user upload enabled for this site? Defaults to `false`.
+* `block_user_upload_enabled` - (Optional) Is the block user upload enabled for this site? Defaults to `false`.
 
 * `endpoint_parameters_enabled` - (Optional) Is the endpoint parameters enabled for this site?
 
-* `storage_enabled` - (Optional) Is no storage enabled for this site?
+* `no_storage_enabled` - (Optional) Is the no-storage site enabled for detailed logging?
 
 ## Attributes Reference
 
