@@ -133,6 +133,10 @@ The following arguments are supported:
 
 ~> **NOTE:** Setting logical sector size is supported only with `UltraSSD_LRS` disks and `PremiumV2_LRS` disks.
 
+* `optimized_frequent_attach_enabled` - (Optional) Whether the feature of improving reliability and performance of data disks that are frequently (more than 5 times a day) detached from one virtual machine and attached to another is enabled. This property should not be set for disks that are not detached and attached frequently as it causes the disks to not align with the fault domain of the virtual machine. Defaults to `false`.
+
+* `performance_plus_enabled` - (Optional) Whether performance plus is enabled for this disk. Performance plus is only supported for UltraSSD disks. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `os_type` - (Optional) Specify a value when the source of an `Import`, `ImportSecure` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
 
 * `source_resource_id` - (Optional) The ID of an existing Managed Disk or Snapshot to copy when `create_option` is `Copy` or the recovery point to restore when `create_option` is `Restore`. Changing this forces a new resource to be created.
