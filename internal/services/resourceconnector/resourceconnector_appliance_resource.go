@@ -139,9 +139,7 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 
 			// since the public key could not be set during creation, update after creation
 			if model.PublicKey != "" {
-				if model.PublicKey != "" {
-					parameters.Properties.PublicKey = pointer.To(model.PublicKey)
-				}
+				parameters.Properties.PublicKey = pointer.To(model.PublicKey)
 
 				if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
@@ -198,9 +196,7 @@ func (r ResourceConnectorApplianceResource) Update() sdk.ResourceFunc {
 				if parameters.Properties == nil {
 					parameters.Properties = &appliances.ApplianceProperties{}
 				}
-				if metadata.ResourceData.HasChange("public_key") {
-					parameters.Properties.PublicKey = pointer.To(model.PublicKey)
-				}
+				parameters.Properties.PublicKey = pointer.To(model.PublicKey)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
