@@ -262,6 +262,8 @@ A `gallery_application` block supports the following:
 
 * `version_id` - (Required) Specifies the Gallery Application Version resource ID.
 
+* `automatic_upgrade_enabled` - (Optional) Whether the version will be automatically updated for the VM when a new Gallery Application version is available in PIR/SIG. Defaults to `false`.
+
 * `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
 
 * `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`.

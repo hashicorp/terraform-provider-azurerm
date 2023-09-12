@@ -504,6 +504,12 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
+				"automatic_upgrade_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
 				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
@@ -537,6 +543,7 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGa
 
 	for _, v := range input {
 		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		automaticUpgradeEnabled := v.(map[string]interface{})["automatic_upgrade_enabled"].(bool)
 		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
 		order := v.(map[string]interface{})["order"].(int)
 		tag := v.(map[string]interface{})["tag"].(string)
@@ -546,6 +553,7 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGa
 			ConfigurationReference: utils.String(configurationReference),
 			Order:                  utils.Int32(int32(order)),
 			Tags:                   utils.String(tag),
+			EnableAutomaticUpgrade: utils.Bool(automaticUpgradeEnabled),
 		}
 
 		out = append(out, *app)
@@ -564,6 +572,7 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 	for _, v := range *input {
 		var packageReferenceId, configurationReference, tag string
 		var order int
+		var automaticUpgradeEnabled bool
 
 		if v.PackageReferenceID != nil {
 			packageReferenceId = *v.PackageReferenceID
@@ -571,6 +580,10 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 
 		if v.ConfigurationReference != nil {
 			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.EnableAutomaticUpgrade != nil {
+			automaticUpgradeEnabled = *v.EnableAutomaticUpgrade
 		}
 
 		if v.Order != nil {
@@ -582,10 +595,11 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 		}
 
 		app := map[string]interface{}{
-			"version_id":             packageReferenceId,
-			"configuration_blob_uri": configurationReference,
-			"order":                  order,
-			"tag":                    tag,
+			"version_id":                packageReferenceId,
+			"automatic_upgrade_enabled": automaticUpgradeEnabled,
+			"configuration_blob_uri":    configurationReference,
+			"order":                     order,
+			"tag":                       tag,
 		}
 
 		out = append(out, app)
