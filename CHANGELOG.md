@@ -24,6 +24,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management_backend` - fixing a panic when flattening the `credentials` block [GH-23219]
+* `azurerm_web_application_firewall_policy` - capture and toggle state of `custom_rule` blocks with an `enabled` field [GH-23163]
 
 ## 3.72.0 (September 07, 2023)
 
