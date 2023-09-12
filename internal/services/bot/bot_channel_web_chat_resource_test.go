@@ -158,16 +158,16 @@ resource "azurerm_bot_channel_web_chat" "test" {
 
   site {
     name                        = "TestSite1"
-    block_user_upload_enabled         = true
+    block_user_upload_enabled   = true
     endpoint_parameters_enabled = true
-    no_storage_enabled             = true
+    no_storage_enabled          = true
   }
 
   site {
     name                        = "TestSite2"
-    block_user_upload_enabled         = false
+    block_user_upload_enabled   = false
     endpoint_parameters_enabled = false
-    no_storage_enabled             = false
+    no_storage_enabled          = false
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
