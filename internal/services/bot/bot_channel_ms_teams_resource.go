@@ -4,7 +4,6 @@
 package bot
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,12 +54,6 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"accepted_terms_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
 			// this field could not update to empty, so add `Computed: true` to avoid diff
 			"calling_web_hook": {
@@ -88,17 +80,6 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				Default:  false,
 			},
 		},
-
-		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-				oldVal, newVal := d.GetChange("accepted_terms_enabled")
-				if oldVal.(bool) && !newVal.(bool) {
-					return fmt.Errorf("`accepted_terms_enabled` cannot be disabled once it's been enabled")
-				}
-
-				return nil
-			},
-		),
 	}
 }
 
@@ -124,7 +105,7 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
-				AcceptedTerms:         utils.Bool(d.Get("accepted_terms_enabled").(bool)),
+				AcceptedTerms:         utils.Bool(true),
 				DeploymentEnvironment: utils.String(d.Get("deployment_environment").(string)),
 				EnableCalling:         utils.Bool(d.Get("enable_calling").(bool)),
 				IsEnabled:             utils.Bool(true),
@@ -176,7 +157,6 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsMsTeamsChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("accepted_terms_enabled", channelProps.AcceptedTerms)
 				d.Set("calling_web_hook", channelProps.CallingWebhook)
 				d.Set("deployment_environment", channelProps.DeploymentEnvironment)
 				d.Set("enable_calling", channelProps.EnableCalling)
@@ -200,7 +180,7 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
-				AcceptedTerms:         utils.Bool(d.Get("accepted_terms_enabled").(bool)),
+				AcceptedTerms:         utils.Bool(true),
 				DeploymentEnvironment: utils.String(d.Get("deployment_environment").(string)),
 				EnableCalling:         utils.Bool(d.Get("enable_calling").(bool)),
 				CallingWebhook:        utils.String(d.Get("calling_web_hook").(string)),

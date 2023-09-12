@@ -47,10 +47,6 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `accepted_terms_enabled` - (Optional) Is accepted terms for Microsoft Teams channel calls enabled? Defaults to `false`.
-
--> **NOTE:** Once `accepted_terms_enabled` is enabled, it cannot be disabled anymore. Even if this resource is destroyed, it still cannot be updated back to `false` once it's enabled. Unless the parent resource `azurerm_bot_channels_registration` is destroyed, then it would be set back to `false`.
-
 * `calling_web_hook` - (Optional) Specifies the webhook for Microsoft Teams channel calls.
 
 * `deployment_environment` - (Optional) The deployment environment for Microsoft Teams channel calls. Possible values are `CommercialDeployment` and `GCCModerateDeployment`. Defaults to `CommercialDeployment`.
