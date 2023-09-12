@@ -252,6 +252,7 @@ func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	// Unable to add a new site with enhanced_authentication_enabled, block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
+	// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/25758 is fixed, this update will be removed
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
