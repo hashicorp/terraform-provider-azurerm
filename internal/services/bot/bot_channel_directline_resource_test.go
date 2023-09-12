@@ -101,7 +101,7 @@ resource "azurerm_bot_channel_directline" "test" {
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   site {
-    name    = "testSite"
+    name    = "test"
     enabled = true
   }
 }
@@ -118,7 +118,7 @@ resource "azurerm_bot_channel_directline" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   site {
-    name                            = "testSite1"
+    name                            = "test1"
     enabled                         = true
     v1_allowed                      = true
     v3_allowed                      = true
@@ -130,7 +130,7 @@ resource "azurerm_bot_channel_directline" "test" {
   }
 
   site {
-    name                            = "testSite2"
+    name                            = "test2"
     enabled                         = true
     enhanced_authentication_enabled = false
     block_user_upload_enabled       = false
@@ -150,7 +150,7 @@ resource "azurerm_bot_channel_directline" "test" {
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   site {
-    name    = "testSite"
+    name    = "test"
     enabled = false
   }
 }

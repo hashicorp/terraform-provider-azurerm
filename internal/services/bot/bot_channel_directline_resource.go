@@ -335,17 +335,23 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 			site["name"] = *v
 		}
 
+		var blockUserUploadEnabled bool
 		if v := element.IsBlockUserUploadEnabled; v != nil {
-			site["block_user_upload_enabled"] = *v
+			blockUserUploadEnabled = *v
 		}
+		site["block_user_upload_enabled"] = blockUserUploadEnabled
 
+		var endpointParametersEnabled bool
 		if v := element.IsEndpointParametersEnabled; v != nil {
-			site["endpoint_parameters_enabled"] = *v
+			endpointParametersEnabled = *v
 		}
+		site["endpoint_parameters_enabled"] = endpointParametersEnabled
 
+		var noStorageEnabled bool
 		if v := element.IsNoStorageEnabled; v != nil {
-			site["no_storage_enabled"] = *v
+			noStorageEnabled = *v
 		}
+		site["no_storage_enabled"] = noStorageEnabled
 
 		if element.Key != nil {
 			site["key"] = *element.Key
