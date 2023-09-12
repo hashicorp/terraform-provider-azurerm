@@ -199,6 +199,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		vmware.Registration{},
 		voiceservices.Registration{},
 		web.Registration{},
+		securitycenter.Registration{},
 	}
 	services = append(services, autoRegisteredTypedServices()...)
 	return services
