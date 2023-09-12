@@ -11,12 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -137,7 +137,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ForceNew:      true,
 				RequiredWith:  []string{"bandwidth_in_gbps"},
 				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
-				ValidateFunc:  validate.ExpressRoutePortID,
+				ValidateFunc:  expressrouteports.ValidateExpressRoutePortID,
 			},
 
 			"service_provider_provisioning_state": {
@@ -323,7 +323,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
 
 		if resp.ExpressRoutePort.ID != nil {
-			portID, err := parse.ExpressRoutePortIDInsensitively(*resp.ExpressRoutePort.ID)
+			portID, err := expressrouteports.ParseExpressRoutePortIDInsensitively(*resp.ExpressRoutePort.ID)
 			if err != nil {
 				return err
 			}
