@@ -64,7 +64,7 @@ A `site` block has the following properties:
 
 * `endpoint_parameters_enabled` - (Optional) Is the endpoint parameters enabled for this site?
 
-* `no_storage_enabled` - (Optional) Is no storage enabled for this site?
+* `no_storage_enabled` - (Optional) Is the no-storage site is enabled for detailed logging?
 
 * `v1_allowed` - (Optional) Enables v1 of the Directline protocol for this site. Enabled by default Defaults to `true`.
 
