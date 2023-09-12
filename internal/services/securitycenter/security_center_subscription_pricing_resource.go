@@ -156,6 +156,10 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
+	if pricing.Properties.PricingTier == "Free" && pricing.Properties.Extensions != nil && len(*pricing.Properties.Extensions) > 0 {
+		return fmt.Errorf("Can not have enabled extensions when switching to free tier, please remove the extensions")
+	}
+
 	updateResponse, updateErr := client.Update(ctx, id, pricing)
 	if updateErr != nil {
 		return fmt.Errorf("setting %s: %+v", id, updateErr)
