@@ -119,13 +119,11 @@ resource "azurerm_bot_channel_directline" "test" {
 
   site {
     name                            = "testSite1"
-    application_id                  = "testAppId1"
     enabled                         = true
     v1_allowed                      = true
     v3_allowed                      = true
     enhanced_authentication_enabled = true
     trusted_origins                 = ["https://example.com"]
-    tenant_id                       = data.azurerm_client_config.current.tenant_id
     block_user_upload_enabled       = true
     endpoint_parameters_enabled     = true
     no_storage_enabled              = true
@@ -133,10 +131,8 @@ resource "azurerm_bot_channel_directline" "test" {
 
   site {
     name                            = "testSite2"
-    application_id                  = "testAppId2"
     enabled                         = true
     enhanced_authentication_enabled = false
-    tenant_id                       = data.azurerm_client_config.current.tenant_id
     block_user_upload_enabled       = false
     endpoint_parameters_enabled     = false
     no_storage_enabled              = false

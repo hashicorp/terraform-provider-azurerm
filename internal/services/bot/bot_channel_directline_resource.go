@@ -64,12 +64,6 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"application_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
 						"block_user_upload_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -108,12 +102,6 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Default:  false,
 							Optional: true,
-						},
-
-						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsUUID,
 						},
 
 						"trusted_origins": {
@@ -310,12 +298,6 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 		if v, ok := site["name"].(string); ok {
 			expanded.SiteName = &v
 		}
-		if v := site["application_id"].(string); v != "" {
-			expanded.AppID = utils.String(v)
-		}
-		if v := site["tenant_id"].(string); v != "" {
-			expanded.TenantID = utils.String(v)
-		}
 		if v, ok := site["enabled"].(bool); ok {
 			expanded.IsEnabled = &v
 		}
@@ -353,10 +335,6 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 			site["name"] = *v
 		}
 
-		if v := element.AppID; v != nil {
-			site["application_id"] = *v
-		}
-
 		if v := element.IsBlockUserUploadEnabled; v != nil {
 			site["block_user_upload_enabled"] = *v
 		}
@@ -367,10 +345,6 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 
 		if v := element.IsNoStorageEnabled; v != nil {
 			site["no_storage_enabled"] = *v
-		}
-
-		if v := element.TenantID; v != nil {
-			site["tenant_id"] = *v
 		}
 
 		if element.Key != nil {
