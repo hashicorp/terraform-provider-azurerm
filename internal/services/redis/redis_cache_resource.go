@@ -864,8 +864,6 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		// aof_backup_enabled is available when SKU is Premium
 		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
 			output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
-		} else if v.(bool) && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-			return nil, fmt.Errorf("The `aof_backup_enabled` property requires a `Premium` sku to be set")
 		}
 	}
 
