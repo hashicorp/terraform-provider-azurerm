@@ -58,7 +58,7 @@ A `site` block has the following properties:
 
 * `name` - (Required) The name of the site
 
-* `block_user_upload_enabled` - (Optional) Is the block user upload enabled for this site? Defaults to `false`.
+* `block_user_upload_enabled` - (Optional) Is the block user upload enabled for this site?
 
 * `enabled` - (Optional) Enables/Disables this site. Enabled by default Defaults to `true`.
 

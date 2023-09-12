@@ -67,7 +67,6 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 						"block_user_upload_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 
 						"enabled": {
