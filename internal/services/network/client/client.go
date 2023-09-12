@@ -25,7 +25,6 @@ type Client struct {
 	ExpressRouteGatewaysClient             *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient             *network.ExpressRouteCircuitPeeringsClient
 	ExpressRoutePortsClient                *network.ExpressRoutePortsClient
-	ExpressRoutePortAuthorizationsClient   *network.ExpressRoutePortAuthorizationsClient
 	HubRouteTableClient                    *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient      *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                       *network.InterfacesClient
@@ -87,9 +86,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	ExpressRoutePortsClient := network.NewExpressRoutePortsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePortsClient.Client, o.ResourceManagerAuthorizer)
-
-	ExpressRoutePortAuthorizationsClient := network.NewExpressRoutePortAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ExpressRoutePortAuthorizationsClient.Client, o.ResourceManagerAuthorizer)
 
 	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
@@ -198,7 +194,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ExpressRouteGatewaysClient:             &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:             &ExpressRoutePeeringsClient,
 		ExpressRoutePortsClient:                &ExpressRoutePortsClient,
-		ExpressRoutePortAuthorizationsClient:   &ExpressRoutePortAuthorizationsClient,
 		HubRouteTableClient:                    &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:      &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                       &InterfacesClient,
