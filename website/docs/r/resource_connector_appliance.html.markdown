@@ -55,8 +55,6 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Connector Appliance.
 
-* `version` - (Optional) The version of the Resource Connector Appliance.
-
 ---
 
 An `identity` block supports the following:

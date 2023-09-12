@@ -32,7 +32,6 @@ type ApplianceModel struct {
 	Provider          appliances.Provider            `tfschema:"infrastructure_provider"`
 	PublicKey         string                         `tfschema:"public_key"`
 	Tags              map[string]string              `tfschema:"tags"`
-	Version           string                         `tfschema:"version"`
 }
 
 func (r ResourceConnectorApplianceResource) Arguments() map[string]*schema.Schema {
@@ -80,12 +79,6 @@ func (r ResourceConnectorApplianceResource) Arguments() map[string]*schema.Schem
 		},
 
 		"tags": commonschema.Tags(),
-
-		"version": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
 	}
 }
 
@@ -144,14 +137,10 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// since the public key and version could not be set during creation, update after creation
-			if model.PublicKey != "" || model.Version != "" {
+			// since the public key could not be set during creation, update after creation
+			if model.PublicKey != "" {
 				if model.PublicKey != "" {
 					parameters.Properties.PublicKey = pointer.To(model.PublicKey)
-				}
-
-				if model.Version != "" {
-					parameters.Properties.Version = pointer.To(model.Version)
 				}
 
 				if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -205,15 +194,12 @@ func (r ResourceConnectorApplianceResource) Update() sdk.ResourceFunc {
 				parameters.Tags = pointer.To(model.Tags)
 			}
 
-			if metadata.ResourceData.HasChanges("public_key", "version") {
+			if metadata.ResourceData.HasChanges("public_key") {
 				if parameters.Properties == nil {
 					parameters.Properties = &appliances.ApplianceProperties{}
 				}
 				if metadata.ResourceData.HasChange("public_key") {
 					parameters.Properties.PublicKey = pointer.To(model.PublicKey)
-				}
-				if metadata.ResourceData.HasChange("version") {
-					parameters.Properties.Version = pointer.To(model.Version)
 				}
 			}
 
@@ -259,7 +245,6 @@ func (r ResourceConnectorApplianceResource) Read() sdk.ResourceFunc {
 					state.Distro = pointer.From(props.Distro)
 					state.PublicKey = pointer.From(props.PublicKey)
 
-					state.Version = pointer.From(props.Version)
 					if infraConfig := props.InfrastructureConfig; infraConfig != nil {
 						state.Provider = pointer.From(infraConfig.Provider)
 					}
