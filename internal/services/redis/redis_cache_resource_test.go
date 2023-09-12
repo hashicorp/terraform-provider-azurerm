@@ -987,7 +987,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-	aof_backup_enabled = false
+    aof_backup_enabled = false
     maxmemory_reserved = 125
     maxmemory_delta    = 125
     maxmemory_policy   = "%s"
