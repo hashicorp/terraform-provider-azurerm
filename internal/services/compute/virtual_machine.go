@@ -530,6 +530,12 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+
+				"treat_failure_as_deployment_failure_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -547,13 +553,15 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGa
 		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
 		order := v.(map[string]interface{})["order"].(int)
 		tag := v.(map[string]interface{})["tag"].(string)
+		treatFailureAsDeploymentFailureEnabled := v.(map[string]interface{})["treat_failure_as_deployment_failure_enabled"].(bool)
 
 		app := &compute.VMGalleryApplication{
-			PackageReferenceID:     utils.String(packageReferenceId),
-			ConfigurationReference: utils.String(configurationReference),
-			Order:                  utils.Int32(int32(order)),
-			Tags:                   utils.String(tag),
-			EnableAutomaticUpgrade: utils.Bool(automaticUpgradeEnabled),
+			PackageReferenceID:              utils.String(packageReferenceId),
+			ConfigurationReference:          utils.String(configurationReference),
+			Order:                           utils.Int32(int32(order)),
+			Tags:                            utils.String(tag),
+			EnableAutomaticUpgrade:          utils.Bool(automaticUpgradeEnabled),
+			TreatFailureAsDeploymentFailure: utils.Bool(treatFailureAsDeploymentFailureEnabled),
 		}
 
 		out = append(out, *app)
@@ -572,7 +580,7 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 	for _, v := range *input {
 		var packageReferenceId, configurationReference, tag string
 		var order int
-		var automaticUpgradeEnabled bool
+		var automaticUpgradeEnabled, treatFailureAsDeploymentFailureEnabled bool
 
 		if v.PackageReferenceID != nil {
 			packageReferenceId = *v.PackageReferenceID
@@ -594,12 +602,17 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 			tag = *v.Tags
 		}
 
+		if v.TreatFailureAsDeploymentFailure != nil {
+			treatFailureAsDeploymentFailureEnabled = *v.TreatFailureAsDeploymentFailure
+		}
+
 		app := map[string]interface{}{
 			"version_id":                packageReferenceId,
 			"automatic_upgrade_enabled": automaticUpgradeEnabled,
 			"configuration_blob_uri":    configurationReference,
 			"order":                     order,
 			"tag":                       tag,
+			"treat_failure_as_deployment_failure_enabled": treatFailureAsDeploymentFailureEnabled,
 		}
 
 		out = append(out, app)

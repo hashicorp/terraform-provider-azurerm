@@ -1593,11 +1593,12 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   gallery_application {
-    version_id                = azurerm_gallery_application_version.test2.id
-    automatic_upgrade_enabled = true
-    order                     = 2
-    configuration_blob_uri    = azurerm_storage_blob.test2.id
-    tag                       = "app2"
+    version_id                                  = azurerm_gallery_application_version.test2.id
+    automatic_upgrade_enabled                   = true
+    order                                       = 2
+    configuration_blob_uri                      = azurerm_storage_blob.test2.id
+    tag                                         = "app2"
+    treat_failure_as_deployment_failure_enabled = true
   }
 }
 `, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
@@ -1695,8 +1696,8 @@ resource "azurerm_gallery_application_version" "test" {
   }
 
   manage_action {
-    install = "[install command]"
-    remove  = "[remove command]"
+    install = "echo install"
+    remove  = "echo remove"
   }
 
   target_region {
@@ -1725,8 +1726,8 @@ resource "azurerm_gallery_application_version" "test2" {
   }
 
   manage_action {
-    install = "[install command]"
-    remove  = "[remove command]"
+    install = "echo install"
+    remove  = "echo remove"
   }
 
   target_region {
