@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.1.1` of `github.com/btubbs/datetime` [GH-23221]
 * dependencies: updating to `v1.3.1` of `github.com/google/uuid` [GH-23221]
+* dependencies: updating to `v0.61.0` of `github.com/hashicorp/go-azure-helpers` [GH-23249]
 * dependencies: updating to `v0.20230907.1113401` of `github.com/hashicorp/go-azure-sdk` [GH-23221]
 * dependencies: updating to `v1.5.0` of `github.com/hashicorp/go-hclog` [GH-23221]
 * dependencies: updating to `v2.29.0` of `github.com/hashicorp/terraform-plugin-sdk/v2` [GH-23221]
