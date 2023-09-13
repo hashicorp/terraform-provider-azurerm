@@ -2,8 +2,8 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
 * **New Resource**: `azurerm_iothub_endpoint_cosmosdb_account` [GH-23065]
+* **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
 
 ENHANCEMENTS:
 
@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_managed_disk` - support for `optimized_frequent_attach_enabled` [GH-23241]
 * `azurerm_managed_disk` - support for `performance_plus_enabled` [GH-23241]
 * `azurerm_maps_account` - support for `local_authentication_enabled` [GH-23216]
+* `azurerm_mssql_elasticpool` - support for configuring `license_type` when using the `Hyperscale` sku [GH-23256]
 * `azurerm_security_center_assessment_policy` - refactoring to use `hashicorp/go-azure-sdk` [GH-23158]
 
 BUG FIXES:
