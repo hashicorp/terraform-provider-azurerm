@@ -235,10 +235,10 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("license_type"); ok {
-		if sku.Tier != nil && (*sku.Tier == "GeneralPurpose" || *sku.Tier == "BusinessCritical") {
+		if sku.Tier != nil && (*sku.Tier == "GeneralPurpose" || *sku.Tier == "BusinessCritical" || *sku.Tier == "Hyperscale") {
 			elasticPool.ElasticPoolProperties.LicenseType = sql.ElasticPoolLicenseType(d.Get("license_type").(string))
 		} else {
-			return fmt.Errorf("`license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`")
+			return fmt.Errorf("`license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose`, `Hyperscale` or `BusinessCritical`")
 		}
 	}
 
