@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -21,7 +22,7 @@ func SchemaForSAPVirtualInstanceVirtualMachineConfiguration() *pluginsdk.Schema 
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"image_reference": {
+				"image": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
 					ForceNew: true,
@@ -142,7 +143,7 @@ func SchemaForSAPVirtualInstanceDiskVolumeConfiguration() *pluginsdk.Schema {
 					ForceNew: true,
 				},
 
-				"size_gb": {
+				"size_in_gb": {
 					Type:     pluginsdk.TypeInt,
 					Required: true,
 					ForceNew: true,
@@ -414,11 +415,10 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 }
 
 func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguration) []DiskVolumeConfiguration {
-	if input == nil || input.DiskVolumeConfigurations == nil {
-		return nil
-	}
-
 	result := make([]DiskVolumeConfiguration, 0)
+	if input == nil || input.DiskVolumeConfigurations == nil {
+		return result
+	}
 
 	for k, v := range *input.DiskVolumeConfigurations {
 		diskVolumeConfiguration := DiskVolumeConfiguration{
@@ -442,31 +442,21 @@ func flattenVirtualMachineFullResourceNames(input sapvirtualinstances.SingleServ
 	vmFullResourceNames := VirtualMachineFullResourceNames{}
 
 	if vm := input.VirtualMachine; vm != nil {
+		vmFullResourceNames.HostName = pointer.From(vm.HostName)
+		vmFullResourceNames.OSDiskName = pointer.From(vm.OsDiskName)
+		vmFullResourceNames.VMName = pointer.From(vm.VirtualMachineName)
 		vmFullResourceNames.NetworkInterfaceNames = flattenNetworkInterfaceResourceNames(vm.NetworkInterfaces)
 		vmFullResourceNames.DataDiskNames = flattenDataDiskNames(vm.DataDiskNames)
-
-		if v := vm.HostName; v != nil {
-			vmFullResourceNames.HostName = *v
-		}
-
-		if v := vm.OsDiskName; v != nil {
-			vmFullResourceNames.OSDiskName = *v
-		}
-
-		if v := vm.VirtualMachineName; v != nil {
-			vmFullResourceNames.VMName = *v
-		}
 	}
 
 	return append(result, vmFullResourceNames)
 }
 
 func flattenNetworkInterfaceResourceNames(input *[]sapvirtualinstances.NetworkInterfaceResourceNames) []string {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]string, 0)
+	if input == nil {
+		return result
+	}
 
 	for _, v := range *input {
 		result = append(result, *v.NetworkInterfaceName)
@@ -476,11 +466,10 @@ func flattenNetworkInterfaceResourceNames(input *[]sapvirtualinstances.NetworkIn
 }
 
 func flattenDataDiskNames(input *map[string][]string) map[string]interface{} {
-	if input == nil {
-		return nil
-	}
-
 	results := make(map[string]interface{})
+	if input == nil {
+		return results
+	}
 
 	for k, v := range *input {
 		results[k] = strings.Join(v, ",")
@@ -492,13 +481,11 @@ func flattenDataDiskNames(input *map[string][]string) map[string]interface{} {
 func flattenVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachineConfiguration, d *pluginsdk.ResourceData, basePath string) []VirtualMachineConfiguration {
 	result := make([]VirtualMachineConfiguration, 0)
 
-	vmConfiguration := VirtualMachineConfiguration{
+	return append(result, VirtualMachineConfiguration{
 		ImageReference: flattenImageReference(input.ImageReference),
 		OSProfile:      flattenOSProfile(input.OsProfile, d, fmt.Sprintf("%s.0.virtual_machine_configuration", basePath)),
 		VmSize:         input.VMSize,
-	}
-
-	return append(result, vmConfiguration)
+	})
 }
 
 func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageReference {
@@ -531,22 +518,15 @@ func flattenOSProfile(input sapvirtualinstances.OSProfile, d *pluginsdk.Resource
 }
 
 func flattenSshKeyPair(input *sapvirtualinstances.SshKeyPair, d *pluginsdk.ResourceData, basePath string) []SshKeyPair {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]SshKeyPair, 0)
-
-	privateKeyPath := fmt.Sprintf("%s.0.ssh_key_pair.0.private_key", basePath)
-	sshKeyPair := SshKeyPair{
-		PrivateKey: d.Get(privateKeyPath).(string),
+	if input == nil {
+		return result
 	}
 
-	if v := input.PublicKey; v != nil {
-		sshKeyPair.PublicKey = *v
-	}
-
-	return append(result, sshKeyPair)
+	return append(result, SshKeyPair{
+		PrivateKey: d.Get(fmt.Sprintf("%s.0.ssh_key_pair.0.private_key", basePath)).(string),
+		PublicKey:  pointer.From(input.PublicKey),
+	})
 }
 
 func expandApplicationServer(input []ApplicationServerConfiguration) sapvirtualinstances.ApplicationServerConfiguration {
@@ -868,134 +848,86 @@ func flattenFullResourceNames(input sapvirtualinstances.ThreeTierFullResourceNam
 }
 
 func flattenApplicationServerFullResourceNames(input *sapvirtualinstances.ApplicationServerFullResourceNames) []ApplicationServerFullResourceNames {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]ApplicationServerFullResourceNames, 0)
-
-	applicationServerFullResourceNames := ApplicationServerFullResourceNames{
-		VirtualMachines: flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+	if input == nil {
+		return result
 	}
 
-	if v := input.AvailabilitySetName; v != nil {
-		applicationServerFullResourceNames.AvailabilitySetName = *v
-	}
-
-	return append(result, applicationServerFullResourceNames)
+	return append(result, ApplicationServerFullResourceNames{
+		AvailabilitySetName: pointer.From(input.AvailabilitySetName),
+		VirtualMachines:     flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+	})
 }
 
 func flattenVirtualMachinesFullResourceNames(input *[]sapvirtualinstances.VirtualMachineResourceNames) []VirtualMachineFullResourceNames {
+	result := make([]VirtualMachineFullResourceNames, 0)
 	if input == nil {
-		return nil
+		return result
 	}
 
-	result := make([]VirtualMachineFullResourceNames, 0)
-
 	for _, item := range *input {
-		virtualMachineFullResourceNames := VirtualMachineFullResourceNames{
+		result = append(result, VirtualMachineFullResourceNames{
+			HostName:              pointer.From(item.HostName),
+			OSDiskName:            pointer.From(item.OsDiskName),
+			VMName:                pointer.From(item.VirtualMachineName),
 			DataDiskNames:         flattenDataDiskNames(item.DataDiskNames),
 			NetworkInterfaceNames: flattenNetworkInterfaceResourceNames(item.NetworkInterfaces),
-		}
-
-		if v := item.HostName; v != nil {
-			virtualMachineFullResourceNames.HostName = *v
-		}
-
-		if v := item.OsDiskName; v != nil {
-			virtualMachineFullResourceNames.OSDiskName = *v
-		}
-
-		if v := item.VirtualMachineName; v != nil {
-			virtualMachineFullResourceNames.VMName = *v
-		}
-
-		result = append(result, virtualMachineFullResourceNames)
+		})
 	}
 
 	return result
 }
 
 func flattenCentralServerFullResourceNames(input *sapvirtualinstances.CentralServerFullResourceNames) []CentralServerFullResourceNames {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]CentralServerFullResourceNames, 0)
+	if input == nil {
+		return result
+	}
 
 	centralServerFullResourceNames := CentralServerFullResourceNames{
-		LoadBalancer:    flattenLoadBalancerFullResourceNames(input.LoadBalancer),
-		VirtualMachines: flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
-	}
-
-	if v := input.AvailabilitySetName; v != nil {
-		centralServerFullResourceNames.AvailabilitySetName = *v
+		AvailabilitySetName: pointer.From(input.AvailabilitySetName),
+		LoadBalancer:        flattenLoadBalancerFullResourceNames(input.LoadBalancer),
+		VirtualMachines:     flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
 	}
 
 	return append(result, centralServerFullResourceNames)
 }
 
 func flattenLoadBalancerFullResourceNames(input *sapvirtualinstances.LoadBalancerResourceNames) []LoadBalancer {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]LoadBalancer, 0)
-	loadBalancer := LoadBalancer{}
-
-	if v := input.LoadBalancerName; v != nil {
-		loadBalancer.Name = *v
+	if input == nil {
+		return result
 	}
 
-	if v := input.BackendPoolNames; v != nil {
-		loadBalancer.BackendPoolNames = *v
-	}
-
-	if v := input.FrontendIPConfigurationNames; v != nil {
-		loadBalancer.FrontendIpConfigurationNames = *v
-	}
-
-	if v := input.HealthProbeNames; v != nil {
-		loadBalancer.HealthProbeNames = *v
-	}
-
-	return append(result, loadBalancer)
+	return append(result, LoadBalancer{
+		Name:                         pointer.From(input.LoadBalancerName),
+		BackendPoolNames:             pointer.From(input.BackendPoolNames),
+		FrontendIpConfigurationNames: pointer.From(input.FrontendIPConfigurationNames),
+		HealthProbeNames:             pointer.From(input.HealthProbeNames),
+	})
 }
 
 func flattenDatabaseServerFullResourceNames(input *sapvirtualinstances.DatabaseServerFullResourceNames) []DatabaseServerFullResourceNames {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]DatabaseServerFullResourceNames, 0)
-
-	databaseServerFullResourceNames := DatabaseServerFullResourceNames{
-		LoadBalancer:    flattenLoadBalancerFullResourceNames(input.LoadBalancer),
-		VirtualMachines: flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+	if input == nil {
+		return result
 	}
 
-	if v := input.AvailabilitySetName; v != nil {
-		databaseServerFullResourceNames.AvailabilitySetName = *v
-	}
-
-	return append(result, databaseServerFullResourceNames)
+	return append(result, DatabaseServerFullResourceNames{
+		AvailabilitySetName: pointer.From(input.AvailabilitySetName),
+		LoadBalancer:        flattenLoadBalancerFullResourceNames(input.LoadBalancer),
+		VirtualMachines:     flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+	})
 }
 
 func flattenSharedStorage(input *sapvirtualinstances.SharedStorageResourceNames) []SharedStorage {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]SharedStorage, 0)
-	sharedStorage := SharedStorage{}
-
-	if v := input.SharedStorageAccountName; v != nil {
-		sharedStorage.AccountName = *v
+	if input == nil {
+		return result
 	}
 
-	if v := input.SharedStorageAccountPrivateEndPointName; v != nil {
-		sharedStorage.PrivateEndpointName = *v
-	}
-
-	return append(result, sharedStorage)
+	return append(result, SharedStorage{
+		AccountName:         pointer.From(input.SharedStorageAccountName),
+		PrivateEndpointName: pointer.From(input.SharedStorageAccountPrivateEndPointName),
+	})
 }

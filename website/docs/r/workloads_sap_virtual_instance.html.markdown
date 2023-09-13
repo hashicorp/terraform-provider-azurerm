@@ -76,12 +76,12 @@ resource "azurerm_workloads_sap_virtual_instance" "example" {
       app_resource_group_name = azurerm_resource_group.app.name
       subnet_id               = azurerm_subnet.example.id
       database_type           = "HANA"
-      is_secondary_ip_enabled = true
+      secondary_ip_enabled    = true
 
       virtual_machine_configuration {
         vm_size = "Standard_E32ds_v4"
 
-        image_reference {
+        image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
           sku       = "82sapha-gen2"
@@ -101,42 +101,42 @@ resource "azurerm_workloads_sap_virtual_instance" "example" {
       disk_volume_configuration {
         volume_name = "hana/data"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/log"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/shared"
         count       = 1
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "usr/sap"
         count       = 1
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "backup"
         count       = 2
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "os"
         count       = 1
-        size_gb     = 64
+        size_in_gb     = 64
         sku_name    = "StandardSSD_LRS"
       }
 
@@ -235,7 +235,7 @@ A `single_server_configuration` block supports the following:
 
 * `disk_volume_configuration` - (Optional) One or more `disk_volume_configuration` blocks as defined below. Changing this forces a new resource to be created.
 
-* `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Defaults to `false`. Changing this forces a new resource to be created.
+* `secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `virtual_machine_full_resource_names` - (Optional) A `virtual_machine_full_resource_names` block as defined below. Changing this forces a new resource to be created.
 
@@ -247,7 +247,7 @@ A `disk_volume_configuration` block supports the following:
 
 * `count` - (Required) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
 
-* `size_gb` - (Required) The size of the Disk in GB. Changing this forces a new resource to be created.
+* `size_in_gb` - (Required) The size of the Disk in GB. Changing this forces a new resource to be created.
 
 * `sku_name` - (Required) The name of the Disk SKU. Changing this forces a new resource to be created.
 
@@ -255,7 +255,7 @@ A `disk_volume_configuration` block supports the following:
 
 A `virtual_machine_configuration` block supports the following:
 
-* `image_reference` - (Required) An `image_reference` block as defined below. Changing this forces a new resource to be created.
+* `image` - (Required) An `image` block as defined below. Changing this forces a new resource to be created.
 
 * `os_profile` - (Required) An `os_profile` block as defined below. Changing this forces a new resource to be created.
 
@@ -263,7 +263,7 @@ A `virtual_machine_configuration` block supports the following:
 
 ---
 
-An `image_reference` block supports the following:
+An `image` block supports the following:
 
 * `offer` - (Required) The offer of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
 
@@ -319,7 +319,7 @@ A `three_tier_configuration` block supports the following:
 
 * `high_availability_type` - (Optional) The high availability type for the three tier configuration. Possible values are `AvailabilitySet` and `AvailabilityZone`. Changing this forces a new resource to be created.
 
-* `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Defaults to `false`. Changing this forces a new resource to be created.
+* `secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `transport_create_and_mount` - (Optional) A `transport_create_and_mount` block as defined below. Changing this forces a new resource to be created.
 
@@ -455,7 +455,7 @@ A `shared_storage` block supports the following:
 
 A `discovery_configuration` block supports the following:
 
-* `central_server_vm_id` - (Required) The resource ID of the Virtual Machine of the Central Server. Changing this forces a new resource to be created.
+* `central_server_virtual_machine_id` - (Required) The resource ID of the Virtual Machine of the Central Server. Changing this forces a new resource to be created.
 
 * `managed_storage_account_name` - (Optional) The name of the custom Storage Account created by the service in the managed Resource Group. Changing this forces a new resource to be created.
 

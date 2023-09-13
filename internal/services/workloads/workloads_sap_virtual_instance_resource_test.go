@@ -231,12 +231,12 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       app_resource_group_name = azurerm_resource_group.app.name
       subnet_id               = azurerm_subnet.test.id
       database_type           = "HANA"
-      is_secondary_ip_enabled = true
+      secondary_ip_enabled    = true
 
       virtual_machine_configuration {
         vm_size = "Standard_E32ds_v4"
 
-        image_reference {
+        image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
           sku       = "82sapha-gen2"
@@ -256,42 +256,42 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       disk_volume_configuration {
         volume_name = "hana/data"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/log"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/shared"
         count       = 1
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "usr/sap"
         count       = 1
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "backup"
         count       = 2
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "os"
         count       = 1
-        size_gb     = 64
+        size_in_gb     = 64
         sku_name    = "StandardSSD_LRS"
       }
 
@@ -350,12 +350,12 @@ resource "azurerm_workloads_sap_virtual_instance" "import" {
       app_resource_group_name = azurerm_resource_group.app.name
       subnet_id               = azurerm_subnet.test.id
       database_type           = "HANA"
-      is_secondary_ip_enabled = true
+      secondary_ip_enabled    = true
 
       virtual_machine_configuration {
         vm_size = "Standard_E32ds_v4"
 
-        image_reference {
+        image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
           sku       = "82sapha-gen2"
@@ -375,42 +375,42 @@ resource "azurerm_workloads_sap_virtual_instance" "import" {
       disk_volume_configuration {
         volume_name = "hana/data"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/log"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/shared"
         count       = 1
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "usr/sap"
         count       = 1
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "backup"
         count       = 2
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "os"
         count       = 1
-        size_gb     = 64
+        size_in_gb     = 64
         sku_name    = "StandardSSD_LRS"
       }
 
@@ -480,7 +480,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
 
     three_tier_configuration {
       app_resource_group_name = azurerm_resource_group.app.name
-      is_secondary_ip_enabled = true
+      secondary_ip_enabled    = true
 
       application_server_configuration {
         instance_count = 1
@@ -489,7 +489,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         virtual_machine_configuration {
           vm_size = "Standard_D16ds_v4"
 
-          image_reference {
+          image {
             offer     = "RHEL-SAP-HA"
             publisher = "RedHat"
             sku       = "82sapha-gen2"
@@ -514,7 +514,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         virtual_machine_configuration {
           vm_size = "Standard_D16ds_v4"
 
-          image_reference {
+          image {
             offer     = "RHEL-SAP-HA"
             publisher = "RedHat"
             sku       = "82sapha-gen2"
@@ -540,7 +540,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         virtual_machine_configuration {
           vm_size = "Standard_E16ds_v4"
 
-          image_reference {
+          image {
             offer     = "RHEL-SAP-HA"
             publisher = "RedHat"
             sku       = "82sapha-gen2"
@@ -560,42 +560,42 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         disk_volume_configuration {
           volume_name = "hana/data"
           count       = 3
-          size_gb     = 128
+          size_in_gb     = 128
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "hana/log"
           count       = 3
-          size_gb     = 128
+          size_in_gb     = 128
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "hana/shared"
           count       = 1
-          size_gb     = 256
+          size_in_gb     = 256
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "usr/sap"
           count       = 1
-          size_gb     = 128
+          size_in_gb     = 128
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "backup"
           count       = 2
-          size_gb     = 256
+          size_in_gb     = 256
           sku_name    = "StandardSSD_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "os"
           count       = 1
-          size_gb     = 64
+          size_in_gb     = 64
           sku_name    = "StandardSSD_LRS"
         }
       }
@@ -718,12 +718,12 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       app_resource_group_name = azurerm_resource_group.app.name
       subnet_id               = azurerm_subnet.test.id
       database_type           = "HANA"
-      is_secondary_ip_enabled = true
+      secondary_ip_enabled    = true
 
       virtual_machine_configuration {
         vm_size = "Standard_E32ds_v4"
 
-        image_reference {
+        image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
           sku       = "82sapha-gen2"
@@ -743,42 +743,42 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       disk_volume_configuration {
         volume_name = "hana/data"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/log"
         count       = 3
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/shared"
         count       = 1
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "usr/sap"
         count       = 1
-        size_gb     = 128
+        size_in_gb     = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "backup"
         count       = 2
-        size_gb     = 256
+        size_in_gb     = 256
         sku_name    = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "os"
         count       = 1
-        size_gb     = 64
+        size_in_gb     = 64
         sku_name    = "StandardSSD_LRS"
       }
 
@@ -873,7 +873,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
 
     three_tier_configuration {
       app_resource_group_name = azurerm_resource_group.app.name
-      is_secondary_ip_enabled = true
+      secondary_ip_enabled    = true
 
       application_server_configuration {
         instance_count = 1
@@ -882,7 +882,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         virtual_machine_configuration {
           vm_size = "Standard_D16ds_v4"
 
-          image_reference {
+          image {
             offer     = "RHEL-SAP-HA"
             publisher = "RedHat"
             sku       = "82sapha-gen2"
@@ -907,7 +907,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         virtual_machine_configuration {
           vm_size = "Standard_D16ds_v4"
 
-          image_reference {
+          image {
             offer     = "RHEL-SAP-HA"
             publisher = "RedHat"
             sku       = "82sapha-gen2"
@@ -933,7 +933,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         virtual_machine_configuration {
           vm_size = "Standard_E16ds_v4"
 
-          image_reference {
+          image {
             offer     = "RHEL-SAP-HA"
             publisher = "RedHat"
             sku       = "82sapha-gen2"
@@ -953,42 +953,42 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         disk_volume_configuration {
           volume_name = "hana/data"
           count       = 3
-          size_gb     = 128
+          size_in_gb     = 128
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "hana/log"
           count       = 3
-          size_gb     = 128
+          size_in_gb     = 128
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "hana/shared"
           count       = 1
-          size_gb     = 256
+          size_in_gb     = 256
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "usr/sap"
           count       = 1
-          size_gb     = 128
+          size_in_gb     = 128
           sku_name    = "Premium_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "backup"
           count       = 2
-          size_gb     = 256
+          size_in_gb     = 256
           sku_name    = "StandardSSD_LRS"
         }
 
         disk_volume_configuration {
           volume_name = "os"
           count       = 1
-          size_gb     = 64
+          size_in_gb     = 64
           sku_name    = "StandardSSD_LRS"
         }
       }
@@ -1122,8 +1122,8 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
   managed_resource_group_name = "managedTestRG%d"
 
   discovery_configuration {
-    central_server_vm_id         = "%s"
-    managed_storage_account_name = "managedsa%s"
+    central_server_virtual_machine_id = "%s"
+    managed_storage_account_name      = "managedsa%s"
   }
 
   identity {

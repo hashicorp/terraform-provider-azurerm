@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -45,7 +46,7 @@ type DeploymentWithOSConfiguration struct {
 }
 
 type DiscoveryConfiguration struct {
-	CentralServerVmId         string `tfschema:"central_server_vm_id"`
+	CentralServerVmId         string `tfschema:"central_server_virtual_machine_id"`
 	ManagedStorageAccountName string `tfschema:"managed_storage_account_name"`
 }
 
@@ -63,7 +64,7 @@ type SingleServerConfiguration struct {
 	AppResourceGroupName            string                            `tfschema:"app_resource_group_name"`
 	DatabaseType                    string                            `tfschema:"database_type"`
 	DiskVolumeConfigurations        []DiskVolumeConfiguration         `tfschema:"disk_volume_configuration"`
-	IsSecondaryIpEnabled            bool                              `tfschema:"is_secondary_ip_enabled"`
+	IsSecondaryIpEnabled            bool                              `tfschema:"secondary_ip_enabled"`
 	SubnetId                        string                            `tfschema:"subnet_id"`
 	VirtualMachineConfiguration     []VirtualMachineConfiguration     `tfschema:"virtual_machine_configuration"`
 	VirtualMachineFullResourceNames []VirtualMachineFullResourceNames `tfschema:"virtual_machine_full_resource_names"`
@@ -72,12 +73,12 @@ type SingleServerConfiguration struct {
 type DiskVolumeConfiguration struct {
 	VolumeName string `tfschema:"volume_name"`
 	Count      int64  `tfschema:"count"`
-	SizeGb     int64  `tfschema:"size_gb"`
+	SizeGb     int64  `tfschema:"size_in_gb"`
 	SkuName    string `tfschema:"sku_name"`
 }
 
 type VirtualMachineConfiguration struct {
-	ImageReference []ImageReference `tfschema:"image_reference"`
+	ImageReference []ImageReference `tfschema:"image"`
 	OSProfile      []OSProfile      `tfschema:"os_profile"`
 	VmSize         string           `tfschema:"vm_size"`
 }
@@ -114,7 +115,7 @@ type ThreeTierConfiguration struct {
 	DatabaseServerConfiguration    []DatabaseServerConfiguration    `tfschema:"database_server_configuration"`
 	FullResourceNames              []FullResourceNames              `tfschema:"full_resource_names"`
 	HighAvailabilityType           string                           `tfschema:"high_availability_type"`
-	IsSecondaryIpEnabled           bool                             `tfschema:"is_secondary_ip_enabled"`
+	IsSecondaryIpEnabled           bool                             `tfschema:"secondary_ip_enabled"`
 	TransportCreateAndMount        []TransportCreateAndMount        `tfschema:"transport_create_and_mount"`
 	TransportMount                 []TransportMount                 `tfschema:"transport_mount"`
 }
@@ -319,7 +320,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 
 								"disk_volume_configuration": SchemaForSAPVirtualInstanceDiskVolumeConfiguration(),
 
-								"is_secondary_ip_enabled": {
+								"secondary_ip_enabled": {
 									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									ForceNew: true,
@@ -530,7 +531,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 									ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPHighAvailabilityType(), false),
 								},
 
-								"is_secondary_ip_enabled": {
+								"secondary_ip_enabled": {
 									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									ForceNew: true,
@@ -599,7 +600,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			AtLeastOneOf: []string{"deployment_with_os_configuration", "discovery_configuration"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"central_server_vm_id": {
+					"central_server_virtual_machine_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -848,15 +849,10 @@ func expandDiscoveryConfiguration(input []DiscoveryConfiguration) sapvirtualinst
 func flattenDiscoveryConfiguration(input sapvirtualinstances.DiscoveryConfiguration) []DiscoveryConfiguration {
 	result := make([]DiscoveryConfiguration, 0)
 
-	discoveryConfig := DiscoveryConfiguration{
-		CentralServerVmId: *input.CentralServerVMId,
-	}
-
-	if v := input.ManagedRgStorageAccountName; v != nil {
-		discoveryConfig.ManagedStorageAccountName = *v
-	}
-
-	return append(result, discoveryConfig)
+	return append(result, DiscoveryConfiguration{
+		CentralServerVmId:         pointer.From(input.CentralServerVMId),
+		ManagedStorageAccountName: pointer.From(input.ManagedRgStorageAccountName),
+	})
 }
 
 func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) (sapvirtualinstances.DeploymentWithOSConfiguration, error) {
@@ -967,7 +963,7 @@ func flattenDeploymentWithOSConfiguration(input sapvirtualinstances.DeploymentWi
 	result := make([]DeploymentWithOSConfiguration, 0)
 
 	deploymentWithOSConfiguration := DeploymentWithOSConfiguration{
-		AppLocation:        *input.AppLocation,
+		AppLocation:        pointer.From(input.AppLocation),
 		OsSapConfiguration: flattenOsSapConfiguration(input.OsSapConfiguration),
 	}
 
@@ -1038,18 +1034,11 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 	if storageConfiguration := input.StorageConfiguration; storageConfiguration != nil {
 		if transportFileShareConfiguration := storageConfiguration.TransportFileShareConfiguration; transportFileShareConfiguration != nil {
 			if createAndMountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.CreateAndMountFileShareConfiguration); ok {
-				transportCreateAndMount := TransportCreateAndMount{}
-
-				if v := createAndMountFileShareConfiguration.ResourceGroup; v != nil {
-					transportCreateAndMount.ResourceGroupName = *v
-				}
-
-				if v := createAndMountFileShareConfiguration.StorageAccountName; v != nil {
-					transportCreateAndMount.StorageAccountName = *v
-				}
-
 				threeTierConfig.TransportCreateAndMount = []TransportCreateAndMount{
-					transportCreateAndMount,
+					{
+						ResourceGroupName:  pointer.From(createAndMountFileShareConfiguration.ResourceGroup),
+						StorageAccountName: pointer.From(createAndMountFileShareConfiguration.StorageAccountName),
+					},
 				}
 			}
 
@@ -1057,13 +1046,11 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 				// Currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected.
 				// The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`.
 				// See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209
-				transportMount := TransportMount{
-					FileShareId:       strings.Replace(mountFileShareConfiguration.Id, "/shares/", "/fileshares/", 1),
-					PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
-				}
-
 				threeTierConfig.TransportMount = []TransportMount{
-					transportMount,
+					{
+						FileShareId:       strings.Replace(mountFileShareConfiguration.Id, "/shares/", "/fileshares/", 1),
+						PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
+					},
 				}
 			}
 		}
@@ -1073,33 +1060,27 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 }
 
 func flattenOsSapConfiguration(input *sapvirtualinstances.OsSapConfiguration) []OsSapConfiguration {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]OsSapConfiguration, 0)
-
-	osSapConfig := OsSapConfiguration{
-		DeployerVmPackages: flattenDeployerVMPackages(input.DeployerVMPackages),
-		SapFqdn:            *input.SapFqdn,
+	if input == nil {
+		return result
 	}
 
-	return append(result, osSapConfig)
+	return append(result, OsSapConfiguration{
+		DeployerVmPackages: flattenDeployerVMPackages(input.DeployerVMPackages),
+		SapFqdn:            pointer.From(input.SapFqdn),
+	})
 }
 
 func flattenDeployerVMPackages(input *sapvirtualinstances.DeployerVMPackages) []DeployerVmPackages {
-	if input == nil {
-		return nil
-	}
-
 	result := make([]DeployerVmPackages, 0)
-
-	deployerVmPackages := DeployerVmPackages{
-		StorageAccountId: *input.StorageAccountId,
-		Url:              *input.Url,
+	if input == nil {
+		return result
 	}
 
-	return append(result, deployerVmPackages)
+	return append(result, DeployerVmPackages{
+		StorageAccountId: pointer.From(input.StorageAccountId),
+		Url:              pointer.From(input.Url),
+	})
 }
 
 func sapVirtualInstanceStateRefreshFunc(ctx context.Context, client *sapvirtualinstances.SAPVirtualInstancesClient, id sapvirtualinstances.SapVirtualInstanceId) pluginsdk.StateRefreshFunc {
