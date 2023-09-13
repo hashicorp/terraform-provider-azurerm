@@ -149,7 +149,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      1,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
