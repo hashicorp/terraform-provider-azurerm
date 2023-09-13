@@ -258,6 +258,13 @@ func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
 			),
 		},
 		data.ImportStep("max_size_gb"),
+		{
+			Config: r.hyperScaleUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
 	})
 }
 
@@ -376,13 +383,12 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_mssql_elasticpool" "test" {
-  name                = "acctest-pool-dtu-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  server_name         = azurerm_mssql_server.test.name
-  max_size_gb         = %.7[6]f
-  zone_redundant      = %[9]t
-
+  name                           = "acctest-pool-dtu-%[1]d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  server_name                    = azurerm_mssql_server.test.name
+  max_size_gb                    = %.7[6]f
+  zone_redundant                 = %[9]t
   maintenance_configuration_name = "%[10]s"
 
   sku {
@@ -425,7 +431,6 @@ resource "azurerm_mssql_elasticpool" "test" {
   location            = azurerm_resource_group.test.location
   server_name         = azurerm_mssql_server.test.name
   max_size_gb         = 5
-
   sku {
     name     = "%[3]s"
     tier     = "%[4]s"
@@ -508,7 +513,6 @@ resource "azurerm_mssql_elasticpool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   server_name         = azurerm_mssql_server.test.name
-
   sku {
     name     = "%[3]s"
     tier     = "%[4]s"
@@ -571,4 +575,8 @@ resource "azurerm_mssql_elasticpool" "test" {
 
 func (r MsSqlElasticPoolResource) hyperScale(data acceptance.TestData) string {
 	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0.25, 4)
+}
+
+func (r MsSqlElasticPoolResource) hyperScaleUpdate(data acceptance.TestData) string {
+	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0, 4)
 }
