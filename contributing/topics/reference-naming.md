@@ -17,7 +17,7 @@ Here are some general guidelines you can turn to when naming properties:
 >`firewall_properties` can be shortened to `firewall`, the same can apply to individual properties e.g. `email_address` to `email`.
 
 * Properties for certificates or artifacts that must be in a certain format should be appended with the format e.g.
-> A certificate that must be base64 encoded should be named `certificate_in_base64`
+> A certificate that must be base64 encoded should be named `certificate_base64`
 
 * Similarly, properties that pertaining to sizes or times should be appended with the appropriate unit of measure e.g.
 > `duration_in_seconds` or `size_in_gb`
