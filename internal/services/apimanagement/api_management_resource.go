@@ -813,11 +813,13 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		properties.Properties.PublicIPAddressId = pointer.To(publicIpAddressId)
 	}
 
-	enableClientCertificate := d.Get("client_certificate_enabled").(bool)
-	if enableClientCertificate && sku.Name != apimanagementservice.SkuTypeConsumption {
-		return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
+	if d.HasChange("client_certificate_enabled") {
+		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
+		if enableClientCertificate && sku.Name != apimanagementservice.SkuTypeConsumption {
+			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
+		}
+		properties.Properties.EnableClientCertificate = pointer.To(enableClientCertificate)
 	}
-	properties.Properties.EnableClientCertificate = pointer.To(enableClientCertificate)
 
 	gateWayDisabled := d.Get("gateway_disabled").(bool)
 	if gateWayDisabled && len(*properties.Properties.AdditionalLocations) == 0 {
