@@ -101,42 +101,42 @@ resource "azurerm_workloads_sap_virtual_instance" "example" {
       disk_volume_configuration {
         volume_name = "hana/data"
         count       = 3
-        size_in_gb     = 128
+        size_in_gb  = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/log"
         count       = 3
-        size_in_gb     = 128
+        size_in_gb  = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "hana/shared"
         count       = 1
-        size_in_gb     = 256
+        size_in_gb  = 256
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "usr/sap"
         count       = 1
-        size_in_gb     = 128
+        size_in_gb  = 128
         sku_name    = "Premium_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "backup"
         count       = 2
-        size_in_gb     = 256
+        size_in_gb  = 256
         sku_name    = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
         volume_name = "os"
         count       = 1
-        size_in_gb     = 64
+        size_in_gb  = 64
         sku_name    = "StandardSSD_LRS"
       }
 
