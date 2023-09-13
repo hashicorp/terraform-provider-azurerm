@@ -340,6 +340,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
 
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"vtpm_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -440,6 +446,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		computerName = id.Name
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
+	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandVirtualMachineIdentity(identityRaw)
@@ -492,6 +499,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 				AllowExtensionOperations: utils.Bool(allowExtensionOperations),
 				LinuxConfiguration: &compute.LinuxConfiguration{
 					DisablePasswordAuthentication: utils.Bool(disablePasswordAuthentication),
+					EnableVMAgentPlatformUpdates:  utils.Bool(vmAgentPlatformUpdatesEnabled),
 					ProvisionVMAgent:              utils.Bool(provisionVMAgent),
 					SSH: &compute.SSHConfiguration{
 						PublicKeys: &sshKeys,
@@ -875,6 +883,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		if config := profile.LinuxConfiguration; config != nil {
 			d.Set("disable_password_authentication", config.DisablePasswordAuthentication)
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+			d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 			flattenedSSHKeys, err := FlattenSSHKeys(config.SSH)
 			if err != nil {
@@ -1254,6 +1263,19 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.VirtualMachineProperties.HardwareProfile = &compute.HardwareProfile{
 			VMSize: compute.VirtualMachineSizeTypes(vmSize),
 		}
+	}
+
+	if d.HasChange("vm_agent_platform_updates_enabled") {
+		shouldUpdate = true
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.EnableVMAgentPlatformUpdates = utils.Bool(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {

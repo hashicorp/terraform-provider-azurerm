@@ -209,6 +209,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Orchestrated Virtual Machine Scale Sets can be provisioned using [the `azurerm_orchestrated_virtual_machine_scale_set` resource](/docs/providers/azurerm/r/orchestrated_virtual_machine_scale_set.html).
 
+* `vm_agent_platform_updates_enabled` - (Optional) Specifies whether VMAgent Platform Updates is enabled. Defaults to `false`.
+
 * `vtpm_enabled` - (Optional) Specifies if vTPM (virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.

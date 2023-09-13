@@ -369,6 +369,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
 
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"platform_fault_domain": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -506,6 +512,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	sourceImageId := d.Get("source_image_id").(string)
 	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
+	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
+
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
@@ -528,9 +536,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				ComputerName:             utils.String(computerName),
 				AllowExtensionOperations: utils.Bool(allowExtensionOperations),
 				WindowsConfiguration: &compute.WindowsConfiguration{
-					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
-					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
-					WinRM:                  winRmListeners,
+					ProvisionVMAgent:             utils.Bool(provisionVMAgent),
+					EnableAutomaticUpdates:       utils.Bool(enableAutomaticUpdates),
+					EnableVMAgentPlatformUpdates: utils.Bool(vmAgentPlatformUpdatesEnabled),
+					WinRM:                        winRmListeners,
 				},
 				Secrets: secrets,
 			},
@@ -917,8 +926,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
-
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+			d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 			assessmentMode := string(compute.WindowsPatchAssessmentModeImageDefault)
 			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
@@ -1117,6 +1126,19 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("vm_agent_platform_updates_enabled") {
+		shouldUpdate = true
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		update.OsProfile.WindowsConfiguration.EnableVMAgentPlatformUpdates = utils.Bool(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {

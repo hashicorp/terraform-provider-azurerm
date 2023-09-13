@@ -208,6 +208,8 @@ The following arguments are supported:
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
+* `vm_agent_platform_updates_enabled` - (Optional) Specifies whether VMAgent Platform Updates is enabled. Defaults to `false`.
+
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.

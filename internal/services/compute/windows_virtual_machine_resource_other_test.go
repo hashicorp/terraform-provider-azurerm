@@ -86,6 +86,30 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherVmAgentPlatformUpdates(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherVmAgentPlatformUpdatesEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherVmAgentPlatformUpdatesDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherPatchAssessmentModeDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -1222,7 +1246,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), patchMode)
 }
 
-func (r WindowsVirtualMachineResource) otherPatchModeManual(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) otherVmAgentPlatformUpdatesEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1250,8 +1274,40 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  enable_automatic_updates = false
-  patch_mode               = "Manual"
+  vm_agent_platform_updates_enabled = true
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) otherVmAgentPlatformUpdatesDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  vm_agent_platform_updates_enabled = false
 }
 `, r.template(data))
 }
@@ -1318,6 +1374,40 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   patch_mode = "AutomaticByPlatform"
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) otherPatchModeManual(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  enable_automatic_updates = false
+  patch_mode               = "Manual"
 }
 `, r.template(data))
 }
