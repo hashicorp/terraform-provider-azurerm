@@ -2,13 +2,14 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
 * **New Resource**: `azurerm_iothub_endpoint_cosmosdb_account` [GH-23065]
+* **New Resource**: `azurerm_virtual_hub_routing_intent` [GH-23138]
 
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.1.1` of `github.com/btubbs/datetime` [GH-23221]
 * dependencies: updating to `v1.3.1` of `github.com/google/uuid` [GH-23221]
+* dependencies: updating to `v0.61.0` of `github.com/hashicorp/go-azure-helpers` [GH-23249]
 * dependencies: updating to `v0.20230907.1113401` of `github.com/hashicorp/go-azure-sdk` [GH-23221]
 * dependencies: updating to `v1.5.0` of `github.com/hashicorp/go-hclog` [GH-23221]
 * dependencies: updating to `v2.29.0` of `github.com/hashicorp/terraform-plugin-sdk/v2` [GH-23221]
@@ -19,7 +20,10 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.13.0` of `golang.org/x/tools` [GH-23221]
 * `azurerm_bot_channel_ms_teams` - support for `deployment_environment` [GH-23122]
 * `azurerm_managed_disk` - updating to use API Version `2023-04-02` [GH-23233]
+* `azurerm_managed_disk` - support for `optimized_frequent_attach_enabled` [GH-23241]
+* `azurerm_managed_disk` - support for `performance_plus_enabled` [GH-23241]
 * `azurerm_maps_account` - support for `local_authentication_enabled` [GH-23216]
+* `azurerm_mssql_elasticpool` - support for configuring `license_type` when using the `Hyperscale` sku [GH-23256]
 * `azurerm_security_center_assessment_policy` - refactoring to use `hashicorp/go-azure-sdk` [GH-23158]
 
 BUG FIXES:
