@@ -1,90 +1,78 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
+
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = OrganizationId{}
-
 type OrganizationId struct {
-	DomainSuffix   string
-	SubDomain      string
-	OrganizationId string
+	SubscriptionId string
+	ResourceGroup  string
+	IotAppName     string
+	Name           string
 }
 
-func NewOrganizationID(subDomain string, domainSuffix string, id string) (*OrganizationId, error) {
-	return &OrganizationId{
-		DomainSuffix:   domainSuffix,
-		SubDomain:      subDomain,
-		OrganizationId: id,
-	}, nil
-}
-
-func (id OrganizationId) ID() string {
-	return fmt.Sprintf("https://%s.%s/api/organizations/%s", id.SubDomain, id.DomainSuffix, id.OrganizationId)
+func NewOrganizationID(subscriptionId, resourceGroup, iotAppName, name string) OrganizationId {
+	return OrganizationId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		IotAppName:     iotAppName,
+		Name:           name,
+	}
 }
 
 func (id OrganizationId) String() string {
-	components := []string{
-		fmt.Sprintf("DomainSuffix: %q", id.DomainSuffix),
-		fmt.Sprintf("SubDomain: %q", id.SubDomain),
-		fmt.Sprintf("Path: %q", "/api/organizations/"),
-		fmt.Sprintf("OrganizationId: %q", id.OrganizationId),
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Iot App Name %q", id.IotAppName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return fmt.Sprintf("Iot Central OrganizationId %s", strings.Join(components, "\n"))
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Organization", segmentsStr)
 }
 
-func ParseOrganizationID(id string, subDomain string, domainSuffix string) (*OrganizationId, error) {
-	idURL, err := url.ParseRequestURI(id)
+func (id OrganizationId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.IoTCentral/iotApps/%s/organizations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.IotAppName, id.Name)
+}
+
+// OrganizationID parses a Organization ID into an OrganizationId struct
+func OrganizationID(input string) (*OrganizationId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse azure iot central organization ID: %s", err)
+		return nil, fmt.Errorf("parsing %q as an Organization ID: %+v", input, err)
 	}
 
-	path := idURL.Path
-
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-
-	components := strings.Split(path, "/")
-
-	if len(components) != 3 {
-		return nil, fmt.Errorf("iot central organization should have 3 segments, found %d segment(s) in %q", len(components), id)
+	resourceId := OrganizationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	apiString := components[0]
-	if apiString != "api" {
-		return nil, fmt.Errorf("iot central organization should have api as first segment, found %q", apiString)
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
-	organizationsString := components[1]
-	if organizationsString != "organizations" {
-		return nil, fmt.Errorf("iot central organization should have organizations as second segment, found %q", organizationsString)
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	parsedOrganizationId := components[2]
-
-	parsedSubDomain := strings.Split(idURL.Host, ".")[0]
-	parsedDomainSuffix := strings.Split(idURL.Host, ".")[1]
-
-	if subDomain != "" { // subDomain is empty when importing
-		if parsedSubDomain != subDomain {
-			return nil, fmt.Errorf("iot central organization subdomain should be %q, got %q", subDomain, parsedSubDomain)
-		}
+	if resourceId.IotAppName, err = id.PopSegment("iotApps"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("organizations"); err != nil {
+		return nil, err
 	}
 
-	if parsedDomainSuffix != domainSuffix {
-		return nil, fmt.Errorf("iot central organization domain suffix should be %q, got %q", domainSuffix, parsedDomainSuffix)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	organizationId := OrganizationId{
-		DomainSuffix:   parsedDomainSuffix,
-		SubDomain:      parsedSubDomain,
-		OrganizationId: parsedOrganizationId,
-	}
-
-	return &organizationId, nil
+	return &resourceId, nil
 }

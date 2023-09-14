@@ -32,16 +32,16 @@ resource "azurerm_iotcentral_application" "example" {
 }
 
 resource "azurerm_iotcentral_organization" "example_parent" {
-  sub_domain      = azurerm_iotcentral_application.example.sub_domain
-  organization_id = "example-parent-organization-id"
-  display_name    = "Org example parent"
+  iotcentral_application_id = azurerm_iotcentral_application.example.id
+  organization_id           = "example-parent-organization-id"
+  display_name              = "Org example parent"
 }
 
 resource "azurerm_iotcentral_organization" "example" {
-  sub_domain      = azurerm_iotcentral_application.example.sub_domain
-  organization_id = "example-child-organization-id"
-  display_name    = "Org example"
-  parent          = azurerm_iotcentral_organization.example_parent.organization_id
+  iotcentral_application_id = azurerm_iotcentral_application.example.id
+  organization_id           = "example-child-organization-id"
+  display_name              = "Org example"
+  parent_organization_id    = azurerm_iotcentral_organization.example_parent.organization_id
 }
 ```
 
@@ -49,19 +49,19 @@ resource "azurerm_iotcentral_organization" "example" {
 
 The following arguments are supported:
 
-* `sub_domain` - (Required) The application `sub_domain`. Changing this forces a new resource to be created.
+* `iotcentral_application_id` - (Required) The application `id`. Changing this forces a new resource to be created.
 
 * `organization_id` - The ID of the organization. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) Custom `display_name` for the organization.
 
-* `parent` - (Optional) The `organization_id` of the parent organization.
+* `parent_organization_id` - (Optional) The `organization_id` of the parent organization. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID reference of the organization, formated as `{subdomain}.{baseDomain}/api/organizations/{organizationId}`.
+* `id` - The ID reference of the organization, formated as `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.IoTCentral/iotApps/{application}/organizations/{organizationId}`.
 
 ## Timeouts
 
@@ -77,5 +77,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 The IoT Central Organization can be imported using the `id`, e.g.
 
 ```shell
-terraform import azurerm_iotcentral_organization.example https://example.azureiotcentral.com/api/organizations/abc123
+terraform import azurerm_iotcentral_organization.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.IoTCentral/iotApps/example/organizations/example
 ```
