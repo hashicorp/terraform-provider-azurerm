@@ -20,7 +20,7 @@ type DatasetAzureSQLTableResource struct{}
 
 func TestAccDataFactoryDatasetAzureSQLTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
-	r := DatasetSQLServerTableResource{}
+	r := DatasetAzureSQLTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDataFactoryDatasetAzureSQLTable_basic(t *testing.T) {
 
 func TestAccDataFactoryDatasetAzureSQLTable_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
-	r := DatasetSQLServerTableResource{}
+	r := DatasetAzureSQLTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccDataFactoryDatasetAzureSQLTable_update(t *testing.T) {
 	})
 }
 
-func (t DatasetSQLServerTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DatasetAzureSQLTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (t DatasetSQLServerTableResource) Exists(ctx context.Context, clients *clie
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (DatasetSQLServerTableResource) basic(data acceptance.TestData) string {
+func (DatasetAzureSQLTableResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -110,7 +110,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetSQLServerTableResource) update1(data acceptance.TestData) string {
+func (DatasetAzureSQLTableResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -163,7 +163,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetSQLServerTableResource) update2(data acceptance.TestData) string {
+func (DatasetAzureSQLTableResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
