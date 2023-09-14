@@ -783,6 +783,14 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		template.Scale.MinReplicas = pointer.To(int64(config.MinReplicas))
 	}
 
+	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
+		if template.Scale == nil {
+			template.Scale = &containerapps.Scale{}
+		}
+
+		template.Scale.Rules = pointer.To(rules)
+	}
+
 	if config.Suffix != "" {
 		if metadata.ResourceData.HasChange("template.0.revision_suffix") {
 			template.RevisionSuffix = pointer.To(config.Suffix)
@@ -805,6 +813,7 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 	if scale := input.Scale; scale != nil {
 		result.MaxReplicas = int(pointer.From(scale.MaxReplicas))
 		result.MinReplicas = int(pointer.From(scale.MinReplicas))
+		result.flattenContainerAppScaleRules(scale.Rules)
 	}
 
 	return []ContainerTemplate{result}
@@ -2362,7 +2371,7 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 
 type AzureQueueScaleRule struct {
 	Name             string `tfschema:"name"`
-	QueueLength      string `tfschema:"queue_length"`
+	QueueLength      int    `tfschema:"queue_length"`
 	QueueName        string `tfschema:"queue_name"`
 	AuthSecretRef    string `tfschema:"authentication_secret_reference"`
 	AuthTriggerParam string `tfschema:"authentication_trigger_parameter"`
@@ -2394,13 +2403,13 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 
 				"authentication_secret_reference": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validate.SecretName,
 				},
 
 				"authentication_trigger_parameter": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -2409,6 +2418,7 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 }
 
 type CustomScaleRule struct {
+	Name             string            `tfschema:"name"`
 	Metadata         map[string]string `tfschema:"metadata"`
 	CustomRuleType   string            `tfschema:"custom_rule_type"`
 	AuthSecretRef    string            `tfschema:"authentication_secret_reference"`
@@ -2436,9 +2446,22 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 				},
 
 				"custom_rule_type": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // Note - this can be any KEDA compatible source in a user's environment
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"activemq", "artemis-queue", "kafka", "pulsar", "aws-cloudwatch",
+						"aws-dynamodb", "aws-dynamodb-streams", "aws-kinesis-stream", "aws-sqs-queue",
+						"azure-app-insights", "azure-blob", "azure-data-explorer", "azure-eventhub",
+						"azure-log-analytics", "azure-monitor", "azure-pipelines", "azure-servicebus",
+						"azure-queue", "cassandra", "cpu", "cron", "datadog", "elasticsearch", "external",
+						"external-push", "gcp-stackdriver", "gcp-storage", "gcp-pubsub", "graphite", "http",
+						"huawei-cloudeye", "ibmmq", "influxdb", "kubernetes-workload", "liiklus", "memory",
+						"metrics-api", "mongodb", "mssql", "mysql", "nats-jetstream", "stan", "tcp", "new-relic",
+						"openstack-metric", "openstack-swift", "postgresql", "predictkube", "prometheus",
+						"rabbitmq", "redis", "redis-cluster", "redis-sentinel", "redis-streams",
+						"redis-cluster-streams", "redis-sentinel-streams", "selenium-grid",
+						"solace-event-queue", "github-runner",
+					}, false), // Note - this can be any KEDA compatible source in a user's environment
 				},
 
 				"authentication_secret_reference": {
@@ -2458,9 +2481,10 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 }
 
 type HTTPScaleRule struct {
-	Metadata         map[string]string `tfschema:"metadata"`
-	AuthSecretRef    string            `tfschema:"authentication_secret_reference"`
-	AuthTriggerParam string            `tfschema:"authentication_trigger_parameter"`
+	Name               string `tfschema:"name"`
+	ConcurrentRequests string `tfschema:"concurrent_requests"`
+	AuthSecretRef      string `tfschema:"authentication_secret_reference"`
+	AuthTriggerParam   string `tfschema:"authentication_trigger_parameter"`
 }
 
 func HTTPScaleRuleSchema() *pluginsdk.Schema {
@@ -2475,12 +2499,10 @@ func HTTPScaleRuleSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"metadata": {
-					Type:     pluginsdk.TypeMap,
-					Required: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
+				"concurrent_requests": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: nil, // TODO - str value for int
 				},
 
 				"authentication_secret_reference": {
@@ -2500,9 +2522,10 @@ func HTTPScaleRuleSchema() *pluginsdk.Schema {
 }
 
 type TCPScaleRule struct {
-	Metadata         map[string]string `tfschema:"metadata"`
-	AuthSecretRef    string            `tfschema:"authentication_secret_reference"`
-	AuthTriggerParam string            `tfschema:"authentication_trigger_parameter"`
+	Name               string `tfschema:"name"`
+	ConcurrentRequests string `tfschema:"concurrent_requests"`
+	AuthSecretRef      string `tfschema:"authentication_secret_reference"`
+	AuthTriggerParam   string `tfschema:"authentication_trigger_parameter"`
 }
 
 func TCPScaleRuleSchema() *pluginsdk.Schema {
@@ -2517,12 +2540,10 @@ func TCPScaleRuleSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"metadata": {
-					Type:     pluginsdk.TypeMap,
-					Required: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
+				"concurrent_requests": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: nil, // TODO Validation for int as str
 				},
 
 				"authentication_secret_reference": {
@@ -2538,5 +2559,211 @@ func TCPScaleRuleSchema() *pluginsdk.Schema {
 				},
 			},
 		},
+	}
+}
+
+func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.ScaleRule {
+	if len(c.AzureQueueScaleRules) == 0 && len(c.CustomScaleRules) == 0 && len(c.HTTPScaleRules) == 0 && len(c.TCPScaleRules) == 0 {
+		return nil
+	}
+	result := make([]containerapps.ScaleRule, 0)
+	for _, v := range c.AzureQueueScaleRules {
+		r := containerapps.ScaleRule{
+			Name: pointer.To(v.Name),
+			AzureQueue: &containerapps.QueueScaleRule{
+				QueueLength: pointer.To(int64(v.QueueLength)),
+				QueueName:   pointer.To(v.QueueName),
+				Auth:        &[]containerapps.ScaleRuleAuth{},
+			},
+		}
+
+		if v.AuthSecretRef != "" || v.AuthTriggerParam != "" {
+			auth := containerapps.ScaleRuleAuth{}
+			if v.AuthTriggerParam != "" {
+				auth.TriggerParameter = pointer.To(v.AuthTriggerParam)
+			}
+
+			if v.AuthSecretRef != "" {
+				auth.SecretRef = pointer.To(v.AuthSecretRef)
+			}
+
+			r.AzureQueue.Auth = pointer.To([]containerapps.ScaleRuleAuth{auth})
+		}
+		result = append(result, r)
+	}
+
+	for _, v := range c.CustomScaleRules {
+		r := containerapps.ScaleRule{
+			Name: pointer.To(v.Name),
+			Custom: &containerapps.CustomScaleRule{
+				Metadata: &v.Metadata,
+				Type:     pointer.To(v.CustomRuleType),
+			},
+		}
+
+		if v.AuthSecretRef != "" || v.AuthTriggerParam != "" {
+			auth := containerapps.ScaleRuleAuth{}
+			if v.AuthTriggerParam != "" {
+				auth.TriggerParameter = pointer.To(v.AuthTriggerParam)
+			}
+
+			if v.AuthSecretRef != "" {
+				auth.SecretRef = pointer.To(v.AuthSecretRef)
+			}
+
+			r.Custom.Auth = pointer.To([]containerapps.ScaleRuleAuth{auth})
+		}
+		result = append(result, r)
+	}
+
+	for _, v := range c.HTTPScaleRules {
+		metaData := make(map[string]string, 0)
+		metaData["concurrentRequests"] = v.ConcurrentRequests
+		r := containerapps.ScaleRule{
+			Name: pointer.To(v.Name),
+			HTTP: &containerapps.HTTPScaleRule{
+				Metadata: pointer.To(metaData),
+			},
+		}
+
+		if v.AuthSecretRef != "" || v.AuthTriggerParam != "" {
+			auth := containerapps.ScaleRuleAuth{}
+			if v.AuthTriggerParam != "" {
+				auth.TriggerParameter = pointer.To(v.AuthTriggerParam)
+			}
+
+			if v.AuthSecretRef != "" {
+				auth.SecretRef = pointer.To(v.AuthSecretRef)
+			}
+
+			r.HTTP.Auth = pointer.To([]containerapps.ScaleRuleAuth{auth})
+		}
+		result = append(result, r)
+	}
+
+	for _, v := range c.TCPScaleRules {
+		metaData := make(map[string]string, 0)
+		metaData["concurrentRequests"] = v.ConcurrentRequests
+		r := containerapps.ScaleRule{
+			Name: pointer.To(v.Name),
+			Tcp: &containerapps.TcpScaleRule{
+				Metadata: pointer.To(metaData),
+			},
+		}
+
+		if v.AuthSecretRef != "" || v.AuthTriggerParam != "" {
+			auth := containerapps.ScaleRuleAuth{}
+			if v.AuthTriggerParam != "" {
+				auth.TriggerParameter = pointer.To(v.AuthTriggerParam)
+			}
+
+			if v.AuthSecretRef != "" {
+				auth.SecretRef = pointer.To(v.AuthSecretRef)
+			}
+
+			r.Tcp.Auth = pointer.To([]containerapps.ScaleRuleAuth{auth})
+		}
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps.ScaleRule) {
+	if input != nil && len(*input) != 0 {
+		rules := *input
+		azureQueueScaleRules := make([]AzureQueueScaleRule, 0)
+		customScaleRules := make([]CustomScaleRule, 0)
+		httpScaleRules := make([]HTTPScaleRule, 0)
+		tcpScaleRules := make([]TCPScaleRule, 0)
+		for _, v := range rules {
+			if q := v.AzureQueue; q != nil {
+				rule := AzureQueueScaleRule{
+					Name:        pointer.From(v.Name),
+					QueueLength: int(pointer.From(q.QueueLength)),
+					QueueName:   pointer.From(q.QueueName),
+				}
+
+				if q.Auth != nil && len(*q.Auth) != 0 {
+					auth := (*q.Auth)[0]
+					rule.AuthSecretRef = pointer.From(auth.SecretRef)
+					rule.AuthTriggerParam = pointer.From(auth.TriggerParameter)
+				}
+
+				azureQueueScaleRules = append(azureQueueScaleRules, rule)
+				continue
+			}
+
+			if r := v.Custom; r != nil {
+				rule := CustomScaleRule{
+					Name:             pointer.From(v.Name),
+					Metadata:         pointer.From(r.Metadata),
+					CustomRuleType:   pointer.From(r.Type),
+					AuthSecretRef:    "",
+					AuthTriggerParam: "",
+				}
+
+				if r.Auth != nil && len(*r.Auth) != 0 {
+					auth := (*r.Auth)[0]
+					rule.AuthSecretRef = pointer.From(auth.SecretRef)
+					rule.AuthTriggerParam = pointer.From(auth.TriggerParameter)
+				}
+
+				customScaleRules = append(customScaleRules, rule)
+				continue
+			}
+
+			if r := v.HTTP; r != nil {
+				metaData := pointer.From(r.Metadata)
+				concurrentReqs := ""
+
+				if m, ok := metaData["concurrentRequests"]; ok {
+					concurrentReqs = m
+				}
+
+				rule := HTTPScaleRule{
+					Name:               pointer.From(v.Name),
+					ConcurrentRequests: concurrentReqs,
+					AuthSecretRef:      "",
+					AuthTriggerParam:   "",
+				}
+
+				if r.Auth != nil && len(*r.Auth) != 0 {
+					auth := (*r.Auth)[0]
+					rule.AuthSecretRef = pointer.From(auth.SecretRef)
+					rule.AuthTriggerParam = pointer.From(auth.TriggerParameter)
+				}
+
+				httpScaleRules = append(httpScaleRules, rule)
+				continue
+			}
+
+			if r := v.Tcp; r != nil {
+				metaData := pointer.From(r.Metadata)
+				concurrentReqs := ""
+
+				if m, ok := metaData["concurrentRequests"]; ok {
+					concurrentReqs = m
+				}
+
+				rule := TCPScaleRule{
+					Name:               pointer.From(v.Name),
+					ConcurrentRequests: concurrentReqs,
+				}
+
+				if r.Auth != nil && len(*r.Auth) != 0 {
+					auth := (*r.Auth)[0]
+					rule.AuthSecretRef = pointer.From(auth.SecretRef)
+					rule.AuthTriggerParam = pointer.From(auth.TriggerParameter)
+				}
+				tcpScaleRules = append(tcpScaleRules, rule)
+				continue
+			}
+		}
+
+		c.AzureQueueScaleRules = azureQueueScaleRules
+		c.CustomScaleRules = customScaleRules
+		c.HTTPScaleRules = httpScaleRules
+		c.TCPScaleRules = tcpScaleRules
 	}
 }
