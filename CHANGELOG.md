@@ -29,6 +29,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management_backend` - fixing a panic when flattening the `credentials` block [GH-23219]
+* `azurerm_key_vault_certificate` - fixing a regression where certificates from a custom/unknown issuer would be polled indefinitely [GH-23214]
 * `azurerm_redis_cache` - prevent sending `redis_configuration.aof_backup_enabled` when the sku is not `Premium` to avoid API error [GH-22774]
 * `azurerm_web_application_firewall_policy` - capture and toggle state of `custom_rule` blocks with an `enabled` field [GH-23163]
 
