@@ -486,31 +486,25 @@ func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFS
 	if input == nil {
 		return []interface{}{}
 	}
+	result := make(map[string]interface{})
 
-	fileSystem, path, fileName := "", "", ""
 	if input.FileSystem != nil {
-		if v, ok := input.FileSystem.(string); ok {
-			fileSystem = v
-		}
+		fileSystem, dynamicFileSystemEnabled := flattenDataFactoryExpressionResultType(input.FileSystem)
+		result["file_system"] = fileSystem
+		result["dynamic_file_system_enabled"] = dynamicFileSystemEnabled
 	}
 	if input.FolderPath != nil {
-		if v, ok := input.FolderPath.(string); ok {
-			path = v
-		}
+		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
+		result["path"] = path
+		result["dynamic_path_enabled"] = dynamicPathEnabled
 	}
 	if input.FileName != nil {
-		if v, ok := input.FileName.(string); ok {
-			fileName = v
-		}
+		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(input.FileName)
+		result["filename"] = filename
+		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"file_system": fileSystem,
-			"path":        path,
-			"filename":    fileName,
-		},
-	}
+	return []interface{}{result}
 }
 
 func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {

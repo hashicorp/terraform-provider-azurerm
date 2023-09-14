@@ -436,6 +436,11 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("setting `azure_blob_storage_location` for Data Factory Parquet Dataset %s", err)
 			}
 		}
+		if azureBlobFSLocation, ok := properties.Location.AsAzureBlobFSLocation(); ok {
+			if err := d.Set("azure_blob_fs_location", flattenDataFactoryDatasetAzureBlobFSLocation(azureBlobFSLocation)); err != nil {
+				return fmt.Errorf("setting `azure_blob_fs_location` for Data Factory Parquet Dataset %s", err)
+			}
+		}
 
 		compressionCodec, ok := properties.CompressionCodec.(string)
 		if !ok {
