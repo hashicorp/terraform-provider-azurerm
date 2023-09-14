@@ -159,6 +159,8 @@ A `retention_policy` block supports the following:
 * `enabled` - (Required) Is this Retention Policy enabled?
 
 * `days` - (Optional) The number of days for which this Retention Policy should apply.
+ 
+!> **NOTE:** `retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more information on the deprecation [in the Azure documentation](https://aka.ms/diagnostic_settings_log_retention).
 
 -> **NOTE:** Setting this to `0` will retain the events indefinitely.
 
