@@ -155,6 +155,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		dashboard.Registration{},
 		databoxedge.Registration{},
 		databricks.Registration{},
+		datafactory.Registration{},
 		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},

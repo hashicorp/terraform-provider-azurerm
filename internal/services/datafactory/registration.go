@@ -10,6 +10,7 @@ import (
 
 type Registration struct{}
 
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -28,6 +29,16 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
+func (Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		DataFactoryDatasetAzureSQLTableResource{},
+	}
+}
+
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
@@ -41,7 +52,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory":                                       resourceDataFactory(),
 		"azurerm_data_factory_data_flow":                             resourceDataFactoryDataFlow(),
 		"azurerm_data_factory_flowlet_data_flow":                     resourceDataFactoryFlowletDataFlow(),
-		"azurerm_data_factory_dataset_azure_sql_table":               resourceDataFactoryDatasetAzureSQLTable(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
 		"azurerm_data_factory_dataset_binary":                        resourceDataFactoryDatasetBinary(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
