@@ -999,7 +999,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	props := apimanagementservice.ApiManagementServiceUpdateProperties{}
 	payload := apimanagementservice.ApiManagementServiceUpdateParameters{}
 
-	if d.HasChange("sku") {
+	if d.HasChange("sku_name") {
 		payload.Sku = pointer.To(sku)
 	}
 
