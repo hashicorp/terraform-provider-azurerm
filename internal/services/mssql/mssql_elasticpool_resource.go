@@ -173,7 +173,6 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.DatabaseLicenseTypeBasePrice),
 					string(sql.DatabaseLicenseTypeLicenseIncluded),
