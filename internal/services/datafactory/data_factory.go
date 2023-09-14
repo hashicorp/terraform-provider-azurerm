@@ -424,18 +424,14 @@ func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) data
 
 	props := azureBlobFsLocations[0].(map[string]interface{})
 
-	blobStorageLocation := datafactory.AzureBlobFSLocation{
-		FileSystem: props["file_system"].(string),
+	blobFSLocation := datafactory.AzureBlobFSLocation{
 		Type:       datafactory.TypeBasicDatasetLocationTypeAzureBlobFSLocation,
-	}
-	if path := props["path"].(string); len(path) > 0 {
-		blobStorageLocation.FolderPath = path
-	}
-	if filename := props["filename"].(string); len(filename) > 0 {
-		blobStorageLocation.FileName = filename
+		FileSystem: expandDataFactoryExpressionResultType(props["file_system"].(string), props["dynamic_file_system_enabled"].(bool)),
+		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
+		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
 
-	return blobStorageLocation
+	return blobFSLocation
 }
 
 func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
