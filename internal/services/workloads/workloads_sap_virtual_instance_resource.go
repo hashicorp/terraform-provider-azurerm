@@ -91,13 +91,9 @@ type ImageReference struct {
 }
 
 type OSProfile struct {
-	AdminUsername string       `tfschema:"admin_username"`
-	SshKeyPair    []SshKeyPair `tfschema:"ssh_key_pair"`
-}
-
-type SshKeyPair struct {
-	PrivateKey string `tfschema:"private_key"`
-	PublicKey  string `tfschema:"public_key"`
+	AdminUsername string `tfschema:"admin_username"`
+	SshPrivateKey string `tfschema:"ssh_private_key"`
+	SshPublicKey  string `tfschema:"ssh_public_key"`
 }
 
 type VirtualMachineFullResourceNames struct {
@@ -121,7 +117,7 @@ type ThreeTierConfiguration struct {
 }
 
 type TransportCreateAndMount struct {
-	ResourceGroupName  string `tfschema:"resource_group_name"`
+	ResourceGroupId    string `tfschema:"resource_group_id"`
 	StorageAccountName string `tfschema:"storage_account_name"`
 }
 
@@ -545,11 +541,11 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											"resource_group_name": {
+											"resource_group_id": {
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ForceNew:     true,
-												ValidateFunc: resourcegroups.ValidateName,
+												ValidateFunc: commonids.ValidateResourceGroupID,
 											},
 
 											"storage_account_name": {
@@ -790,7 +786,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 				if config := props.Configuration; config != nil {
 					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-						state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(v, metadata.ResourceData)
+						state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(v, metadata.ResourceData, id.SubscriptionId)
 					}
 
 					if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
@@ -872,7 +868,11 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 	}
 
 	if len(configuration.ThreeTierConfiguration) != 0 {
-		result.InfrastructureConfiguration = expandThreeTierConfiguration(configuration.ThreeTierConfiguration)
+		threeTierConfiguration, err := expandThreeTierConfiguration(configuration.ThreeTierConfiguration)
+		if err != nil {
+			return sapvirtualinstances.DeploymentWithOSConfiguration{}, err
+		}
+		result.InfrastructureConfiguration = threeTierConfiguration
 	}
 
 	return result, nil
@@ -905,7 +905,7 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) (sapvirt
 	return result, nil
 }
 
-func expandThreeTierConfiguration(input []ThreeTierConfiguration) sapvirtualinstances.ThreeTierConfiguration {
+func expandThreeTierConfiguration(input []ThreeTierConfiguration) (sapvirtualinstances.ThreeTierConfiguration, error) {
 	threeTierConfiguration := &input[0]
 
 	result := sapvirtualinstances.ThreeTierConfiguration{
@@ -917,8 +917,13 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) sapvirtualinst
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled),
 		},
-		StorageConfiguration: expandStorageConfiguration(threeTierConfiguration),
 	}
+
+	storageConfiguration, err := expandStorageConfiguration(threeTierConfiguration)
+	if err != nil {
+		return sapvirtualinstances.ThreeTierConfiguration{}, err
+	}
+	result.StorageConfiguration = storageConfiguration
 
 	if v := threeTierConfiguration.HighAvailabilityType; v != "" {
 		result.HighAvailabilityConfig = &sapvirtualinstances.HighAvailabilityConfiguration{
@@ -926,7 +931,7 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) sapvirtualinst
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 func expandOsSapConfiguration(input []OsSapConfiguration) *sapvirtualinstances.OsSapConfiguration {
@@ -959,7 +964,7 @@ func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.D
 	return &result
 }
 
-func flattenDeploymentWithOSConfiguration(input sapvirtualinstances.DeploymentWithOSConfiguration, d *pluginsdk.ResourceData) []DeploymentWithOSConfiguration {
+func flattenDeploymentWithOSConfiguration(input sapvirtualinstances.DeploymentWithOSConfiguration, d *pluginsdk.ResourceData, subscriptionId string) []DeploymentWithOSConfiguration {
 	result := make([]DeploymentWithOSConfiguration, 0)
 
 	deploymentWithOSConfiguration := DeploymentWithOSConfiguration{
@@ -973,7 +978,7 @@ func flattenDeploymentWithOSConfiguration(input sapvirtualinstances.DeploymentWi
 		}
 
 		if v, ok := configuration.(sapvirtualinstances.ThreeTierConfiguration); ok {
-			deploymentWithOSConfiguration.ThreeTierConfiguration = flattenThreeTierConfiguration(v, d, "deployment_with_os_configuration")
+			deploymentWithOSConfiguration.ThreeTierConfiguration = flattenThreeTierConfiguration(v, d, "deployment_with_os_configuration", subscriptionId)
 		}
 	}
 
@@ -1007,7 +1012,7 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 	return append(result, singleServerConfig)
 }
 
-func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfiguration, d *pluginsdk.ResourceData, basePath string) []ThreeTierConfiguration {
+func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfiguration, d *pluginsdk.ResourceData, basePath string, subscriptionId string) []ThreeTierConfiguration {
 	result := make([]ThreeTierConfiguration, 0)
 
 	threeTierConfig := ThreeTierConfiguration{
@@ -1034,11 +1039,18 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 	if storageConfiguration := input.StorageConfiguration; storageConfiguration != nil {
 		if transportFileShareConfiguration := storageConfiguration.TransportFileShareConfiguration; transportFileShareConfiguration != nil {
 			if createAndMountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.CreateAndMountFileShareConfiguration); ok {
+				transportCreateAndMount := TransportCreateAndMount{
+					StorageAccountName: pointer.From(createAndMountFileShareConfiguration.StorageAccountName),
+				}
+
+				var resourceGroupId string
+				if v := createAndMountFileShareConfiguration.ResourceGroup; v != nil {
+					resourceGroupId = commonids.NewResourceGroupID(subscriptionId, *createAndMountFileShareConfiguration.ResourceGroup).ID()
+				}
+				transportCreateAndMount.ResourceGroupId = resourceGroupId
+
 				threeTierConfig.TransportCreateAndMount = []TransportCreateAndMount{
-					{
-						ResourceGroupName:  pointer.From(createAndMountFileShareConfiguration.ResourceGroup),
-						StorageAccountName: pointer.From(createAndMountFileShareConfiguration.StorageAccountName),
-					},
+					transportCreateAndMount,
 				}
 			}
 

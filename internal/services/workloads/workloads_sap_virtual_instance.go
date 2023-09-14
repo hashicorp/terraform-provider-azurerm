@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -77,29 +78,19 @@ func SchemaForSAPVirtualInstanceVirtualMachineConfiguration() *pluginsdk.Schema 
 								ValidateFunc: validate.AdminUsername,
 							},
 
-							"ssh_key_pair": {
-								Type:     pluginsdk.TypeList,
-								Required: true,
-								ForceNew: true,
-								MaxItems: 1,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"private_key": {
-											Type:         pluginsdk.TypeString,
-											Required:     true,
-											ForceNew:     true,
-											Sensitive:    true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
+							"ssh_private_key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								Sensitive:    true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 
-										"public_key": {
-											Type:         pluginsdk.TypeString,
-											Required:     true,
-											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-									},
-								},
+							"ssh_public_key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -302,27 +293,17 @@ func expandOsProfile(input []OSProfile) sapvirtualinstances.OSProfile {
 	osProfile := &input[0]
 
 	result := sapvirtualinstances.OSProfile{
-		AdminUsername:   utils.String(osProfile.AdminUsername),
-		OsConfiguration: expandLinuxConfiguration(osProfile.SshKeyPair),
+		AdminUsername: utils.String(osProfile.AdminUsername),
+		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
+			DisablePasswordAuthentication: utils.Bool(true),
+			SshKeyPair: &sapvirtualinstances.SshKeyPair{
+				PrivateKey: utils.String(osProfile.SshPrivateKey),
+				PublicKey:  utils.String(osProfile.SshPublicKey),
+			},
+		},
 	}
 
 	return result
-}
-
-func expandLinuxConfiguration(input []SshKeyPair) *sapvirtualinstances.LinuxConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
-	sshKeyPair := &input[0]
-
-	return &sapvirtualinstances.LinuxConfiguration{
-		DisablePasswordAuthentication: utils.Bool(true),
-		SshKeyPair: &sapvirtualinstances.SshKeyPair{
-			PrivateKey: utils.String(sshKeyPair.PrivateKey),
-			PublicKey:  utils.String(sshKeyPair.PublicKey),
-		},
-	}
 }
 
 func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNames) (sapvirtualinstances.SingleServerFullResourceNames, error) {
@@ -510,23 +491,14 @@ func flattenOSProfile(input sapvirtualinstances.OSProfile, d *pluginsdk.Resource
 
 	if osConfiguration := input.OsConfiguration; osConfiguration != nil {
 		if v, ok := osConfiguration.(sapvirtualinstances.LinuxConfiguration); ok {
-			osProfile.SshKeyPair = flattenSshKeyPair(v.SshKeyPair, d, fmt.Sprintf("%s.0.os_profile", basePath))
+			if sshKeyPair := v.SshKeyPair; sshKeyPair != nil {
+				osProfile.SshPrivateKey = d.Get(fmt.Sprintf("%s.0.os_profile.0.ssh_private_key", basePath)).(string)
+				osProfile.SshPublicKey = pointer.From(sshKeyPair.PublicKey)
+			}
 		}
 	}
 
 	return append(result, osProfile)
-}
-
-func flattenSshKeyPair(input *sapvirtualinstances.SshKeyPair, d *pluginsdk.ResourceData, basePath string) []SshKeyPair {
-	result := make([]SshKeyPair, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, SshKeyPair{
-		PrivateKey: d.Get(fmt.Sprintf("%s.0.ssh_key_pair.0.private_key", basePath)).(string),
-		PublicKey:  pointer.From(input.PublicKey),
-	})
 }
 
 func expandApplicationServer(input []ApplicationServerConfiguration) sapvirtualinstances.ApplicationServerConfiguration {
@@ -583,44 +555,52 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstanc
 	return result
 }
 
-func expandStorageConfiguration(input *ThreeTierConfiguration) *sapvirtualinstances.StorageConfiguration {
+func expandStorageConfiguration(input *ThreeTierConfiguration) (*sapvirtualinstances.StorageConfiguration, error) {
 	if len(input.TransportCreateAndMount) == 0 && len(input.TransportMount) == 0 {
 		return &sapvirtualinstances.StorageConfiguration{
 			TransportFileShareConfiguration: sapvirtualinstances.SkipFileShareConfiguration{},
-		}
+		}, nil
 	}
 
 	result := sapvirtualinstances.StorageConfiguration{}
 
 	if len(input.TransportCreateAndMount) != 0 {
-		result.TransportFileShareConfiguration = expandTransportCreateAndMount(input.TransportCreateAndMount)
+		transportCreateAndMount, err := expandTransportCreateAndMount(input.TransportCreateAndMount)
+		if err != nil {
+			return nil, err
+		}
+		result.TransportFileShareConfiguration = transportCreateAndMount
 	}
 
 	if len(input.TransportMount) != 0 {
 		result.TransportFileShareConfiguration = expandTransportMount(input.TransportMount)
 	}
 
-	return &result
+	return &result, nil
 }
 
-func expandTransportCreateAndMount(input []TransportCreateAndMount) sapvirtualinstances.CreateAndMountFileShareConfiguration {
+func expandTransportCreateAndMount(input []TransportCreateAndMount) (sapvirtualinstances.CreateAndMountFileShareConfiguration, error) {
 	if len(input) == 0 {
-		return sapvirtualinstances.CreateAndMountFileShareConfiguration{}
+		return sapvirtualinstances.CreateAndMountFileShareConfiguration{}, nil
 	}
 
 	transportCreateAndMount := &input[0]
 
 	result := sapvirtualinstances.CreateAndMountFileShareConfiguration{}
 
-	if v := transportCreateAndMount.ResourceGroupName; v != "" {
-		result.ResourceGroup = utils.String(v)
+	if v := transportCreateAndMount.ResourceGroupId; v != "" {
+		resourceGroupId, err := commonids.ParseResourceGroupID(v)
+		if err != nil {
+			return sapvirtualinstances.CreateAndMountFileShareConfiguration{}, err
+		}
+		result.ResourceGroup = utils.String(resourceGroupId.ResourceGroupName)
 	}
 
 	if v := transportCreateAndMount.StorageAccountName; v != "" {
 		result.StorageAccountName = utils.String(v)
 	}
 
-	return result
+	return result, nil
 }
 
 func expandTransportMount(input []TransportMount) sapvirtualinstances.MountFileShareConfiguration {
