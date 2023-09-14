@@ -60,11 +60,13 @@ The following arguments are supported:
 
 ---
 
-* `auxiliary_mode` - (Optional) Specifies auxiliary mode for enabling [Accelerated Connections](https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections) to improve networking performance. Possible values are `AcceleratedConnections` and `Floating`.
+* `auxiliary_mode` - (Optional) Specifies the auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections. Possible values are `AcceleratedConnections` and `Floating`.
 
-* `auxiliary_sku` - (Optional) Specifies auxiliary SKU for tuning the performance of network connections. Possible values are `A1`, `A2`, `A4` and `A8`.
+-> **Note:** `auxiliary_mode` is in **Preview** and requires that the preview is enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
 
--> **Note:** `auxiliary_mode` and `auxiliary_sku` require the preview feature is enabled. See the [Prerequisites](https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#prerequisites) for more details.
+* `auxiliary_sku` - (Optional) Specifies the SKU used for the network high-performance feature on Network Virtual Appliances (NVAs). Possible values are `A1`, `A2`, `A4` and `A8`.
+
+-> **Note:** `auxiliary_sku` is in **Preview** and requires that the preview is enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
 
 * `dns_servers` - (Optional) A list of IP Addresses defining the DNS Servers which should be used for this Network Interface.
 
