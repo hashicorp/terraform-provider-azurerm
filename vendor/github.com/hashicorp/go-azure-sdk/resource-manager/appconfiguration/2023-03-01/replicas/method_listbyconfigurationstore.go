@@ -25,7 +25,7 @@ type ListByConfigurationStoreCompleteResult struct {
 // ListByConfigurationStore ...
 func (c ReplicasClient) ListByConfigurationStore(ctx context.Context, id ConfigurationStoreId) (result ListByConfigurationStoreOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

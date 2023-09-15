@@ -95,7 +95,7 @@ A `replica` block exports the following:
 
 * `location` - The supported Azure location where the replica exists.
 
-* `name` - (Optional) The name of the replica.
+* `name` - The name of the replica.
 
 
 ---

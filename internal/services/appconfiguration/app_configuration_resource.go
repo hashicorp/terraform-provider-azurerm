@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
@@ -145,13 +144,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validate.ConfigurationStoreReplicaName,
 						},
-						"location": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ValidateFunc:     location.EnhancedValidate,
-							StateFunc:        location.StateFunc,
-							DiffSuppressFunc: location.DiffSuppressFunc,
-						},
+						"location": commonschema.LocationWithoutForceNew(),
 						"endpoint": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -357,21 +350,14 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	meta.(*clients.Client).AppConfiguration.AddToCache(resourceId, *resp.Model.Properties.Endpoint)
 
-	expandedReplicas, err := expandAppConfigurationReplicas(d.Get("replica").(*schema.Set).List(), name, location)
+	expandedReplicas, err := expandAppConfigurationReplicas(d.Get("replica").(*pluginsdk.Set).List(), name, location)
 	if err != nil {
 		return fmt.Errorf("expanding `replica`: %+v", err)
 	}
 
 	replicaClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
-	for _, replica := range expandedReplicas {
-		replicaId := replicas.NewReplicaID(subscriptionId, resourceGroup, name, *replica.Name)
-
-		existingReplica, err := replicaClient.Get(ctx, replicaId)
-		if err != nil {
-			if !response.WasNotFound(existingReplica.HttpResponse) {
-				return fmt.Errorf("retrieving %s: %+v", replicaId, err)
-			}
-		}
+	for _, replica := range *expandedReplicas {
+		replicaId := replicas.NewReplicaID(resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.ConfigurationStoreName, *replica.Name)
 
 		if err := replicaClient.CreateThenPoll(ctx, replicaId, replica); err != nil {
 			return fmt.Errorf("creating %s: %+v", replicaId, err)
@@ -494,6 +480,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		// check if a replica has been removed from config and if so, delete it
 		deleteReplicaIds := make([]replicas.ReplicaId, 0)
+		unchangedReplicaNames := make(map[string]struct{}, 0)
 		oldReplicas, newReplicas := d.GetChange("replica")
 		for _, oldReplica := range oldReplicas.(*pluginsdk.Set).List() {
 			isRemoved := true
@@ -502,7 +489,8 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 			for _, newReplica := range newReplicas.(*pluginsdk.Set).List() {
 				newReplicaMap := newReplica.(map[string]interface{})
 
-				if strings.EqualFold(oldReplicaMap["name"].(string), newReplicaMap["name"].(string)) && strings.EqualFold(oldReplicaMap["location"].(string), newReplicaMap["location"].(string)) {
+				if strings.EqualFold(oldReplicaMap["name"].(string), newReplicaMap["name"].(string)) && strings.EqualFold(location.Normalize(oldReplicaMap["location"].(string)), location.Normalize(newReplicaMap["location"].(string))) {
+					unchangedReplicaNames[oldReplicaMap["name"].(string)] = struct{}{}
 					isRemoved = false
 					break
 				}
@@ -517,13 +505,17 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return err
 		}
 
-		expandedReplicas, err := expandAppConfigurationReplicas(d.Get("replica").(*schema.Set).List(), id.ConfigurationStoreName, location.Normalize(existing.Model.Location))
+		expandedReplicas, err := expandAppConfigurationReplicas(d.Get("replica").(*pluginsdk.Set).List(), id.ConfigurationStoreName, location.Normalize(existing.Model.Location))
 		if err != nil {
 			return fmt.Errorf("expanding `replica`: %+v", err)
 		}
 
 		// check if a replica has been added or an existing one changed its location, (re)create it
-		for _, replica := range expandedReplicas {
+		for _, replica := range *expandedReplicas {
+			if _, isUnchanged := unchangedReplicaNames[*replica.Name]; isUnchanged {
+				continue
+			}
+
 			replicaId := replicas.NewReplicaID(id.SubscriptionId, id.ResourceGroupName, id.ConfigurationStoreName, *replica.Name)
 
 			existingReplica, err := replicaClient.Get(ctx, replicaId)
@@ -534,7 +526,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			if !response.WasNotFound(existingReplica.HttpResponse) {
-				continue
+				return fmt.Errorf("updating %s: replica %s already exists", *id, replicaId)
 			}
 
 			if err = replicaClient.CreateThenPoll(ctx, replicaId, replica); err != nil {
@@ -786,30 +778,35 @@ func expandAppConfigurationEncryption(input []interface{}) *configurationstores.
 	return result
 }
 
-func expandAppConfigurationReplicas(input []interface{}, configurationStoreName, configurationStoreLocation string) ([]replicas.Replica, error) {
+func expandAppConfigurationReplicas(input []interface{}, configurationStoreName, configurationStoreLocation string) (*[]replicas.Replica, error) {
 	result := make([]replicas.Replica, 0)
 
-	locationSet := map[string]interface{}{
-		configurationStoreLocation: nil,
-	}
-	replicaNameSet := map[string]interface{}{}
+	// check if there are duplicated replica names or locations
+	// location cannot be same as original configuration store and other replicas
+	locationSet := make(map[string]string, 0)
+	replicaNameSet := make(map[string]struct{}, 0)
 
 	for _, v := range input {
 		replica := v.(map[string]interface{})
 		replicaName := replica["name"].(string)
 		replicaLocation := location.Normalize(replica["location"].(string))
-
-		if _, ok := locationSet[replicaLocation]; ok {
-			return result, fmt.Errorf("replica location %q is duplicated in configuration store %q location", replicaLocation, configurationStoreName)
+		if strings.EqualFold(replicaLocation, configurationStoreLocation) {
+			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with original configuration store %q", replicaName, replicaLocation, configurationStoreName)
 		}
-		locationSet[replicaLocation] = nil
 
-		if _, ok := replicaNameSet[replicaName]; ok {
-			return result, fmt.Errorf("replica name %q is duplicated", replicaName)
+		if name, ok := locationSet[replicaLocation]; ok {
+			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with replica %q", replicaName, replicaLocation, name)
 		}
+		locationSet[replicaLocation] = replicaName
+
+		normalizedReplicaName := strings.ToLower(replicaName)
+		if _, ok := replicaNameSet[normalizedReplicaName]; ok {
+			return nil, fmt.Errorf("replica name %q is duplicated", replicaName)
+		}
+		replicaNameSet[normalizedReplicaName] = struct{}{}
 
 		if len(replicaName)+len(configurationStoreName) > 60 {
-			return result, fmt.Errorf("replica name %q is too long, the total length of replica name and configuration store name should be greater than 60", replicaName)
+			return nil, fmt.Errorf("replica name %q is too long, the total length of replica name and configuration store name should be greater than 60", replicaName)
 		}
 
 		result = append(result, replicas.Replica{
@@ -818,7 +815,7 @@ func expandAppConfigurationReplicas(input []interface{}, configurationStoreName,
 		})
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flattenedAccessKeys {

@@ -57,6 +57,7 @@ func resourceConfigurationStoreReplicaHash(input interface{}) int {
 	var buf bytes.Buffer
 	if rawData, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(rawData["name"].(string))
+		buf.WriteString(rawData["location"].(string))
 	}
 	return pluginsdk.HashString(buf.String())
 }

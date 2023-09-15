@@ -95,9 +95,8 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 			},
 
 			"replica": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Set:      resourceConfigurationStoreReplicaHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {

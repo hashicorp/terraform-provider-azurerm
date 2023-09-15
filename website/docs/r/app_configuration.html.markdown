@@ -201,9 +201,9 @@ An `identity` block supports the following:
 
 A `replica` block supports the following:
 
-* `location` - (Required) Specifies the supported Azure location where the replica exists.
+* `location` - (Required) Specifies the supported Azure location where the replica exists. Changing this forces a new replica to be created.
 
-* `name` - (Optional) Specifies the name of the replica. Changing this forces a new replica to be created.
+* `name` - (Required) Specifies the name of the replica. Changing this forces a new replica to be created.
 
 ---
 
@@ -237,9 +237,9 @@ An `identity` block exports the following:
 
 A `replica` block exports the following:
 
-* `id` - The replica ID.
+* `id` - The ID of the App Configuration Replica.
 
-* `endpoint` - The URL of the replica.
+* `endpoint` - The URL of the App Configuration Replica.
 
 ---
 
