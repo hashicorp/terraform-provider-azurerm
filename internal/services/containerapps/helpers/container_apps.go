@@ -2584,6 +2584,9 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 				"metadata": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
 				},
 
 				"custom_rule_type": {
