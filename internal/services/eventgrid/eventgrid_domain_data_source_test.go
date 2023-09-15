@@ -93,8 +93,8 @@ func (EventGridDomainDataSource) basicWithSystemManagedIdentity(data acceptance.
 %s
 
 data "azurerm_eventgrid_domain" "test" {
-name                = azurerm_eventgrid_domain.test.name
-resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_eventgrid_domain.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, EventGridDomainResource{}.basicWithSystemManagedIdentity(data))
 }
@@ -104,8 +104,8 @@ func (EventGridDomainDataSource) basicWithUserAssignedManagedIdentity(data accep
 %s
 
 data "azurerm_eventgrid_domain" "test" {
-name                = azurerm_eventgrid_domain.test.name
-resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_eventgrid_domain.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, EventGridDomainResource{}.basicWithUserAssignedManagedIdentity(data))
 }
