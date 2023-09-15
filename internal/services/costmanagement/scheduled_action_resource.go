@@ -325,6 +325,10 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 					model.Properties.ViewId = id.ID()
 				}
 
+				if metadata.ResourceData.HasChange("email_address_sender") {
+					model.Properties.NotificationEmail = utils.String(metadata.ResourceData.Get("email_address_sender").(string))
+				}
+
 				if metadata.ResourceData.HasChange("email_subject") {
 					model.Properties.Notification.Subject = metadata.ResourceData.Get("email_subject").(string)
 				}

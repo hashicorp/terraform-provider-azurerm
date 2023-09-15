@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -209,6 +210,12 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 			return err
 		}
 
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+			defer cancel()
+		}
+
 		// these are nested in a Set in the Legacy VM resource, simpler to compute them
 		userName := fmt.Sprintf("testadmin%d", data.RandomInteger)
 		password := fmt.Sprintf("Password1234!%d", data.RandomInteger)
@@ -307,6 +314,11 @@ func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.C
 		return err
 	}
 
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+	}
 	resp, err := client.Compute.VirtualMachinesClient.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

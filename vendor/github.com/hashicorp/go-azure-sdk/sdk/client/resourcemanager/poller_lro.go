@@ -183,6 +183,12 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"newReplicaGroup": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
 			"Provisioning": pollers.PollingStatusInProgress,
+			// Resources @ 2020-10-01 (DeploymentScripts) returns `ProvisioningResources` during Creation
+			"ProvisioningResources": pollers.PollingStatusInProgress,
+			// AnalysisServices @ 2017-08-01 (Servers Resume) returns `Resuming` during Update
+			"Resuming": pollers.PollingStatusInProgress,
+			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Scaling` during Update
+			"Scaling": pollers.PollingStatusInProgress,
 			// HealthBot @ 2022-08-08 (HealthBots CreateOrUpdate) returns `Working` during Creation
 			"Working": pollers.PollingStatusInProgress,
 		}
@@ -230,8 +236,12 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 }
 
 type operationResult struct {
-	Name      *string    `json:"name"`
-	StartTime *time.Time `json:"startTime"`
+	Name *string `json:"name"`
+	// Some APIs (such as CosmosDbPostgreSQLCluster) return a DateTime value that doesn't match RFC3339
+	// as such we're intentionally parsing this as a string (for info) rather than as a time.Time due to:
+	// > parsing time "2023-08-11 01:58:30 +0000" as "2006-01-02T15:04:05Z07:00":
+	// >  cannot parse " 01:58:30 +0000" as "T"
+	StartTime *string `json:"startTime"`
 
 	Properties struct {
 		// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState

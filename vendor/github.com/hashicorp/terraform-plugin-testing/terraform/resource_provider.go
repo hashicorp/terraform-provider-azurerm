@@ -4,6 +4,10 @@
 package terraform
 
 // ResourceType is a type of resource that a resource provider can manage.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type ResourceType struct {
 	Name       string // Name of the resource, example "instance" (no provider prefix)
 	Importable bool   // Whether this resource supports importing
@@ -17,6 +21,10 @@ type ResourceType struct {
 }
 
 // DataSource is a data source that a resource provider implements.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type DataSource struct {
 	Name string
 

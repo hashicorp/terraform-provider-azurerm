@@ -90,7 +90,7 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 }
 
 func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.JobScheduleClient
+	client := meta.(*clients.Client).Automation.JobSchedule
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,7 +184,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.JobScheduleClient
+	client := meta.(*clients.Client).Automation.JobSchedule
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -231,7 +231,7 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.JobScheduleClient
+	client := meta.(*clients.Client).Automation.JobSchedule
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

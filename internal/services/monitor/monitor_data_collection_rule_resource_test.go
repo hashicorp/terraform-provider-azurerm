@@ -411,7 +411,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
   }
 
-  kind        = "Linux"
   description = "acc test monitor_data_collection_rule"
   tags = {
     ENV = "test"

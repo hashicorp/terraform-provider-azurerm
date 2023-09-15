@@ -23,7 +23,6 @@ import (
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -84,7 +83,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"eventhub_id": {

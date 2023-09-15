@@ -12,6 +12,15 @@ import (
 type DeliveryAttributeMapping interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawDeliveryAttributeMappingImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalDeliveryAttributeMappingImplementation(input []byte) (DeliveryAttributeMapping, error) {
 	if input == nil {
 		return nil, nil
@@ -43,10 +52,6 @@ func unmarshalDeliveryAttributeMappingImplementation(input []byte) (DeliveryAttr
 		return out, nil
 	}
 
-	type RawDeliveryAttributeMappingImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawDeliveryAttributeMappingImpl{
 		Type:   value,
 		Values: temp,

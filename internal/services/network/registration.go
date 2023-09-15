@@ -53,6 +53,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerSubscriptionConnectionResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
+		VirtualHubRoutingIntentResource{},
 	}
 }
 

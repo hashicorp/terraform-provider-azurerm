@@ -420,11 +420,11 @@ func resourceMySqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if !ok || v.(string) == "" {
 			return fmt.Errorf("restore_point_in_time must be set when create_mode is PointInTimeRestore")
 		}
-		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
 		props = &servers.ServerPropertiesForRestore{
 			SourceServerId:           source,
-			RestorePointInTime:       time.String(),
+			RestorePointInTime:       t.Format(time.RFC3339),
 			InfrastructureEncryption: pointer.To(infraEncrypt),
 			PublicNetworkAccess:      pointer.To(publicAccess),
 			MinimalTlsVersion:        pointer.To(tlsMin),

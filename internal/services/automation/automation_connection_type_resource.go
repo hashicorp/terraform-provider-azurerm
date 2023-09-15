@@ -105,8 +105,8 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.ConnectionTypeClient
-			connClient := meta.Client.Automation.AccountClient
+			client := meta.Client.Automation.ConnectionType
+			connClient := meta.Client.Automation.AutomationAccount
 
 			var model AutomationConnectionTypeModel
 			if err := meta.Decode(&model); err != nil {
@@ -165,7 +165,7 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.ConnectionTypeClient
+			client := meta.Client.Automation.ConnectionType
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -208,7 +208,7 @@ func (m AutomationConnectionTypeResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.ConnectionTypeClient
+			client := meta.Client.Automation.ConnectionType
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)
 			}

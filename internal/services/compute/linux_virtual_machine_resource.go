@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
@@ -20,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -1655,16 +1654,8 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, *diskId)
-			if err != nil {
-				if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
-				}
-			}
-			if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
-				if err := diskDeleteFuture.Poller.PollUntilDone(); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
-				}
+			if err := disksClient.DeleteThenPoll(ctx, *diskId); err != nil {
+				return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Deleted OS Disk from Linux Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroupName)

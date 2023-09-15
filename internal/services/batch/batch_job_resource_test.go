@@ -178,7 +178,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batchjob-%[1]d"
+  name     = "acctestRG-batchjob-%[1]d"
   location = "west europe"
 }
 

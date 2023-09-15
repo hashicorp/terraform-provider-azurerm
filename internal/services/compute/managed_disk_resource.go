@@ -12,11 +12,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -113,6 +113,19 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"optimized_frequent_attach_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"performance_plus_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
 			"source_uri": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -130,7 +143,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true, // Not supported by disk update
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"image_reference_id": {
@@ -342,9 +355,11 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	props := &disks.DiskProperties{
 		CreationData: disks.CreationData{
-			CreateOption: createOption,
+			CreateOption:    createOption,
+			PerformancePlus: pointer.To(d.Get("performance_plus_enabled").(bool)),
 		},
-		OsType: &osType,
+		OptimizedForFrequentAttach: pointer.To(d.Get("optimized_frequent_attach_enabled").(bool)),
+		OsType:                     &osType,
 		Encryption: &disks.Encryption{
 			Type: &encryptionTypePlatformKey,
 		},
@@ -702,6 +717,10 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
+	if d.HasChange("optimized_frequent_attach_enabled") {
+		diskUpdate.Properties.OptimizedForFrequentAttach = pointer.To(d.Get("optimized_frequent_attach_enabled").(bool))
+	}
+
 	if d.HasChange("os_type") {
 		operatingSystemType := disks.OperatingSystemTypes(d.Get("os_type").(string))
 		diskUpdate.Properties.OsType = &operatingSystemType
@@ -888,7 +907,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					return fmt.Errorf("removing Disk %q from Virtual Machine %q : %+v", id.DiskName, virtualMachine.String(), err)
 				}
 
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				if err = future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 					return fmt.Errorf("waiting for Disk %q to be removed from Virtual Machine %q : %+v", id.DiskName, virtualMachine.String(), err)
 				}
 			}
@@ -903,7 +922,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("sending Power Off to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err := future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for Power Off of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
@@ -919,7 +938,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("Deallocating to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
-			if err := deAllocFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err := deAllocFuture.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for Deallocation of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
@@ -954,7 +973,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("updating Virtual Machine %q to reattach Disk %q: %+v", virtualMachine.String(), name, err)
 			}
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err = future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for Virtual Machine %q to finish reattaching Disk %q: %+v", virtualMachine.String(), name, err)
 			}
 		}
@@ -966,7 +985,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("starting Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err := future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 				return fmt.Errorf("waiting for start of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 			}
 
@@ -1038,6 +1057,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("gallery_image_reference_id", galleryImageReferenceId)
 			d.Set("image_reference_id", imageReferenceId)
 
+			d.Set("performance_plus_enabled", creationData.PerformancePlus)
 			d.Set("source_resource_id", creationData.SourceResourceId)
 			d.Set("source_uri", creationData.SourceUri)
 			d.Set("storage_account_id", creationData.StorageAccountId)
@@ -1048,6 +1068,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 			d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
 			d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
+			d.Set("optimized_frequent_attach_enabled", props.OptimizedForFrequentAttach)
 			d.Set("os_type", string(pointer.From(props.OsType)))
 			d.Set("tier", props.Tier)
 			d.Set("max_shares", props.MaxShares)

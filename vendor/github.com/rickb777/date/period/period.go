@@ -9,14 +9,14 @@ import (
 	"time"
 )
 
-const daysPerYearE4 int64 = 3652425   // 365.2425 days by the Gregorian rule
-const daysPerMonthE4 int64 = 304369   // 30.4369 days per month
-const daysPerMonthE6 int64 = 30436875 // 30.436875 days per month
+const daysPerYearE4 = 3652425   // 365.2425 days by the Gregorian rule
+const daysPerMonthE4 = 304369   // 30.4369 days per month
+const daysPerMonthE6 = 30436875 // 30.436875 days per month
 
-const oneE4 int64 = 10000
-const oneE5 int64 = 100000
-const oneE6 int64 = 1000000
-const oneE7 int64 = 10000000
+const oneE4 = 10000
+const oneE5 = 100000
+const oneE6 = 1000000
+const oneE7 = 10000000
 
 const hundredMs = 100 * time.Millisecond
 
@@ -42,7 +42,6 @@ const hundredMs = 100 * time.Millisecond
 //
 // Note that although fractional weeks can be parsed, they will never be returned via String().
 // This is because the number of weeks is always inferred from the number of days.
-//
 type Period struct {
 	years, months, days, hours, minutes, seconds int16
 }
@@ -52,6 +51,8 @@ type Period struct {
 // need to.
 //
 // All the parameters must have the same sign (otherwise a panic occurs).
+// Because this implementation uses int16 internally, the paramters must
+// be within the range ± 2^16 / 10.
 func NewYMD(years, months, days int) Period {
 	return New(years, months, days, 0, 0, 0)
 }
@@ -61,6 +62,8 @@ func NewYMD(years, months, days int) Period {
 // if you need to.
 //
 // All the parameters must have the same sign (otherwise a panic occurs).
+// Because this implementation uses int16 internally, the paramters must
+// be within the range ± 2^16 / 10.
 func NewHMS(hours, minutes, seconds int) Period {
 	return New(0, 0, 0, hours, minutes, seconds)
 }
@@ -81,8 +84,6 @@ func New(years, months, days, hours, minutes, seconds int) Period {
 	panic(fmt.Sprintf("Periods must have homogeneous signs; got P%dY%dM%dDT%dH%dM%dS",
 		years, months, days, hours, minutes, seconds))
 }
-
-// TODO NewFloat
 
 // NewOf converts a time duration to a Period, and also indicates whether the conversion is precise.
 // Any time duration that spans more than ± 3276 hours will be approximated by assuming that there
@@ -142,13 +143,13 @@ func NewOf(duration time.Duration) (p Period, precise bool) {
 // computations applied to the period can only be precise if they concern either the date (year, month,
 // day) part, or the clock (hour, minute, second) part, but not both.
 func Between(t1, t2 time.Time) (p Period) {
-	if t1.Location() != t2.Location() {
-		t2 = t2.In(t1.Location())
-	}
-
 	sign := 1
 	if t2.Before(t1) {
 		t1, t2, sign = t2, t1, -1
+	}
+
+	if t1.Location() != t2.Location() {
+		t2 = t2.In(t1.Location())
 	}
 
 	year, month, day, hour, min, sec, hundredth := daysDiff(t1, t2)
@@ -171,9 +172,9 @@ func daysDiff(t1, t2 time.Time) (year, month, day, hour, min, sec, hundredth int
 
 	day = int(duration / (24 * time.Hour))
 
-	hour = int(hh2 - hh1)
-	min = int(mm2 - mm1)
-	sec = int(ss2 - ss1)
+	hour = hh2 - hh1
+	min = mm2 - mm1
+	sec = ss2 - ss1
 	hundredth = (t2.Nanosecond() - t1.Nanosecond()) / 100000000
 
 	// Normalize negative values
@@ -248,15 +249,22 @@ func (period Period) OnlyHMS() Period {
 
 // Abs converts a negative period to a positive one.
 func (period Period) Abs() Period {
-	return Period{absInt16(period.years), absInt16(period.months), absInt16(period.days),
-		absInt16(period.hours), absInt16(period.minutes), absInt16(period.seconds)}
+	a, _ := period.absNeg()
+	return a
 }
 
-func absInt16(v int16) int16 {
-	if v < 0 {
-		return -v
+func (period Period) absNeg() (Period, bool) {
+	if period.IsNegative() {
+		return period.Negate(), true
 	}
-	return v
+	return period, false
+}
+
+func (period Period) condNegate(neg bool) Period {
+	if neg {
+		return period.Negate()
+	}
+	return period
 }
 
 // Negate changes the sign of the period.
@@ -264,45 +272,11 @@ func (period Period) Negate() Period {
 	return Period{-period.years, -period.months, -period.days, -period.hours, -period.minutes, -period.seconds}
 }
 
-// Add adds two periods together. Use this method along with Negate in order to subtract periods.
-//
-// The result is not normalised and may overflow arithmetically (to make this unlikely, use Normalise on
-// the inputs before adding them).
-func (period Period) Add(that Period) Period {
-	return Period{
-		period.years + that.years,
-		period.months + that.months,
-		period.days + that.days,
-		period.hours + that.hours,
-		period.minutes + that.minutes,
-		period.seconds + that.seconds,
+func absInt16(v int16) int16 {
+	if v < 0 {
+		return -v
 	}
-}
-
-// Scale a period by a multiplication factor. Obviously, this can both enlarge and shrink it,
-// and change the sign if negative. The result is normalised.
-//
-// Bear in mind that the internal representation is limited by fixed-point arithmetic with one
-// decimal place; each field is only int16.
-//
-// Known issue: scaling by a large reduction factor (i.e. much less than one) doesn't work properly.
-func (period Period) Scale(factor float32) Period {
-
-	if -0.5 < factor && factor < 0.5 {
-		d, pr1 := period.Duration()
-		mul := float64(d) * float64(factor)
-		p2, pr2 := NewOf(time.Duration(mul))
-		return p2.Normalise(pr1 && pr2)
-	}
-
-	y := int64(float32(period.years) * factor)
-	m := int64(float32(period.months) * factor)
-	d := int64(float32(period.days) * factor)
-	hh := int64(float32(period.hours) * factor)
-	mm := int64(float32(period.minutes) * factor)
-	ss := int64(float32(period.seconds) * factor)
-
-	return (&period64{y, m, d, hh, mm, ss, false}).normalise64(true).toPeriod()
+	return v
 }
 
 // Years gets the whole number of years in the period.
@@ -422,29 +396,7 @@ func (period Period) SecondsFloat() float32 {
 	return float32(period.seconds) / 10
 }
 
-// AddTo adds the period to a time, returning the result.
-// A flag is also returned that is true when the conversion was precise and false otherwise.
-//
-// When the period specifies hours, minutes and seconds only, the result is precise.
-// Also, when the period specifies whole years, months and days (i.e. without fractions), the
-// result is precise. However, when years, months or days contains fractions, the result
-// is only an approximation (it assumes that all days are 24 hours and every year is 365.2425
-// days, as per Gregorian calendar rules).
-func (period Period) AddTo(t time.Time) (time.Time, bool) {
-	wholeYears := (period.years % 10) == 0
-	wholeMonths := (period.months % 10) == 0
-	wholeDays := (period.days % 10) == 0
-
-	if wholeYears && wholeMonths && wholeDays {
-		// in this case, time.AddDate provides an exact solution
-		stE3 := totalSecondsE3(period)
-		t1 := t.AddDate(int(period.years/10), int(period.months/10), int(period.days/10))
-		return t1.Add(stE3 * time.Millisecond), true
-	}
-
-	d, precise := period.Duration()
-	return t.Add(d), precise
-}
+//-------------------------------------------------------------------------------------------------
 
 // DurationApprox converts a period to the equivalent duration in nanoseconds.
 // When the period specifies hours, minutes and seconds only, the result is precise.
@@ -514,7 +466,8 @@ func (period Period) TotalMonthsApprox() int {
 //
 // Because the number of hours per day is imprecise (due to daylight savings etc), and because
 // the number of days per month is variable in the Gregorian calendar, there is a reluctance
-// to transfer time too or from the days element. To give control over this, there are two modes.
+// to transfer time to or from the days element, or to transfer days to or from the months
+// element. To give control over this, there are two modes.
 //
 // In precise mode:
 // Multiples of 60 seconds become minutes.
@@ -527,220 +480,138 @@ func (period Period) TotalMonthsApprox() int {
 //
 // Note that leap seconds are disregarded: every minute is assumed to have 60 seconds.
 func (period Period) Normalise(precise bool) Period {
-	const limit = 32670 - (32670 / 60)
-
-	// can we use a quicker algorithm for HHMMSS with int16 arithmetic?
-	if period.years == 0 && period.months == 0 &&
-		(!precise || period.days == 0) &&
-		period.hours > -limit && period.hours < limit {
-
-		return period.normaliseHHMMSS(precise)
-	}
-
-	// can we use a quicker algorithm for YYMM with int16 arithmetic?
-	if (period.years != 0 || period.months != 0) && //period.months%10 == 0 &&
-		period.days == 0 && period.hours == 0 && period.minutes == 0 && period.seconds == 0 {
-
-		return period.normaliseYYMM()
-	}
-
-	// do things the no-nonsense way using int64 arithmetic
-	return period.toPeriod64().normalise64(precise).toPeriod()
+	n, _ := period.toPeriod64("").normalise64(precise).toPeriod()
+	return n
 }
 
-func (period Period) normaliseHHMMSS(precise bool) Period {
-	s := period.Sign()
-	ap := period.Abs()
-
-	// remember that the fields are all fixed-point 1E1
-	ap.minutes += (ap.seconds / 600) * 10
-	ap.seconds = ap.seconds % 600
-
-	ap.hours += (ap.minutes / 600) * 10
-	ap.minutes = ap.minutes % 600
-
-	// up to 36 hours stays as hours
-	if !precise && ap.hours > 360 {
-		ap.days += (ap.hours / 240) * 10
-		ap.hours = ap.hours % 240
-	}
-
-	d10 := ap.days % 10
-	if d10 != 0 && (ap.hours != 0 || ap.minutes != 0 || ap.seconds != 0) {
-		ap.hours += d10 * 24
-		ap.days -= d10
-	}
-
-	hh10 := ap.hours % 10
-	if hh10 != 0 {
-		ap.minutes += hh10 * 60
-		ap.hours -= hh10
-	}
-
-	mm10 := ap.minutes % 10
-	if mm10 != 0 {
-		ap.seconds += mm10 * 60
-		ap.minutes -= mm10
-	}
-
-	if s < 0 {
-		return ap.Negate()
-	}
-	return ap
-}
-
-func (period Period) normaliseYYMM() Period {
-	s := period.Sign()
-	ap := period.Abs()
-
-	// remember that the fields are all fixed-point 1E1
-	if ap.months > 129 {
-		ap.years += (ap.months / 120) * 10
-		ap.months = ap.months % 120
-	}
-
-	y10 := ap.years % 10
-	if y10 != 0 && (ap.years < 10 || ap.months != 0) {
-		ap.months += y10 * 12
-		ap.years -= y10
-	}
-
-	if s < 0 {
-		return ap.Negate()
-	}
-	return ap
-}
-
-//-------------------------------------------------------------------------------------------------
-
-// used for stages in arithmetic
-type period64 struct {
-	years, months, days, hours, minutes, seconds int64
-	neg                                          bool
-}
-
-func (period Period) toPeriod64() *period64 {
-	return &period64{
-		int64(period.years), int64(period.months), int64(period.days),
-		int64(period.hours), int64(period.minutes), int64(period.seconds),
-		false,
+// Simplify applies some heuristic simplifications with the objective of reducing the number
+// of non-zero fields and thus making the rendered form simpler. It should be applied to
+// a normalised period, otherwise the results may be unpredictable.
+//
+// Note that months and days are never combined, due to the variability of month lengths.
+// Days and hours are only combined when imprecise behaviour is selected; this is due to
+// daylight savings transitions, during which there are more than or fewer than 24 hours
+// per day.
+//
+// The following transformation rules are applied in order:
+//
+// * P1YnM becomes 12+n months for 0 < n <= 6
+// * P1DTnH becomes 24+n hours for 0 < n <= 6 (unless precise is true)
+// * PT1HnM becomes 60+n minutes for 0 < n <= 10
+// * PT1MnS becomes 60+n seconds for 0 < n <= 10
+//
+// At each step, if a fraction exists and would affect the calculation, the transformations
+// stop. Also, when not precise,
+//
+// * for periods of at least ten years, month proper fractions are discarded
+// * for periods of at least a year, day proper fractions are discarded
+// * for periods of at least a month, hour proper fractions are discarded
+// * for periods of at least a day, minute proper fractions are discarded
+// * for periods of at least an hour, second proper fractions are discarded
+//
+// The thresholds can be set using the varargs th parameter. By default, the thresholds a,
+// b, c, d are 6 months, 6 hours, 10 minutes, 10 seconds respectively as listed in the rules
+// above.
+//
+// * No thresholds is equivalent to 6, 6, 10, 10.
+// * A single threshold a is equivalent to a, a, a, a.
+// * Two thresholds a, b are equivalent to a, a, b, b.
+// * Three thresholds a, b, c are equivalent to a, b, c, c.
+// * Four thresholds a, b, c, d are used as provided.
+func (period Period) Simplify(precise bool, th ...int) Period {
+	switch len(th) {
+	case 0:
+		return period.doSimplify(precise, 60, 60, 100, 100)
+	case 1:
+		return period.doSimplify(precise, int16(th[0]*10), int16(th[0]*10), int16(th[0]*10), int16(th[0]*10))
+	case 2:
+		return period.doSimplify(precise, int16(th[0]*10), int16(th[0]*10), int16(th[1]*10), int16(th[1]*10))
+	case 3:
+		return period.doSimplify(precise, int16(th[0]*10), int16(th[1]*10), int16(th[2]*10), int16(th[2]*10))
+	default:
+		return period.doSimplify(precise, int16(th[0]*10), int16(th[1]*10), int16(th[2]*10), int16(th[3]*10))
 	}
 }
 
-func (p *period64) toPeriod() Period {
-	if p.neg {
-		return Period{
-			int16(-p.years), int16(-p.months), int16(-p.days),
-			int16(-p.hours), int16(-p.minutes), int16(-p.seconds),
+func (period Period) doSimplify(precise bool, a, b, c, d int16) Period {
+	if period.years%10 != 0 {
+		return period
+	}
+
+	ap, neg := period.absNeg()
+
+	// single year is dropped if there are some months
+	if ap.years == 10 &&
+		0 < ap.months && ap.months <= a &&
+		ap.days == 0 {
+		ap.months += 120
+		ap.years = 0
+	}
+
+	if ap.months%10 != 0 {
+		// month fraction is dropped for periods of at least ten years (1:120)
+		months := ap.months / 10
+		if !precise && ap.years >= 100 && months == 0 {
+			ap.months = 0
+		}
+		return ap.condNegate(neg)
+	}
+
+	if ap.days%10 != 0 {
+		// day fraction is dropped for periods of at least a year (1:365)
+		days := ap.days / 10
+		if !precise && (ap.years > 0 || ap.months >= 120) && days == 0 {
+			ap.days = 0
+		}
+		return ap.condNegate(neg)
+	}
+
+	if !precise && ap.days == 10 &&
+		ap.years == 0 &&
+		ap.months == 0 &&
+		0 < ap.hours && ap.hours <= b {
+		ap.hours += 240
+		ap.days = 0
+	}
+
+	if ap.hours%10 != 0 {
+		// hour fraction is dropped for periods of at least a month (1:720)
+		hours := ap.hours / 10
+		if !precise && (ap.years > 0 || ap.months > 0 || ap.days >= 300) && hours == 0 {
+			ap.hours = 0
+		}
+		return ap.condNegate(neg)
+	}
+
+	if ap.hours == 10 &&
+		0 < ap.minutes && ap.minutes <= c {
+		ap.minutes += 600
+		ap.hours = 0
+	}
+
+	if ap.minutes%10 != 0 {
+		// minute fraction is dropped for periods of at least a day (1:1440)
+		minutes := ap.minutes / 10
+		if !precise && (ap.years > 0 || ap.months > 0 || ap.days > 0 || ap.hours >= 240) && minutes == 0 {
+			ap.minutes = 0
+		}
+		return ap.condNegate(neg)
+	}
+
+	if ap.minutes == 10 &&
+		ap.hours == 0 &&
+		0 < ap.seconds && ap.seconds <= d {
+		ap.seconds += 600
+		ap.minutes = 0
+	}
+
+	if ap.seconds%10 != 0 {
+		// second fraction is dropped for periods of at least an hour (1:3600)
+		seconds := ap.seconds / 10
+		if !precise && (ap.years > 0 || ap.months > 0 || ap.days > 0 || ap.hours > 0 || ap.minutes >= 600) && seconds == 0 {
+			ap.seconds = 0
 		}
 	}
 
-	return Period{
-		int16(p.years), int16(p.months), int16(p.days),
-		int16(p.hours), int16(p.minutes), int16(p.seconds),
-	}
-}
-
-func (p *period64) normalise64(precise bool) *period64 {
-	return p.abs().rippleUp(precise).moveFractionToRight()
-}
-
-func (p *period64) abs() *period64 {
-
-	if !p.neg {
-		if p.years < 0 {
-			p.years = -p.years
-			p.neg = true
-		}
-
-		if p.months < 0 {
-			p.months = -p.months
-			p.neg = true
-		}
-
-		if p.days < 0 {
-			p.days = -p.days
-			p.neg = true
-		}
-
-		if p.hours < 0 {
-			p.hours = -p.hours
-			p.neg = true
-		}
-
-		if p.minutes < 0 {
-			p.minutes = -p.minutes
-			p.neg = true
-		}
-
-		if p.seconds < 0 {
-			p.seconds = -p.seconds
-			p.neg = true
-		}
-	}
-	return p
-}
-
-func (p *period64) rippleUp(precise bool) *period64 {
-	// remember that the fields are all fixed-point 1E1
-
-	p.minutes = p.minutes + (p.seconds/600)*10
-	p.seconds = p.seconds % 600
-
-	p.hours = p.hours + (p.minutes/600)*10
-	p.minutes = p.minutes % 600
-
-	// 32670-(32670/60)-(32670/3600) = 32760 - 546 - 9.1 = 32204.9
-	if !precise || p.hours > 32204 {
-		p.days += (p.hours / 240) * 10
-		p.hours = p.hours % 240
-	}
-
-	if !precise || p.days > 32760 {
-		dE6 := p.days * oneE6
-		p.months += dE6 / daysPerMonthE6
-		p.days = (dE6 % daysPerMonthE6) / oneE6
-	}
-
-	p.years = p.years + (p.months/120)*10
-	p.months = p.months % 120
-
-	return p
-}
-
-// moveFractionToRight applies the rule that only the smallest field is permitted to have a decimal fraction.
-func (p *period64) moveFractionToRight() *period64 {
-	// remember that the fields are all fixed-point 1E1
-
-	y10 := p.years % 10
-	if y10 != 0 && (p.months != 0 || p.days != 0 || p.hours != 0 || p.minutes != 0 || p.seconds != 0) {
-		p.months += y10 * 12
-		p.years = (p.years / 10) * 10
-	}
-
-	m10 := p.months % 10
-	if m10 != 0 && (p.days != 0 || p.hours != 0 || p.minutes != 0 || p.seconds != 0) {
-		p.days += (m10 * daysPerMonthE6) / oneE6
-		p.months = (p.months / 10) * 10
-	}
-
-	d10 := p.days % 10
-	if d10 != 0 && (p.hours != 0 || p.minutes != 0 || p.seconds != 0) {
-		p.hours += d10 * 24
-		p.days = (p.days / 10) * 10
-	}
-
-	hh10 := p.hours % 10
-	if hh10 != 0 && (p.minutes != 0 || p.seconds != 0) {
-		p.minutes += hh10 * 60
-		p.hours = (p.hours / 10) * 10
-	}
-
-	mm10 := p.minutes % 10
-	if mm10 != 0 && p.seconds != 0 {
-		p.seconds += mm10 * 60
-		p.minutes = (p.minutes / 10) * 10
-	}
-
-	return p
+	return ap.condNegate(neg)
 }

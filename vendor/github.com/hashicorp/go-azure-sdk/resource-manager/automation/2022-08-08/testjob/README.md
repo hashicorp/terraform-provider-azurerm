@@ -1,0 +1,105 @@
+
+## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/testjob` Documentation
+
+The `testjob` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2022-08-08`).
+
+This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
+
+### Import Path
+
+```go
+import "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/testjob"
+```
+
+
+### Client Initialization
+
+```go
+client := testjob.NewTestJobClientWithBaseURI("https://management.azure.com")
+client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `TestJobClient.Create`
+
+```go
+ctx := context.TODO()
+id := testjob.NewRunbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "runbookValue")
+
+payload := testjob.TestJobCreateParameters{
+	// ...
+}
+
+
+read, err := client.Create(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `TestJobClient.Get`
+
+```go
+ctx := context.TODO()
+id := testjob.NewRunbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "runbookValue")
+
+read, err := client.Get(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `TestJobClient.Resume`
+
+```go
+ctx := context.TODO()
+id := testjob.NewRunbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "runbookValue")
+
+read, err := client.Resume(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `TestJobClient.Stop`
+
+```go
+ctx := context.TODO()
+id := testjob.NewRunbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "runbookValue")
+
+read, err := client.Stop(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `TestJobClient.Suspend`
+
+```go
+ctx := context.TODO()
+id := testjob.NewRunbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "runbookValue")
+
+read, err := client.Suspend(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```

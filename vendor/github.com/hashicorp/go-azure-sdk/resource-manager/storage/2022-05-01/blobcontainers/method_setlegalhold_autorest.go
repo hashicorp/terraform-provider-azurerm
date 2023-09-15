@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type SetLegalHoldOperationResponse struct {
 }
 
 // SetLegalHold ...
-func (c BlobContainersClient) SetLegalHold(ctx context.Context, id ContainerId, input LegalHold) (result SetLegalHoldOperationResponse, err error) {
+func (c BlobContainersClient) SetLegalHold(ctx context.Context, id commonids.StorageContainerId, input LegalHold) (result SetLegalHoldOperationResponse, err error) {
 	req, err := c.preparerForSetLegalHold(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "SetLegalHold", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c BlobContainersClient) SetLegalHold(ctx context.Context, id ContainerId, 
 }
 
 // preparerForSetLegalHold prepares the SetLegalHold request.
-func (c BlobContainersClient) preparerForSetLegalHold(ctx context.Context, id ContainerId, input LegalHold) (*http.Request, error) {
+func (c BlobContainersClient) preparerForSetLegalHold(ctx context.Context, id commonids.StorageContainerId, input LegalHold) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

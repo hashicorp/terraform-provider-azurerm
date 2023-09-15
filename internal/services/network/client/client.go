@@ -16,7 +16,6 @@ type Client struct {
 	*network_2023_04_01.Client
 
 	ApplicationGatewaysClient              *network.ApplicationGatewaysClient
-	ConfigurationPolicyGroupClient         *network.ConfigurationPolicyGroupsClient
 	CustomIPPrefixesClient                 *network.CustomIPPrefixesClient
 	DDOSProtectionPlansClient              *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
@@ -34,8 +33,6 @@ type Client struct {
 	LocalNetworkGatewaysClient             *network.LocalNetworkGatewaysClient
 	NatRuleClient                          *network.NatRulesClient
 	PointToSiteVpnGatewaysClient           *network.P2sVpnGatewaysClient
-	ProfileClient                          *network.ProfilesClient
-	PacketCapturesClient                   *network.PacketCapturesClient
 	PublicIPsClient                        *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
 	PrivateDnsZoneGroupClient              *network.PrivateDNSZoneGroupsClient
@@ -47,7 +44,6 @@ type Client struct {
 	ServiceAssociationLinkClient           *network.ServiceAssociationLinksClient
 	ServiceEndpointPoliciesClient          *network.ServiceEndpointPoliciesClient
 	ServiceEndpointPolicyDefinitionsClient *network.ServiceEndpointPolicyDefinitionsClient
-	ServiceTagsClient                      *network.ServiceTagsClient
 	SubnetsClient                          *network.SubnetsClient
 	NatGatewayClient                       *network.NatGatewaysClient
 	VirtualHubBgpConnectionClient          *network.VirtualHubBgpConnectionClient
@@ -59,19 +55,11 @@ type Client struct {
 	VnetPeeringsClient                     *network.VirtualNetworkPeeringsClient
 	VirtualWanClient                       *network.VirtualWansClient
 	VirtualHubClient                       *network.VirtualHubsClient
-	VpnConnectionsClient                   *network.VpnConnectionsClient
-	VpnGatewaysClient                      *network.VpnGatewaysClient
-	VpnServerConfigurationsClient          *network.VpnServerConfigurationsClient
-	VpnSitesClient                         *network.VpnSitesClient
-	WatcherClient                          *network.WatchersClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	configurationPolicyGroupClient := network.NewConfigurationPolicyGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&configurationPolicyGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	customIpPrefixesClient := network.NewCustomIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customIpPrefixesClient.Client, o.ResourceManagerAuthorizer)
@@ -124,17 +112,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	pointToSiteVpnGatewaysClient := network.NewP2sVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&pointToSiteVpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
-	vpnServerConfigurationsClient := network.NewVpnServerConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vpnServerConfigurationsClient.Client, o.ResourceManagerAuthorizer)
-
-	ProfileClient := network.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ProfileClient.Client, o.ResourceManagerAuthorizer)
-
 	VnetClient := network.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetClient.Client, o.ResourceManagerAuthorizer)
-
-	PacketCapturesClient := network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
 
 	VnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
@@ -166,9 +145,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ServiceEndpointPolicyDefinitionsClient := network.NewServiceEndpointPolicyDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceEndpointPolicyDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	ServiceTagsClient := network.NewServiceTagsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ServiceTagsClient.Client, o.ResourceManagerAuthorizer)
-
 	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -196,18 +172,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	VirtualHubClient := network.NewVirtualHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualHubClient.Client, o.ResourceManagerAuthorizer)
 
-	vpnGatewaysClient := network.NewVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	vpnConnectionsClient := network.NewVpnConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vpnConnectionsClient.Client, o.ResourceManagerAuthorizer)
-
-	vpnSitesClient := network.NewVpnSitesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vpnSitesClient.Client, o.ResourceManagerAuthorizer)
-
-	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
-
 	ServiceAssociationLinkClient := network.NewServiceAssociationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceAssociationLinkClient.Client, o.ResourceManagerAuthorizer)
 
@@ -225,7 +189,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		Client: client,
 
 		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
-		ConfigurationPolicyGroupClient:         &configurationPolicyGroupClient,
 		CustomIPPrefixesClient:                 &customIpPrefixesClient,
 		DDOSProtectionPlansClient:              &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,
@@ -243,8 +206,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		LocalNetworkGatewaysClient:             &LocalNetworkGatewaysClient,
 		NatRuleClient:                          &NatRuleClient,
 		PointToSiteVpnGatewaysClient:           &pointToSiteVpnGatewaysClient,
-		ProfileClient:                          &ProfileClient,
-		PacketCapturesClient:                   &PacketCapturesClient,
 		PublicIPsClient:                        &PublicIPsClient,
 		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
 		RouteMapsClient:                        &RouteMapsClient,
@@ -252,7 +213,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SecurityPartnerProviderClient:          &SecurityPartnerProviderClient,
 		ServiceEndpointPoliciesClient:          &ServiceEndpointPoliciesClient,
 		ServiceEndpointPolicyDefinitionsClient: &ServiceEndpointPolicyDefinitionsClient,
-		ServiceTagsClient:                      &ServiceTagsClient,
 		SubnetsClient:                          &SubnetsClient,
 		NatGatewayClient:                       &NatGatewayClient,
 		VirtualHubBgpConnectionClient:          &VirtualHubBgpConnectionClient,
@@ -264,11 +224,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VnetPeeringsClient:                     &VnetPeeringsClient,
 		VirtualWanClient:                       &VirtualWanClient,
 		VirtualHubClient:                       &VirtualHubClient,
-		VpnConnectionsClient:                   &vpnConnectionsClient,
-		VpnGatewaysClient:                      &vpnGatewaysClient,
-		VpnServerConfigurationsClient:          &vpnServerConfigurationsClient,
-		VpnSitesClient:                         &vpnSitesClient,
-		WatcherClient:                          &WatcherClient,
 		PrivateDnsZoneGroupClient:              &PrivateDnsZoneGroupClient,
 		PrivateLinkServiceClient:               &PrivateLinkServiceClient,
 		ServiceAssociationLinkClient:           &ServiceAssociationLinkClient,

@@ -157,7 +157,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 }
 
 func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,9 +195,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
-		parameters.Properties.DisableLocalAuth = utils.Bool(true)
-	}
+	parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
 
 	// for create account do not set identity property (even TypeNone is not allowed), or api will response error
 	if identityVal.Type != identity.TypeNone {
@@ -216,7 +214,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -247,8 +245,8 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
-		parameters.Properties.DisableLocalAuth = utils.Bool(true)
+	if d.HasChange("local_authentication_enabled") {
+		parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
 	}
 
 	if tagsVal := tags.Expand(d.Get("tags").(map[string]interface{})); tagsVal != nil {
@@ -263,7 +261,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	registrationClient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -351,7 +349,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -6,26 +6,17 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-type NetAppVolumeGroupSapHanaDataSourceModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
-}
 
 var _ sdk.DataSource = NetAppVolumeGroupSapHanaDataSource{}
 
@@ -36,7 +27,7 @@ func (r NetAppVolumeGroupSapHanaDataSource) ResourceType() string {
 }
 
 func (r NetAppVolumeGroupSapHanaDataSource) ModelObject() interface{} {
-	return &NetAppVolumeGroupSapHanaDataSourceModel{}
+	return &netAppModels.NetAppVolumeGroupSapHanaDataSourceModel{}
 }
 
 func (r NetAppVolumeGroupSapHanaDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -249,38 +240,37 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 
 			client := metadata.Client.NetApp.VolumeGroupClient
 
-			var state NetAppVolumeGroupSapHanaDataSourceModel
+			var state netAppModels.NetAppVolumeGroupSapHanaDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := volumegroups.NewVolumeGroupID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
 
-			resp, err := client.VolumeGroupsGet(ctx, id)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				if resp.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			state.Location = location.Normalize(pointer.From(model.Location))
-			state.ApplicationIdentifier = pointer.From(model.Properties.GroupMetaData.ApplicationIdentifier)
-			state.GroupDescription = pointer.From(model.Properties.GroupMetaData.GroupDescription)
-
-			volumes, err := flattenNetAppVolumeGroupVolumes(ctx, model.Properties.Volumes, metadata)
-			if err != nil {
-				return fmt.Errorf("setting `volume`: %+v", err)
-			}
-
-			state.Volumes = volumes
-
 			metadata.SetID(id)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(pointer.From(model.Location))
+				if props := model.Properties; props != nil {
+					if groupMetaData := props.GroupMetaData; groupMetaData != nil {
+						state.ApplicationIdentifier = pointer.From(groupMetaData.ApplicationIdentifier)
+						state.GroupDescription = pointer.From(groupMetaData.GroupDescription)
+					}
+
+					volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
+					if err != nil {
+						return fmt.Errorf("setting `volume`: %+v", err)
+					}
+					state.Volumes = volumes
+				}
+			}
 
 			return metadata.Encode(&state)
 		},

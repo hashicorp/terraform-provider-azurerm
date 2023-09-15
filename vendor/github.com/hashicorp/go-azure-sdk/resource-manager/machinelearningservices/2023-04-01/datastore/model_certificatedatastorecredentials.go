@@ -11,12 +11,12 @@ import (
 var _ DatastoreCredentials = CertificateDatastoreCredentials{}
 
 type CertificateDatastoreCredentials struct {
-	AuthorityUrl *string          `json:"authorityUrl,omitempty"`
-	ClientId     string           `json:"clientId"`
-	ResourceUrl  *string          `json:"resourceUrl,omitempty"`
-	Secrets      DatastoreSecrets `json:"secrets"`
-	TenantId     string           `json:"tenantId"`
-	Thumbprint   string           `json:"thumbprint"`
+	AuthorityUrl *string                     `json:"authorityUrl,omitempty"`
+	ClientId     string                      `json:"clientId"`
+	ResourceUrl  *string                     `json:"resourceUrl,omitempty"`
+	Secrets      CertificateDatastoreSecrets `json:"secrets"`
+	TenantId     string                      `json:"tenantId"`
+	Thumbprint   string                      `json:"thumbprint"`
 
 	// Fields inherited from DatastoreCredentials
 }
@@ -43,34 +43,4 @@ func (s CertificateDatastoreCredentials) MarshalJSON() ([]byte, error) {
 	}
 
 	return encoded, nil
-}
-
-var _ json.Unmarshaler = &CertificateDatastoreCredentials{}
-
-func (s *CertificateDatastoreCredentials) UnmarshalJSON(bytes []byte) error {
-	type alias CertificateDatastoreCredentials
-	var decoded alias
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into CertificateDatastoreCredentials: %+v", err)
-	}
-
-	s.AuthorityUrl = decoded.AuthorityUrl
-	s.ClientId = decoded.ClientId
-	s.ResourceUrl = decoded.ResourceUrl
-	s.TenantId = decoded.TenantId
-	s.Thumbprint = decoded.Thumbprint
-
-	var temp map[string]json.RawMessage
-	if err := json.Unmarshal(bytes, &temp); err != nil {
-		return fmt.Errorf("unmarshaling CertificateDatastoreCredentials into map[string]json.RawMessage: %+v", err)
-	}
-
-	if v, ok := temp["secrets"]; ok {
-		impl, err := unmarshalDatastoreSecretsImplementation(v)
-		if err != nil {
-			return fmt.Errorf("unmarshaling field 'Secrets' for 'CertificateDatastoreCredentials': %+v", err)
-		}
-		s.Secrets = impl
-	}
-	return nil
 }

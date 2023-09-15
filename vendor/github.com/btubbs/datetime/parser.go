@@ -238,12 +238,17 @@ func (p *parser) parseDate() (int, time.Month, int, error) {
 		return parseErr(fmt.Errorf("found %s, expected %s", found, expected))
 	}
 
-	// should start with a number like yyyy or yyyymmdd
+	// should start with a number like yyyy or yyyymm or yyyymmdd
 	switch tok, lit := p.scan(); tok {
 	case NUMBER:
 		switch len(lit) {
 		case 4:
 			year = parseInt(lit)
+		case 6:
+			year = parseInt(lit[:4])
+			monthNum := parseInt(lit[4:6])
+			month = time.Month(monthNum)
+			return year, month, day, nil
 		case 8:
 			// we should have yyyymmdd
 			year = parseInt(lit[:4])

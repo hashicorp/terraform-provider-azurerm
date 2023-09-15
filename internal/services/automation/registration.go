@@ -27,6 +27,7 @@ func (r Registration) Resources() []sdk.Resource {
 		SoftwareUpdateConfigurationResource{},
 		SourceControlResource{},
 		WatcherResource{},
+		Python3PackageResource{},
 	}
 }
 

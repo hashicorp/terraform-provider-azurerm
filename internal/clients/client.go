@@ -18,6 +18,7 @@ import (
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
+	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -33,6 +34,7 @@ import (
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
+	azureManagedLustreFileSystem "github.com/hashicorp/terraform-provider-azurerm/internal/services/azuremanagedlustrefilesystem/client"
 	azureStackHCI "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 	batch "github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/client"
 	blueprints "github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/client"
@@ -69,7 +71,7 @@ import (
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
-	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graph/client"
+	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	hpccache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"
@@ -107,6 +109,7 @@ import (
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
+	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
@@ -150,124 +153,126 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
-	AadB2c                *aadb2c_v2021_04_01_preview.Client
-	Advisor               *advisor.Client
-	AnalysisServices      *analysisservices_v2017_08_01.Client
-	ApiManagement         *apiManagement.Client
-	AppConfiguration      *appConfiguration.Client
-	AppInsights           *applicationInsights.Client
-	AppPlatform           *appPlatform.Client
-	AppService            *appService.Client
-	ArcKubernetes         *arckubernetes.Client
-	Attestation           *attestation.Client
-	Authorization         *authorization.Client
-	Automanage            *automanage.Client
-	Automation            *automation.Client
-	AzureStackHCI         *azurestackhci_v2023_03_01.Client
-	Batch                 *batch.Client
-	Blueprints            *blueprints.Client
-	Bot                   *bot.Client
-	Cdn                   *cdn.Client
-	Cognitive             *cognitiveServices.Client
-	Communication         *communication.Client
-	Compute               *compute.Client
-	ConfidentialLedger    *confidentialledger.Client
-	Connections           *connections.Client
-	Consumption           *consumption.Client
-	ContainerApps         *containerapps.Client
-	Containers            *containerServices.Client
-	Cosmos                *cosmosdb.Client
-	CostManagement        *costmanagement.Client
-	CustomProviders       *customproviders.Client
-	Dashboard             *dashboard.Client
-	DatabaseMigration     *datamigration.Client
-	DataBricks            *databricks.Client
-	DataboxEdge           *databoxedge.Client
-	Datadog               *datadog_v2021_03_01.Client
-	DataFactory           *datafactory.Client
-	DataProtection        *dataprotection.Client
-	DataShare             *datashare.Client
-	DesktopVirtualization *desktopvirtualization.Client
-	DevTestLabs           *devtestlabs.Client
-	DigitalTwins          *digitaltwins.Client
-	Disks                 *disks.Client
-	Dns                   *dns_v2018_05_01.Client
-	DomainServices        *domainservices.Client
-	Elastic               *elastic.Client
-	EventGrid             *eventgrid_v2022_06_15.Client
-	Eventhub              *eventhub.Client
-	Firewall              *firewall.Client
-	FluidRelay            *fluidrelay_2022_05_26.Client
-	Frontdoor             *frontdoor.Client
-	Graph                 *graph.Client
-	HPCCache              *hpccache.Client
-	HSM                   *hsm.Client
-	HDInsight             *hdinsight.Client
-	HybridCompute         *hybridcompute.Client
-	HealthCare            *healthcare.Client
-	IoTCentral            *iotcentral.Client
-	IoTHub                *iothub.Client
-	IoTTimeSeriesInsights *timeseriesinsights_v2020_05_15.Client
-	KeyVault              *keyvault.Client
-	Kusto                 *kusto.Client
-	LabService            *labservice.Client
-	Legacy                *legacy.Client
-	Lighthouse            *lighthouse.Client
-	LoadBalancers         *loadbalancers.Client
-	LogAnalytics          *loganalytics.Client
-	Logic                 *logic.Client
-	Logz                  *logz.Client
-	MachineLearning       *machinelearning.Client
-	Maintenance           *maintenance.Client
-	ManagedApplication    *managedapplication.Client
-	ManagementGroups      *managementgroup.Client
-	Maps                  *maps.Client
-	MariaDB               *mariadb.Client
-	Media                 *media.Client
-	MixedReality          *mixedreality.Client
-	Monitor               *monitor.Client
-	MobileNetwork         *mobilenetwork.Client
-	MSSQL                 *mssql.Client
-	MSSQLManagedInstance  *mssqlmanagedinstance.Client
-	MySQL                 *mysql.Client
-	NetApp                *netapp.Client
-	Network               *network.Client
-	NetworkFunction       *networkfunction.Client
-	NewRelic              *newrelic.Client
-	Nginx                 *nginx2.Client
-	NotificationHubs      *notificationhub.Client
-	Orbital               *orbital.Client
-	Policy                *policy.Client
-	Portal                *portal.Client
-	Postgres              *postgres.Client
-	PowerBI               *powerBI.Client
-	PrivateDns            *privatedns.Client
-	PrivateDnsResolver    *dnsresolver.Client
-	Purview               *purview.Client
-	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis_v2023_04_01.Client
-	RedisEnterprise       *redisenterprise.Client
-	Relay                 *relay.Client
-	Resource              *resource.Client
-	Search                *search.Client
-	SecurityCenter        *securityCenter.Client
-	Sentinel              *sentinel.Client
-	ServiceBus            *serviceBus.Client
-	ServiceConnector      *serviceConnector.Client
-	ServiceFabric         *serviceFabric.Client
-	ServiceFabricManaged  *serviceFabricManaged.Client
-	SignalR               *signalr.Client
-	Storage               *storage.Client
-	StorageMover          *storageMover.Client
-	StreamAnalytics       *streamAnalytics.Client
-	Subscription          *subscription.Client
-	Sql                   *sql.Client
-	Synapse               *synapse.Client
-	TrafficManager        *trafficManager.Client
-	VideoAnalyzer         *videoAnalyzer.Client
-	Vmware                *vmware.Client
-	VoiceServices         *voiceServices.Client
-	Web                   *web.Client
+	AadB2c                       *aadb2c_v2021_04_01_preview.Client
+	Advisor                      *advisor.Client
+	AnalysisServices             *analysisservices_v2017_08_01.Client
+	ApiManagement                *apiManagement.Client
+	AppConfiguration             *appConfiguration.Client
+	AppInsights                  *applicationInsights.Client
+	AppPlatform                  *appPlatform.Client
+	AppService                   *appService.Client
+	ArcKubernetes                *arckubernetes.Client
+	Attestation                  *attestation.Client
+	Authorization                *authorization.Client
+	Automanage                   *automanage.Client
+	Automation                   *automation.Client
+	AzureManagedLustreFileSystem *storagecache_2023_05_01.Client
+	AzureStackHCI                *azurestackhci_v2023_03_01.Client
+	Batch                        *batch.Client
+	Blueprints                   *blueprints.Client
+	Bot                          *bot.Client
+	Cdn                          *cdn.Client
+	Cognitive                    *cognitiveServices.Client
+	Communication                *communication.Client
+	Compute                      *compute.Client
+	ConfidentialLedger           *confidentialledger.Client
+	Connections                  *connections.Client
+	Consumption                  *consumption.Client
+	ContainerApps                *containerapps.Client
+	Containers                   *containerServices.Client
+	Cosmos                       *cosmosdb.Client
+	CostManagement               *costmanagement.Client
+	CustomProviders              *customproviders.Client
+	Dashboard                    *dashboard.Client
+	DatabaseMigration            *datamigration.Client
+	DataBricks                   *databricks.Client
+	DataboxEdge                  *databoxedge.Client
+	Datadog                      *datadog_v2021_03_01.Client
+	DataFactory                  *datafactory.Client
+	DataProtection               *dataprotection.Client
+	DataShare                    *datashare.Client
+	DesktopVirtualization        *desktopvirtualization.Client
+	DevTestLabs                  *devtestlabs.Client
+	DigitalTwins                 *digitaltwins.Client
+	Disks                        *disks.Client
+	Dns                          *dns_v2018_05_01.Client
+	DomainServices               *domainservices.Client
+	Elastic                      *elastic.Client
+	EventGrid                    *eventgrid_v2022_06_15.Client
+	Eventhub                     *eventhub.Client
+	Firewall                     *firewall.Client
+	FluidRelay                   *fluidrelay_2022_05_26.Client
+	Frontdoor                    *frontdoor.Client
+	Graph                        *graph.Client
+	HPCCache                     *hpccache.Client
+	HSM                          *hsm.Client
+	HDInsight                    *hdinsight.Client
+	HybridCompute                *hybridcompute.Client
+	HealthCare                   *healthcare.Client
+	IoTCentral                   *iotcentral.Client
+	IoTHub                       *iothub.Client
+	IoTTimeSeriesInsights        *timeseriesinsights_v2020_05_15.Client
+	KeyVault                     *keyvault.Client
+	Kusto                        *kusto.Client
+	LabService                   *labservice.Client
+	Legacy                       *legacy.Client
+	Lighthouse                   *lighthouse.Client
+	LoadBalancers                *loadbalancers.Client
+	LogAnalytics                 *loganalytics.Client
+	Logic                        *logic.Client
+	Logz                         *logz.Client
+	MachineLearning              *machinelearning.Client
+	Maintenance                  *maintenance.Client
+	ManagedApplication           *managedapplication.Client
+	ManagementGroups             *managementgroup.Client
+	Maps                         *maps.Client
+	MariaDB                      *mariadb.Client
+	Media                        *media.Client
+	MixedReality                 *mixedreality.Client
+	Monitor                      *monitor.Client
+	MobileNetwork                *mobilenetwork.Client
+	MSSQL                        *mssql.Client
+	MSSQLManagedInstance         *mssqlmanagedinstance.Client
+	MySQL                        *mysql.Client
+	NetApp                       *netapp.Client
+	Network                      *network.Client
+	NetworkFunction              *networkfunction.Client
+	NewRelic                     *newrelic.Client
+	Nginx                        *nginx2.Client
+	NotificationHubs             *notificationhub.Client
+	Orbital                      *orbital.Client
+	PaloAlto                     *paloalto.Client
+	Policy                       *policy.Client
+	Portal                       *portal.Client
+	Postgres                     *postgres.Client
+	PowerBI                      *powerBI.Client
+	PrivateDns                   *privatedns.Client
+	PrivateDnsResolver           *dnsresolver.Client
+	Purview                      *purview.Client
+	RecoveryServices             *recoveryServices.Client
+	Redis                        *redis_v2023_04_01.Client
+	RedisEnterprise              *redisenterprise.Client
+	Relay                        *relay.Client
+	Resource                     *resource.Client
+	Search                       *search.Client
+	SecurityCenter               *securityCenter.Client
+	Sentinel                     *sentinel.Client
+	ServiceBus                   *serviceBus.Client
+	ServiceConnector             *serviceConnector.Client
+	ServiceFabric                *serviceFabric.Client
+	ServiceFabricManaged         *serviceFabricManaged.Client
+	SignalR                      *signalr.Client
+	Storage                      *storage.Client
+	StorageMover                 *storageMover.Client
+	StreamAnalytics              *streamAnalytics.Client
+	Subscription                 *subscription.Client
+	Sql                          *sql.Client
+	Synapse                      *synapse.Client
+	TrafficManager               *trafficManager.Client
+	VideoAnalyzer                *videoAnalyzer.Client
+	Vmware                       *vmware.Client
+	VoiceServices                *voiceServices.Client
+	Web                          *web.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -319,6 +324,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Automation, err = automation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Automation: %+v", err)
 	}
+	if client.AzureManagedLustreFileSystem, err = azureManagedLustreFileSystem.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Azure Managed Lustre File System: %+v", err)
+	}
 	if client.AzureStackHCI, err = azureStackHCI.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AzureStackHCI: %+v", err)
 	}
@@ -354,7 +362,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Containers: %+v", err)
 	}
 	client.ContainerApps = containerapps.NewClient(o)
-	client.Cosmos = cosmosdb.NewClient(o)
+	if client.Cosmos, err = cosmosdb.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for CosmosDB: %+v", err)
+	}
 	if client.CostManagement, err = costmanagement.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for CostManagement: %+v", err)
 	}
@@ -386,7 +396,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
 	}
-	client.DevTestLabs = devtestlabs.NewClient(o)
+	if client.DevTestLabs, err = devtestlabs.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DevTestLabs: %+v", err)
+	}
 	if client.DigitalTwins, err = digitaltwins.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DigitalTwins: %+v", err)
 	}
@@ -443,7 +455,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
-	client.LogAnalytics = loganalytics.NewClient(o)
+	if client.LogAnalytics, err = loganalytics.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LogAnalytics: %+v", err)
+	}
 	client.LoadBalancers = loadbalancers.NewClient(o)
 	if client.Logic, err = logic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Logic: %+v", err)
@@ -506,10 +520,15 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
 	}
+	if client.PaloAlto, err = paloalto.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PaloAlto: %+v", err)
+	}
 	if client.Portal, err = portal.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Portal: %+v", err)
 	}
-	client.Postgres = postgres.NewClient(o)
+	if client.Postgres, err = postgres.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Postgres: %+v", err)
+	}
 	if client.PowerBI, err = powerBI.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for PowerBI: %+v", err)
 	}
@@ -522,7 +541,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Purview, err = purview.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Purview: %+v", err)
 	}
-	client.RecoveryServices = recoveryServices.NewClient(o)
+	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
 	}
@@ -532,7 +553,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)
 	}
-	client.Resource = resource.NewClient(o)
+	if client.Resource, err = resource.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Resource: %+v", err)
+	}
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}
@@ -557,7 +580,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
 	client.Synapse = synapse.NewClient(o)
-	client.TrafficManager = trafficManager.NewClient(o)
+	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Traffic Manager: %+v", err)
+	}
 	if client.VideoAnalyzer, err = videoAnalyzer.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Video Analyzer: %+v", err)
 	}

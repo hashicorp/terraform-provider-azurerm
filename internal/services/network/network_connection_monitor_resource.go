@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -62,7 +62,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: networkValidate.NetworkWatcherID,
+			ValidateFunc: networkwatchers.ValidateNetworkWatcherID,
 		},
 
 		"location": commonschema.Location(),
@@ -511,7 +511,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("name", id.ConnectionMonitorName)
 
 	if model := resp.Model; model != nil {
-		networkWatcherId := parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroupName, id.NetworkWatcherName)
+		networkWatcherId := networkwatchers.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroupName, id.NetworkWatcherName)
 		d.Set("network_watcher_id", networkWatcherId.ID())
 
 		if location := model.Location; location != nil {

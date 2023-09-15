@@ -46,6 +46,8 @@ The following attributes are exported:
 
 * `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
+* `current_kubernetes_version` - Contains the current version of Kubernetes running on the Cluster.
+
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.

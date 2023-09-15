@@ -82,9 +82,9 @@ func resourceAutomationConnection() *pluginsdk.Resource {
 }
 
 func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ConnectionClient
+	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	connectionTypeClient := meta.(*clients.Client).Automation.ConnectionTypeClient
+	connectionTypeClient := meta.(*clients.Client).Automation.ConnectionType
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -147,7 +147,7 @@ func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ConnectionClient
+	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -189,7 +189,7 @@ func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ConnectionClient
+	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

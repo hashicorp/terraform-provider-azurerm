@@ -84,7 +84,7 @@ func (t AutomationModuleResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Automation.ModuleClient.Get(ctx, *id)
+	resp, err := clients.Automation.Module.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

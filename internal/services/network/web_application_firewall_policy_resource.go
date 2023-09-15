@@ -76,6 +76,11 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionLog),
 							}, false),
 						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 						"match_conditions": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
@@ -537,7 +542,7 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Web Application Firewall Policy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -599,7 +604,13 @@ func expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input []
 		matchConditions := v["match_conditions"].([]interface{})
 		action := v["action"].(string)
 
+		enabled := webapplicationfirewallpolicies.WebApplicationFirewallStateEnabled
+		if value, ok := v["enabled"].(bool); ok && !value {
+			enabled = webapplicationfirewallpolicies.WebApplicationFirewallStateDisabled
+		}
+
 		result := webapplicationfirewallpolicies.WebApplicationFirewallCustomRule{
+			State:           pointer.To(enabled),
 			Action:          webapplicationfirewallpolicies.WebApplicationFirewallAction(action),
 			MatchConditions: expandWebApplicationFirewallPolicyMatchCondition(matchConditions),
 			Name:            pointer.To(name),
@@ -946,6 +957,7 @@ func flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input *
 			v["name"] = *name
 		}
 		v["action"] = string(item.Action)
+		v["enabled"] = pointer.From(item.State) == webapplicationfirewallpolicies.WebApplicationFirewallStateEnabled
 		v["match_conditions"] = flattenWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
 		v["priority"] = int(item.Priority)
 		v["rule_type"] = string(item.RuleType)

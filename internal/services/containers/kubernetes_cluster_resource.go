@@ -53,10 +53,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseKubernetesClusterID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(
+			func(id string) error {
+				_, err := commonids.ParseKubernetesClusterID(id)
+				return err
+			},
+			// TODO 4.0: we're defaulting this at import time because the property is non-functional.
+			// In the lead up to 4.0 planning if the feature still isn't functional we should look at
+			// removing this entirely.
+			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+				d.Set("public_network_access_enabled", true)
+				return []*pluginsdk.ResourceData{d}, nil
+			},
+		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
@@ -87,12 +96,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.ebpf_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != ""
+			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
 					d.SetNewComputed("oidc_issuer_url")
 				}
 				return nil
 			},
+			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta interface{}) bool {
+				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -270,7 +285,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"skip_nodes_with_local_storage": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  !features.FourPointOhBeta(),
 						},
 						"skip_nodes_with_system_pods": {
 							Type:     pluginsdk.TypeBool,
@@ -1052,7 +1067,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"ebpf_data_plane": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkDataplaneCilium),
 							}, false),
@@ -1061,7 +1075,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_plugin_mode": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginModeOverlay),
 							}, false),
@@ -1306,10 +1319,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Default:    true,
+				Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API",
 			},
 
 			"role_based_access_control_enabled": {
@@ -1535,7 +1548,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["network_plugin_mode"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.NetworkPluginModeOverlay),
 				"Overlay",
@@ -1662,11 +1674,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
 	}
 
-	publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = managedclusters.PublicNetworkAccessDisabled
-	}
-
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
 
@@ -1747,7 +1754,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WindowsProfile:            windowsProfile,
 			NetworkProfile:            networkProfile,
 			NodeResourceGroup:         utils.String(nodeResourceGroup),
-			PublicNetworkAccess:       &publicNetworkAccess,
 			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:           httpProxyConfig,
 			OidcIssuerProfile:         oidcIssuerProfile,
@@ -2036,11 +2042,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		networkProfile := *existing.Model.Properties.NetworkProfile
 
-		if networkProfile.LoadBalancerProfile == nil && networkProfile.NatGatewayProfile == nil {
-			// on of the profiles should be present
-			return fmt.Errorf("both `loadBalancerProfile` and `natGatewayProfile` are nil in Azure")
-		}
-
 		if networkProfile.LoadBalancerProfile != nil {
 			loadBalancerProfile := *networkProfile.LoadBalancerProfile
 
@@ -2146,6 +2147,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
+		}
+
+		if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
+			ebpfDataPlane := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
@@ -2393,6 +2399,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.os_disk_type",
 			"default_node_pool.0.os_sku",
 			"default_node_pool.0.pod_subnet_id",
+			"default_node_pool.0.snapshot_id",
 			"default_node_pool.0.ultra_ssd_enabled",
 			"default_node_pool.0.vnet_subnet_id",
 			"default_node_pool.0.vm_size",
@@ -2587,12 +2594,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
-
-			publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccess != managedclusters.PublicNetworkAccessDisabled)
 
 			upgradeChannel := ""
 			nodeOSUpgradeChannel := ""

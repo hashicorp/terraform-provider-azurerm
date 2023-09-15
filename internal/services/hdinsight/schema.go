@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -795,7 +794,7 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: storageValidate.StorageAccountID,
+					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"is_default": {
 					Type:     pluginsdk.TypeBool,
@@ -820,7 +819,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: storageValidate.StorageAccountID,
+					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
 				"filesystem_id": {
 					Type:         pluginsdk.TypeString,
