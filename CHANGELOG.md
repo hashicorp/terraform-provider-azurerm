@@ -1,3 +1,9 @@
+## 3.74.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies - swap Virtual Machine Scale Set Ids to `hashicorp/go-azure-helpers/commonids` [GH-23272]
+
 ## 3.73.0 (September 14, 2023)
 
 FEATURES:
