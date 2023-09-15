@@ -1431,8 +1431,10 @@ resource "azurerm_container_app" "test" {
       queue_name   = "foo"
       queue_length = 10
 
-      authentication_secret_reference  = "queue-auth-secret"
-      authentication_trigger_parameter = "blah"
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
     }
 
     custom_scale_rule {
@@ -1485,8 +1487,10 @@ resource "azurerm_container_app" "test" {
       queue_name   = "foo"
       queue_length = 10
 
-      authentication_secret_reference  = "queue-auth-secret"
-      authentication_trigger_parameter = "blah"
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
     }
 
     azure_queue_scale_rule {
@@ -1494,15 +1498,23 @@ resource "azurerm_container_app" "test" {
       queue_name   = "bar"
       queue_length = 20
 
-      authentication_secret_reference  = "queue-auth-secret"
-      authentication_trigger_parameter = "blah2"
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "another_password"
+      }
     }
 
     custom_scale_rule {
       name             = "csr-1"
       custom_rule_type = "rabbitmq"
+
       metadata = {
         foo = "bar"
+      }
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
       }
     }
 
@@ -1510,14 +1522,20 @@ resource "azurerm_container_app" "test" {
       name                = "http-1"
       concurrent_requests = "200"
 
-      authentication_secret_reference = "queue-auth-secret"
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
     }
 
     tcp_scale_rule {
       name                = "tcp-1"
       concurrent_requests = "1000"
 
-      authentication_secret_reference = "queue-auth-secret"
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
     }
   }
 }
