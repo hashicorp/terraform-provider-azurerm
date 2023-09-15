@@ -173,7 +173,7 @@ func (r NewRelicTagRuleResource) Create() sdk.ResourceFunc {
 				SendSubscriptionLogs: pointer.To(tagrules.SendSubscriptionLogsStatusDisabled),
 			}
 
-			email, err := r.getEmail(ctx, metadata, monitorId)
+			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, monitorId)
 			if err != nil {
 				return err
 			}
@@ -256,7 +256,7 @@ func (r NewRelicTagRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			email, err := r.getEmail(ctx, metadata, monitorId)
+			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, monitorId)
 			if err != nil {
 				return err
 			}
@@ -376,8 +376,7 @@ func (r NewRelicTagRuleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r NewRelicTagRuleResource) getEmail(ctx context.Context, metadata sdk.ResourceMetaData, monitorId *monitors.MonitorId) (string, error) {
-	monitorClient := metadata.Client.NewRelic.MonitorsClient
+func (r NewRelicTagRuleResource) getEmail(ctx context.Context, monitorClient *monitors.MonitorsClient, monitorId *monitors.MonitorId) (string, error) {
 	monitor, err := monitorClient.Get(ctx, *monitorId)
 	if err != nil {
 		return "", fmt.Errorf("getting monitor: %+v", err)
