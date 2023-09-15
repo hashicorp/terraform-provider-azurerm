@@ -122,6 +122,8 @@ A `log` block supports the following:
 
 -> **NOTE:** Not all resources have category groups available.
 
+-> **NOTE:** Exactly one of `category` or `category_group` must be specified.
+
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
@@ -136,7 +138,9 @@ An `enabled_log` block supports the following:
 
 * `category_group` - (Optional) The name of a Diagnostic Log Category Group for this Resource.
 
--> **NOTE:** Not all resources have category groups available.****
+-> **NOTE:** Not all resources have category groups available.
+
+-> **NOTE:** Exactly one of `category` or `category_group` must be specified.
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
