@@ -350,6 +350,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"os_image_notification": virtualMachineOsImageNotificationSchema(),
+
 			"termination_notification": virtualMachineTerminationNotificationSchema(),
 
 			"timezone": {
@@ -766,8 +768,22 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]interface{}))
+	}
+
+	if terminateNotificationProfile != nil || osImageNotificationProfile != nil {
+		params.VirtualMachineProperties.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if v, ok := d.GetOk("timezone"); ok {
@@ -1001,7 +1017,11 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
-		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+		if err := d.Set("os_image_notification", flattenOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
+		}
+
+		if err := d.Set("termination_notification", flattenTerminateNotificationProfile(scheduleProfile.TerminateNotificationProfile)); err != nil {
 			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 	}
@@ -1446,11 +1466,24 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if d.HasChange("os_image_notification") {
+		shouldUpdate = true
+		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]interface{}))
+	}
+
 	if d.HasChange("termination_notification") {
 		shouldUpdate = true
+		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]interface{}))
+	}
 
-		notificationRaw := d.Get("termination_notification").([]interface{})
-		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		update.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if d.HasChange("additional_capabilities") {

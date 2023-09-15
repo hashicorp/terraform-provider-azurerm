@@ -425,6 +425,30 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	}, nil
 }
 
+func virtualMachineOsImageNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"PT15M",
+					}, false),
+					Default: "PT15M",
+				},
+			},
+		},
+	}
+}
+
 func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -448,12 +472,10 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineScheduledEventsProfile(input []interface{}) *compute.ScheduledEventsProfile {
+func expandOsImageNotificationProfile(input []interface{}) *compute.OSImageNotificationProfile {
 	if len(input) == 0 {
-		return &compute.ScheduledEventsProfile{
-			TerminateNotificationProfile: &compute.TerminateNotificationProfile{
-				Enable: utils.Bool(false),
-			},
+		return &compute.OSImageNotificationProfile{
+			Enable: utils.Bool(false),
 		}
 	}
 
@@ -461,26 +483,63 @@ func expandVirtualMachineScheduledEventsProfile(input []interface{}) *compute.Sc
 	enabled := raw["enabled"].(bool)
 	timeout := raw["timeout"].(string)
 
-	return &compute.ScheduledEventsProfile{
-		TerminateNotificationProfile: &compute.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
-		},
+	return &compute.OSImageNotificationProfile{
+		Enable:           &enabled,
+		NotBeforeTimeout: &timeout,
 	}
 }
 
-func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
+func expandTerminateNotificationProfile(input []interface{}) *compute.TerminateNotificationProfile {
+	if len(input) == 0 {
+		return &compute.TerminateNotificationProfile{
+			Enable: utils.Bool(false),
+		}
+	}
+
+	raw := input[0].(map[string]interface{})
+	enabled := raw["enabled"].(bool)
+	timeout := raw["timeout"].(string)
+
+	return &compute.TerminateNotificationProfile{
+		Enable:           &enabled,
+		NotBeforeTimeout: &timeout,
+	}
+}
+
+func flattenOsImageNotificationProfile(input *compute.OSImageNotificationProfile) []interface{} {
 	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
 	// a user explicitly set enabled to false, we need to assign a default block to this field
 
 	enabled := false
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
-		enabled = *input.TerminateNotificationProfile.Enable
+	if input != nil && input.Enable != nil {
+		enabled = *input.Enable
+	}
+
+	timeout := "PT15M"
+	if input != nil && input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"timeout": timeout,
+		},
+	}
+}
+
+func flattenTerminateNotificationProfile(input *compute.TerminateNotificationProfile) []interface{} {
+	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
+	// a user explicitly set enabled to false, we need to assign a default block to this field
+
+	enabled := false
+	if input != nil && input.Enable != nil {
+		enabled = *input.Enable
 	}
 
 	timeout := "PT5M"
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
-		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	if input != nil && input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
 	}
 
 	return []interface{}{

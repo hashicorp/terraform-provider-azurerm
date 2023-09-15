@@ -199,6 +199,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
+* `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
+
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Changing this forces a new resource to be created.
@@ -350,6 +352,14 @@ The `source_image_reference` block supports the following:
 * `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 * `version` - (Required) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+---
+
+A `os_image_notification` block supports the following:
+
+* `enabled` - (Required) Should the OS image notification be enabled on this Virtual Machine?
+
+* `timeout` - (Optional) Length of time a notification to be sent to the VM on the instance metadata server till the VM gets OS upgraded. The only possible value is `PT15M`. Defaults to `PT15M`.
 
 ---
 

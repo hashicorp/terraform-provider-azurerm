@@ -738,6 +738,44 @@ func TestAccWindowsVirtualMachine_otherTags(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherOsImageNotification(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// turn termination notification on
+		{
+			Config: r.otherOsImageNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification off
+		{
+			Config: r.otherOsImageNotification(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification on again
+		{
+			Config: r.otherOsImageNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherTerminationNotification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -2842,6 +2880,40 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) otherOsImageNotification(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  os_image_notification {
+    enabled = %t
+  }
+}
+`, r.template(data), enabled)
 }
 
 func (r WindowsVirtualMachineResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {

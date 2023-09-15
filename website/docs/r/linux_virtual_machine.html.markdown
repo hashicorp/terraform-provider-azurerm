@@ -204,6 +204,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
+* `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
+
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
@@ -349,6 +351,14 @@ The `source_image_reference` block supports the following:
 * `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 * `version` - (Required) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+---
+
+A `os_image_notification` block supports the following:
+
+* `enabled` - (Required) Should the OS image notification be enabled on this Virtual Machine?
+
+* `timeout` - (Optional) Length of time a notification to be sent to the VM on the instance metadata server till the VM gets OS upgraded. The only possible value is `PT15M`. Defaults to `PT15M`.
 
 ---
 
