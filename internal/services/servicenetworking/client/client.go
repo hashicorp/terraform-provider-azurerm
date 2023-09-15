@@ -12,15 +12,12 @@ type Client struct {
 	ServiceNetworkingClient *servicenetworking_v2023_05_01_preview.Client
 }
 
-func NewClient(o *common.ClientOptions) (*Client, error) {
-	serviceNetworkingClient, err := servicenetworking_v2023_05_01_preview.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+func NewClient(o *common.ClientOptions) (*servicenetworking_v2023_05_01_preview.Client, error) {
+	client, err := servicenetworking_v2023_05_01_preview.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("building service netowkriing client: %+v", err)
+		return nil, fmt.Errorf("building ServiceNetworking client: %+v", err)
 	}
-
-	return &Client{
-		ServiceNetworkingClient: serviceNetworkingClient,
-	}, nil
+	return client, nil
 }

@@ -19,10 +19,10 @@ type ApplicationLoadBalancerResource struct{}
 func (r ApplicationLoadBalancerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trafficcontrollerinterface.ParseTrafficControllerID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
+		return nil, err
 	}
 
-	resp, err := clients.ServiceNetworking.ServiceNetworkingClient.TrafficControllerInterface.Get(ctx, *id)
+	resp, err := clients.ServiceNetworking.TrafficControllerInterface.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
@@ -32,7 +32,7 @@ func (r ApplicationLoadBalancerResource) Exists(ctx context.Context, clients *cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestAccServiceNetworkingALB_basic(t *testing.T) {
+func TestAccApplicationLoadBalancer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
 	r := ApplicationLoadBalancerResource{}
@@ -48,7 +48,7 @@ func TestAccServiceNetworkingALB_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceNetworkingALB_complete(t *testing.T) {
+func TestAccApplicationLoadBalancer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
 	r := ApplicationLoadBalancerResource{}
@@ -64,7 +64,7 @@ func TestAccServiceNetworkingALB_complete(t *testing.T) {
 	})
 }
 
-func TestAccServiceNetworkingALB_update(t *testing.T) {
+func TestAccApplicationLoadBalancer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
 
 	r := ApplicationLoadBalancerResource{}
@@ -85,18 +85,29 @@ func TestAccServiceNetworkingALB_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationLoadBalancer_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer", "test")
+
+	r := ApplicationLoadBalancerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("configuration_endpoint.#").HasValue("1"),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func (r ApplicationLoadBalancerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-  }
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acct-sn-%d"
+  name     = "acctestrg-alb-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -107,11 +118,11 @@ func (r ApplicationLoadBalancerResource) basic(data acceptance.TestData) string 
 	%s
 
 resource "azurerm_application_load_balancer" "test" {
-  name                = "acct-%d"
-  location            = "%s"
+  name                = "acctestalb-%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApplicationLoadBalancerResource) complete(data acceptance.TestData) string {
@@ -119,12 +130,24 @@ func (r ApplicationLoadBalancerResource) complete(data acceptance.TestData) stri
 	%s
 
 resource "azurerm_application_load_balancer" "test" {
-  name                = "acct-%d"
-  location            = "%s"
+  name                = "acctestalb-%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tags = {
     key = "value"
   }
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationLoadBalancerResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	%s
+
+resource "azurerm_application_load_balancer" "import" {
+  name                = azurerm_application_load_balancer.test.name
+  location            = azurerm_application_load_balancer.test.location
+  resource_group_name = azurerm_application_load_balancer.test.resource_group_name
+}
+`, r.basic(data))
 }

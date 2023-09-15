@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ApplicationLoadBalancerResource struct{}
@@ -31,9 +32,10 @@ var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerResource{}
 func (t ApplicationLoadBalancerResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -72,17 +74,16 @@ func (t ApplicationLoadBalancerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var plan ApplicationLoadBalancerModel
-			if err := metadata.Decode(&plan); err != nil {
+			client := metadata.Client.ServiceNetworking.TrafficControllerInterface
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var config ApplicationLoadBalancerModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding %v", err)
 			}
 
-			client := metadata.Client.ServiceNetworking.ServiceNetworkingClient
-			SubscriptionId := metadata.Client.Account.SubscriptionId
-
-			id := trafficcontrollerinterface.NewTrafficControllerID(SubscriptionId, plan.ResourceGroupName, plan.Name)
-
-			existing, err := client.TrafficControllerInterface.Get(ctx, id)
+			id := trafficcontrollerinterface.NewTrafficControllerID(subscriptionId, config.ResourceGroupName, config.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -93,12 +94,12 @@ func (t ApplicationLoadBalancerResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(t.ResourceType(), id)
 			}
 
-			controller := trafficcontrollerinterface.TrafficController{
-				Location: location.Normalize(plan.Location),
-				Tags:     pointer.To(plan.Tags),
+			payload := trafficcontrollerinterface.TrafficController{
+				Location: location.Normalize(config.Location),
+				Tags:     pointer.To(config.Tags),
 			}
 
-			if err = client.TrafficControllerInterface.CreateOrUpdateThenPoll(ctx, id, controller); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -112,19 +113,19 @@ func (t ApplicationLoadBalancerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceNetworking.ServiceNetworkingClient
+			client := metadata.Client.ServiceNetworking.TrafficControllerInterface
 
 			id, err := trafficcontrollerinterface.ParseTrafficControllerID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			resp, err := client.TrafficControllerInterface.Get(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", metadata.ResourceData.Id(), err)
+				return fmt.Errorf("retrieving %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
 			state := ApplicationLoadBalancerModel{
@@ -150,37 +151,23 @@ func (t ApplicationLoadBalancerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var plan ApplicationLoadBalancerModel
-			if err := metadata.Decode(&plan); err != nil {
-				return fmt.Errorf("decoding %v", err)
-			}
-			client := metadata.Client.ServiceNetworking.ServiceNetworkingClient
+			client := metadata.Client.ServiceNetworking.TrafficControllerInterface
 
 			id, err := trafficcontrollerinterface.ParseTrafficControllerID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
-			existing, err := client.TrafficControllerInterface.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", id, err)
+			var config ApplicationLoadBalancerModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding %v", err)
 			}
 
-			if existing.Model == nil {
-				return fmt.Errorf("existing Traffic Controller %s has no model", id)
+			payload := trafficcontrollerinterface.TrafficControllerUpdate{
+				Tags: pointer.To(config.Tags),
 			}
 
-			controller := existing.Model
-
-			if metadata.ResourceData.HasChange("tags") {
-				if len(plan.Tags) > 0 {
-					controller.Tags = pointer.To(plan.Tags)
-				} else {
-					controller.Tags = nil
-				}
-			}
-
-			if err = client.TrafficControllerInterface.CreateOrUpdateThenPoll(ctx, *id, *controller); err != nil {
+			if _, err := client.Update(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -193,15 +180,14 @@ func (t ApplicationLoadBalancerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ServiceNetworking.TrafficControllerInterface
+
 			id, err := trafficcontrollerinterface.ParseTrafficControllerID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
-
-			client := metadata.Client.ServiceNetworking.ServiceNetworkingClient.TrafficControllerInterface
-
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", metadata.ResourceData.Id(), err)
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
