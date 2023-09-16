@@ -2461,15 +2461,14 @@ func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*stor
 
 	v := input[0].(map[string]interface{})
 
+	ad := expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
+
 	directoryOption := storage.DirectoryServiceOptions(v["directory_type"].(string))
 
-	var ad *storage.ActiveDirectoryProperties
-	switch string(directoryOption) {
-	case string(storage.DirectoryServiceOptionsAD):
-		if _, ok := v["active_directory"]; !ok {
+	if directoryOption == storage.DirectoryServiceOptionsAD {
+		if ad == nil {
 			return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
 		}
-		ad = expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
 		if ad.AzureStorageSid == nil {
 			return nil, fmt.Errorf("`active_directory.0.storage_sid` is required when `directory_type` is `AD`")
 		}
@@ -2482,11 +2481,8 @@ func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*stor
 		if ad.NetBiosDomainName == nil {
 			return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
 		}
-	case string(storageaccounts.DirectoryServiceOptionsAADKERB):
-		if _, ok := v["active_directory"]; ok {
-			ad = expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
-		}
 	}
+
 	return &storage.AzureFilesIdentityBasedAuthentication{
 		DirectoryServiceOptions:   directoryOption,
 		ActiveDirectoryProperties: ad,
