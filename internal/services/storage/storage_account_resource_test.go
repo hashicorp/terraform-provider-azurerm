@@ -4463,7 +4463,7 @@ resource "azurerm_storage_account" "test" {
       days = 7
     }
 
-    # Following properties are not supported for "Storage" kind
+    # Following properties are not supported for "Storage" (v1) kind
     last_access_time_enabled = false
     change_feed_enabled      = false
     versioning_enabled       = false

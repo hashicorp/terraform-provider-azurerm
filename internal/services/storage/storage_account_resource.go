@@ -2596,7 +2596,7 @@ func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.Blob
 		},
 	}
 
-	// `Storage` kind doesn't support:
+	// `Storage` (v1) kind doesn't support:
 	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
 	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
 	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
@@ -2632,7 +2632,7 @@ func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.Blob
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
-	// `Storage` kind doesn't support:
+	// `Storage` (v1) kind doesn't support:
 	// - LastAccessTimeTrackingPolicy
 	// - ChangeFeed
 	// - Versioning
@@ -2656,19 +2656,19 @@ func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.Blob
 		props.BlobServicePropertiesProperties.IsVersioningEnabled = &versioningEnabled
 	} else {
 		if lastAccessTimeEnabled {
-			return nil, fmt.Errorf("`Storage` kind does not support `last_access_time_enabled`")
+			return nil, fmt.Errorf("`last_access_time_enabled` can not be configured when `kind` is set to `Storage` (v1)")
 		}
 		if changeFeedEnabled {
-			return nil, fmt.Errorf("`Storage` kind does not support `change_feed_enabled`")
+			return nil, fmt.Errorf("`change_feed_enabled` can not be configured when `kind` is set to `Storage` (v1)")
 		}
 		if changeFeedRetentionInDays != 0 {
-			return nil, fmt.Errorf("`Storage` kind does not support `change_feed_retention_in_days`")
+			return nil, fmt.Errorf("`change_feed_retention_in_days` can not be configured when `kind` is set to `Storage` (v1)")
 		}
 		if len(restorePolicyRaw) != 0 {
-			return nil, fmt.Errorf("`Storage` kind does not support `restore_policy`")
+			return nil, fmt.Errorf("`restore_policy` can not be configured when `kind` is set to `Storage` (v1)")
 		}
 		if versioningEnabled {
-			return nil, fmt.Errorf("`Storage` kind does not support `versioning_enabled`")
+			return nil, fmt.Errorf("`versioning_enabled` can not be configured when `kind` is set to `Storage` (v1)")
 		}
 	}
 
