@@ -936,6 +936,9 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 
 			if linuxAppStack.DockerImageName != "" {
 				expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+				if appSettings == nil {
+					appSettings = map[string]string{}
+				}
 				appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
 				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
 				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
@@ -944,6 +947,8 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 			expanded.LinuxFxVersion = pointer.To("")
 		}
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
