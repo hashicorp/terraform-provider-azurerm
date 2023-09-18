@@ -2637,7 +2637,7 @@ func HTTPScaleRuleSchema() *pluginsdk.Schema {
 				"concurrent_requests": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: nil, // TODO - str value for int
+					ValidateFunc: validate.ContainerAppScaleRuleConcurrentRequests,
 				},
 
 				"authentication": {
@@ -2724,7 +2724,7 @@ func TCPScaleRuleSchema() *pluginsdk.Schema {
 				"concurrent_requests": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: nil, // TODO Validation for int as str
+					ValidateFunc: validate.ContainerAppScaleRuleConcurrentRequests,
 				},
 
 				"authentication": {
