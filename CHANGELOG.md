@@ -2,7 +2,13 @@
 
 ENHANCEMENTS:
 
+* dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
 * dependencies - swap Virtual Machine Scale Set Ids to `hashicorp/go-azure-helpers/commonids` [GH-23272]
+
+BUG FIXES:
+
+* `azurerm_servicebus_queue` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
+* `azurerm_servicebus_topic` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 
 ## 3.73.0 (September 14, 2023)
 
