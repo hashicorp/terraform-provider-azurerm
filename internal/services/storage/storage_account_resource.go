@@ -1324,7 +1324,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-		blobProperties, err := expandBlobProperties(val.([]interface{}))
+		blobProperties, err := expandBlobProperties(storage.Kind(accountKind), val.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -1794,7 +1794,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-		blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		blobProperties, err := expandBlobProperties(storage.Kind(accountKind), d.Get("blob_properties").([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -2611,23 +2611,31 @@ func expandStorageAccountPrivateLinkAccess(inputs []interface{}, tenantId string
 	return &privateLinkAccess
 }
 
-func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, error) {
+func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.BlobServiceProperties, error) {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
 				CorsRules: &[]storage.CorsRule{},
 			},
-			IsVersioningEnabled: utils.Bool(false),
-			ChangeFeed: &storage.ChangeFeed{
-				Enabled: utils.Bool(false),
-			},
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
-			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
-				Enable: utils.Bool(false),
-			},
 		},
+	}
+
+	// `Storage` (v1) kind doesn't support:
+	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
+	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
+	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
+	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	if kind != storage.KindStorage {
+		props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+			Enable: utils.Bool(false),
+		}
+		props.ChangeFeed = &storage.ChangeFeed{
+			Enabled: utils.Bool(false),
+		}
+		props.IsVersioningEnabled = utils.Bool(false)
 	}
 
 	if len(input) == 0 || input[0] == nil {
@@ -2642,28 +2650,53 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
 
-	restorePolicyRaw := v["restore_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
-
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
 	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
 
-	props.ChangeFeed = &storage.ChangeFeed{
-		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
-	}
-
-	if v := v["change_feed_retention_in_days"].(int); v != 0 {
-		props.ChangeFeed.RetentionInDays = utils.Int32((int32)(v))
-	}
-
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
-	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
+	// `Storage` (v1) kind doesn't support:
+	// - LastAccessTimeTrackingPolicy
+	// - ChangeFeed
+	// - Versioning
+	// - RestorePolicy
+	lastAccessTimeEnabled := v["last_access_time_enabled"].(bool)
+	changeFeedEnabled := v["change_feed_enabled"].(bool)
+	changeFeedRetentionInDays := v["change_feed_retention_in_days"].(int)
+	restorePolicyRaw := v["restore_policy"].([]interface{})
+	versioningEnabled := v["versioning_enabled"].(bool)
+	if kind != storage.KindStorage {
+		props.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+			Enable: utils.Bool(lastAccessTimeEnabled),
+		}
+		props.BlobServicePropertiesProperties.ChangeFeed = &storage.ChangeFeed{
+			Enabled: utils.Bool(changeFeedEnabled),
+		}
+		if changeFeedRetentionInDays != 0 {
+			props.BlobServicePropertiesProperties.ChangeFeed.RetentionInDays = utils.Int32(int32(changeFeedRetentionInDays))
+		}
+		props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
+		props.BlobServicePropertiesProperties.IsVersioningEnabled = &versioningEnabled
+	} else {
+		if lastAccessTimeEnabled {
+			return nil, fmt.Errorf("`last_access_time_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if changeFeedEnabled {
+			return nil, fmt.Errorf("`change_feed_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if changeFeedRetentionInDays != 0 {
+			return nil, fmt.Errorf("`change_feed_retention_in_days` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if len(restorePolicyRaw) != 0 {
+			return nil, fmt.Errorf("`restore_policy` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if versioningEnabled {
+			return nil, fmt.Errorf("`versioning_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+		}
 	}
 
 	// Sanity check for the prerequisites of restore_policy
