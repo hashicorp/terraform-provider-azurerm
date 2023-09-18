@@ -103,7 +103,6 @@ resource "azurerm_bot_channel_directline" "test" {
   site {
     name    = "test"
     enabled = true
-    storage_enabled = true
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
