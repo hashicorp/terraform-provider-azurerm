@@ -57,7 +57,7 @@ func TestAccApplicationLoadBalancer_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("configuration_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("primary_configuration_endpoint").HasValue("1"),
 			),
 		},
 		data.ImportStep(),

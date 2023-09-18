@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Application Gateway for Containers (ALB).
 
-* `configuration_endpoint` - The list of configuration endpoints for the Application Gateway for Containers (ALB).
+* `primary_configuration_endpoint` - The primary configuration endpoints of the Application Gateway for Containers (ALB).
 
 ## Timeouts
 

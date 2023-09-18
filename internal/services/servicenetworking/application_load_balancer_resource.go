@@ -20,11 +20,11 @@ import (
 type ApplicationLoadBalancerResource struct{}
 
 type ApplicationLoadBalancerModel struct {
-	Name                   string            `tfschema:"name"`
-	ResourceGroupName      string            `tfschema:"resource_group_name"`
-	Location               string            `tfschema:"location"`
-	ConfigurationEndpoints []string          `tfschema:"configuration_endpoint"`
-	Tags                   map[string]string `tfschema:"tags"`
+	Name                          string            `tfschema:"name"`
+	ResourceGroupName             string            `tfschema:"resource_group_name"`
+	Location                      string            `tfschema:"location"`
+	PrimaryConfigurationEndpoints string            `tfschema:"primary_configuration_endpoint"`
+	Tags                          map[string]string `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerResource{}
@@ -48,12 +48,9 @@ func (t ApplicationLoadBalancerResource) Arguments() map[string]*schema.Schema {
 
 func (t ApplicationLoadBalancerResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"configuration_endpoint": {
-			Type:     pluginsdk.TypeList,
+		"primary_configuration_endpoint": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 	}
 }
@@ -138,7 +135,9 @@ func (t ApplicationLoadBalancerResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if prop := model.Properties; prop != nil {
-					state.ConfigurationEndpoints = pointer.From(prop.ConfigurationEndpoints)
+					if endpoint := prop.ConfigurationEndpoints; endpoint != nil && len(*endpoint) > 0 {
+						state.PrimaryConfigurationEndpoints = (*endpoint)[0]
+					}
 				}
 			}
 
