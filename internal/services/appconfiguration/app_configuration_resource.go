@@ -651,7 +651,13 @@ func expandAppConfigurationEncryption(input []interface{}) *configurationstores.
 		return nil
 	}
 
+	raw := input[0]
+	if raw == nil {
+		return nil
+	}
+
 	encryptionParam := input[0].(map[string]interface{})
+
 	result := &configurationstores.EncryptionProperties{
 		KeyVaultProperties: &configurationstores.KeyVaultProperties{},
 	}
