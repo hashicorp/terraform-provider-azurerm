@@ -344,23 +344,21 @@ A `azure_files_authentication` block supports the following:
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
 
-~> **Note:** If `directory_type` is set to `AADKERB`, `active_directory` is not supported. Use [icals](https://learn.microsoft.com/en-us/azure/storage/files/storage-files-identity-auth-azure-active-directory-enable?tabs=azure-portal#configure-directory-and-file-level-permissions) to configure directory and file level permissions.
-
 ---
 
 A `active_directory` block supports the following:
 
-* `storage_sid` - (Required) Specifies the security identifier (SID) for Azure Storage.
-
 * `domain_name` - (Required) Specifies the primary domain that the AD DNS server is authoritative for.
-
-* `domain_sid` - (Required) Specifies the security identifier (SID).
 
 * `domain_guid` - (Required) Specifies the domain GUID.
 
-* `forest_name` - (Required) Specifies the Active Directory forest.
+* `domain_sid` - (Optional) Specifies the security identifier (SID). This is required when `directory_type` is set to `AD`.
 
-* `netbios_domain_name` - (Required) Specifies the NetBIOS domain name.
+* `storage_sid` - (Optional) Specifies the security identifier (SID) for Azure Storage. This is required when `directory_type` is set to `AD`.
+
+* `forest_name` - (Optional) Specifies the Active Directory forest. This is required when `directory_type` is set to `AD`.
+
+* `netbios_domain_name` - (Optional) Specifies the NetBIOS domain name. This is required when `directory_type` is set to `AD`.
 
 ---
 
