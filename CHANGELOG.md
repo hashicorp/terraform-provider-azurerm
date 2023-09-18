@@ -3,7 +3,6 @@
 ENHANCEMENTS:
 
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
-* dependencies - swap Virtual Machine Scale Set Ids to `hashicorp/go-azure-helpers/commonids` [GH-23272]
 
 BUG FIXES:
 
