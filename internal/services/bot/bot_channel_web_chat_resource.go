@@ -364,24 +364,29 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 	for _, item := range *input {
 		result := make(map[string]interface{})
 
+		var name string
 		if v := item.SiteName; v != nil {
-			result["name"] = *v
+			name = *v
 		}
+		result["name"] = name
 
+		userUploadEnabled := true
 		if v := item.IsBlockUserUploadEnabled; v != nil {
-			result["user_upload_enabled"] = !*v
+			userUploadEnabled = !*v
 		}
+		result["user_upload_enabled"] = userUploadEnabled
 
+		var endpointParametersEnabled bool
 		if v := item.IsEndpointParametersEnabled; v != nil {
-			result["endpoint_parameters_enabled"] = *v
+			endpointParametersEnabled = *v
 		}
+		result["endpoint_parameters_enabled"] = endpointParametersEnabled
 
-		// API returns `nil` when `IsNoStorageEnabled` is set to `false` in the request payload
-		if v := item.IsNoStorageEnabled; v == nil {
-			result["storage_enabled"] = true
-		} else {
-			result["storage_enabled"] = !*v
+		storageEnabled := true
+		if v := item.IsNoStorageEnabled; v != nil {
+			storageEnabled = !*v
 		}
+		result["storage_enabled"] = storageEnabled
 
 		results = append(results, result)
 	}
