@@ -160,6 +160,8 @@ A `criteria` block supports the following:
 
 * `metric_measure_column` - (Optional) Specifies the column containing the metric measure number.
 
+~>**Note** `metric_measure_column` is required if `time_aggregation_method` is `Average`, `Maximum`, `Minimum`, or `Total`. `metric_measure_column` can not be specified if `time_aggregation_method` is `Count`.
+
 * `resource_id_column` - (Optional) Specifies the column containing the resource ID. The content of the column must be an uri formatted as resource ID.
 
 ---
