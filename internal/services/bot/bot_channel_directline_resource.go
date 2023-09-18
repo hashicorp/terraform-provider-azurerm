@@ -64,9 +64,10 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"block_user_upload_enabled": {
+						"user_upload_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 
 						"enabled": {
@@ -80,9 +81,10 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"no_storage_enabled": {
+						"storage_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 
 						"v1_allowed": {
@@ -177,7 +179,7 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 	d.SetId(resourceId.ID())
 
-	// Unable to add a new site with enhanced_authentication_enabled, block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
+	// Unable to add a new site with enhanced_authentication_enabled, user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
@@ -251,7 +253,7 @@ func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
 
-	// Unable to add a new site with enhanced_authentication_enabled, block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
+	// Unable to add a new site with enhanced_authentication_enabled, user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/25758 is fixed, this update will be removed
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
@@ -290,9 +292,9 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 
 		site := element.(map[string]interface{})
 		expanded := botservice.DirectLineSite{
-			IsBlockUserUploadEnabled:    utils.Bool(site["block_user_upload_enabled"].(bool)),
+			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
 			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
-			IsNoStorageEnabled:          utils.Bool(site["no_storage_enabled"].(bool)),
+			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
 		}
 
 		if v, ok := site["name"].(string); ok {
@@ -335,11 +337,11 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 			site["name"] = *v
 		}
 
-		var blockUserUploadEnabled bool
+		userUploadEnabled := true
 		if v := element.IsBlockUserUploadEnabled; v != nil {
-			blockUserUploadEnabled = *v
+			userUploadEnabled = !*v
 		}
-		site["block_user_upload_enabled"] = blockUserUploadEnabled
+		site["user_upload_enabled"] = userUploadEnabled
 
 		var endpointParametersEnabled bool
 		if v := element.IsEndpointParametersEnabled; v != nil {
@@ -347,11 +349,11 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 		}
 		site["endpoint_parameters_enabled"] = endpointParametersEnabled
 
-		var noStorageEnabled bool
+		storageEnabled := true
 		if v := element.IsNoStorageEnabled; v != nil {
-			noStorageEnabled = *v
+			storageEnabled = !*v
 		}
-		site["no_storage_enabled"] = noStorageEnabled
+		site["storage_enabled"] = storageEnabled
 
 		if element.Key != nil {
 			site["key"] = *element.Key

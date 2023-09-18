@@ -58,13 +58,13 @@ A `site` block has the following properties:
 
 * `name` - (Required) The name of the site
 
-* `block_user_upload_enabled` - (Optional) Is the block user upload enabled for this site?
+* `user_upload_enabled` - (Optional) Is the user upload enabled for this site? Defaults to `true`.
 
 * `enabled` - (Optional) Enables/Disables this site. Enabled by default Defaults to `true`.
 
 * `endpoint_parameters_enabled` - (Optional) Is the endpoint parameters enabled for this site?
 
-* `no_storage_enabled` - (Optional) Is the no-storage site is enabled for detailed logging?
+* `storage_enabled` - (Optional) Is the storage site enabled for detailed logging? Defaults to `true`.
 
 * `v1_allowed` - (Optional) Enables v1 of the Directline protocol for this site. Enabled by default Defaults to `true`.
 

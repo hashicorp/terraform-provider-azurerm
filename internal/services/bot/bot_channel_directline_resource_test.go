@@ -103,6 +103,7 @@ resource "azurerm_bot_channel_directline" "test" {
   site {
     name    = "test"
     enabled = true
+    storage_enabled = true
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
@@ -124,18 +125,18 @@ resource "azurerm_bot_channel_directline" "test" {
     v3_allowed                      = true
     enhanced_authentication_enabled = true
     trusted_origins                 = ["https://example.com"]
-    block_user_upload_enabled       = true
+    user_upload_enabled             = false
     endpoint_parameters_enabled     = true
-    no_storage_enabled              = true
+    storage_enabled                 = false
   }
 
   site {
     name                            = "test2"
     enabled                         = true
     enhanced_authentication_enabled = false
-    block_user_upload_enabled       = false
+    user_upload_enabled             = true
     endpoint_parameters_enabled     = false
-    no_storage_enabled              = false
+    storage_enabled                 = true
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
