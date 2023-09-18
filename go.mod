@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.5.1
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rickb777/date v1.20.2
+	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
 	github.com/tombuildsstuff/kermit v0.20230703.1101016

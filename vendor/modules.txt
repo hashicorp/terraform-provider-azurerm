@@ -1114,8 +1114,8 @@ github.com/mitchellh/reflectwalk
 # github.com/oklog/run v1.1.0
 ## explicit; go 1.13
 github.com/oklog/run
-# github.com/rickb777/date v1.20.2
-## explicit; go 1.17
+# github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
+## explicit; go 1.13
 github.com/rickb777/date/period
 # github.com/rickb777/plural v1.4.1
 ## explicit; go 1.17
