@@ -66,10 +66,10 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"block_user_upload_enabled": {
+						"user_upload_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  true,
 						},
 
 						"endpoint_parameters_enabled": {
@@ -77,9 +77,10 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"no_storage_enabled": {
+						"storage_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 					},
 				},
@@ -167,7 +168,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	// Unable to add a new site with block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
+	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -256,7 +257,7 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	// Unable to add a new site with block_user_upload_enabled, endpoint_parameters_enabled, no_storage_enabled in the same operation, so we need to make two calls
+	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -324,9 +325,9 @@ func expandSites(input []interface{}) *[]botservice.WebChatSite {
 		site := item.(map[string]interface{})
 		result := botservice.WebChatSite{
 			IsEnabled:                   utils.Bool(true),
-			IsBlockUserUploadEnabled:    utils.Bool(site["block_user_upload_enabled"].(bool)),
+			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
 			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
-			IsNoStorageEnabled:          utils.Bool(site["no_storage_enabled"].(bool)),
+			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
 		}
 
 		if siteName := site["name"].(string); siteName != "" {
@@ -368,15 +369,18 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 		}
 
 		if v := item.IsBlockUserUploadEnabled; v != nil {
-			result["block_user_upload_enabled"] = *v
+			result["user_upload_enabled"] = !*v
 		}
 
 		if v := item.IsEndpointParametersEnabled; v != nil {
 			result["endpoint_parameters_enabled"] = *v
 		}
 
-		if v := item.IsNoStorageEnabled; v != nil {
-			result["no_storage_enabled"] = *v
+		// API returns `nil` when `IsNoStorageEnabled` is set to `false` in the request payload
+		if v := item.IsNoStorageEnabled; v == nil {
+			result["storage_enabled"] = true
+		} else {
+			result["storage_enabled"] = !*v
 		}
 
 		results = append(results, result)
