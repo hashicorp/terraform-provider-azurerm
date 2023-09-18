@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
+* `azurerm_container_app` - add support for scale rules [GH-23294]
 
 BUG FIXES:
 
