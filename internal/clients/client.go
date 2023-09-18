@@ -309,7 +309,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.AppInsights, err = applicationInsights.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ApplicationInsights: %+v", err)
 	}
-	client.AppPlatform = appPlatform.NewClient(o)
+	if client.AppPlatform, err = appPlatform.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AppPlatform: %+v", err)
+	}
 	client.AppService = appService.NewClient(o)
 	if client.ArcKubernetes, err = arckubernetes.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ArcKubernetes: %+v", err)
