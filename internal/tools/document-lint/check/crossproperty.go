@@ -169,10 +169,7 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 		}
 		if s.Computed {
 			// optional and computed, but not in attribute part
-			if f.SameNameAttr == nil {
-				// todo log this kind of miss in attribute
-				// res = append(res, newMissItem(path, f, MissInDocAttr))
-			} else if f.SameNameAttr.Required > 0 && f.SameNameAttr.Pos == model.PosAttr { // attribute should not have requriedness spec
+			if f.SameNameAttr != nil && f.SameNameAttr.Required > 0 && f.SameNameAttr.Pos == model.PosAttr { // attribute should not have requriedness spec
 				// there are maybe more than one entry for a field
 				// (like azurerm_kubernetes_cluster_node_pool),
 				// only set ShouldBeComputed for Attributes
@@ -198,15 +195,13 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 					}
 				}
 			} else {
-				// todo remove this if strings.Contains check, it's not accurate (but works)
-				// if !strings.Contains(f.Content, defaultStr) {
 				res = append(res, newDefaultDiff(base, f.Default, defaultStr))
-				// }
 			}
 		}
 	} else if f.Default != "" && !s.Computed {
 		// code no default and not computed/optional property, but document has
-		// if default to is a long sentence, then skip it now. todo add more logic to analysis
+		// if default to is a long sentence, then skip it now.
+		// TODO add more logic to analysis
 		res = append(res, newDefaultDiff(base, f.Default, ""))
 	}
 

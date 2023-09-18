@@ -6,13 +6,7 @@ var skipProps = []string{
 	"all.timezone",
 	"all.time_zone",
 	"all.time_zone_id",
-	// "all.serialization.field_delimiter",
-	// "azurerm_virtual_network_gateway_connection.type",
 	"azurerm_nginx_deployment.identity.type", // there is a diff between real supported values and common identity schema
-	// "azurerm_managed_disk.create_option",
-	// "azurerm_synapse_role_assignment.role_name",
-	// "azurerm_orchestrated_virtual_machine_scale_set.os_profile.linux_configuration.secret.certificate.store",
-	// "all.advanced_filter",
 }
 
 // skip auto-generated resources document

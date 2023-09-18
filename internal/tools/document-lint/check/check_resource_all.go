@@ -116,7 +116,6 @@ func DiffAll(regs Resources, dryRun bool) *DiffResult {
 
 	// can not split to package in different goroutine which may cause data-race and mix shared pointer up
 	// register may repeat in typed and untyped, so use a map to remove the repeat entry
-	// log.Printf("to check %d resources", len(regs.resources))
 	for _, res := range regs.resources {
 		// one register exists in both typed register and untyped register
 		var rds []*ResourceDiff

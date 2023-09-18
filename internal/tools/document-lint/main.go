@@ -56,7 +56,6 @@ func parseArgs() {
 	}
 }
 
-// pass a list of changed file to check the document
 func main() {
 	parseArgs()
 
@@ -73,6 +72,5 @@ func main() {
 			log.Fatalf("error occurs when trying to fix documents: %v", err)
 		}
 	}
-	// fmt.Printf("document linter runs failed with: 1\n")
 	os.Exit(1)
 }
