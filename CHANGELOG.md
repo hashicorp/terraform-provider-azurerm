@@ -6,7 +6,10 @@ ENHANCEMENTS:
 * `azurerm_container_app` - add support for scale rules [GH-23294]
 
 BUG FIXES:
-
+* `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
+* `azurerm_linux_web_app_slot` - fix docker app stack update [GH-23303]
+* `azurerm_windows_web_app` - fix docker app stack update [GH-23303]
+* `azurerm_windows_web_app_slot` - fix docker app stack update [GH-23303]
 * `azurerm_servicebus_queue` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 * `azurerm_servicebus_topic` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 
