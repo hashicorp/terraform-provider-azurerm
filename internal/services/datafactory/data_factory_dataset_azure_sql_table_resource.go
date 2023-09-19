@@ -27,7 +27,7 @@ type DataFactoryDatasetAzureSQLTableResource struct{}
 type DataFactoryDatasetAzureSQLTableResourceSchema struct {
 	Name                 string                 `tfschema:"name"`
 	DataFactoryId        string                 `tfschema:"data_factory_id"`
-	LinkedServiceName    string                 `tfschema:"linked_service_name"`
+	LinkedServiceId      string                 `tfschema:"linked_service_id"`
 	TableName            string                 `tfschema:"table_name"`
 	Parameters           map[string]interface{} `tfschema:"parameters"`
 	Description          string                 `tfschema:"description"`
@@ -53,7 +53,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: factories.ValidateFactoryID,
 		},
 
-		"linked_service_name": {
+		"linked_service_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -187,11 +187,16 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 				TableName: data.TableName,
 			}
 
-			linkedServiceName := data.LinkedServiceName
-			linkedServiceType := "LinkedServiceReference"
+			linkedServiceId, err := parse.LinkedServiceID(data.LinkedServiceId)
+			if err != nil {
+				return err
+			}
+			if linkedServiceId.SubscriptionId != id.SubscriptionId || linkedServiceId.ResourceGroup != id.ResourceGroup || linkedServiceId.FactoryName != id.FactoryName {
+				return fmt.Errorf("checking the linked service %s: not within the same data factory as this dataset %s", data.LinkedServiceId, id.ID())
+			}
 			linkedService := &datafactory.LinkedServiceReference{
-				ReferenceName: &linkedServiceName,
-				Type:          &linkedServiceType,
+				Type:          pointer.To("LinkedServiceReference"),
+				ReferenceName: pointer.To(linkedServiceId.Name),
 			}
 
 			description := data.Description
@@ -271,10 +276,17 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 				azureSqlTable.TableName = data.TableName
 			}
 
-			if metadata.ResourceData.HasChange("linked_service_name") {
+			if metadata.ResourceData.HasChange("linked_service_id") {
+				linkedServiceId, err := parse.LinkedServiceID(data.LinkedServiceId)
+				if err != nil {
+					return err
+				}
+				if linkedServiceId.SubscriptionId != id.SubscriptionId || linkedServiceId.ResourceGroup != id.ResourceGroup || linkedServiceId.FactoryName != id.FactoryName {
+					return fmt.Errorf("checking the linked service %s: not within the same data factory as this dataset %s", data.LinkedServiceId, id.ID())
+				}
 				azureSqlTable.LinkedServiceName = &datafactory.LinkedServiceReference{
-					ReferenceName: pointer.To(data.LinkedServiceName),
 					Type:          pointer.To("LinkedServiceReference"),
+					ReferenceName: pointer.To(linkedServiceId.Name),
 				}
 			}
 
@@ -372,7 +384,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 			state.Annotations = flattenDataFactoryAnnotations(azureSqlTable.Annotations)
 
 			if linkedService := azureSqlTable.LinkedServiceName; linkedService != nil && linkedService.ReferenceName != nil {
-				state.LinkedServiceName = *linkedService.ReferenceName
+				state.LinkedServiceId = parse.NewLinkedServiceID(id.SubscriptionId, id.ResourceGroup, id.FactoryName, *linkedService.ReferenceName).ID()
 			}
 
 			if properties := azureSqlTable.AzureSQLTableDatasetTypeProperties; properties != nil {

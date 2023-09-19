@@ -103,9 +103,9 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 }
 
 resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
-  name                = "acctestds%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_azure_sql_database.test.name
+  name              = "acctestds%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  linked_service_id = azurerm_data_factory_linked_service_azure_sql_database.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -135,9 +135,9 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 }
 
 resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
-  name                = "acctestds%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_azure_sql_database.test.name
+  name              = "acctestds%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  linked_service_id = azurerm_data_factory_linked_service_azure_sql_database.test.id
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
@@ -188,9 +188,9 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
 }
 
 resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
-  name                = "acctestds%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_azure_sql_database.test.name
+  name              = "acctestds%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  linked_service_id = azurerm_data_factory_linked_service_azure_sql_database.test.id
 
   description = "test description 2"
   annotations = ["test1", "test2"]
