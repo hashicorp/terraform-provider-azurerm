@@ -8,13 +8,12 @@ ENHANCEMENTS:
 
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
 * `mysql`: updating to use API Version `2022-01-01` [GH-23320]
-* dependencies - swap Virtual Machine Ids for `hashicorp/go-azure-helpers/commonids` [GH-23306]
 * `azurerm_container_app` - add support for scale rules [GH-23294]
 * `azurerm_bot_channel_directline` - add support for `user_upload_enabled`, `endpoint_parameters_enabled` and `storage_enabled` [GH-23149]
 
 BUG FIXES:
 
-* DataSource: `azurerm_container_app_environment`: fix `log_analytics_workspace_name` output to correct value [GH-23298]
+* Data Source: `azurerm_container_app_environment`: fix `log_analytics_workspace_name` output to correct value [GH-23298]
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_linux_web_app` - Fix crash in auto heal expansion [GH-21328]
 * `azurerm_linux_web_app_slot` - fix docker app stack update [GH-23303]
