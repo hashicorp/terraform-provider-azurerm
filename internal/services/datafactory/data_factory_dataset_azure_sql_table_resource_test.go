@@ -99,7 +99,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
   name                 = "acctestlsazsql%d"
   data_factory_id      = azurerm_data_factory.test.id
   use_managed_identity = true
-  connection_string    = "Integrated Security=False;Data Source=test;Initial Catalog=test;Data Source=test.database.windows.net;Initial Catalog=test"
+  connection_string    = "Integrated Security=False;Data Source=test.database.windows.net;Initial Catalog=test"
 }
 
 resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
@@ -131,7 +131,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
   name                 = "acctestlsazsql%d"
   data_factory_id      = azurerm_data_factory.test.id
   use_managed_identity = true
-  connection_string    = "Integrated Security=False;Data Source=test;Initial Catalog=test;Data Source=test.database.windows.net;Initial Catalog=test"
+  connection_string    = "Integrated Security=False;Data Source=test.database.windows.net;Initial Catalog=test"
 }
 
 resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
@@ -184,7 +184,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
   name                 = "acctestlsazsql%d"
   data_factory_id      = azurerm_data_factory.test.id
   use_managed_identity = true
-  connection_string    = "Integrated Security=False;Data Source=test;Initial Catalog=test;Data Source=test.database.windows.net;Initial Catalog=test"
+  connection_string    = "Integrated Security=False;Data Source=test.database.windows.net;Initial Catalog=test"
 }
 
 resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
