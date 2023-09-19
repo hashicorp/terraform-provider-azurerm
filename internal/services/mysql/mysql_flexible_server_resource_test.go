@@ -708,10 +708,10 @@ resource "azurerm_mysql_flexible_server" "test" {
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb                 = 32
-    iops                    = 400
-    auto_grow_enabled       = false
-	io_scaling_enabled      = false
+    size_gb            = 32
+    iops               = 400
+    auto_grow_enabled  = false
+	io_scaling_enabled = false
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
@@ -994,10 +994,10 @@ resource "azurerm_mysql_flexible_server" "test" {
   zone                         = "1"
 
   storage {
-    size_gb                 = %d
-    iops                    = %d
-    auto_grow_enabled       = %t
-	io_scaling_enabled      = %t
+    size_gb            = %d
+    iops               = %d
+    auto_grow_enabled  = %t
+	io_scaling_enabled = %t
   }
 }
 `, r.template(data), data.RandomInteger, sizeGB, iops, autoGrowEnabled, ioScalingEnabled)
