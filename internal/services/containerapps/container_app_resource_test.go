@@ -303,6 +303,57 @@ func TestAccContainerAppResource_secretRemoveWithAddShouldFail(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_scaleRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scaleRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_scaleRulesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scaleRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scaleRulesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithRetainedSecret(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := containerapps.ParseContainerAppID(state.ID)
 	if err != nil {
@@ -329,6 +380,33 @@ resource "azurerm_container_app" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) basicWithRetainedSecret(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  secret {
+    name  = "queue-auth-secret"
+    value = "VGhpcyBJcyBOb3QgQSBHb29kIFBhc3N3b3JkCg=="
+  }
 
   template {
     container {
@@ -1323,6 +1401,145 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
+}
+
+func (r ContainerAppResource) scaleRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  secret {
+    name  = "queue-auth-secret"
+    value = "VGhpcyBJcyBOb3QgQSBHb29kIFBhc3N3b3JkCg=="
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+
+    azure_queue_scale_rule {
+      name         = "azq-1"
+      queue_name   = "foo"
+      queue_length = 10
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
+    }
+
+    custom_scale_rule {
+      name             = "csr-1"
+      custom_rule_type = "azure-monitor"
+      metadata = {
+        foo = "bar"
+      }
+    }
+
+    http_scale_rule {
+      name                = "http-1"
+      concurrent_requests = "100"
+    }
+
+    tcp_scale_rule {
+      name                = "tcp-1"
+      concurrent_requests = "1000"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) scaleRulesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  secret {
+    name  = "queue-auth-secret"
+    value = "VGhpcyBJcyBOb3QgQSBHb29kIFBhc3N3b3JkCg=="
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+
+    azure_queue_scale_rule {
+      name         = "azq-1"
+      queue_name   = "foo"
+      queue_length = 10
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
+    }
+
+    azure_queue_scale_rule {
+      name         = "azq-2"
+      queue_name   = "bar"
+      queue_length = 20
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "another_password"
+      }
+    }
+
+    custom_scale_rule {
+      name             = "csr-1"
+      custom_rule_type = "rabbitmq"
+
+      metadata = {
+        foo = "bar"
+      }
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
+    }
+
+    http_scale_rule {
+      name                = "http-1"
+      concurrent_requests = "200"
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
+    }
+
+    tcp_scale_rule {
+      name                = "tcp-1"
+      concurrent_requests = "1000"
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (ContainerAppResource) template(data acceptance.TestData) string {
