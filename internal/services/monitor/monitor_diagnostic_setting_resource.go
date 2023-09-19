@@ -651,11 +651,12 @@ func expandMonitorDiagnosticsSettingsLogs(input []interface{}) (*[]diagnosticset
 			Enabled:         enabled,
 			RetentionPolicy: retentionPolicy,
 		}
-		if category != "" {
+		switch {
+		case category != "":
 			output.Category = utils.String(category)
-		} else if categoryGroup != "" {
+		case categoryGroup != "":
 			output.CategoryGroup = utils.String(categoryGroup)
-		} else {
+		default:
 			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}
 
@@ -689,11 +690,13 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 			Enabled:         true,
 			RetentionPolicy: retentionPolicy,
 		}
-		if category != "" {
+
+		switch {
+		case category != "":
 			output.Category = utils.String(category)
-		} else if categoryGroup != "" {
+		case categoryGroup != "":
 			output.CategoryGroup = utils.String(categoryGroup)
-		} else {
+		default:
 			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}
 
