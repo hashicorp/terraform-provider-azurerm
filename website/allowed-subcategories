@@ -6,6 +6,7 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Arc Resource Bridge
 ArcKubernetes
 Attestation
 Authorization
@@ -88,7 +89,6 @@ Purview
 Recovery Services
 Redis
 Redis Enterprise
-Resource Connector
 Search
 Security Center
 Sentinel

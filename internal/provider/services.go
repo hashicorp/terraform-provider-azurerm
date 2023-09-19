@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage"
@@ -107,7 +108,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resourceconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
@@ -140,6 +140,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		applicationinsights.Registration{},
 		appservice.Registration{},
 		arckubernetes.Registration{},
+		arcresourcebridge.Registration{},
 		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
@@ -187,7 +188,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		privatednsresolver.Registration{},
 		recoveryservices.Registration{},
 		resource.Registration{},
-		resourceconnector.Registration{},
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},

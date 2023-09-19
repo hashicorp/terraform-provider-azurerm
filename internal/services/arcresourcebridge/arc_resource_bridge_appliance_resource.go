@@ -1,4 +1,4 @@
-package resourceconnector
+package arcresourcebridge
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -19,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ResourceConnectorApplianceResource{}
+var _ sdk.Resource = ArcResourceBridgeApplianceResource{}
 
-type ResourceConnectorApplianceResource struct{}
+type ArcResourceBridgeApplianceResource struct{}
 
 type ApplianceModel struct {
 	Name              string                         `tfschema:"name"`
@@ -30,11 +31,11 @@ type ApplianceModel struct {
 	Distro            appliances.Distro              `tfschema:"distro"`
 	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
 	Provider          appliances.Provider            `tfschema:"infrastructure_provider"`
-	PublicKey         string                         `tfschema:"public_key"`
-	Tags              map[string]string              `tfschema:"tags"`
+	PublicKeyBase64   string                         `tfschema:"public_key_base64"`
+	Tags              map[string]interface{}         `tfschema:"tags"`
 }
 
-func (r ResourceConnectorApplianceResource) Arguments() map[string]*schema.Schema {
+func (r ArcResourceBridgeApplianceResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -71,7 +72,7 @@ func (r ResourceConnectorApplianceResource) Arguments() map[string]*schema.Schem
 			}, false),
 		},
 
-		"public_key": {
+		"public_key_base64": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -82,19 +83,19 @@ func (r ResourceConnectorApplianceResource) Arguments() map[string]*schema.Schem
 	}
 }
 
-func (r ResourceConnectorApplianceResource) Attributes() map[string]*schema.Schema {
+func (r ArcResourceBridgeApplianceResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ResourceConnectorApplianceResource) ModelObject() interface{} {
-	return &ResourceConnectorApplianceResource{}
+func (r ArcResourceBridgeApplianceResource) ModelObject() interface{} {
+	return &ArcResourceBridgeApplianceResource{}
 }
 
-func (r ResourceConnectorApplianceResource) ResourceType() string {
-	return "azurerm_resource_connector_appliance"
+func (r ArcResourceBridgeApplianceResource) ResourceType() string {
+	return "azurerm_arc_resource_bridge_appliance"
 }
 
-func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
+func (r ArcResourceBridgeApplianceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -103,7 +104,7 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.ResourceConnector.AppliancesClient
+			client := metadata.Client.ArcResourceBridge.AppliancesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := appliances.NewApplianceID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -128,7 +129,7 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 						Provider: pointer.To(model.Provider),
 					},
 				},
-				Tags: pointer.To(model.Tags),
+				Tags: tags.Expand(model.Tags),
 			}
 
 			parameters.Identity = identity
@@ -138,8 +139,8 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 			}
 
 			// since the public key could not be set during creation, update after creation
-			if model.PublicKey != "" {
-				parameters.Properties.PublicKey = pointer.To(model.PublicKey)
+			if model.PublicKeyBase64 != "" {
+				parameters.Properties.PublicKey = pointer.To(model.PublicKeyBase64)
 
 				if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
@@ -152,11 +153,11 @@ func (r ResourceConnectorApplianceResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r ResourceConnectorApplianceResource) Update() sdk.ResourceFunc {
+func (r ArcResourceBridgeApplianceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ResourceConnector.AppliancesClient
+			client := metadata.Client.ArcResourceBridge.AppliancesClient
 
 			id, err := appliances.ParseApplianceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -189,14 +190,14 @@ func (r ResourceConnectorApplianceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = pointer.To(model.Tags)
+				parameters.Tags = tags.Expand(model.Tags)
 			}
 
-			if metadata.ResourceData.HasChanges("public_key") {
+			if metadata.ResourceData.HasChanges("public_key_base64") {
 				if parameters.Properties == nil {
 					parameters.Properties = &appliances.ApplianceProperties{}
 				}
-				parameters.Properties.PublicKey = pointer.To(model.PublicKey)
+				parameters.Properties.PublicKey = pointer.To(model.PublicKeyBase64)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
@@ -208,7 +209,7 @@ func (r ResourceConnectorApplianceResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ResourceConnectorApplianceResource) Read() sdk.ResourceFunc {
+func (r ArcResourceBridgeApplianceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -217,7 +218,7 @@ func (r ResourceConnectorApplianceResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.ResourceConnector.AppliancesClient
+			client := metadata.Client.ArcResourceBridge.AppliancesClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -235,11 +236,11 @@ func (r ResourceConnectorApplianceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
-				state.Tags = pointer.From(resp.Model.Tags)
+				state.Tags = tags.Flatten(model.Tags)
 
 				if props := model.Properties; props != nil {
 					state.Distro = pointer.From(props.Distro)
-					state.PublicKey = pointer.From(props.PublicKey)
+					state.PublicKeyBase64 = pointer.From(props.PublicKey)
 
 					if infraConfig := props.InfrastructureConfig; infraConfig != nil {
 						state.Provider = pointer.From(infraConfig.Provider)
@@ -251,11 +252,11 @@ func (r ResourceConnectorApplianceResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ResourceConnectorApplianceResource) Delete() sdk.ResourceFunc {
+func (r ArcResourceBridgeApplianceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ResourceConnector.AppliancesClient
+			client := metadata.Client.ArcResourceBridge.AppliancesClient
 			id, err := appliances.ParseApplianceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -270,6 +271,6 @@ func (r ResourceConnectorApplianceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r ResourceConnectorApplianceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ArcResourceBridgeApplianceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return appliances.ValidateApplianceID
 }

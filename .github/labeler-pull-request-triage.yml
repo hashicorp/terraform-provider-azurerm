@@ -28,6 +28,9 @@ service/app-service:
 service/application-insights:
   - internal/services/applicationinsights/**/*
 
+service/arc-resource-bridge:
+  - internal/services/arcresourcebridge/**/*
+
 service/attestation:
   - internal/services/attestation/**/*
 
@@ -285,9 +288,6 @@ service/redis:
 
 service/relay:
   - internal/services/relay/**/*
-
-service/resource-connector:
-  - internal/services/resourceconnector/**/*
 
 service/search:
   - internal/services/search/**/*

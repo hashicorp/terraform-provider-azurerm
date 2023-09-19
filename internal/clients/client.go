@@ -30,6 +30,7 @@ import (
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
+	arcResourceBridge "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
@@ -122,7 +123,6 @@ import (
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
-	resourceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/resourceconnector/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
 	securityCenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
@@ -163,6 +163,7 @@ type Client struct {
 	AppPlatform                  *appPlatform.Client
 	AppService                   *appService.Client
 	ArcKubernetes                *arckubernetes.Client
+	ArcResourceBridge            *arcResourceBridge.Client
 	Attestation                  *attestation.Client
 	Authorization                *authorization.Client
 	Automanage                   *automanage.Client
@@ -255,7 +256,6 @@ type Client struct {
 	RedisEnterprise              *redisenterprise.Client
 	Relay                        *relay.Client
 	Resource                     *resource.Client
-	ResourceConnector            *resourceConnector.Client
 	Search                       *search.Client
 	SecurityCenter               *securityCenter.Client
 	Sentinel                     *sentinel.Client
@@ -315,6 +315,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.AppService = appService.NewClient(o)
 	if client.ArcKubernetes, err = arckubernetes.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ArcKubernetes: %+v", err)
+	}
+	if client.ArcResourceBridge, err = arcResourceBridge.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Arc Resource Bridge: %+v", err)
 	}
 	if client.Attestation, err = attestation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Attestation: %+v", err)
@@ -555,9 +558,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Resource, err = resource.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Resource: %+v", err)
-	}
-	if client.ResourceConnector, err = resourceConnector.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Resource connector: %+v", err)
 	}
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)

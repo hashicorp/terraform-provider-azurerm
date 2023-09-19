@@ -1,4 +1,4 @@
-package resourceconnector
+package arcresourcebridge
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -9,11 +9,11 @@ var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 type Registration struct{}
 
 func (r Registration) AssociatedGitHubLabel() string {
-	return "service/resource-connector"
+	return "service/arc-resource-bridge"
 }
 
 func (r Registration) Name() string {
-	return "Resource Connector"
+	return "Arc Resource Bridge"
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
@@ -22,12 +22,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ResourceConnectorApplianceResource{},
+		ArcResourceBridgeApplianceResource{},
 	}
 }
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Resource Connector",
+		"Arc Resource Bridge",
 	}
 }
