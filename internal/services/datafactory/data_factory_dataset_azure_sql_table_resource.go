@@ -28,7 +28,8 @@ type DataFactoryDatasetAzureSQLTableResourceSchema struct {
 	Name                 string                 `tfschema:"name"`
 	DataFactoryId        string                 `tfschema:"data_factory_id"`
 	LinkedServiceId      string                 `tfschema:"linked_service_id"`
-	TableName            string                 `tfschema:"table_name"`
+	Schema               string                 `tfschema:"schema"`
+	Table                string                 `tfschema:"table"`
 	Parameters           map[string]interface{} `tfschema:"parameters"`
 	Description          string                 `tfschema:"description"`
 	Annotations          []string               `tfschema:"annotations"`
@@ -56,10 +57,16 @@ func (DataFactoryDatasetAzureSQLTableResource) Arguments() map[string]*pluginsdk
 		"linked_service_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ValidateFunc: validate.LinkedServiceID,
+		},
+
+		"schema": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"table_name": {
+		"table": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -184,7 +191,8 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 			}
 
 			azureSqlDatasetProperties := datafactory.AzureSQLTableDatasetTypeProperties{
-				TableName: data.TableName,
+				Schema: data.Schema,
+				Table:  data.Table,
 			}
 
 			linkedServiceId, err := parse.LinkedServiceID(data.LinkedServiceId)
@@ -272,8 +280,18 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("classifying Data Factory Dataset Azure SQL Table %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeAzureSQLTable, dataset.Properties)
 			}
 
-			if metadata.ResourceData.HasChange("table_name") {
-				azureSqlTable.TableName = data.TableName
+			if metadata.ResourceData.HasChanges("schema", "table") {
+				if azureSqlTable.AzureSQLTableDatasetTypeProperties == nil {
+					azureSqlTable.AzureSQLTableDatasetTypeProperties = &datafactory.AzureSQLTableDatasetTypeProperties{}
+				}
+
+				if metadata.ResourceData.HasChange("schema") {
+					azureSqlTable.AzureSQLTableDatasetTypeProperties.Schema = data.Schema
+				}
+
+				if metadata.ResourceData.HasChange("table") {
+					azureSqlTable.AzureSQLTableDatasetTypeProperties.Table = data.Table
+				}
 			}
 
 			if metadata.ResourceData.HasChange("linked_service_id") {
@@ -374,11 +392,8 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("classifying Data Factory Dataset Azure SQL Table %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeAzureSQLTable, resp.Properties)
 			}
 
+			state.Description = pointer.From(azureSqlTable.Description)
 			state.AdditionalProperties = azureSqlTable.AdditionalProperties
-
-			if azureSqlTable.Description != nil {
-				state.Description = pointer.From(azureSqlTable.Description)
-			}
 
 			state.Parameters = flattenDataSetParameters(azureSqlTable.Parameters)
 			state.Annotations = flattenDataFactoryAnnotations(azureSqlTable.Annotations)
@@ -388,14 +403,22 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := azureSqlTable.AzureSQLTableDatasetTypeProperties; properties != nil {
-				val, ok := properties.TableName.(string)
-				if !ok {
-					log.Printf("[DEBUG] Skipping `table_name` since it's not a string")
+				if val, ok := properties.Schema.(string); ok {
+					state.Schema = val
 				} else {
-					state.TableName = val
+					state.Schema = ""
+					log.Printf("[DEBUG] Skipping `schema` since it's not a string")
+				}
+
+				if val, ok := properties.Table.(string); ok {
+					state.Table = val
+				} else {
+					state.Table = ""
+					log.Printf("[DEBUG] Skipping `table` since it's not a string")
 				}
 			}
 
+			state.Folder = ""
 			if folder := azureSqlTable.Folder; folder != nil && folder.Name != nil {
 				state.Folder = pointer.From(folder.Name)
 			}

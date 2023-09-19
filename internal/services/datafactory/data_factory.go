@@ -202,7 +202,7 @@ func flattenDataFactoryStructureColumnsToDatasetColumn(input interface{}) []Data
 
 	columns, ok := input.([]interface{})
 	if !ok {
-		return nil
+		return output
 	}
 
 	for _, v := range columns {
@@ -212,22 +212,13 @@ func flattenDataFactoryStructureColumnsToDatasetColumn(input interface{}) []Data
 		}
 		var result DatasetColumn
 		if column["name"] != nil {
-			result.Name, ok = column["name"].(string)
-			if !ok {
-				continue
-			}
+			result.Name = column["name"].(string)
 		}
 		if column["type"] != nil {
-			result.Type, ok = column["type"].(string)
-			if !ok {
-				continue
-			}
+			result.Type = column["type"].(string)
 		}
 		if column["description"] != nil {
-			result.Description, ok = column["description"].(string)
-			if !ok {
-				continue
-			}
+			result.Description = column["description"].(string)
 		}
 		output = append(output, result)
 	}

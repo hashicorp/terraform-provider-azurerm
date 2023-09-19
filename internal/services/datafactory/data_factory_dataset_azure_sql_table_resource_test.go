@@ -42,6 +42,9 @@ func TestAccDataFactoryDatasetAzureSQLTable_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("schema").HasValue("dbo"),
+				check.That(data.ResourceName).Key("table").HasValue("testTable"),
+				check.That(data.ResourceName).Key("folder").HasValue("testFolder"),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
 				check.That(data.ResourceName).Key("schema_column.#").HasValue("1"),
@@ -53,8 +56,11 @@ func TestAccDataFactoryDatasetAzureSQLTable_update(t *testing.T) {
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("schema").IsEmpty(),
+				check.That(data.ResourceName).Key("table").IsEmpty(),
+				check.That(data.ResourceName).Key("folder").IsEmpty(),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("0"),
 				check.That(data.ResourceName).Key("schema_column.#").HasValue("2"),
 				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
 				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
@@ -141,7 +147,8 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
-  table_name  = "testTable"
+  schema      = "dbo"
+  table       = "testTable"
   folder      = "testFolder"
 
   parameters = {
@@ -193,9 +200,6 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
   linked_service_id = azurerm_data_factory_linked_service_azure_sql_database.test.id
 
   description = "test description 2"
-  annotations = ["test1", "test2"]
-  table_name  = "testTable"
-  folder      = "testFolder"
 
   parameters = {
     foo  = "test1"

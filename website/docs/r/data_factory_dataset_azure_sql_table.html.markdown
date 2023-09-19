@@ -3,12 +3,12 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_azure_sql_table"
 description: |-
-  Manages a Azure SQL Table Dataset inside a Azure Data Factory.
+  Manages an Azure SQL Table Dataset inside an Azure Data Factory.
 ---
 
 # azurerm_data_factory_dataset_azure_sql_table
 
-Manages a Azure SQL Table Dataset inside a Azure Data Factory.
+Manages an Azure SQL Table Dataset inside an Azure Data Factory.
 
 ## Example Usage
 
@@ -47,7 +47,9 @@ The following arguments are supported:
 
 * `linked_service_id` - (Required) The Data Factory Linked Service ID in which to associate the Dataset with.
 
-* `table_name` - (Optional) The table name of the Data Factory Dataset Azure SQL Table.
+* `schema` - (Optional) The schema name of the table in the Azure SQL Database.
+
+* `table` - (Optional) The table name of the table in the Azure SQL Database.
 
 * `folder` - (Optional) The folder that this Dataset is in. If not specified, the Dataset will appear at the root level.
 
