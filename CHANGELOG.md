@@ -7,7 +7,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
+* `azurerm_linux_web_app` - Fix crash in auto heal expansion [GH-21328]
 * `azurerm_linux_web_app_slot` - fix docker app stack update [GH-23303]
+* `azurerm_linux_web_app_slot` - Fix crash in auto heal expansion [GH-21328]
 * `azurerm_windows_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_windows_web_app_slot` - fix docker app stack update [GH-23303]
 * `azurerm_servicebus_queue` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
