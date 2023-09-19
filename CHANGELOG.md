@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
 * `azurerm_container_app` - add support for scale rules [GH-23294]
+* `azurerm_bot_channel_directline` - add support for `user_upload_enabled`, `endpoint_parameters_enabled` and `storage_enabled` [GH-23149]
 
 BUG FIXES:
 
