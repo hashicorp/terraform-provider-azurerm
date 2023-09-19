@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverfailover"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -252,6 +252,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
+						},
+
+						"iops_auto_scaling": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"iops": {
@@ -760,12 +766,18 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 
 	input := inputs[0].(map[string]interface{})
 	autoGrow := servers.EnableStatusEnumDisabled
+	iopsAutoScaling := servers.EnableStatusEnumDisabled
 	if v := input["auto_grow_enabled"].(bool); v {
 		autoGrow = servers.EnableStatusEnumEnabled
 	}
 
+	if v := input["iops_auto_scaling"].(bool); v {
+		iopsAutoScaling = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
-		AutoGrow: &autoGrow,
+		AutoGrow:      &autoGrow,
+		AutoIoScaling: &iopsAutoScaling,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -798,6 +810,7 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 			"size_gb":           size,
 			"iops":              iops,
 			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"iops_auto_scaling": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
 		},
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -704,6 +704,7 @@ resource "azurerm_mysql_flexible_server" "test" {
     size_gb           = 32
     iops              = 400
     auto_grow_enabled = false
+	iops_auto_scaling = false
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
@@ -989,6 +990,7 @@ resource "azurerm_mysql_flexible_server" "test" {
     size_gb           = %d
     iops              = %d
     auto_grow_enabled = %t
+	iops_auto_scaling = %t
   }
 }
 `, r.template(data), data.RandomInteger, sizeGB, iops, enabled)

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -126,6 +126,11 @@ func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"auto_grow_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"iops_auto_scaling": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -255,6 +260,7 @@ func flattenDataSourceArmServerStorage(storage *servers.Storage) []interface{} {
 			"size_gb":           size,
 			"iops":              iops,
 			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"iops_auto_scaling": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
 		},
 	}
 }
