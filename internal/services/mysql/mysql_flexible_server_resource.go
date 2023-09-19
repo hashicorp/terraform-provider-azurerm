@@ -267,6 +267,11 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(20, 16384),
 						},
+						"io_scaling_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -764,8 +769,14 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoGrow = servers.EnableStatusEnumEnabled
 	}
 
+	autoIoScaling := servers.EnableStatusEnumDisabled
+	if v := input["io_scaling_enabled"].(bool); v {
+		autoIoScaling = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
-		AutoGrow: &autoGrow,
+		AutoGrow:      &autoGrow,
+		AutoIoScaling: &autoIoScaling,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -795,9 +806,10 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":           size,
-			"iops":              iops,
-			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"size_gb":            size,
+			"iops":               iops,
+			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumDisabled,
 		},
 	}
 }
