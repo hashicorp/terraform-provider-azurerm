@@ -34,7 +34,7 @@ type DataFactoryDatasetAzureSQLTableResourceSchema struct {
 	Annotations          []string               `tfschema:"annotations"`
 	Folder               string                 `tfschema:"folder"`
 	AdditionalProperties map[string]interface{} `tfschema:"additional_properties"`
-	SchemaColumn         []interface{}          `tfschema:"schema_column"`
+	SchemaColumn         []DatasetColumn        `tfschema:"schema_column"`
 }
 
 func (DataFactoryDatasetAzureSQLTableResource) Arguments() map[string]*pluginsdk.Schema {
@@ -224,7 +224,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(data.SchemaColumn) > 0 {
-				azureSqlTableset.Structure = expandDataFactoryDatasetStructure(data.SchemaColumn)
+				azureSqlTableset.Structure = data.SchemaColumn
 			}
 
 			datasetType := string(datafactory.TypeBasicDatasetTypeAzureSQLTable)
@@ -313,7 +313,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("schema_column") {
-				azureSqlTable.Structure = expandDataFactoryDatasetStructure(data.SchemaColumn)
+				azureSqlTable.Structure = data.SchemaColumn
 			}
 
 			dataset = datafactory.DatasetResource{
@@ -388,7 +388,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 				state.Folder = pointer.From(folder.Name)
 			}
 
-			state.SchemaColumn = flattenDataFactoryStructureColumns(azureSqlTable.Structure)
+			state.SchemaColumn = flattenDataFactoryStructureColumnsToDatasetColumn(azureSqlTable.Structure)
 
 			return metadata.Encode(&state)
 		},

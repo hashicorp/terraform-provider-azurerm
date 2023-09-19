@@ -145,9 +145,9 @@ func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecifica
 
 // DatasetColumn describes the attributes needed to specify a structure column for a dataset
 type DatasetColumn struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Type        string `json:"type,omitempty"`
+	Name        string `json:"name,omitempty" tfschema:"name"`
+	Description string `json:"description,omitempty" tfschema:"description"`
+	Type        string `json:"type,omitempty" tfschema:"type"`
 }
 
 func expandDataFactoryDatasetStructure(input []interface{}) interface{} {
@@ -191,6 +191,43 @@ func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
 		}
 		if column["description"] != nil {
 			result["description"] = column["description"]
+		}
+		output = append(output, result)
+	}
+	return output
+}
+
+func flattenDataFactoryStructureColumnsToDatasetColumn(input interface{}) []DatasetColumn {
+	output := make([]DatasetColumn, 0)
+
+	columns, ok := input.([]interface{})
+	if !ok {
+		return nil
+	}
+
+	for _, v := range columns {
+		column, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		var result DatasetColumn
+		if column["name"] != nil {
+			result.Name, ok = column["name"].(string)
+			if !ok {
+				continue
+			}
+		}
+		if column["type"] != nil {
+			result.Type, ok = column["type"].(string)
+			if !ok {
+				continue
+			}
+		}
+		if column["description"] != nil {
+			result.Description, ok = column["description"].(string)
+			if !ok {
+				continue
+			}
 		}
 		output = append(output, result)
 	}
