@@ -256,6 +256,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("expiration_date", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != "" && new.(string) == ""
+			}),
+		),
 	}
 }
 
