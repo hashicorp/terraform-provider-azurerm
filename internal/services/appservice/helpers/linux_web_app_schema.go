@@ -1147,6 +1147,16 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 
 	autoHeal := autoHealSettings[0]
 
+	if len(autoHeal.Actions) > 0 {
+		action := autoHeal.Actions[0]
+		result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
+		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
+	}
+
+	if len(autoHeal.Triggers) == 0 {
+		return result
+	}
+
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
 		result.Triggers.Requests = &web.RequestsBasedTrigger{
@@ -1197,10 +1207,6 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 		result.Triggers.StatusCodes = &statusCodeTriggers
 		result.Triggers.StatusCodesRange = &statusCodeRangeTriggers
 	}
-
-	action := autoHeal.Actions[0]
-	result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
-	result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 
 	return result
 }
