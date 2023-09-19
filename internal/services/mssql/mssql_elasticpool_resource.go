@@ -173,6 +173,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.DatabaseLicenseTypeBasePrice),
 					string(sql.DatabaseLicenseTypeLicenseIncluded),
@@ -231,14 +232,6 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			ZoneRedundant:              utils.Bool(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationID: utils.String(maintenanceConfigId.ID()),
 		},
-	}
-
-	if _, ok := d.GetOk("license_type"); ok {
-		if sku.Tier != nil && (*sku.Tier == "GeneralPurpose" || *sku.Tier == "BusinessCritical" || *sku.Tier == "Hyperscale") {
-			elasticPool.ElasticPoolProperties.LicenseType = sql.ElasticPoolLicenseType(d.Get("license_type").(string))
-		} else {
-			return fmt.Errorf("`license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose`, `Hyperscale` or `BusinessCritical`")
-		}
 	}
 
 	if d.HasChange("max_size_gb") {
@@ -306,7 +299,11 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
-		d.Set("license_type", string(properties.LicenseType))
+		licenseType := string(sql.DatabaseLicenseTypeLicenseIncluded)
+		if string(properties.LicenseType) != "" {
+			licenseType = string(properties.LicenseType)
+		}
+		d.Set("license_type", licenseType)
 
 		if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("setting `per_database_settings`: %+v", err)

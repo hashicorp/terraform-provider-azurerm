@@ -538,10 +538,6 @@ resource "azurerm_mssql_elasticpool" "test" {
     min_capacity = %.2[7]f
     max_capacity = %.2[8]f
   }
-
-  lifecycle {
-    ignore_changes = ["license_type"]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
@@ -584,10 +580,6 @@ resource "azurerm_mssql_elasticpool" "test" {
     min_capacity = %.2[7]f
     max_capacity = %.2[8]f
   }
-
-  lifecycle {
-    ignore_changes = ["license_type"]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
@@ -627,10 +619,6 @@ resource "azurerm_mssql_elasticpool" "test" {
   per_database_settings {
     min_capacity = %.2[7]f
     max_capacity = %.2[8]f
-  }
-
-  lifecycle {
-    ignore_changes = ["license_type"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
@@ -674,10 +662,6 @@ resource "azurerm_mssql_elasticpool" "test" {
   per_database_settings {
     min_capacity = 0
     max_capacity = 4
-  }
-
-  lifecycle {
-    ignore_changes = ["license_type"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
