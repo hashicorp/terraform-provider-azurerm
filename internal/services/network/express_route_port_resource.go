@@ -277,12 +277,22 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if props := model.Properties; props != nil {
 			d.Set("bandwidth_in_gbps", props.BandwidthInGbps)
-			d.Set("billing_type", props.BillingType)
-			d.Set("encapsulation", props.Encapsulation)
 			d.Set("ethertype", props.EtherType)
 			d.Set("guid", props.ResourceGuid)
 			d.Set("mtu", props.Mtu)
 			d.Set("peering_location", props.PeeringLocation)
+
+			billingType := ""
+			if props.BillingType != nil {
+				billingType = string(*props.BillingType)
+			}
+			d.Set("billing_type", billingType)
+
+			encapsulation := ""
+			if props.Encapsulation != nil {
+				encapsulation = string(*props.Encapsulation)
+			}
+			d.Set("encapsulation", encapsulation)
 
 			link1, link2, err := flattenExpressRoutePortLinks(props.Links)
 			if err != nil {
