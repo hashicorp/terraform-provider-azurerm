@@ -1128,6 +1128,30 @@ func TestAccLinuxWebApp_withDockerImageDockerHub(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withDockerImageDockerHubUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerImageName(data, "https://index.docker.io", "nginx:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|index.docker.io/nginx:latest"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dockerImageName(data, "https://index.docker.io", "nginx:stable"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|index.docker.io/nginx:stable"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Change Application stack of an app?
 
 func TestAccLinuxWebApp_updateAppStack(t *testing.T) {
