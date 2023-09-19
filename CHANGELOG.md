@@ -6,6 +6,8 @@ ENHANCEMENTS:
 * `azurerm_container_app` - add support for scale rules [GH-23294]
 
 BUG FIXES:
+
+* DataSource: `azurerm_container_app_environment`: fix `log_analytics_workspace_name` output to correct value [GH-23298]
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_linux_web_app` - Fix crash in auto heal expansion [GH-21328]
 * `azurerm_linux_web_app_slot` - fix docker app stack update [GH-23303]
