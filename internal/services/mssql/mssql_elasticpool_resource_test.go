@@ -274,7 +274,7 @@ func TestAccMsSqlElasticPool_vCoreToStandardDTU(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.no_licenseType(data),
+			Config: r.noLicenseType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -624,7 +624,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
 
-func (MsSqlElasticPoolResource) no_licenseType(data acceptance.TestData) string {
+func (MsSqlElasticPoolResource) noLicenseType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
