@@ -30,6 +30,9 @@ service/app-service:
 service/application-insights:
   - internal/services/applicationinsights/**/*
 
+service/arc-resource-bridge:
+  - internal/services/arcresourcebridge/**/*
+
 service/attestation:
   - internal/services/attestation/**/*
 
