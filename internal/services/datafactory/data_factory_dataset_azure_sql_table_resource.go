@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -22,6 +23,19 @@ import (
 var _ sdk.Resource = DataFactoryDatasetAzureSQLTableResource{}
 
 type DataFactoryDatasetAzureSQLTableResource struct{}
+
+type DataFactoryDatasetAzureSQLTableResourceSchema struct {
+	Name                 string                 `tfschema:"name"`
+	DataFactoryId        string                 `tfschema:"data_factory_id"`
+	LinkedServiceName    string                 `tfschema:"linked_service_name"`
+	TableName            string                 `tfschema:"table_name"`
+	Parameters           map[string]interface{} `tfschema:"parameters"`
+	Description          string                 `tfschema:"description"`
+	Annotations          []string               `tfschema:"annotations"`
+	Folder               string                 `tfschema:"folder"`
+	AdditionalProperties map[string]interface{} `tfschema:"additional_properties"`
+	SchemaColumn         []interface{}          `tfschema:"schema_column"`
+}
 
 func (DataFactoryDatasetAzureSQLTableResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -134,7 +148,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Attributes() map[string]*pluginsd
 }
 
 func (DataFactoryDatasetAzureSQLTableResource) ModelObject() interface{} {
-	return nil
+	return &DataFactoryDatasetAzureSQLTableResourceSchema{}
 }
 
 func (DataFactoryDatasetAzureSQLTableResource) ResourceType() string {
@@ -145,16 +159,19 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			d := metadata.ResourceData
 			client := metadata.Client.DataFactory.DatasetClient
 			subscriptionId := client.SubscriptionID
+			var data DataFactoryDatasetAzureSQLTableResourceSchema
+			if err := metadata.Decode(&data); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-			dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
+			dataFactoryId, err := factories.ParseFactoryID(data.DataFactoryId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
+			id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, data.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
@@ -167,45 +184,47 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 			}
 
 			azureSqlDatasetProperties := datafactory.AzureSQLTableDatasetTypeProperties{
-				TableName: d.Get("table_name").(string),
+				TableName: data.TableName,
 			}
 
-			linkedServiceName := d.Get("linked_service_name").(string)
+			linkedServiceName := data.LinkedServiceName
 			linkedServiceType := "LinkedServiceReference"
 			linkedService := &datafactory.LinkedServiceReference{
 				ReferenceName: &linkedServiceName,
 				Type:          &linkedServiceType,
 			}
 
-			description := d.Get("description").(string)
+			description := data.Description
 			azureSqlTableset := datafactory.AzureSQLTableDataset{
 				AzureSQLTableDatasetTypeProperties: &azureSqlDatasetProperties,
 				LinkedServiceName:                  linkedService,
 				Description:                        &description,
 			}
 
-			if v, ok := d.GetOk("folder"); ok {
-				name := v.(string)
+			if data.Folder != "" {
 				azureSqlTableset.Folder = &datafactory.DatasetFolder{
-					Name: &name,
+					Name: &data.Folder,
 				}
 			}
 
-			if v, ok := d.GetOk("parameters"); ok {
-				azureSqlTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+			if len(data.Parameters) > 0 {
+				azureSqlTableset.Parameters = expandDataSetParameters(data.Parameters)
 			}
 
-			if v, ok := d.GetOk("annotations"); ok {
-				annotations := v.([]interface{})
+			if len(data.Annotations) > 0 {
+				annotations := make([]interface{}, len(data.Annotations))
+				for i, v := range data.Annotations {
+					annotations[i] = v
+				}
 				azureSqlTableset.Annotations = &annotations
 			}
 
-			if v, ok := d.GetOk("additional_properties"); ok {
-				azureSqlTableset.AdditionalProperties = v.(map[string]interface{})
+			if len(data.AdditionalProperties) > 0 {
+				azureSqlTableset.AdditionalProperties = data.AdditionalProperties
 			}
 
-			if v, ok := d.GetOk("schema_column"); ok {
-				azureSqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+			if len(data.SchemaColumn) > 0 {
+				azureSqlTableset.Structure = expandDataFactoryDatasetStructure(data.SchemaColumn)
 			}
 
 			datasetType := string(datafactory.TypeBasicDatasetTypeAzureSQLTable)
@@ -218,7 +237,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			d.SetId(id.ID())
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -228,72 +247,85 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			d := metadata.ResourceData
 			client := metadata.Client.DataFactory.DatasetClient
-			id, err := parse.DataSetID(d.Id())
+			id, err := parse.DataSetID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
+			var data DataFactoryDatasetAzureSQLTableResourceSchema
+			if err := metadata.Decode(&data); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-			_, err = client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			dataset, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
 				return fmt.Errorf("retrieving existing %s: %+v", id, err)
 			}
 
-			// TO-DO: use d.HasChanges
-			azureSqlDatasetProperties := datafactory.AzureSQLTableDatasetTypeProperties{
-				TableName: d.Get("table_name").(string),
+			azureSqlTable, ok := dataset.Properties.AsAzureSQLTableDataset()
+			if !ok {
+				return fmt.Errorf("classifying Data Factory Dataset Azure SQL Table %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeAzureSQLTable, dataset.Properties)
 			}
 
-			linkedServiceName := d.Get("linked_service_name").(string)
-			linkedServiceType := "LinkedServiceReference"
-			linkedService := &datafactory.LinkedServiceReference{
-				ReferenceName: &linkedServiceName,
-				Type:          &linkedServiceType,
+			if metadata.ResourceData.HasChange("table_name") {
+				azureSqlTable.TableName = data.TableName
 			}
 
-			description := d.Get("description").(string)
-			azureSqlTableset := datafactory.AzureSQLTableDataset{
-				AzureSQLTableDatasetTypeProperties: &azureSqlDatasetProperties,
-				LinkedServiceName:                  linkedService,
-				Description:                        &description,
-			}
-
-			if v, ok := d.GetOk("folder"); ok {
-				name := v.(string)
-				azureSqlTableset.Folder = &datafactory.DatasetFolder{
-					Name: &name,
+			if metadata.ResourceData.HasChange("linked_service_name") {
+				azureSqlTable.LinkedServiceName = &datafactory.LinkedServiceReference{
+					ReferenceName: pointer.To(data.LinkedServiceName),
+					Type:          pointer.To("LinkedServiceReference"),
 				}
 			}
 
-			if v, ok := d.GetOk("parameters"); ok {
-				azureSqlTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+			if metadata.ResourceData.HasChange("description") {
+				azureSqlTable.Description = pointer.To(data.Description)
 			}
 
-			if v, ok := d.GetOk("annotations"); ok {
-				annotations := v.([]interface{})
-				azureSqlTableset.Annotations = &annotations
+			if metadata.ResourceData.HasChange("folder") {
+				if data.Folder != "" {
+					azureSqlTable.Folder = &datafactory.DatasetFolder{
+						Name: &data.Folder,
+					}
+				} else {
+					azureSqlTable.Folder = nil
+				}
 			}
 
-			if v, ok := d.GetOk("additional_properties"); ok {
-				azureSqlTableset.AdditionalProperties = v.(map[string]interface{})
+			if metadata.ResourceData.HasChange("parameters") {
+				azureSqlTable.Parameters = expandDataSetParameters(data.Parameters)
 			}
 
-			if v, ok := d.GetOk("schema_column"); ok {
-				azureSqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+			if metadata.ResourceData.HasChange("annotations") {
+				if len(data.Annotations) > 0 {
+					annotations := make([]interface{}, len(data.Annotations))
+					for i, v := range data.Annotations {
+						annotations[i] = v
+					}
+					azureSqlTable.Annotations = &annotations
+				} else {
+					azureSqlTable.Annotations = nil
+				}
 			}
 
-			datasetType := string(datafactory.TypeBasicDatasetTypeAzureSQLTable)
-			dataset := datafactory.DatasetResource{
-				Properties: &azureSqlTableset,
-				Type:       &datasetType,
+			if metadata.ResourceData.HasChange("additional_properties") {
+				azureSqlTable.AdditionalProperties = data.AdditionalProperties
+			}
+
+			if metadata.ResourceData.HasChange("schema_column") {
+				azureSqlTable.Structure = expandDataFactoryDatasetStructure(data.SchemaColumn)
+			}
+
+			dataset = datafactory.DatasetResource{
+				Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeAzureSQLTable)),
+				Properties: azureSqlTable,
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			d.SetId(id.ID())
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -311,6 +343,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 			}
 
 			dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+			var state DataFactoryDatasetAzureSQLTableResourceSchema
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
@@ -321,34 +354,25 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			d.Set("name", id.Name)
-			d.Set("data_factory_id", dataFactoryId.ID())
+			state.Name = id.Name
+			state.DataFactoryId = dataFactoryId.ID()
 
 			azureSqlTable, ok := resp.Properties.AsAzureSQLTableDataset()
 			if !ok {
 				return fmt.Errorf("classifying Data Factory Dataset Azure SQL Table %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeAzureSQLTable, resp.Properties)
 			}
 
-			d.Set("additional_properties", azureSqlTable.AdditionalProperties)
+			state.AdditionalProperties = azureSqlTable.AdditionalProperties
 
 			if azureSqlTable.Description != nil {
-				d.Set("description", azureSqlTable.Description)
+				state.Description = pointer.From(azureSqlTable.Description)
 			}
 
-			parameters := flattenDataSetParameters(azureSqlTable.Parameters)
-			if err := d.Set("parameters", parameters); err != nil {
-				return fmt.Errorf("setting `parameters`: %+v", err)
-			}
+			state.Parameters = flattenDataSetParameters(azureSqlTable.Parameters)
+			state.Annotations = flattenDataFactoryAnnotations(azureSqlTable.Annotations)
 
-			annotations := flattenDataFactoryAnnotations(azureSqlTable.Annotations)
-			if err := d.Set("annotations", annotations); err != nil {
-				return fmt.Errorf("setting `annotations`: %+v", err)
-			}
-
-			if linkedService := azureSqlTable.LinkedServiceName; linkedService != nil {
-				if linkedService.ReferenceName != nil {
-					d.Set("linked_service_name", linkedService.ReferenceName)
-				}
+			if linkedService := azureSqlTable.LinkedServiceName; linkedService != nil && linkedService.ReferenceName != nil {
+				state.LinkedServiceName = *linkedService.ReferenceName
 			}
 
 			if properties := azureSqlTable.AzureSQLTableDatasetTypeProperties; properties != nil {
@@ -356,22 +380,17 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 				if !ok {
 					log.Printf("[DEBUG] Skipping `table_name` since it's not a string")
 				} else {
-					d.Set("table_name", val)
+					state.TableName = val
 				}
 			}
 
-			if folder := azureSqlTable.Folder; folder != nil {
-				if folder.Name != nil {
-					d.Set("folder", folder.Name)
-				}
+			if folder := azureSqlTable.Folder; folder != nil && folder.Name != nil {
+				state.Folder = pointer.From(folder.Name)
 			}
 
-			structureColumns := flattenDataFactoryStructureColumns(azureSqlTable.Structure)
-			if err := d.Set("schema_column", structureColumns); err != nil {
-				return fmt.Errorf("setting `schema_column`: %+v", err)
-			}
+			state.SchemaColumn = flattenDataFactoryStructureColumns(azureSqlTable.Structure)
 
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
