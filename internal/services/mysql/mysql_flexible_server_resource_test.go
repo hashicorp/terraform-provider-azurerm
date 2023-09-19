@@ -374,6 +374,13 @@ func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password"),
+		{
+			Config: r.updateStorage(data, 34, nil, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
 	})
 }
 
