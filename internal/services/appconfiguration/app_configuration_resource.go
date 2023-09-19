@@ -647,11 +647,12 @@ type flattenedAccessKeys struct {
 }
 
 func expandAppConfigurationEncryption(input []interface{}) *configurationstores.EncryptionProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	encryptionParam := input[0].(map[string]interface{})
+
 	result := &configurationstores.EncryptionProperties{
 		KeyVaultProperties: &configurationstores.KeyVaultProperties{},
 	}
