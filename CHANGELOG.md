@@ -1,5 +1,9 @@
 ## 3.74.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_function_app_connection` [GH-23127]
+
 ENHANCEMENTS:
 
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
