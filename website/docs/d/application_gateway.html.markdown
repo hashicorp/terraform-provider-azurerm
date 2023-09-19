@@ -55,8 +55,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku` - A `sku` block as defined below.
 
----
-
 * `fips_enabled` - Is FIPS enabled on the Application Gateway?
 
 * `global` - A `global` block as defined below.

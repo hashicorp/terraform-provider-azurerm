@@ -695,7 +695,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"ssl_policy": &pluginsdk.Schema{
+			"ssl_policy": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
