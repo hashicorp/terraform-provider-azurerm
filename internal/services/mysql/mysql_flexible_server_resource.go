@@ -270,7 +270,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"io_scaling_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  true,
 						},
 					},
 				},
@@ -358,6 +358,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
 		}
+	}
+
+	storageSettings := expandArmServerStorage(d.Get("storage").([]interface{}))
+	if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
+		return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
 	}
 
 	sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
@@ -809,7 +814,7 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 			"size_gb":            size,
 			"iops":               iops,
 			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
-			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumDisabled,
+			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
 		},
 	}
 }
