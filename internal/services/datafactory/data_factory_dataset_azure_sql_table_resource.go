@@ -420,17 +420,5 @@ func (DataFactoryDatasetAzureSQLTableResource) Delete() sdk.ResourceFunc {
 }
 
 func (DataFactoryDatasetAzureSQLTableResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
-		v, ok := input.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-			return
-		}
-
-		if _, err := parse.DataSetID(v); err != nil {
-			errors = append(errors, err)
-		}
-
-		return
-	}
+	return validate.DataSetID
 }

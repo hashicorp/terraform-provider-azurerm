@@ -72,7 +72,7 @@ func (t DatasetAzureSQLTableResource) Exists(ctx context.Context, clients *clien
 
 	resp, err := clients.DataFactory.DatasetClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
