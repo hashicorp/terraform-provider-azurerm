@@ -45,14 +45,14 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"fqdns": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
 						},
 						"ip_addresses": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
@@ -409,7 +409,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"private_endpoint_connection": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -426,7 +426,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"private_link_configuration": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -563,7 +563,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"redirect_configuration": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -951,7 +951,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"ssl_certificate": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1026,17 +1026,18 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						// this is same as in resource schema. TODO: replace cert by certificate in 4.0
 						"verify_client_cert_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
-						"verify_client_cert_revocation": {
+						"verify_client_certificate_revocation": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
-						"ssl_policy": &pluginsdk.Schema{
+						"ssl_policy": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{

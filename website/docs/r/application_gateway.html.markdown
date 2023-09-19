@@ -136,6 +136,12 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
+
+* `sku` - (Required) A `sku` block as defined below.
+
+---
+
 * `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
 
 * `global` - (Optional) A `global` block as defined below.
@@ -144,19 +150,13 @@ The following arguments are supported:
 
 * `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
 
-* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
-
-* `sku` - (Required) A `sku` block as defined below.
-
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
+
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
 * `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
 
 * `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
-
--> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
-
----
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
@@ -384,7 +384,7 @@ A `path_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as an HTTP Listener.
 
 ---
 
@@ -470,7 +470,7 @@ A `ssl_certificate` block supports the following:
 
 * `password` - (Optional) Password for the pfx file specified in data. Required if `data` is set.
 
-* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
+* `key_vault_secret_id` - (Optional) Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
 
 -> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
 
@@ -529,7 +529,7 @@ A `ssl_policy` block supports the following:
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
-* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
+* `policy_name` - (Optional) The Name of the Policy e.g. AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
 
@@ -597,9 +597,9 @@ A `redirect_configuration` block supports the following:
 
 * `target_url` - (Optional) The Url to redirect the request to. Cannot be set if `target_listener_name` is set.
 
-* `include_path` - (Optional) Whether or not to include the path in the redirected Url. Defaults to `false`
+* `include_path` - (Optional) Whether to include the path in the redirected Url. Defaults to `false`
 
-* `include_query_string` - (Optional) Whether or not to include the query string in the redirected Url. Default to `false`
+* `include_query_string` - (Optional) Whether to include the query string in the redirected Url. Default to `false`
 
 ---
 
@@ -692,8 +692,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `frontend_port` - A list of `frontend_port` blocks as defined below.
 
 * `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
-
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? 
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
