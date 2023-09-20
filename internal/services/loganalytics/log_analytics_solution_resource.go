@@ -297,8 +297,10 @@ func (s LogAnalyticsSolutionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %v", err)
 			}
 
-			payload := solution.SolutionPatch{
-				Tags: pointer.To(config.Tags),
+			payload := solution.SolutionPatch{}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(config.Tags)
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
