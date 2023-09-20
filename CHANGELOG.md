@@ -8,6 +8,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20230918.1115907` of `github.com/hashicorp/go-azure-sdk` [GH-23337]
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
 * `mysql`: updating to use API Version `2022-01-01` [GH-23320]
 * `azurerm_app_configuration` - add support for the `replica` block [GH-22452]
