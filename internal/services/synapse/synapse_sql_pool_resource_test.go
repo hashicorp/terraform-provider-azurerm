@@ -110,16 +110,16 @@ func TestAccSynapseSqlPool_threePointOhStorageAccountError(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoBackupThreePointOhDefault(data),
+			Config: r.geoBackup(data, false, "GRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.geoBackup(data, true, "LRS"),
+			Config:      r.geoBackup(data, false, "LRS"),
 			ExpectError: regexp.MustCompile("the `storage_account_type` cannot be changed once it has been set, was `GRS` got `LRS`"),
 		},
 	})
