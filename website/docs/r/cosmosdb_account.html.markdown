@@ -311,6 +311,22 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
 
+* `primary_sql_connection_string` - Primary SQL connection string for the CosmosDB Account.
+
+* `secondary_sql_connection_string` - Secondary SQL connection string for the CosmosDB Account.
+
+* `primary_readonly_sql_connection_string` - Primary readonly SQL connection string for the CosmosDB Account.
+
+* `secondary_readonly_sql_connection_string` - Secondary readonly SQL connection string for the CosmosDB Account. 
+
+* `primary_mongodb_connection_string` - Primary Mongodb connection string for the CosmosDB Account.
+
+* `secondary_mongodb_connection_string` - Secondary Mongodb connection string for the CosmosDB Account.
+
+* `primary_readonly_mongodb_connection_string` - Primary readonly Mongodb connection string for the CosmosDB Account.
+
+* `secondary_readonly_mongodb_connection_string` - Secondary readonly Mongodb connection string for the CosmosDB Account.
+
 ---
 
 An `identity` block exports the following:
