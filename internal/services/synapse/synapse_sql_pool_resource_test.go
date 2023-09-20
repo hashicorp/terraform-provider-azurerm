@@ -26,7 +26,7 @@ func TestAccSynapseSqlPool_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoBackupDefault(data, "GRS"),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
@@ -146,7 +146,7 @@ func TestAccSynapseSqlPool_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoBackupDefault(data, "GRS"),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -176,7 +176,7 @@ func TestAccSynapseSqlPool_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoBackupDefault(data, "GRS"),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
@@ -194,7 +194,7 @@ func TestAccSynapseSqlPool_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.geoBackupDefault(data, "GRS"),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
@@ -313,26 +313,26 @@ provider "azurerm" {
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
-  name                      = "販売管理"
-  synapse_workspace_id      = azurerm_synapse_workspace.test.id
-  sku_name                  = "DW100c"
-  create_mode               = "Default"
-  storage_account_type      = "GRS"
+  name                 = "販売管理"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
+  storage_account_type = "GRS"
 }
 `, template)
 }
 
 func (r SynapseSqlPoolResource) requiresImport(data acceptance.TestData) string {
-	config := r.geoBackupDefault(data, "GRS")
+	config := r.geoBackupDefault(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_synapse_sql_pool" "import" {
-  name                      = azurerm_synapse_sql_pool.test.name
-  synapse_workspace_id      = azurerm_synapse_sql_pool.test.synapse_workspace_id
-  sku_name                  = azurerm_synapse_sql_pool.test.sku_name
-  create_mode               = azurerm_synapse_sql_pool.test.create_mode
-  storage_account_type      = "GRS"
+  name                 = azurerm_synapse_sql_pool.test.name
+  synapse_workspace_id = azurerm_synapse_sql_pool.test.synapse_workspace_id
+  sku_name             = azurerm_synapse_sql_pool.test.sku_name
+  create_mode          = azurerm_synapse_sql_pool.test.create_mode
+  storage_account_type = "GRS"
 }
 `, config)
 }
@@ -381,7 +381,7 @@ resource "azurerm_synapse_sql_pool" "test" {
 `, template, data.RandomString)
 }
 
-func (r SynapseSqlPoolResource) geoBackupDefault(data acceptance.TestData, accountType string) string {
+func (r SynapseSqlPoolResource) geoBackupDefault(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -395,9 +395,9 @@ resource "azurerm_synapse_sql_pool" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   sku_name             = "DW100c"
   create_mode          = "Default"
-  storage_account_type = "%s"
+  storage_account_type = "GRS"
 }
-`, template, data.RandomString, accountType)
+`, template, data.RandomString)
 }
 
 func (r SynapseSqlPoolResource) geoBackup(data acceptance.TestData, geoBackupPolicy bool, accountType string) string {
