@@ -119,13 +119,9 @@ func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceDat
 	}
 	found := false
 	if props := managementGroup.Properties; props != nil {
-		if props.Children == nil {
-			return fmt.Errorf("could not read properties for Management Group %q", id.ManagementGroup)
-		}
-
-		for _, v := range *props.Children {
-			if v.Type == managementgroups.Type1Subscriptions {
-				if v.Name != nil && *v.Name == id.SubscriptionId {
+		if props.Children != nil {
+			for _, v := range *props.Children {
+				if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && *v.Name == id.SubscriptionId {
 					found = true
 				}
 			}
