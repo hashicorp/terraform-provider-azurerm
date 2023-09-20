@@ -139,6 +139,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 		"icon_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      "https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png",
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
