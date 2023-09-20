@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,6 +28,15 @@ import (
 )
 
 type LogAnalyticsSolutionResource struct{}
+
+func (s LogAnalyticsSolutionResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.SolutionV0ToV1{},
+		},
+	}
+}
 
 type SolutionResourceModel struct {
 	SolutionName        string              `tfschema:"solution_name"`
@@ -46,6 +56,7 @@ type SolutionPlanModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = LogAnalyticsSolutionResource{}
+var _ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
 
 func (s LogAnalyticsSolutionResource) ModelObject() interface{} {
 	return &SolutionResourceModel{}
