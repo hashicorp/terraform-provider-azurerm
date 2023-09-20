@@ -1011,10 +1011,14 @@ func expandContainerAppContainers(input []Container) *[]containerapps.Container 
 			VolumeMounts: expandContainerVolumeMounts(v.VolumeMounts),
 		}
 		if len(v.Args) != 0 {
-			container.Args = &v.Args
+			argsCopy := make([]string, len(v.Args))
+			copy(argsCopy, v.Args)
+			container.Args = &argsCopy
 		}
 		if len(v.Command) != 0 {
-			container.Command = &v.Command
+			commandCopy := make([]string, len(v.Command))
+			copy(commandCopy, v.Command)
+			container.Command = &commandCopy
 		}
 
 		result = append(result, container)
