@@ -70,6 +70,21 @@ func TestAccDataFactoryDatasetAzureSQLTable_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetAzureSQLTable_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
+	r := DatasetAzureSQLTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func (t DatasetAzureSQLTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
@@ -224,4 +239,16 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r DatasetAzureSQLTableResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_factory_dataset_azure_sql_table" "import" {
+  name              = azurerm_data_factory_dataset_azure_sql_table.test.name
+  data_factory_id   = azurerm_data_factory_dataset_azure_sql_table.test.data_factory_id
+  linked_service_id = azurerm_data_factory_dataset_azure_sql_table.test.linked_service_id
+}
+`, r.basic(data))
 }
