@@ -93,7 +93,7 @@ A `storage` block exports the following:
 
 * `auto_grow_enabled` - Is Storage Auto Grow enabled?
 
-* `io_scaling_enabled` - Should iops be scaled automatically?
+* `io_scaling_enabled` - Should IOPS be scaled automatically?
 
 * `iops` - The storage IOPS of the MySQL Flexible Server.
 
