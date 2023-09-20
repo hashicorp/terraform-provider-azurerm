@@ -134,37 +134,27 @@ func TestAccStorageAccountCustomerManagedKey_userAssignedIdentity(t *testing.T) 
 }
 
 func TestAccStorageAccountCustomerManagedKey_userAssignedIdentityWithFederatedIdentity(t *testing.T) {
-	// Multiple tenants are needed to test this acceptance.
-	altTenantID := os.Getenv("ARM_TENANT_ID_ALT")
-	subscriptionIDAltTenant := os.Getenv("ARM_SUBSCRIPTION_ID_ALT_TENANT")
-	clientIDAltTenant := os.Getenv("ARM_CLIENT_ID_ALT_TENANT")
-	clientSecretAltTenant := os.Getenv("ARM_CLIENT_SECRET_ALT_TENANT")
+	// Multiple tenants are needed for this test
+	altTenantId := os.Getenv("ARM_TENANT_ID_ALT")
+	subscriptionIdAltTenant := os.Getenv("ARM_SUBSCRIPTION_ID_ALT_TENANT")
 
-	if altTenantID == "" || subscriptionIDAltTenant == "" || clientIDAltTenant == "" || clientSecretAltTenant == "" {
-		t.Skip(
-			"Skipping as one of ARM_TENANT_ID_ALT, ARM_SUBSCRIPTION_ID_ALT_TENANT, " +
-				"ARM_CLIENT_ID_ALT_TENANT, ARM_CLIENT_SECRET_ALT_TENANT are not specified")
+	if altTenantId == "" || subscriptionIdAltTenant == "" {
+		t.Skip("One of ARM_TENANT_ID_ALT, ARM_SUBSCRIPTION_ID_ALT_TENANT are not specified")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
 	r := StorageAccountCustomerManagedKeyResource{}
 
-	data.ResourceSequentialTest(
-		t, r, []acceptance.TestStep{
-			{
-				Config: r.federatedIdentity(
-					altTenantID,
-					subscriptionIDAltTenant,
-					clientIDAltTenant,
-					clientSecretAltTenant,
-					data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("federated_identity_client_id").Exists(),
-				),
-			},
-			data.ImportStep(),
-		})
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.federatedIdentity(data, altTenantId, subscriptionIdAltTenant),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("federated_identity_client_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -587,33 +577,15 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (r StorageAccountCustomerManagedKeyResource) federatedIdentity(
-	altTenantID string,
-	subscriptionIDAltTenant string,
-	clientIDAltTenant string,
-	clientSecretAltTenant string,
-	data acceptance.TestData,
-) string {
-	return fmt.Sprintf(`locals {
-  random_string  = "%s"
-  random_integer = "%d"
-  location       = "%s"
-
-  alt_tenant_id       = "%s"
-  alt_subscription_id = "%s"
-  alt_client_id       = "%s"
-  alt_client_secret   = sensitive("%s")
-}
-
+func (r StorageAccountCustomerManagedKeyResource) federatedIdentity(data acceptance.TestData, altTenantId, subscriptionIdAltTenant string) string {
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 provider "azurerm-alt" {
-  tenant_id       = local.alt_tenant_id
-  subscription_id = local.alt_subscription_id
-  client_id       = local.alt_client_id
-  client_secret   = local.alt_client_secret
+  tenant_id       = "%[1]s"
+  subscription_id = "%[2]s"
 
   features {
     key_vault {
@@ -626,10 +598,8 @@ provider "azurerm-alt" {
 provider "azuread" {}
 
 provider "azuread" {
-  alias         = "alt"
-  tenant_id     = local.alt_tenant_id
-  client_id     = local.alt_client_id
-  client_secret = local.alt_client_secret
+  alias     = "alt"
+  tenant_id = "%[1]s"
 }
 
 data "azurerm_client_config" "current" {}
@@ -645,25 +615,25 @@ data "azuread_client_config" "remote" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-${local.random_integer}"
-  location = local.location
+  name     = "acctestRG-%[3]d"
+  location = "%[4]s"
 }
 
 resource "azuread_application" "test" {
-  display_name     = "acctestsaapp${local.random_string}"
+  display_name     = "acctestapp-%[5]s"
   sign_in_audience = "AzureADMultipleOrgs"
   owners           = [data.azuread_client_config.current.object_id]
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestsami${local.random_string}"
+  name                = "acctestmi-%[5]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azuread_application_federated_identity_credential" "test" {
   application_object_id = azuread_application.test.object_id
-  display_name          = "acctestsacreds${local.random_string}"
+  display_name          = "acctestcred-%[5]s"
   description           = "Federated Identity Credential for CMK"
   audiences             = ["api://AzureADTokenExchange"]
   issuer                = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
@@ -672,8 +642,8 @@ resource "azuread_application_federated_identity_credential" "test" {
 
 resource "azurerm_resource_group" "remotetest" {
   provider = azurerm-alt
-  name     = "acctestRG-alt-${local.random_integer}"
-  location = local.location
+  name     = "acctestRG-alt-%[3]d"
+  location = "%[4]s"
 }
 
 resource "azuread_service_principal" "remotetest" {
@@ -685,7 +655,7 @@ resource "azuread_service_principal" "remotetest" {
 resource "azurerm_key_vault" "remotetest" {
   provider = azurerm-alt
 
-  name                     = "acctestkv${local.random_string}"
+  name                     = "acctestkv%[5]s"
   location                 = azurerm_resource_group.remotetest.location
   resource_group_name      = azurerm_resource_group.remotetest.name
   tenant_id                = data.azurerm_client_config.remote.tenant_id
@@ -722,7 +692,7 @@ resource "azurerm_key_vault_key" "remotetest" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa${local.random_string}"
+  name                     = "acctestsa%[5]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -746,11 +716,5 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
   federated_identity_client_id = azuread_application.test.application_id
 }
-`, data.RandomString,
-		data.RandomInteger,
-		data.Locations.Primary,
-		altTenantID,
-		subscriptionIDAltTenant,
-		clientIDAltTenant,
-		clientSecretAltTenant)
+`, altTenantId, subscriptionIdAltTenant, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
