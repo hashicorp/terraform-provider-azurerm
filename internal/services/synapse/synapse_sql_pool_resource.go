@@ -161,30 +161,57 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
-
-			"sql_pool_storage_account_type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+			"geo_backup_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Default:  true,
+				Optional: true,
 			},
+
+			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(synapseSqlPoolCustomizeDiff),
 	}
 
 	if !features.FourPointOhBeta() {
-		resource.Schema["geo_backup_policy_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Default:  true,
+		// NOTE: In v3.0 providers this will be an Optional field with a 'Default'
+		// of 'GRS' to match the previous providers behavior...
+		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Default:  string(synapse.StorageAccountTypeGRS),
 			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(synapse.StorageAccountTypeLRS),
+				string(synapse.StorageAccountTypeGRS),
+			}, false),
 		}
 	} else {
-		resource.Schema["geo_backup_policy_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
+		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(synapse.StorageAccountTypeLRS),
+				string(synapse.StorageAccountTypeGRS),
+			}, false),
 		}
 	}
 
 	return resource
+}
+
+func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+	_, value := d.GetChange("geo_backup_policy_enabled")
+	geoBackupEnabled := value.(bool)
+
+	_, value = d.GetChange("storage_account_type")
+	storageAccountType := synapse.StorageAccountType(value.(string))
+
+	if storageAccountType == synapse.StorageAccountTypeLRS && geoBackupEnabled {
+		return fmt.Errorf("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
+	}
+
+	return nil
 }
 
 func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -207,6 +234,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
+
 	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_synapse_sql_pool", id.ID())
 	}
@@ -216,14 +244,8 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
 	}
 
-	// NOTE: There is no need to test for FourPointOhBeta in the Create function as we
-	// want all of the net new Sql Pools to inherit the new behavior...
 	geoBackupEnabled := d.Get("geo_backup_policy_enabled").(bool)
-	storageAccountType := synapse.StorageAccountTypeGRS
-
-	if !geoBackupEnabled {
-		storageAccountType = synapse.StorageAccountTypeLRS
-	}
+	storageAccountType := synapse.StorageAccountType(d.Get("storage_account_type").(string))
 
 	mode := d.Get("create_mode").(string)
 	sqlPoolInfo := synapse.SQLPool{
@@ -243,21 +265,26 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		sqlPoolInfo.SQLPoolResourceProperties.Collation = utils.String(d.Get("collation").(string))
 	case RecoveryCreateMode:
 		recoveryDatabaseId := constructSourceDatabaseId(d.Get("recovery_database_id").(string))
+
 		if recoveryDatabaseId == "" {
 			return fmt.Errorf("`recovery_database_id` must be set when `create_mode` is %q", RecoveryCreateMode)
 		}
+
 		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(recoveryDatabaseId)
 	case PointInTimeRestoreCreateMode:
 		restore := d.Get("restore").([]interface{})
 		if len(restore) == 0 || restore[0] == nil {
 			return fmt.Errorf("`restore` block must be set when `create_mode` is %q", PointInTimeRestoreCreateMode)
 		}
+
 		v := restore[0].(map[string]interface{})
 		sourceDatabaseId := constructSourceDatabaseId(v["source_database_id"].(string))
 		vTime, parseErr := date.ParseTime(time.RFC3339, v["point_in_time"].(string))
+
 		if parseErr != nil {
 			return fmt.Errorf("parsing time format: %+v", parseErr)
 		}
+
 		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: vTime}
 		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
 	}
@@ -266,6 +293,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, sqlClient.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
@@ -276,11 +304,14 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				Status: synapse.TransparentDataEncryptionStatusEnabled,
 			},
 		}
+
 		if _, err := sqlPTDEClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameter); err != nil {
 			return fmt.Errorf("setting `data_encrypted`: %+v", err)
 		}
 	}
 
+	// Only update the Geo Backup Policy if it has been disabled since it is
+	// already enabled by default...
 	if !geoBackupEnabled {
 		geoBackupParams := synapse.GeoBackupPolicy{
 			GeoBackupPolicyProperties: &synapse.GeoBackupPolicyProperties{
@@ -299,6 +330,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
+	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,6 +338,15 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	id, err := parse.SqlPoolID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	// We only need to do this check for v3.0 providers since in v4.0
+	// this field will be Required ForceNew...
+	if !features.FourPointOhBeta() {
+		if d.HasChange("storage_account_type") {
+			oldStorageType, newStorageType := d.GetChange("storage_account_type")
+			return fmt.Errorf("the `storage_account_type` cannot be changed once it has been set, was `%s` got `%s`", oldStorageType.(string), newStorageType.(string))
+		}
 	}
 
 	if d.HasChange("data_encrypted") {
@@ -319,16 +360,26 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				Status: status,
 			},
 		}
+
 		if _, err := sqlPTDEClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameter); err != nil {
 			return fmt.Errorf("updating `data_encrypted`: %+v", err)
 		}
 	}
 
-	// NOTE: Per the Synapse service team, the `geo_backup_policy_enabled` field
-	// cannot be changed once it has been created...
-	if !features.FourPointOhBeta() {
-		if d.HasChange("geo_backup_policy_enabled") {
-			return fmt.Errorf("the `geo_backup_policy_enabled` field cannot be changed once it has been set")
+	if d.HasChange("geo_backup_policy_enabled") {
+		state := synapse.GeoBackupPolicyStateEnabled
+		if !d.Get("geo_backup_policy_enabled").(bool) {
+			state = synapse.GeoBackupPolicyStateDisabled
+		}
+
+		geoBackupParams := synapse.GeoBackupPolicy{
+			GeoBackupPolicyProperties: &synapse.GeoBackupPolicyProperties{
+				State: state,
+			},
+		}
+
+		if _, err := geoBackUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, geoBackupParams); err != nil {
+			return fmt.Errorf("updating `geo_backup_policy_enabled`: %+v", err)
 		}
 	}
 
@@ -350,6 +401,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			if !ok {
 				return fmt.Errorf("internal-error: context had no deadline")
 			}
+
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{
 					"Scaling",
@@ -368,6 +420,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 	}
+
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
@@ -410,9 +463,10 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
+
 	if props := resp.SQLPoolResourceProperties; props != nil {
 		d.Set("collation", props.Collation)
-		d.Set("sql_pool_storage_account_type", props.StorageAccountType)
+		d.Set("storage_account_type", props.StorageAccountType)
 	}
 
 	geoBackupEnabled := true
@@ -449,6 +503,7 @@ func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if err = future.WaitForCompletionRef(ctx, sqlClient.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
+
 	return nil
 }
 
@@ -458,9 +513,11 @@ func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQ
 		if err != nil {
 			return resp, "failed", err
 		}
+
 		if resp.SQLPoolResourceProperties == nil || resp.SQLPoolResourceProperties.Status == nil {
 			return resp, "failed", nil
 		}
+
 		return resp, *resp.SQLPoolResourceProperties.Status, nil
 	}
 }
@@ -473,5 +530,6 @@ func constructSourceDatabaseId(id string) string {
 	if err != nil {
 		return id
 	}
+
 	return mssqlParse.NewDatabaseID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name).ID()
 }
