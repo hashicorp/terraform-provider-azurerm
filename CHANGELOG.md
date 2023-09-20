@@ -29,16 +29,18 @@ BUG FIXES:
 * `azurerm_api_management_api` - set the `service_url` property when importing the resource [GH-23011]
 * `azurerm_app_configuration` - prevent crash by nil checking the encryption configuration [GH-23302]
 * `azurerm_app_configuration_feature` - update `percentage_filter_value` to accept correct type of float [GH-23263]
+* `azurerm_linux_function_app` - fix a bug in setting the storage settings when using Elastic Premium plans [GH-21212]
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_linux_web_app` - Fix crash in auto heal expansion [GH-21328]
 * `azurerm_linux_web_app_slot` - fix docker app stack update [GH-23303]
 * `azurerm_linux_web_app_slot` - Fix crash in auto heal expansion [GH-21328]
 * `azurerm_mssql_elasticpool` - remove check that prevents `license_type` from being set for certain skus [GH-23262]
-* `azurerm_windows_web_app` - fix docker app stack update [GH-23303]
-* `azurerm_windows_web_app_slot` - fix docker app stack update [GH-23303]
 * `azurerm_servicebus_queue` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 * `azurerm_servicebus_topic` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 * `azurerm_storage_account` - prevent sending unsupported blob properties in payload for `Storage` account kind [GH-23288]
+* `azurerm_windows_function_app` - fix a bug in setting the storage settings when using Elastic Premium plans [GH-21212]
+* `azurerm_windows_web_app` - fix docker app stack update [GH-23303]
+* `azurerm_windows_web_app_slot` - fix docker app stack update [GH-23303]
 
 DEPRECATIONS:
 
