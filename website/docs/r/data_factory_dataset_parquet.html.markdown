@@ -121,7 +121,7 @@ A `azure_blob_fs_location` block supports the following:
 
 ---
 
-A `azure_blob_storage_location` block supports the following:
+An `azure_blob_storage_location` block supports the following:
 
 * `container` - (Required) The container on the Azure Blob Storage Account hosting the file.
 
