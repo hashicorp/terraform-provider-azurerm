@@ -2,14 +2,20 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_data_factory_dataset_azure_sql_table` [GH-23264]
 * **New Resource**: `azurerm_function_app_connection` [GH-23127]
 
 ENHANCEMENTS:
 
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
 * `mysql`: updating to use API Version `2022-01-01` [GH-23320]
-* `azurerm_container_app` - add support for scale rules [GH-23294]
+* `azurerm_app_configuration` - add support for the `replica` block [GH-22452]
 * `azurerm_bot_channel_directline` - add support for `user_upload_enabled`, `endpoint_parameters_enabled` and `storage_enabled` [GH-23149]
+* `azurerm_container_app` - add support for scale rules [GH-23294]
+* `azurerm_cosmosdb_account` - add support for MongoDB connection strings [GH-23331]
+* `azurerm_data_factory_dataset_delimited_text` - add support for the `dynamic_file_system_enabled`, `dynamic_path_enabled` and `dynamic_filename_enabled` properties [GH-23261]
+* `azurerm_data_factory_dataset_parquet` - add support for the `azure_blob_fs_location` block [GH-23261]
+* `azurerm_web_application_firewall_policy` - add support for the `rate_limit_duration`, `rate_limit_threshold`, `group_rate_limit_by` and `request_body_inspect_limit_in_kb` properties [GH-23239]
 
 BUG FIXES:
 
