@@ -17,11 +17,16 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - add support for MongoDB connection strings [GH-23331]
 * `azurerm_data_factory_dataset_delimited_text` - add support for the `dynamic_file_system_enabled`, `dynamic_path_enabled` and `dynamic_filename_enabled` properties [GH-23261]
 * `azurerm_data_factory_dataset_parquet` - add support for the `azure_blob_fs_location` block [GH-23261]
+* `azurerm_network_interface` - add support for the `auxiliary_mode` and `auxiliary_sku` properties [GH-22979]
+* `azurerm_postgresql_flexible_server` - increase the maximum supported value for `storage_mb` [GH-23277]
+* `azurerm_shared_image_version` - add support for the `replicated_region_deletion_enabled` and `target_region.exclude_from_latest_enabled` properties [GH-23147]
+* `azurerm_storage_account` - add support for setting `domain_name` and `domain_guid` for `AADKERB` [GH-22833]
 * `azurerm_web_application_firewall_policy` - add support for the `rate_limit_duration`, `rate_limit_threshold`, `group_rate_limit_by` and `request_body_inspect_limit_in_kb` properties [GH-23239]
 
 BUG FIXES:
 
 * Data Source: `azurerm_container_app_environment`: fix `log_analytics_workspace_name` output to correct value [GH-23298]
+* `azurerm_api_management_api` - set the `service_url` property when importing the resource [GH-23011]
 * `azurerm_app_configuration` - prevent crash by nil checking the encryption configuration [GH-23302]
 * `azurerm_app_configuration_feature` - update `percentage_filter_value` to accept correct type of float [GH-23263]
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
@@ -33,11 +38,13 @@ BUG FIXES:
 * `azurerm_windows_web_app_slot` - fix docker app stack update [GH-23303]
 * `azurerm_servicebus_queue` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 * `azurerm_servicebus_topic` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
+* `azurerm_storage_account` - prevent sending unsupported blob properties in payload for `Storage` account kind [GH-23288]
 
 DEPRECATIONS:
 
 * `azurerm_application_gateway` - deprecate `Standard` and `WAF` skus [GH-23310]
 * `azurerm_bot_channel_web_chat` - deprecate `site_names` in favour of `site` block [GH-23161]
+* `azurerm_monitor_diagnostic_setting` - deprecate `retention_policy` in favour of `azurerm_storage_management_policy` [GH-23260]
 
 ## 3.73.0 (September 14, 2023)
 
