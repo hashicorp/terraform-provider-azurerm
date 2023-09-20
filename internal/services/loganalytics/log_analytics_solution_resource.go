@@ -152,12 +152,23 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
+	if d.IsNewResource() {
+		err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
 
-	d.SetId(id.ID())
+		d.SetId(id.ID())
+	} else {
+		patch := solution.SolutionPatch{
+			Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		}
+
+		err = client.UpdateThenPoll(ctx, id, patch)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
 
 	return resourceLogAnalyticsSolutionRead(d, meta)
 }
