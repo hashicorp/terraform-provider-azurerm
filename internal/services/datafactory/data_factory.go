@@ -424,18 +424,14 @@ func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) data
 
 	props := azureBlobFsLocations[0].(map[string]interface{})
 
-	blobStorageLocation := datafactory.AzureBlobFSLocation{
-		FileSystem: props["file_system"].(string),
+	blobFSLocation := datafactory.AzureBlobFSLocation{
 		Type:       datafactory.TypeBasicDatasetLocationTypeAzureBlobFSLocation,
-	}
-	if path := props["path"].(string); len(path) > 0 {
-		blobStorageLocation.FolderPath = path
-	}
-	if filename := props["filename"].(string); len(filename) > 0 {
-		blobStorageLocation.FileName = filename
+		FileSystem: expandDataFactoryExpressionResultType(props["file_system"].(string), props["dynamic_file_system_enabled"].(bool)),
+		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
+		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
 
-	return blobStorageLocation
+	return blobFSLocation
 }
 
 func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
@@ -490,31 +486,25 @@ func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFS
 	if input == nil {
 		return []interface{}{}
 	}
+	result := make(map[string]interface{})
 
-	fileSystem, path, fileName := "", "", ""
 	if input.FileSystem != nil {
-		if v, ok := input.FileSystem.(string); ok {
-			fileSystem = v
-		}
+		fileSystem, dynamicFileSystemEnabled := flattenDataFactoryExpressionResultType(input.FileSystem)
+		result["file_system"] = fileSystem
+		result["dynamic_file_system_enabled"] = dynamicFileSystemEnabled
 	}
 	if input.FolderPath != nil {
-		if v, ok := input.FolderPath.(string); ok {
-			path = v
-		}
+		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
+		result["path"] = path
+		result["dynamic_path_enabled"] = dynamicPathEnabled
 	}
 	if input.FileName != nil {
-		if v, ok := input.FileName.(string); ok {
-			fileName = v
-		}
+		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(input.FileName)
+		result["filename"] = filename
+		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"file_system": fileSystem,
-			"path":        path,
-			"filename":    fileName,
-		},
-	}
+	return []interface{}{result}
 }
 
 func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {
