@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_arc_resource_bridge_appliance` [GH-23108]
 * **New Resource**: `azurerm_data_factory_dataset_azure_sql_table` [GH-23264]
 * **New Resource**: `azurerm_function_app_connection` [GH-23127]
 
@@ -12,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_app_configuration` - add support for the `replica` block [GH-22452]
 * `azurerm_bot_channel_directline` - add support for `user_upload_enabled`, `endpoint_parameters_enabled` and `storage_enabled` [GH-23149]
 * `azurerm_container_app` - add support for scale rules [GH-23294]
+* `azurerm_container_app_environment` - add support for zone redundancy [GH-23313]
 * `azurerm_cosmosdb_account` - add support for MongoDB connection strings [GH-23331]
 * `azurerm_data_factory_dataset_delimited_text` - add support for the `dynamic_file_system_enabled`, `dynamic_path_enabled` and `dynamic_filename_enabled` properties [GH-23261]
 * `azurerm_data_factory_dataset_parquet` - add support for the `azure_blob_fs_location` block [GH-23261]
@@ -20,14 +22,22 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_container_app_environment`: fix `log_analytics_workspace_name` output to correct value [GH-23298]
+* `azurerm_app_configuration` - prevent crash by nil checking the encryption configuration [GH-23302]
+* `azurerm_app_configuration_feature` - update `percentage_filter_value` to accept correct type of float [GH-23263]
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_linux_web_app` - Fix crash in auto heal expansion [GH-21328]
 * `azurerm_linux_web_app_slot` - fix docker app stack update [GH-23303]
 * `azurerm_linux_web_app_slot` - Fix crash in auto heal expansion [GH-21328]
+* `azurerm_mssql_elasticpool` - remove check that prevents `license_type` from being set for certain skus [GH-23262]
 * `azurerm_windows_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_windows_web_app_slot` - fix docker app stack update [GH-23303]
 * `azurerm_servicebus_queue` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 * `azurerm_servicebus_topic` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
+
+DEPRECATIONS:
+
+* `azurerm_application_gateway` - deprecate `Standard` and `WAF` skus [GH-23310]
+* `azurerm_bot_channel_web_chat` - deprecate `site_names` in favour of `site` block [GH-23161]
 
 ## 3.73.0 (September 14, 2023)
 
