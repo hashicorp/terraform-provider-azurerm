@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_api_management_api` - set the `service_url` property when importing the resource [GH-23011]
 * `azurerm_app_configuration` - prevent crash by nil checking the encryption configuration [GH-23302]
 * `azurerm_app_configuration_feature` - update `percentage_filter_value` to accept correct type of float [GH-23263]
+* `azurerm_key_vault_key` - ForceNew when `expiration_date` is removed from the config file [GH-23327]
 * `azurerm_linux_function_app` - fix a bug in setting the storage settings when using Elastic Premium plans [GH-21212]
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_linux_web_app` - Fix crash in auto heal expansion [GH-21328]
