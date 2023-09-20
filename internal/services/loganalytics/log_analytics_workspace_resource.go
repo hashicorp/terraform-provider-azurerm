@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -142,6 +143,12 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:          -1.0,
 				DiffSuppressFunc: dailyQuotaGbDiffSuppressFunc,
 				ValidateFunc:     validation.FloatAtLeast(-1.0),
+			},
+
+			"default_data_collection_rule_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
 			},
 
 			"workspace_id": {
@@ -311,6 +318,12 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
+	// `default_data_collection_rule_id` also needs an additional update.
+	// error message: Default dcr is not applicable on workspace creation, please provide it on update.
+	if v, ok := d.GetOk("default_data_collection_rule_id"); ok {
+		parameters.Properties.DefaultDataCollectionRuleResourceId = pointer.To(v.(string))
+	}
+
 	// `allow_resource_only_permissions` needs an additional update, tacked on https://github.com/Azure/azure-rest-api-specs/issues/21591
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
@@ -437,6 +450,12 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 			d.Set("local_authentication_disabled", disableLocalAuth)
+
+			defaultDataCollectionRuleResourceId := ""
+			if props.DefaultDataCollectionRuleResourceId != nil {
+				defaultDataCollectionRuleResourceId = *props.DefaultDataCollectionRuleResourceId
+			}
+			d.Set("default_data_collection_rule_id", defaultDataCollectionRuleResourceId)
 
 			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
 				SubscriptionId:    id.SubscriptionId,
