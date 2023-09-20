@@ -553,6 +553,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+
+			"key_vault_user_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
 		},
 	}
 }
@@ -777,6 +783,10 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			KeyName:      keyId.Name,
 			KeyVersion:   keyId.Version,
 		}
+
+		if keyVaultUAI := d.Get("key_vault_user_identity_id").(string); keyVaultUAI != "" {
+			containerGroup.Properties.EncryptionProperties.Identity = &keyVaultUAI
+		}
 	}
 
 	// Avoid parallel provisioning if "subnet_ids" are given.
@@ -942,6 +952,12 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return err
 			}
 			d.Set("key_vault_key_id", keyId.ID())
+
+			var uai string
+			if kvProps.Identity != nil {
+				uai = *kvProps.Identity
+			}
+			d.Set("key_vault_user_identity_id", uai)
 		}
 	}
 
