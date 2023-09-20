@@ -375,7 +375,7 @@ func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 		},
 		data.ImportStep("administrator_password"),
 		{
-			Config: r.updateStorage(data, 34, nil, false, true),
+			Config: r.updateStorageNoIOPS(data, 34, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1001,6 +1001,30 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, sizeGB, iops, autoGrowEnabled, ioScalingEnabled)
+}
+
+func (r MySqlFlexibleServerResource) updateStorageNoIOPS(data acceptance.TestData, sizeGB int, autoGrowEnabled bool, ioScalingEnabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  sku_name                     = "GP_Standard_D4ds_v4"
+  geo_redundant_backup_enabled = true
+  version                      = "8.0.21"
+  zone                         = "1"
+
+  storage {
+    size_gb            = %d
+    auto_grow_enabled  = %t
+	io_scaling_enabled = %t
+  }
+}
+`, r.template(data), data.RandomInteger, sizeGB, autoGrowEnabled, ioScalingEnabled)
 }
 
 func (r MySqlFlexibleServerResource) failover(data acceptance.TestData, primaryZone string, standbyZone string) string {
