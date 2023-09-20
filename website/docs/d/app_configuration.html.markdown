@@ -89,13 +89,13 @@ A `primary_write_key` block exports the following:
 
 A `replica` block exports the following:
 
-* `id` - The replica ID.
+* `id` - The ID of the App Configuration Replica.
 
-* `endpoint` - The URL of the replica.
+* `endpoint` - The URL of the App Configuration Replica.
 
-* `location` - The supported Azure location where the replica exists.
+* `location` - The supported Azure location where the App Configuration Replica exists.
 
-* `name` - The name of the replica.
+* `name` - The name of the App Configuration Replica.
 
 
 ---
