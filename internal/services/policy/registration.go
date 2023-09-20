@@ -61,7 +61,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_policy_definition":                               resourceArmPolicyDefinition(),
 		"azurerm_policy_set_definition":                           resourceArmPolicySetDefinition(),
-		"azurerm_management_group_policy_remediation":             resourceArmManagementGroupPolicyRemediation(),
+		"azurerm_management_group_policy_remediation":             resourceManagementGroupRemediation(),
 		"azurerm_resource_policy_remediation":                     resourceArmResourcePolicyRemediation(),
 		"azurerm_management_group_policy_exemption":               resourceArmManagementGroupPolicyExemption(),
 		"azurerm_resource_policy_exemption":                       resourceArmResourcePolicyExemption(),

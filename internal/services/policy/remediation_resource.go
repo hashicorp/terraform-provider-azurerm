@@ -238,43 +238,6 @@ func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, clien
 	}
 }
 
-// waitForRemediationToDelete waits for the remediation to a status that allow to delete
-func waitForRemediationToDelete(ctx context.Context,
-	prop *remediations.RemediationProperties,
-	id string,
-	timeout time.Duration,
-	cancelFunc func() error,
-	refresh pluginsdk.StateRefreshFunc) error {
-	if prop == nil {
-		return nil
-	}
-	if mode := prop.ResourceDiscoveryMode; mode != nil && *mode == remediations.ResourceDiscoveryModeReEvaluateCompliance {
-		// Remediation can only be canceld when it is in "Evaluating" or "Accepted" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
-		if state := prop.ProvisioningState; state != nil && (*state == "Evaluating" || *state == "Accepted") {
-			log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
-			if err := cancelFunc(); err != nil {
-				return fmt.Errorf("cancelling %s: %+v", id, err)
-			}
-
-			log.Printf("[DEBUG] waiting for the %s to be canceled", id)
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"Cancelling"},
-				Target: []string{
-					"Succeeded", "Canceled", "Failed",
-				},
-				Refresh:    refresh,
-				MinTimeout: 10 * time.Second,
-				Timeout:    timeout,
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to be canceled: %+v", id, err)
-			}
-		}
-	}
-	return nil
-}
-
 // readRemediationProperties sets the properties of the remediation, useful when add new properties to the model
 func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.RemediationProperties) {
 	prop = &remediations.RemediationProperties{
