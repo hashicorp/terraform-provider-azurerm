@@ -414,6 +414,7 @@ resource "azurerm_data_factory" "test" {
     repository_name = "test repository name"
     root_folder     = "/"
     tenant_id       = "00000000-0000-0000-0000-000000000000"
+    publish_enabled = false
   }
 
   tags = {
@@ -492,6 +493,7 @@ resource "azurerm_data_factory" "test" {
     branch_name     = "main"
     root_folder     = "/"
     account_name    = "acctestGH-%d"
+    publish_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -519,6 +521,7 @@ resource "azurerm_data_factory" "test" {
     branch_name     = "stable-website"
     root_folder     = "/azuread"
     account_name    = "acctestGitHub-%d"
+    publish_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

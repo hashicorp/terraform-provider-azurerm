@@ -102,6 +102,11 @@ func resourceDataFactory() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"publish_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -142,6 +147,11 @@ func resourceDataFactory() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
+						},
+						"publish_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
 						},
 					},
 				},
@@ -531,6 +541,7 @@ func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHub
 	return &factories.FactoryGitHubConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
+		DisablePublish:      pointer.To(!item["publish_enabled"].(bool)),
 		HostName:            pointer.To(item["git_url"].(string)),
 		RepositoryName:      item["repository_name"].(string),
 		RootFolder:          item["root_folder"].(string),
@@ -545,10 +556,15 @@ func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []
 		if v.HostName != nil {
 			gitUrl = *v.HostName
 		}
+		publishEnabled := true
+		if v.DisablePublish != nil {
+			publishEnabled = !*v.DisablePublish
+		}
 		output = append(output, map[string]interface{}{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"git_url":         gitUrl,
+			"publish_enabled": publishEnabled,
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
 		})
@@ -566,6 +582,7 @@ func expandVSTSRepoConfiguration(input []interface{}) *factories.FactoryVSTSConf
 	return &factories.FactoryVSTSConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
+		DisablePublish:      pointer.To(!item["publish_enabled"].(bool)),
 		ProjectName:         item["project_name"].(string),
 		RepositoryName:      item["repository_name"].(string),
 		RootFolder:          item["root_folder"].(string),
@@ -581,10 +598,15 @@ func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []in
 		if v.TenantId != nil {
 			tenantId = *v.TenantId
 		}
+		publishEnabled := true
+		if v.DisablePublish != nil {
+			publishEnabled = !*v.DisablePublish
+		}
 		output = append(output, map[string]interface{}{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"project_name":    v.ProjectName,
+			"publish_enabled": publishEnabled,
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
 			"tenant_id":       tenantId,
