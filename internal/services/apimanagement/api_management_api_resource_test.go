@@ -247,6 +247,29 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApi_importOpenai(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importOpenai(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
+			},
+		},
+	})
+}
+
 func TestAccApiManagementApi_importSwaggerWithServiceUrl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
@@ -639,6 +662,27 @@ resource "azurerm_api_management_api" "test" {
   import {
     content_value  = file("testdata/api_management_api_swagger.json")
     content_format = "swagger-json"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importOpenai(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "current"
+
+  import {
+    content_value  = file("testdata/api_management_api_openai.yaml")
+    content_format = "openapi"
   }
 }
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
