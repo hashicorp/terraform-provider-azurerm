@@ -247,13 +247,13 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementApi_importOpenai(t *testing.T) {
+func TestAccApiManagementApi_importOpenapi(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.importOpenai(data),
+			Config: r.importOpenapi(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -667,7 +667,7 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
 
-func (r ApiManagementApiResource) importOpenai(data acceptance.TestData) string {
+func (r ApiManagementApiResource) importOpenapi(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
