@@ -1092,10 +1092,10 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name   = "acctest-cont1-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.25
-      memory = "0.5Gi"
+      name    = "acctest-cont1-%[2]d"
+      image   = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu     = 0.25
+      memory  = "0.5Gi"
       command = ["sh", "-c", "CONTAINER=one python3 -m flask run --host=0.0.0.0"]
 
       readiness_probe {
@@ -1131,10 +1131,10 @@ resource "azurerm_container_app" "test" {
     }
 
     container {
-      name   = "acctest-cont2-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.25
-      memory = "0.5Gi"
+      name    = "acctest-cont2-%[2]d"
+      image   = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu     = 0.25
+      memory  = "0.5Gi"
       command = ["sh", "-c", "CONTAINER=two python3 -m flask run --host=0.0.0.0"]
 
       readiness_probe {
