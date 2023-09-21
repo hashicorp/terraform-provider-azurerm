@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - increase the maximum supported value for `storage_mb` [GH-23277]
 * `azurerm_shared_image_version` - add support for the `replicated_region_deletion_enabled` and `target_region.exclude_from_latest_enabled` properties [GH-23147]
 * `azurerm_storage_account` - add support for setting `domain_name` and `domain_guid` for `AADKERB` [GH-22833]
+* `azurerm_storage_account_customer_managed_key` - add support for cross-tenant customer-managed keys with the `federated_identity_client_id` and `key_vault_uri` properties [GH-20356]
 * `azurerm_web_application_firewall_policy` - add support for the `rate_limit_duration`, `rate_limit_threshold`, `group_rate_limit_by` and `request_body_inspect_limit_in_kb` properties [GH-23239]
 
 BUG FIXES:
