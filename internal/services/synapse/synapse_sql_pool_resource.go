@@ -181,6 +181,7 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			Type:     pluginsdk.TypeString,
 			Default:  string(synapse.StorageAccountTypeGRS),
 			Optional: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(synapse.StorageAccountTypeLRS),
 				string(synapse.StorageAccountTypeGRS),
@@ -207,25 +208,6 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 
 	_, value = d.GetChange("storage_account_type")
 	storageAccountType := synapse.StorageAccountType(value.(string))
-
-	if !features.FourPointOhBeta() {
-		var oldValue interface{}
-
-		// Since the pre-existing resources will not have a value for this field
-		// in the state file, we need to create a fake state entry for it here
-		// which contains the default GRS value.
-		if oldValue, _ = d.GetChange("storage_account_type"); len(oldValue.(string)) == 0 {
-			oldValue = string(synapse.StorageAccountTypeGRS)
-		}
-
-		// If the value changes (e.g., GRS -> LRS) destroy and re-create the resource.
-		// This aligns the v3.0 behavior with the v4.0 behavior while not impacting the
-		// existing resources unless they attempt to change the underlying storage
-		// account type for the Sql Pool...
-		if oldValue.(string) != value.(string) {
-			return d.ForceNew("storage_account_type")
-		}
-	}
 
 	if storageAccountType == synapse.StorageAccountTypeLRS && geoBackupEnabled {
 		return fmt.Errorf("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
