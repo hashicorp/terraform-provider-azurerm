@@ -46,6 +46,7 @@ type ContainerAppJobModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppJobResource{}
+var _ sdk.ResourceWithCustomizeDiff = ContainerAppJobResource{}
 
 func (r ContainerAppJobResource) ModelObject() interface{} {
 	return &ContainerAppJobModel{}
@@ -75,8 +76,9 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 		"container_app_environment_id": commonschema.ResourceIDReferenceRequiredForceNew(certificates.ManagedEnvironmentId{}),
 
 		"replica_timeout_in_seconds": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"workload_profile_name": {
@@ -90,37 +92,12 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 		"secrets": helpers.SecretsSchema(),
 
 		"replica_retry_limit": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 		},
 
-		"registries": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
-					"username": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
-					"password_secret_name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
-					"server": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-				},
-			},
-		},
+		"registries": helpers.ContainerAppRegistrySchema(),
 
 		"event_trigger_config": {
 			Type:     pluginsdk.TypeList,
@@ -134,13 +111,17 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"parallelism": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"replica_completion_count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"scale": helpers.ContainerAppsJobsScaleSchema(),
@@ -160,18 +141,23 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cron_expression": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"parallelism": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"replica_completion_count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 				},
 			},
@@ -189,13 +175,17 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"parallelism": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"replica_completion_count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 				},
 			},
@@ -420,17 +410,6 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 			model.Properties.Configuration.Secrets = pointer.To(secretsResp.Model.Value)
 
 			d := metadata.ResourceData
-			if d.HasChange("template") {
-				if model.Properties.Template == nil {
-					model.Properties.Template = &jobs.JobTemplate{}
-				}
-				allProbesRemoved := helpers.ContainerAppProbesRemoved(metadata)
-				if allProbesRemoved {
-					containers := *model.Properties.Template.Containers
-					containers[0].Probes = pointer.To(make([]jobs.ContainerAppProbe, 0))
-					model.Properties.Template.Containers = pointer.To(containers)
-				}
-			}
 
 			if d.HasChange("registries") {
 				model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppJobRegistries(state.Registries)

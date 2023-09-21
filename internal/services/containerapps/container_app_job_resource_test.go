@@ -48,6 +48,50 @@ func TestAccContainerAppJob_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_withWorkloadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_withWorkloadProfileUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppJob_withSystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
@@ -122,7 +166,7 @@ func TestAccContainerAppJob_withIdentityUpdate(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppJob_Update(t *testing.T) {
+func TestAccContainerAppJob_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
 
@@ -135,7 +179,14 @@ func TestAccContainerAppJob_Update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -223,6 +274,13 @@ func TestAccContainerAppJob_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -240,24 +298,27 @@ resource "azurerm_container_app_job" "test" {
   replica_timeout_in_seconds = 10
   replica_retry_limit        = 10
   event_trigger_config {
-    parallelism              = 4
-    replica_completion_count = 1
+    parallelism = 4
     scale {
-      max_executions   = 10
-      min_executions   = 1
-      polling_interval = 10
+      max_executions              = 10
+      min_executions              = 1
+      polling_interval_in_seconds = 10
       rules {
+        authentication {
+          secret_name       = "my-secret"
+          trigger_parameter = "my-trigger-parameter"
+        }
         metadata = {
           topic_name = "my-topic"
         }
-        name = "servicebuscalingrule"
-        type = "azure-servicebus"
+        name             = "servicebuscalingrule"
+        custom_rule_type = "azure-servicebus"
       }
     }
   }
 
   template {
-    containers {
+    container {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
       liveness_probe {
@@ -302,7 +363,7 @@ resource "azurerm_container_app_job" "test" {
   }
 
   template {
-    containers {
+    container {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
       liveness_probe {
@@ -352,7 +413,7 @@ resource "azurerm_container_app_job" "test" {
       name         = "appsettings-volume"
       storage_type = "EmptyDir"
     }
-    containers {
+    container {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
       liveness_probe {
@@ -401,7 +462,7 @@ resource "azurerm_container_app_job" "test" {
   }
 
   template {
-    containers {
+    container {
       image  = "repo/testcontainerAppsJob0:v1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
@@ -441,7 +502,7 @@ resource "azurerm_container_app_job" "test" {
   }
 
   template {
-    containers {
+    container {
       image  = "repo/testcontainerAppsJob0:v1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
@@ -474,7 +535,7 @@ resource "azurerm_container_app_job" "test" {
   }
 
   template {
-    containers {
+    container {
       image  = "repo/testcontainerAppsJob0:v1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
@@ -514,7 +575,7 @@ resource "azurerm_container_app_job" "test" {
   }
 
   template {
-    containers {
+    container {
       image  = "repo/testcontainerAppsJob0:v1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
@@ -525,8 +586,70 @@ resource "azurerm_container_app_job" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppJobResource) withWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  workload_profile_name        = local.workload_profiles.0.name
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  template {
+    containers {
+      image  = "repo/testcontainerAppsJob0:v1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+    }
+  }
+}
+`, r.templateWorkloadProfile(data), data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) basicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  template {
+    container {
+      image  = "repo/testcontainerAppsJob0:v1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+}
+`, ContainerAppResource{}.templatePlusExtras(data), data.RandomInteger)
+}
+
 func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -546,22 +669,23 @@ resource "azurerm_container_app_job" "test" {
     parallelism              = 4
     replica_completion_count = 1
   }
-  secrets {
+  secret {
     name  = "registry-password"
-    value = "myregistrypassword"
+    value = azurerm_container_registry.test.admin_password
   }
-  registries {
-    server               = "myregistry.azurecr.io"
-    username             = "myregistry"
+  registry {
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"
   }
 
   template {
-    volumes {
-      name         = "appsettings-volume"
-      storage_type = "EmptyDir"
+    volume {
+      name         = azurerm_container_app_environment_storage.test.name
+      storage_type = "AzureFile"
+      storage_name = azurerm_container_app_environment_storage.test.name
     }
-    containers {
+    container {
       args = [
         "-c",
         "while true; do echo hello; sleep 10;done",
@@ -600,7 +724,18 @@ resource "azurerm_container_app_job" "test" {
       memory = "1Gi"
       volume_mounts {
         path = "/appsettings"
-        name = "appsettings-volume"
+        name = azurerm_container_app_environment_storage.test.name
+      }
+    }
+
+    init_container {
+      name   = "init-cont-%[2]d"
+      image  = "repo/testcontainerAppsJob0:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      volume_mounts {
+        name = azurerm_container_app_environment_storage.test.name
+        path = "/appsettings"
       }
     }
   }
@@ -608,11 +743,10 @@ resource "azurerm_container_app_job" "test" {
     ENV = "test"
   }
 }
-`, template, data.RandomInteger)
+`, ContainerAppResource{}.templatePlusExtras(data), data.RandomInteger)
 }
 
 func (r ContainerAppJobResource) completeUpdate(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -634,23 +768,24 @@ resource "azurerm_container_app_job" "test" {
     replica_completion_count = 2
   }
 
-  secrets {
+  secret {
     name  = "registry-password"
-    value = "myregistrypassword"
+    value = azurerm_container_registry.test.admin_password
   }
 
-  registries {
-    server               = "myregistry.azurecr.io"
-    username             = "myregistry"
+  registry {
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"
   }
 
   template {
-    volumes {
-      name         = "appsettings-volume"
-      storage_type = "EmptyDir"
+    volume {
+      name         = azurerm_container_app_environment_storage.test.name
+      storage_type = "AzureFile"
+      storage_name = azurerm_container_app_environment_storage.test.name
     }
-    containers {
+    container {
       args = [
         "-c",
         "while true; do echo hello; sleep 10;done",
@@ -675,10 +810,10 @@ resource "azurerm_container_app_job" "test" {
           value = "no-cache"
         }
 
-        initial_delay           = 5
-        interval_seconds        = 20
-        timeout                 = 2
-        failure_count_threshold = 1
+        initial_delay           = 10
+        interval_seconds        = 40
+        timeout                 = 3
+        failure_count_threshold = 2
       }
       startup_probe {
         transport               = "TCP"
@@ -691,7 +826,18 @@ resource "azurerm_container_app_job" "test" {
       memory = "0.5Gi"
       volume_mounts {
         path = "/appsettings"
-        name = "appsettings-volume"
+        name = azurerm_container_app_environment_storage.test.name
+      }
+    }
+
+    init_container {
+      name   = "init-cont-%[2]d"
+      image  = "repo/testcontainerAppsJob0:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      volume_mounts {
+        name = azurerm_container_app_environment_storage.test.name
+        path = "/appsettings"
       }
     }
   }
@@ -699,7 +845,7 @@ resource "azurerm_container_app_job" "test" {
     ENV = "test"
   }
 }
-`, template, data.RandomInteger)
+`, ContainerAppResource{}.templatePlusExtras(data), data.RandomInteger)
 }
 
 func (r ContainerAppJobResource) template(data acceptance.TestData) string {
@@ -728,4 +874,8 @@ resource "azurerm_container_app_environment" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ContainerAppJobResource) templateWorkloadProfile(data acceptance.TestData) string {
+	return ContainerAppEnvironmentResource{}.completeWithWorkloadProfile(data)
 }
