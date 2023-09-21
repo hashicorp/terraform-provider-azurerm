@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -83,34 +83,6 @@ func TestAccRedisEnterpriseCluster_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccRedisEnterpriseCluster_support_westus3(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
-	r := RedisEnterpriseClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.supportNewRegions(data, "westus3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccRedisEnterpriseCluster_support_northcentralus(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
-	r := RedisEnterpriseClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.supportNewRegions(data, "northcentralus"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -217,25 +189,4 @@ resource "azurerm_redis_enterprise_cluster" "test" {
   }
 }
 `, template, data.RandomInteger)
-}
-
-func (r RedisEnterpriseClusterResource) supportNewRegions(data acceptance.TestData, region string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-redisEnterprise-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_redis_enterprise_cluster" "test" {
-  name                = "acctest-rec-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E100-2"
-}
-`, data.RandomInteger, region)
 }

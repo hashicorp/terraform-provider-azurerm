@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceBotChannelWebChat() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBotChannelWebChatCreate,
 		Read:   resourceBotChannelWebChatRead,
 		Delete: resourceBotChannelWebChatDelete,
@@ -53,16 +54,61 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
-			"site_names": {
+			"site": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"user_upload_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"endpoint_parameters_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"storage_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+					},
 				},
+				ExactlyOneOf: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"site_names", "site"}
+					}
+					return []string{}
+				}(),
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["site_names"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			Deprecated:   "`site_names` will be removed in favour of the property `site` in version 4.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"site_names", "site"},
+		}
+	}
+
+	return resource
 }
 
 func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -99,20 +145,36 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
-			Properties: &botservice.WebChatChannelProperties{
-				Sites: expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List()),
-			},
+			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("site_names"); ok {
+			channel, _ := channel.Properties.AsWebChatChannel()
+			channel.Properties.Sites = expandSiteNames(v.(*pluginsdk.Set).List())
+		}
+	}
+
+	if v, ok := d.GetOk("site"); ok {
+		channel, _ := channel.Properties.AsWebChatChannel()
+		channel.Properties.Sites = expandSites(v.(*pluginsdk.Set).List())
+	}
+
 	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
+
 	return resourceBotChannelWebChatRead(d, meta)
 }
 
@@ -144,8 +206,14 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsWebChatChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				if err := d.Set("site_names", flattenSiteNames(channelProps.Sites)); err != nil {
-					return fmt.Errorf("setting `site_names`: %+v", err)
+				if !features.FourPointOhBeta() {
+					if err := d.Set("site_names", flattenSiteNames(channelProps.Sites)); err != nil {
+						return fmt.Errorf("setting `site_names`: %+v", err)
+					}
+				}
+
+				if err := d.Set("site", flattenSites(channelProps.Sites)); err != nil {
+					return fmt.Errorf("setting `site`: %+v", err)
 				}
 			}
 		}
@@ -166,15 +234,30 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
-			Properties: &botservice.WebChatChannelProperties{
-				Sites: expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List()),
-			},
+			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
+	if !features.FourPointOhBeta() {
+		if d.HasChange("site_names") {
+			channel, _ := channel.Properties.AsWebChatChannel()
+			channel.Properties.Sites = expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List())
+		}
+	}
+
+	if d.HasChange("site") {
+		channel, _ := channel.Properties.AsWebChatChannel()
+		channel.Properties.Sites = expandSites(d.Get("site").(*pluginsdk.Set).List())
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -192,6 +275,11 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
+	if err != nil {
+		return err
+	}
+
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
 			Properties: &botservice.WebChatChannelProperties{
@@ -204,7 +292,7 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(*existing.Location)),
 		Kind:     botservice.KindBot,
 	}
 
@@ -230,6 +318,28 @@ func expandSiteNames(input []interface{}) *[]botservice.WebChatSite {
 	return &results
 }
 
+func expandSites(input []interface{}) *[]botservice.WebChatSite {
+	results := make([]botservice.WebChatSite, 0)
+
+	for _, item := range input {
+		site := item.(map[string]interface{})
+		result := botservice.WebChatSite{
+			IsEnabled:                   utils.Bool(true),
+			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
+		}
+
+		if siteName := site["name"].(string); siteName != "" {
+			result.SiteName = utils.String(siteName)
+		}
+
+		results = append(results, result)
+	}
+
+	return &results
+}
+
 func flattenSiteNames(input *[]botservice.WebChatSite) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -243,6 +353,42 @@ func flattenSiteNames(input *[]botservice.WebChatSite) []interface{} {
 		}
 
 		results = append(results, siteName)
+	}
+
+	return results
+}
+
+func flattenSites(input *[]botservice.WebChatSite) []interface{} {
+	results := make([]interface{}, 0)
+
+	for _, item := range *input {
+		result := make(map[string]interface{})
+
+		var name string
+		if v := item.SiteName; v != nil {
+			name = *v
+		}
+		result["name"] = name
+
+		userUploadEnabled := true
+		if v := item.IsBlockUserUploadEnabled; v != nil {
+			userUploadEnabled = !*v
+		}
+		result["user_upload_enabled"] = userUploadEnabled
+
+		var endpointParametersEnabled bool
+		if v := item.IsEndpointParametersEnabled; v != nil {
+			endpointParametersEnabled = *v
+		}
+		result["endpoint_parameters_enabled"] = endpointParametersEnabled
+
+		storageEnabled := true
+		if v := item.IsNoStorageEnabled; v != nil {
+			storageEnabled = !*v
+		}
+		result["storage_enabled"] = storageEnabled
+
+		results = append(results, result)
 	}
 
 	return results

@@ -63,8 +63,8 @@ resource "azurerm_application_gateway" "network" {
   location            = azurerm_resource_group.example.location
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
@@ -105,6 +105,7 @@ resource "azurerm_application_gateway" "network" {
 
   request_routing_rule {
     name                       = local.request_routing_rule_name
+    priority                   = 9
     rule_type                  = "Basic"
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
@@ -453,6 +454,8 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
+!> **NOTE:** The `Standard` and `WAF` SKU have been deprecated in favour of the `Standard_v2` and `WAF_v2` SKU. Please see the [Azure documentation](https://aka.ms/V1retirement) for more details.
+
 * `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
 
 ---
@@ -507,6 +510,8 @@ A `ssl_profile` block supports the following:
 * `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
 * `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
+ 
+* `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
 
 * `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
 

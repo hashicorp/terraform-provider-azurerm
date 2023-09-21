@@ -273,6 +273,7 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Datastore
+			storageClient := metadata.Client.Storage
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
@@ -301,8 +302,16 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
+			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
+			}
+			if storageAccount == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
+			}
+			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, "default", data.FileShareName)
 			model.StorageFileShareID = fileShareId.ID()
+
 			model.IsDefault = *data.IsDefault
 
 			if v, ok := metadata.ResourceData.GetOk("account_key"); ok {

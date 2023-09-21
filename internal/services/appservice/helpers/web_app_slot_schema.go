@@ -619,6 +619,11 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 
 		if linuxAppStack.DockerImageName != "" {
 			expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
@@ -748,6 +753,11 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 
 			if linuxAppStack.DockerImageName != "" {
 				expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+
+				if appSettings == nil {
+					appSettings = make(map[string]string)
+				}
+
 				appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
 				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
 				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
@@ -756,6 +766,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 			expanded.LinuxFxVersion = pointer.To("")
 		}
 	}
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
 		expanded.AutoSwapSlotName = pointer.To(s.AutoSwapSlotName)
@@ -1028,15 +1039,19 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 
 		if winAppStack.DockerImageName != "" {
 			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-
 		}
-
 	} else {
 		expanded.WindowsFxVersion = pointer.To("")
 	}
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if s.AutoSwapSlotName != "" {
 		expanded.AutoSwapSlotName = pointer.To(s.AutoSwapSlotName)
@@ -1165,16 +1180,22 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 
 			if winAppStack.DockerImageName != "" {
 				expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+
+				if appSettings == nil {
+					appSettings = make(map[string]string)
+				}
+
 				appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-
 			}
 
 		} else {
 			expanded.WindowsFxVersion = pointer.To("")
 		}
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
 		expanded.AutoSwapSlotName = pointer.To(s.AutoSwapSlotName)

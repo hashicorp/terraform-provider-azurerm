@@ -53,10 +53,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseKubernetesClusterID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(
+			func(id string) error {
+				_, err := commonids.ParseKubernetesClusterID(id)
+				return err
+			},
+			// TODO 4.0: we're defaulting this at import time because the property is non-functional.
+			// In the lead up to 4.0 planning if the feature still isn't functional we should look at
+			// removing this entirely.
+			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+				d.Set("public_network_access_enabled", true)
+				return []*pluginsdk.ResourceData{d}, nil
+			},
+		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
@@ -96,6 +105,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta interface{}) bool {
+				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -1063,7 +1075,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_plugin_mode": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginModeOverlay),
 							}, false),
@@ -1537,7 +1548,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["network_plugin_mode"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.NetworkPluginModeOverlay),
 				"Overlay",

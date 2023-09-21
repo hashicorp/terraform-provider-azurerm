@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the App Configuration Feature. Changing this forces a new resource to be created.
 
-* `percentage_filter_value` - (Optional) A list of one or more numbers representing the value of the percentage required to enable this feature.
+* `percentage_filter_value` - (Optional) A number representing the value of the percentage required to enable this feature.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

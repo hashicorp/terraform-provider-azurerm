@@ -6,9 +6,9 @@ package netapp_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -135,10 +135,10 @@ func (t NetAppVolumeGroupSapHanaResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.VolumeGroupClient.VolumeGroupsGet(ctx, *id)
+	resp, err := clients.NetApp.VolumeGroupClient.Get(ctx, *id)
 
 	if err != nil {
-		if resp.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

@@ -66,7 +66,7 @@ data "azurerm_redis_enterprise_database" "test" {
   resource_group_name = azurerm_resource_group.test.name
   cluster_id          = azurerm_redis_enterprise_cluster.test.id
 }
-`, RedisenterpriseDatabaseResource{}.basic(data))
+`, RedisEnterpriseDatabaseResource{}.basic(data))
 }
 
 func (r RedisEnterpriseDatabaseDataSource) dataSourceGeoDatabase(data acceptance.TestData) string {
@@ -80,5 +80,5 @@ data "azurerm_redis_enterprise_database" "test" {
   resource_group_name = azurerm_resource_group.test.name
   cluster_id          = azurerm_redis_enterprise_cluster.test.id
 }
-`, RedisenterpriseDatabaseResource{}.geoDatabase(data))
+`, RedisEnterpriseDatabaseResource{}.geoDatabase(data))
 }

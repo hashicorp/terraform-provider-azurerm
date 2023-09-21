@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesCreateOrUpdate`
+### Example Usage: `PrivateLinkScopesClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := privatelinkscopes.HybridComputePrivateLinkScope{
 }
 
 
-read, err := client.PrivateLinkScopesCreateOrUpdate(ctx, id, payload)
+read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -41,25 +41,25 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesDelete`
+### Example Usage: `PrivateLinkScopesClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
 
-if err := client.PrivateLinkScopesDeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesGet`
+### Example Usage: `PrivateLinkScopesClient.Get`
 
 ```go
 ctx := context.TODO()
 id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
 
-read, err := client.PrivateLinkScopesGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -69,13 +69,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesGetValidationDetails`
+### Example Usage: `PrivateLinkScopesClient.GetValidationDetails`
 
 ```go
 ctx := context.TODO()
 id := privatelinkscopes.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "locationValue", "privateLinkScopeIdValue")
 
-read, err := client.PrivateLinkScopesGetValidationDetails(ctx, id)
+read, err := client.GetValidationDetails(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -85,13 +85,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesGetValidationDetailsForMachine`
+### Example Usage: `PrivateLinkScopesClient.GetValidationDetailsForMachine`
 
 ```go
 ctx := context.TODO()
 id := privatelinkscopes.NewMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "machineValue")
 
-read, err := client.PrivateLinkScopesGetValidationDetailsForMachine(ctx, id)
+read, err := client.GetValidationDetailsForMachine(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -101,14 +101,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesList`
+### Example Usage: `PrivateLinkScopesClient.List`
 
 ```go
 ctx := context.TODO()
 id := privatelinkscopes.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-// alternatively `client.PrivateLinkScopesList(ctx, id)` can be used to do batched pagination
-items, err := client.PrivateLinkScopesListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -118,14 +118,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesListByResourceGroup`
+### Example Usage: `PrivateLinkScopesClient.ListByResourceGroup`
 
 ```go
 ctx := context.TODO()
 id := privatelinkscopes.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
-// alternatively `client.PrivateLinkScopesListByResourceGroup(ctx, id)` can be used to do batched pagination
-items, err := client.PrivateLinkScopesListByResourceGroupComplete(ctx, id)
+// alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -135,7 +135,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `PrivateLinkScopesClient.PrivateLinkScopesUpdateTags`
+### Example Usage: `PrivateLinkScopesClient.UpdateTags`
 
 ```go
 ctx := context.TODO()
@@ -146,7 +146,7 @@ payload := privatelinkscopes.TagsResource{
 }
 
 
-read, err := client.PrivateLinkScopesUpdateTags(ctx, id, payload)
+read, err := client.UpdateTags(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

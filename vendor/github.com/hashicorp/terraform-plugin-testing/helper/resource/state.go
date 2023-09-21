@@ -21,9 +21,15 @@ var refreshGracePeriod = 30 * time.Second
 //
 // `state` is the latest state of that object. And `err` is any error that
 // may have happened while refreshing the state.
+//
+// Deprecated: Copy this type to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.StateRefreshFunc.
 type StateRefreshFunc func() (result interface{}, state string, err error)
 
 // StateChangeConf is the configuration struct used for `WaitForState`.
+//
+// Deprecated: Copy this type to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.StateChangeConf.
 type StateChangeConf struct {
 	Delay          time.Duration    // Wait this time before starting checks
 	Pending        []string         // States that are "allowed" and will continue trying
@@ -53,7 +59,10 @@ type StateChangeConf struct {
 // Otherwise, the result is the result of the first call to the Refresh function to
 // reach the target state.
 //
-// Cancellation from the passed in context will cancel the refresh loop
+// # Cancellation from the passed in context will cancel the refresh loop
+//
+// Deprecated: Copy this method to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.StateChangeConf.
 func (conf *StateChangeConf) WaitForStateContext(ctx context.Context) (interface{}, error) {
 	log.Printf("[DEBUG] Waiting for state to become: %s", conf.Target)
 

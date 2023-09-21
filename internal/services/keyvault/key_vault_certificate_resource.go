@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -605,9 +606,16 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			if err != nil {
 				return err
 			}
-			if resp.ID != nil {
-				d.SetId(id.ID())
+
+			if resp.ID == nil {
+				return fmt.Errorf("error: Certificate %q in Vault %q get nil ID from server", id.Name, id.KeyVaultBaseUrl)
 			}
+
+			certificateId, err := parse.ParseNestedItemID(*resp.ID)
+			if err != nil {
+				return err
+			}
+			d.SetId(certificateId.ID())
 		}
 	}
 	if d.HasChange("certificate_policy") {
@@ -646,6 +654,12 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 		}
 
 		if strings.EqualFold(*operation.Status, "inProgress") {
+			if issuer := operation.IssuerParameters; issuer != nil {
+				if strings.EqualFold(pointer.From(issuer.Name), "unknown") {
+					return operation, "Ready", nil
+				}
+			}
+
 			return operation, "Provisioning", nil
 		}
 

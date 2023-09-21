@@ -20,13 +20,13 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ManagedAPIsClient.ManagedApisGet`
+### Example Usage: `ManagedAPIsClient.Get`
 
 ```go
 ctx := context.TODO()
 id := managedapis.NewManagedApiID("12345678-1234-9876-4563-123456789012", "locationValue", "managedApiValue")
 
-read, err := client.ManagedApisGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -36,13 +36,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ManagedAPIsClient.ManagedApisList`
+### Example Usage: `ManagedAPIsClient.List`
 
 ```go
 ctx := context.TODO()
 id := managedapis.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
 
-read, err := client.ManagedApisList(ctx, id)
+read, err := client.List(ctx, id)
 if err != nil {
 	// handle the error
 }
