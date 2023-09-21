@@ -10,8 +10,6 @@ description: |-
 
 Manages a Synapse SQL Pool.
 
-!> **BREAKING CHANGE:** In v4.0 of the AzureRM Provider, the `storage_account_type` field will be `Required`. Changing the `storage_account_type`, in the v4.0 AzureRM Provider, will force a new Synapse SQL Pool to be created.
-
 ## Example Usage
 
 ```hcl
@@ -78,9 +76,7 @@ The following arguments are supported:
 
 * `geo_backup_policy_enabled` - (Optional) Is geo-backup policy enabled? Possible values include `true` or `false`. Defaults to `true`.
 
-* `storage_account_type` - (Optional) The storage account type that will be used to store backups for this Synapse SQL Pool. Possible values are `LRS` or `GRS`. Defaults to `GRS`.
-
--> **NOTE:** `storage_account_type` cannot be changed once the Synapse SQL Pool has been created.
+* `storage_account_type` - (Optional) The storage account type that will be used to store backups for this Synapse SQL Pool. Possible values are `LRS` or `GRS`. Changing this forces a new Synapse SQL Pool to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse SQL Pool.
 

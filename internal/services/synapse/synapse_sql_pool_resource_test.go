@@ -98,33 +98,6 @@ func TestAccSynapseSqlPool_threePointOhUpdate(t *testing.T) {
 	})
 }
 
-func TestAccSynapseSqlPool_threePointOhStorageAccountError(t *testing.T) {
-	// This error will only happen in the v3.0 of the provider as the
-	// 'storage_account_type' in v4.0 will be ForceNew Required...
-	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as 'storage_account_type' is now a Required field in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
-	r := SynapseSqlPoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.geoBackup(data, false, "GRS"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:      r.geoBackup(data, false, "LRS"),
-			ExpectError: regexp.MustCompile("the `storage_account_type` cannot be changed once it has been set, was `GRS` got `LRS`"),
-		},
-	})
-}
-
 func TestAccSynapseSqlPool_utf8(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
 	r := SynapseSqlPoolResource{}

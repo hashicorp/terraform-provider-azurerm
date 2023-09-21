@@ -175,7 +175,8 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		// NOTE: In v3.0 providers this will be an Optional field with a 'Default'
-		// of 'GRS' to match the previous providers behavior...
+		// of 'GRS' to match existing v3.0 behavior, the 'ForceNew' logic will be
+		// applied in the CustomizeDiff function...
 		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Default:  string(synapse.StorageAccountTypeGRS),
@@ -206,6 +207,25 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 
 	_, value = d.GetChange("storage_account_type")
 	storageAccountType := synapse.StorageAccountType(value.(string))
+
+	if !features.FourPointOhBeta() {
+		var oldValue interface{}
+
+		// Since the pre-existing resources will not have a value for this field
+		// in the state file, we need to create a fake state entry for it here
+		// which contains the default GRS value.
+		if oldValue, _ = d.GetChange("storage_account_type"); len(oldValue.(string)) == 0 {
+			oldValue = string(synapse.StorageAccountTypeGRS)
+		}
+
+		// If the value changes (e.g., GRS -> LRS) destroy and re-create the resource.
+		// This aligns the v3.0 behavior with the v4.0 behavior while not impacting the
+		// existing resources unless they attempt to change the underlying storage
+		// account type for the Sql Pool...
+		if oldValue.(string) != value.(string) {
+			return d.ForceNew("storage_account_type")
+		}
+	}
 
 	if storageAccountType == synapse.StorageAccountTypeLRS && geoBackupEnabled {
 		return fmt.Errorf("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
@@ -338,15 +358,6 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	id, err := parse.SqlPoolID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	// We only need to do this check for v3.0 providers since in v4.0
-	// this field will be Required ForceNew...
-	if !features.FourPointOhBeta() {
-		if d.HasChange("storage_account_type") {
-			oldStorageType, newStorageType := d.GetChange("storage_account_type")
-			return fmt.Errorf("the `storage_account_type` cannot be changed once it has been set, was `%s` got `%s`", oldStorageType.(string), newStorageType.(string))
-		}
 	}
 
 	if d.HasChange("data_encrypted") {
