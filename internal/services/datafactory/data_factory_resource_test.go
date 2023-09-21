@@ -408,13 +408,13 @@ resource "azurerm_data_factory" "test" {
   purview_id          = azurerm_purview_account.test.id
 
   vsts_configuration {
-    account_name    = "test account name"
-    branch_name     = "test branch name"
-    project_name    = "test project name"
-    repository_name = "test repository name"
-    root_folder     = "/"
-    tenant_id       = "00000000-0000-0000-0000-000000000000"
-    publish_enabled = false
+    account_name       = "test account name"
+    branch_name        = "test branch name"
+    project_name       = "test project name"
+    repository_name    = "test repository name"
+    root_folder        = "/"
+    tenant_id          = "00000000-0000-0000-0000-000000000000"
+    publishing_enabled = false
   }
 
   tags = {
@@ -488,12 +488,12 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   github_configuration {
-    git_url         = "https://github.com/hashicorp/"
-    repository_name = "terraform-provider-azurerm"
-    branch_name     = "main"
-    root_folder     = "/"
-    account_name    = "acctestGH-%d"
-    publish_enabled = false
+    git_url            = "https://github.com/hashicorp/"
+    repository_name    = "terraform-provider-azurerm"
+    branch_name        = "main"
+    root_folder        = "/"
+    account_name       = "acctestGH-%d"
+    publishing_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -516,12 +516,12 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   github_configuration {
-    git_url         = "https://github.com/hashicorp/"
-    repository_name = "terraform-provider-azuread"
-    branch_name     = "stable-website"
-    root_folder     = "/azuread"
-    account_name    = "acctestGitHub-%d"
-    publish_enabled = true
+    git_url            = "https://github.com/hashicorp/"
+    repository_name    = "terraform-provider-azuread"
+    branch_name        = "stable-website"
+    root_folder        = "/azuread"
+    account_name       = "acctestGitHub-%d"
+    publishing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
