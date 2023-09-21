@@ -1014,9 +1014,7 @@ func expandContainerAppContainers(input []Container) *[]containerapps.Container 
 			args := pointer.To(v.Args)
 		}
 		if len(v.Command) != 0 {
-			commandCopy := make([]string, len(v.Command))
-			copy(commandCopy, v.Command)
-			container.Command = &commandCopy
+			container.Command = pointer.To(v.Command)
 		}
 
 		result = append(result, container)
