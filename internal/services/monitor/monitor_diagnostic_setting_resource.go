@@ -116,13 +116,15 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"category_group": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"retention_policy": {
@@ -157,8 +159,9 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"enabled": {
@@ -203,13 +206,15 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"category": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"category_group": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"enabled": {
@@ -279,7 +284,11 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	if !features.FourPointOhBeta() {
 		logsRaw, ok := d.GetOk("log")
 		if ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
-			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw.(*pluginsdk.Set).List())
+			expendLogs, err := expandMonitorDiagnosticsSettingsLogs(logsRaw.(*pluginsdk.Set).List())
+			if err != nil {
+				return fmt.Errorf("expanding log: %+v", err)
+			}
+			logs = *expendLogs
 			for _, v := range logs {
 				if v.Enabled {
 					hasEnabledLogs = true
@@ -292,7 +301,11 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	if enabledLogs, ok := d.GetOk("enabled_log"); ok {
 		enabledLogsList := enabledLogs.(*pluginsdk.Set).List()
 		if len(enabledLogsList) > 0 {
-			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogsList)
+			expandEnabledLogs, err := expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogsList)
+			if err != nil {
+				return fmt.Errorf("expanding enabled_log: %+v", err)
+			}
+			logs = *expandEnabledLogs
 			hasEnabledLogs = true
 		}
 	}
@@ -383,7 +396,11 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		if d.HasChange("log") {
 			logChanged = true
 			logsRaw := d.Get("log").(*pluginsdk.Set).List()
-			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
+			expandLogs, err := expandMonitorDiagnosticsSettingsLogs(logsRaw)
+			if err != nil {
+				return fmt.Errorf("expanding log: %+v", err)
+			}
+			logs = *expandLogs
 			for _, v := range logs {
 				if v.Enabled {
 					hasEnabledLogs = true
@@ -396,7 +413,11 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("enabled_log") {
 		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
 		if len(enabledLogs) > 0 {
-			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+			expandEnabledLogs, err := expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+			if err != nil {
+				return fmt.Errorf("expanding enabled_log: %+v", err)
+			}
+			logs = *expandEnabledLogs
 			hasEnabledLogs = true
 		}
 	} else if !logChanged && existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
@@ -607,7 +628,7 @@ func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *dia
 	}
 }
 
-func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []diagnosticsettings.LogSettings {
+func expandMonitorDiagnosticsSettingsLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
 	for _, raw := range input {
@@ -632,19 +653,22 @@ func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []diagnosticsetti
 			Enabled:         enabled,
 			RetentionPolicy: retentionPolicy,
 		}
-		if category != "" {
+		switch {
+		case category != "":
 			output.Category = utils.String(category)
-		} else {
+		case categoryGroup != "":
 			output.CategoryGroup = utils.String(categoryGroup)
+		default:
+			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}
 
 		results = append(results, output)
 	}
 
-	return results
+	return &results, nil
 }
 
-func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnosticsettings.LogSettings {
+func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
 	for _, raw := range input {
@@ -668,16 +692,20 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnost
 			Enabled:         true,
 			RetentionPolicy: retentionPolicy,
 		}
-		if category != "" {
+
+		switch {
+		case category != "":
 			output.Category = utils.String(category)
-		} else {
+		case categoryGroup != "":
 			output.CategoryGroup = utils.String(categoryGroup)
+		default:
+			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}
 
 		results = append(results, output)
 	}
 
-	return results
+	return &results, nil
 }
 
 func flattenMonitorDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
