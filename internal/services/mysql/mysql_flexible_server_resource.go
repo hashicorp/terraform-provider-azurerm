@@ -270,7 +270,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"io_scaling_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  false,
 						},
 					},
 				},
