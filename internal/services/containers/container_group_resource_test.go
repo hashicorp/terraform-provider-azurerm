@@ -2599,8 +2599,8 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
   }
-  key_vault_key_id           = azurerm_key_vault_key.test.id
-  key_vault_user_identity_id = azurerm_user_assigned_identity.test.id
+  key_vault_key_id                    = azurerm_key_vault_key.test.id
+  key_vault_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
