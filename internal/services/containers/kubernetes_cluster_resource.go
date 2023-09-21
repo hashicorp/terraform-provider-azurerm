@@ -1053,6 +1053,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPolicyCalico),
 								string(managedclusters.NetworkPolicyAzure),
+								string(managedclusters.NetworkPolicyCilium),
 							}, false),
 						},
 
