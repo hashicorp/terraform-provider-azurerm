@@ -1011,7 +1011,7 @@ func expandContainerAppContainers(input []Container) *[]containerapps.Container 
 			VolumeMounts: expandContainerVolumeMounts(v.VolumeMounts),
 		}
 		if len(v.Args) != 0 {
-			args := pointer.To(v.Args)
+			container.Args = pointer.To(v.Args)
 		}
 		if len(v.Command) != 0 {
 			container.Command = pointer.To(v.Command)
