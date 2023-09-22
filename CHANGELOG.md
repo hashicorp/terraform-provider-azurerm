@@ -2,7 +2,7 @@
 
 NOTE:
 
-* `azurerm_synapse_sql_pool` - Users that have imported `azurerm_synapse_sql_pool` resources that were created outside of Terraform using an `LRS` storage account type will need to use `ignore_changes` to avoid the resource being recreated.
+* `azurerm_synapse_sql_pool` - Users that have imported `azurerm_synapse_sql_pool` resources that were created outside of Terraform using an `LRS` storage account type will need to use `ignore_changes` to avoid the resource from being destroyed and recreated.
 
 FEATURES:
 
