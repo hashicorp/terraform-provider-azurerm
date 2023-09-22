@@ -329,7 +329,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				}
 				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
 
-				metadata.ResourceData.Set("icon_url", pointer.To(props.IconURL))
+				metadata.ResourceData.Set("icon_url", pointer.From(props.IconURL))
 			}
 
 			return nil
