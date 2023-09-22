@@ -1020,6 +1020,13 @@ func TestAccWindowsWebApp_updateAppStack(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.healthCheckUpdate(data, "11"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.dotNet(data, "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -2563,6 +2570,34 @@ resource "azurerm_windows_web_app" "test" {
       current_stack                = "java"
       java_version                 = "%s"
       java_embedded_server_enabled = "true"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, javaVersion)
+}
+
+//nolint:unparam
+func (r WindowsWebAppResource) healthCheckUpdate(data acceptance.TestData, javaVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 5
+    application_stack {
+      current_stack                   = "java"
+      java_version                    = "%s"
+      java_embedded_server_enabled    = "true"
     }
   }
 }

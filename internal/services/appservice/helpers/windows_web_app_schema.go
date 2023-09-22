@@ -817,7 +817,11 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *web.SiteConfig, currentStack 
 	}
 	winAppStack.PythonVersion = pointer.From(appSiteConfig.PythonVersion) // This _should_ always be `""`
 	winAppStack.Python = currentStack == CurrentStackPython
-	winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
+
+	// we should only set JavaVersion when  currentStack is java since the API will return the JavaVersion that was once set
+	if currentStack == "java" {
+		winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
+	}
 	switch pointer.From(appSiteConfig.JavaContainer) {
 	case JavaContainerTomcat:
 		winAppStack.TomcatVersion = *appSiteConfig.JavaContainerVersion
