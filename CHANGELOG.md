@@ -1,8 +1,8 @@
 ## 3.74.0 (Unreleased)
 
-NOTE:
+NOTES:
 
-* `azurerm_synapse_sql_pool` - Users that have imported `azurerm_synapse_sql_pool` resources that were created outside of Terraform using an `LRS` storage account type will need to use `ignore_changes` to avoid the resource from being destroyed and recreated.
+* `azurerm_synapse_sql_pool` - users that have imported `azurerm_synapse_sql_pool` resources that were created outside of Terraform using an `LRS` storage account type will need to use `ignore_changes` to avoid the resource from being destroyed and recreated.
 
 FEATURES:
 
@@ -15,21 +15,21 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230918.1115907` of `github.com/hashicorp/go-azure-sdk` [GH-23337]
 * dependencies: downgrading to `v1.12.5` of `github.com/rickb777/date` [GH-23296]
 * `mysql`: updating to use API Version `2022-01-01` [GH-23320]
-* `azurerm_app_configuration` - add support for the `replica` block [GH-22452]
-* `azurerm_bot_channel_directline` - add support for `user_upload_enabled`, `endpoint_parameters_enabled` and `storage_enabled` [GH-23149]
-* `azurerm_container_app` - add support for scale rules [GH-23294]
-* `azurerm_container_app_environment` - add support for zone redundancy [GH-23313]
-* `azurerm_container_group` - add support for the `key_vault_user_identity_id` property for Customer Managed Keys [GH-23332]
-* `azurerm_cosmosdb_account` - add support for MongoDB connection strings [GH-23331]
-* `azurerm_data_factory_dataset_delimited_text` - add support for the `dynamic_file_system_enabled`, `dynamic_path_enabled` and `dynamic_filename_enabled` properties [GH-23261]
-* `azurerm_data_factory_dataset_parquet` - add support for the `azure_blob_fs_location` block [GH-23261]
-* `azurerm_monitor_diagnostic_setting` - add validation to ensure either `category` or `category_group` are supplied in `enabled_log` and `log` blocks [GH-23308]
-* `azurerm_network_interface` - add support for the `auxiliary_mode` and `auxiliary_sku` properties [GH-22979]
-* `azurerm_postgresql_flexible_server` - increase the maximum supported value for `storage_mb` [GH-23277]
-* `azurerm_shared_image_version` - add support for the `replicated_region_deletion_enabled` and `target_region.exclude_from_latest_enabled` properties [GH-23147]
-* `azurerm_storage_account` - add support for setting `domain_name` and `domain_guid` for `AADKERB` [GH-22833]
-* `azurerm_storage_account_customer_managed_key` - add support for cross-tenant customer-managed keys with the `federated_identity_client_id` and `key_vault_uri` properties [GH-20356]
-* `azurerm_web_application_firewall_policy` - add support for the `rate_limit_duration`, `rate_limit_threshold`, `group_rate_limit_by` and `request_body_inspect_limit_in_kb` properties [GH-23239]
+* `azurerm_app_configuration` - support for the `replica` block [GH-22452]
+* `azurerm_bot_channel_directline` - support for `user_upload_enabled`, `endpoint_parameters_enabled`, and `storage_enabled` [GH-23149]
+* `azurerm_container_app` - support for scale rules [GH-23294]
+* `azurerm_container_app_environment` - support for zone redundancy [GH-23313]
+* `azurerm_container_group` - support for the `key_vault_user_identity_id` property for Customer Managed Keys [GH-23332]
+* `azurerm_cosmosdb_account` - support for MongoDB connection strings [GH-23331]
+* `azurerm_data_factory_dataset_delimited_text` - support for the `dynamic_file_system_enabled`, `dynamic_path_enabled`, and `dynamic_filename_enabled` properties [GH-23261]
+* `azurerm_data_factory_dataset_parquet` - support for the `azure_blob_fs_location` block [GH-23261]
+* `azurerm_monitor_diagnostic_setting` - validation to ensure either `category` or `category_group` are supplied in `enabled_log` and `log` blocks [GH-23308]
+* `azurerm_network_interface` - support for the `auxiliary_mode` and `auxiliary_sku` properties [GH-22979]
+* `azurerm_postgresql_flexible_server` - increased the maximum supported value for `storage_mb` [GH-23277]
+* `azurerm_shared_image_version` - support for the `replicated_region_deletion_enabled` and `target_region.exclude_from_latest_enabled` properties [GH-23147]
+* `azurerm_storage_account` - support for setting `domain_name` and `domain_guid` for `AADKERB` [GH-22833]
+* `azurerm_storage_account_customer_managed_key` - support for cross-tenant customer-managed keys with the `federated_identity_client_id`, and `key_vault_uri` properties [GH-20356]
+* `azurerm_web_application_firewall_policy` - support for the `rate_limit_duration`, `rate_limit_threshold`, `group_rate_limit_by`, and `request_body_inspect_limit_in_kb` properties [GH-23239]
 
 BUG FIXES:
 
@@ -37,14 +37,14 @@ BUG FIXES:
 * `azurerm_api_management_api` - set the `service_url` property when importing the resource [GH-23011]
 * `azurerm_app_configuration` - prevent crash by nil checking the encryption configuration [GH-23302]
 * `azurerm_app_configuration_feature` - update `percentage_filter_value` to accept correct type of float [GH-23263]
-* `azurerm_container_app` - Fix issue with `commands` and `args` being overwritten when using multiple containers [GH-23338]
+* `azurerm_container_app` - fix an issue with `commands` and `args` being overwritten when using multiple containers [GH-23338]
 * `azurerm_key_vault_certificate` - fix issue where certificates couldn't be recovered anymore [GH-23204]
-* `azurerm_key_vault_key` - ForceNew when `expiration_date` is removed from the config file [GH-23327]
+* `azurerm_key_vault_key` - the ForceNew when `expiration_date` is removed from the config file [GH-23327]
 * `azurerm_linux_function_app` - fix a bug in setting the storage settings when using Elastic Premium plans [GH-21212]
 * `azurerm_linux_web_app` - fix docker app stack update [GH-23303]
-* `azurerm_linux_web_app` - Fix crash in auto heal expansion [GH-21328]
+* `azurerm_linux_web_app` - fix crash in auto heal expansion [GH-21328]
 * `azurerm_linux_web_app_slot` - fix docker app stack update [GH-23303]
-* `azurerm_linux_web_app_slot` - Fix crash in auto heal expansion [GH-21328]
+* `azurerm_linux_web_app_slot` - fix crash in auto heal expansion [GH-21328]
 * `azurerm_log_analytics_solution` - fix bug where the resource wasn't handling successful creation on subsequent applies [GH-23312]
 * `azurerm_management_group_subscription_association` - fix bug to correctly mark resource as gone if not found during read [GH-23335]
 * `azurerm_mssql_elasticpool` - remove check that prevents `license_type` from being set for certain skus [GH-23262]
