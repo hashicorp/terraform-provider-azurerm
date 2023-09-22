@@ -100,6 +100,11 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context was missing a deadline")
+	}
+
 	stateConf := &pluginsdk.StateChangeConf{
 		Target: []string{
 			"OK",
@@ -107,7 +112,7 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Refresh:                   managementLockStateRefreshFunc(ctx, client, id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 12,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
+		Timeout:                   time.Until(deadline),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish create replication", id)
@@ -168,6 +173,11 @@ func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context was missing a deadline")
+	}
+
 	stateConf := &pluginsdk.StateChangeConf{
 		Target: []string{
 			"NotFound",
@@ -175,7 +185,7 @@ func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		Refresh:                   managementLockStateRefreshFunc(ctx, client, *id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 12,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
+		Timeout:                   time.Until(deadline),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish delete replication", id)
