@@ -1,5 +1,9 @@
 ## 3.74.0 (Unreleased)
 
+NOTE:
+
+* `azurerm_synapse_sql_pool` - Users that have imported `azurerm_synapse_sql_pool` resources that were created outside of Terraform using an `LRS` storage account type will need to use `ignore_changes` to avoid the resource being recreated.
+
 FEATURES:
 
 * **New Resource**: `azurerm_arc_resource_bridge_appliance` [GH-23108]
@@ -47,6 +51,7 @@ BUG FIXES:
 * `azurerm_servicebus_queue` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 * `azurerm_servicebus_topic` - fixing an issue where `auto_delete_on_idle` couldn't be set to `P10675199DT2H48M5.4775807S` [GH-23296]
 * `azurerm_storage_account` - prevent sending unsupported blob properties in payload for `Storage` account kind [GH-23288]
+* `azurerm_synapse_sql_pool` - expose `storage_account_type` [GH-23217]
 * `azurerm_windows_function_app` - fix a bug in setting the storage settings when using Elastic Premium plans [GH-21212]
 * `azurerm_windows_web_app` - fix docker app stack update [GH-23303]
 * `azurerm_windows_web_app_slot` - fix docker app stack update [GH-23303]
