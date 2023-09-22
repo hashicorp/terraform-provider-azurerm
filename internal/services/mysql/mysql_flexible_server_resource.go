@@ -361,8 +361,10 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	storageSettings := expandArmServerStorage(d.Get("storage").([]interface{}))
-	if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
-		return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
+	if storageSettings != nil {
+		if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
+			return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
+		}
 	}
 
 	sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
