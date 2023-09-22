@@ -259,6 +259,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     action   = "Deny"
     rule {
       name                  = "network_rule_collection1_rule1"
+      description           = "network_rule_collection1_rule1"
       protocols             = ["TCP", "UDP"]
       source_addresses      = ["10.0.0.1"]
       destination_addresses = ["192.168.1.1", "ApiManagement"]
@@ -266,6 +267,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     }
     rule {
       name              = "network_rule_collection1_rule2"
+      description       = "network_rule_collection1_rule2"
       protocols         = ["TCP", "UDP"]
       source_addresses  = ["10.0.0.1"]
       destination_fqdns = ["time.windows.com"]
@@ -292,6 +294,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     action   = "Dnat"
     rule {
       name                = "nat_rule_collection1_rule1"
+      description         = "nat_rule_collection1_rule1"
       protocols           = ["TCP", "UDP"]
       source_addresses    = ["10.0.0.1", "10.0.0.2"]
       destination_address = "192.168.1.1"
