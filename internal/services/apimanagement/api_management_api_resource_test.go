@@ -681,7 +681,7 @@ resource "azurerm_api_management_api" "test" {
   revision            = "current"
 
   import {
-    content_value  = file("testdata/api_management_api_openai.yaml")
+    content_value  = file("testdata/api_management_api_openapi.yaml")
     content_format = "openapi"
   }
 }

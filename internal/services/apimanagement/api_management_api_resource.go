@@ -521,7 +521,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	name := getApiName(id.ApiId)
-	newId := api.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId)
+	newId := api.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name)
 	resp, err := client.Get(ctx, newId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
