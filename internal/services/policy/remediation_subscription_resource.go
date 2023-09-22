@@ -9,6 +9,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -24,15 +29,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
+func resourceSubscriptionPolicyRemediation() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceArmSubscriptionPolicyRemediationCreateUpdate,
-		Read:   resourceArmSubscriptionPolicyRemediationRead,
-		Update: resourceArmSubscriptionPolicyRemediationCreateUpdate,
-		Delete: resourceArmSubscriptionPolicyRemediationDelete,
+		Create: resourceSubscriptionPolicyRemediationCreateUpdate,
+		Read:   resourceSubscriptionPolicyRemediationRead,
+		Update: resourceSubscriptionPolicyRemediationCreateUpdate,
+		Delete: resourceSubscriptionPolicyRemediationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubscriptionPolicyRemediationID(id)
+			_, err := parse.ParseSubscriptionRemediationID(id)
 			return err
 		}),
 
@@ -51,12 +56,7 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 				ValidateFunc: validate.RemediationName,
 			},
 
-			"subscription_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: commonids.ValidateSubscriptionID,
-			},
+			"subscription_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.SubscriptionId{}),
 
 			"policy_assignment_id": {
 				Type:     pluginsdk.TypeString,
@@ -123,7 +123,7 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,10 +133,9 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	id := remediations.NewRemediationID(subscriptionId.SubscriptionId, d.Get("name").(string))
-
+	id := parse.NewSubscriptionRemediationID(*subscriptionId, d.Get("name").(string)).ToRemediationID()
 	if d.IsNewResource() {
-		existing, err := client.GetAtSubscription(ctx, id)
+		existing, err := client.GetAtResource(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
@@ -147,20 +146,37 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 		}
 	}
 
-	parameters := remediations.Remediation{
-		Properties: readRemediationProperties(d),
+	payload := remediations.Remediation{
+		Properties: &remediations.RemediationProperties{
+			Filters: &remediations.RemediationFilters{
+				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			},
+			PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
+			PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
+			ResourceDiscoveryMode:       pointer.To(remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))),
+		},
+	}
+	if v := d.Get("failure_percentage").(float64); v != 0 {
+		payload.Properties.FailureThreshold = &remediations.RemediationPropertiesFailureThreshold{
+			Percentage: utils.Float(v),
+		}
+	}
+	if v := d.Get("parallel_deployments").(int); v != 0 {
+		payload.Properties.ParallelDeployments = utils.Int64(int64(v))
+	}
+	if v := d.Get("resource_count").(int); v != 0 {
+		payload.Properties.ResourceCount = utils.Int64(int64(v))
 	}
 
-	if _, err = client.CreateOrUpdateAtSubscription(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
+	if _, err := client.CreateOrUpdateAtResource(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-
-	return resourceArmSubscriptionPolicyRemediationRead(d, meta)
+	return resourceSubscriptionPolicyRemediationRead(d, meta)
 }
 
-func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +204,7 @@ func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, met
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

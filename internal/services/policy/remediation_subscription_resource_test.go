@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubscriptionPolicyRemediationResource struct{}
@@ -34,6 +34,21 @@ func TestAccAzureRMSubscriptionPolicyRemediation_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubscriptionPolicyRemediation_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_remediation", "test")
+	r := SubscriptionPolicyRemediationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccAzureRMSubscriptionPolicyRemediation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_remediation", "test")
 	r := SubscriptionPolicyRemediationResource{}
@@ -50,28 +65,25 @@ func TestAccAzureRMSubscriptionPolicyRemediation_complete(t *testing.T) {
 }
 
 func (r SubscriptionPolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := remediations.ParseRemediationID(state.ID)
+	parsed, err := parse.ParseSubscriptionRemediationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
+	id := parsed.ToRemediationID()
 
-	resp, err := client.Policy.RemediationsClient.GetAtSubscription(ctx, *id)
+	resp, err := client.Policy.RemediationsClient.GetAtResource(ctx, id)
 	if err != nil || resp.Model == nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Policy Remediation %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving Policy Remediation %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SubscriptionPolicyRemediationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_subscription" "test" {}
 
 data "azurerm_policy_definition" "test" {
@@ -93,6 +105,10 @@ resource "azurerm_subscription_policy_assignment" "test" {
 
 func (r SubscriptionPolicyRemediationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_subscription_policy_remediation" "test" {
@@ -102,20 +118,35 @@ resource "azurerm_subscription_policy_remediation" "test" {
 }
 `, r.template(data), data.RandomString)
 }
+func (r SubscriptionPolicyRemediationResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subscription_policy_remediation" "test" {
+  name                 = "acctestremediation-%[2]s"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_assignment_id = azurerm_subscription_policy_assignment.test.id
+}
+`, r.basic(data))
+}
 
 func (r SubscriptionPolicyRemediationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_subscription_policy_remediation" "test" {
   name                    = "acctestremediation-%[2]s"
   subscription_id         = data.azurerm_subscription.test.id
   policy_assignment_id    = azurerm_subscription_policy_assignment.test.id
-  location_filters        = ["westus"]
+  location_filters        = [%[3]q]
   resource_discovery_mode = "ReEvaluateCompliance"
   failure_percentage      = 0.5
   parallel_deployments    = 3
   resource_count          = 3
 }
-`, r.template(data), data.RandomString)
+`, r.template(data), data.RandomString, data.Locations.Secondary)
 }
