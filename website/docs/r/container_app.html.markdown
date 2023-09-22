@@ -335,7 +335,7 @@ An `ingress` block supports the following:
 
 * `fqdn` -  The FQDN of the ingress.
 
-* `external_enabled` - (Optional) Is this an external Ingress.
+* `external_enabled` - (Optional) Is this an external Ingress? If `internalOnly` is true in the Container Apps Environment, external ingress is limited to the VNet.
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
 
