@@ -140,7 +140,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
 		}
 
-		if apiResponse.Model.Properties.PricingTier == "Free" {
+		if apiResponse.Model.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
 			isCurrentlyInFree = true
 		}
 	}
@@ -156,8 +156,8 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if pricing.Properties.PricingTier == "Free" && pricing.Properties.Extensions != nil && len(*pricing.Properties.Extensions) > 0 {
-		return fmt.Errorf("Can not have enabled extensions when switching to free tier, please remove the extensions")
+	if len(d.Get("extension").(*pluginsdk.Set).List()) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+		return fmt.Errorf("extensions cannot be enabled when using free tier")
 	}
 
 	updateResponse, updateErr := client.Update(ctx, id, pricing)
