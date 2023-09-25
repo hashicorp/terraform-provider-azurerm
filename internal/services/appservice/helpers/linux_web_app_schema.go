@@ -936,6 +936,9 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 
 			if linuxAppStack.DockerImageName != "" {
 				expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+				if appSettings == nil {
+					appSettings = map[string]string{}
+				}
 				appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
 				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
 				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
@@ -944,6 +947,8 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 			expanded.LinuxFxVersion = pointer.To("")
 		}
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
@@ -1142,6 +1147,16 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 
 	autoHeal := autoHealSettings[0]
 
+	if len(autoHeal.Actions) > 0 {
+		action := autoHeal.Actions[0]
+		result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
+		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
+	}
+
+	if len(autoHeal.Triggers) == 0 {
+		return result
+	}
+
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
 		result.Triggers.Requests = &web.RequestsBasedTrigger{
@@ -1192,10 +1207,6 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 		result.Triggers.StatusCodes = &statusCodeTriggers
 		result.Triggers.StatusCodesRange = &statusCodeRangeTriggers
 	}
-
-	action := autoHeal.Actions[0]
-	result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
-	result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 
 	return result
 }

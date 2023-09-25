@@ -14,8 +14,8 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.1
-	github.com/hashicorp/go-azure-helpers v0.59.0
-	github.com/hashicorp/go-azure-sdk v0.20230911.1163300
+	github.com/hashicorp/go-azure-helpers v0.61.0
+	github.com/hashicorp/go-azure-sdk v0.20230918.1115907
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.5.1
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rickb777/date v1.20.2
+	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
 	github.com/tombuildsstuff/kermit v0.20230703.1101016

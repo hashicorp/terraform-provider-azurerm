@@ -30,6 +30,7 @@ import (
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
+	arcResourceBridge "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
@@ -162,6 +163,7 @@ type Client struct {
 	AppPlatform                  *appPlatform.Client
 	AppService                   *appService.Client
 	ArcKubernetes                *arckubernetes.Client
+	ArcResourceBridge            *arcResourceBridge.Client
 	Attestation                  *attestation.Client
 	Authorization                *authorization.Client
 	Automanage                   *automanage.Client
@@ -313,6 +315,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.AppService = appService.NewClient(o)
 	if client.ArcKubernetes, err = arckubernetes.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ArcKubernetes: %+v", err)
+	}
+	if client.ArcResourceBridge, err = arcResourceBridge.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Arc Resource Bridge: %+v", err)
 	}
 	if client.Attestation, err = attestation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Attestation: %+v", err)

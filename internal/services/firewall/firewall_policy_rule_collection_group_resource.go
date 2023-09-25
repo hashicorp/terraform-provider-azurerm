@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -236,6 +237,11 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									"description": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
 									"protocols": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -347,6 +353,11 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"description": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
@@ -659,6 +670,7 @@ func expandFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewa
 			DestinationIPGroups:  utils.ExpandStringSlice(condition["destination_ip_groups"].([]interface{})),
 			DestinationFqdns:     utils.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
 			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].([]interface{})),
+			Description:          pointer.To(condition["description"].(string)),
 		}
 		result = append(result, output)
 	}
@@ -691,6 +703,7 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]network.BasicFirewallP
 			DestinationAddresses: &destinationAddresses,
 			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].([]interface{})),
 			TranslatedPort:       utils.String(strconv.Itoa(condition["translated_port"].(int))),
+			Description:          pointer.To(condition["description"].(string)),
 		}
 		if condition["translated_address"].(string) != "" {
 			output.TranslatedAddress = utils.String(condition["translated_address"].(string))
@@ -890,6 +903,7 @@ func flattenFirewallPolicyRuleNetwork(input *[]network.BasicFirewallPolicyRule) 
 			"destination_ip_groups": utils.FlattenStringSlice(rule.DestinationIPGroups),
 			"destination_fqdns":     utils.FlattenStringSlice(rule.DestinationFqdns),
 			"destination_ports":     utils.FlattenStringSlice(rule.DestinationPorts),
+			"description":           pointer.From(rule.Description),
 		})
 	}
 	return output, nil
@@ -951,6 +965,7 @@ func flattenFirewallPolicyRuleNat(input *[]network.BasicFirewallPolicyRule) ([]i
 			"translated_address":  translatedAddress,
 			"translated_port":     translatedPort,
 			"translated_fqdn":     translatedFQDN,
+			"description":         pointer.From(rule.Description),
 		})
 	}
 	return output, nil

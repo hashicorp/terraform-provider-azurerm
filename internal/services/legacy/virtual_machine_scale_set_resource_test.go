@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
@@ -799,14 +799,14 @@ func TestAccVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.
 }
 
 func (VirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	// this is a preview feature we don't want to use right now
 	var forceDelete *bool = nil
-	future, err := client.Legacy.VMScaleSetClient.Delete(ctx, id.ResourceGroup, id.Name, forceDelete)
+	future, err := client.Legacy.VMScaleSetClient.Delete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, forceDelete)
 	if err != nil {
 		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
 	}
@@ -819,13 +819,13 @@ func (VirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clien
 }
 
 func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return err
 	}
@@ -858,13 +858,13 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 }
 
 func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		return err
 	}
@@ -897,15 +897,15 @@ func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context,
 }
 
 func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := clients.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := clients.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set %q", id)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
