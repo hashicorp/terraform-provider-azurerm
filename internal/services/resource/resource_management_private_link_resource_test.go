@@ -77,9 +77,6 @@ resource "azurerm_resource_management_private_link" "test" {
 
 func (r ResourceManagementPrivateLinkTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 %s
 
