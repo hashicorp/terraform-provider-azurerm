@@ -359,7 +359,6 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.LocalRules
-			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -372,10 +371,6 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
-
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
-				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
 			return nil
