@@ -156,7 +156,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230918.1115907
+# github.com/hashicorp/go-azure-sdk v0.20230922.1111207
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -501,14 +501,14 @@ github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhs
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions
 github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/attacheddatabaseconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusterprincipalassignments
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databaseprincipalassignments
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/dataconnections
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/managedprivateendpoints
-github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/scripts
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databaseprincipalassignments
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/managedprivateendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/scripts
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/schedule
