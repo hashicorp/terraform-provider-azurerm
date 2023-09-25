@@ -145,7 +145,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				ValidateFunc:     validation.FloatAtLeast(-1.0),
 			},
 
-			"default_data_collection_rule_id": {
+			"data_collection_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
@@ -318,9 +318,9 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	// `default_data_collection_rule_id` also needs an additional update.
+	// `data_collection_rule_id` also needs an additional update.
 	// error message: Default dcr is not applicable on workspace creation, please provide it on update.
-	if v, ok := d.GetOk("default_data_collection_rule_id"); ok {
+	if v, ok := d.GetOk("data_collection_rule_id"); ok {
 		parameters.Properties.DefaultDataCollectionRuleResourceId = pointer.To(v.(string))
 	}
 
@@ -455,7 +455,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			if props.DefaultDataCollectionRuleResourceId != nil {
 				defaultDataCollectionRuleResourceId = *props.DefaultDataCollectionRuleResourceId
 			}
-			d.Set("default_data_collection_rule_id", defaultDataCollectionRuleResourceId)
+			d.Set("data_collection_rule_id", defaultDataCollectionRuleResourceId)
 
 			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
 				SubscriptionId:    id.SubscriptionId,

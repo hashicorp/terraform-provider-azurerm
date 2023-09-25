@@ -65,7 +65,7 @@ The following arguments are supported:
 
 ~> **NOTE:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
 
-* `default_data_collection_rule_id` - (Optional) The ID of the default Data Collection Rule to use for this workspace.
+* `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to use for this workspace.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -811,12 +811,12 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                            = "acctestLAW-%[1]d"
-  location                        = azurerm_resource_group.test.location
-  resource_group_name             = azurerm_resource_group.test.name
-  sku                             = "PerGB2018"
-  retention_in_days               = 30
-  default_data_collection_rule_id = "%[3]s"
+  name                    = "acctestLAW-%[1]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  sku                     = "PerGB2018"
+  retention_in_days       = 30
+  data_collection_rule_id = "%[3]s"
 }
 `, data.RandomInteger, data.Locations.Primary, ruleID)
 }
