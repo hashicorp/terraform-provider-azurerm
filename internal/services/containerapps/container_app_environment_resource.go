@@ -32,6 +32,7 @@ type ContainerAppEnvironmentModel struct {
 	LogAnalyticsWorkspaceId                 string                 `tfschema:"log_analytics_workspace_id"`
 	InfrastructureSubnetId                  string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled             bool                   `tfschema:"internal_load_balancer_enabled"`
+	ZoneRedundant                           bool                   `tfschema:"zone_redundancy_enabled"`
 	Tags                                    map[string]interface{} `tfschema:"tags"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
@@ -95,11 +96,20 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"internal_load_balancer_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			ForceNew:    true,
-			Default:     false,
-			Description: "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      false,
+			RequiredWith: []string{"infrastructure_subnet_id"},
+			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+		},
+
+		"zone_redundancy_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      false,
+			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -172,6 +182,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Name:     pointer.To(containerAppEnvironment.Name),
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
+					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
@@ -265,6 +276,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
 					}
 
+					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 				}

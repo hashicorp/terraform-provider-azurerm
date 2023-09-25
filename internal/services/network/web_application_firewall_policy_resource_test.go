@@ -226,6 +226,35 @@ func TestAccWebApplicationFirewallPolicy_updateOverrideRules(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_rateLimit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rateLimit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.rateLimitUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.rateLimit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWebApplicationFirewallPolicy_knownCVEs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 	r := WebApplicationFirewallResource{}
@@ -508,6 +537,174 @@ resource "azurerm_web_application_firewall_policy" "test" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) rateLimit(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "test"
+  }
+
+  custom_rules {
+    name                 = "Rule1"
+    priority             = 1
+    rule_type            = "RateLimitRule"
+    rate_limit_duration  = "FiveMins"
+    rate_limit_threshold = 100
+    group_rate_limit_by  = "ClientAddr"
+
+    match_conditions {
+      match_variables {
+        variable_name = "RemoteAddr"
+      }
+
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
+    }
+
+    action = "Block"
+  }
+
+  managed_rules {
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+    }
+
+    exclusion {
+      match_variable          = "RequestCookieNames"
+      selector                = "too-much-fun"
+      selector_match_operator = "EndsWith"
+    }
+
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        rule {
+          id      = "920300"
+          enabled = true
+          action  = "Log"
+        }
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
+      }
+    }
+  }
+
+  policy_settings {
+    enabled                          = true
+    mode                             = "Prevention"
+    request_body_inspect_limit_in_kb = 1000
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) rateLimitUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "test"
+  }
+
+  custom_rules {
+    name                 = "Rule1"
+    priority             = 1
+    rule_type            = "RateLimitRule"
+    rate_limit_duration  = "OneMin"
+    rate_limit_threshold = 123
+    group_rate_limit_by  = "GeoLocation"
+
+    match_conditions {
+      match_variables {
+        variable_name = "RemoteAddr"
+      }
+
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
+    }
+
+    action = "Block"
+  }
+
+  managed_rules {
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+    }
+
+    exclusion {
+      match_variable          = "RequestCookieNames"
+      selector                = "too-much-fun"
+      selector_match_operator = "EndsWith"
+    }
+
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        rule {
+          id      = "920300"
+          enabled = true
+          action  = "Log"
+        }
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
+      }
+    }
+  }
+
+  policy_settings {
+    enabled                          = true
+    mode                             = "Prevention"
+    request_body_inspect_limit_in_kb = 1234
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -827,7 +826,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
 	if shouldShutDown {
-		virtualMachine, err := parse.VirtualMachineID(*disk.Model.ManagedBy)
+		virtualMachine, err := commonids.ParseVirtualMachineID(*disk.Model.ManagedBy)
 		if err != nil {
 			return fmt.Errorf("parsing VMID %q for disk attachment: %+v", *disk.Model.ManagedBy, err)
 		}
@@ -837,14 +836,14 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		locks.ByName(name, VirtualMachineResourceName)
 		defer locks.UnlockByName(name, VirtualMachineResourceName)
 
-		vm, err := vmClient.Get(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, "")
+		vm, err := vmClient.Get(ctx, virtualMachine.ResourceGroupName, virtualMachine.VirtualMachineName, "")
 		if err != nil {
-			return fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", virtualMachine, err)
 		}
 
-		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroupName, virtualMachine.VirtualMachineName)
 		if err != nil {
-			return fmt.Errorf("retrieving InstanceView for Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			return fmt.Errorf("retrieving InstanceView for V%s: %+v", virtualMachine, err)
 		}
 
 		shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
@@ -902,7 +901,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				// fixes #1600
 				vm.Resources = nil
 
-				future, err := vmClient.CreateOrUpdate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, vm)
+				future, err := vmClient.CreateOrUpdate(ctx, virtualMachine.ResourceGroupName, virtualMachine.VirtualMachineName, vm)
 				if err != nil {
 					return fmt.Errorf("removing Disk %q from Virtual Machine %q : %+v", id.DiskName, virtualMachine.String(), err)
 				}
@@ -915,34 +914,34 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		// Shutdown
 		if shouldShutDown {
-			log.Printf("[DEBUG] Shutting Down Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			log.Printf("[DEBUG] Shutting Down %s", virtualMachine)
 			forceShutdown := false
-			future, err := vmClient.PowerOff(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, utils.Bool(forceShutdown))
+			future, err := vmClient.PowerOff(ctx, virtualMachine.ResourceGroupName, virtualMachine.VirtualMachineName, utils.Bool(forceShutdown))
 			if err != nil {
-				return fmt.Errorf("sending Power Off to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+				return fmt.Errorf("sending Power Off to %s: %+v", virtualMachine, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
-				return fmt.Errorf("waiting for Power Off of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+				return fmt.Errorf("waiting for Power Off of %s: %+v", virtualMachine, err)
 			}
 
-			log.Printf("[DEBUG] Shut Down Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			log.Printf("[DEBUG] Shut Down %s", virtualMachine)
 		}
 
 		// De-allocate
 		if shouldDeallocate {
-			log.Printf("[DEBUG] Deallocating Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			log.Printf("[DEBUG] Deallocating %s.", virtualMachine)
 			// Upgrading to 2021-07-01 exposed a new hibernate paramater to the Deallocate method
-			deAllocFuture, err := vmClient.Deallocate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, utils.Bool(false))
+			deAllocFuture, err := vmClient.Deallocate(ctx, virtualMachine.ResourceGroupName, virtualMachine.VirtualMachineName, utils.Bool(false))
 			if err != nil {
-				return fmt.Errorf("Deallocating to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+				return fmt.Errorf("Deallocating to %s: %+v", virtualMachine, err)
 			}
 
 			if err := deAllocFuture.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
-				return fmt.Errorf("waiting for Deallocation of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+				return fmt.Errorf("waiting for Deallocation of %s: %+v", virtualMachine, err)
 			}
 
-			log.Printf("[DEBUG] Deallocated Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			log.Printf("[DEBUG] Deallocated %s", virtualMachine)
 		}
 
 		// Update Disk
@@ -968,7 +967,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			// if there's too many disks we get a 409 back with:
 			//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 			// which we're intentionally not wrapping, since the errors good.
-			future, err := vmClient.CreateOrUpdate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, vm)
+			future, err := vmClient.CreateOrUpdate(ctx, virtualMachine.ResourceGroupName, virtualMachine.VirtualMachineName, vm)
 			if err != nil {
 				return fmt.Errorf("updating Virtual Machine %q to reattach Disk %q: %+v", virtualMachine.String(), name, err)
 			}
@@ -979,17 +978,17 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
-			log.Printf("[DEBUG] Starting Linux Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
-			future, err := vmClient.Start(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+			log.Printf("[DEBUG] Starting %s", virtualMachine)
+			future, err := vmClient.Start(ctx, virtualMachine.ResourceGroupName, virtualMachine.VirtualMachineName)
 			if err != nil {
-				return fmt.Errorf("starting Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+				return fmt.Errorf("starting %s: %+v", virtualMachine, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
-				return fmt.Errorf("waiting for start of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+				return fmt.Errorf("waiting for start of %s %+v", virtualMachine, err)
 			}
 
-			log.Printf("[DEBUG] Started Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			log.Printf("[DEBUG] Started %s", virtualMachine)
 		}
 	} else { // otherwise, just update it
 		err := client.UpdateThenPoll(ctx, *id, diskUpdate)

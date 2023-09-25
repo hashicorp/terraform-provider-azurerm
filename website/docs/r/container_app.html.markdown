@@ -97,9 +97,69 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
+* `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
+
+* `custom_scale_rule` - (Optional) One or more `custom_scale_rule` blocks as defined below.
+
+* `http_scale_rule` - (Optional) One or more `http_scale_rule` blocks as defined below.
+
+* `tcp_scale_rule` - (Optional) One or more `tcp_scale_rule` blocks as defined below.
+
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
 * `volume` - (Optional) A `volume` block as detailed below.
+
+---
+
+An `azure_queue_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `queue_name` - (Required) The name of the Azure Queue
+
+* `queue_length` - (Required) The value of the length of the queue to trigger scaling actions.
+
+* `authentication` - (Required) One or more `authentication` blocks as defined below.
+
+---
+
+A `custom_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `custom_rule_type` - (Required) The Custom rule type. Possible values include: `activemq`, `artemis-queue`, `kafka`, `pulsar`, `aws-cloudwatch`, `aws-dynamodb`, `aws-dynamodb-streams`, `aws-kinesis-stream`, `aws-sqs-queue`, `azure-app-insights`, `azure-blob`, `azure-data-explorer`, `azure-eventhub`, `azure-log-analytics`, `azure-monitor`, `azure-pipelines`, `azure-servicebus`, `azure-queue`, `cassandra`, `cpu`, `cron`, `datadog`, `elasticsearch`, `external`, `external-push`, `gcp-stackdriver`, `gcp-storage`, `gcp-pubsub`, `graphite`, `http`, `huawei-cloudeye`, `ibmmq`, `influxdb`, `kubernetes-workload`, `liiklus`, `memory`, `metrics-api`, `mongodb`, `mssql`, `mysql`, `nats-jetstream`, `stan`, `tcp`, `new-relic`, `openstack-metric`, `openstack-swift`, `postgresql`, `predictkube`, `prometheus`, `rabbitmq`, `redis`, `redis-cluster`, `redis-sentinel`, `redis-streams`, `redis-cluster-streams`, `redis-sentinel-streams`, `selenium-grid`,`solace-event-queue`, and `github-runner`.
+
+* `metadata`- (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
+
+* `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+---
+
+A `http_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `concurrent_requests`- (Required) - The number of concurrent requests to trigger scaling.
+
+* `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+---
+
+A `tcp_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `concurrent_requests`- (Required) - The number of concurrent requests to trigger scaling.
+
+* `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+---
+
+An `authentication` block supports the following:
+
+* `secret_name` - (Required) The name of the Container App Secret to use for this Scale Rule Authentication.
+
+* `trigger_parameter` - (Required) The Trigger Parameter name to use the supply the value retrieved from the `secret_name`.
 
 ---
 

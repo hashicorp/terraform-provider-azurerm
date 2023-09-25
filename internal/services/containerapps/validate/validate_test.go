@@ -274,3 +274,49 @@ func TestValidateInitTimeout(t *testing.T) {
 		}
 	}
 }
+
+func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "5",
+			Valid: true,
+		},
+		{
+			Input: "m",
+			Valid: false,
+		},
+		{
+			Input: "6d",
+			Valid: false,
+		},
+		{
+			Input: "10s",
+			Valid: false,
+		},
+		{
+			Input: "1h",
+			Valid: false,
+		},
+		{
+			Input: "1200s",
+			Valid: false,
+		},
+		{
+			Input: "-1",
+			Valid: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ContainerAppScaleRuleConcurrentRequests(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s", tc.Valid, valid, tc.Input)
+		}
+	}
+}

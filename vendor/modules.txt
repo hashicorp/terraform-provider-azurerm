@@ -156,7 +156,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230915.1163220
+# github.com/hashicorp/go-azure-sdk v0.20230918.1115907
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -216,6 +216,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/user
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations
+github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis
@@ -606,20 +607,21 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverstart
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverstop
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverupgrade
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/backups
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/checknameavailability
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/configurations
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/firewallrules
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/getprivatednszonesuffix
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/locationbasedcapabilities
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverrestart
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverstart
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverstop
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/azureadadministrators
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/backups
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/checknameavailability
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/configurations
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/getprivatednszonesuffix
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/locationbasedcapabilities
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/logfiles
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverfailover
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverrestart
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverstart
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverstop
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy
@@ -832,6 +834,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/da
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features

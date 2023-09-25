@@ -247,6 +247,44 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApi_importSwaggerWithServiceUrl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importSwaggerWithServiceUrl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
+			},
+		},
+		{
+			Config: r.importSwaggerWithServiceUrlUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
+			},
+		},
+	})
+}
+
 func TestAccApiManagementApi_importWsdl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
@@ -597,6 +635,52 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
+
+  import {
+    content_value  = file("testdata/api_management_api_swagger.json")
+    content_format = "swagger-json"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importSwaggerWithServiceUrl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  description         = "import swagger"
+  service_url         = "https://example.com/foo/bar"
+
+  import {
+    content_value  = file("testdata/api_management_api_swagger.json")
+    content_format = "swagger-json"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importSwaggerWithServiceUrlUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  description         = "import swagger update"
+  service_url         = "https://example.com/foo/bar"
 
   import {
     content_value  = file("testdata/api_management_api_swagger.json")

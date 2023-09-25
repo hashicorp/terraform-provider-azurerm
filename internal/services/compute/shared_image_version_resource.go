@@ -162,7 +162,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					images.ValidateImageID,
-					validate.VirtualMachineID,
+					commonids.ValidateVirtualMachineID,
 				),
 				ExactlyOneOf: []string{"blob_uri", "os_disk_snapshot_id", "managed_image_id"},
 			},
