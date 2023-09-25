@@ -142,6 +142,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"11.1",
 				"11.2",
 				"11.3",
+				"12.1",
 			}, false),
 		},
 
@@ -289,6 +290,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"13",
 				"14",
 				"15",
+				"16",
 			}, false),
 		},
 

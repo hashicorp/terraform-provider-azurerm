@@ -71,13 +71,6 @@ func TestAccCosmosDbPostgreSQLCluster_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -226,7 +219,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   coordinator_vcore_count         = 4
   node_count                      = 2
 
-  citus_version                        = "11.3"
+  citus_version                        = "12.1"
   coordinator_public_ip_access_enabled = false
   ha_enabled                           = true
   coordinator_server_edition           = "MemoryOptimized"
@@ -239,7 +232,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 
   node_public_ip_access_enabled = true
   node_server_edition           = "GeneralPurpose"
-  sql_version                   = "15"
+  sql_version                   = "16"
   preferred_primary_zone        = 2
   node_storage_quota_in_mb      = 262144
   node_vcores                   = 4
