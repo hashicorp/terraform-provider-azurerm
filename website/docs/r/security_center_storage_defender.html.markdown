@@ -29,7 +29,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_security_center_storage_defender" "example" {
   storage_account_id = azurerm_storage_account.example.id
-  enabled            = true
 }
 ```
 
@@ -38,8 +37,6 @@ resource "azurerm_security_center_storage_defender" "example" {
 The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the storage account the defender applied to. Changing this forces a new resource to be created.
-
-* `enabled` - (Required) Whether enable the defender.
 
 * `override_subscription_settings_enabled` - (Optional) Whether the settings defined for this storage account should override the settings defined for the subscription. Defaults to `false`.
 
@@ -59,10 +56,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 10 minutes) Used when creating the Defender for Storage.
-* `update` - (Defaults to 10 minutes) Used when updating the Defender for Storage.
+* `create` - (Defaults to 30 minutes) Used when creating the Defender for Storage.
+* `update` - (Defaults to 30 minutes) Used when updating the Defender for Storage.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Defender for Storage.
-* `delete` - (Defaults to 10 minutes) Used when deleting the Defender for Storage.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Defender for Storage.
 
 ## Import
 

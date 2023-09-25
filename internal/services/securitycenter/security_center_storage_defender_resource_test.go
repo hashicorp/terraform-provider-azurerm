@@ -161,7 +161,6 @@ func (r SecurityCenterStorageDefenderResource) update(data acceptance.TestData) 
 
 resource "azurerm_security_center_storage_defender" "test" {
   storage_account_id                          = azurerm_storage_account.test.id
-  enabled                                     = true
   override_subscription_settings_enabled      = false
   malware_scanning_on_upload_enabled          = false
   malware_scanning_on_upload_cap_gb_per_month = 6
@@ -176,7 +175,6 @@ func (r SecurityCenterStorageDefenderResource) complete(data acceptance.TestData
 
 resource "azurerm_security_center_storage_defender" "test" {
   storage_account_id                          = azurerm_storage_account.test.id
-  enabled                                     = true
   override_subscription_settings_enabled      = true
   malware_scanning_on_upload_enabled          = true
   malware_scanning_on_upload_cap_gb_per_month = 4
@@ -191,7 +189,6 @@ func (r SecurityCenterStorageDefenderResource) requiresImport(data acceptance.Te
 
 resource "azurerm_security_center_storage_defender" "import" {
   storage_account_id = azurerm_security_center_storage_defender.test.id
-  enabled            = azurerm_security_center_storage_defender.test.enabled
 }
 `, r.basic(data))
 }

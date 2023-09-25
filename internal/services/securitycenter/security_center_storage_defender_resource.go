@@ -20,7 +20,6 @@ type StorageDefenderResource struct{}
 
 type StorageDefenderModel struct {
 	StorageAccountId                 string `tfschema:"storage_account_id"`
-	Enabled                          bool   `tfschema:"enabled"`
 	OverrideSubscriptionSettings     bool   `tfschema:"override_subscription_settings_enabled"`
 	MalwareScanningOnUploadEnabled   bool   `tfschema:"malware_scanning_on_upload_enabled"`
 	MalwareScanningOnUploadCapPerMon int64  `tfschema:"malware_scanning_on_upload_cap_gb_per_month"`
@@ -30,7 +29,7 @@ type StorageDefenderModel struct {
 var _ sdk.ResourceWithUpdate = StorageDefenderResource{}
 
 func (s StorageDefenderResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return commonids.ValidateScopeID
+	return commonids.ValidateStorageAccountID
 }
 
 func (s StorageDefenderResource) ModelObject() interface{} {
@@ -48,11 +47,6 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
-
-		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
 		},
 
 		"override_subscription_settings_enabled": {
@@ -101,7 +95,7 @@ func (s StorageDefenderResource) Attributes() map[string]*schema.Schema {
 
 func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 10 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var plan StorageDefenderModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -126,7 +120,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 
 			input := defenderforstorage.DefenderForStorageSetting{
 				Properties: &defenderforstorage.DefenderForStorageSettingProperties{
-					IsEnabled:                         pointer.To(plan.Enabled),
+					IsEnabled:                         pointer.To(true),
 					OverrideSubscriptionLevelSettings: pointer.To(plan.OverrideSubscriptionSettings),
 					MalwareScanning: &defenderforstorage.MalwareScanningProperties{
 						OnUpload: &defenderforstorage.OnUploadProperties{
@@ -142,7 +136,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 
 			_, err = client.Create(ctx, id, input)
 			if err != nil {
-				return fmt.Errorf("creating: %+v", err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -153,7 +147,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 
 func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 10 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var plan StorageDefenderModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -180,10 +174,6 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 			prop := model.Properties
 			if prop == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("enabled") {
-				prop.IsEnabled = pointer.To(plan.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("override_subscription_settings_enabled") {
@@ -220,7 +210,7 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 
 			_, err = client.Create(ctx, *id, input)
 			if err != nil {
-				return fmt.Errorf("updating: %+v", err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -244,16 +234,23 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %+v", err)
+				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
+			storageAccountId, err := commonids.ParseStorageAccountID(id.Scope)
+			if err != nil {
+				return err
+			}
 			state := StorageDefenderModel{
-				StorageAccountId: id.ID(),
+				StorageAccountId: storageAccountId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
-					state.Enabled = pointer.From(prop.IsEnabled)
+					if !pointer.From(prop.IsEnabled) {
+						return metadata.MarkAsGone(id)
+					}
+
 					state.OverrideSubscriptionSettings = pointer.From(prop.OverrideSubscriptionLevelSettings)
 
 					if ms := prop.MalwareScanning; ms != nil {
@@ -276,7 +273,7 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 
 func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 10 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SecurityCenter.DefenderForStorageClient
 
@@ -285,16 +282,9 @@ func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			_, err = client.Get(ctx, *id)
 			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("reading %+v", err)
-				}
-			}
-			// if the resource has never been created, it returns 404.
-			// once created, it could only be set to disable.
-			if response.WasNotFound(resp.HttpResponse) {
-				return nil
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			input := defenderforstorage.DefenderForStorageSetting{
@@ -305,7 +295,7 @@ func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 
 			_, err = client.Create(ctx, *id, input)
 			if err != nil {
-				return fmt.Errorf("deleting %+v", err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
