@@ -2595,9 +2595,9 @@ resource "azurerm_windows_web_app" "test" {
     health_check_path                 = "/health"
     health_check_eviction_time_in_min = 5
     application_stack {
-      current_stack                   = "java"
-      java_version                    = "%s"
-      java_embedded_server_enabled    = "true"
+      current_stack                = "java"
+      java_version                 = "%s"
+      java_embedded_server_enabled = "true"
     }
   }
 }
