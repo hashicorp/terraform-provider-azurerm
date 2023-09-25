@@ -489,7 +489,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 		defer cancel()
 
-		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders, authConfig.Environment); err != nil {
 			return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
 		}
 	}
