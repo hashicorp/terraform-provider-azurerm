@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -58,6 +59,7 @@ type Client struct {
 	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                  *snapshots.SnapshotsClient
 	VirtualMachinesClient            *virtualmachines.VirtualMachinesClient
+	VirtualMachineRunCommandsClient  *virtualmachineruncommands.VirtualMachineRunCommandsClient
 	VMExtensionImageClient           *compute.VirtualMachineExtensionImagesClient
 	VMExtensionClient                *compute.VirtualMachineExtensionsClient
 	VMScaleSetClient                 *compute.VirtualMachineScaleSetsClient
@@ -192,6 +194,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(virtualMachinesClient.Client, o.Authorizers.ResourceManager)
 
+	virtualMachineRunCommandsClient, err := virtualmachineruncommands.NewVirtualMachineRunCommandsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VirtualMachineRunCommands client: %+v", err)
+	}
+	o.Configure(virtualMachineRunCommandsClient.Client, o.Authorizers.ResourceManager)
+
 	vmExtensionImageClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmExtensionImageClient.Client, o.ResourceManagerAuthorizer)
 
@@ -238,6 +246,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SSHPublicKeysClient:              sshPublicKeysClient,
 		SnapshotsClient:                  snapshotsClient,
 		VirtualMachinesClient:            virtualMachinesClient,
+		VirtualMachineRunCommandsClient:  virtualMachineRunCommandsClient,
 		VMExtensionImageClient:           &vmExtensionImageClient,
 		VMExtensionClient:                &vmExtensionClient,
 		VMScaleSetClient:                 &vmScaleSetClient,
