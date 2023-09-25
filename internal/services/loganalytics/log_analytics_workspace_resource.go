@@ -455,7 +455,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			if props.DefaultDataCollectionRuleResourceId != nil {
 				dataCollectionId, err := datacollectionrules.ParseDataCollectionRuleID(*props.DefaultDataCollectionRuleResourceId)
 				if err != nil {
-					return fmt.Errorf("parsing %s: %+v", *props.DefaultDataCollectionRuleResourceId, err)
+					return err
 				}
 
 				defaultDataCollectionRuleResourceId = dataCollectionId.ID()
