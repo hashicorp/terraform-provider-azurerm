@@ -83,7 +83,7 @@ resource "azurerm_function_app" "test" {
   }
 }
 
-resource "azurerm_app_service_connection" "example" {
+resource "azurerm_function_app_connection" "example" {
   name               = "example-serviceconnector"
   function_app_id    = azurerm_function_app.example.id
   target_resource_id = azurerm_cosmosdb_account.test.id
@@ -159,5 +159,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Service Connector for app service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Web/sites/webapp/providers/Microsoft.ServiceLinker/linkers/serviceconnector1
+terraform import azurerm_function_app_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Web/sites/webapp/providers/Microsoft.ServiceLinker/linkers/serviceconnector1
 ```
