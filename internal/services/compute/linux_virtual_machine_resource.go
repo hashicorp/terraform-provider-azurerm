@@ -740,6 +740,36 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 	}
 
+	// Post creation polling to ensure the ARM cache of OS disk is in parity with the client's view.
+	// This is to avoid client/RP created the OS disk, while ARM cache hasn't reflected that.
+	resp, err = client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
+	if err != nil {
+		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
+	}
+	if resp.VirtualMachineProperties == nil {
+		return fmt.Errorf("retrieving Linux %s: `properties` was nil", id)
+	}
+	props := *resp.VirtualMachineProperties
+	profile := props.StorageProfile
+	if profile == nil {
+		return fmt.Errorf("retrieving Linux %s: `properties.storageProfile` was nil", id)
+	}
+	osDisk = profile.OsDisk
+	if osDisk == nil {
+		return fmt.Errorf("retrieving Linux %s: `properties.storageProfile.osDisk` was nil", id)
+	}
+	diskName := osDisk.Name
+	if diskName == nil {
+		return fmt.Errorf("retrieving Linux %s: `properties.storageProfile.osDisk.name` was nil", id)
+	}
+	if err := waitForVmOsDiskArmCache(
+		ctx,
+		meta.(*clients.Client).Resource.ResourcesClient,
+		disks.NewDiskID(id.SubscriptionId, id.ResourceGroupName, *diskName),
+		true); err != nil {
+		return err
+	}
+
 	d.SetId(id.ID())
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
@@ -1656,6 +1686,12 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 
 			if err := disksClient.DeleteThenPoll(ctx, *diskId); err != nil {
 				return fmt.Errorf("deleting %s for Linux %s: %+v", diskId, id, err)
+			}
+
+			// Post delete polling to ensure the ARM cache of OS disk is in parity with the client's view.
+			// This is to avoid client/RP deleted the OS disk, while ARM cache hasn't reflected that.
+			if err := waitForVmOsDiskArmCache(ctx, meta.(*clients.Client).Resource.ResourcesClient, *diskId, false); err != nil {
+				return err
 			}
 
 			log.Printf("[DEBUG] Deleted %s for Linux %s", diskId, id)
