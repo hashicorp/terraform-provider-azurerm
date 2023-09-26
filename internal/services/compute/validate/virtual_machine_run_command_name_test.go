@@ -90,7 +90,7 @@ func TestVirtualMachineRunCommandName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := VirtualMachineName(v.input, "name")
+		_, errors := VirtualMachineRunCommandName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

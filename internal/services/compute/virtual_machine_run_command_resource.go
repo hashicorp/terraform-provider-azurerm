@@ -571,24 +571,12 @@ func (r VirtualMachineRunCommandResource) expandManagedIdentity(input []VirtualM
 
 	if input[0].ClientId != "" {
 		output.ClientId = pointer.To(input[0].ClientId)
-	} else if input[0].ObjectId != "" {
+	}
+	if input[0].ObjectId != "" {
 		output.ObjectId = pointer.To(input[0].ObjectId)
 	}
 
 	return output
-}
-
-func (r VirtualMachineRunCommandResource) flattenManagedIdentity(input *virtualmachineruncommands.RunCommandManagedIdentity) []VirtualMachineRunCommandManagedIdentitySchema {
-	if input == nil {
-		return []VirtualMachineRunCommandManagedIdentitySchema{}
-	}
-
-	return []VirtualMachineRunCommandManagedIdentitySchema{
-		{
-			ClientId: pointer.From(input.ClientId),
-			ObjectId: pointer.From(input.ObjectId),
-		},
-	}
 }
 
 func (r VirtualMachineRunCommandResource) expandSource(input []VirtualMachineRunCommandScriptSourceSchema) *virtualmachineruncommands.VirtualMachineRunCommandScriptSource {
@@ -599,11 +587,14 @@ func (r VirtualMachineRunCommandResource) expandSource(input []VirtualMachineRun
 	output := &virtualmachineruncommands.VirtualMachineRunCommandScriptSource{
 		ScriptUriManagedIdentity: r.expandManagedIdentity(input[0].ScriptUriManagedIdentity),
 	}
+
 	if input[0].CommandId != "" {
 		output.CommandId = pointer.To(input[0].CommandId)
-	} else if input[0].Script != "" {
+	}
+	if input[0].Script != "" {
 		output.Script = &input[0].Script
-	} else if input[0].ScriptUri != "" {
+	}
+	if input[0].ScriptUri != "" {
 		output.ScriptUri = &input[0].ScriptUri
 	}
 
@@ -620,7 +611,6 @@ func (r VirtualMachineRunCommandResource) flattenSource(input *virtualmachinerun
 			CommandId: pointer.From(input.CommandId),
 			Script:    pointer.From(input.Script),
 			ScriptUri: pointer.From(input.ScriptUri),
-			//ScriptUriManagedIdentity: r.flattenManagedIdentity(input.ScriptUriManagedIdentity),
 		},
 	}
 }
