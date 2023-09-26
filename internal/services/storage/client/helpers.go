@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 var (
@@ -124,7 +124,7 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 	}
 
 	accountId := *props.ID
-	id, err := parse.StorageAccountID(accountId)
+	id, err := commonids.ParseStorageAccountID(accountId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q as a Resource ID: %+v", accountId, err)
 	}
@@ -132,7 +132,7 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 	return &accountDetails{
 		name:          accountName,
 		ID:            accountId,
-		ResourceGroup: id.ResourceGroup,
+		ResourceGroup: id.ResourceGroupName,
 		Properties:    props.AccountProperties,
 	}, nil
 }

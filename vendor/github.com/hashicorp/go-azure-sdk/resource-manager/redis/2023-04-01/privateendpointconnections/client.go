@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type PrivateEndpointConnectionsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewPrivateEndpointConnectionsClientWithBaseURI(api environments.Api) (*PrivateEndpointConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "privateendpointconnections", defaultApiVersion)
+func NewPrivateEndpointConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*PrivateEndpointConnectionsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "privateendpointconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrivateEndpointConnectionsClient: %+v", err)
 	}

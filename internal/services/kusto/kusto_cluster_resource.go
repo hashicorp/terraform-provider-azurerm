@@ -242,9 +242,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 	if features.FourPointOhBeta() {
 		s.Schema["language_extensions"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			ConflictsWith: []string{"language_extensions"},
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {

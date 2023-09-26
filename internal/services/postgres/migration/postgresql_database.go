@@ -47,7 +47,7 @@ func (PostgresqlDatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DatabaseCollation,
+			ValidateFunc: validate.PostgresqlDatabaseCollation,
 		},
 	}
 }

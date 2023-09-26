@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -41,7 +42,7 @@ func (o GetPropertiesOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // GetProperties ...
-func (c StorageAccountsClient) GetProperties(ctx context.Context, id StorageAccountId, options GetPropertiesOperationOptions) (result GetPropertiesOperationResponse, err error) {
+func (c StorageAccountsClient) GetProperties(ctx context.Context, id commonids.StorageAccountId, options GetPropertiesOperationOptions) (result GetPropertiesOperationResponse, err error) {
 	req, err := c.preparerForGetProperties(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storageaccounts.StorageAccountsClient", "GetProperties", nil, "Failure preparing request")
@@ -64,7 +65,7 @@ func (c StorageAccountsClient) GetProperties(ctx context.Context, id StorageAcco
 }
 
 // preparerForGetProperties prepares the GetProperties request.
-func (c StorageAccountsClient) preparerForGetProperties(ctx context.Context, id StorageAccountId, options GetPropertiesOperationOptions) (*http.Request, error) {
+func (c StorageAccountsClient) preparerForGetProperties(ctx context.Context, id commonids.StorageAccountId, options GetPropertiesOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

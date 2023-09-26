@@ -20,25 +20,25 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `UpdateRunsClient.UpdateRunsDelete`
+### Example Usage: `UpdateRunsClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "updateValue", "updateRunValue")
 
-if err := client.UpdateRunsDeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `UpdateRunsClient.UpdateRunsGet`
+### Example Usage: `UpdateRunsClient.Get`
 
 ```go
 ctx := context.TODO()
 id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "updateValue", "updateRunValue")
 
-read, err := client.UpdateRunsGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -48,14 +48,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `UpdateRunsClient.UpdateRunsList`
+### Example Usage: `UpdateRunsClient.List`
 
 ```go
 ctx := context.TODO()
 id := updateruns.NewUpdateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "updateValue")
 
-// alternatively `client.UpdateRunsList(ctx, id)` can be used to do batched pagination
-items, err := client.UpdateRunsListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -65,7 +65,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `UpdateRunsClient.UpdateRunsPut`
+### Example Usage: `UpdateRunsClient.Put`
 
 ```go
 ctx := context.TODO()
@@ -76,7 +76,7 @@ payload := updateruns.UpdateRun{
 }
 
 
-read, err := client.UpdateRunsPut(ctx, id, payload)
+read, err := client.Put(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

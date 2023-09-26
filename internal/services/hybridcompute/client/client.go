@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections"
@@ -18,24 +20,35 @@ type Client struct {
 	PrivateLinkScopesClient          *privatelinkscopes.PrivateLinkScopesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	machineExtensionsClient, err := machineextensions.NewMachineExtensionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building MachineExtensions client: %+v", err)
+	}
+	o.Configure(machineExtensionsClient.Client, o.Authorizers.ResourceManager)
 
-	machineExtensionsClient := machineextensions.NewMachineExtensionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&machineExtensionsClient.Client, o.ResourceManagerAuthorizer)
+	machinesClient, err := machines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Machines client: %+v", err)
+	}
+	o.Configure(machinesClient.Client, o.Authorizers.ResourceManager)
 
-	machinesClient := machines.NewMachinesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&machinesClient.Client, o.ResourceManagerAuthorizer)
+	privateEndpointConnectionsClient, err := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PrivateEndpointConnections client: %+v", err)
+	}
+	o.Configure(privateEndpointConnectionsClient.Client, o.Authorizers.ResourceManager)
 
-	privateEndpointConnectionsClient := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&privateEndpointConnectionsClient.Client, o.ResourceManagerAuthorizer)
-
-	privateLinkScopesClient := privatelinkscopes.NewPrivateLinkScopesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&privateLinkScopesClient.Client, o.ResourceManagerAuthorizer)
+	privateLinkScopesClient, err := privatelinkscopes.NewPrivateLinkScopesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PrivateLinkScopes client: %+v", err)
+	}
+	o.Configure(privateLinkScopesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		MachineExtensionsClient:          &machineExtensionsClient,
-		MachinesClient:                   &machinesClient,
-		PrivateEndpointConnectionsClient: &privateEndpointConnectionsClient,
-		PrivateLinkScopesClient:          &privateLinkScopesClient,
-	}
+		MachineExtensionsClient:          machineExtensionsClient,
+		MachinesClient:                   machinesClient,
+		PrivateEndpointConnectionsClient: privateEndpointConnectionsClient,
+		PrivateLinkScopesClient:          privateLinkScopesClient,
+	}, nil
 }

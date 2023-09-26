@@ -10,12 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -67,7 +67,7 @@ func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageContainerResourceManagerID,
+				ValidateFunc: commonids.ValidateStorageContainerID,
 			},
 
 			// TODO: use SDK enums once following issue is addressed
@@ -78,6 +78,8 @@ func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"READ_HEAVY_INFREQ",
 					"READ_HEAVY_CHECK_180",
+					"READ_ONLY",
+					"READ_WRITE",
 					"WRITE_WORKLOAD_15",
 					"WRITE_AROUND",
 					"WRITE_WORKLOAD_CHECK_30",

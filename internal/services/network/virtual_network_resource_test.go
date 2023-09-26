@@ -113,6 +113,15 @@ func TestAccVirtualNetwork_basicUpdated(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -384,6 +393,10 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_servers         = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
+
+  encryption {
+    enforcement = "AllowUnencrypted"
+  }
 
   subnet {
     name           = "subnet1"

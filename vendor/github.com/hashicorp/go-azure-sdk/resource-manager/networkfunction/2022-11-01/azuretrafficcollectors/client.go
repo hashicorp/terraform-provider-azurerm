@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type AzureTrafficCollectorsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewAzureTrafficCollectorsClientWithBaseURI(api environments.Api) (*AzureTrafficCollectorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "azuretrafficcollectors", defaultApiVersion)
+func NewAzureTrafficCollectorsClientWithBaseURI(sdkApi sdkEnv.Api) (*AzureTrafficCollectorsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "azuretrafficcollectors", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AzureTrafficCollectorsClient: %+v", err)
 	}

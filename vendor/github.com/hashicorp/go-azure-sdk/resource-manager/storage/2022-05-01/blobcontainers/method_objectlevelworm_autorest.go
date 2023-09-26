@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type ObjectLevelWormOperationResponse struct {
 }
 
 // ObjectLevelWorm ...
-func (c BlobContainersClient) ObjectLevelWorm(ctx context.Context, id ContainerId) (result ObjectLevelWormOperationResponse, err error) {
+func (c BlobContainersClient) ObjectLevelWorm(ctx context.Context, id commonids.StorageContainerId) (result ObjectLevelWormOperationResponse, err error) {
 	req, err := c.preparerForObjectLevelWorm(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "ObjectLevelWorm", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c BlobContainersClient) ObjectLevelWorm(ctx context.Context, id ContainerI
 }
 
 // ObjectLevelWormThenPoll performs ObjectLevelWorm then polls until it's completed
-func (c BlobContainersClient) ObjectLevelWormThenPoll(ctx context.Context, id ContainerId) error {
+func (c BlobContainersClient) ObjectLevelWormThenPoll(ctx context.Context, id commonids.StorageContainerId) error {
 	result, err := c.ObjectLevelWorm(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ObjectLevelWorm: %+v", err)
@@ -50,7 +51,7 @@ func (c BlobContainersClient) ObjectLevelWormThenPoll(ctx context.Context, id Co
 }
 
 // preparerForObjectLevelWorm prepares the ObjectLevelWorm request.
-func (c BlobContainersClient) preparerForObjectLevelWorm(ctx context.Context, id ContainerId) (*http.Request, error) {
+func (c BlobContainersClient) preparerForObjectLevelWorm(ctx context.Context, id commonids.StorageContainerId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

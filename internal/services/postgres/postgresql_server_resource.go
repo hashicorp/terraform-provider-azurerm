@@ -76,7 +76,10 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			timeout, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
+			defer cancel()
+
+			resp, err := client.Get(timeout, *id)
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("reading %s: %+v", id, err)
 			}

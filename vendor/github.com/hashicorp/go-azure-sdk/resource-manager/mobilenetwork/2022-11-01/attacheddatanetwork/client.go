@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type AttachedDataNetworkClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewAttachedDataNetworkClientWithBaseURI(api environments.Api) (*AttachedDataNetworkClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "attacheddatanetwork", defaultApiVersion)
+func NewAttachedDataNetworkClientWithBaseURI(sdkApi sdkEnv.Api) (*AttachedDataNetworkClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "attacheddatanetwork", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AttachedDataNetworkClient: %+v", err)
 	}

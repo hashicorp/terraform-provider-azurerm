@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `VolumeGroupsClient.VolumeGroupsCreate`
+### Example Usage: `VolumeGroupsClient.Create`
 
 ```go
 ctx := context.TODO()
@@ -31,31 +31,31 @@ payload := volumegroups.VolumeGroupDetails{
 }
 
 
-if err := client.VolumeGroupsCreateThenPoll(ctx, id, payload); err != nil {
+if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `VolumeGroupsClient.VolumeGroupsDelete`
+### Example Usage: `VolumeGroupsClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := volumegroups.NewVolumeGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "volumeGroupValue")
 
-if err := client.VolumeGroupsDeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `VolumeGroupsClient.VolumeGroupsGet`
+### Example Usage: `VolumeGroupsClient.Get`
 
 ```go
 ctx := context.TODO()
 id := volumegroups.NewVolumeGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "volumeGroupValue")
 
-read, err := client.VolumeGroupsGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -65,13 +65,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `VolumeGroupsClient.VolumeGroupsListByNetAppAccount`
+### Example Usage: `VolumeGroupsClient.ListByNetAppAccount`
 
 ```go
 ctx := context.TODO()
 id := volumegroups.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue")
 
-read, err := client.VolumeGroupsListByNetAppAccount(ctx, id)
+read, err := client.ListByNetAppAccount(ctx, id)
 if err != nil {
 	// handle the error
 }

@@ -5,6 +5,7 @@ package automation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -26,6 +27,7 @@ type AutomationVariablesDataSourceModel struct {
 	EncryptedVariables  []helper.EncryptedVariable `tfschema:"encrypted"`
 	IntegerVariables    []helper.IntegerVariable   `tfschema:"int"`
 	NullVariables       []helper.NullVariable      `tfschema:"null"`
+	ObjectVariables     []helper.ObjectVariable    `tfschema:"object"`
 	StringVariables     []helper.StringVariable    `tfschema:"string"`
 }
 
@@ -95,6 +97,14 @@ func (v AutomationVariablesDataSource) Attributes() map[string]*pluginsdk.Schema
 			},
 		},
 
+		"object": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
+			},
+		},
+
 		"string": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -119,7 +129,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Automation.VariableClient
+			client := metadata.Client.Automation.Variable
 
 			variableList, err := client.ListByAutomationAccountComplete(ctx, pointer.From(automationAccountId))
 			if err != nil {
@@ -131,6 +141,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 			var var_encrypt []helper.EncryptedVariable
 			var var_int []helper.IntegerVariable
 			var var_null []helper.NullVariable
+			var var_object []helper.ObjectVariable
 			var var_str []helper.StringVariable
 
 			for _, v := range variableList.Items {
@@ -140,6 +151,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 				}
 
 				datePattern := regexp.MustCompile(`"\\/Date\((-?[0-9]+)\)\\/"`)
+				var objVar map[string]interface{}
 
 				if pointer.From(v.Properties.IsEncrypted) {
 					var_encrypt = append(var_encrypt, helper.EncryptedVariable{
@@ -183,6 +195,14 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
 						Value:       value,
 					})
+				} else if err := json.Unmarshal([]byte(*v.Properties.Value), &objVar); err == nil {
+					var_object = append(var_object, helper.ObjectVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+						Value:       pointer.From(v.Properties.Value),
+					})
 				} else if s, err := strconv.Unquote(pointer.From(v.Properties.Value)); err == nil {
 					var_str = append(var_str, helper.StringVariable{
 						ID:          pointer.From(v.Id),
@@ -203,6 +223,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 			model.EncryptedVariables = var_encrypt
 			model.IntegerVariables = var_int
 			model.NullVariables = var_null
+			model.ObjectVariables = var_object
 			model.StringVariables = var_str
 			return metadata.Encode(&model)
 		},

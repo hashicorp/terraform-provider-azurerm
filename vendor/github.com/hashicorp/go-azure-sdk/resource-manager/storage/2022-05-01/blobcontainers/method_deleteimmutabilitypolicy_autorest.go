@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -42,7 +43,7 @@ func (o DeleteImmutabilityPolicyOperationOptions) toQueryString() map[string]int
 }
 
 // DeleteImmutabilityPolicy ...
-func (c BlobContainersClient) DeleteImmutabilityPolicy(ctx context.Context, id ContainerId, options DeleteImmutabilityPolicyOperationOptions) (result DeleteImmutabilityPolicyOperationResponse, err error) {
+func (c BlobContainersClient) DeleteImmutabilityPolicy(ctx context.Context, id commonids.StorageContainerId, options DeleteImmutabilityPolicyOperationOptions) (result DeleteImmutabilityPolicyOperationResponse, err error) {
 	req, err := c.preparerForDeleteImmutabilityPolicy(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "DeleteImmutabilityPolicy", nil, "Failure preparing request")
@@ -65,7 +66,7 @@ func (c BlobContainersClient) DeleteImmutabilityPolicy(ctx context.Context, id C
 }
 
 // preparerForDeleteImmutabilityPolicy prepares the DeleteImmutabilityPolicy request.
-func (c BlobContainersClient) preparerForDeleteImmutabilityPolicy(ctx context.Context, id ContainerId, options DeleteImmutabilityPolicyOperationOptions) (*http.Request, error) {
+func (c BlobContainersClient) preparerForDeleteImmutabilityPolicy(ctx context.Context, id commonids.StorageContainerId, options DeleteImmutabilityPolicyOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

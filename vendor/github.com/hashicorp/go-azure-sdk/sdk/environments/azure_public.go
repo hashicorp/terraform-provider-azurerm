@@ -27,6 +27,7 @@ func AzurePublic() *Environment {
 	env.ContainerRegistry = ContainerRegistryAPI("azurecr.io")
 	env.CosmosDB = CosmosDBAPI("documents.azure.com")
 	env.DataLake = DataLakeAPI("azuredatalakestore.net")
+	env.IoTCentral = IoTCentral("azureiotcentral.com")
 	env.KeyVault = KeyVaultAPI("vault.azure.net")
 	env.ManagedHSM = ManagedHSMAPI("https://managedhsm.azure.net", "managedhsm.azure.net")
 	env.MariaDB = MariaDBAPI("mariadb.database.azure.com")

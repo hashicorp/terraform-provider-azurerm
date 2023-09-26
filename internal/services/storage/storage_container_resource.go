@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -235,7 +236,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := parse.NewStorageContainerResourceManagerID(subscriptionId, account.ResourceGroup, id.AccountName, "default", id.Name)
+	resourceManagerId := commonids.NewStorageContainerID(subscriptionId, account.ResourceGroup, id.AccountName, id.Name)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

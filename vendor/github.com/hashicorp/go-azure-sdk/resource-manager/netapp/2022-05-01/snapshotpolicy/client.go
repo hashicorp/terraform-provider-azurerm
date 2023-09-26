@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SnapshotPolicyClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSnapshotPolicyClientWithBaseURI(api environments.Api) (*SnapshotPolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "snapshotpolicy", defaultApiVersion)
+func NewSnapshotPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*SnapshotPolicyClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "snapshotpolicy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SnapshotPolicyClient: %+v", err)
 	}

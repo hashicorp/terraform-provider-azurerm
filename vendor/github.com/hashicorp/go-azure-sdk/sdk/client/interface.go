@@ -11,8 +11,13 @@ import (
 )
 
 type BaseClient interface {
+	// Execute invokes a non-paginated API request and returns a populated *Response
 	Execute(ctx context.Context, req *Request) (*Response, error)
+
+	// ExecutePaged invokes a paginated API request, merges the results from all pages and returns a populated *Response with all results
 	ExecutePaged(ctx context.Context, req *Request) (*Response, error)
+
+	// NewRequest constructs a *Request that can be passed to Execute or ExecutePaged
 	NewRequest(ctx context.Context, input RequestOptions) (*Request, error)
 }
 

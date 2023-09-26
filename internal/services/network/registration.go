@@ -39,6 +39,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		CustomIpPrefixResource{},
 		ManagerAdminRuleResource{},
 		ManagerAdminRuleCollectionResource{},
 		ManagerDeploymentResource{},
@@ -52,6 +53,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerSubscriptionConnectionResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
+		VirtualHubRoutingIntentResource{},
 	}
 }
 

@@ -20,6 +20,10 @@ import (
 
 // InstanceInfo is used to hold information about the instance and/or
 // resource being modified.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type InstanceInfo struct {
 	// Id is a unique name to represent this instance. This is not related
 	// to InstanceState.ID in any way.
@@ -36,6 +40,10 @@ type InstanceInfo struct {
 // ResourceConfig is a legacy type that was formerly used to represent
 // interpolatable configuration blocks. It is now only used to shim to old
 // APIs that still use this type, via NewResourceConfigShimmed.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type ResourceConfig struct {
 	ComputedKeys []string
 	Raw          map[string]interface{}
@@ -48,6 +56,10 @@ type ResourceConfig struct {
 // The given value may contain hcl2shim.UnknownVariableValue to signal that
 // something is computed, but it must not contain unprocessed interpolation
 // sequences as we might've seen in Terraform v0.11 and prior.
+//
+// Deprecated: This function is unintentionally exported by this Go module and
+// not supported for external consumption. It will be removed in the next major
+// version. Use real Terraform configuration instead.
 func NewResourceConfigRaw(raw map[string]interface{}) *ResourceConfig {
 	v := hcl2shim.HCL2ValueFromConfigValue(raw)
 
@@ -58,6 +70,7 @@ func NewResourceConfigRaw(raw map[string]interface{}) *ResourceConfig {
 	// something is relying on the fact that in the old world the raw and
 	// config maps were always distinct, and thus you could in principle mutate
 	// one without affecting the other. (I sure hope nobody was doing that, though!)
+	//nolint:forcetypeassert
 	cfg := hcl2shim.ConfigValueFromHCL2(v).(map[string]interface{})
 
 	return &ResourceConfig{
@@ -78,6 +91,10 @@ func NewResourceConfigRaw(raw map[string]interface{}) *ResourceConfig {
 //
 // If the given value is not of an object type that conforms to the given
 // schema then this function will panic.
+//
+// Deprecated: This function is unintentionally exported by this Go module and
+// not supported for external consumption. It will be removed in the next major
+// version.
 func NewResourceConfigShimmed(val cty.Value, schema *configschema.Block) *ResourceConfig {
 	if !val.Type().IsObjectType() {
 		panic(fmt.Errorf("NewResourceConfigShimmed given %#v; an object type is required", val.Type()))
@@ -150,6 +167,10 @@ func newResourceConfigShimmedComputedKeys(val cty.Value, path string) []string {
 // DeepCopy performs a deep copy of the configuration. This makes it safe
 // to modify any of the structures that are part of the resource config without
 // affecting the original configuration.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (c *ResourceConfig) DeepCopy() *ResourceConfig {
 	// DeepCopying a nil should return a nil to avoid panics
 	if c == nil {
@@ -163,7 +184,10 @@ func (c *ResourceConfig) DeepCopy() *ResourceConfig {
 	}
 
 	// Force the type
-	result := copiedConfig.(*ResourceConfig)
+	result, ok := copiedConfig.(*ResourceConfig)
+	if !ok {
+		panic(fmt.Errorf("unexpected type %T for copiedConfig", copiedConfig))
+	}
 
 	return result
 }
@@ -202,6 +226,10 @@ func (c *ResourceConfig) Equal(c2 *ResourceConfig) bool {
 // The second return value is true if the get was successful. Get will
 // return the raw value if the key is computed, so you should pair this
 // with IsComputed.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (c *ResourceConfig) Get(k string) (interface{}, bool) {
 	// We aim to get a value from the configuration. If it is computed,
 	// then we return the pure raw value.
@@ -218,11 +246,19 @@ func (c *ResourceConfig) Get(k string) (interface{}, bool) {
 //
 // The second return value is true if the get was successful. Get will
 // not succeed if the value is being computed.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (c *ResourceConfig) GetRaw(k string) (interface{}, bool) {
 	return c.get(k, c.Raw)
 }
 
 // IsComputed returns whether the given key is computed or not.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (c *ResourceConfig) IsComputed(k string) bool {
 	// The next thing we do is check the config if we get a computed
 	// value out of it.

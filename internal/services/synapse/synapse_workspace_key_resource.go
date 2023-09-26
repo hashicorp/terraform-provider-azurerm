@@ -168,7 +168,7 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 	// Fetch the key and check if it's an active key
 	keyresult, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
 	if err != nil {
-		return fmt.Errorf("Unable to fetch key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
+		return fmt.Errorf("unable to fetch key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 	}
 
 	// Azure only lets you delete keys that are not active

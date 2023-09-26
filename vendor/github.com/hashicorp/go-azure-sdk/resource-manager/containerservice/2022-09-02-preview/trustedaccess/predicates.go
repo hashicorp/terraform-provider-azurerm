@@ -10,11 +10,11 @@ type TrustedAccessRoleOperationPredicate struct {
 
 func (p TrustedAccessRoleOperationPredicate) Matches(input TrustedAccessRole) bool {
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.SourceResourceType != nil && (input.SourceResourceType == nil && *p.SourceResourceType != *input.SourceResourceType) {
+	if p.SourceResourceType != nil && (input.SourceResourceType == nil || *p.SourceResourceType != *input.SourceResourceType) {
 		return false
 	}
 
@@ -29,15 +29,15 @@ type TrustedAccessRoleBindingOperationPredicate struct {
 
 func (p TrustedAccessRoleBindingOperationPredicate) Matches(input TrustedAccessRoleBinding) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

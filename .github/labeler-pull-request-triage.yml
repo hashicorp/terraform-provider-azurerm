@@ -7,6 +7,8 @@ documentation:
   - website/**/*
 tooling:
   - internal/tools/**/*
+state-migration:
+  - internal/services/**/migration/**/*
 service/aadb2c:
   - internal/services/aadb2c/**/*
 
@@ -28,6 +30,9 @@ service/app-service:
 service/application-insights:
   - internal/services/applicationinsights/**/*
 
+service/arc-resource-bridge:
+  - internal/services/arcresourcebridge/**/*
+
 service/attestation:
   - internal/services/attestation/**/*
 
@@ -43,6 +48,9 @@ service/automation:
 
 service/azure-stack-hci:
   - internal/services/azurestackhci/**/*
+
+service/azuremanagedlustrefilesystem:
+  - internal/services/azuremanagedlustrefilesystem/**/*
 
 service/batch:
   - internal/services/batch/**/*
@@ -142,7 +150,7 @@ service/frontdoor:
   - internal/services/frontdoor/**/*
 
 service/graph:
-  - internal/services/graph/**/*
+  - internal/services/graphservices/**/*
 
 service/hdinsight:
   - internal/services/hdinsight/**/*
@@ -251,6 +259,9 @@ service/notifications:
 
 service/orbital:
   - internal/services/orbital/**/*
+
+service/paloalto:
+  - internal/services/paloalto/**/*
 
 service/policy:
   - internal/services/policy/**/*

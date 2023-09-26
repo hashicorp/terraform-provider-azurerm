@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -220,6 +221,10 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Cognitive.DeploymentsClient
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
+
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
+
 			if err != nil {
 				return err
 			}
@@ -313,6 +318,10 @@ func (r CognitiveDeploymentResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			accountId := cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

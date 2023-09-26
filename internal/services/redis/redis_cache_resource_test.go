@@ -250,6 +250,27 @@ func TestAccRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 	})
 }
 
+// ignore `aof_backup_enabled` if SKU is not `Premium`
+func TestAccRedisCache_IgnoreAOFBackupWhenSKUNotPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ignoreAOFBackupEnableWhenSKUNotPremium(data, "volatile-lru"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.ignoreAOFBackupEnableWhenSKUNotPremium(data, "allkeys-lru"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccRedisCache_PatchSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
@@ -919,6 +940,60 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger)
+}
+
+func (RedisCacheResource) ignoreAOFBackupEnableWhenSKUNotPremium(data acceptance.TestData, maxMemoryPolicy string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  capacity            = 1
+  family              = "C"
+  sku_name            = "Basic"
+  enable_non_ssl_port = false
+
+  redis_configuration {
+    aof_backup_enabled = false
+    maxmemory_reserved = 125
+    maxmemory_delta    = 125
+    maxmemory_policy   = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, maxMemoryPolicy)
 }
 
 func (RedisCacheResource) patchSchedule(data acceptance.TestData) string {

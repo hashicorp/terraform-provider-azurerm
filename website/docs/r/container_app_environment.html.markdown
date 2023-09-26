@@ -44,9 +44,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Container App Environment is to exist. Changing this forces a new resource to be created.
 
-* `log_analytics_workspace_id` - (Required) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
-
 ---
+
+* `dapr_application_insights_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry.
 
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
@@ -55,6 +55,12 @@ The following arguments are supported:
 * `internal_load_balancer_enabled` - (Optional) Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
+
+* `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
+
+~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
+
+* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

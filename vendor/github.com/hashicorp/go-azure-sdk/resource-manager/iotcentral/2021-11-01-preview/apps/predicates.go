@@ -12,7 +12,7 @@ type AppOperationPredicate struct {
 
 func (p AppOperationPredicate) Matches(input App) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
@@ -20,11 +20,11 @@ func (p AppOperationPredicate) Matches(input App) bool {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -43,31 +43,31 @@ type AppTemplateOperationPredicate struct {
 
 func (p AppTemplateOperationPredicate) Matches(input AppTemplate) bool {
 
-	if p.Description != nil && (input.Description == nil && *p.Description != *input.Description) {
+	if p.Description != nil && (input.Description == nil || *p.Description != *input.Description) {
 		return false
 	}
 
-	if p.Industry != nil && (input.Industry == nil && *p.Industry != *input.Industry) {
+	if p.Industry != nil && (input.Industry == nil || *p.Industry != *input.Industry) {
 		return false
 	}
 
-	if p.ManifestId != nil && (input.ManifestId == nil && *p.ManifestId != *input.ManifestId) {
+	if p.ManifestId != nil && (input.ManifestId == nil || *p.ManifestId != *input.ManifestId) {
 		return false
 	}
 
-	if p.ManifestVersion != nil && (input.ManifestVersion == nil && *p.ManifestVersion != *input.ManifestVersion) {
+	if p.ManifestVersion != nil && (input.ManifestVersion == nil || *p.ManifestVersion != *input.ManifestVersion) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Order != nil && (input.Order == nil && *p.Order != *input.Order) {
+	if p.Order != nil && (input.Order == nil || *p.Order != *input.Order) {
 		return false
 	}
 
-	if p.Title != nil && (input.Title == nil && *p.Title != *input.Title) {
+	if p.Title != nil && (input.Title == nil || *p.Title != *input.Title) {
 		return false
 	}
 

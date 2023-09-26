@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -41,6 +41,34 @@ func TestAccNetworkInterface_disappears(t *testing.T) {
 			Config:       r.basic,
 			TestResource: r,
 		}),
+	})
+}
+
+func TestAccNetworkInterface_auxiliary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.auxiliaryNone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.auxiliaryAcceleratedConnections(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.auxiliaryNone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -348,7 +376,7 @@ func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Network.NetworkInterfacesClient.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
+	resp, err := clients.Network.NetworkInterfaces.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -362,7 +390,7 @@ func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	err = client.Network.NetworkInterfacesClient.DeleteThenPoll(ctx, *id)
+	err = client.Network.NetworkInterfaces.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -386,6 +414,62 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkInterfaceResource) auxiliaryNone(data acceptance.TestData) string {
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// To not affect other testcases of `Network`, hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                          = "acctestni-%d"
+  location                      = "%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  enable_accelerated_networking = true
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    fastpathenabled = "true"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptance.TestData) string {
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// To not affect other testcases of `Network`, hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                          = "acctestni-%d"
+  location                      = "%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  auxiliary_mode                = "AcceleratedConnections"
+  auxiliary_sku                 = "A2"
+  enable_accelerated_networking = true
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    fastpathenabled = "true"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r NetworkInterfaceResource) withMultipleParameters(data acceptance.TestData) string {

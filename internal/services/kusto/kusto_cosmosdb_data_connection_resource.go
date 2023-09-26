@@ -107,7 +107,6 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Kusto.DataConnectionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			cosmosDbContainerId, err := cosmosdb.ParseContainerID(model.CosmosDbContainerId)
 			if err != nil {
@@ -119,9 +118,10 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, kustoDatabaseId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
+			// SubscriptionId and ResourceGroupName need to align with the CosmosDB container, and those could be different from the Kusto database
+			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(cosmosDbContainerId.SubscriptionId, cosmosDbContainerId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
 
-			id := dataconnections.NewDataConnectionID(subscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
+			id := dataconnections.NewDataConnectionID(kustoDatabaseId.SubscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -199,7 +199,7 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return err
 					}
-					cosmosDbContainerId := cosmosdb.NewContainerID(id.SubscriptionId, id.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
+					cosmosDbContainerId := cosmosdb.NewContainerID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
 					state.CosmosDbContainerId = cosmosDbContainerId.ID()
 					state.TableName = properties.TableName
 					state.ManagedIdentityId = properties.ManagedIdentityResourceId
