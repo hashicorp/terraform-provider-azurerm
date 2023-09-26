@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceApplicationGateway() *pluginsdk.Resource {
@@ -124,12 +126,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 									"name": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
-									},
-
-									"data": {
-										Type:      pluginsdk.TypeString,
-										Computed:  true,
-										Sensitive: true,
 									},
 
 									"id": {
@@ -352,6 +348,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -618,6 +615,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
+
 						"max_capacity": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
@@ -676,12 +674,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"data": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-
 						"key_vault_secret_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -702,7 +694,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"disabled_protocols": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -960,12 +952,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"data": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-
 						"key_vault_secret_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -994,12 +980,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"data": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -1026,8 +1006,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						// this is same as in resource schema. TODO: replace cert by certificate in 4.0
-						"verify_client_cert_issuer_dn": {
+						"verify_client_certificate_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -1052,12 +1031,12 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 
 									"policy_type": {
 										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Computed: true,
 									},
 
 									"policy_name": {
 										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Computed: true,
 									},
 
 									"cipher_suites": {
@@ -1457,7 +1436,7 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `trusted_client_certificate`: %+v", setErr)
 		}
 
-		sslProfiles, err := flattenApplicationGatewaySslProfiles(props.SslProfiles)
+		sslProfiles, err := flattenApplicationGatewayDataSourceSslProfiles(props.SslProfiles)
 		if err != nil {
 			return fmt.Errorf("flattening `ssl_profile`: %+v", err)
 		}
@@ -1506,4 +1485,63 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+// TODO: 4.0 remove this, after the resource schema `verify_client_cert_issuer_dn` is changed to `verify_client_certificate_issuer_dn`
+func flattenApplicationGatewayDataSourceSslProfiles(input *[]network.ApplicationGatewaySslProfile) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+		if v.Name == nil {
+			continue
+		}
+
+		name := *v.Name
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		output["name"] = name
+
+		verifyClientCertIssuerDn := false
+		verifyClientCertificateRevocation := ""
+		if v.ClientAuthConfiguration != nil {
+			verifyClientCertIssuerDn = pointer.From(v.ClientAuthConfiguration.VerifyClientCertIssuerDN)
+			if v.ClientAuthConfiguration.VerifyClientRevocation != network.ApplicationGatewayClientRevocationOptionsNone {
+				verifyClientCertificateRevocation = string(v.ClientAuthConfiguration.VerifyClientRevocation)
+			}
+		}
+		output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
+		output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
+
+		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.SslPolicy)
+
+		if props := v.ApplicationGatewaySslProfilePropertiesFormat; props != nil {
+			trustedClientCertificateNames := make([]interface{}, 0)
+			if certs := props.TrustedClientCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.ID == nil {
+						continue
+					}
+
+					certId, err := parse.TrustedClientCertificateIDInsensitively(*cert.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					trustedClientCertificateNames = append(trustedClientCertificateNames, certId.Name)
+				}
+			}
+			output["trusted_client_certificate_names"] = trustedClientCertificateNames
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
 }

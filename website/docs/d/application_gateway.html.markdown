@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Application Gateway.
 
-* `location` - The Azure region where the Application Gateway should exist.
+* `location` - The Azure region where the Application Gateway exists.
 
 * `backend_address_pool` - One or more `backend_address_pool` blocks as defined below.
 
@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_link_configuration` - One or more `private_link_configuration` blocks as defined below.
 
-* `zones` - Specifies a list of Availability Zones in which this Application Gateway should be located.
+* `zones` - The list of Availability Zones in which this Application Gateway can use.
 
 * `trusted_client_certificate` - One or more `trusted_client_certificate` blocks as defined below.
 
@@ -73,9 +73,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `trusted_root_certificate` - One or more `trusted_root_certificate` blocks as defined below.
 
-* `ssl_policy` - a `ssl_policy` block as defined below.
+* `ssl_policy` - A `ssl_policy` block as defined below.
 
-* `enable_http2` - Is HTTP2 enabled on the application gateway resource?
+* `http2_enabled` - Is HTTP2 enabled on the application gateway resource?
 
 * `force_firewall_policy_association` - Is the Firewall Policy associated with the Application Gateway?
 
@@ -95,13 +95,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `redirect_configuration` - One or more `redirect_configuration` blocks as defined below.
 
-* `autoscale_configuration` - A `autoscale_configuration` block as defined below.
+* `autoscale_configuration` - An `autoscale_configuration` block as defined below.
 
-* `rewrite_rule_set` - One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 SKUs.
+* `rewrite_rule_set` - One or more `rewrite_rule_set` blocks as defined below.
 
 ---
 
-A `authentication_certificate` block supports the following:
+An `authentication_certificate` block exports the following:
 
 * `id` - The ID of the Authentication Certificate.
 
@@ -109,15 +109,15 @@ A `authentication_certificate` block supports the following:
 
 ---
 
-A `trusted_root_certificate` block supports the following:
+A `trusted_root_certificate` block exports the following:
 
 * `name` - The Name of the Trusted Root Certificate to use.
 
-* `key_vault_secret_id` - The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature.
+* `key_vault_secret_id` - The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault.
 
 ---
 
-A `authentication_certificate` block, within the `backend_http_settings` block supports the following:
+A `authentication_certificate` block, within the `backend_http_settings` block exports the following:
 
 * `id` - The ID of the Authentication Certificate.
 
@@ -125,43 +125,43 @@ A `authentication_certificate` block, within the `backend_http_settings` block s
 
 ---
 
-A `backend_address_pool` block supports the following:
+A `backend_address_pool` block exports the following:
 
 * `id` - The ID of the Backend Address Pool.
 
 * `name` - The name of the Backend Address Pool.
 
-* `fqdns` - A list of FQDN's which should be part of the Backend Address Pool.
+* `fqdns` - A list of FQDN's which are part of the Backend Address Pool.
 
-* `ip_addresses` - A list of IP Addresses which should be part of the Backend Address Pool.
+* `ip_addresses` - A list of IP Addresses which are part of the Backend Address Pool.
 
 ---
 
-A `backend_http_settings` block supports the following:
+A `backend_http_settings` block exports the following:
 
 * `id` - The ID of the Backend HTTP Settings Configuration.
 
 * `probe_id` - The ID of the associated Probe.
 
-* `cookie_based_affinity` - Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
+* `cookie_based_affinity` - Is Cookie-Based Affinity enabled?
 
 * `affinity_cookie_name` - The name of the affinity cookie.
 
 * `name` - The name of the Backend HTTP Settings Collection.
 
-* `path` - The Path which should be used as a prefix for all HTTP requests.
+* `path` - The Path which is used as a prefix for all HTTP requests.
 
-* `port` - The port which should be used for this Backend HTTP Settings Collection.
+* `port` - The port which is used for this Backend HTTP Settings Collection.
 
-* `probe_name` - The name of an associated HTTP Probe.
+* `probe_name` - The name of the associated HTTP Probe.
 
-* `protocol` - The Protocol which should be used. Possible values are `Http` and `Https`.
+* `protocol` - The Protocol which will be used.
 
-* `request_timeout` - The request timeout in seconds, which must be between 1 and 86400 seconds.
+* `request_timeout` - The request timeout in seconds.
 
-* `host_name` - Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
+* `host_name` - Host header to be sent to the backend servers.
 
-* `pick_host_name_from_backend_address` - Whether host header should be picked from the host name of the backend server.
+* `pick_host_name_from_backend_address` - Whether host header will be picked from the host name of the backend server.
 
 * `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
 
@@ -171,15 +171,15 @@ A `backend_http_settings` block supports the following:
 
 ---
 
-A `connection_draining` block supports the following:
+A `connection_draining` block exports the following:
 
 * `enabled` - If connection draining is enabled or not.
 
-* `drain_timeout_sec` - The number of seconds connection draining is active. Acceptable values are from `1` second to `3600` seconds.
+* `drain_timeout_sec` - The number of seconds connection draining is active.
 
 ---
 
-A `frontend_ip_configuration` block supports the following:
+A `frontend_ip_configuration` block exports the following:
 
 * `id` - The ID of the Frontend IP Configuration.
 
@@ -191,15 +191,15 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address` - The Private IP Address to use for the Application Gateway.
 
-* `public_ip_address_id` - The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/azure/virtual-network/public-ip-addresses#application-gateways) for details.
+* `public_ip_address_id` - The ID of the Public IP Address which the Application Gateway will use.
 
-* `private_ip_address_allocation` - The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
+* `private_ip_address_allocation` - The Allocation Method for the Private IP Address.
 
-* `private_link_configuration_name` - The name of the private link configuration to use for this frontend IP configuration.
+* `private_link_configuration_name` - The name of the private link configuration in use by this frontend IP configuration.
 
 ---
 
-A `frontend_port` block supports the following:
+A `frontend_port` block exports the following:
 
 * `id` - The ID of the Frontend Port.
 
@@ -209,17 +209,17 @@ A `frontend_port` block supports the following:
 
 ---
 
-A `gateway_ip_configuration` block supports the following:
+A `gateway_ip_configuration` block exports the following:
 
 * `id` - The ID of the Gateway IP Configuration.
 
 * `name` - The Name of this Gateway IP Configuration.
 
-* `subnet_id` - The ID of the Subnet which the Application Gateway should be connected to.
+* `subnet_id` - The ID of the Subnet which the Application Gateway is connected to.
 
 ---
 
-A `http_listener` block supports the following:
+A `http_listener` block exports the following:
 
 * `id` - The ID of the HTTP Listener.
 
@@ -237,29 +237,29 @@ A `http_listener` block supports the following:
 
 * `frontend_port_name` - The Name of the Frontend Port use for this HTTP Listener.
 
-* `host_name` - The Hostname which should be used for this HTTP Listener.
+* `host_name` - The Hostname which is used for this HTTP Listener.
 
-* `host_names` - A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
+* `host_names` - A list of Hostname(s) used for this HTTP Listener. It allows special wildcard characters.
 
-* `protocol` - The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
+* `protocol` - The Protocol to use for this HTTP Listener.
 
-* `require_sni` - Should Server Name Indication be Required?
+* `require_sni` - Is Server Name Indication be Required?
 
-* `ssl_certificate_name` - The name of the associated SSL Certificate which should be used for this HTTP Listener.
+* `ssl_certificate_name` - The name of the associated SSL Certificate which is used for this HTTP Listener.
 
 * `custom_error_configuration` - One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - The ID of the Web Application Firewall Policy which should be used for this HTTP Listener.
+* `firewall_policy_id` - The ID of the Web Application Firewall Policy which is used for this HTTP Listener.
 
-* `ssl_profile_name` - The name of the associated SSL Profile which should be used for this HTTP Listener.
+* `ssl_profile_name` - The name of the associated SSL Profile which is used for this HTTP Listener.
 
 ---
 
-An `identity` block supports the following:
+An `identity` block exports the following:
 
-* `type` - Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
+* `type` - The type of Managed Service Identity that is configured on this Application Gateway.
 
-* `identity_ids` - Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Application Gateway.
 
 ---
 
@@ -271,7 +271,7 @@ A `private_endpoint_connection` block exports the following:
 
 ---
 
-A `private_link_configuration` block supports the following:
+A `private_link_configuration` block exports the following:
 
 * `id` - The ID of the private link configuration.
 
@@ -281,29 +281,29 @@ A `private_link_configuration` block supports the following:
 
 ---
 
-An `ip_configuration` block supports the following:
+An `ip_configuration` block exports the following:
 
 * `name` - The name of the IP configuration.
 
-* `subnet_id` - The ID of the subnet the private link configuration should connect to.
+* `subnet_id` - The ID of the subnet the private link configuration is connected to.
 
-* `private_ip_address_allocation` - The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
+* `private_ip_address_allocation` - The allocation method used for the Private IP Address.
 
 * `primary` - Is this the Primary IP Configuration?
 
-* `private_ip_address` - The Static IP Address which should be used.
+* `private_ip_address` - The Static IP Address which is used.
 
 ---
 
-A `match` block supports the following:
+A `match` block exports the following:
 
-* `body` - A snippet from the Response Body which must be present in the Response.
+* `body` - A snippet from the Response Body which will be present in the Response.
 
 * `status_code` - A list of allowed status codes for this Health Probe.
 
 ---
 
-A `path_rule` block supports the following:
+A `path_rule` block exports the following:
 
 * `id` - The ID of the Path Rule.
 
@@ -319,15 +319,15 @@ A `path_rule` block supports the following:
 
 * `paths` - A list of Paths used in this Path Rule.
 
-* `backend_address_pool_name` - The Name of the Backend Address Pool to use for this Path Rule. Cannot be set if `redirect_configuration_name` is set.
+* `backend_address_pool_name` - The Name of the Backend Address Pool used for this Path Rule.
 
-* `backend_http_settings_name` - The Name of the Backend HTTP Settings Collection to use for this Path Rule. Cannot be set if `redirect_configuration_name` is set.
+* `backend_http_settings_name` - The Name of the Backend HTTP Settings Collection used for this Path Rule.
 
-* `redirect_configuration_name` - The Name of a Redirect Configuration to use for this Path Rule. Cannot be set if `backend_address_pool_name` or `backend_http_settings_name` is set.
+* `redirect_configuration_name` - The Name of a Redirect Configuration used for this Path Rule.
 
-* `rewrite_rule_set_name` - The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
+* `rewrite_rule_set_name` - The Name of the Rewrite Rule Set which is used for this URL Path Map.
 
-* `firewall_policy_id` - The ID of the Web Application Firewall Policy which should be used as an HTTP Listener.
+* `firewall_policy_id` - The ID of the Web Application Firewall Policy which is used as an HTTP Listener for this Path Rule.
 
 ---
 
@@ -335,23 +335,23 @@ A `probe` block support the following:
 
 * `id` - The ID of the Probe.
 
-* `host` - The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as `127.0.0.1`, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
+* `host` - The Hostname used for this Probe.
 
-* `interval` - The Interval between two consecutive probes in seconds. Possible values range from 1 second to a maximum of 86,400 seconds.
+* `interval` - The Interval between two consecutive probes in seconds.
 
 * `name` - The Name of the Probe.
 
-* `protocol` - The Protocol used for this Probe. Possible values are `Http` and `Https`.
+* `protocol` - The Protocol used for this Probe.
 
 * `path` - The Path used for this Probe.
 
-* `timeout` - The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
+* `timeout` - The Timeout used for this Probe, indicating when a probe becomes unhealthy.
 
-* `unhealthy_threshold` - The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
+* `unhealthy_threshold` - The Unhealthy Threshold for this Probe, which indicates the amount of retries which will be attempted before a node is deemed unhealthy.
 
-* `port` - Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+* `port` - Custom port which is used for probing the backend servers.
 
-* `pick_host_name_from_backend_http_settings` - Whether the host header should be picked from the backend HTTP settings.
+* `pick_host_name_from_backend_http_settings` - Whether the host header is picked from the backend HTTP settings.
 
 * `match` - A `match` block as defined above.
 
@@ -359,7 +359,7 @@ A `probe` block support the following:
 
 ---
 
-A `request_routing_rule` block supports the following:
+A `request_routing_rule` block exports the following:
 
 * `id` - The ID of the Request Routing Rule.
 
@@ -377,25 +377,25 @@ A `request_routing_rule` block supports the following:
 
 * `name` - The Name of this Request Routing Rule.
 
-* `rule_type` - The Type of Routing that should be used for this Rule. Possible values are `Basic` and `PathBasedRouting`.
+* `rule_type` - The Type of Routing that is used for this Rule.
 
-* `http_listener_name` - The Name of the HTTP Listener which should be used for this Routing Rule.
+* `http_listener_name` - The Name of the HTTP Listener which is used for this Routing Rule.
 
-* `backend_address_pool_name` - The Name of the Backend Address Pool which should be used for this Routing Rule. Cannot be set if `redirect_configuration_name` is set.
+* `backend_address_pool_name` - The Name of the Backend Address Pool which is used for this Routing Rule.
 
-* `backend_http_settings_name` - The Name of the Backend HTTP Settings Collection which should be used for this Routing Rule. Cannot be set if `redirect_configuration_name` is set.
+* `backend_http_settings_name` - The Name of the Backend HTTP Settings Collection which is used for this Routing Rule.
 
-* `redirect_configuration_name` - The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
+* `redirect_configuration_name` - The Name of the Redirect Configuration which is used for this Routing Rule.
 
-* `rewrite_rule_set_name` - The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
+* `rewrite_rule_set_name` - The Name of the Rewrite Rule Set which is used for this Routing Rule.
 
-* `url_path_map_name` - The Name of the URL Path Map which should be associated with this Routing Rule.
+* `url_path_map_name` - The Name of the URL Path Map which is associated with this Routing Rule.
 
-* `priority` - Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+* `priority` - The Priority of this Routing Rule.
 
 ---
 
-A `global` block supports the following:
+A `global` block exports the following:
 
 * `request_buffering_enabled` - Whether Application Gateway's Request buffer is enabled.
 
@@ -403,17 +403,17 @@ A `global` block supports the following:
 
 ---
 
-A `sku` block supports the following:
+A `sku` block exports the following:
 
-* `name` - The Name of the SKU to use for this Application Gateway. Possible values are `Standard_Small`, `Standard_Medium`, `Standard_Large`, `Standard_v2`, `WAF_Medium`, `WAF_Large`, and `WAF_v2`.
+* `name` - The Name of the SKU in use for this Application Gateway.
 
-* `tier` - The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
+* `tier` - The Tier of the SKU in use for this Application Gateway.
 
-* `capacity` - The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
+* `capacity` - The Capacity of the SKU in use for this Application Gateway.
 
 ---
 
-A `ssl_certificate` block supports the following:
+A `ssl_certificate` block exports the following:
 
 * `id` - The ID of the SSL Certificate.
 
@@ -421,11 +421,11 @@ A `ssl_certificate` block supports the following:
 
 * `name` - The Name of the SSL certificate that is unique within this Application Gateway
 
-* `key_vault_secret_id` - Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature.
+* `key_vault_secret_id` - The Secret ID of (base-64 encoded unencrypted pfx) the `Secret` or `Certificate` object stored in Azure KeyVault.
 
 ---
 
-A `url_path_map` block supports the following:
+A `url_path_map` block exports the following:
 
 * `id` - The ID of the URL Path Map.
 
@@ -439,129 +439,129 @@ A `url_path_map` block supports the following:
 
 * `name` - The Name of the URL Path Map.
 
-* `default_backend_address_pool_name` - The Name of the Default Backend Address Pool which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
+* `default_backend_address_pool_name` - The Name of the Default Backend Address Pool which is used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
 
-* `default_backend_http_settings_name` - The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
+* `default_backend_http_settings_name` - The Name of the Default Backend HTTP Settings Collection which is used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
 
-* `default_redirect_configuration_name` - The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
+* `default_redirect_configuration_name` - The Name of the Default Redirect Configuration which is used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
 
-* `default_rewrite_rule_set_name` - The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
+* `default_rewrite_rule_set_name` - The Name of the Default Rewrite Rule Set which is used for this URL Path Map.
 
 * `path_rule` - One or more `path_rule` blocks as defined above.
 
 ---
 
-A `trusted_client_certificate` block supports the following:
+A `trusted_client_certificate` block exports the following:
 
 * `name` - The name of the Trusted Client Certificate that is unique within this Application Gateway.
 
 ---
 
-A `ssl_profile` block supports the following:
+A `ssl_profile` block exports the following:
 
 * `name` - The name of the SSL Profile that is unique within this Application Gateway.
 
 * `trusted_client_certificate_names` - The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
-* `verify_client_cert_issuer_dn` - Should client certificate issuer DN be verified?
+* `verify_client_cert_issuer_dn` - Will client certificate issuer DN to be verified?
 
-* `verify_client_certificate_revocation` - Specify the method to check client certificate revocation status. Possible value is `OCSP`.
+* `verify_client_certificate_revocation` - The method used to check client certificate revocation status.
 
 * `ssl_policy` - a `ssl_policy` block as defined below.
 
 ---
 
-A `ssl_policy` block supports the following:
+A `ssl_policy` block exports the following:
 
-* `disabled_protocols` - A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1`, `TLSv1_2` and `TLSv1_3`.
+* `disabled_protocols` - A list of SSL Protocols which are disabled on this Application Gateway.
 
-* `policy_type` - The Type of the Policy. Possible values are `Predefined`, `Custom` and `CustomV2`.
+* `policy_type` - The Type of the Policy.
 
-* `policy_name` - The Name of the Policy e.g. AppGwSslPolicy20170401S. Possible values can change over time and are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
+* `policy_name` - The Name of the Policy.
 
-* `cipher_suites` - A List of accepted cipher suites. Possible values are: `TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA256`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA256`, `TLS_DHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_DHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_RSA_WITH_3DES_EDE_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA256`, `TLS_RSA_WITH_AES_128_GCM_SHA256`, `TLS_RSA_WITH_AES_256_CBC_SHA`, `TLS_RSA_WITH_AES_256_CBC_SHA256` and `TLS_RSA_WITH_AES_256_GCM_SHA384`.
+* `cipher_suites` - A List of accepted cipher suites.
 
-* `min_protocol_version` - The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1`, `TLSv1_2` and `TLSv1_3`.
+* `min_protocol_version` - The minimal TLS version.
 
 ---
 
-A `waf_configuration` block supports the following:
+A `waf_configuration` block exports the following:
 
 * `enabled` - Is the Web Application Firewall enabled?
 
-* `firewall_mode` - The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
+* `firewall_mode` - The Web Application Firewall Mode.
 
-* `rule_set_type` - The Type of the Rule Set used for this Web Application Firewall. Possible values are `OWASP` and `Microsoft_BotManagerRuleSet`.
+* `rule_set_type` - The Type of the Rule Set used for this Web Application Firewall.
 
-* `rule_set_version` - The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
+* `rule_set_version` - The Version of the Rule Set used for this Web Application Firewall.
 
-* `disabled_rule_group` - one or more `disabled_rule_group` blocks as defined below.
+* `disabled_rule_group` - One or more `disabled_rule_group` blocks as defined below.
 
-* `file_upload_limit_mb` - The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs.
+* `file_upload_limit_mb` - The File Upload Limit in MB.
 
 * `request_body_check` - Is Request Body Inspection enabled?
 
-* `max_request_body_size_kb` - The Maximum Request Body Size in KB. Accepted values are in the range `1`KB to `128`KB.
+* `max_request_body_size_kb` - The Maximum Request Body Size in KB.
 
-* `exclusion` - one or more `exclusion` blocks as defined below.
-
----
-
-A `disabled_rule_group` block supports the following:
-
-* `rule_group_name` - The rule group where specific rules should be disabled. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `General`, `GoodBots`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA` and `UnknownBots`.
-
-* `rules` - A list of rules which should be disabled in that group. Disables all rules in the specified group if `rules` is not specified.
+* `exclusion` - One or more `exclusion` blocks as defined below.
 
 ---
 
-A `exclusion` block supports the following:
+A `disabled_rule_group` block exports the following:
 
-* `match_variable` - Match variable of the exclusion rule to exclude header, cookie or GET arguments. Possible values are `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames` and `RequestHeaderValues`
+* `rule_group_name` - The rule group where specific rules are disabled.
 
-* `selector_match_operator` - Operator which will be used to search in the variable content. Possible values are `Contains`, `EndsWith`, `Equals`, `EqualsAny` and `StartsWith`. If empty will exclude all traffic on this `match_variable`
-
-* `selector` - String value which will be used for the filter operation. If empty will exclude all traffic on this `match_variable`
+* `rules` - A list of rules which will be disabled in that group.
 
 ---
 
-A `custom_error_configuration` block supports the following:
+A `exclusion` block exports the following:
+
+* `match_variable` - Match variable of the exclusion rule.
+
+* `selector_match_operator` - Operator which will be used to search in the variable content.
+
+* `selector` - String value which will be used for the filter operation.
+
+---
+
+A `custom_error_configuration` block exports the following:
 
 * `id` - The ID of the Custom Error Configuration.
 
-* `status_code` - Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
+* `status_code` - Status code of the application gateway customer error.
 
 * `custom_error_page_url` - Error page URL of the application gateway customer error.
 
 ---
 
-A `redirect_configuration` block supports the following:
+A `redirect_configuration` block exports the following:
 
 * `id` - The ID of the Redirect Configuration.
 
 * `name` - Unique name of the redirect configuration block
 
-* `redirect_type` - The type of redirect. Possible values are `Permanent`, `Temporary`, `Found` and `SeeOther`
+* `redirect_type` - The type of redirect.
 
-* `target_listener_name` - The name of the listener to redirect to. Cannot be set if `target_url` is set.
+* `target_listener_name` - The name of the listener to redirect to.
 
-* `target_url` - The Url to redirect the request to. Cannot be set if `target_listener_name` is set.
+* `target_url` - The URL to redirect the request to.
 
-* `include_path` - Whether to include the path in the redirected Url.
+* `include_path` - Whether the path is included in the redirected URL.
 
-* `include_query_string` - Whether to include the query string in the redirected Url. Default to `false`
-
----
-
-A `autoscale_configuration` block supports the following:
-
-* `min_capacity` - Minimum capacity for autoscaling. Accepted values are in the range `0` to `100`.
-
-* `max_capacity` - Maximum capacity for autoscaling. Accepted values are in the range `2` to `125`.
+* `include_query_string` - Whether to include the query string in the redirected URL.
 
 ---
 
-A `rewrite_rule_set` block supports the following:
+An `autoscale_configuration` block exports the following:
+
+* `min_capacity` - Minimum capacity for autoscaling.
+
+* `max_capacity` - Maximum capacity for autoscaling.
+
+---
+
+A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
 
@@ -571,7 +571,7 @@ A `rewrite_rule_set` block supports the following:
 
 ---
 
-A `rewrite_rule` block supports the following:
+A `rewrite_rule` block exports the following:
 
 * `name` - Unique name of the rewrite rule block
 
@@ -587,7 +587,7 @@ A `rewrite_rule` block supports the following:
 
 ---
 
-A `condition` block supports the following:
+A `condition` block exports the following:
 
 * `variable` - The [variable](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
 
@@ -599,31 +599,31 @@ A `condition` block supports the following:
 
 ---
 
-A `request_header_configuration` block supports the following:
+A `request_header_configuration` block exports the following:
 
 * `header_name` - Header name of the header configuration.
 
-* `header_value` - Header value of the header configuration. To delete a request header set this property to an empty string.
+* `header_value` - Header value of the header configuration.
 
 ---
 
-A `response_header_configuration` block supports the following:
+A `response_header_configuration` block exports the following:
 
 * `header_name` - Header name of the header configuration.
 
-* `header_value` - Header value of the header configuration. To delete a response header set this property to an empty string.
+* `header_value` - Header value of the header configuration.
 
 ---
 
-A `url` block supports the following:
+A `url` block exports the following:
 
 * `path` - The URL path to rewrite.
 
 * `query_string` - The query string to rewrite.
 
-* `components` - The components used to rewrite the URL. Possible values are `path_only` and `query_string_only` to limit the rewrite to the URL Path or URL Query String only.
+* `components` - The components used to rewrite the URL.
 
-* `reroute` - Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
+* `reroute` - Whether the URL path map is reevaluated after this rewrite has been applied.
 
 ## Timeouts
 
