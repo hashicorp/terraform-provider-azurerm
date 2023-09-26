@@ -425,7 +425,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
-	client.Firewall = firewall.NewClient(o)
+	if client.Firewall, err = firewall.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Firewall: %+v", err)
+	}
 	if client.FluidRelay, err = fluidrelay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for FluidRelay: %+v", err)
 	}

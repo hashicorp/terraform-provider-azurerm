@@ -441,10 +441,9 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		if versionSetId != "" {
 			apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
 		}
-		if err := client.CreateOrUpdateThenPoll(ctx, id, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, newId, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
-
 	}
 
 	description := d.Get("description").(string)
