@@ -164,9 +164,9 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
   storage_type           = "Standard"
 
   gallery_image_reference {
-    offer     = "UbuntuServer"
     publisher = "Canonical"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -191,9 +191,9 @@ resource "azurerm_dev_test_linux_virtual_machine" "import" {
   storage_type           = "Standard"
 
   gallery_image_reference {
-    offer     = "UbuntuServer"
     publisher = "Canonical"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -218,9 +218,9 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
   storage_type           = "Standard"
 
   gallery_image_reference {
-    offer     = "UbuntuServer"
     publisher = "Canonical"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -246,9 +246,9 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
   storage_type               = "Standard"
 
   gallery_image_reference {
-    offer     = "UbuntuServer"
     publisher = "Canonical"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -287,9 +287,9 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
   storage_type           = "%s"
 
   gallery_image_reference {
-    offer     = "UbuntuServer"
     publisher = "Canonical"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

@@ -57,8 +57,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "16.04-LTS"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
 }
 `, data.Locations.Primary)
 }
@@ -72,9 +72,9 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "16.04-LTS"
-  version   = "16.04.201811010"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
+  version   = "latest"
 }
 `, data.Locations.Primary)
 }
