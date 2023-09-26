@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -376,32 +376,27 @@ func TestAccFirewall_privateRanges(t *testing.T) {
 }
 
 func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallID(state.ID)
+	id, err := azurefirewalls.ParseAzureFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
+	resp, err := clients.Firewall.Client.AzureFirewalls.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Azure Firewall %s : %v", *id, err)
 	}
 
-	return utils.Bool(resp.AzureFirewallPropertiesFormat != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallID(state.ID)
+	id, err := azurefirewalls.ParseAzureFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := clients.Firewall.AzureFirewallsClient.Delete(ctx, id.ResourceGroup, id.AzureFirewallName)
-	if err != nil {
+	if err = clients.Firewall.Client.AzureFirewalls.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Azure Firewall %q: %+v", id.AzureFirewallName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, clients.Firewall.AzureFirewallsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion on azureFirewallsClient: %+v", err)
 	}
 
 	return utils.Bool(true), nil
