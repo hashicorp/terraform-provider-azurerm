@@ -206,6 +206,8 @@ func (r CognitiveDeploymentTestResource) update(data acceptance.TestData) string
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
@@ -217,7 +219,7 @@ resource "azurerm_cognitive_deployment" "test" {
     version = "2"
   }
   scale {
-    type = "Standard"
+    type     = "Standard"
     capacity = 2
   }
 }
