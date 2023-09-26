@@ -2273,7 +2273,7 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StorageAccountResource) networkRulesPrivateEndpointTemplate(data acceptance.TestData) string {
+func (r StorageAccountResource) networkRulesPrivateLinkTrustedServiceTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2427,6 +2427,13 @@ func (r StorageAccountResource) networkRulesPrivateLinkAccess(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "basic"
+}
+
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
   resource_group_name      = azurerm_resource_group.test.name
@@ -2439,10 +2446,7 @@ resource "azurerm_storage_account" "test" {
     ip_rules                   = ["127.0.0.1"]
     virtual_network_subnet_ids = [azurerm_subnet.test.id]
     private_link_access {
-      endpoint_resource_id = azurerm_private_endpoint.blob.id
-    }
-    private_link_access {
-      endpoint_resource_id = azurerm_private_endpoint.table.id
+      endpoint_resource_id = azurerm_search_service.test.id
     }
   }
 
@@ -2450,7 +2454,7 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-`, r.networkRulesPrivateEndpointTemplate(data), data.RandomString)
+`, r.networkRulesTemplate(data), data.RandomInteger, data.RandomString)
 }
 
 func (r StorageAccountResource) networkRulesSynapseAccess(data acceptance.TestData) string {
