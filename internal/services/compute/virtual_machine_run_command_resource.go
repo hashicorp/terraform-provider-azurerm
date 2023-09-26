@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -66,7 +67,7 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: virtualmachineruncommands.ValidateVirtualMachineID,
+			ValidateFunc: commonids.ValidateVirtualMachineID,
 		},
 
 		"source": {
@@ -307,7 +308,7 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			virtualMachineId, err := virtualmachineruncommands.ParseVirtualMachineID(config.VirtualMachineId)
+			virtualMachineId, err := commonids.ParseVirtualMachineID(config.VirtualMachineId)
 			if err != nil {
 				return err
 			}
@@ -386,7 +387,7 @@ func (r VirtualMachineRunCommandResource) Read() sdk.ResourceFunc {
 			}
 
 			schema.Name = id.RunCommandName
-			schema.VirtualMachineId = virtualmachineruncommands.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineName).ID()
+			schema.VirtualMachineId = commonids.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineName).ID()
 
 			if model := resp.Model; model != nil {
 				schema.Location = model.Location
