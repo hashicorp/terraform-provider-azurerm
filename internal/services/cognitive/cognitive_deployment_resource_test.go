@@ -27,6 +27,7 @@ func TestAccCognitiveDeploymentSequential(t *testing.T) {
 			"basic":          TestAccCognitiveDeployment_basic,
 			"requiresImport": testAccCognitiveDeployment_requiresImport,
 			"complete":       testAccCognitiveDeployment_complete,
+			"update":         TestAccCognitiveDeployment_update,
 		},
 	})
 }
@@ -69,6 +70,30 @@ func testAccCognitiveDeployment_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveDeployment_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
+	r := CognitiveDeploymentTestResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -125,7 +150,7 @@ resource "azurerm_cognitive_deployment" "test" {
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
-    version = "1"
+    version = "2"
   }
   scale {
     type = "Standard"
@@ -145,7 +170,7 @@ resource "azurerm_cognitive_deployment" "import" {
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
-    version = "1"
+    version = "2"
   }
   scale {
     type = "Standard"
@@ -172,6 +197,29 @@ resource "azurerm_cognitive_deployment" "test" {
     type = "Standard"
   }
   rai_policy_name = "RAI policy"
+}
+`, template, data.RandomInteger)
+}
+
+func (r CognitiveDeploymentTestResource) update(data acceptance.TestData) string {
+	template := r.template(data, "OpenAI")
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  model {
+    format  = "OpenAI"
+    name    = "text-embedding-ada-002"
+    version = "2"
+  }
+  scale {
+    type = "Standard"
+    capacity = 2
+  }
 }
 `, template, data.RandomInteger)
 }
