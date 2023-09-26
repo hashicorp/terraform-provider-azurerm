@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
@@ -115,7 +116,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		arguments["scale"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -149,7 +149,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      1,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
@@ -161,7 +160,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		arguments["sku"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -195,7 +193,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						Default:      1,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
@@ -221,13 +218,12 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Cognitive.DeploymentsClient
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
-
-			locks.ByID(accountId.ID())
-			defer locks.UnlockByID(accountId.ID())
-
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
 
 			id := deployments.NewDeploymentID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 			existing, err := client.Get(ctx, id)
@@ -252,6 +248,49 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			properties.Sku = expandDeploymentSkuModel(model.ScaleSettings)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model cognitiveDeploymentModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			client := metadata.Client.Cognitive.DeploymentsClient
+			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
+			if err != nil {
+				return err
+			}
+
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
+
+			id, err := deployments.ParseDeploymentID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return err
+			}
+
+			properties := resp.Model
+
+			if metadata.ResourceData.HasChange("scale.0.capacity") {
+				properties.Sku.Capacity = pointer.To(model.ScaleSettings[0].Capacity)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
