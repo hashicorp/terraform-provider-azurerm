@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
@@ -16,15 +17,16 @@ import (
 )
 
 type Client struct {
-	DeploymentsClient           *resources.DeploymentsClient
-	DeploymentScriptsClient     *deploymentscripts.DeploymentScriptsClient
-	FeaturesClient              *features.FeaturesClient
-	GroupsClient                *resources.GroupsClient
-	LocksClient                 *managementlocks.ManagementLocksClient
-	ResourceProvidersClient     *providers.ProvidersClient
-	ResourcesClient             *resources.Client
-	TagsClient                  *resources.TagsClient
-	TemplateSpecsVersionsClient *templatespecs.VersionsClient
+	DeploymentsClient                   *resources.DeploymentsClient
+	DeploymentScriptsClient             *deploymentscripts.DeploymentScriptsClient
+	FeaturesClient                      *features.FeaturesClient
+	GroupsClient                        *resources.GroupsClient
+	LocksClient                         *managementlocks.ManagementLocksClient
+	ResourceManagementPrivateLinkClient *resourcemanagementprivatelink.ResourceManagementPrivateLinkClient
+	ResourceProvidersClient             *providers.ProvidersClient
+	ResourcesClient                     *resources.Client
+	TagsClient                          *resources.TagsClient
+	TemplateSpecsVersionsClient         *templatespecs.VersionsClient
 
 	options *common.ClientOptions
 }
@@ -54,6 +56,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(locksClient.Client, o.Authorizers.ResourceManager)
 
+	resourceManagementPrivateLinkClient, err := resourcemanagementprivatelink.NewResourceManagementPrivateLinkClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ResourceManagementPrivateLink client: %+v", err)
+	}
+	o.Configure(resourceManagementPrivateLinkClient.Client, o.Authorizers.ResourceManager)
+
 	resourceProvidersClient, err := providers.NewProvidersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Providers client: %+v", err)
@@ -70,15 +78,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&tagsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		GroupsClient:                &groupsClient,
-		DeploymentsClient:           &deploymentsClient,
-		DeploymentScriptsClient:     deploymentScriptsClient,
-		FeaturesClient:              featuresClient,
-		LocksClient:                 locksClient,
-		ResourceProvidersClient:     resourceProvidersClient,
-		ResourcesClient:             &resourcesClient,
-		TagsClient:                  &tagsClient,
-		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
+		GroupsClient:                        &groupsClient,
+		DeploymentsClient:                   &deploymentsClient,
+		DeploymentScriptsClient:             deploymentScriptsClient,
+		FeaturesClient:                      featuresClient,
+		LocksClient:                         locksClient,
+		ResourceManagementPrivateLinkClient: resourceManagementPrivateLinkClient,
+		ResourceProvidersClient:             resourceProvidersClient,
+		ResourcesClient:                     &resourcesClient,
+		TagsClient:                          &tagsClient,
+		TemplateSpecsVersionsClient:         &templatespecsVersionsClient,
 
 		options: o,
 	}, nil

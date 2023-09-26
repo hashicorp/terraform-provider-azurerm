@@ -1,3 +1,12 @@
+## 3.75.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_api_management_api` : fix importing `openapi` format content file issue [GH-23348]
+* `azurerm_palo_alto_local_rulestack_prefix_list` - fix rulestack not being committed on delete [GH-23362]
+* `azurerm_palo_alto_local_rulestack_fqdn_list` - fix rulestack not being committed on delete [GH-23362]
+
+
 ## 3.74.0 (September 21, 2023)
 
 NOTES:
