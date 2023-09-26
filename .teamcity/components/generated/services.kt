@@ -10,6 +10,7 @@ var services = mapOf(
         "appconfiguration" to "App Configuration",
         "appservice" to "AppService",
         "applicationinsights" to "Application Insights",
+        "arcresourcebridge" to "Arc Resource Bridge",
         "arckubernetes" to "ArcKubernetes",
         "attestation" to "Attestation",
         "authorization" to "Authorization",

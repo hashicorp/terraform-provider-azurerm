@@ -118,9 +118,15 @@ An `azure_blob_fs_location` block supports the following:
 
 * `file_system` - (Required) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
 
+* `dynamic_file_system_enabled` - (Optional) Is the `file_system` using dynamic expression, function or system variables? Defaults to `false`.
+
 * `path` - (Optional) The folder path to the file.
 
+* `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+
 * `filename` - (Optional) The filename of the file.
+
+* `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
 ---
 

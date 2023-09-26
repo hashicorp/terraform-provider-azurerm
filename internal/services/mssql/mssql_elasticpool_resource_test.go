@@ -268,6 +268,42 @@ func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlElasticPool_vCoreToStandardDTU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noLicenseType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateToStandardDTU(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.licenseType(data, "LicenseIncluded"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateToStandardDTU(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ElasticPoolID(state.ID)
 	if err != nil {
@@ -330,6 +366,10 @@ func (r MsSqlElasticPoolResource) basicVCore(data acceptance.TestData) string {
 	return r.templateVCore(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
 }
 
+func (r MsSqlElasticPoolResource) updateToStandardDTU(data acceptance.TestData) string {
+	return r.templateUpdateToDTU(data, "StandardPool", "Standard", 50, 50, 10, 50, false)
+}
+
 func (r MsSqlElasticPoolResource) fsv2VCore(data acceptance.TestData) string {
 	return r.templateVCore(data, "GP_Fsv2", "GeneralPurpose", 8, "Fsv2", 0, 8)
 }
@@ -389,6 +429,62 @@ resource "azurerm_mssql_elasticpool" "test" {
   server_name                    = azurerm_mssql_server.test.name
   max_size_gb                    = %.7[6]f
   zone_redundant                 = %[9]t
+  maintenance_configuration_name = "%[10]s"
+
+  sku {
+    name     = "%[3]s"
+    tier     = "%[4]s"
+    capacity = %[5]d
+  }
+
+  per_database_settings {
+    min_capacity = %[7]d
+    max_capacity = %[8]d
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant, configName)
+}
+
+func (MsSqlElasticPoolResource) templateUpdateToDTU(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool) string {
+	configName := "SQL_Default"
+	if skuTier != "Basic" {
+		switch data.Locations.Primary {
+		case "westeurope":
+			configName = "SQL_WestEurope_DB_2"
+		case "francecentral":
+			configName = "SQL_FranceCentral_DB_1"
+		default:
+			configName = "SQL_Default"
+		}
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-dtu-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+  max_size_gb         = %.7[6]f
+  zone_redundant      = %[9]t
+
   maintenance_configuration_name = "%[10]s"
 
   sku {
@@ -528,6 +624,49 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
 
+func (MsSqlElasticPoolResource) noLicenseType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-dtu-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+  max_size_gb         = 50
+  zone_redundant      = false
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0
+    max_capacity = 4
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (MsSqlElasticPoolResource) licenseType(data acceptance.TestData, licenseType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -568,7 +707,6 @@ resource "azurerm_mssql_elasticpool" "test" {
     min_capacity = 0
     max_capacity = 4
   }
-
 }
 `, data.RandomInteger, data.Locations.Primary, licenseType)
 }

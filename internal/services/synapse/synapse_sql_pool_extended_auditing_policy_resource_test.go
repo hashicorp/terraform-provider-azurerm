@@ -189,7 +189,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestsw%[1]d"
+  name     = "acctestRG-synapse-%[1]d"
   location = "%[2]s"
 }
 
@@ -224,6 +224,7 @@ resource "azurerm_synapse_sql_pool" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   sku_name             = "DW100c"
   create_mode          = "Default"
+  storage_account_type = "GRS"
 }
 
 resource "azurerm_storage_account" "test" {
