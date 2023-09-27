@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_api_management_api` : fix importing `openapi` format content file issue [GH-23348]
 * `azurerm_palo_alto_local_rulestack_prefix_list` - fix rulestack not being committed on delete [GH-23362]
 * `azurerm_palo_alto_local_rulestack_fqdn_list` - fix rulestack not being committed on delete [GH-23362]
 
