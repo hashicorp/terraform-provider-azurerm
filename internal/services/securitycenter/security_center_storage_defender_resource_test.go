@@ -150,7 +150,6 @@ func (r SecurityCenterStorageDefenderResource) basic(data acceptance.TestData) s
 
 resource "azurerm_security_center_storage_defender" "test" {
   storage_account_id = azurerm_storage_account.test.id
-  enabled            = true
 }
 `, r.template(data))
 }
