@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -40,7 +41,7 @@ import (
 )
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceWindowsVirtualMachineCreate,
 		Read:   resourceWindowsVirtualMachineRead,
 		Update: resourceWindowsVirtualMachineUpdate,
@@ -431,6 +432,19 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if features.FourPointOhBeta() {
+		resource.Schema["disk_controller_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.DiskControllerTypesNVMe),
+				string(compute.DiskControllerTypesSCSI),
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -564,6 +578,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if features.FourPointOhBeta() {
+		if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+			params.StorageProfile.DiskControllerType = compute.DiskControllerTypes(diskControllerType.(string))
+		}
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -990,6 +1010,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 	if profile := props.StorageProfile; profile != nil {
+		if features.FourPointOhBeta() {
+			d.Set("disk_controller_type", string(props.StorageProfile.DiskControllerType))
+		}
+
 		// the storage_account_type isn't returned so we need to look it up
 		flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
 		if err != nil {
@@ -1382,6 +1406,19 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if features.FourPointOhBeta() {
+		if d.HasChange("disk_controller_type") {
+			shouldUpdate = true
+			shouldDeallocate = true
+
+			if update.VirtualMachineProperties.StorageProfile == nil {
+				update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
+			}
+
+			update.VirtualMachineProperties.StorageProfile.DiskControllerType = compute.DiskControllerTypes(d.Get("disk_controller_type").(string))
+		}
+	}
+
 	if d.HasChange("os_disk") {
 		shouldUpdate = true
 
@@ -1395,9 +1432,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
 		}
 
-		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
-			OsDisk: osDisk,
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
 		}
+
+		update.VirtualMachineProperties.StorageProfile.OsDisk = osDisk
 	}
 
 	if d.HasChange("proximity_placement_group_id") {
