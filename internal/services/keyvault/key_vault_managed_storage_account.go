@@ -191,6 +191,8 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
+	_ = keyVaultsClient.TryCacheWithKeyVaultID(ctx, d.Get("key_vault_id").(string))
+
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)

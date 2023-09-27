@@ -685,6 +685,8 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	_ = keyVaultsClient.TryCacheWithKeyVaultID(ctx, d.Get("key_vault_id").(string))
+
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)

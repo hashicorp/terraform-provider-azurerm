@@ -39,6 +39,47 @@ func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string
 	keysmith.Unlock()
 }
 
+// TryCacheWithKeyVaultID try to cache KeyVault information as early as possible to speed up KeyVaultIDFromBaseUrl
+func (c *Client) TryCacheWithKeyVaultID(ctx context.Context, idStr string) error {
+	if idStr == "" {
+		return nil
+	}
+
+	keyVaultId, err := commonids.ParseKeyVaultID(idStr)
+	if err != nil {
+		return err
+	}
+
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
+	keysmith.Lock()
+	if lock[cacheKey] == nil {
+		lock[cacheKey] = &sync.RWMutex{}
+	}
+	keysmith.Unlock()
+	lock[cacheKey].Lock()
+	defer lock[cacheKey].Unlock()
+
+	if _, ok := keyVaultsCache[cacheKey]; ok {
+		return nil
+	}
+
+	resp, err := c.VaultsClient.Get(ctx, *keyVaultId)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", keyVaultId, err)
+	}
+
+	if model := resp.Model; model != nil {
+		if model.Properties.VaultUri != nil {
+			vaultUri := *model.Properties.VaultUri
+			c.AddToCache(*keyVaultId, vaultUri)
+		}
+	}
+	return nil
+}
+
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.KeyVaultId) (*string, error) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()

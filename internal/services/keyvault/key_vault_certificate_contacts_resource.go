@@ -155,6 +155,8 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			_ = vaultClient.TryCacheWithKeyVaultID(ctx, metadata.ResourceData.Get("key_vault_id").(string))
+
 			keyVaultIdRaw, err := vaultClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 			if err != nil {
 				return fmt.Errorf("retrieving resource ID of the Key Vault at URL %s: %+v", id.KeyVaultBaseUrl, err)

@@ -17,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/ssh"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -34,7 +36,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
-	"golang.org/x/crypto/ssh"
 )
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
@@ -468,6 +469,8 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return err
 	}
+
+	_ = keyVaultsClient.TryCacheWithKeyVaultID(ctx, d.Get("key_vault_id").(string))
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
