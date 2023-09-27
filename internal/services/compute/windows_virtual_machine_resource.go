@@ -786,32 +786,35 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// Post creation polling to ensure the ARM cache of OS disk is in parity with the client's view.
 	// This is to avoid client/RP created the OS disk, while ARM cache hasn't reflected that.
-	resp, err = client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
-	if err != nil {
-		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
-	}
-	if resp.VirtualMachineProperties == nil {
-		return fmt.Errorf("retrieving Windows %s: `properties` was nil", id)
-	}
-	props := *resp.VirtualMachineProperties
-	profile := props.StorageProfile
-	if profile == nil {
-		return fmt.Errorf("retrieving Windows %s: `properties.storageProfile` was nil", id)
-	}
-	osDisk = profile.OsDisk
-	if osDisk == nil {
-		return fmt.Errorf("retrieving Windows %s: `properties.storageProfile.osDisk` was nil", id)
-	}
-	diskName := osDisk.Name
-	if diskName == nil {
-		return fmt.Errorf("retrieving Windows %s: `properties.storageProfile.osDisk.name` was nil", id)
-	}
-	if err := waitForManagedDiskArmCache(
-		ctx,
-		meta.(*clients.Client).Resource.ResourcesClient,
-		disks.NewDiskID(id.SubscriptionId, id.ResourceGroupName, *diskName),
-		true); err != nil {
-		return err
+	// This only applies to non-ephemeral OS disk.
+	if _, ok := d.GetOk("os_disk.0.diff_disk_settings"); !ok {
+		resp, err = client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
+		if err != nil {
+			return fmt.Errorf("retrieving Windows %s: %+v", id, err)
+		}
+		if resp.VirtualMachineProperties == nil {
+			return fmt.Errorf("retrieving Windows %s: `properties` was nil", id)
+		}
+		props := *resp.VirtualMachineProperties
+		profile := props.StorageProfile
+		if profile == nil {
+			return fmt.Errorf("retrieving Windows %s: `properties.storageProfile` was nil", id)
+		}
+		osDisk = profile.OsDisk
+		if osDisk == nil {
+			return fmt.Errorf("retrieving Windows %s: `properties.storageProfile.osDisk` was nil", id)
+		}
+		diskName := osDisk.Name
+		if diskName == nil {
+			return fmt.Errorf("retrieving Windows %s: `properties.storageProfile.osDisk.name` was nil", id)
+		}
+		if err := waitForManagedDiskArmCache(
+			ctx,
+			meta.(*clients.Client).Resource.ResourcesClient,
+			disks.NewDiskID(id.SubscriptionId, id.ResourceGroupName, *diskName),
+			true); err != nil {
+			return err
+		}
 	}
 
 	d.SetId(id.ID())
@@ -1759,8 +1762,11 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 
 			// Post delete polling to ensure the ARM cache of OS disk is in parity with the client's view.
 			// This is to avoid client/RP deleted the OS disk, while ARM cache hasn't reflected that.
-			if err := waitForManagedDiskArmCache(ctx, meta.(*clients.Client).Resource.ResourcesClient, *diskId, false); err != nil {
-				return err
+			// This only applies to non-ephemeral OS disk.
+			if _, ok := d.GetOk("os_disk.0.diff_disk_settings"); !ok {
+				if err := waitForManagedDiskArmCache(ctx, meta.(*clients.Client).Resource.ResourcesClient, *diskId, false); err != nil {
+					return err
+				}
 			}
 
 			log.Printf("[DEBUG] Deleted OS Disk from Windows %s.", id)
