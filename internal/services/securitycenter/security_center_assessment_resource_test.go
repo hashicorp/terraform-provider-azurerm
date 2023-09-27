@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterAssessmentResource struct{}
@@ -94,21 +95,21 @@ func testAccSecurityCenterAssessment_update(t *testing.T) {
 
 func (r SecurityCenterAssessmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	assessmentClient := client.SecurityCenter.AssessmentsClient
-	id, err := parse.AssessmentID(state.ID)
+	id, err := assessments.ParseScopedAssessmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := assessmentClient.Get(ctx, id.TargetResourceID, id.Name, "")
+	resp, err := assessmentClient.Get(ctx, *id, assessments.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving Azure Security Center Assessment %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.AssessmentProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SecurityCenterAssessmentResource) basic(data acceptance.TestData) string {

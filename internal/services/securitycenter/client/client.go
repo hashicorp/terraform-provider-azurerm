@@ -5,13 +5,14 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	AssessmentsClient                   *security.AssessmentsClient
+	AssessmentsClient                   *assessments.AssessmentsClient
 	AssessmentsMetadataClient           *assessmentsmetadata.AssessmentsMetadataClient
 	ContactsClient                      *security.ContactsClient
 	DeviceSecurityGroupsClient          *security.DeviceSecurityGroupsClient
@@ -28,7 +29,7 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	ascLocation := "Global"
 
-	AssessmentsClient := security.NewAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	AssessmentsClient := assessments.NewAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&AssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	AssessmentsMetadataClient := assessmentsmetadata.NewAssessmentsMetadataClientWithBaseURI(o.ResourceManagerEndpoint)
