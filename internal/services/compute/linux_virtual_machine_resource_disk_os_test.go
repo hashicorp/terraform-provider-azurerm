@@ -931,11 +931,11 @@ func (r LinuxVirtualMachineResource) diskOSControllerTypeSCSI(data acceptance.Te
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_B1s"
-  admin_username      = "adminuser"
+  name                 = "acctestVM-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  size                 = "Standard_B1s"
+  admin_username       = "adminuser"
   disk_controller_type = "SCSI"
 
   network_interface_ids = [
@@ -954,8 +954,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts-gen2"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 }
@@ -967,11 +967,11 @@ func (r LinuxVirtualMachineResource) diskOSControllerTypeNVMe(data acceptance.Te
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_E2bds_v5"
-  admin_username      = "adminuser"
+  name                 = "acctestVM-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  size                 = "Standard_E2bds_v5"
+  admin_username       = "adminuser"
   disk_controller_type = "NVMe"
 
   network_interface_ids = [
@@ -990,8 +990,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts-gen2"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 }

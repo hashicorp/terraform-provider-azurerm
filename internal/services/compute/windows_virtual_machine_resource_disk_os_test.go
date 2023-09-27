@@ -892,12 +892,12 @@ func (r WindowsVirtualMachineResource) diskOSControllerTypeSCSI(data acceptance.
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_E2bds_v5"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
+  name                 = local.vm_name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  size                 = "Standard_E2bds_v5"
+  admin_username       = "adminuser"
+  admin_password       = "P@$$w0rd1234!"
   disk_controller_type = "SCSI"
 
   network_interface_ids = [
@@ -924,12 +924,12 @@ func (r WindowsVirtualMachineResource) diskOSControllerTypeNVMe(data acceptance.
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_E2bds_v5"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
+  name                 = local.vm_name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  size                 = "Standard_E2bds_v5"
+  admin_username       = "adminuser"
+  admin_password       = "P@$$w0rd1234!"
   disk_controller_type = "NVMe"
 
   network_interface_ids = [
