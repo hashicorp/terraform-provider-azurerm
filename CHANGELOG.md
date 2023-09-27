@@ -1,5 +1,9 @@
 ## 3.75.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_application_load_balancer` [GH-22517]
+
 BUG FIXES:
 
 * `azurerm_api_management_api` : fix importing `openapi` format content file issue [GH-23348]
