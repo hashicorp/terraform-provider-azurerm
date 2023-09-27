@@ -993,7 +993,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 	iops_auto_scaling = %t
   }
 }
-`, r.template(data), data.RandomInteger, sizeGB, iops, enabled)
+`, r.template(data), data.RandomInteger, sizeGB, iops, enabled, enabled)
 }
 
 func (r MySqlFlexibleServerResource) failover(data acceptance.TestData, primaryZone string, standbyZone string) string {
