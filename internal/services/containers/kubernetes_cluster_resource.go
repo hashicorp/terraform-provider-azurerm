@@ -2616,6 +2616,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 			}
 
+			if props.SecurityProfile == nil {
+				props.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+			}
 			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
 			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
 
