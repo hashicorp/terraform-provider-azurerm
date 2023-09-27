@@ -331,7 +331,7 @@ A `path_rule` block exports the following:
 
 ---
 
-A `probe` block support the following:
+A `probe` block exports the following:
 
 * `id` - The ID of the Probe.
 
