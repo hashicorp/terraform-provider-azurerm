@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/operation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/replications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/operation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -664,21 +664,9 @@ func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
 		ipRules = append(ipRules, newIpRule)
 	}
 
-	networkRuleConfigs := profile["virtual_network"].(*pluginsdk.Set).List()
-	virtualNetworkRules := make([]registries.VirtualNetworkRule, 0)
-	for _, networkRuleInterface := range networkRuleConfigs {
-		config := networkRuleInterface.(map[string]interface{})
-		newVirtualNetworkRule := registries.VirtualNetworkRule{
-			Action: pointer.To(registries.Action(config["action"].(string))),
-			Id:     config["subnet_id"].(string),
-		}
-		virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
-	}
-
 	networkRuleSet := registries.NetworkRuleSet{
-		DefaultAction:       registries.DefaultAction(profile["default_action"].(string)),
-		IPRules:             &ipRules,
-		VirtualNetworkRules: &virtualNetworkRules,
+		DefaultAction: registries.DefaultAction(profile["default_action"].(string)),
+		IPRules:       &ipRules,
 	}
 	return &networkRuleSet
 }
@@ -837,22 +825,7 @@ func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []interfac
 		value["ip_range"] = ipRule.Value
 		ipRules = append(ipRules, value)
 	}
-
 	values["ip_rule"] = ipRules
-
-	virtualNetworkRules := make([]interface{}, 0)
-
-	if networkRuleSet.VirtualNetworkRules != nil {
-		for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
-			value := make(map[string]interface{})
-			value["action"] = string(*virtualNetworkRule.Action)
-
-			value["subnet_id"] = virtualNetworkRule.Id
-			virtualNetworkRules = append(virtualNetworkRules, value)
-		}
-	}
-
-	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
 }
@@ -1039,28 +1012,6 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validate.CIDR,
-								},
-							},
-						},
-					},
-
-					"virtual_network": {
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(registries.ActionAllow),
-									}, false),
-								},
-								"subnet_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: commonids.ValidateSubnetID,
 								},
 							},
 						},
