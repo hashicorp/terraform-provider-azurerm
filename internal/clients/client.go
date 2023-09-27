@@ -18,6 +18,7 @@ import (
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
+	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -130,6 +131,7 @@ import (
 	serviceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
 	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
+	serviceNetworking "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"
 	appPlatform "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	sql "github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/client"
@@ -263,6 +265,7 @@ type Client struct {
 	ServiceConnector             *serviceConnector.Client
 	ServiceFabric                *serviceFabric.Client
 	ServiceFabricManaged         *serviceFabricManaged.Client
+	ServiceNetworking            *servicenetworking_v2023_05_01_preview.Client
 	SignalR                      *signalr.Client
 	Storage                      *storage.Client
 	StorageMover                 *storageMover.Client
@@ -574,6 +577,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
+	if client.ServiceNetworking, err = serviceNetworking.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceNetworking: %+v", err)
+	}
 	if client.SignalR, err = signalr.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for SignalR: %+v", err)
 	}

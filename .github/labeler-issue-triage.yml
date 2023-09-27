@@ -309,6 +309,9 @@ service/service-fabric:
 service/service-fabric-managed-cluster:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_service_fabric_managed_cluster((.|\n)*)###'
 
+service/service-networking:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_application_load_balancer((.|\n)*)###'
+
 service/signalr:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(signalr_s|web_pubsub)((.|\n)*)###'
 
