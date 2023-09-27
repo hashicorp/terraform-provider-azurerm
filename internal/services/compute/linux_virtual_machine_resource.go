@@ -762,7 +762,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	if diskName == nil {
 		return fmt.Errorf("retrieving Linux %s: `properties.storageProfile.osDisk.name` was nil", id)
 	}
-	if err := waitForVmOsDiskArmCache(
+	if err := waitForManagedDiskArmCache(
 		ctx,
 		meta.(*clients.Client).Resource.ResourcesClient,
 		disks.NewDiskID(id.SubscriptionId, id.ResourceGroupName, *diskName),
@@ -1690,7 +1690,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 
 			// Post delete polling to ensure the ARM cache of OS disk is in parity with the client's view.
 			// This is to avoid client/RP deleted the OS disk, while ARM cache hasn't reflected that.
-			if err := waitForVmOsDiskArmCache(ctx, meta.(*clients.Client).Resource.ResourcesClient, *diskId, false); err != nil {
+			if err := waitForManagedDiskArmCache(ctx, meta.(*clients.Client).Resource.ResourcesClient, *diskId, false); err != nil {
 				return err
 			}
 

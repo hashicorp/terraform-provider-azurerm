@@ -592,12 +592,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("creating/updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.Model == nil {
-		return fmt.Errorf("reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
+	// Post creation polling to ensure the ARM cache of the managed disk is in parity with the client's view.
+	// This is to avoid client/RP created the managed disk, while ARM cache hasn't reflected that.
+	if err := waitForManagedDiskArmCache(ctx, meta.(*clients.Client).Resource.ResourcesClient, id, true); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -1136,6 +1134,12 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroupName, err)
+	}
+
+	// Post delete polling to ensure the ARM cache of the managed disk is in parity with the client's view.
+	// This is to avoid client/RP deleted the managed disk, while ARM cache hasn't reflected that.
+	if err := waitForManagedDiskArmCache(ctx, meta.(*clients.Client).Resource.ResourcesClient, *id, false); err != nil {
+		return err
 	}
 
 	return nil

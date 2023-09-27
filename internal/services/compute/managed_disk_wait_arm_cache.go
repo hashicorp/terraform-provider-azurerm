@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func waitForVmOsDiskArmCache(ctx context.Context, client *resources.Client, diskId disks.DiskId, shouldExist bool) error {
+// waitForManagedDiskArmCache repeatedly calls the resource group level list API to query the ARM cache for the specified managed disk,
+// until it (dis)appear in the ARM cache, based on "shouldExist".
+func waitForManagedDiskArmCache(ctx context.Context, client *resources.Client, diskId disks.DiskId, shouldExist bool) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context was missing a deadline")
@@ -38,7 +40,6 @@ func waitForVmOsDiskArmCache(ctx context.Context, client *resources.Client, disk
 				}
 			}
 		},
-		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 5,
 		PollInterval:              5 * time.Second,
 		Timeout:                   time.Until(deadline),
