@@ -122,7 +122,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Cologix-Minneapolis-MIN3"
+  peering_location    = "CoreSite-Los-Angeles-LA1"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
