@@ -704,7 +704,7 @@ resource "azurerm_mysql_flexible_server" "test" {
     size_gb           = 32
     iops              = 400
     auto_grow_enabled = false
-	iops_auto_scaling = false
+    iops_auto_scaling = false
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
@@ -990,10 +990,10 @@ resource "azurerm_mysql_flexible_server" "test" {
     size_gb           = %d
     iops              = %d
     auto_grow_enabled = %t
-	iops_auto_scaling = %t
+    iops_auto_scaling = %t
   }
 }
-`, r.template(data), data.RandomInteger, sizeGB, iops, enabled, enabled)
+`, r.template(data), data.RandomInteger, sizeGB, iops, enabled, enabled, enabled)
 }
 
 func (r MySqlFlexibleServerResource) failover(data acceptance.TestData, primaryZone string, standbyZone string) string {
