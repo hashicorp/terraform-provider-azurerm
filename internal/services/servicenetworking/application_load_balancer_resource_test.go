@@ -3,6 +3,7 @@ package servicenetworking_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -41,7 +42,7 @@ func TestAccApplicationLoadBalancer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("configuration_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("primary_configuration_endpoint").MatchesRegex(regexp.MustCompile("^.+\\.alb.azure.com$")),
 			),
 		},
 		data.ImportStep(),
@@ -57,7 +58,7 @@ func TestAccApplicationLoadBalancer_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("primary_configuration_endpoint").HasValue("1"),
+				check.That(data.ResourceName).Key("primary_configuration_endpoint").MatchesRegex(regexp.MustCompile("^.+\\.alb.azure.com$")),
 			),
 		},
 		data.ImportStep(),
@@ -73,7 +74,7 @@ func TestAccApplicationLoadBalancer_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("configuration_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("primary_configuration_endpoint").MatchesRegex(regexp.MustCompile("^.+\\.alb.azure.com$")),
 			),
 		},
 		data.ImportStep(),
@@ -81,7 +82,7 @@ func TestAccApplicationLoadBalancer_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("configuration_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("primary_configuration_endpoint").MatchesRegex(regexp.MustCompile("^.+\\.alb.azure.com$")),
 			),
 		},
 		data.ImportStep(),
@@ -97,7 +98,7 @@ func TestAccApplicationLoadBalancer_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("configuration_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("primary_configuration_endpoint").MatchesRegex(regexp.MustCompile("^.+\\.alb.azure.com$")),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
