@@ -99,9 +99,12 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
 			},
+			// NOTE: The API does not expose a constant
+			// for the Sku so I had to hardcode it here...
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Default:      "Standard_DS14_v2",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"disk_count": {
@@ -139,7 +142,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_datacenter", id.ID())
 	}
 
-	body := managedcassandras.DataCenterResource{
+	payload := managedcassandras.DataCenterResource{
 		Properties: &managedcassandras.DataCenterResourceProperties{
 			DelegatedSubnetId:  utils.String(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          utils.Int64(int64(d.Get("node_count").(int))),
@@ -152,18 +155,18 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
-		body.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
-		body.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+		payload.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
-		body.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
 	}
 
-	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, body); err != nil {
+	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -222,28 +225,29 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	body := managedcassandras.DataCenterResource{
+	payload := managedcassandras.DataCenterResource{
 		Properties: &managedcassandras.DataCenterResourceProperties{
 			DelegatedSubnetId:  utils.String(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          utils.Int64(int64(d.Get("node_count").(int))),
+			Sku:                utils.String(d.Get("sku_name").(string)),
 			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 			DiskSku:            utils.String(d.Get("disk_sku").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
-		body.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
-		body.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+		payload.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
-		body.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
 	}
 
-	if err := client.CassandraDataCentersCreateUpdateThenPoll(ctx, *id, body); err != nil {
+	if err := client.CassandraDataCentersCreateUpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 

@@ -55,6 +55,39 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 	})
 }
 
+func testAccCassandraDatacenter_updateSku(t *testing.T) {
+	// Regression test case for MS IcM issue
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
+	r := CassandraDatacenterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, 3),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateSku(data, "Standard_DS13_v2"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS13_v2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, 3),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedcassandras.ParseDataCenterID(state.ID)
 	if err != nil {
@@ -80,7 +113,6 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   delegated_management_subnet_id = azurerm_subnet.test.id
   node_count                     = %d
   disk_count                     = 4
-  sku_name                       = "Standard_DS14_v2"
   availability_zones_enabled     = false
 }
 `, r.template(data), data.RandomInteger, nodeCount)
@@ -308,7 +340,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ca-%d"
+  name     = "acctestRG-cassandra-%d"
   location = "%s"
 }
 
@@ -350,4 +382,21 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r CassandraDatacenterResource) updateSku(data acceptance.TestData, skuName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
+  name                           = "acctca-mi-dc-%d"
+  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  node_count                     = 3
+  disk_count                     = 4
+  sku_name                       = "%s"
+  availability_zones_enabled     = false
+}
+`, r.template(data), data.RandomInteger, skuName)
 }
