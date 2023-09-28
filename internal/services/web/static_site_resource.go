@@ -333,12 +333,3 @@ func expandStaticSiteAppSettings(d *pluginsdk.ResourceData) map[string]*string {
 
 	return output
 }
-
-func flattenStaticSiteAppSettings(input map[string]*string) map[string]string {
-	output := make(map[string]string)
-	for k, v := range input {
-		output[k] = *v
-	}
-
-	return output
-}
