@@ -506,10 +506,13 @@ func expandTerminateNotificationProfile(input []interface{}) *compute.TerminateN
 	}
 }
 
-func flattenOsImageNotificationProfile(input *compute.OSImageNotificationProfile) []interface{} {
+func flattenOsImageNotificationProfile(input *compute.OSImageNotificationProfile, isConfigured bool) []interface{} {
+	if input == nil && !isConfigured {
+		return nil
+	}
+
 	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
 	// a user explicitly set enabled to false, we need to assign a default block to this field
-
 	enabled := false
 	if input != nil && input.Enable != nil {
 		enabled = *input.Enable

@@ -752,7 +752,7 @@ func TestAccWindowsVirtualMachine_otherOsImageNotification(t *testing.T) {
 				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "os_image_notification"),
 		// turn termination notification off
 		{
 			Config: r.otherOsImageNotification(data, false),
@@ -762,7 +762,7 @@ func TestAccWindowsVirtualMachine_otherOsImageNotification(t *testing.T) {
 				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "os_image_notification"),
 		// turn termination notification on again
 		{
 			Config: r.otherOsImageNotification(data, true),
@@ -772,7 +772,7 @@ func TestAccWindowsVirtualMachine_otherOsImageNotification(t *testing.T) {
 				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "os_image_notification"),
 	})
 }
 
