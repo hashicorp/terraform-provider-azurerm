@@ -6,7 +6,8 @@ FEATURES:
 
 BUG FIXES:
 
-* `azurerm_api_management_api` : fix importing `openapi` format content file issue [GH-23348]
+* `azurerm_api_management_api` - fix importing `openapi` format content file issue [GH-23348]
+* `azurerm_cdn_frontdoor_rule` - allow a `cache_duration` of `00:00:00` [GH-23384]
 * `azurerm_palo_alto_local_rulestack_prefix_list` - fix rulestack not being committed on delete [GH-23362]
 * `azurerm_palo_alto_local_rulestack_fqdn_list` - fix rulestack not being committed on delete [GH-23362]
 * `security_center_subscription_pricing_resource` - disabled extensions logic now works as expected [GH-22997]
