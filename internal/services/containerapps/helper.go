@@ -286,21 +286,19 @@ func containerAppsJobsProbesSchema() *pluginsdk.Schema {
 func containerAppsJobsResourcesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cpu": {
 					Type:         pluginsdk.TypeFloat,
-					Optional:     true,
-					Default:      0.5,
+					Required:     true,
 					ValidateFunc: validate.ContainerCpu,
 				},
 
 				"memory": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "1Gi",
+					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"0.5Gi",
 						"1Gi",
@@ -665,7 +663,7 @@ func containerAppsJobsScaleSchema() *pluginsdk.Schema {
 func containerAppsJobsScaleRulesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"auth": containerAppsJobsScaleRulesAuthSchema(),
@@ -1276,11 +1274,11 @@ func flattenContainerAppJobTemplateContainers(input *[]jobs.Container) []Contain
 	for _, v := range *input {
 		var container ContainerModel
 
-		if v.Args != nil {
+		if v.Args != nil && len(*v.Args) != 0 {
 			container.Args = *v.Args
 		}
 
-		if v.Command != nil {
+		if v.Command != nil && len(*v.Command) != 0 {
 			container.Command = *v.Command
 		}
 
@@ -1476,6 +1474,8 @@ func flattenContainerAppJobTemplateContainersProbes(input *[]jobs.ContainerAppPr
 			httpGet := flattenContainerAppJobTemplateContainersProbesHttpGet(v.HTTPGet)
 			probe.HttpGet = httpGet
 		}
+
+		probes = append(probes, probe)
 	}
 
 	return probes
