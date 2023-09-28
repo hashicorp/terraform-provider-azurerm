@@ -347,7 +347,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 
 						"private_ip_address_allocation": {
@@ -1019,9 +1019,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"body": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
 									},
 
 									"status_code": {
@@ -2860,8 +2859,8 @@ func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.Applica
 						return nil, err
 					}
 
-					sslCertificateName = sslProfileId.Name
-					sslCertificateID = sslProfileId.ID()
+					sslProfileName = sslProfileId.Name
+					sslProfileID = sslProfileId.ID()
 				}
 			}
 		}

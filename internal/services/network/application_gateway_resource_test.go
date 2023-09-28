@@ -363,7 +363,7 @@ func TestAccApplicationGateway_routingRedirect_httpListenerError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.routingRedirect_httpListenerError(data),
-			ExpectError: regexp.MustCompile("Conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
+			ExpectError: regexp.MustCompile("conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
 		},
 	})
 }
@@ -568,7 +568,7 @@ func TestAccApplicationGateway_backendHttpSettingsHostNameAndPick(t *testing.T) 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.backendHttpSettingsHostName(data, hostName, true),
-			ExpectError: regexp.MustCompile("Only one of `host_name` or `pick_host_name_from_backend_address` can be set"),
+			ExpectError: regexp.MustCompile("only one of `host_name` or `pick_host_name_from_backend_address` can be set"),
 		},
 	})
 }
@@ -7320,6 +7320,7 @@ resource "azurerm_application_gateway" "test" {
     tier     = "Standard_v2"
     capacity = 1
   }
+
   ssl_policy {
     policy_type          = "Custom"
     min_protocol_version = "TLSv1_1"
