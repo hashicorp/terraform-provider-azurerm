@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,7 +27,7 @@ import (
 )
 
 func resourceCassandraDatacenter() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCassandraDatacenterCreate,
 		Read:   resourceCassandraDatacenterRead,
 		Update: resourceCassandraDatacenterUpdate,
@@ -99,14 +100,6 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
 			},
-			// NOTE: The API does not expose a constant
-			// for the Sku so I had to hardcode it here...
-			"sku_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "Standard_DS14_v2",
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
 			"disk_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -119,6 +112,27 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		// NOTE: The API does not expose a constant for the Sku so I had to hardcode it here...
+		// Per the service team, the current default Sku is 'Standard_DS14_v2' but moving forward
+		// the new default value should be 'Standard_E16s_v5'.
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "Standard_DS14_v2",
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+	} else {
+		resource.Schema["sku_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "Standard_E16s_v5",
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+	}
+
+	return resource
 }
 
 func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {

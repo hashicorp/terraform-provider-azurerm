@@ -100,6 +100,8 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Determines the selected sku. Defaults to `Standard_DS14_v2`.
 
+-> **NOTE:** In v4.0 of the provider the default value for the `sku_name` field will be changed to `Standard_E16s_v5`.
+
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node.
 
 * `availability_zones_enabled` - (Optional) Determines whether availability zones are enabled. Defaults to `true`.

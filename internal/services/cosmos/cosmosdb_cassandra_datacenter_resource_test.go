@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -60,32 +61,61 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, 3),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateSku(data, "Standard_DS13_v2"),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS13_v2"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data, 3),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
-			),
-		},
-		data.ImportStep(),
-	})
+	if !features.FourPointOhBeta() {
+		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data, 3),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.updateSku(data, "Standard_DS13_v2"),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS13_v2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basic(data, 3),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data, 3),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.updateSku(data, "Standard_E2_v5"),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E2_v5"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basic(data, 3),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+				),
+			},
+			data.ImportStep(),
+		})
+	}
 }
 
 func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
