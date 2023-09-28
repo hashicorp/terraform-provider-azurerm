@@ -64,7 +64,10 @@ func (s *SharedKeyAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request
 	return []*oauth2.Token{}, nil
 }
 
-// ---
+// ExpireToken has no effect with shared keys
+func (c *SharedKeyAuthorizer) ExpireTokens() error {
+	return fmt.Errorf("SharedKeyAuthorizer tokens cannot expire")
+}
 
 const (
 	storageEmulatorAccountName string = "devstoreaccount1"

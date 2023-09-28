@@ -327,14 +327,11 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf("req.Request was nil")
 	}
 
-	// at this point we're ready to send the HTTP Request, as such let's get the Authorization token
-	// and add that to the request
+	// Set Authorization and X-Ms-Authorization-Auxiliary headers
 	if c.Authorizer != nil {
-		token, err := c.Authorizer.Token(ctx, req.Request)
-		if err != nil {
+		if err := auth.SetAuthHeaders(ctx, req.Request, c.Authorizer); err != nil {
 			return nil, err
 		}
-		token.SetAuthHeader(req.Request)
 	}
 
 	var err error

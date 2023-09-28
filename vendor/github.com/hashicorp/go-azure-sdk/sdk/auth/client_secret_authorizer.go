@@ -131,3 +131,8 @@ func (a *ClientSecretAuthorizer) AuxiliaryTokens(ctx context.Context, _ *http.Re
 
 	return tokens, nil
 }
+
+// ExpireToken has no effect with uncached Authorizers
+func (a *ClientSecretAuthorizer) ExpireTokens() error {
+	return nil
+}
