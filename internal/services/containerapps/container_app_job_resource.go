@@ -73,7 +73,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"container_app_environment_id": commonschema.ResourceIDReferenceRequiredForceNew(certificates.ManagedEnvironmentId{}),
+		"container_app_environment_id": commonschema.ResourceIDReferenceRequiredForceNew(&certificates.ManagedEnvironmentId{}),
 
 		"replica_timeout_in_seconds": {
 			Type:         pluginsdk.TypeInt,
