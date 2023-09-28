@@ -159,7 +159,6 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: &managedcassandras.DataCenterResourceProperties{
 			DelegatedSubnetId:  utils.String(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          utils.Int64(int64(d.Get("node_count").(int))),
-			Sku:                utils.String(d.Get("sku_name").(string)),
 			AvailabilityZone:   utils.Bool(d.Get("availability_zones_enabled").(bool)),
 			DiskCapacity:       utils.Int64(int64(d.Get("disk_count").(int))),
 			DiskSku:            utils.String(d.Get("disk_sku").(string)),
@@ -177,6 +176,10 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
 		payload.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("sku_name"); ok {
+		payload.Properties.Sku = utils.String(v.(string))
 	}
 
 	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, payload); err != nil {
