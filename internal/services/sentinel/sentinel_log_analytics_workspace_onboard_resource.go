@@ -21,8 +21,8 @@ import (
 )
 
 type SecurityInsightsSentinelOnboardingStateModel struct {
-	ResourceGroupName         string `tfschema:"resource_group_name"`
-	WorkspaceName             string `tfschema:"workspace_name"`
+	ResourceGroupName         string `tfschema:"resource_group_name,majorVersionRemoved"`
+	WorkspaceName             string `tfschema:"workspace_name,majorVersionRemoved"`
 	CustomerManagedKeyEnabled bool   `tfschema:"customer_managed_key_enabled"`
 	WorkspaceId               string `tfschema:"workspace_id"`
 }
