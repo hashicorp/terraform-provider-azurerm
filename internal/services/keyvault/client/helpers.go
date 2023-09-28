@@ -10,8 +10,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	graph "github.com/hashicorp/go-azure-sdk/resource-manager/resourcegraph/2022-10-01/resources"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -111,6 +113,32 @@ func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (b
 	return true, nil
 }
 
+func (c *Client) KeyVaultIDFromBaseURLByGraph(ctx context.Context, client *graph.ResourcesClient, name string) (string, interface{}) {
+	if name == "" {
+		return "", nil
+	}
+	req := graph.QueryRequest{
+		Query: fmt.Sprintf("where type =~ 'Microsoft.KeyVault/vaults' and name =~ '%s'", name),
+	}
+	resp, err := client.Resources(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.Model != nil && resp.Model.Data != nil {
+		if list, ok := resp.Model.Data.([]interface{}); ok && len(list) == 1 {
+			if res, ok := list[0].(map[string]interface{}); ok {
+				if id, ok := res["id"]; ok {
+					if idStr, ok := id.(string); ok {
+						return idStr, nil
+					}
+				}
+			}
+		}
+	}
+	return "", fmt.Errorf("no such keyvault in resource graph by query: %s", req.Query)
+}
+
 func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resourcesClient.Client, keyVaultBaseUrl string) (*string, error) {
 	keyVaultName, err := c.parseNameFromBaseUrl(keyVaultBaseUrl)
 	if err != nil {
@@ -128,6 +156,15 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 
 	if v, ok := keyVaultsCache[cacheKey]; ok {
 		return &v.keyVaultId, nil
+	}
+
+	// try to get the keyVault id by resource graph API first to void the expensive ResourcesClient.List operation
+	// if it cannot fetch the keyvault from resource graph API, it will fall back to the resourceClient.List method
+	if idStr, err := c.KeyVaultIDFromBaseURLByGraph(ctx, resourcesClient.GraphResourceClient, *keyVaultName); err == nil && idStr != "" {
+		if id, err := commonids.ParseKeyVaultID(idStr); err == nil && strings.EqualFold(id.VaultName, *keyVaultName) {
+			c.AddToCache(*id, keyVaultBaseUrl)
+			return pointer.To(id.ID()), nil
+		}
 	}
 
 	filter := fmt.Sprintf("resourceType eq 'Microsoft.KeyVault/vaults' and name eq '%s'", *keyVaultName)

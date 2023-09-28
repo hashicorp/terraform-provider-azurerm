@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
+	graph "github.com/hashicorp/go-azure-sdk/resource-manager/resourcegraph/2022-10-01/resources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
@@ -20,6 +21,7 @@ type Client struct {
 	DeploymentsClient                   *resources.DeploymentsClient
 	DeploymentScriptsClient             *deploymentscripts.DeploymentScriptsClient
 	FeaturesClient                      *features.FeaturesClient
+	GraphResourceClient                 *graph.ResourcesClient
 	GroupsClient                        *resources.GroupsClient
 	LocksClient                         *managementlocks.ManagementLocksClient
 	ResourceManagementPrivateLinkClient *resourcemanagementprivatelink.ResourceManagementPrivateLinkClient
@@ -46,6 +48,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Features client: %+v", err)
 	}
 	o.Configure(featuresClient.Client, o.Authorizers.ResourceManager)
+
+	graphClient, err := graph.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ResourcesGraph client: %+v", err)
+	}
+	o.Configure(graphClient.Client, o.Authorizers.ResourceManager)
 
 	groupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
@@ -78,6 +86,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&tagsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		GraphResourceClient:                 graphClient,
 		GroupsClient:                        &groupsClient,
 		DeploymentsClient:                   &deploymentsClient,
 		DeploymentScriptsClient:             deploymentScriptsClient,
