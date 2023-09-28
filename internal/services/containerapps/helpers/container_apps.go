@@ -3014,3 +3014,82 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 		c.TCPScaleRules = tcpScaleRules
 	}
 }
+
+type WorkloadProfileModel struct {
+	MaximumCount        int    `tfschema:"maximum_count"`
+	MinimumCount        int    `tfschema:"minimum_count"`
+	Name                string `tfschema:"name"`
+	WorkloadProfileType string `tfschema:"workload_profile_type"`
+}
+
+func WorkloadProfileSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"maximum_count": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+				},
+
+				"minimum_count": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"workload_profile_type": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments.WorkloadProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]managedenvironments.WorkloadProfile, 0)
+
+	for _, v := range input {
+		result = append(result, managedenvironments.WorkloadProfile{
+			Name:                v.Name,
+			MaximumCount:        pointer.To(int64(v.MaximumCount)),
+			MinimumCount:        pointer.To(int64(v.MinimumCount)),
+			WorkloadProfileType: v.WorkloadProfileType,
+		})
+	}
+
+	return &result
+}
+
+func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []WorkloadProfileModel {
+	if input == nil || len(*input) == 0 {
+		return []WorkloadProfileModel{}
+	}
+
+	result := make([]WorkloadProfileModel, 0)
+
+	for _, v := range *input {
+		result = append(result, WorkloadProfileModel{
+			Name:                v.Name,
+			MaximumCount:        int(pointer.From(v.MaximumCount)),
+			MinimumCount:        int(pointer.From(v.MinimumCount)),
+			WorkloadProfileType: v.WorkloadProfileType,
+		})
+	}
+
+	return result
+}
