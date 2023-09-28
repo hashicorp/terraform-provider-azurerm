@@ -4,7 +4,6 @@
 package network
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -473,25 +472,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			if !features.FourPointOhBeta() {
-				// Since ConflictsWith cannot be used on these properties and the properties are optional and computed, diff.GetOK may still return value even the property is not configured. Have to check the configuration with GetRawConfig
-				managedRuleSetList := diff.GetRawConfig().AsValueMap()["managed_rules"].AsValueSlice()[0].AsValueMap()["managed_rule_set"].AsValueSlice()
-				for _, managedRuleSetVal := range managedRuleSetList {
-					ruleGroupOverrideList := managedRuleSetVal.AsValueMap()["rule_group_override"].AsValueSlice()
-					for _, ruleGroupOverrideVal := range ruleGroupOverrideList {
-						disabledRules := ruleGroupOverrideVal.AsValueMap()["disabled_rules"]
-						ruleList := ruleGroupOverrideVal.AsValueMap()["rule"].AsValueSlice()
-						if !disabledRules.IsNull() && len(ruleList) != 0 {
-							return fmt.Errorf("`disabled_rules` cannot be set when `rule` is set under `rule_group_override`")
-						}
-					}
-				}
-			}
-
-			return nil
-		}),
 	}
 
 	if !features.FourPointOhBeta() {
@@ -891,6 +871,11 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d
 			ruleGroupOverrideList := managedRuleSetList[managedRuleSetIndex].AsValueMap()["rule_group_override"].AsValueSlice()
 			if i >= len(ruleGroupOverrideList) {
 				return nil, fmt.Errorf("rule group override index %d exceeds raw config length %d", i, len(ruleGroupOverrideList))
+			}
+
+			// Since ConflictsWith cannot be used on these properties and the properties are optional and computed, Have to check the configuration with GetRawConfig
+			if !ruleGroupOverrideList[i].AsValueMap()["rule"].IsNull() && len(ruleGroupOverrideList[i].AsValueMap()["rule"].AsValueSlice()) > 0 && !ruleGroupOverrideList[i].AsValueMap()["disabled_rules"].IsNull() {
+				return nil, fmt.Errorf("`disabled_rules` cannot be set when `rule` is set under `rule_group_override`")
 			}
 
 			if disabledRules := v["disabled_rules"].([]interface{}); !ruleGroupOverrideList[i].AsValueMap()["disabled_rules"].IsNull() {
