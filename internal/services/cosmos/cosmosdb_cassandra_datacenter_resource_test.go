@@ -25,7 +25,7 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 3),
+			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -64,7 +64,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 	if !features.FourPointOhBeta() {
 		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 			{
-				Config: r.basic(data, 3),
+				Config: r.basic(data),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
@@ -80,7 +80,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: r.basic(data, 3),
+				Config: r.basic(data),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
@@ -91,7 +91,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 	} else {
 		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 			{
-				Config: r.basic(data, 3),
+				Config: r.basic(data),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
@@ -107,7 +107,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: r.basic(data, 3),
+				Config: r.basic(data),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
@@ -132,7 +132,7 @@ func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r CassandraDatacenterResource) basic(data acceptance.TestData, nodeCount int) string {
+func (r CassandraDatacenterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -141,11 +141,11 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
   location                       = azurerm_cosmosdb_cassandra_cluster.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
-  node_count                     = %d
+  node_count                     = 3
   disk_count                     = 4
   availability_zones_enabled     = false
 }
-`, r.template(data), data.RandomInteger, nodeCount)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CassandraDatacenterResource) complete(data acceptance.TestData, nodeCount int) string {
