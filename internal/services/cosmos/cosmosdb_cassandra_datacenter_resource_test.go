@@ -28,6 +28,7 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -57,14 +58,14 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 }
 
 func testAccCassandraDatacenter_updateSku(t *testing.T) {
-	// Regression test case for MS IcM issue
+	// Regression test case for MS IcM
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
 	if !features.FourPointOhBeta() {
 		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicSku(data, "Standard_DS14_v2"),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
@@ -72,7 +73,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: r.updateSku(data, "Standard_DS13_v2"),
+				Config: r.basicSku(data, "Standard_DS13_v2"),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS13_v2"),
@@ -80,7 +81,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: r.basic(data),
+				Config: r.basicSku(data, "Standard_DS14_v2"),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
@@ -99,7 +100,7 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: r.updateSku(data, "Standard_E2_v5"),
+				Config: r.basicSku(data, "Standard_E2_v5"),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E2_v5"),
@@ -146,6 +147,23 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   availability_zones_enabled     = false
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CassandraDatacenterResource) basicSku(data acceptance.TestData, skuName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
+  name                           = "acctca-mi-dc-%d"
+  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  node_count                     = 3
+  disk_count                     = 4
+  sku_name                       = "%s"
+  availability_zones_enabled     = false
+}
+`, r.template(data), data.RandomInteger, skuName)
 }
 
 func (r CassandraDatacenterResource) complete(data acceptance.TestData, nodeCount int) string {
@@ -412,21 +430,4 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r CassandraDatacenterResource) updateSku(data acceptance.TestData, skuName string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
-  name                           = "acctca-mi-dc-%d"
-  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
-  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
-  delegated_management_subnet_id = azurerm_subnet.test.id
-  node_count                     = 3
-  disk_count                     = 4
-  sku_name                       = "%s"
-  availability_zones_enabled     = false
-}
-`, r.template(data), data.RandomInteger, skuName)
 }

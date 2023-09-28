@@ -93,7 +93,6 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
-
 			"node_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -120,7 +119,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 		resource.Schema["sku_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "Standard_DS14_v2",
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 	} else {
