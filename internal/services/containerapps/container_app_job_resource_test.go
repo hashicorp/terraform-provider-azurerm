@@ -47,6 +47,90 @@ func TestAccContainerAppJob_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_eventTrigger(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventTrigger(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r ContainerAppJobResource) eventTrigger(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_app_job" "test" {
+  name                = "acctest-cajob%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  
+  configuration {
+	trigger_type = "Event"
+	replica_timeout = 10
+ 	replica_retry_limit = 10
+	event_trigger_config {
+	  parallelism = 4
+	  replica_completion_count = 1
+	  scale {
+	    max_executions = 10
+	    min_executions = 1
+		polling_interval = 10
+	    rules {
+		  metadata = "testmetadata"
+		  name = "testname"
+		  type = "testtype"
+		}
+	  }
+	}
+  }
+
+  template {
+    containers {
+	  image = "repo/testcontainerAppsJob0:v1"
+  	  name = "testcontainerappsjob0"
+	  probes {
+	    http_get {
+          http_headers {
+			name = "testheader"
+			value = "testvalue"
+		  }
+		  path = "/testpath"
+		  port = 8080
+		}
+		initial_delay_seconds = 10
+		period_seconds = 10
+		type = "Liveness"
+      }
+	  resources {
+	    cpu = 0.5
+		memory = "1Gi"
+	  }
+	}
+
+	init_containers {
+	  args = ["testarg"]
+	  command = ["testcommand"]
+	  image = "repo/testcontainerAppsJob0:v1"
+	  name = "testcontainerappsjob0"
+	  resources {
+	    cpu = 0.5
+		memory = "1Gi"
+	  }
+	}
+  }	
+}
+`, template, data.RandomInteger)
+}
+
 func (r ContainerAppJobResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -85,6 +169,10 @@ resource "azurerm_container_app_job" "test" {
 		period_seconds = 10
 		type = "Liveness"
       }
+	  resources {
+	    cpu = 0.5
+		memory = "1Gi"
+	  }
 	}
 
 	init_containers {
@@ -92,6 +180,10 @@ resource "azurerm_container_app_job" "test" {
 	  command = ["testcommand"]
 	  image = "repo/testcontainerAppsJob0:v1"
 	  name = "testcontainerappsjob0"
+	  resources {
+	    cpu = 0.5
+		memory = "1Gi"
+	  }
 	}
   }
 }
