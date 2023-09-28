@@ -65,20 +65,10 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Default:  -1,
-			ValidateFunc: func(i interface{}, s string) (warnings []string, errors []error) {
-				// it requires -1 or greater than 0
-				v, ok := i.(int)
-				if !ok {
-					errors = append(errors, fmt.Errorf("expected type of %s to be integer", s))
-					return warnings, errors
-				}
-
-				if v == -1 {
-					return warnings, errors
-				}
-
-				return validation.IntAtLeast(-1)(i, s)
-			},
+			ValidateFunc: validation.Any(
+				validation.IntAtLeast(1),
+				validation.IntInSlice([]int{-1}),
+			),
 		},
 
 		"sensitive_data_discovery_enabled": {
