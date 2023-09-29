@@ -1,35 +1,35 @@
-## 3.75.0 (Unreleased)
+## 3.75.0 (September 28, 2023)
 
 FEATURES:
 
-* New Resource: `azurerm_application_load_balancer` [GH-22517]
-* New Resource: `azurerm_resource_management_private_link` [GH-23098]
+* New Resource: `azurerm_application_load_balancer` ([#22517](https://github.com/hashicorp/terraform-provider-azurerm/issues/22517))
+* New Resource: `azurerm_resource_management_private_link` ([#23098](https://github.com/hashicorp/terraform-provider-azurerm/issues/23098))
 
 ENHANCEMENTS:
 
-* dependencies: `firewall` migrated to `hashicorp/go-azure-sdk` [GH-22863]
-* `azurerm_bot_service_azure_bot` - add support for the `icon_url` property [GH-23114]
-* `azurerm_cognitive_deployment` - `capacity` property is now updateable [GH-23251]
-* `azurerm_container_group` - added support for `key_vault_user_identity_id` [GH-23332]
-* `azurerm_data_factory` - added support for the `publish_enabled` property [GH-2334]
-* `azurerm_firewall_policy_rule_collection_group` - add support for the `description` property [GH-23354]
-* `azurerm_kubernetes_cluster` - `network_profile.network_policy` can be migrated to `cilium` [GH-23342]
-* `azurerm_log_analytics_workspace` - add support for the `data_collection_rule_id` property [GH-23347]
-* `azurerm_mysql_flexible_server` - add support for the `io_scaling_enabled` property [GH-23329]
+* dependencies: `firewall` migrated to `hashicorp/go-azure-sdk` ([#22863](https://github.com/hashicorp/terraform-provider-azurerm/issues/22863))
+* `azurerm_bot_service_azure_bot` - add support for the `icon_url` property ([#23114](https://github.com/hashicorp/terraform-provider-azurerm/issues/23114))
+* `azurerm_cognitive_deployment` - `capacity` property is now updateable ([#23251](https://github.com/hashicorp/terraform-provider-azurerm/issues/23251))
+* `azurerm_container_group` - added support for `key_vault_user_identity_id` ([#23332](https://github.com/hashicorp/terraform-provider-azurerm/issues/23332))
+* `azurerm_data_factory` - added support for the `publish_enabled` property ([#2334](https://github.com/hashicorp/terraform-provider-azurerm/issues/2334))
+* `azurerm_firewall_policy_rule_collection_group` - add support for the `description` property ([#23354](https://github.com/hashicorp/terraform-provider-azurerm/issues/23354))
+* `azurerm_kubernetes_cluster` - `network_profile.network_policy` can be migrated to `cilium` ([#23342](https://github.com/hashicorp/terraform-provider-azurerm/issues/23342))
+* `azurerm_log_analytics_workspace` - add support for the `data_collection_rule_id` property ([#23347](https://github.com/hashicorp/terraform-provider-azurerm/issues/23347))
+* `azurerm_mysql_flexible_server` - add support for the `io_scaling_enabled` property ([#23329](https://github.com/hashicorp/terraform-provider-azurerm/issues/23329))
 
 BUG FIXES:
 
-* `azurerm_api_management_api` - fix importing `openapi` format content file issue [GH-23348]
-* `azurerm_cdn_frontdoor_rule` - allow a `cache_duration` of `00:00:00` [GH-23384]
-* `azurerm_cosmosdb_cassandra_datacenter` - `sku_name` is now updatable [GH-23419]
-* `azurerm_key_vault_certificate` - fix a bug that prevented soft-deleted certificates from being recovered [GH-23204]
-* `azurerm_log_analytics_solution` - fix create and update lifecycle of resource by splitting methods [GH-23333]
-* `azurerm_management_group_subscription_association` - mark resource as gone correctly if not found when retrieving [GH-23335]
-* `azurerm_management_lock` - add polling after create and delete to check for RP propagation [GH-23345]
-* `azurerm_monitor_diagnostic_setting` - added validation to ensure at least one of `category` or `category_group` is supplied [GH-23308]
-* `azurerm_palo_alto_local_rulestack_prefix_list` - fix rulestack not being committed on delete [GH-23362]
-* `azurerm_palo_alto_local_rulestack_fqdn_list` - fix rulestack not being committed on delete [GH-23362]
-* `security_center_subscription_pricing_resource` - disabled extensions logic now works as expected [GH-22997]
+* `azurerm_api_management_api` - fix importing `openapi` format content file issue ([#23348](https://github.com/hashicorp/terraform-provider-azurerm/issues/23348))
+* `azurerm_cdn_frontdoor_rule` - allow a `cache_duration` of `00:00:00` ([#23384](https://github.com/hashicorp/terraform-provider-azurerm/issues/23384))
+* `azurerm_cosmosdb_cassandra_datacenter` - `sku_name` is now updatable ([#23419](https://github.com/hashicorp/terraform-provider-azurerm/issues/23419))
+* `azurerm_key_vault_certificate` - fix a bug that prevented soft-deleted certificates from being recovered ([#23204](https://github.com/hashicorp/terraform-provider-azurerm/issues/23204))
+* `azurerm_log_analytics_solution` - fix create and update lifecycle of resource by splitting methods ([#23333](https://github.com/hashicorp/terraform-provider-azurerm/issues/23333))
+* `azurerm_management_group_subscription_association` - mark resource as gone correctly if not found when retrieving ([#23335](https://github.com/hashicorp/terraform-provider-azurerm/issues/23335))
+* `azurerm_management_lock` - add polling after create and delete to check for RP propagation ([#23345](https://github.com/hashicorp/terraform-provider-azurerm/issues/23345))
+* `azurerm_monitor_diagnostic_setting` - added validation to ensure at least one of `category` or `category_group` is supplied ([#23308](https://github.com/hashicorp/terraform-provider-azurerm/issues/23308))
+* `azurerm_palo_alto_local_rulestack_prefix_list` - fix rulestack not being committed on delete ([#23362](https://github.com/hashicorp/terraform-provider-azurerm/issues/23362))
+* `azurerm_palo_alto_local_rulestack_fqdn_list` - fix rulestack not being committed on delete ([#23362](https://github.com/hashicorp/terraform-provider-azurerm/issues/23362))
+* `security_center_subscription_pricing_resource` - disabled extensions logic now works as expected ([#22997](https://github.com/hashicorp/terraform-provider-azurerm/issues/22997))
 
 
 ## 3.74.0 (September 21, 2023)
