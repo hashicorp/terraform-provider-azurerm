@@ -1,3 +1,9 @@
+## 3.76.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_static_site` - Add support for `app_settings` [GH-23421]
+
 ## 3.75.0 (September 28, 2023)
 
 FEATURES:
