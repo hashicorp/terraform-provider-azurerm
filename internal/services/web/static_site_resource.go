@@ -236,12 +236,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	appSettingsResp, err := client.ListStaticSiteAppSettings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of %s were not found", id)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("making Read request for app settings on %s: %+v", id, err)
 	}
 
 	if err := d.Set("app_settings", appSettingsResp.Properties); err != nil {
