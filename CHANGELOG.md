@@ -21,6 +21,7 @@ BUG FIXES:
 
 * `azurerm_api_management_api` - fix importing `openapi` format content file issue [GH-23348]
 * `azurerm_cdn_frontdoor_rule` - allow a `cache_duration` of `00:00:00` [GH-23384]
+* `azurerm_cosmosdb_cassandra_datacenter` - `sku_name` is now updatable [GH-23419]
 * `azurerm_key_vault_certificate` - fix a bug that prevented soft-deleted certificates from being recovered [GH-23204]
 * `azurerm_log_analytics_solution` - fix create and update lifecycle of resource by splitting methods [GH-23333]
 * `azurerm_management_group_subscription_association` - mark resource as gone correctly if not found when retrieving [GH-23335]
