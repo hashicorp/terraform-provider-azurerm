@@ -1,5 +1,9 @@
 ## 3.76.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_spring_cloud_application_insights_application_performance_monitoring` [GH-23107]
+
 ENHANCEMENTS:
 
 * `azurerm_static_site` - Add support for `app_settings` [GH-23421]
