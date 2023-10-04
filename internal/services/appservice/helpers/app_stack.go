@@ -31,9 +31,9 @@ const (
 
 type ApplicationStackWindows struct {
 	CurrentStack            string `tfschema:"current_stack"`
-	DockerContainerName     string `tfschema:"docker_container_name,majorVersionRemoved"`
-	DockerContainerRegistry string `tfschema:"docker_container_registry,majorVersionRemoved"`
-	DockerContainerTag      string `tfschema:"docker_container_tag,majorVersionRemoved"`
+	DockerContainerName     string `tfschema:"docker_container_name,removedInNextMajorVersion"`
+	DockerContainerRegistry string `tfschema:"docker_container_registry,removedInNextMajorVersion"`
+	DockerContainerTag      string `tfschema:"docker_container_tag,removedInNextMajorVersion"`
 	JavaContainer           string `tfschema:"java_container"`
 	JavaContainerVersion    string `tfschema:"java_container_version"`
 	JavaEmbeddedServer      bool   `tfschema:"java_embedded_server_enabled"`
@@ -418,8 +418,8 @@ type ApplicationStackLinux struct {
 	JavaVersion         string `tfschema:"java_version"`
 	JavaServer          string `tfschema:"java_server"`
 	JavaServerVersion   string `tfschema:"java_server_version"`
-	DockerImageTag      string `tfschema:"docker_image_tag,majorVersionRemoved"`
-	DockerImage         string `tfschema:"docker_image,majorVersionRemoved"`
+	DockerImageTag      string `tfschema:"docker_image_tag,removedInNextMajorVersion"`
+	DockerImage         string `tfschema:"docker_image,removedInNextMajorVersion"`
 	RubyVersion         string `tfschema:"ruby_version"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`

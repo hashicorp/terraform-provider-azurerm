@@ -54,8 +54,8 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldVal := objVal.Field(i)
-		if tfschemaTag, exists := field.Tag.Lookup("tfschema"); exists && !(strings.HasSuffix(tfschemaTag, ",majorVersionRemoved") && features.FourPointOh()) {
-			tfschemaTag = strings.TrimSuffix(tfschemaTag, ",majorVersionRemoved")
+		if tfschemaTag, exists := field.Tag.Lookup("tfschema"); exists && !(strings.Contains(tfschemaTag, "removedInNextMajorVersion") && features.FourPointOh()) {
+			tfschemaTag = strings.TrimSuffix(tfschemaTag, ",removedInNextMajorVersion")
 			switch field.Type.Kind() {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				iv := fieldVal.Int()
