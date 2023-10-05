@@ -184,7 +184,7 @@ func read() {
 }
 ```
 
-When deprecating a property in a Typed Resource it is important to ensure that the Go struct representing the schema is correctly tagged to prevent the SDK processing the removed property being processed when the major version beta / feature flag is in use. In these cases the struct tags must be updated to include `,removedInNextMajorVersion`.  
+When deprecating a property in a Typed Resource it is important to ensure that the Go struct representing the schema is correctly tagged to prevent the SDK decoding the removed property when the major version beta / feature flag is in use. In these cases the struct tags must be updated to include `,removedInNextMajorVersion`.  
 
 ```go
 type ExampleResourceModel struct {
