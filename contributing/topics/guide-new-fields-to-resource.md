@@ -188,8 +188,8 @@ When deprecating a property in a Typed Resource it is important to ensure that t
 
 ```go
 type ExampleResourceModel struct {
-	Name string `tfschema:"name"`
-	EnablePublicNetworkAccess bool `tfschema:"enable_public_network_access,removedInNextMajorVersion"`
-	PublicNetworkAccessEnabled bool `tfschema:"public_network_access_enabled"`
+	Name                       string `tfschema:"name"`
+	EnablePublicNetworkAccess  bool   `tfschema:"enable_public_network_access,removedInNextMajorVersion"`
+	PublicNetworkAccessEnabled bool   `tfschema:"public_network_access_enabled"`
 }
 ```
