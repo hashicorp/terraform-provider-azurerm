@@ -352,6 +352,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
 			},
+
+			"skip_provider_configuration": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_CONFIGURATION", false),
+				Description: "Should the AzureRM Provider skip configuration/authentication?",
+			},
 		},
 
 		DataSourcesMap: dataSources,
@@ -365,6 +372,12 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+
+		azureRMNoConfigure := d.Get("skip_provider_configuration").(bool)
+		if azureRMNoConfigure {
+			return nil, nil
+		}
+
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)

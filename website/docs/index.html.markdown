@@ -184,6 +184,11 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 -> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however, please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
 
+* `skip_provider_configuration` - (Optional) Should the AzureRM Provider skip configuration/authentication? This can also be sourced from the `ARM_SKIP_PROVIDER_CONFIGURATION` Environment Variable. Defaults to `false`.
+
+-> By default, the AzureRM Provider will attempt to authenticate with Azure on first use. In some rare cases, this is not desired. Example, a module may contain resources/data sources from multiple cloud provider
+   but the module is being configured to creat/use only non-Azure resources/data sources. In this case, the module requires the AzureRM provider to be present but Terraform will not effectively use it.
+
 * `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue API's, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
 
 ~> **Note:** This requires that the User/Service Principal being used has the associated `Storage` roles - which are added to new Contributor/Owner role-assignments, but **have not** been backported by Azure to existing role-assignments.
