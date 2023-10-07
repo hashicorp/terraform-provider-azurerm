@@ -215,10 +215,15 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		computeInstance.Properties.ComputeInstanceAuthorizationType = utils.ToPtr(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
 	}
 
+	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
+	if err != nil {
+		return err
+	}
+
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: computeInstance,
 		Identity:   identity,
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
+		Location:   workspace.Location,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
