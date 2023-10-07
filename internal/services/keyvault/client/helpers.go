@@ -113,7 +113,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (b
 	return true, nil
 }
 
-func (c *Client) KeyVaultIDFromBaseURLByGraph(ctx context.Context, client *graph.ResourcesClient, name string) (string, interface{}) {
+func (c *Client) KeyVaultIDFromBaseURLByGraph(ctx context.Context, client *graph.ResourcesClient, name string) (string, error) {
 	if name == "" {
 		return "", nil
 	}
@@ -136,7 +136,7 @@ func (c *Client) KeyVaultIDFromBaseURLByGraph(ctx context.Context, client *graph
 			}
 		}
 	}
-	return "", fmt.Errorf("no such keyvault in resource graph by query: %s", req.Query)
+	return "", fmt.Errorf("cannot find such keyvault in resource graph by query: %s", req.Query)
 }
 
 func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resourcesClient.Client, keyVaultBaseUrl string) (*string, error) {
