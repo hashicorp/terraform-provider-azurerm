@@ -206,6 +206,14 @@ resource "azurerm_container_app_environment" "test" {
 
 func (r ContainerAppEnvironmentResource) completeWithWorkloadProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+	resource_group {
+	  prevent_deletion_if_contains_resources = false
+	}
+  }
+}
+
 %[1]s
 
 resource "azurerm_virtual_network" "test" {
@@ -233,18 +241,21 @@ resource "azurerm_container_app_environment" "test" {
   name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
   infrastructure_subnet_id = azurerm_subnet.control.id
 
-  internal_load_balancer_enabled = true
+  workload_profile {
+    maximum_count = 2
+    minimum_count = 0
+    name = "My-GP-01"
+    workload_profile_type = "D4"
+  }
 
   workload_profile {
-	maximum_count = 2
-	minimum_count = 0
-	name = "My-GP--01"
-	workload_profile_type = "D4"
+    name = "Consumption"
+    workload_profile_type = "Consumption"
   }
+
+  zone_redundancy_enabled = true
 
   tags = {
     Foo    = "Bar"
