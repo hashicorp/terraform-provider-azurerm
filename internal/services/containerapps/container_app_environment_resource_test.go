@@ -208,9 +208,9 @@ func (r ContainerAppEnvironmentResource) completeWithWorkloadProfile(data accept
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-	resource_group {
-	  prevent_deletion_if_contains_resources = false
-	}
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -229,29 +229,29 @@ resource "azurerm_subnet" "control" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
   delegation {
-	name = "acctestdelegation%[2]d" 
-	service_delegation {
-	  actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-	  name = "Microsoft.App/environments"
-	}
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
   }
 }
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   infrastructure_subnet_id = azurerm_subnet.control.id
 
   workload_profile {
-    maximum_count = 2
-    minimum_count = 0
-    name = "My-GP-01"
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "My-GP-01"
     workload_profile_type = "D4"
   }
 
   workload_profile {
-    name = "Consumption"
+    name                  = "Consumption"
     workload_profile_type = "Consumption"
   }
 
