@@ -62,7 +62,21 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
+* `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `workload_profile` block supports the following:
+
+* `name` - (Required) The name of the workload profile.
+
+* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. 
+
+* `maximum_count` - (Optional) The maximum number of containers that can be deployed in the Container App Environment.
+
+* `minimum_count` - (Optional) The minimum number of containers that can be deployed in the Container App Environment.
 
 ## Attributes Reference
 
