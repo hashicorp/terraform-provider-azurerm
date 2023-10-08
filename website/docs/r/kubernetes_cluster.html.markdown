@@ -663,7 +663,7 @@ A `network_profile` block supports the following:
 
 ~> **Note:** This property can only be set when `network_plugin` is set to `azure`.
 
-* `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created.
+* `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/azure/aks/use-network-policies). Currently supported values are `calico`, `azure` and `cilium`. Changing this forces a new resource to be created.
 
 ~> **Note:** When `network_policy` is set to `azure`, the `network_plugin` field can only be set to `azure`.
 
