@@ -567,7 +567,7 @@ A `rewrite_rule_set` block exports the following:
 
 * `name` - Unique name of the rewrite rule set block
 
-* `rewrite_rule` - One or more `rewrite_rule` blocks as defined above.
+* `rewrite_rule` - One or more `rewrite_rule` blocks as defined below.
 
 ---
 

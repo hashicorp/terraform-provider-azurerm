@@ -615,7 +615,7 @@ A `rewrite_rule_set` block supports the following:
 
 * `name` - (Required) Unique name of the rewrite rule set block
 
-* `rewrite_rule` - (Optional) One or more `rewrite_rule` blocks as defined above.
+* `rewrite_rule` - (Optional) One or more `rewrite_rule` blocks as defined below.
 
 ---
 
