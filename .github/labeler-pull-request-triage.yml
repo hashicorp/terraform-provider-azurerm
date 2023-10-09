@@ -30,6 +30,9 @@ service/app-service:
 service/application-insights:
   - internal/services/applicationinsights/**/*
 
+service/arc-resource-bridge:
+  - internal/services/arcresourcebridge/**/*
+
 service/attestation:
   - internal/services/attestation/**/*
 
@@ -308,6 +311,9 @@ service/service-fabric:
 
 service/service-fabric-managed-cluster:
   - internal/services/servicefabricmanaged/**/*
+
+service/service-networking:
+  - internal/services/servicenetworking/**/*
 
 service/signalr:
   - internal/services/signalr/**/*

@@ -798,6 +798,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		return output, nil
 	}
 	raw := input[0].(map[string]interface{})
+	skuName := d.Get("sku_name").(string)
 
 	if v := raw["maxclients"].(int); v > 0 {
 		output.Maxclients = utils.String(strconv.Itoa(v))
@@ -825,8 +826,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	// nolint : staticcheck
 	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
-		skuName := d.Get("sku_name").(string)
-		rdbBackupEnabled := raw["rdb_backup_enabled"].(bool)
+		rdbBackupEnabled := v.(bool)
 
 		// rdb_backup_enabled is available when SKU is Premium
 		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
@@ -861,7 +861,10 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	// nolint : staticcheck
 	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
 	if valExists {
-		output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+		// aof_backup_enabled is available when SKU is Premium
+		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+		}
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {

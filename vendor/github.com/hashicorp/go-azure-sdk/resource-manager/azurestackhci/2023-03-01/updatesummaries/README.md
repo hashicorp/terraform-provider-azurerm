@@ -20,25 +20,25 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `UpdateSummariesClient.UpdateSummariesDelete`
+### Example Usage: `UpdateSummariesClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := updatesummaries.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-if err := client.UpdateSummariesDeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `UpdateSummariesClient.UpdateSummariesGet`
+### Example Usage: `UpdateSummariesClient.Get`
 
 ```go
 ctx := context.TODO()
 id := updatesummaries.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-read, err := client.UpdateSummariesGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -48,14 +48,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `UpdateSummariesClient.UpdateSummariesList`
+### Example Usage: `UpdateSummariesClient.List`
 
 ```go
 ctx := context.TODO()
 id := updatesummaries.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-// alternatively `client.UpdateSummariesList(ctx, id)` can be used to do batched pagination
-items, err := client.UpdateSummariesListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -65,7 +65,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `UpdateSummariesClient.UpdateSummariesPut`
+### Example Usage: `UpdateSummariesClient.Put`
 
 ```go
 ctx := context.TODO()
@@ -76,7 +76,7 @@ payload := updatesummaries.UpdateSummaries{
 }
 
 
-read, err := client.UpdateSummariesPut(ctx, id, payload)
+read, err := client.Put(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

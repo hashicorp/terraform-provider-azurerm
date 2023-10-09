@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ExtensionsClient.ExtensionsCreate`
+### Example Usage: `ExtensionsClient.Create`
 
 ```go
 ctx := context.TODO()
@@ -31,31 +31,31 @@ payload := extensions.Extension{
 }
 
 
-if err := client.ExtensionsCreateThenPoll(ctx, id, payload); err != nil {
+if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `ExtensionsClient.ExtensionsDelete`
+### Example Usage: `ExtensionsClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue", "extensionValue")
 
-if err := client.ExtensionsDeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `ExtensionsClient.ExtensionsGet`
+### Example Usage: `ExtensionsClient.Get`
 
 ```go
 ctx := context.TODO()
 id := extensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue", "extensionValue")
 
-read, err := client.ExtensionsGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -65,14 +65,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ExtensionsClient.ExtensionsListByArcSetting`
+### Example Usage: `ExtensionsClient.ListByArcSetting`
 
 ```go
 ctx := context.TODO()
 id := extensions.NewArcSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "arcSettingValue")
 
-// alternatively `client.ExtensionsListByArcSetting(ctx, id)` can be used to do batched pagination
-items, err := client.ExtensionsListByArcSettingComplete(ctx, id)
+// alternatively `client.ListByArcSetting(ctx, id)` can be used to do batched pagination
+items, err := client.ListByArcSettingComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -82,7 +82,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `ExtensionsClient.ExtensionsUpdate`
+### Example Usage: `ExtensionsClient.Update`
 
 ```go
 ctx := context.TODO()
@@ -93,13 +93,13 @@ payload := extensions.Extension{
 }
 
 
-if err := client.ExtensionsUpdateThenPoll(ctx, id, payload); err != nil {
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `ExtensionsClient.ExtensionsUpgrade`
+### Example Usage: `ExtensionsClient.Upgrade`
 
 ```go
 ctx := context.TODO()
@@ -110,7 +110,7 @@ payload := extensions.ExtensionUpgradeParameters{
 }
 
 
-if err := client.ExtensionsUpgradeThenPoll(ctx, id, payload); err != nil {
+if err := client.UpgradeThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

@@ -134,15 +134,23 @@ The following arguments are supported:
 
 The `custom_rules` block supports the following:
 
+* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `true`.
+
 * `name` - (Optional) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
 
-* `rule_type` - (Required) Describes the type of rule. Possible values are `MatchRule` and `Invalid`.
+* `rule_type` - (Required) Describes the type of rule. Possible values are `MatchRule`, `RateLimitRule` and `Invalid`.
 
 * `match_conditions` - (Required) One or more `match_conditions` blocks as defined below.
 
 * `action` - (Required) Type of action. Possible values are `Allow`, `Block` and `Log`.
+
+* `rate_limit_duration` - (Optional) Specifies the duration at which the rate limit policy will be applied. Should be used with `RateLimitRule` rule type. Possible values are `FiveMins` and `OneMin`.
+
+* `rate_limit_threshold` - (Optional) Specifies the threshold value for the rate limit policy. Must be greater than or equal to 1 if provided.
+
+* `group_rate_limit_by` - (Optional) Specifies what grouping the rate limit will count requests by. Possible values are `GeoLocation`, `ClientAddr` and `None`.
 
 ---
 
@@ -181,6 +189,8 @@ The `policy_settings` block supports the following:
 * `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `8` to `2000`. Defaults to `128`.
 
 * `log_scrubbing` - (Optional) One `log_scrubbing` block as defined below.
+
+* `request_body_inspect_limit_in_kb` - (Optional) Specifies the maximum request body inspection limit in KB for the Web Application Firewall. Defaults to `128`.
 
 ---
 

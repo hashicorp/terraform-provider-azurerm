@@ -135,6 +135,61 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandardDisabledExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.cloudPostureFree(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Free"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureStandard(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtensioStandardToFreeExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureFree(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Free"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pricings_v2023_01_01.ParsePricingIDInsensitively(state.ID)
 	if err != nil {
@@ -228,6 +283,36 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   extension {
     name = "AgentlessDiscoveryForKubernetes"
   }
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureFree() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Free"
+  resource_type = "CloudPosture"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureStandard() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
 }
 `
 }

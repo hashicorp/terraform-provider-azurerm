@@ -540,17 +540,17 @@ func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsCon
 	if input.Certificate != nil {
 		result["certificate"] = *input.Certificate
 	}
-	result["header"] = flattenApiManagementBackendCredentialsObject(*input.Header)
-	result["query"] = flattenApiManagementBackendCredentialsObject(*input.Query)
+	result["header"] = flattenApiManagementBackendCredentialsObject(input.Header)
+	result["query"] = flattenApiManagementBackendCredentialsObject(input.Query)
 	return append(results, result)
 }
 
-func flattenApiManagementBackendCredentialsObject(input map[string][]string) map[string]interface{} {
+func flattenApiManagementBackendCredentialsObject(input *map[string][]string) map[string]interface{} {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results
 	}
-	for k, v := range input {
+	for k, v := range *input {
 		results[k] = strings.Join(v, ",")
 	}
 	return results

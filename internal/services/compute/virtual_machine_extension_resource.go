@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -54,7 +54,7 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"publisher": {
@@ -128,11 +128,11 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	virtualMachineId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroup, virtualMachineId.Name, d.Get("name").(string))
+	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, d.Get("name").(string))
 
 	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {

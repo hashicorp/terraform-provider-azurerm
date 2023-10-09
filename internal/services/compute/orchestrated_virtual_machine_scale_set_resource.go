@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +41,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 		Delete: resourceOrchestratedVirtualMachineScaleSetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.VirtualMachineScaleSetID(id)
+			_, err := commonids.ParseVirtualMachineScaleSetID(id)
 			return err
 		}, importOrchestratedVirtualMachineScaleSet),
 
@@ -277,11 +277,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	defer cancel()
 
 	isLegacy := true
-	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -375,7 +375,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if hasHealthExtension {
-		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Orchestrated %s has a Health Extension defined", id)
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -423,11 +423,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.WindowsComputerNamePrefix(id.Name, "computer_name_prefix")
+				_, errs := computeValidate.WindowsComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
 				if len(errs) > 0 {
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the 'name', or specify an explicit 'computer_name_prefix'", errs[0])
 				}
-				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
+				vmssOsProfile.ComputerNamePrefix = utils.String(id.VirtualMachineScaleSetName)
 			}
 
 			if extensionOperationsEnabled && !provisionVMAgent {
@@ -488,12 +488,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.LinuxComputerNamePrefix(id.Name, "computer_name_prefix")
+				_, errs := computeValidate.LinuxComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
 				if len(errs) > 0 {
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the 'name', or specify an explicit 'computer_name_prefix'", errs[0])
 				}
 
-				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
+				vmssOsProfile.ComputerNamePrefix = utils.String(id.VirtualMachineScaleSetName)
 			}
 
 			if extensionOperationsEnabled && !provisionVMAgent {
@@ -640,7 +640,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	log.Printf("[DEBUG] Creating Orchestrated %s.", id)
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, props)
 	if err != nil {
 		return fmt.Errorf("creating Orchestrated %s: %+v", id, err)
 	}
@@ -654,7 +654,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 			for {
 				log.Printf("[DEBUG] Retrying PUT %d for Orchestrated %s.", errCount, id)
-				future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
+				future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, props)
 				if err != nil {
 					return fmt.Errorf("creating Orchestrated %s after %d retries: %+v", id, errCount, err)
 				}
@@ -694,7 +694,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineScaleSetID(d.Id())
+	id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -706,23 +706,23 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Orchestrated %s: %+v", id, err)
 	}
 	if existing.Sku != nil {
 		isLegacy = false
 	}
 	if existing.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Orchestrated %s: `properties` was nil", id)
 	}
 
 	if !isLegacy {
 		if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
-			return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
+			return fmt.Errorf("retrieving Orchestrated %s: `properties.virtualMachineProfile` was nil", id)
 		}
 		if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile == nil {
-			return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile,storageProfile` was nil", id.Name, id.ResourceGroup)
+			return fmt.Errorf("retrieving Orchestrated %s: `properties.virtualMachineProfile,storageProfile` was nil", id)
 		}
 	}
 
@@ -1099,7 +1099,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
 	if updateInstances {
-		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q in Resource Group %q - updateInstances is true", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Orchestrated %s - updateInstances is true", id)
 	}
 
 	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
@@ -1127,25 +1127,25 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineScaleSetID(d.Id())
+	id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Orchestrated %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Orchestrated %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VirtualMachineScaleSetName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
@@ -1178,7 +1178,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	}
 
 	if resp.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Orchestrated %s: `properties` was nil", id)
 	}
 	props := *resp.VirtualMachineScaleSetProperties
 
@@ -1319,19 +1319,19 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineScaleSetID(d.Id())
+	id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Orchestrated %s: %+v", id, err)
 	}
 
 	// Sometimes VMSS's aren't fully deleted when the `Delete` call returns - as such we'll try to scale the cluster
@@ -1347,36 +1347,36 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 		update := compute.VirtualMachineScaleSetUpdate{
 			Sku: resp.Sku,
 		}
-		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
+		future, err := client.Update(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, update)
 		if err != nil {
-			return fmt.Errorf("updating number of instances in Orchestrated Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating number of instances in Orchestrated %s to scale to 0: %+v", id, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for scaling of instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("waiting for number of instances in Orchestrated Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for number of instances in Orchestrated %s to scale to 0: %+v", id, err)
 		}
 		log.Printf("[DEBUG] Scaled instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 	} else {
 		log.Printf("[DEBUG] Unable to scale instances to `0` since the `sku` block is nil - trying to delete anyway")
 	}
 
-	log.Printf("[DEBUG] Deleting Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting Orchestrated %s", id)
 	// @ArcturusZhang (mimicking from windows_virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	// TODO: support force deletion once it's out of Preview, if applicable
 	var forceDeletion *bool = nil
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, forceDeletion)
 	if err != nil {
-		return fmt.Errorf("deleting Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Orchestrated %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deletion of Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for deletion of Orchestrated %s", id)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Orchestrated %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Deleted Orchestrated Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleted Orchestrated %s", id)
 
 	return nil
 }

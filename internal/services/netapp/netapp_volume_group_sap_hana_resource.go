@@ -7,11 +7,11 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -312,8 +312,8 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 			id := volumegroups.NewVolumeGroupID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
 			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.VolumeGroupsGet(ctx, id)
-			if err != nil && existing.HttpResponse.StatusCode != http.StatusNotFound {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
@@ -360,7 +360,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.VolumeGroupsCreateThenPoll(ctx, id, parameters)
+			err = client.CreateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -558,9 +558,9 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.VolumeGroupsGet(ctx, pointer.From(id))
+			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -604,9 +604,9 @@ func (r NetAppVolumeGroupSapHanaResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.VolumeGroupsGet(ctx, pointer.From(id))
+			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -624,7 +624,7 @@ func (r NetAppVolumeGroupSapHanaResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Removing Volume Group
-			if err = client.VolumeGroupsDeleteThenPoll(ctx, pointer.From(id)); err != nil {
+			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 

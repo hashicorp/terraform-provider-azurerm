@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
@@ -78,6 +79,12 @@ func resourceMapsAccount() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"local_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -110,6 +117,9 @@ func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Name: accounts.Name(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &accounts.MapsAccountProperties{
+			DisableLocalAuth: utils.Bool(!d.Get("local_authentication_enabled").(bool)),
+		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -165,6 +175,14 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("primary_access_key", model.PrimaryKey)
 		d.Set("secondary_access_key", model.SecondaryKey)
 	}
+
+	localAuthenticationEnabled := true
+	if props := resp.Model.Properties; props != nil {
+		if props.DisableLocalAuth != nil {
+			localAuthenticationEnabled = !*props.DisableLocalAuth
+		}
+	}
+	d.Set("local_authentication_enabled", localAuthenticationEnabled)
 
 	return nil
 }

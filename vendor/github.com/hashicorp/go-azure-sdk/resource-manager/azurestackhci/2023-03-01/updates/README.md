@@ -20,25 +20,25 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `UpdatesClient.UpdatesDelete`
+### Example Usage: `UpdatesClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := updates.NewUpdateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "updateValue")
 
-if err := client.UpdatesDeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `UpdatesClient.UpdatesGet`
+### Example Usage: `UpdatesClient.Get`
 
 ```go
 ctx := context.TODO()
 id := updates.NewUpdateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "updateValue")
 
-read, err := client.UpdatesGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -48,14 +48,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `UpdatesClient.UpdatesList`
+### Example Usage: `UpdatesClient.List`
 
 ```go
 ctx := context.TODO()
 id := updates.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
-// alternatively `client.UpdatesList(ctx, id)` can be used to do batched pagination
-items, err := client.UpdatesListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -65,19 +65,19 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `UpdatesClient.UpdatesPost`
+### Example Usage: `UpdatesClient.Post`
 
 ```go
 ctx := context.TODO()
 id := updates.NewUpdateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "updateValue")
 
-if err := client.UpdatesPostThenPoll(ctx, id); err != nil {
+if err := client.PostThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `UpdatesClient.UpdatesPut`
+### Example Usage: `UpdatesClient.Put`
 
 ```go
 ctx := context.TODO()
@@ -88,7 +88,7 @@ payload := updates.Update{
 }
 
 
-read, err := client.UpdatesPut(ctx, id, payload)
+read, err := client.Put(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

@@ -6,10 +6,10 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
@@ -247,31 +247,30 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 
 			id := volumegroups.NewVolumeGroupID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
 
-			resp, err := client.VolumeGroupsGet(ctx, id)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				if resp.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			state.Location = location.Normalize(pointer.From(model.Location))
-			state.ApplicationIdentifier = pointer.From(model.Properties.GroupMetaData.ApplicationIdentifier)
-			state.GroupDescription = pointer.From(model.Properties.GroupMetaData.GroupDescription)
-
-			volumes, err := flattenNetAppVolumeGroupVolumes(ctx, model.Properties.Volumes, metadata)
-			if err != nil {
-				return fmt.Errorf("setting `volume`: %+v", err)
-			}
-
-			state.Volumes = volumes
-
 			metadata.SetID(id)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(pointer.From(model.Location))
+				if props := model.Properties; props != nil {
+					if groupMetaData := props.GroupMetaData; groupMetaData != nil {
+						state.ApplicationIdentifier = pointer.From(groupMetaData.ApplicationIdentifier)
+						state.GroupDescription = pointer.From(groupMetaData.GroupDescription)
+					}
+
+					volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
+					if err != nil {
+						return fmt.Errorf("setting `volume`: %+v", err)
+					}
+					state.Volumes = volumes
+				}
+			}
 
 			return metadata.Encode(&state)
 		},

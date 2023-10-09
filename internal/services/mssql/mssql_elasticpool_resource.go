@@ -234,14 +234,6 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if _, ok := d.GetOk("license_type"); ok {
-		if sku.Tier != nil && (*sku.Tier == "GeneralPurpose" || *sku.Tier == "BusinessCritical") {
-			elasticPool.ElasticPoolProperties.LicenseType = sql.ElasticPoolLicenseType(d.Get("license_type").(string))
-		} else {
-			return fmt.Errorf("`license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`")
-		}
-	}
-
 	if d.HasChange("max_size_gb") {
 		if v, ok := d.GetOk("max_size_gb"); ok {
 			maxSizeBytes := v.(float64) * 1073741824
@@ -307,7 +299,11 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
-		d.Set("license_type", string(properties.LicenseType))
+		licenseType := string(sql.DatabaseLicenseTypeLicenseIncluded)
+		if string(properties.LicenseType) != "" {
+			licenseType = string(properties.LicenseType)
+		}
+		d.Set("license_type", licenseType)
 
 		if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("setting `per_database_settings`: %+v", err)

@@ -86,8 +86,6 @@ The following arguments are supported:
 
 * `principal_id` - (Required) The principal id. Changing this forces a new Pim Eligible Role Assignment to be created.
 
-* `principal_type` - (Required) The type of principal. Changing this forces a new Pim Eligible Role Assignment to be created.
-
 * `role_definition_id` - (Required) The role definition id. Changing this forces a new Pim Eligible Role Assignment to be created.
 
 * `scope` - (Required) The scope. Changing this forces a new Pim Eligible Role Assignment to be created.

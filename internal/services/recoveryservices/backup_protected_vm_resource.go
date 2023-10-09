@@ -15,13 +15,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	vmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -85,13 +85,13 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	}
 
 	// get VM name from id
-	parsedVmId, err := vmParse.VirtualMachineID(vmId)
+	parsedVmId, err := commonids.ParseVirtualMachineID(vmId)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)
 	}
 
-	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, parsedVmId.Name)
-	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, parsedVmId.Name)
+	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
+	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
 
 	log.Printf("[DEBUG] Creating/updating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
@@ -114,7 +114,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			PolicyId:           &policyId,
 			WorkloadType:       pointer.To(protecteditems.DataSourceTypeVM),
 			SourceResourceId:   pointer.To(vmId),
-			FriendlyName:       pointer.To(parsedVmId.Name),
+			FriendlyName:       pointer.To(parsedVmId.VirtualMachineName),
 			ExtendedProperties: expandDiskExclusion(d),
 			VirtualMachineId:   pointer.To(vmId),
 		},

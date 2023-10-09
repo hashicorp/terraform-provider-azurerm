@@ -55,7 +55,7 @@ func (r ManagementGroupPolicyRemediationResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	resp, err := client.Policy.RemediationsClient.RemediationsGetAtManagementGroup(ctx, *id)
+	resp, err := client.Policy.RemediationsClient.GetAtManagementGroup(ctx, *id)
 	if err != nil || resp.Model == nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

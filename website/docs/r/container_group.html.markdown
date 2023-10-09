@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
 
+* `key_vault_user_assigned_identity_id` - (Optional) The user assigned identity that has access to the Key Vault Key. If not specified, the RP principal named "Azure Container Instance Service" will be used instead. Make sure the identity has the proper `key_permissions` set, at least with `Get`, `UnwrapKey`, `WrapKey` and `GetRotationPolicy`.
+
 * `subnet_ids` - (Optional) The subnet resource IDs for a container group. Changing this forces a new resource to be created.
 
 * `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.

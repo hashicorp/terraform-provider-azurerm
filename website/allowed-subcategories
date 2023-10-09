@@ -6,6 +6,7 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Arc Resource Bridge
 ArcKubernetes
 Attestation
 Authorization
@@ -93,6 +94,7 @@ Security Center
 Sentinel
 Service Fabric
 Service Fabric Managed Clusters
+Service Networking
 Spring Cloud
 Storage
 Storage Mover

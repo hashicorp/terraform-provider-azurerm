@@ -12,13 +12,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -332,13 +332,13 @@ func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.C
 }
 
 func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s does not exist", *id)
