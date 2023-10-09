@@ -1926,9 +1926,9 @@ resource "azurerm_virtual_network_gateway" "test" {
     vpn_client_protocols = ["SSTP", "IkeV2"]
 
     radius_server {
-       address = "1.2.3.4"
-       secret  = "1234"
-       score   = 2
+      address = "1.2.3.4"
+      secret  = "1234"
+      score   = 2
     }
   }
 }
