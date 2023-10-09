@@ -1209,9 +1209,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 
@@ -1737,9 +1737,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 
@@ -1805,9 +1805,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 
@@ -2173,9 +2173,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 

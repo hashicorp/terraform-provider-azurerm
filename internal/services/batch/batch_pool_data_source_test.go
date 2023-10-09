@@ -23,9 +23,9 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
 				check.That(data.ResourceName).Key("storage_image_reference.#").HasValue("1"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("22_04-lts"),
-				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("0001-com-ubuntu-server-jammy"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.publisher").HasValue("microsoft-azure-batch"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.sku").HasValue("20-04-lts"),
+				check.That(data.ResourceName).Key("storage_image_reference.0.offer").HasValue("ubuntu-server-container"),
 				check.That(data.ResourceName).Key("fixed_scale.#").HasValue("1"),
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("2"),
 				check.That(data.ResourceName).Key("fixed_scale.0.resize_timeout").HasValue("PT15M"),
@@ -134,9 +134,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
     version   = "latest"
   }
 

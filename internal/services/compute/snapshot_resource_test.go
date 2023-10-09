@@ -665,8 +665,7 @@ data "azurerm_platform_image" "test" {
   location  = "%[2]s"
   publisher = "Canonical"
   offer     = "0001-com-ubuntu-server-jammy"
-  sku       = "22_04-lts"
-
+  sku       = "22_04-lts-gen2"
 }
 
 resource "azurerm_resource_group" "test" {

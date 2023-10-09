@@ -956,8 +956,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    offer     = "0001-com-ubuntu-confidential-vm-jammy"
+    sku       = "22_04-lts-cvm"
     version   = "latest"
   }
 
@@ -1007,8 +1007,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    offer     = "0001-com-ubuntu-confidential-vm-jammy"
+    sku       = "22_04-lts-cvm"
     version   = "latest"
   }
 
