@@ -188,6 +188,8 @@ The `vpn_client_configuration` block supports:
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which are defined below.
 
+* `radius_server` - (Optional) One or more `radius_server` blocks as defined below.
+
 * `radius_server_address` - (Optional) The address of the Radius server.
 
 * `radius_server_secret` - (Optional) The secret used by the Radius server.
@@ -265,6 +267,18 @@ The `peering_addresses` block supports:
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 
 * `tunnel_ip_addresses` - A list of tunnel IP addresses assigned to the BGP peer of the Virtual Network Gateway.
+
+---
+
+The `radius_server` block supports:
+
+* `address` - (Required) The address of the Radius Server.
+
+* `secret` - (Required) The secret that is used to communicate with the Radius Server.
+
+* `score` - (Required) The score of the Radius Server determines the priority of the server. Possible values are between `1` and `30`.
+
+---
 
 ## Timeouts
 

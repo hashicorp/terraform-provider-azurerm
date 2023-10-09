@@ -6,6 +6,7 @@ package network
 import (
 	"bytes"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"time"
 
@@ -243,6 +244,33 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 							},
 						},
 						Set: hashVirtualNetworkGatewayRevokedCert,
+					},
+
+					"radius_server": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"address": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsIPv4Address,
+								},
+
+								"secret": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
+									Sensitive:    true,
+								},
+
+								"score": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(1, 30),
+								},
+							},
+						},
 					},
 
 					"radius_server_address": {
@@ -827,10 +855,30 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 		VpnClientRootCertificates:    &rootCerts,
 		VpnClientRevokedCertificates: &revokedCerts,
 		VpnClientProtocols:           &vpnClientProtocols,
+		RadiusServers:                expandVirtualNetworkGatewayRadiusServers(conf["radius_server"].([]interface{})),
 		RadiusServerAddress:          &confRadiusServerAddress,
 		RadiusServerSecret:           &confRadiusServerSecret,
 		VpnAuthenticationTypes:       &vpnAuthTypes,
 	}
+}
+
+func expandVirtualNetworkGatewayRadiusServers(input []interface{}) *[]network.RadiusServer {
+	results := make([]network.RadiusServer, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.RadiusServer{
+			RadiusServerAddress: utils.String(v["address"].(string)),
+			RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
+			RadiusServerSecret:  utils.String(v["secret"].(string)),
+		})
+	}
+
+	return &results
 }
 
 func expandVirtualNetworkGatewaySku(d *pluginsdk.ResourceData) *network.VirtualNetworkGatewaySku {
@@ -941,7 +989,9 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfigura
 	if cfg == nil {
 		return []interface{}{}
 	}
-	flat := make(map[string]interface{})
+	flat := map[string]interface{}{
+		"radius_server": flattenVirtualNetworkGatewayRadiusServers(cfg.RadiusServers),
+	}
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
 		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
@@ -1086,4 +1136,21 @@ func flattenVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []int
 			"address_prefixes": utils.FlattenStringSlice(input.AddressPrefixes),
 		},
 	}
+}
+
+func flattenVirtualNetworkGatewayRadiusServers(input *[]network.RadiusServer) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"address": pointer.From(item.RadiusServerAddress),
+			"secret":  pointer.From(item.RadiusServerSecret),
+			"score":   pointer.From(item.RadiusServerScore),
+		})
+	}
+
+	return results
 }
