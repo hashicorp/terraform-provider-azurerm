@@ -629,7 +629,7 @@ A `maintenance_window_node_os` block supports the following:
 
 ---
 
-An `allowed` block exports the following:
+An `allowed` block supports the following:
 
 * `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
@@ -637,7 +637,7 @@ An `allowed` block exports the following:
 
 ---
 
-A `not_allowed` block exports the following:
+A `not_allowed` block supports the following:
 
 * `end` - (Required) The end of a time span, formatted as an RFC3339 string.
 
