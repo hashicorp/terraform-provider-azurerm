@@ -818,7 +818,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 					imageReference := compute.ImageReference{
 						Publisher: existingImageReference.Publisher,
 						Offer:     existingImageReference.Offer,
-						Sku:       pointer.To("18.04-LTS"),
+						Sku:       pointer.To("22_04-lts"),
 						Version:   existingImageReference.Version,
 					}
 

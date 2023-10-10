@@ -192,7 +192,7 @@ resource "azurerm_batch_pool" "test" {
   name                = "testaccpool-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
   vm_size             = "Standard_A1"
 
   fixed_scale {
