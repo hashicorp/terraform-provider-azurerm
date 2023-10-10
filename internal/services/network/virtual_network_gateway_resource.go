@@ -304,13 +304,15 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								},
 
 								"sa_lifetime_seconds": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(300, 172799),
 								},
 
 								"sa_data_size_kilobytes": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(1024, 2147483647),
 								},
 							},
 						},
