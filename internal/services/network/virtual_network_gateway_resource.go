@@ -171,6 +171,63 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"policy_group": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.PolicyGroupName,
+					},
+
+					"policy_member": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.VpnPolicyMemberAttributeTypeAADGroupID),
+										string(network.VpnPolicyMemberAttributeTypeCertificateGroupID),
+										string(network.VpnPolicyMemberAttributeTypeRadiusAzureGroupID),
+									}, false),
+								},
+
+								"value": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+
+					"is_default": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"priority": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+			},
+		},
+
 		"vpn_client_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -663,6 +720,10 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
+		if err := d.Set("policy_group", flattenVirtualNetworkGatewayPolicyGroups(gw.VirtualNetworkGatewayPolicyGroups)); err != nil {
+			return fmt.Errorf("setting `policy_group`: %+v", err)
+		}
+
 		if err := d.Set("vpn_client_configuration", flattenVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)); err != nil {
 			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
@@ -742,6 +803,10 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *plu
 		props.GatewayDefaultSite = &network.SubResource{
 			ID: &gatewayDefaultSiteID,
 		}
+	}
+
+	if v, ok := d.GetOk("policy_group"); ok {
+		props.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(v.([]interface{}))
 	}
 
 	if _, ok := d.GetOk("vpn_client_configuration"); ok {
@@ -1033,6 +1098,47 @@ func expandVirtualNetworkGatewayRadiusServers(input []interface{}) *[]network.Ra
 	return &results
 }
 
+func expandVirtualNetworkGatewayPolicyGroups(input []interface{}) *[]network.VirtualNetworkGatewayPolicyGroup {
+	results := make([]network.VirtualNetworkGatewayPolicyGroup, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		policyGroup := item.(map[string]interface{})
+
+		results = append(results, network.VirtualNetworkGatewayPolicyGroup{
+			Name: utils.String(policyGroup["name"].(string)),
+			VirtualNetworkGatewayPolicyGroupProperties: &network.VirtualNetworkGatewayPolicyGroupProperties{
+				IsDefault:     utils.Bool(policyGroup["is_default"].(bool)),
+				PolicyMembers: expandVirtualNetworkGatewayPolicyMembers(policyGroup["policy_member"].([]interface{})),
+				Priority:      utils.Int32(int32(policyGroup["priority"].(int))),
+			},
+		})
+	}
+
+	return &results
+}
+
+func expandVirtualNetworkGatewayPolicyMembers(input []interface{}) *[]network.VirtualNetworkGatewayPolicyGroupMember {
+	results := make([]network.VirtualNetworkGatewayPolicyGroupMember, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		policyMember := item.(map[string]interface{})
+
+		results = append(results, network.VirtualNetworkGatewayPolicyGroupMember{
+			Name:           utils.String(policyMember["name"].(string)),
+			AttributeType:  network.VpnPolicyMemberAttributeType(policyMember["type"].(string)),
+			AttributeValue: utils.String(policyMember["value"].(string)),
+		})
+	}
+
+	return &results
+}
+
 func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) ([]interface{}, error) {
 	output := make([]interface{}, 0)
 
@@ -1305,6 +1411,39 @@ func flattenVirtualNetworkGatewayIPSecPolicies(input *[]network.IpsecPolicy) []i
 			"pfs_group":              string(item.PfsGroup),
 			"sa_data_size_kilobytes": pointer.From(item.SaDataSizeKilobytes),
 			"sa_lifetime_seconds":    pointer.From(item.SaLifeTimeSeconds),
+		})
+	}
+	return results
+}
+
+func flattenVirtualNetworkGatewayPolicyGroups(input *[]network.VirtualNetworkGatewayPolicyGroup) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"name":          pointer.From(item.Name),
+			"is_default":    pointer.From(item.IsDefault),
+			"policy_member": flattenVirtualNetworkGatewayPolicy(item.PolicyMembers),
+			"priority":      pointer.From(item.Priority),
+		})
+	}
+	return results
+}
+
+func flattenVirtualNetworkGatewayPolicy(input *[]network.VirtualNetworkGatewayPolicyGroupMember) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"name":  pointer.From(item.Name),
+			"type":  string(item.AttributeType),
+			"value": pointer.From(item.AttributeValue),
 		})
 	}
 	return results

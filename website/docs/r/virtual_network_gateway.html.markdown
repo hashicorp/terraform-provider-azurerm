@@ -149,6 +149,8 @@ The following arguments are supported:
 
 * `ip_sec_replay_protection_enabled` - (Optional) Is IP Sec Replay Protection enabled? Defaults to `true`.
 
+* `policy_group` - (Optional) One or more `policy_group` blocks as defined below.
+
 * `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.
 
 * `virtual_wan_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from remote Virtual WAN networks enabled? Defaults to `false`.
@@ -170,6 +172,28 @@ The `ip_configuration` block supports:
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in which the virtual network gateway will be created. It is mandatory that the associated subnet is named `GatewaySubnet`. Therefore, each virtual network can contain at most a single Virtual Network Gateway.
 
 * `public_ip_address_id` - (Required) The ID of the public IP address to associate with the Virtual Network Gateway.
+
+---
+
+The `policy_group` block supports:
+
+* `name` - (Required) The name of the Virtual Network Gateway Policy Group.
+
+* `policy_member` - (Required) One or more `policy_member` blocks as defined below.
+
+* `is_default` - (Optional) Is this a Default Virtual Network Gateway Policy Group? Defaults to `false`.
+
+* `priority` - (Optional) The priority for the Virtual Network Gateway Policy Group. Defaults to `0`.
+
+---
+
+The `policy_member` block supports:
+
+* `name` - (Required) The name of the Virtual Network Gateway Policy Group Member.
+
+* `type` - (Required) The VPN Policy Member attribute type. Possible values are `AADGroupId`, `CertificateGroupId` and `RadiusAzureGroupId`.
+
+* `value` - (Required) The value of attribute that is used for this Virtual Network Gateway Policy Group Member.
 
 ---
 
