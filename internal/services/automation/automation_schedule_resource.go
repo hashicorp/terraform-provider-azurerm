@@ -360,7 +360,7 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 	if parameters.Properties.Frequency != schedule.ScheduleFrequencyOneTime {
 		parameters.Properties.Interval = existing.Model.Properties.Interval
 		if d.HasChange("interval") {
-			parameters.Properties.Interval = pointer.To(d.Get("interval").(interface{}))
+			parameters.Properties.Interval = pointer.To(d.Get("interval"))
 		}
 	}
 
