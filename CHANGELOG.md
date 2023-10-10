@@ -6,7 +6,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `azurerm_static_site` - Add support for `app_settings` [GH-23421]
+* `azurerm_cosmosdb_postgresql_cluster` - add support for `sql_version` of `16` and `citus_version` of `12.1` [GH-23476]
+* `azurerm_static_site` - add support for `app_settings` [GH-23421]
 
 ## 3.75.0 (September 28, 2023)
 
