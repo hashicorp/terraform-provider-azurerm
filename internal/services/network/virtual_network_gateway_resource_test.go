@@ -434,6 +434,21 @@ func TestAccVirtualNetworkGateway_radiusServers(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGateway_policyGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.policyGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	gatewayName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
