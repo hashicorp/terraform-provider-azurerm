@@ -62,9 +62,8 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU name for the Azure Managed Lustre File System. Possible values are `AMLFS-Durable-Premium-40`, `AMLFS-Durable-Premium-125`, `AMLFS-Durable-Premium-250` and `AMLFS-Durable-Premium-500`. Changing this forces a new resource to be created.
 
-* `storage_capacity_in_tb` - (Required) The size of the Azure Managed Lustre File System in TiB. The valid values for this field are dependant on which `sku_name` has been defined in the configuration file. Changing this forces a new resource to be created. For more information on the valid values for this field please see the [product documentation](https://learn.microsoft.com/azure/azure-managed-lustre/create-file-system-resource-manager#file-system-type-and-size-options).
+* `storage_capacity_in_tb` - (Required) The size of the Azure Managed Lustre File System in TiB. The valid values for this field are dependant on which `sku_name` has been defined in the configuration file. For more information on the valid values for this field please see the [product documentation](https://learn.microsoft.com/azure/azure-managed-lustre/create-file-system-resource-manager#file-system-type-and-size-options). Changing this forces a new resource to be created.
 
--> **NOTE:** If you are interested in `storage_capacity_in_tb` values larger than what is listed as the maximum `storage_capacity_in_tb` in the product documentation for your organization, please open a Microsoft support ticket.
 
 * `subnet_id` - (Required) The resource ID of the Subnet that is used for managing the Azure Managed Lustre file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the Virtual Network's address space. Changing this forces a new resource to be created.
 

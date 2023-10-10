@@ -52,7 +52,7 @@ type MaintenanceWindow struct {
 
 type SkuProperties struct {
 	Name           string
-	MinumumStorage int
+	MinimumStorage int
 }
 
 type ManagedLustreFileSystemResource struct{}
@@ -60,10 +60,10 @@ type ManagedLustreFileSystemResource struct{}
 var _ sdk.ResourceWithUpdate = ManagedLustreFileSystemResource{}
 var _ sdk.ResourceWithCustomizeDiff = ManagedLustreFileSystemResource{}
 
-func GetSkuPropertiesByName(skuName string) interface{} {
+func GetSkuPropertiesByName(skuName string) *SkuProperties {
 	for _, sku := range PossibleSkuProperties() {
 		if skuName == sku.Name {
-			return sku
+			return pointer.To(sku)
 		}
 	}
 
@@ -71,7 +71,7 @@ func GetSkuPropertiesByName(skuName string) interface{} {
 }
 
 func PossibleValuesForSkuName() []string {
-	var skus []string
+	skus := make([]string, 0)
 
 	for _, sku := range PossibleSkuProperties() {
 		skus = append(skus, sku.Name)
@@ -82,10 +82,22 @@ func PossibleValuesForSkuName() []string {
 
 func PossibleSkuProperties() []SkuProperties {
 	return []SkuProperties{
-		{"AMLFS-Durable-Premium-40", 48},
-		{"AMLFS-Durable-Premium-125", 16},
-		{"AMLFS-Durable-Premium-250", 8},
-		{"AMLFS-Durable-Premium-500", 4},
+		{
+			Name:           "AMLFS-Durable-Premium-40",
+			MinimumStorage: 48,
+		},
+		{
+			Name:           "AMLFS-Durable-Premium-125",
+			MinimumStorage: 16,
+		},
+		{
+			Name:           "AMLFS-Durable-Premium-250",
+			MinimumStorage: 8,
+		},
+		{
+			Name:           "AMLFS-Durable-Premium-500",
+			MinimumStorage: 4,
+		},
 	}
 }
 
@@ -230,19 +242,16 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			_, configSku := metadata.ResourceDiff.GetChange("sku_name")
-			_, configCapacity := metadata.ResourceDiff.GetChange("storage_capacity_in_tb")
+			configSku := metadata.ResourceDiff.Get("sku_name")
+			configCapacity := metadata.ResourceDiff.Get("storage_capacity_in_tb")
+			skuProperties := GetSkuPropertiesByName(configSku.(string))
 
-			if sku := GetSkuPropertiesByName(configSku.(string)); sku != nil {
-				if skuProperties, ok := sku.(SkuProperties); ok {
-					if configCapacity.(int) < skuProperties.MinumumStorage {
-						return fmt.Errorf("'storage_capacity_in_tb' field cannot be less than '%d' for the %q sku, got '%d'", skuProperties.MinumumStorage, configSku, configCapacity)
-					}
+			if configCapacity.(int) < skuProperties.MinimumStorage {
+				return fmt.Errorf("'storage_capacity_in_tb' field cannot be less than '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
+			}
 
-					if configCapacity.(int)%skuProperties.MinumumStorage != 0 {
-						return fmt.Errorf("'storage_capacity_in_tb' field must be defined in increments of '%d' for the %q sku, got '%d'", skuProperties.MinumumStorage, configSku, configCapacity)
-					}
-				}
+			if configCapacity.(int)%skuProperties.MinimumStorage != 0 {
+				return fmt.Errorf("'storage_capacity_in_tb' field must be defined in increments of '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
 			}
 
 			return nil
