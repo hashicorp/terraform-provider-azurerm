@@ -210,6 +210,112 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
+					"ipsec_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"dh_group": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.DhGroupDHGroup1),
+										string(network.DhGroupDHGroup14),
+										string(network.DhGroupDHGroup2),
+										string(network.DhGroupDHGroup2048),
+										string(network.DhGroupDHGroup24),
+										string(network.DhGroupECP256),
+										string(network.DhGroupECP384),
+										string(network.DhGroupNone),
+									}, false),
+								},
+
+								"ike_encryption": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IkeEncryptionAES128),
+										string(network.IkeEncryptionAES192),
+										string(network.IkeEncryptionAES256),
+										string(network.IkeEncryptionDES),
+										string(network.IkeEncryptionDES3),
+										string(network.IkeEncryptionGCMAES128),
+										string(network.IkeEncryptionGCMAES256),
+									}, false),
+								},
+
+								"ike_integrity": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IkeIntegrityGCMAES128),
+										string(network.IkeIntegrityGCMAES256),
+										string(network.IkeIntegrityMD5),
+										string(network.IkeIntegritySHA1),
+										string(network.IkeIntegritySHA256),
+										string(network.IkeIntegritySHA384),
+									}, false),
+								},
+
+								"ipsec_encryption": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IpsecEncryptionAES128),
+										string(network.IpsecEncryptionAES192),
+										string(network.IpsecEncryptionAES256),
+										string(network.IpsecEncryptionDES),
+										string(network.IpsecEncryptionDES3),
+										string(network.IpsecEncryptionGCMAES128),
+										string(network.IpsecEncryptionGCMAES192),
+										string(network.IpsecEncryptionGCMAES256),
+										string(network.IpsecEncryptionNone),
+									}, false),
+								},
+
+								"ipsec_integrity": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IpsecIntegrityGCMAES128),
+										string(network.IpsecIntegrityGCMAES192),
+										string(network.IpsecIntegrityGCMAES256),
+										string(network.IpsecIntegrityMD5),
+										string(network.IpsecIntegritySHA1),
+										string(network.IpsecIntegritySHA256),
+									}, false),
+								},
+
+								"pfs_group": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.PfsGroupECP256),
+										string(network.PfsGroupECP384),
+										string(network.PfsGroupNone),
+										string(network.PfsGroupPFS1),
+										string(network.PfsGroupPFS14),
+										string(network.PfsGroupPFS2),
+										string(network.PfsGroupPFS2048),
+										string(network.PfsGroupPFS24),
+										string(network.PfsGroupPFSMM),
+									}, false),
+								},
+
+								"sa_lifetime_seconds": {
+									Type:     pluginsdk.TypeInt,
+									Required: true,
+								},
+
+								"sa_data_size_kilobytes": {
+									Type:     pluginsdk.TypeInt,
+									Required: true,
+								},
+							},
+						},
+					},
+
 					"root_certificate": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
@@ -852,6 +958,7 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 		AadTenant:                    &confAadTenant,
 		AadAudience:                  &confAadAudience,
 		AadIssuer:                    &confAadIssuer,
+		VpnClientIpsecPolicies:       expandVirtualNetworkGatewayIpsecPolicies(conf["ipsec_policy"].([]interface{})),
 		VpnClientRootCertificates:    &rootCerts,
 		VpnClientRevokedCertificates: &revokedCerts,
 		VpnClientProtocols:           &vpnClientProtocols,
@@ -860,25 +967,6 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 		RadiusServerSecret:           &confRadiusServerSecret,
 		VpnAuthenticationTypes:       &vpnAuthTypes,
 	}
-}
-
-func expandVirtualNetworkGatewayRadiusServers(input []interface{}) *[]network.RadiusServer {
-	results := make([]network.RadiusServer, 0)
-	if len(input) == 0 {
-		return &results
-	}
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-
-		results = append(results, network.RadiusServer{
-			RadiusServerAddress: utils.String(v["address"].(string)),
-			RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
-			RadiusServerSecret:  utils.String(v["secret"].(string)),
-		})
-	}
-
-	return &results
 }
 
 func expandVirtualNetworkGatewaySku(d *pluginsdk.ResourceData) *network.VirtualNetworkGatewaySku {
@@ -898,6 +986,49 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *network.Addre
 	return &network.AddressSpace{
 		AddressPrefixes: utils.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
 	}
+}
+
+func expandVirtualNetworkGatewayIpsecPolicies(input []interface{}) *[]network.IpsecPolicy {
+	results := make([]network.IpsecPolicy, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.IpsecPolicy{
+			DhGroup:             network.DhGroup(v["dh_group"].(string)),
+			IkeEncryption:       network.IkeEncryption(v["ike_encryption"].(string)),
+			IkeIntegrity:        network.IkeIntegrity(v["ike_integrity"].(string)),
+			IpsecEncryption:     network.IpsecEncryption(v["ipsec_encryption"].(string)),
+			IpsecIntegrity:      network.IpsecIntegrity(v["ipsec_integrity"].(string)),
+			PfsGroup:            network.PfsGroup(v["pfs_group"].(string)),
+			SaLifeTimeSeconds:   utils.Int32(int32(v["sa_lifetime_seconds"].(int))),
+			SaDataSizeKilobytes: utils.Int32(int32(v["sa_data_size_kilobytes"].(int))),
+		})
+	}
+
+	return &results
+}
+
+func expandVirtualNetworkGatewayRadiusServers(input []interface{}) *[]network.RadiusServer {
+	results := make([]network.RadiusServer, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.RadiusServer{
+			RadiusServerAddress: utils.String(v["address"].(string)),
+			RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
+			RadiusServerSecret:  utils.String(v["secret"].(string)),
+		})
+	}
+
+	return &results
 }
 
 func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) ([]interface{}, error) {
@@ -990,6 +1121,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfigura
 		return []interface{}{}
 	}
 	flat := map[string]interface{}{
+		"ipsec_policy":  flattenVirtualNetworkGatewayIPSecPolicies(cfg.VpnClientIpsecPolicies),
 		"radius_server": flattenVirtualNetworkGatewayRadiusServers(cfg.RadiusServers),
 	}
 
@@ -1152,5 +1284,26 @@ func flattenVirtualNetworkGatewayRadiusServers(input *[]network.RadiusServer) []
 		})
 	}
 
+	return results
+}
+
+func flattenVirtualNetworkGatewayIPSecPolicies(input *[]network.IpsecPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"dh_group":               string(item.DhGroup),
+			"ipsec_encryption":       string(item.IpsecEncryption),
+			"ipsec_integrity":        string(item.IpsecIntegrity),
+			"ike_encryption":         string(item.IkeEncryption),
+			"ike_integrity":          string(item.IkeIntegrity),
+			"pfs_group":              string(item.PfsGroup),
+			"sa_data_size_kilobytes": pointer.From(item.SaDataSizeKilobytes),
+			"sa_lifetime_seconds":    pointer.From(item.SaLifeTimeSeconds),
+		})
+	}
 	return results
 }

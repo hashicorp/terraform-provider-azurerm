@@ -184,6 +184,8 @@ The `vpn_client_configuration` block supports:
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 
+* `ipsec_policy` - (Optional) An `ipsec_policy` block as defined below.
+
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are defined below. These root certificates are used to sign the client certificate used by the VPN clients to connect to the gateway.
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which are defined below.
@@ -246,6 +248,36 @@ The `revoked_certificate` block supports:
 
 * `thumbprint` - (Required) Specifies the public data of the certificate.
 
+---
+
+The `ipsec_policy` block supports:
+
+* `dh_group` - (Required) The DH Group, used in IKE Phase 1. Possible values are `DHGroup1`, `DHGroup2`, `DHGroup14`, `DHGroup24`, `DHGroup2048`, `ECP256`, `ECP384` and `None`.
+
+* `ike_encryption` - (Required) The IKE encryption algorithm, used for IKE Phase 2. Possible values are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128` and `GCMAES256`.
+
+* `ike_integrity` - (Required) The IKE encryption integrity algorithm, used for IKE Phase 2. Possible values are `GCMAES128`, `GCMAES256`, `MD5`, `SHA1`, `SHA256` and `SHA384`.
+
+* `ipsec_encryption` - (Required) The IPSec encryption algorithm, used for IKE phase 1. Possible values are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256` and `None`.
+
+* `ipsec_integrity` - (Required) The IPSec integrity algorithm, used for IKE phase 1. Possible values are `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1` and `SHA256`.
+
+* `pfs_group` - (Required) The Pfs Group, used in IKE Phase 2. Possible values are `ECP256`, `ECP384`, `PFS1`, `PFS2`, `PFS14`, `PFS24`, `PFS2048`, `PFSMM` and `None`.
+
+* `sa_lifetime_seconds` - (Required) The IPSec Security Association lifetime in seconds for a Site-to-Site VPN tunnel.
+
+* `sa_data_size_kilobytes` - (Required) The IPSec Security Association payload size in KB for a Site-to-Site VPN tunnel.
+
+---
+
+The `radius_server` block supports:
+
+* `address` - (Required) The address of the Radius Server.
+
+* `secret` - (Required) The secret that is used to communicate with the Radius Server.
+
+* `score` - (Required) The score of the Radius Server determines the priority of the server. Possible values are between `1` and `30`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -267,18 +299,6 @@ The `peering_addresses` block supports:
 * `default_addresses` - A list of peering address assigned to the BGP peer of the Virtual Network Gateway.
 
 * `tunnel_ip_addresses` - A list of tunnel IP addresses assigned to the BGP peer of the Virtual Network Gateway.
-
----
-
-The `radius_server` block supports:
-
-* `address` - (Required) The address of the Radius Server.
-
-* `secret` - (Required) The secret that is used to communicate with the Radius Server.
-
-* `score` - (Required) The score of the Radius Server determines the priority of the server. Possible values are between `1` and `30`.
-
----
 
 ## Timeouts
 

@@ -861,6 +861,17 @@ resource "azurerm_virtual_network_gateway" "test" {
 
     radius_server_address = "1.2.3.4"
     radius_server_secret  = "1234"
+
+    ipsec_policy {
+      sa_lifetime_seconds    = 300
+      sa_data_size_kilobytes = 1024
+      ipsec_encryption       = "AES256"
+      ipsec_integrity        = "SHA256"
+      ike_encryption         = "AES128"
+      ike_integrity          = "SHA256"
+      dh_group               = "DHGroup14"
+      pfs_group              = "PFS14"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
