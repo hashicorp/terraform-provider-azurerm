@@ -42,6 +42,16 @@ resource "azurerm_nat_gateway" "example" {
   idle_timeout_in_minutes = 10
   zones                   = ["1"]
 }
+
+resource "azurerm_nat_gateway_public_ip_association" "example" {
+  nat_gateway_id       = azurerm_nat_gateway.example.id
+  public_ip_address_id = azurerm_public_ip.example.id
+}
+
+resource "azurerm_nat_gateway_public_ip_prefix_association" "example" {
+  nat_gateway_id      = azurerm_nat_gateway.example.id
+  public_ip_prefix_id = azurerm_public_ip_prefix.example.id
+}
 ```
 
 ## Argument Reference
