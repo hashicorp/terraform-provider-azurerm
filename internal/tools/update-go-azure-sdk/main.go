@@ -146,7 +146,7 @@ func run(ctx context.Context, input config) error {
 			}
 
 			logger.Info(fmt.Sprintf("Processing Service %q..", serviceName))
-			apiVersionsCurrentlyUsedForService, err := determineApiVersionsCurrentlyUsedForService(ctx, input.azurermRepoPath, serviceName)
+			apiVersionsCurrentlyUsedForService, err := determineApiVersionsCurrentlyUsedForService(input.azurermRepoPath, serviceName)
 			if err != nil {
 				return fmt.Errorf("determining the api versions currently used for service %q: %+v", serviceName, err)
 			}
@@ -208,7 +208,6 @@ func run(ctx context.Context, input config) error {
 						newApiVersion:   newApiVersion,
 						error:           nil,
 					})
-					break
 				}
 			}
 
@@ -359,47 +358,23 @@ func (s updatedServiceSummary) successful() bool {
 	return s.error == nil
 }
 
-func determineApiVersionsCurrentlyUsedForService(ctx context.Context, workingDirectory string, serviceName string) (*[]string, error) {
+func determineApiVersionsCurrentlyUsedForService(workingDirectory string, serviceName string) (*[]string, error) {
 	absPath, err := filepath.Abs(workingDirectory)
 	if err != nil {
 		return nil, fmt.Errorf("determining absolute path for %q: %+v", workingDirectory, err)
 	}
 
 	logger.Debug(fmt.Sprintf("Determining the API Versions used for `hashicorp/go-azure-sdk` Service %q..", serviceName))
-	diffArgs := []string{
-		"-hR",
-		fmt.Sprintf("github.com/hashicorp/go-azure-sdk/resource-manager/%s/", serviceName),
-		"--include=*.go",
-		"./internal/services/..",
-	}
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.CommandContext(ctx, "grep", diffArgs...)
-	cmd.Dir = absPath
-	cmd.Stderr = &stderr
-	cmd.Stdout = &stdout
-	_ = cmd.Start()
-	_ = cmd.Wait()
-	if stderr.Len() > 0 {
-		return nil, fmt.Errorf("determining the API Versions used for `hashicorp/go-azure-sdk` Service %q: %s", serviceName, stderr.String())
+	servicesDirectory := path.Join(absPath, "internal", "services")
+	imports, err := findImportsWithinDirectory(servicesDirectory)
+	if err != nil {
+		return nil, fmt.Errorf("finding imports within %q: %+v", servicesDirectory, err)
 	}
 
-	linesRaw := strings.Split(stdout.String(), "\n")
-	lines := make(map[string]struct{})
-	for _, line := range linesRaw {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-
-		// if there's an alias then we need to remove that
-		if !strings.HasPrefix(line, `"`) {
-			index := strings.IndexAny(line, `"`)
-			if index == -1 {
-				return nil, fmt.Errorf("skipping the alias for %q: quote mark was not found", line)
-			}
-			line = line[index:]
-		}
+	// now that we have a canonical list, unique these
+	apiVersions := make(map[string]struct{}, 0)
+	for _, line := range *imports {
+		logger.Trace(fmt.Sprintf("Parsing import line %q..", line))
 
 		// pull out the api version, which is predictable
 		line = strings.TrimPrefix(line, `"`)
@@ -407,15 +382,15 @@ func determineApiVersionsCurrentlyUsedForService(ctx context.Context, workingDir
 		line = strings.TrimSuffix(line, `"`)
 		components := strings.Split(line, "/")
 		apiVersion := components[0]
-		lines[apiVersion] = struct{}{}
+		apiVersions[apiVersion] = struct{}{}
 	}
 
-	linesSorted := make([]string, 0)
-	for line := range lines {
-		linesSorted = append(linesSorted, line)
+	out := make([]string, 0)
+	for k := range apiVersions {
+		out = append(out, k)
 	}
-	sort.Strings(linesSorted)
-	return &linesSorted, nil
+	sort.Strings(out)
+	return &out, nil
 }
 
 type changes struct {
@@ -604,8 +579,7 @@ func stageAndCommitChanges(workingDirectory string, message string) error {
 	}
 
 	logger.Trace(fmt.Sprintf("Committing all changes in %q..", workingDirectory))
-	opts := &git.CommitOptions{
-	}
+	opts := &git.CommitOptions{}
 	hash, err := worktree.Commit(message, opts)
 	if err != nil {
 		return fmt.Errorf("commiting changes to %q: %+v", workingDirectory, err)
@@ -642,17 +616,10 @@ func updateImportsWithinDirectory(serviceName string, oldApiVersion string, newA
 
 	// because we want to process all nested directories, we need to first pull out a complete list of directories
 	fileSet := token.NewFileSet()
-	directories := make([]string, 0)
-	_ = filepath.WalkDir(absPath, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			directories = append(directories, path)
-		}
-		return nil
-	})
-	sort.Strings(directories)
+	nestedDirectories := findDirectoriesNestedWithin(absPath)
 
 	// over which we can then iterate to get a list of files within that directory
-	for _, directory := range directories {
+	for _, directory := range nestedDirectories {
 		logger.Trace(fmt.Sprintf("Processing directory %q..", directory))
 		files, err := parser.ParseDir(fileSet, directory, func(info fs.FileInfo) bool {
 			return true
@@ -730,6 +697,82 @@ func updateImportsForFile(fileSet *token.FileSet, file *ast.File, serviceName st
 
 		return true
 	})
+}
+
+func findImportsWithinDirectory(workingDirectory string) (*[]string, error) {
+	absPath, err := filepath.Abs(workingDirectory)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining absolute path for %q: %+v", workingDirectory, err)
+	}
+
+	imports := make(map[string]struct{})
+	nestedDirectories := findDirectoriesNestedWithin(absPath)
+	for _, directory := range nestedDirectories {
+		logger.Trace(fmt.Sprintf("Processing directory %q..", absPath))
+
+		fileSet := token.NewFileSet()
+		files, err := parser.ParseDir(fileSet, directory, func(info fs.FileInfo) bool {
+			return true
+		}, parser.ParseComments)
+		if err != nil {
+			return nil, fmt.Errorf("parsing files within %q: %+v", directory, err)
+		}
+
+		for pkgName, pkg := range files {
+			logger.Trace(fmt.Sprintf("Processing Go Package %q", pkgName))
+			for fileName, file := range pkg.Files {
+				logger.Trace(fmt.Sprintf("Finding imports within File %q..", fileName))
+				importsInFile := findImportsWithinFile(fileSet, file)
+				for _, item := range importsInFile {
+					imports[item] = struct{}{}
+				}
+			}
+		}
+		logger.Trace(fmt.Sprintf("Processed directory %q.", directory))
+	}
+
+	out := make([]string, 0)
+	for k := range imports {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return &out, nil
+}
+
+func findDirectoriesNestedWithin(workingDirectory string) []string {
+	// because we want to process all nested directories, we need to first pull out a complete list of directories
+	directories := make([]string, 0)
+	_ = filepath.WalkDir(workingDirectory, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			directories = append(directories, path)
+		}
+		return nil
+	})
+	sort.Strings(directories)
+	return directories
+}
+
+func findImportsWithinFile(fileSet *token.FileSet, file *ast.File) []string {
+	existingImports := astutil.Imports(fileSet, file)
+	imports := make(map[string]struct{})
+	for _, val := range existingImports {
+		for _, item := range val {
+			logger.Trace(fmt.Sprintf("Processing Import %q", item.Path.Value))
+			existingImportLine := item.Path.Value
+			if !strings.Contains(existingImportLine, "github.com/hashicorp/go-azure-sdk/resource-manager/") {
+				continue
+			}
+
+			imports[item.Path.Value] = struct{}{}
+		}
+	}
+
+	out := make([]string, 0)
+	for k := range imports {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
 }
 
 func buildPullRequestDescription(input []updatedServiceSummary, newSdkVersion string) string {
