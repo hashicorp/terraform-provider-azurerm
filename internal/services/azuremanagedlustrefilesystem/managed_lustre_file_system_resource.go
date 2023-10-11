@@ -246,12 +246,14 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 			configCapacity := metadata.ResourceDiff.Get("storage_capacity_in_tb")
 			skuProperties := GetSkuPropertiesByName(configSku.(string))
 
-			if configCapacity.(int) < skuProperties.MinimumStorage {
-				return fmt.Errorf("'storage_capacity_in_tb' field cannot be less than '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
-			}
+			if skuProperties != nil {
+				if configCapacity.(int) < skuProperties.MinimumStorage {
+					return fmt.Errorf("'storage_capacity_in_tb' field cannot be less than '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
+				}
 
-			if configCapacity.(int)%skuProperties.MinimumStorage != 0 {
-				return fmt.Errorf("'storage_capacity_in_tb' field must be defined in increments of '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
+				if configCapacity.(int)%skuProperties.MinimumStorage != 0 {
+					return fmt.Errorf("'storage_capacity_in_tb' field must be defined in increments of '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
+				}
 			}
 
 			return nil
