@@ -762,10 +762,16 @@ func buildPullRequestDescription(input []updatedServiceSummary, newSdkVersion st
 		}
 	}
 
+	otherLines := make([]string, 0)
+	if len(succeeded) == 0 && len(failed) == 0 {
+		otherLines = append(otherLines, "This version contains no new API Versions - so no upgrades were attempted.")
+	}
+
 	lines := []string{
 		fmt.Sprintf("This PR updates the version of `hashicorp/go-azure-sdk` to `%s`.", newSdkVersion),
 		strings.Join(succeededLines, "\n"),
 		strings.Join(failedLines, "\n"),
+		strings.Join(otherLines, "\n"),
 	}
 	return strings.Join(lines, "\n\n")
 }
