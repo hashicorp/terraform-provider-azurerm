@@ -79,13 +79,18 @@ func run(ctx context.Context, input config) error {
 	// ^ gives a list of paths which wants translating into `service[oldapi-newapi]`
 
 	logger.Info(fmt.Sprintf("New SDK Version is %q", input.newSdkVersion))
-	logger.Info(fmt.Sprintf("Output File Name is %q", input.outputFileName))
 	logger.Info(fmt.Sprintf("The `hashicorp/terraform-provider-azurerm` repository is located at %q", input.azurermRepoPath))
 
 	if input.goSdkRepoPath != "" {
 		logger.Info(fmt.Sprintf("The `hashicorp/go-azure-sdk` repository is located at %q", input.goSdkRepoPath))
 	} else {
 		logger.Info("A path to the `hashicorp/go-azure-sdk` repository was not provided - will clone on-demand")
+	}
+
+	if input.outputFileName != "" {
+		logger.Info(fmt.Sprintf("Output File Name is %q", input.outputFileName))
+	} else {
+		logger.Info("No output file was specified so the PR description will only be output to the console")
 	}
 
 	// 1. Determine the current version of `hashicorp/go-azure-sdk` vendored into the Provider
