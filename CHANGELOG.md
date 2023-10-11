@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* provider: updating to build using Go `1.21.3` [GH-23514]
 * `azurerm_cosmosdb_postgresql_cluster` - add support for `sql_version` of `16` and `citus_version` of `12.1` [GH-23476]
 * `azurerm_palo_alto_local_rulestack` - correctly normalize the `location` property [GH-23483]
 * `azurerm_static_site` - add support for `app_settings` [GH-23421]
