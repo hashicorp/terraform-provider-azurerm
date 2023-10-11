@@ -21,6 +21,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-hclog"
+	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
@@ -38,7 +39,6 @@ func main() {
 	input := config{}
 
 	f := flag.NewFlagSet("update-go-azure-sdk", flag.PanicOnError)
-	f.StringVar(&input.oldSdkVersion, "old-sdk-version", "", "--old-sdk-version=1.2.0")
 	f.StringVar(&input.outputFileName, "output-file", "", "--output-file=pr-description.txt")
 	f.StringVar(&input.newSdkVersion, "new-sdk-version", "", "--new-sdk-version=1.4.0")
 	f.StringVar(&input.workingDirectory, "working-directory", "", "--working-directory=../../../")
@@ -54,19 +54,12 @@ func main() {
 }
 
 type config struct {
-	oldSdkVersion    string
 	outputFileName   string
 	newSdkVersion    string
 	workingDirectory string
 }
 
 func (c config) validate() error {
-	if c.oldSdkVersion == "" {
-		return fmt.Errorf("`--old-sdk-version` must be specified")
-	}
-	if c.outputFileName == "" {
-		return fmt.Errorf("`--output-file` must be specified")
-	}
 	if c.newSdkVersion == "" {
 		return fmt.Errorf("`--new-sdk-version` must be specified")
 	}
@@ -83,30 +76,37 @@ func run(ctx context.Context, input config) error {
 	//// git diff --name-only --diff-filter=A  v0.20220711.1181406...v0.20220712.1062733
 	// ^ gives a list of paths which wants translating into `service[oldapi-newapi]`
 
-	logger.Info(fmt.Sprintf("Old SDK Version is %q", input.oldSdkVersion))
 	logger.Info(fmt.Sprintf("New SDK Version is %q", input.newSdkVersion))
 	logger.Info(fmt.Sprintf("Output File Name is %q", input.outputFileName))
 	logger.Info(fmt.Sprintf("Working Directory is %q", input.workingDirectory))
 
-	// 1. First determine the changes present in this version of the Go SDK
-	// if there's no changes to the `resource-manager` or `sdk` folders, we can ignore it for now.
-	logger.Info(fmt.Sprintf("Checking the changes between %q and %q of `hashicorp/go-azure-sdk`..", input.oldSdkVersion, input.newSdkVersion))
-	changes, err := determineChangesBetweenVersionsOfGoAzureSDK(ctx, input.oldSdkVersion, input.newSdkVersion)
+	// 1. Determine the current version of `hashicorp/go-azure-sdk` vendored into the Provider
+	logger.Info("Determining the current version of `hashicorp/go-azure-sdk` being used..")
+	oldSdkVersion, err := determineCurrentVersionOfGoAzureSDK(input.workingDirectory)
 	if err != nil {
-		return fmt.Errorf("determining the changes between version %q and %q of `hashicorp/go-azure-sdk`: %+v", input.oldSdkVersion, input.newSdkVersion, err)
+		return fmt.Errorf("determining the current version of `hashicorp/go-azure-sdk` being used in %q: %+v", input.workingDirectory, err)
+	}
+	logger.Info(fmt.Sprintf("Old SDK Version is %q", *oldSdkVersion))
+
+	// 2. First determine the changes present in this version of the Go SDK
+	// if there's no changes to the `resource-manager` or `sdk` folders, we can ignore it for now.
+	logger.Info(fmt.Sprintf("Checking the changes between %q and %q of `hashicorp/go-azure-sdk`..", *oldSdkVersion, input.newSdkVersion))
+	changes, err := determineChangesBetweenVersionsOfGoAzureSDK(ctx, *oldSdkVersion, input.newSdkVersion)
+	if err != nil {
+		return fmt.Errorf("determining the changes between version %q and %q of `hashicorp/go-azure-sdk`: %+v", *oldSdkVersion, input.newSdkVersion, err)
 	}
 	if !changes.hasChangesToSdk && !changes.hasChangesToResourceManager {
 		logger.Info("No changes to either the SDK or Resource Manager - skipping updating")
 		return nil
 	}
 
-	// 2. Update the version of `hashicorp/go-azure-sdk` used in `terraform-provider-azurerm`
+	// 3. Update the version of `hashicorp/go-azure-sdk` used in `terraform-provider-azurerm`
 	logger.Info("Updating `hashicorp/go-azure-sdk`..")
 	if err := updateVersionOfGoAzureSDK(ctx, input.workingDirectory, input.newSdkVersion); err != nil {
 		return fmt.Errorf("updating the version of go-azure-sdk: %+v", err)
 	}
 
-	// 3. Then for each new Service/API Version:
+	// 4. Then for each new Service/API Version:
 	//   a. Try updating to the new API Version
 	//   b. `go mod tidy && go mod vendor`
 	//   c. `go test -v ./internal/services/{serviceName}/...
@@ -203,16 +203,47 @@ func run(ctx context.Context, input config) error {
 		}
 	}
 
-	// 4. Build up a summary which can be used as a PR description
+	// 5. Build up a summary which can be used as a PR description
 	logger.Debug("Building and outputting the PR description..")
 	description := buildPullRequestDescription(results, input.newSdkVersion)
-	if err := os.WriteFile(input.outputFileName, []byte(description), 0644); err != nil {
-		return fmt.Errorf("writing description to `%s`: %+v", input.outputFileName, err)
+	if input.outputFileName != "" {
+		logger.Info(fmt.Sprintf("Writing PR description to %q..", input.outputFileName))
+		if err := os.WriteFile(input.outputFileName, []byte(description), 0644); err != nil {
+			return fmt.Errorf("writing description to `%s`: %+v", input.outputFileName, err)
+		}
+	} else {
+		logger.Info("Skipping writing PR description since an output file was not specified")
 	}
 	// Let's also output it for good measure
 	logger.Info("Processing completed - summary of changes:")
 	logger.Info(description)
 	return nil
+}
+
+func determineCurrentVersionOfGoAzureSDK(workingDirectory string) (*string, error) {
+	filePath := path.Join(workingDirectory, "go.mod")
+	logger.Trace(fmt.Sprintf("Parsing the go.mod at %q..", filePath))
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("reading go.mod at %q: %+v", filePath, err)
+	}
+
+	module, err := modfile.Parse(filePath, file, nil)
+	if err != nil {
+		return nil, fmt.Errorf("parsing the go.mod at %q: %+v", filePath, err)
+	}
+
+	for _, v := range module.Require {
+		if v == nil {
+			continue
+		}
+
+		if strings.EqualFold(v.Mod.Path, "github.com/hashicorp/go-azure-sdk") {
+			return pointer.To(v.Mod.Version), nil
+		}
+	}
+
+	return nil, fmt.Errorf("couldn't find the go module version for `github.com/hashicorp/go-azure-sdk` in %q", filePath)
 }
 
 func resetWorkingDirectory(ctx context.Context, workingDirectory string) error {

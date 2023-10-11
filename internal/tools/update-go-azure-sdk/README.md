@@ -11,11 +11,11 @@ Whilst this tool is intended to primarily be run in automation - [the `update-ap
 ### Example Usage
 
 ```bash
-$ go build . && ./update-go-azure-sdk --old-sdk-version=v0.20230918.1115907 --new-sdk-version=v0.20231005.1153009 --working-directory=../../../ --output-file=pr-description.txt
-2023-10-10T15:14:12.249+0200 [INFO]  Old SDK Version is "v0.20230918.1115907"
+$ go build . && ./update-go-azure-sdk --new-sdk-version=v0.20231005.1153009 --working-directory=../../../ --output-file=pr-description.txt
 2023-10-10T15:14:12.249+0200 [INFO]  New SDK Version is "v0.20231005.1153009"
 2023-10-10T15:14:12.249+0200 [INFO]  Output File Name is "pr-description.txt"
 2023-10-10T15:14:12.249+0200 [INFO]  Working Directory is "../../../"
+2023-10-10T15:14:12.249+0200 [INFO]  Old SDK Version is "v0.20230918.1115907"
 2023-10-10T15:14:12.249+0200 [INFO]  Checking the changes between "v0.20230918.1115907" and "v0.20231005.1153009" of `hashicorp/go-azure-sdk`..
 2023-10-10T15:14:34.275+0200 [INFO]  Updating `hashicorp/go-azure-sdk`..
 2023-10-10T15:14:50.939+0200 [INFO]  Committed as "b5b40b0b49d9f192f9d65d620ecba98862764e6b"
@@ -41,7 +41,6 @@ $ go build . && ./update-go-azure-sdk --old-sdk-version=v0.20230918.1115907 --ne
 
 ### Command Line Arguments
 
-* `--old-sdk-version` - (Required) - Specifies the current (out of date) version of `hashicorp/go-azure-sdk` being used by the Provider. Example: `v0.20230918.1115907`.
 * `--new-sdk-version` - (Required) - Specifies the version of `hashicorp/go-azure-sdk` that the Provider should be updated to. Example: `v0.20231005.1153009`.
 * `--working-directory` - (Required) - Specifies the path to the root of the Provider repository (typically this is `../../../`, when run from this repository). Example: `../../../`.
-* `--output-file` - (Required) - Specifies the path to the output file containing the summary of changes performed by this tool, primarily intended to be used as a Pull Request body. Example: `pr-description.txt`.
+* `--output-file` - (Optional) - Specifies the path to the output file containing the summary of changes performed by this tool, primarily intended to be used as a Pull Request body. Example: `pr-description.txt`.
