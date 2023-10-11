@@ -179,6 +179,10 @@ func (SubscriptionConsumptionBudgetV0ToV1) Schema() map[string]*pluginsdk.Schema
 						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
+					"locale": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
 
 					"contact_emails": {
 						Type:     pluginsdk.TypeList,
@@ -406,6 +410,10 @@ func (SubscriptionConsumptionBudgetV1ToV2) Schema() map[string]*pluginsdk.Schema
 					"operator": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+					},
+					"locale": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 
 					"contact_emails": {

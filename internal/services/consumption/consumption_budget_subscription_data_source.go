@@ -169,6 +169,11 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"locale": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"contact_emails": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
