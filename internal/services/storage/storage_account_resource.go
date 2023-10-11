@@ -1380,11 +1380,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 				// workaround for queueClient.GetServiceProperties() not returning 404 error
 				if properties == nil {
-					customErr := azautorest.DetailedError{
-						StatusCode: http.StatusNotFound,
-						Message:    "Failure responding to request",
-					}
-					return handleStorageServiceError("queue", customErr)
+					return false, "Pending", nil
 				}
 				return true, "Completed", nil
 			},
