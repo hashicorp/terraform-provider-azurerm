@@ -39,9 +39,9 @@ func main() {
 	input := config{}
 
 	f := flag.NewFlagSet("update-go-azure-sdk", flag.PanicOnError)
-	f.StringVar(&input.outputFileName, "output-file", "", "--output-file=pr-description.txt")
+	f.StringVar(&input.azurermRepoPath, "azurerm-repo-path", "", "--azurerm-repo-path=../../../")
 	f.StringVar(&input.newSdkVersion, "new-sdk-version", "", "--new-sdk-version=1.4.0")
-	f.StringVar(&input.workingDirectory, "working-directory", "", "--working-directory=../../../")
+	f.StringVar(&input.outputFileName, "output-file", "", "--output-file=pr-description.txt")
 	f.Parse(os.Args[1:])
 
 	if err := input.validate(); err != nil {
@@ -54,17 +54,17 @@ func main() {
 }
 
 type config struct {
-	outputFileName   string
-	newSdkVersion    string
-	workingDirectory string
+	azurermRepoPath string
+	newSdkVersion   string
+	outputFileName  string
 }
 
 func (c config) validate() error {
+	if c.azurermRepoPath == "" {
+		return fmt.Errorf("`--azurerm-repo-path` must be specified")
+	}
 	if c.newSdkVersion == "" {
 		return fmt.Errorf("`--new-sdk-version` must be specified")
-	}
-	if c.workingDirectory == "" {
-		return fmt.Errorf("`--working-directory` must be specified")
 	}
 
 	return nil
@@ -78,13 +78,13 @@ func run(ctx context.Context, input config) error {
 
 	logger.Info(fmt.Sprintf("New SDK Version is %q", input.newSdkVersion))
 	logger.Info(fmt.Sprintf("Output File Name is %q", input.outputFileName))
-	logger.Info(fmt.Sprintf("Working Directory is %q", input.workingDirectory))
+	logger.Info(fmt.Sprintf("AzureRM Repository is located at %q", input.azurermRepoPath))
 
 	// 1. Determine the current version of `hashicorp/go-azure-sdk` vendored into the Provider
 	logger.Info("Determining the current version of `hashicorp/go-azure-sdk` being used..")
-	oldSdkVersion, err := determineCurrentVersionOfGoAzureSDK(input.workingDirectory)
+	oldSdkVersion, err := determineCurrentVersionOfGoAzureSDK(input.azurermRepoPath)
 	if err != nil {
-		return fmt.Errorf("determining the current version of `hashicorp/go-azure-sdk` being used in %q: %+v", input.workingDirectory, err)
+		return fmt.Errorf("determining the current version of `hashicorp/go-azure-sdk` being used in %q: %+v", input.azurermRepoPath, err)
 	}
 	logger.Info(fmt.Sprintf("Old SDK Version is %q", *oldSdkVersion))
 
@@ -102,7 +102,7 @@ func run(ctx context.Context, input config) error {
 
 	// 3. Update the version of `hashicorp/go-azure-sdk` used in `terraform-provider-azurerm`
 	logger.Info("Updating `hashicorp/go-azure-sdk`..")
-	if err := updateVersionOfGoAzureSDK(ctx, input.workingDirectory, input.newSdkVersion); err != nil {
+	if err := updateVersionOfGoAzureSDK(ctx, input.azurermRepoPath, input.newSdkVersion); err != nil {
 		return fmt.Errorf("updating the version of go-azure-sdk: %+v", err)
 	}
 
@@ -124,16 +124,16 @@ func run(ctx context.Context, input config) error {
 
 		for _, serviceName := range serviceNames {
 			availableApiVersions := changes.newServicesToApiVersions[serviceName]
-			hasPendingChanges, err := directoryHasPendingChanges(input.workingDirectory)
+			hasPendingChanges, err := directoryHasPendingChanges(input.azurermRepoPath)
 			if err != nil {
-				return fmt.Errorf("checking for pending changes in %q: %+v", input.workingDirectory, err)
+				return fmt.Errorf("checking for pending changes in %q: %+v", input.azurermRepoPath, err)
 			}
 			if *hasPendingChanges {
 				return fmt.Errorf("internal-error: working directory was not clean before starting service %q", serviceName)
 			}
 
 			logger.Info(fmt.Sprintf("Processing Service %q..", serviceName))
-			apiVersionsCurrentlyUsedForService, err := determineApiVersionsCurrentlyUsedForService(ctx, input.workingDirectory, serviceName)
+			apiVersionsCurrentlyUsedForService, err := determineApiVersionsCurrentlyUsedForService(ctx, input.azurermRepoPath, serviceName)
 			if err != nil {
 				return fmt.Errorf("determining the api versions currently used for service %q: %+v", serviceName, err)
 			}
@@ -145,27 +145,27 @@ func run(ctx context.Context, input config) error {
 					}
 
 					logger.Info(fmt.Sprintf("Attempting to update API Version %q to %q for Service %q..", existingVersion, newApiVersion, serviceName))
-					internalDirectory := path.Join(input.workingDirectory, "internal")
+					internalDirectory := path.Join(input.azurermRepoPath, "internal")
 					if err := updateImportsWithinDirectory(serviceName, existingVersion, newApiVersion, internalDirectory); err != nil {
 						return fmt.Errorf("updating the imports within %q: %+v", internalDirectory, err)
 					}
 					logger.Info(fmt.Sprintf("Updated the Imports for Service %q to use API Version %q rather than %q..", serviceName, newApiVersion, existingVersion))
 
 					logger.Info("Running `go mod tidy` / `go mod vendor`..")
-					goModTidyAndVendor(ctx, input.workingDirectory)
+					goModTidyAndVendor(ctx, input.azurermRepoPath)
 
 					logger.Debug("Checking for pending changes..")
-					hasPendingChanges, err := directoryHasPendingChanges(input.workingDirectory)
+					hasPendingChanges, err := directoryHasPendingChanges(input.azurermRepoPath)
 					if err != nil {
-						return fmt.Errorf("checking for pending changes in %q: %+v", input.workingDirectory, err)
+						return fmt.Errorf("checking for pending changes in %q: %+v", input.azurermRepoPath, err)
 					}
 					if !*hasPendingChanges {
 						logger.Info(fmt.Sprintf("No pending changes after attempting to update API Version %q to %q for Service %q - skipping", existingVersion, newApiVersion, serviceName))
 						continue
 					}
 
-					logger.Info(fmt.Sprintf("Running `make test` within %q..", input.workingDirectory))
-					if err := runMakeTest(ctx, input.workingDirectory); err != nil {
+					logger.Info(fmt.Sprintf("Running `make test` within %q..", input.azurermRepoPath))
+					if err := runMakeTest(ctx, input.azurermRepoPath); err != nil {
 						results = append(results, updatedServiceSummary{
 							serviceName:     serviceName,
 							olderApiVersion: existingVersion,
@@ -175,16 +175,16 @@ func run(ctx context.Context, input config) error {
 
 						// when the tests fail, we need to reset the working directory to ensure that there aren't any unstaged changes
 						logger.Info("Resetting the working directory since `make test` failed..")
-						if err := resetWorkingDirectory(ctx, input.workingDirectory); err != nil {
+						if err := resetWorkingDirectory(ctx, input.azurermRepoPath); err != nil {
 							return fmt.Errorf("resetting the working directory: %+v", err)
 						}
-						goModTidyAndVendor(ctx, input.workingDirectory)
+						goModTidyAndVendor(ctx, input.azurermRepoPath)
 						continue
 					}
 
 					logger.Debug("Committing changes..")
 					message := fmt.Sprintf("dependencies: updating `%s` to API Version %q from %q", serviceName, newApiVersion, existingVersion)
-					if err := stageAndCommitChanges(input.workingDirectory, message); err != nil {
+					if err := stageAndCommitChanges(input.azurermRepoPath, message); err != nil {
 						return fmt.Errorf("staging/committing changes when updating to API Version %q for %q: %+v", newApiVersion, serviceName, err)
 					}
 

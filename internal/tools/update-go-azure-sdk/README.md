@@ -11,7 +11,7 @@ Whilst this tool is intended to primarily be run in automation - [the `update-ap
 ### Example Usage
 
 ```bash
-$ go build . && ./update-go-azure-sdk --new-sdk-version=v0.20231005.1153009 --working-directory=../../../ --output-file=pr-description.txt
+$ go build . && ./update-go-azure-sdk --new-sdk-version=v0.20231005.1153009 --azurerm-repo-path=../../../ --output-file=pr-description.txt
 2023-10-10T15:14:12.249+0200 [INFO]  New SDK Version is "v0.20231005.1153009"
 2023-10-10T15:14:12.249+0200 [INFO]  Output File Name is "pr-description.txt"
 2023-10-10T15:14:12.249+0200 [INFO]  Working Directory is "../../../"
@@ -41,6 +41,6 @@ $ go build . && ./update-go-azure-sdk --new-sdk-version=v0.20231005.1153009 --wo
 
 ### Command Line Arguments
 
+* `--azurerm-repo-path` - (Required) - Specifies the path to the root of the AzureRM Provider repository (typically this is `../../../`, when run from this repository). Example: `../../../`.
 * `--new-sdk-version` - (Required) - Specifies the version of `hashicorp/go-azure-sdk` that the Provider should be updated to. Example: `v0.20231005.1153009`.
-* `--working-directory` - (Required) - Specifies the path to the root of the Provider repository (typically this is `../../../`, when run from this repository). Example: `../../../`.
 * `--output-file` - (Optional) - Specifies the path to the output file containing the summary of changes performed by this tool, primarily intended to be used as a Pull Request body. Example: `pr-description.txt`.
