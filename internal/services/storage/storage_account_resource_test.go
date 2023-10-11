@@ -84,8 +84,7 @@ func TestAccStorageAccount_recreateBasic(t *testing.T) {
 		data.ImportStep(),
 		{
 			// destroy the account and recreate it
-			Config:  r.recreate(data),
-			Destroy: true,
+			Config: r.recreate(data),
 		},
 		{
 			Config: r.basic(data),
@@ -114,8 +113,7 @@ func TestAccStorageAccount_recreateWithProperties(t *testing.T) {
 		data.ImportStep(),
 		{
 			// destroy the account and recreate it
-			Config:  r.recreate(data),
-			Destroy: true,
+			Config: r.recreate(data),
 		},
 		{
 			Config: r.recreate(data),
