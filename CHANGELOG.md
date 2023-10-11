@@ -10,6 +10,10 @@ ENHANCEMENTS:
 * `azurerm_palo_alto_local_rulestack` - correctly normalize the `location` property [GH-23483]
 * `azurerm_static_site` - add support for `app_settings` [GH-23421]
 
+BUG FIXES:
+
+* `azurerm_eventhub` - remove ForceNew and check `partition_count` is not decreased [GH-23499]
+
 ## 3.75.0 (September 28, 2023)
 
 FEATURES:
