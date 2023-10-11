@@ -40,6 +40,7 @@ func main() {
 
 	f := flag.NewFlagSet("update-go-azure-sdk", flag.PanicOnError)
 	f.StringVar(&input.azurermRepoPath, "azurerm-repo-path", "", "--azurerm-repo-path=../../../")
+	f.StringVar(&input.goSdkRepoPath, "go-sdk-repo-path", "", "--go-sdk-repo-path=../../../../go-azure-sdk")
 	f.StringVar(&input.newSdkVersion, "new-sdk-version", "", "--new-sdk-version=1.4.0")
 	f.StringVar(&input.outputFileName, "output-file", "", "--output-file=pr-description.txt")
 	f.Parse(os.Args[1:])
@@ -55,6 +56,7 @@ func main() {
 
 type config struct {
 	azurermRepoPath string
+	goSdkRepoPath   string
 	newSdkVersion   string
 	outputFileName  string
 }
@@ -78,7 +80,13 @@ func run(ctx context.Context, input config) error {
 
 	logger.Info(fmt.Sprintf("New SDK Version is %q", input.newSdkVersion))
 	logger.Info(fmt.Sprintf("Output File Name is %q", input.outputFileName))
-	logger.Info(fmt.Sprintf("AzureRM Repository is located at %q", input.azurermRepoPath))
+	logger.Info(fmt.Sprintf("The `hashicorp/terraform-provider-azurerm` repository is located at %q", input.azurermRepoPath))
+
+	if input.goSdkRepoPath != "" {
+		logger.Info(fmt.Sprintf("The `hashicorp/go-azure-sdk` repository is located at %q", input.goSdkRepoPath))
+	} else {
+		logger.Info("A path to the `hashicorp/go-azure-sdk` repository was not provided - will clone on-demand")
+	}
 
 	// 1. Determine the current version of `hashicorp/go-azure-sdk` vendored into the Provider
 	logger.Info("Determining the current version of `hashicorp/go-azure-sdk` being used..")
@@ -91,7 +99,7 @@ func run(ctx context.Context, input config) error {
 	// 2. First determine the changes present in this version of the Go SDK
 	// if there's no changes to the `resource-manager` or `sdk` folders, we can ignore it for now.
 	logger.Info(fmt.Sprintf("Checking the changes between %q and %q of `hashicorp/go-azure-sdk`..", *oldSdkVersion, input.newSdkVersion))
-	changes, err := determineChangesBetweenVersionsOfGoAzureSDK(ctx, *oldSdkVersion, input.newSdkVersion)
+	changes, err := determineChangesBetweenVersionsOfGoAzureSDK(ctx, *oldSdkVersion, input.newSdkVersion, input.goSdkRepoPath)
 	if err != nil {
 		return fmt.Errorf("determining the changes between version %q and %q of `hashicorp/go-azure-sdk`: %+v", *oldSdkVersion, input.newSdkVersion, err)
 	}
@@ -416,26 +424,29 @@ type changes struct {
 	newServicesToApiVersions map[string][]string
 }
 
-func determineChangesBetweenVersionsOfGoAzureSDK(ctx context.Context, oldSDKVersion, newSDKVersion string) (*changes, error) {
-	tempDirectory := os.TempDir()
-	logger.Debug(fmt.Sprintf("Creating Temp Directory at %q..", tempDirectory))
-	_ = os.MkdirAll(tempDirectory, 755)
-	workingDirectory := path.Join(tempDirectory, "go-azure-sdk")
-	defer func() {
-		logger.Debug(fmt.Sprintf("Cleaning up the temp directory at %q..", workingDirectory))
-		_ = os.RemoveAll(workingDirectory)
-	}()
+func determineChangesBetweenVersionsOfGoAzureSDK(ctx context.Context, oldSDKVersion, newSDKVersion, goSdkRepositoryPath string) (*changes, error) {
+	workingDirectory := goSdkRepositoryPath
+	if goSdkRepositoryPath == "" {
+		tempDirectory := os.TempDir()
+		logger.Debug(fmt.Sprintf("Creating Temp Directory at %q..", tempDirectory))
+		_ = os.MkdirAll(tempDirectory, 755)
+		workingDirectory = path.Join(tempDirectory, "go-azure-sdk")
+		defer func() {
+			logger.Debug(fmt.Sprintf("Cleaning up the temp directory at %q..", workingDirectory))
+			_ = os.RemoveAll(workingDirectory)
+		}()
 
-	logger.Debug(fmt.Sprintf("Cloning `hashicorp/go-azure-sdk` into %q..", workingDirectory))
-	args := []string{
-		"clone",
-		"https://github.com/hashicorp/go-azure-sdk.git",
-		workingDirectory,
+		logger.Debug(fmt.Sprintf("Cloning `hashicorp/go-azure-sdk` into %q..", workingDirectory))
+		args := []string{
+			"clone",
+			"https://github.com/hashicorp/go-azure-sdk.git",
+			workingDirectory,
+		}
+		cmd := exec.CommandContext(ctx, "git", args...)
+		cmd.Dir = tempDirectory
+		_ = cmd.Start()
+		_ = cmd.Wait()
 	}
-	cmd := exec.CommandContext(ctx, "git", args...)
-	cmd.Dir = tempDirectory
-	_ = cmd.Start()
-	_ = cmd.Wait()
 
 	// Obtain the file paths which have changed
 	// For now this should be sufficient to pull any changes and iterate over those e.g.:

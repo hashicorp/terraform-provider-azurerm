@@ -42,5 +42,6 @@ $ go build . && ./update-go-azure-sdk --new-sdk-version=v0.20231005.1153009 --az
 ### Command Line Arguments
 
 * `--azurerm-repo-path` - (Required) - Specifies the path to the root of the AzureRM Provider repository (typically this is `../../../`, when run from this repository). Example: `../../../`.
+* `--go-sdk-repo-path` - (Optional) - Specifies the path to the root of the `hashicorp/go-azure-sdk` repository, if provided this path is used - if not a fresh copy is cloned into a temp directory. Example: `../../../../go-azure-sdk`.
 * `--new-sdk-version` - (Required) - Specifies the version of `hashicorp/go-azure-sdk` that the Provider should be updated to. Example: `v0.20231005.1153009`.
 * `--output-file` - (Optional) - Specifies the path to the output file containing the summary of changes performed by this tool, primarily intended to be used as a Pull Request body. Example: `pr-description.txt`.
