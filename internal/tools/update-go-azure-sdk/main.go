@@ -595,6 +595,7 @@ func stageAndCommitChanges(workingDirectory string, message string) error {
 	// to explicitly stage all changes (including the vendored changes)
 	logger.Trace(fmt.Sprintf("Staging all changes in %q..", workingDirectory))
 	addOpts := &git.AddOptions{
+		// NOTE: Glob is needed to add all untracked files too, else the vendor directory isn't committed
 		All:  true,
 		Glob: "**",
 	}
@@ -604,7 +605,6 @@ func stageAndCommitChanges(workingDirectory string, message string) error {
 
 	logger.Trace(fmt.Sprintf("Committing all changes in %q..", workingDirectory))
 	opts := &git.CommitOptions{
-		All: true,
 	}
 	hash, err := worktree.Commit(message, opts)
 	if err != nil {
