@@ -62,6 +62,7 @@ import (
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	desktopvirtualization "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
+	devcenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/client"
 	devtestlabs "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
@@ -196,6 +197,7 @@ type Client struct {
 	DataProtection               *dataprotection.Client
 	DataShare                    *datashare.Client
 	DesktopVirtualization        *desktopvirtualization.Client
+	DevCenter                    *devcenter.Client
 	DevTestLabs                  *devtestlabs.Client
 	DigitalTwins                 *digitaltwins.Client
 	Disks                        *disks.Client
@@ -405,6 +407,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataShare = datashare.NewClient(o)
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
+	}
+	if client.DevCenter, err = devcenter.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DevCenter: %+v", err)
 	}
 	if client.DevTestLabs, err = devtestlabs.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DevTestLabs: %+v", err)
