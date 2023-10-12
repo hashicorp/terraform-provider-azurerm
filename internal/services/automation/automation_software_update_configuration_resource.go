@@ -63,7 +63,7 @@ type Linux struct {
 	ExcludedPackages []string `tfschema:"excluded_packages"`
 	IncludedPackages []string `tfschema:"included_packages"`
 
-	Classification string `tfschema:"classification_included"` // Deprecated use Classifications instead
+	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type MonthlyOccurrence struct {
@@ -111,8 +111,7 @@ type Windows struct {
 	IncludedKbs     []string `tfschema:"included_knowledge_base_numbers"`
 	RebootSetting   string   `tfschema:"reboot"`
 
-	Classification string `tfschema:"classification_included"` // Deprecated use Classifications instead
-
+	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type SoftwareUpdateConfigurationModel struct {
