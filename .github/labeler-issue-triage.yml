@@ -114,6 +114,8 @@ service/databricks:
 service/datadog:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_datadog_monitor((.|\n)*)###'
 
+service/dev-center:
+
 service/devtestlabs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dev_test_((.|\n)*)###'
 

@@ -44,6 +44,7 @@ var services = mapOf(
         "databoxedge" to "Databox Edge",
         "datadog" to "Datadog",
         "desktopvirtualization" to "Desktop Virtualization",
+        "devcenter" to "Dev Center",
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",
         "disks" to "Disks",

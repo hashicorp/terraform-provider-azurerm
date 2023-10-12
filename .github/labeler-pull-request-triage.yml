@@ -115,6 +115,9 @@ service/databricks:
 service/datadog:
   - internal/services/datadog/**/*
 
+service/dev-center:
+  - internal/services/devcenter/**/*
+
 service/devtestlabs:
   - internal/services/devtestlabs/**/*
 
