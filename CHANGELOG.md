@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* New Resource: `azurerm_security_center_storage_defender` [GH-23242]
 * New Resource: `azurerm_spring_cloud_application_insights_application_performance_monitoring` [GH-23107]
 
 ENHANCEMENTS:
