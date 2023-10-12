@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20231011.1091146` of `github.com/hashicorp/go-azure-sdk` [GH-23518]
 * provider: updating to build using Go `1.21.3` [GH-23514]
 * `azurerm_cosmosdb_postgresql_cluster` - add support for `sql_version` of `16` and `citus_version` of `12.1` [GH-23476]
 * `azurerm_palo_alto_local_rulestack` - correctly normalize the `location` property [GH-23483]
