@@ -161,26 +161,25 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("content_type", props.ContentType)
-			if documentProperties := props.Document; &documentProperties != nil {
-				if documentProperties.Value != nil {
-					d.Set("value", pointer.From(documentProperties.Value))
-				}
+			documentProperties := props.Document
+			if documentProperties.Value != nil {
+				d.Set("value", pointer.From(documentProperties.Value))
+			}
 
-				if documentProperties.Components != nil {
-					value, err := convert2Str(pointer.From(documentProperties.Components))
-					if err != nil {
-						return err
-					}
-					d.Set("components", value)
+			if documentProperties.Components != nil {
+				value, err := convert2Str(pointer.From(documentProperties.Components))
+				if err != nil {
+					return err
 				}
+				d.Set("components", value)
+			}
 
-				if documentProperties.Definitions != nil {
-					value, err := convert2Str(documentProperties.Definitions)
-					if err != nil {
-						return err
-					}
-					d.Set("definitions", value)
+			if documentProperties.Definitions != nil {
+				value, err := convert2Str(documentProperties.Definitions)
+				if err != nil {
+					return err
 				}
+				d.Set("definitions", value)
 			}
 		}
 	}
