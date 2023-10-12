@@ -12,6 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
@@ -32,7 +35,6 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
-	"golang.org/x/net/context"
 )
 
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -1280,8 +1282,8 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk, disksInfo [
 
 func flattenAzureRmVirtualMachineOsProfile(input *compute.OSProfile) []interface{} {
 	result := make(map[string]interface{})
-	result["computer_name"] = *input.ComputerName
-	result["admin_username"] = *input.AdminUsername
+	result["computer_name"] = pointer.From(input.ComputerName)
+	result["admin_username"] = pointer.From(input.AdminUsername)
 	if input.CustomData != nil {
 		result["custom_data"] = *input.CustomData
 	}
