@@ -1357,7 +1357,7 @@ provider "azurerm" {
 
 %s
 resource "azurerm_cdn_frontdoor_rule" "test" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.repro, azurerm_cdn_frontdoor_origin.repro]
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
   name                      = "accTestRule%d"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
