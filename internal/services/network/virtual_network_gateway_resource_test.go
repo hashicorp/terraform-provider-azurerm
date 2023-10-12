@@ -179,7 +179,7 @@ func TestAccVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vpn_client_configuration.0.radius_server_address").HasValue("1.2.3.4"),
-				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("2"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("1"),
 			),
 		},
 	})
@@ -426,21 +426,6 @@ func TestAccVirtualNetworkGateway_radiusServers(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.radiusServers(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccVirtualNetworkGateway_policyGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	r := VirtualNetworkGatewayResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.policyGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -870,12 +855,30 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test.id
   }
 
+  policy_group {
+    name       = "TestPolicyGroup"
+    is_default = true
+    priority   = 1
+
+    policy_member {
+      name  = "TestPolicyMember"
+      type  = "RadiusAzureGroupId"
+      value = "6ad1bd08"
+    }
+  }
+
   vpn_client_configuration {
     address_space        = ["10.2.0.0/24"]
-    vpn_client_protocols = ["SSTP", "IkeV2"]
+    vpn_client_protocols = ["IkeV2"]
 
     radius_server_address = "1.2.3.4"
     radius_server_secret  = "1234"
+
+    virtual_network_gateway_client_connection {
+      name               = "TestConnection"
+      policy_group_names = ["TestPolicyGroup"]
+      address_prefixes   = ["10.2.0.0/24"]
+    }
 
     ipsec_policy {
       sa_lifetime_seconds    = 300
@@ -1955,68 +1958,6 @@ resource "azurerm_virtual_network_gateway" "test" {
       address = "1.2.3.4"
       secret  = "1234"
       score   = 2
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (VirtualNetworkGatewayResource) policyGroup(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-}
-
-resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctestvng-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  type     = "Vpn"
-  vpn_type = "RouteBased"
-  sku      = "Basic"
-
-  ip_configuration {
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test.id
-  }
-
-  policy_group {
-    name       = "TestPolicyGroup"
-    is_default = true
-    priority   = 1
-
-    policy_member {
-      name  = "TestPolicyMember"
-      type  = "RadiusAzureGroupId"
-      value = "6ad1bd08"
     }
   }
 }

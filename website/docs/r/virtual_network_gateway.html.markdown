@@ -230,6 +230,8 @@ The `vpn_client_configuration` block supports:
 
 -> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types.
 
+* `virtual_network_gateway_client_connection` - (Optional) One or more `virtual_network_gateway_client_connection` blocks as defined below.
+
 ---
 
 The `bgp_settings` block supports:
@@ -301,6 +303,16 @@ The `radius_server` block supports:
 * `secret` - (Required) The secret that is used to communicate with the Radius Server.
 
 * `score` - (Required) The score of the Radius Server determines the priority of the server. Possible values are between `1` and `30`.
+
+---
+
+The `virtual_network_gateway_client_connection` block supports:
+
+* `name` - (Required) The name of the Virtual Network Gateway Client Connection.
+
+* `policy_group_names` - (Required) A list of names of Virtual Network Gateway Policy Groups.
+
+* `address_prefixes` - (Required) A list of address prefixes for P2S VPN Client.
 
 ## Attributes Reference
 
