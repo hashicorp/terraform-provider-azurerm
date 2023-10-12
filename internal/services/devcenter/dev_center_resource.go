@@ -3,6 +3,8 @@ package devcenter
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 type DevCenterResource struct{}
@@ -22,12 +23,7 @@ type DevCenterModel struct {
 	Name          string            `tfschema:"name"`
 	ResourceGroup string            `tfschema:"resource_group_name"`
 	Location      string            `tfschema:"location"`
-	Identity      []interface{}     `tfschema:"identity"`
 	Tags          map[string]string `tfschema:"tags"`
-}
-
-type DevCenterropertiesModel struct {
-	DevCenterUri string `tfschema:"dev_center_uri"`
 }
 
 var _ sdk.ResourceWithUpdate = DevCenterResource{}
@@ -85,7 +81,7 @@ func (r DevCenterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			devCenterIdentity, err := identity.ExpandSystemAndUserAssignedMap(model.Identity)
+			devCenterIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -139,7 +135,9 @@ func (r DevCenterResource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = pointer.From(devCenterIdentity)
+				if err := metadata.ResourceData.Set("identity", devCenterIdentity); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
 
 				return metadata.Encode(&state)
 			}
@@ -188,18 +186,18 @@ func (r DevCenterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			devCenterIdentity, err := identity.ExpandSystemAndUserAssignedMap(state.Identity)
+			devCenterIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
-				return err
+				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChangesExcept("name", "resource_group_name", "location") {
-				devCenter := devcenters.DevCenter{
+				devCenter := devcenters.DevCenterUpdate{
 					Identity: devCenterIdentity,
 					Tags:     pointer.To(state.Tags),
 				}
 
-				if err := client.CreateOrUpdateThenPoll(ctx, *id, devCenter); err != nil {
+				if err := client.UpdateThenPoll(ctx, *id, devCenter); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

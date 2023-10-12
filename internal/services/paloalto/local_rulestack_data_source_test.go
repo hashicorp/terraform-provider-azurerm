@@ -29,7 +29,7 @@ func (d LocalRulestackDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_palo_alto_local_rulestack" "test"{
+data "azurerm_palo_alto_local_rulestack" "test" {
   name                = azurerm_palo_alto_local_rulestack.test.name
   resource_group_name = azurerm_palo_alto_local_rulestack.test.resource_group_name
 }
