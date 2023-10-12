@@ -254,7 +254,7 @@ resource "azurerm_application_insights_standard_web_test" "test" {
     }
   }
 
-validation_rules {
+  validation_rules {
     expected_status_code = 200
 
     ssl_cert_remaining_lifetime = 20
