@@ -73,7 +73,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `trusted_root_certificate` - One or more `trusted_root_certificate` blocks as defined below.
 
-* `ssl_policy` - A `ssl_policy` block as defined below.
+* `ssl_policy` - An `ssl_policy` block as defined below.
 
 * `http2_enabled` - Is HTTP2 enabled on the application gateway resource?
 
@@ -105,13 +105,13 @@ An `authentication_certificate` block exports the following:
 
 * `id` - The ID of the Authentication Certificate.
 
-* `name` - The Name of the Authentication Certificate to use.
+* `name` - The Name of the Authentication Certificate in use.
 
 ---
 
 A `trusted_root_certificate` block exports the following:
 
-* `name` - The Name of the Trusted Root Certificate to use.
+* `name` - The Name of the Trusted Root Certificate in use.
 
 * `key_vault_secret_id` - The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault.
 
@@ -131,7 +131,7 @@ A `backend_address_pool` block exports the following:
 
 * `name` - The name of the Backend Address Pool.
 
-* `fqdns` - A list of FQDN's which are part of the Backend Address Pool.
+* `fqdns` - A list of FQDNs which are part of the Backend Address Pool.
 
 * `ip_addresses` - A list of IP Addresses which are part of the Backend Address Pool.
 
@@ -149,13 +149,13 @@ A `backend_http_settings` block exports the following:
 
 * `name` - The name of the Backend HTTP Settings Collection.
 
-* `path` - The Path which is used as a prefix for all HTTP requests.
+* `path` - The path which is used as a prefix for all HTTP requests.
 
 * `port` - The port which is used for this Backend HTTP Settings Collection.
 
 * `probe_name` - The name of the associated HTTP Probe.
 
-* `protocol` - The Protocol which will be used.
+* `protocol` - The protocol which will be used.
 
 * `request_timeout` - The request timeout in seconds.
 
@@ -183,7 +183,7 @@ A `frontend_ip_configuration` block exports the following:
 
 * `id` - The ID of the Frontend IP Configuration.
 
-* `private_link_configuration_id` - The ID of the associated private link configuration.
+* `private_link_configuration_id` - The ID of the associated Private Link configuration.
 
 * `name` - The name of the Frontend IP Configuration.
 
@@ -195,7 +195,7 @@ A `frontend_ip_configuration` block exports the following:
 
 * `private_ip_address_allocation` - The Allocation Method for the Private IP Address.
 
-* `private_link_configuration_name` - The name of the private link configuration in use by this frontend IP configuration.
+* `private_link_configuration_name` - The name of the Private Link configuration in use by this Frontend IP Configuration.
 
 ---
 
@@ -235,7 +235,7 @@ A `http_listener` block exports the following:
 
 * `frontend_ip_configuration_name` - The Name of the Frontend IP Configuration used for this HTTP Listener.
 
-* `frontend_port_name` - The Name of the Frontend Port use for this HTTP Listener.
+* `frontend_port_name` - The Name of the Frontend Port used for this HTTP Listener.
 
 * `host_name` - The Hostname which is used for this HTTP Listener.
 
@@ -243,7 +243,7 @@ A `http_listener` block exports the following:
 
 * `protocol` - The Protocol to use for this HTTP Listener.
 
-* `require_sni` - Is Server Name Indication be Required?
+* `require_sni` - Is Server Name Indication required?
 
 * `ssl_certificate_name` - The name of the associated SSL Certificate which is used for this HTTP Listener.
 
@@ -297,7 +297,7 @@ An `ip_configuration` block exports the following:
 
 A `match` block exports the following:
 
-* `body` - A snippet from the Response Body which will be present in the Response.
+* `body` - A snippet from the Response Body which must be present in the Response.
 
 * `status_code` - A list of allowed status codes for this Health Probe.
 
@@ -325,7 +325,7 @@ A `path_rule` block exports the following:
 
 * `redirect_configuration_name` - The Name of a Redirect Configuration used for this Path Rule.
 
-* `rewrite_rule_set_name` - The Name of the Rewrite Rule Set which is used for this URL Path Map.
+* `rewrite_rule_set_name` - The Name of the Rewrite Rule Set which is used for this Path Rule.
 
 * `firewall_policy_id` - The ID of the Web Application Firewall Policy which is used as an HTTP Listener for this Path Rule.
 
@@ -439,11 +439,11 @@ A `url_path_map` block exports the following:
 
 * `name` - The Name of the URL Path Map.
 
-* `default_backend_address_pool_name` - The Name of the Default Backend Address Pool which is used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
+* `default_backend_address_pool_name` - The Name of the Default Backend Address Pool which is used for this URL Path Map.
 
-* `default_backend_http_settings_name` - The Name of the Default Backend HTTP Settings Collection which is used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
+* `default_backend_http_settings_name` - The Name of the Default Backend HTTP Settings Collection which is used for this URL Path Map.
 
-* `default_redirect_configuration_name` - The Name of the Default Redirect Configuration which is used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
+* `default_redirect_configuration_name` - The Name of the Default Redirect Configuration which is used for this URL Path Map.
 
 * `default_rewrite_rule_set_name` - The Name of the Default Rewrite Rule Set which is used for this URL Path Map.
 
@@ -463,7 +463,7 @@ A `ssl_profile` block exports the following:
 
 * `trusted_client_certificate_names` - The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
-* `verify_client_cert_issuer_dn` - Will client certificate issuer DN to be verified?
+* `verify_client_cert_issuer_dn` - Will the client certificate issuer DN be verified?
 
 * `verify_client_certificate_revocation` - The method used to check client certificate revocation status.
 
@@ -481,7 +481,7 @@ A `ssl_policy` block exports the following:
 
 * `cipher_suites` - A List of accepted cipher suites.
 
-* `min_protocol_version` - The minimal TLS version.
+* `min_protocol_version` - The minimum TLS version.
 
 ---
 
@@ -529,9 +529,9 @@ A `custom_error_configuration` block exports the following:
 
 * `id` - The ID of the Custom Error Configuration.
 
-* `status_code` - Status code of the application gateway customer error.
+* `status_code` - Status code of the application gateway custom error.
 
-* `custom_error_page_url` - Error page URL of the application gateway customer error.
+* `custom_error_page_url` - Error page URL of the application gateway custom error.
 
 ---
 
@@ -565,7 +565,7 @@ A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
 
-* `name` - Unique name of the rewrite rule set block
+* `name` - Unique name of the Rewrite Rule Set
 
 * `rewrite_rule` - One or more `rewrite_rule` blocks as defined below.
 
@@ -573,9 +573,9 @@ A `rewrite_rule_set` block exports the following:
 
 A `rewrite_rule` block exports the following:
 
-* `name` - Unique name of the rewrite rule block
+* `name` - Unique name of the Rewrite Rule
 
-* `rule_sequence` - Rule sequence of the rewrite rule that determines the order of execution in a set.
+* `rule_sequence` - Rule sequence of the Rewrite Rule that determines the order of execution in a set.
 
 * `condition` - One or more `condition` blocks as defined above.
 
@@ -593,9 +593,9 @@ A `condition` block exports the following:
 
 * `pattern` - The pattern, either fixed string or regular expression, that evaluates the truthfulness of the condition.
 
-* `ignore_case` - Perform a case in-sensitive comparison.
+* `ignore_case` - Whether a case insensitive comparison is performed.
 
-* `negate` - Negate the result of the condition evaluation.
+* `negate` - Whether the result of the condition evaluation is negated.
 
 ---
 
