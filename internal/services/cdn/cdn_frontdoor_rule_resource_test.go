@@ -416,7 +416,6 @@ func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorError(t *testing.T) {
 			Config:      r.urlFilenameConditionOperator(data, "Contains"),
 			ExpectError: regexp.MustCompile(`the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'`),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -1356,6 +1355,7 @@ provider "azurerm" {
 }
 
 %s
+
 resource "azurerm_cdn_frontdoor_rule" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
 
