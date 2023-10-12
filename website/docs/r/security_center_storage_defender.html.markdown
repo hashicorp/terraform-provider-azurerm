@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `malware_scanning_on_upload_enabled` - (Optional) Whether On Upload malware scanning should be enabled. Defaults to `false`.
 
-* `malware_scanning_on_upload_cap_gb_per_month` - (Optional) The max GB to be scanned per Month. Must be `-1` or above `0`. Set to `-1` if no capping is needed. Defaults to `-1`.
+* `malware_scanning_on_upload_cap_gb_per_month` - (Optional) The max GB to be scanned per Month. Must be `-1` or above `0`. Omit this property or set to `-1` if no capping is needed. Defaults to `-1`.
 
 * `sensitive_data_discovery_enabled` - (Optional) Whether Sensitive Data Discovery should be enabled. Defaults to `false`.
  
