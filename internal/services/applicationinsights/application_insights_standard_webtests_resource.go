@@ -449,7 +449,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 
 func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 50 * time.Minute,
+		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.StandardWebTestsClient
