@@ -50,11 +50,56 @@ type MaintenanceWindow struct {
 	TimeOfDayInUTC string                                  `tfschema:"time_of_day_in_utc"`
 }
 
+type SkuProperties struct {
+	Name           string
+	MinimumStorage int
+}
+
 type ManagedLustreFileSystemResource struct{}
 
 var _ sdk.ResourceWithUpdate = ManagedLustreFileSystemResource{}
-
 var _ sdk.ResourceWithCustomizeDiff = ManagedLustreFileSystemResource{}
+
+func GetSkuPropertiesByName(skuName string) *SkuProperties {
+	for _, sku := range PossibleSkuProperties() {
+		if skuName == sku.Name {
+			return pointer.To(sku)
+		}
+	}
+
+	return nil
+}
+
+func PossibleValuesForSkuName() []string {
+	skus := make([]string, 0)
+
+	for _, sku := range PossibleSkuProperties() {
+		skus = append(skus, sku.Name)
+	}
+
+	return skus
+}
+
+func PossibleSkuProperties() []SkuProperties {
+	return []SkuProperties{
+		{
+			Name:           "AMLFS-Durable-Premium-40",
+			MinimumStorage: 48,
+		},
+		{
+			Name:           "AMLFS-Durable-Premium-125",
+			MinimumStorage: 16,
+		},
+		{
+			Name:           "AMLFS-Durable-Premium-250",
+			MinimumStorage: 8,
+		},
+		{
+			Name:           "AMLFS-Durable-Premium-500",
+			MinimumStorage: 4,
+		},
+	}
+}
 
 func (r ManagedLustreFileSystemResource) ResourceType() string {
 	return "azurerm_managed_lustre_file_system"
@@ -103,25 +148,17 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"AMLFS-Durable-Premium-40",
-				"AMLFS-Durable-Premium-125",
-				"AMLFS-Durable-Premium-250",
-				"AMLFS-Durable-Premium-500",
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(PossibleValuesForSkuName(), false),
 		},
 
 		"storage_capacity_in_tb": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.All(
-				validation.IntBetween(8, 128),
-				validation.IntDivisibleBy(8),
-			),
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(4),
 		},
 
 		"subnet_id": {
@@ -202,6 +239,20 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("encryption_key"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
 				if err := metadata.ResourceDiff.ForceNew("encryption_key"); err != nil {
 					return err
+				}
+			}
+
+			configSku := metadata.ResourceDiff.Get("sku_name")
+			configCapacity := metadata.ResourceDiff.Get("storage_capacity_in_tb")
+			skuProperties := GetSkuPropertiesByName(configSku.(string))
+
+			if skuProperties != nil {
+				if configCapacity.(int) < skuProperties.MinimumStorage {
+					return fmt.Errorf("'storage_capacity_in_tb' field cannot be less than '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
+				}
+
+				if configCapacity.(int)%skuProperties.MinimumStorage != 0 {
+					return fmt.Errorf("'storage_capacity_in_tb' field must be defined in increments of '%d' for the %q sku, got '%d'", skuProperties.MinimumStorage, configSku, configCapacity)
 				}
 			}
 
