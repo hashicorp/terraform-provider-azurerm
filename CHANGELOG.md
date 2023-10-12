@@ -14,6 +14,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_eventhub` - remove ForceNew and check `partition_count` is not decreased [GH-23499]
+* `azurerm_managed_lustre_file_system` - update validation for `storage_capacity_in_tb` according to `sku_name` in use [GH-23428]
 
 ## 3.75.0 (September 28, 2023)
 
