@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/frontendsinterface"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/trafficcontrollerinterface"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -23,7 +23,6 @@ type FrontendsResource struct{}
 type FrontendsModel struct {
 	Name                      string                 `tfschema:"name"`
 	ApplicationLoadBalancerId string                 `tfschema:"application_load_balancer_id"`
-	Location                  string                 `tfschema:"location"`
 	Fqdn                      string                 `tfschema:"fully_qualified_domain_name"`
 	Tags                      map[string]interface{} `tfschema:"tags"`
 }
@@ -45,8 +44,6 @@ func (f FrontendsResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: frontendsinterface.ValidateTrafficControllerID,
 		},
-
-		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -77,6 +74,7 @@ func (f FrontendsResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			trafficControllerClient := metadata.Client.ServiceNetworking.TrafficControllerInterface
 			client := metadata.Client.ServiceNetworking.FrontendsInterface
 
 			var config FrontendsModel
@@ -88,6 +86,19 @@ func (f FrontendsResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			controllerId := trafficcontrollerinterface.NewTrafficControllerID(trafficControllerId.SubscriptionId, trafficControllerId.ResourceGroupName, trafficControllerId.TrafficControllerName)
+
+			controller, err := trafficControllerClient.Get(ctx, controllerId)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", controllerId, err)
+			}
+
+			if controller.Model == nil {
+				return fmt.Errorf("retrieving %s: Model was nil", controllerId)
+			}
+
+			loc := controller.Model.Location
 
 			id := frontendsinterface.NewFrontendID(trafficControllerId.SubscriptionId, trafficControllerId.ResourceGroupName, trafficControllerId.TrafficControllerName, config.Name)
 
@@ -103,7 +114,7 @@ func (f FrontendsResource) Create() sdk.ResourceFunc {
 			}
 
 			frontend := frontendsinterface.Frontend{
-				Location:   location.Normalize(config.Location),
+				Location:   loc,
 				Properties: &frontendsinterface.FrontendProperties{},
 				Tags:       tags.Expand(config.Tags),
 			}
@@ -145,7 +156,6 @@ func (f FrontendsResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(pointer.To(model.Location))
 				state.Tags = tags.Flatten(model.Tags)
 
 				if prop := model.Properties; prop != nil {
@@ -174,22 +184,13 @@ func (f FrontendsResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retiring %s: %+v", *id, err)
-			}
-
-			if resp.Model == nil {
-				return fmt.Errorf("retiring %s: Model was nil", *id)
-			}
-
-			model := *resp.Model
+			update := frontendsinterface.FrontendUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
-				model.Tags = tags.Expand(config.Tags)
+				update.Tags = tags.Expand(config.Tags)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+			if _, err := client.Update(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating `azurerm_alb_frontend` %s: %+v", *id, err)
 			}
 

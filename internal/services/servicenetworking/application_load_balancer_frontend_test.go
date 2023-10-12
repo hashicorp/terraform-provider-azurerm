@@ -130,7 +130,6 @@ provider "azurerm" {
 resource "azurerm_application_load_balancer_frontend" "test" {
   name                         = "acct-frnt-%d"
   application_load_balancer_id = azurerm_application_load_balancer.test.id
-  location                     = azurerm_application_load_balancer.test.location
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -147,7 +146,6 @@ provider "azurerm" {
 resource "azurerm_application_load_balancer_frontend" "test" {
   name                         = "acct-frnt-%d"
   application_load_balancer_id = azurerm_application_load_balancer.test.id
-  location                     = azurerm_application_load_balancer.test.location
   tags = {
     "tag1" = "value1"
   }
@@ -162,7 +160,6 @@ func (r ApplicationLoadBalancerFrontendResource) requiresImport(data acceptance.
 resource "azurerm_application_load_balancer_frontend" "import" {
   name                         = azurerm_application_load_balancer_frontend.test.name
   application_load_balancer_id = azurerm_application_load_balancer_frontend.test.application_load_balancer_id
-  location                     = azurerm_application_load_balancer_frontend.test.location
 }
 
 `, r.basic(data))
