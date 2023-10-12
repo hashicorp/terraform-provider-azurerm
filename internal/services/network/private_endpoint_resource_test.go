@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -295,17 +298,17 @@ func TestAccPrivateEndpoint_updateToPrivateConnectionAlias(t *testing.T) {
 }
 
 func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PrivateEndpointID(state.ID)
+	id, err := privateendpoints.ParsePrivateEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.PrivateEndpointClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.PrivateEndpoints.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Private Endpoint (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {

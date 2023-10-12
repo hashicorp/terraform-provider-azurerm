@@ -23,7 +23,7 @@ type UpdateGatewaySettingsOperationResponse struct {
 // UpdateGatewaySettings ...
 func (c ClustersClient) UpdateGatewaySettings(ctx context.Context, id ClusterId, input UpdateGatewaySettingsParameters) (result UpdateGatewaySettingsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

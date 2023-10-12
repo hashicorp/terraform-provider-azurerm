@@ -23,7 +23,7 @@ type DisableAzureMonitorOperationResponse struct {
 // DisableAzureMonitor ...
 func (c ExtensionsClient) DisableAzureMonitor(ctx context.Context, id ClusterId) (result DisableAzureMonitorOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

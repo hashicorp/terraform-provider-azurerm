@@ -108,6 +108,9 @@ An `identity` block supports the following:
 A `redis_configuration` block supports the following:
 
 * `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache. Defaults to `false`.
+
+~> **NOTE:** `aof_backup_enabled` can only be set when SKU is `Premium`.
+
 * `aof_storage_connection_string_0` - (Optional) First Storage Account connection string for AOF persistence.
 * `aof_storage_connection_string_1` - (Optional) Second Storage Account connection string for AOF persistence.
 

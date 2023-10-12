@@ -25,7 +25,7 @@ type ListKeysCompleteResult struct {
 // ListKeys ...
 func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id ConfigurationStoreId) (result ListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

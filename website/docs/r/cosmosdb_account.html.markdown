@@ -259,7 +259,7 @@ A `cors_rule` block supports the following:
 
 * `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients.
 
-* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
+* `max_age_in_seconds` - (Optional) The number of seconds the client should cache a preflight response. Possible values are between `1` and `2147483647`.
 
 ---
 
@@ -310,6 +310,22 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
+
+* `primary_sql_connection_string` - Primary SQL connection string for the CosmosDB Account.
+
+* `secondary_sql_connection_string` - Secondary SQL connection string for the CosmosDB Account.
+
+* `primary_readonly_sql_connection_string` - Primary readonly SQL connection string for the CosmosDB Account.
+
+* `secondary_readonly_sql_connection_string` - Secondary readonly SQL connection string for the CosmosDB Account. 
+
+* `primary_mongodb_connection_string` - Primary Mongodb connection string for the CosmosDB Account.
+
+* `secondary_mongodb_connection_string` - Secondary Mongodb connection string for the CosmosDB Account.
+
+* `primary_readonly_mongodb_connection_string` - Primary readonly Mongodb connection string for the CosmosDB Account.
+
+* `secondary_readonly_mongodb_connection_string` - Secondary readonly Mongodb connection string for the CosmosDB Account.
 
 ---
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -7,6 +10,7 @@ import (
 
 type Registration struct{}
 
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -22,6 +26,16 @@ func (r Registration) Name() string {
 func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Data Factory",
+	}
+}
+
+func (Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		DataFactoryDatasetAzureSQLTableResource{},
 	}
 }
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,17 +49,17 @@ func TestAccMySQLFlexibleServerFirewallRule_requiresImport(t *testing.T) {
 }
 
 func (t MySQLFlexibleServerFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlexibleServerFirewallRuleID(state.ID)
+	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.FlexibleServerFirewallRulesClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.FirewallRuleName)
+	resp, err := clients.MySQL.FlexibleServers.FirewallRules.Get(ctx, *id)
 	if err != nil {
 		return nil, err
 	}
 
-	return utils.Bool(resp.Name != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MySQLFlexibleServerFirewallRuleResource) basic(data acceptance.TestData) string {

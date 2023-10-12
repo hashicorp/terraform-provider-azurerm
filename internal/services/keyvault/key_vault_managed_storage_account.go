@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault
 
 import (
@@ -10,10 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,7 +64,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"regenerate_key_automatically": {
@@ -168,7 +169,12 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("cannot read Managed Storage Account ID %q (Key Vault %q)", name, *keyVaultId)
 	}
 
-	d.SetId(*read.ID)
+	storageId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(storageId.ID())
 
 	return resourceKeyVaultManagedStorageAccountRead(d, meta)
 }
@@ -180,7 +186,7 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseOptionallyVersionedNestedItemID(d.Id())
+	id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -237,7 +243,7 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseOptionallyVersionedNestedItemID(d.Id())
+	id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}

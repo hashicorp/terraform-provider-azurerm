@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse_test
 
 import (
@@ -194,6 +197,7 @@ resource "azurerm_synapse_sql_pool" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   sku_name             = "DW100c"
   create_mode          = "Default"
+  storage_account_type = "GRS"
 }
 
 resource "azurerm_synapse_sql_pool_workload_group" "test" {

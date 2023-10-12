@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventhub
 
 import (
@@ -10,6 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -24,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -161,7 +163,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
-										ValidateFunc:     networkValidate.SubnetID,
+										ValidateFunc:     commonids.ValidateSubnetID,
 										DiffSuppressFunc: suppress.CaseDifference,
 									},
 
@@ -477,8 +479,21 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
 	}
 
-	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if _, err = client.Update(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	deadline, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:      []string{"Activating", "ActivatingIdentity", "Updating", "Pending"},
+		Target:       []string{"Succeeded"},
+		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(deadline),
+		PollInterval: 10 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be updated: %+v", id, err)
 	}
 
 	if d.HasChange("network_rulesets") {
@@ -702,7 +717,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 					// the API returns the subnet ID's resource group name in lowercase
 					// https://github.com/Azure/azure-sdk-for-go/issues/5855
 					// for some reason the DiffSuppressFunc for `subnet_id` isn't working as intended, so we'll also flatten the id insensitively
-					subnetId, err := parse.SubnetIDInsensitively(*v)
+					subnetId, err := commonids.ParseSubnetIDInsensitively(*v)
 					if err != nil {
 						return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
 					}
@@ -774,4 +789,24 @@ func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ in
 		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
 	}
 	return
+}
+
+func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+
+		provisioningState := "Pending"
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
+			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = *res.Model.Properties.ProvisioningState
+		}
+
+		return res, provisioningState, nil
+	}
 }

@@ -1,14 +1,17 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package netapp
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -18,7 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,20 +30,10 @@ import (
 
 type NetAppVolumeGroupSapHanaResource struct{}
 
-type NetAppVolumeGroupSapHanaModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
-}
-
 var _ sdk.Resource = NetAppVolumeGroupSapHanaResource{}
 
 func (r NetAppVolumeGroupSapHanaResource) ModelObject() interface{} {
-	return &NetAppVolumeGroupSapHanaModel{}
+	return &netAppModels.NetAppVolumeGroupSapHanaModel{}
 }
 
 func (r NetAppVolumeGroupSapHanaResource) ResourceType() string {
@@ -122,7 +115,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForVolumeSpecNameSapHana(), false),
+						ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForVolumeSpecNameSapHana(), false),
 					},
 
 					"volume_path": {
@@ -158,7 +151,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(validate.PossibleValuesForProtocolTypeVolumeGroupSapHana(), false),
+							ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForProtocolTypeVolumeGroupSapHana(), false),
 						},
 					},
 
@@ -166,7 +159,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSecurityStyle(), false),
+						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForSecurityStyle(), false),
 					},
 
 					"storage_quota_in_gb": {
@@ -272,7 +265,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 								"replication_frequency": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(PossibleValuesForReplicationSchedule(), false),
+									ValidateFunc: validation.StringInSlice(netAppModels.PossibleValuesForReplicationSchedule(), false),
 								},
 							},
 						},
@@ -311,7 +304,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model NetAppVolumeGroupSapHanaModel
+			var model netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -319,8 +312,8 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 			id := volumegroups.NewVolumeGroupID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
 			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.VolumeGroupsGet(ctx, id)
-			if err != nil && existing.HttpResponse.StatusCode != http.StatusNotFound {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
@@ -334,7 +327,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 			}
 
 			// Performing some basic validations that are not possible in the schema
-			if errorList := validate.ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList); len(errorList) > 0 {
+			if errorList := netAppValidate.ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList); len(errorList) > 0 {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
@@ -367,7 +360,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.VolumeGroupsCreateThenPoll(ctx, id, parameters)
+			err = client.CreateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -437,7 +430,7 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Decoding state for %s", id)
-			var state NetAppVolumeGroupSapHanaModel
+			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -490,7 +483,7 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 									rule.Nfsv3 = utils.Bool(v["nfsv3_enabled"].(bool))
 									rule.Nfsv41 = utils.Bool(v["nfsv41_enabled"].(bool))
 
-									errors = append(errors, validate.ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule, volumeProtocol)...)
+									errors = append(errors, netAppValidate.ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule, volumeProtocol)...)
 								}
 							}
 
@@ -560,14 +553,14 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Decoding state for %s", id)
-			var state NetAppVolumeGroupSapHanaModel
+			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			existing, err := client.VolumeGroupsGet(ctx, pointer.From(id))
+			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -575,7 +568,7 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			model := NetAppVolumeGroupSapHanaModel{
+			model := netAppModels.NetAppVolumeGroupSapHanaModel{
 				Name:              id.VolumeGroupName,
 				AccountName:       id.NetAppAccountName,
 				Location:          location.NormalizeNilable(existing.Model.Location),
@@ -611,9 +604,9 @@ func (r NetAppVolumeGroupSapHanaResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.VolumeGroupsGet(ctx, pointer.From(id))
+			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -631,7 +624,7 @@ func (r NetAppVolumeGroupSapHanaResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Removing Volume Group
-			if err = client.VolumeGroupsDeleteThenPoll(ctx, pointer.From(id)); err != nil {
+			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 

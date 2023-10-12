@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -7,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/certificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -79,7 +82,7 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 }
 
 func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CertificateClient
+	client := meta.(*clients.Client).Automation.Certificate
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +129,7 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CertificateClient
+	client := meta.(*clients.Client).Automation.Certificate
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -161,7 +164,7 @@ func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceAutomationCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.CertificateClient
+	client := meta.(*clients.Client).Automation.Certificate
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

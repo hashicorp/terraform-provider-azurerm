@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package communication
 
 import (
@@ -25,7 +28,9 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		CommunicationServiceDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

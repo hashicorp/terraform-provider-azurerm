@@ -23,7 +23,7 @@ type UpdateIdentityCertificateOperationResponse struct {
 // UpdateIdentityCertificate ...
 func (c ClustersClient) UpdateIdentityCertificate(ctx context.Context, id ClusterId, input UpdateClusterIdentityCertificateParameters) (result UpdateIdentityCertificateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

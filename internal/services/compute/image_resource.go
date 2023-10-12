@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -6,14 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -71,7 +75,7 @@ func resourceImage() *pluginsdk.Resource {
 			"source_virtual_machine_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"os_disk": {
@@ -130,7 +134,15 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Computed:     true,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.NoZeroValues,
+						},
+
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
 						},
 					},
 				},
@@ -355,6 +367,12 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			out.DiskSizeGB = pointer.To(int64(size.(int)))
 		}
 
+		if id := config["disk_encryption_set_id"].(string); id != "" {
+			out.DiskEncryptionSet = &images.SubResource{
+				Id: utils.String(id),
+			}
+		}
+
 		return out
 	}
 
@@ -413,13 +431,18 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 			if disk := v.ManagedDisk; disk != nil && disk.Id != nil {
 				managedDiskId = *disk.Id
 			}
+			diskEncryptionSetId := ""
+			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
+				diskEncryptionSetId = *set.Id
+			}
 			output = append(output, map[string]interface{}{
-				"blob_uri":        blobUri,
-				"caching":         caching,
-				"managed_disk_id": managedDiskId,
-				"os_type":         string(v.OsType),
-				"os_state":        string(v.OsState),
-				"size_gb":         diskSizeGB,
+				"blob_uri":               blobUri,
+				"caching":                caching,
+				"managed_disk_id":        managedDiskId,
+				"os_type":                string(v.OsType),
+				"os_state":               string(v.OsState),
+				"size_gb":                diskSizeGB,
+				"disk_encryption_set_id": diskEncryptionSetId,
 			})
 		}
 	}

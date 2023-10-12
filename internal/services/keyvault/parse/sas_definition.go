@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -12,11 +15,16 @@ type SasDefinitionId struct {
 	Name               string
 }
 
+func (i SasDefinitionId) ID() string {
+	fmtString := "%s/storage/%s/sas/%s"
+	return fmt.Sprintf(fmtString, i.KeyVaultBaseUrl, i.StorageAccountName, i.Name)
+}
+
 func SasDefinitionID(id string) (*SasDefinitionId, error) {
 	// example: https://example-keyvault.vault.azure.net/storage/exampleStorageAcc01/sas/exampleSasDefinition01
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Managed Storage Sas Definition Id: %s", err)
+		return nil, fmt.Errorf("cannot parse Azure KeyVault Managed Storage Sas Definition Id: %s", err)
 	}
 
 	path := idURL.Path
@@ -27,15 +35,15 @@ func SasDefinitionID(id string) (*SasDefinitionId, error) {
 	components := strings.Split(path, "/")
 
 	if len(components) != 4 {
-		return nil, fmt.Errorf("Key Vault Managed Storage Sas Definition ID should have 4 segments, got %d: '%s'", len(components), path)
+		return nil, fmt.Errorf("key vault managed storage Sas Definition ID should have 4 segments, got %d: '%s'", len(components), path)
 	}
 
 	if components[0] != "storage" || components[2] != "sas" {
-		return nil, fmt.Errorf("Key Vault Managed Storage Sas Definition ID path must begin with %q", "/storage/exampleStorageAcc01/sas")
+		return nil, fmt.Errorf("key vault managed storage Sas Definition ID path must begin with %q", "/storage/exampleStorageAcc01/sas")
 	}
 
 	sasDefinitionId := SasDefinitionId{
-		KeyVaultBaseUrl:    fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
+		KeyVaultBaseUrl:    fmt.Sprintf("https://%s", idURL.Host),
 		StorageAccountName: components[1],
 		Name:               components[3],
 	}

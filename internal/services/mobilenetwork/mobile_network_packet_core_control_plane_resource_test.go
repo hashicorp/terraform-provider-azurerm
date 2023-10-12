@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -18,10 +21,6 @@ type MobileNetworkPacketCoreControlPlaneResource struct{}
 
 func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,10 +35,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,10 +49,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T
 
 func TestAccMobileNetworkPacketCoreControlPlane_withInteropJSON(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,10 +63,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_withInteropJSON(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,10 +77,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_withCertificateUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,10 +91,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_withCertificateUserAssignedIdent
 
 func TestAccMobileNetworkPacketCoreControlPlane_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -126,10 +105,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -151,10 +126,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_update(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -361,7 +332,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   }
 
   interoperability_settings_json = jsonencode({
-    "mtu" = 1440
+    "unknownuser-causecode" = "eps-and-non-eps-service-not-allowed-8"
   })
 
   depends_on = [azurerm_mobile_network.test]
@@ -518,7 +489,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   control_plane_access_ipv4_subnet  = "192.168.1.0/25"
 
   interoperability_settings_json = jsonencode({
-    "mtu" = 1440
+    "unknownuser-causecode" = "eps-and-non-eps-service-not-allowed-8"
   })
 
   local_diagnostics_access {

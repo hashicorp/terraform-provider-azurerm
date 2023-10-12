@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage_test
 
 import (
@@ -5,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -40,6 +44,21 @@ func TestAccStorageManagementPolicy_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageManagementPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
+	r := StorageManagementPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -409,16 +428,16 @@ func TestAccStorageManagementPolicy_baseblobAccessTimeBased(t *testing.T) {
 
 func (r StorageManagementPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	storageAccountId := state.Attributes["storage_account_id"]
-	id, err := parse.StorageAccountID(storageAccountId)
+	id, err := commonids.ParseStorageAccountID(storageAccountId)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.ManagementPoliciesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Storage.ResourceManager.ManagementPolicies.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Management Policy (Account %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Management Policy for %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -467,6 +486,16 @@ resource "azurerm_storage_management_policy" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageManagementPolicyResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "import" {
+  storage_account_id = azurerm_storage_management_policy.test.storage_account_id
+}
+`, r.basic(data))
 }
 
 func (r StorageManagementPolicyResource) singleAction(data acceptance.TestData) string {

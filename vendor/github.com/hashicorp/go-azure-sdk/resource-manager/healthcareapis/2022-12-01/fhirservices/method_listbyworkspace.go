@@ -25,7 +25,7 @@ type ListByWorkspaceCompleteResult struct {
 // ListByWorkspace ...
 func (c FhirServicesClient) ListByWorkspace(ctx context.Context, id WorkspaceId) (result ListByWorkspaceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

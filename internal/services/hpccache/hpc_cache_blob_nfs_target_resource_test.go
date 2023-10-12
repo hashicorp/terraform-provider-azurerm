@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package hpccache_test
 
 import (
@@ -100,6 +103,28 @@ func TestAccHPCCacheBlobNFSTarget_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccHPCCacheBlobNFSTarget_usageModel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
+	r := HPCCacheBlobNFSTargetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.usageModel(data, "READ_WRITE"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.usageModel(data, "READ_ONLY"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -349,4 +374,19 @@ resource "azurerm_hpc_cache" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r HPCCacheBlobNFSTargetResource) usageModel(data acceptance.TestData, modelName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_blob_nfs_target" "test" {
+  name                 = "acctest-HPCCTGT-%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  cache_name           = azurerm_hpc_cache.test.name
+  storage_container_id = jsondecode(azurerm_resource_group_template_deployment.storage-containers.output_content).id.value
+  namespace_path       = "/p1"
+  usage_model          = "%s"
+}
+`, r.template(data), data.RandomString, modelName)
 }

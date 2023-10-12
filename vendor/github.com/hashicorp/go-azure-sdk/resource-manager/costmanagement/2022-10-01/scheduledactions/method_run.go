@@ -20,7 +20,7 @@ type RunOperationResponse struct {
 // Run ...
 func (c ScheduledActionsClient) Run(ctx context.Context, id ScheduledActionId) (result RunOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -25,7 +25,7 @@ type GetDeleteProtectedItemRequestsObjectsCompleteResult struct {
 // GetDeleteProtectedItemRequestsObjects ...
 func (c ResourceGuardsClient) GetDeleteProtectedItemRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetDeleteProtectedItemRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

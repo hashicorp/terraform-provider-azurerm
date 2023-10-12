@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -114,7 +117,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "amtestRG-%[1]d"
+  name     = "accTestRG-%[1]d"
   location = "%[2]s"
 }
 
@@ -174,7 +177,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "amtestRG-%d"
+  name     = "accTestRG-%d"
   location = "%s"
 }
 
@@ -201,7 +204,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "amtestRG-%d"
+  name     = "accTestRG-%d"
   location = "%s"
 }
 
@@ -244,45 +247,45 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test1" {
-  name     = "amestRG1-%d"
+  name     = "acctestRG1-%d"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "amestRG2-%d"
+  name     = "acctestRG2-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "amtestVNET1-%d"
+  name                = "acctestVNET1-%d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "amtestSNET1-%d"
+  name                 = "acctestSNET1-%d"
   resource_group_name  = azurerm_resource_group.test1.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "amtestVNET2-%d"
+  name                = "acctestVNET2-%d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "amtestSNET2-%d"
+  name                 = "acctestSNET2-%d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "amtestAM-%d"
+  name                = "acctestAM-%d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
   publisher_name      = "pub1"

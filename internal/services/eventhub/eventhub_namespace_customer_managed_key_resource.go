@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventhub
 
 import (
@@ -74,6 +77,13 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 				},
 			},
+
+			"infrastructure_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -117,6 +127,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		return err
 	}
 	namespace.Properties.Encryption.KeyVaultProperties = keyVaultProps
+	namespace.Properties.Encryption.RequireInfrastructureEncryption = utils.Bool(d.Get("infrastructure_encryption_enabled").(bool))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", *id, err)
@@ -162,6 +173,7 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 		}
 
 		d.Set("key_vault_key_ids", keyVaultKeyIds)
+		d.Set("infrastructure_encryption_enabled", props.Encryption.RequireInfrastructureEncryption)
 	}
 
 	return nil
@@ -218,7 +230,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]int
 			keyVersion = *item.KeyVersion
 		}
 
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}

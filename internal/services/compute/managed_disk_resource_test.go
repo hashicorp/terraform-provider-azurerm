@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -7,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -162,6 +165,40 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("2"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(disks.DiskStorageAccountTypesPremiumLRS)),
+			),
+		},
+	})
+}
+
+func TestAccManagedDisk_optimizedFrequentAttach(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.optimizedFrequentAttach(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.empty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccManagedDisk_performancePlus(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.performancePlus(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -811,6 +848,61 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) optimizedFrequentAttach(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                              = "acctestd-%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  storage_account_type              = "Standard_LRS"
+  create_option                     = "Empty"
+  disk_size_gb                      = "1"
+  optimized_frequent_attach_enabled = true
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) performancePlus(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                     = "acctestd-%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  storage_account_type     = "Premium_LRS"
+  create_option            = "Empty"
+  disk_size_gb             = "1024"
+  performance_plus_enabled = true
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -2607,12 +2699,11 @@ func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.C
 	wasShutDown := false
 	for logs.NotDone() {
 		val := logs.Value()
-		if val.Authorization == nil || val.Authorization.Action == nil {
-			return fmt.Errorf("parsing activity log for Virtual Machine %q: `model.Authorization` or `model.Authorization.Action` was nil", state.ID)
-		}
-		if strings.EqualFold(*val.Authorization.Action, "Microsoft.Compute/virtualMachines/stop/action") {
-			wasShutDown = true
-			break
+		if val.Authorization != nil && val.Authorization.Action != nil {
+			if strings.EqualFold(*val.Authorization.Action, "Microsoft.Compute/virtualMachines/powerOff/action") {
+				wasShutDown = true
+				break
+			}
 		}
 
 		if err := logs.NextWithContext(ctx); err != nil {

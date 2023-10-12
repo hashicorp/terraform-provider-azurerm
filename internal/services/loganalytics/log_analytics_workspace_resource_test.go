@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics_test
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -325,6 +329,53 @@ func TestAccLogAnalyticsWorkspace_ToggleDisableLocalAuth(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withCapacityReservationTypo(data, 100),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("reservation_capacity_in_gb_per_day").HasValue("100"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_withDefaultDataCollectionRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	// the default data collection rule could only be set during update,
+	// and to avoid the dependency cycle, we do an additional update here.
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDataCollectionRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withDefaultDataCollectionRule(data, datacollectionrules.NewDataCollectionRuleID(data.Subscriptions.Primary, fmt.Sprintf("acctestRG-%d", data.RandomInteger), fmt.Sprintf("acctestmdcr-%d", data.RandomInteger)).ID()),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -689,4 +740,83 @@ resource "azurerm_log_analytics_workspace" "test" {
   local_authentication_disabled = %[4]t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, disableLocalAuth)
+}
+
+func (LogAnalyticsWorkspaceResource) withDataCollectionRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+      name                  = "test-destination"
+    }
+  }
+
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics"]
+    destinations = ["test-destination"]
+  }
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (LogAnalyticsWorkspaceResource) withDefaultDataCollectionRule(data acceptance.TestData, ruleID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+      name                  = "test-destination"
+    }
+  }
+
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics"]
+    destinations = ["test-destination"]
+  }
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                    = "acctestLAW-%[1]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  sku                     = "PerGB2018"
+  retention_in_days       = 30
+  data_collection_rule_id = "%[3]s"
+}
+`, data.RandomInteger, data.Locations.Primary, ruleID)
 }

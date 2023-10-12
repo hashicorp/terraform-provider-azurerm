@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -11,15 +16,21 @@ type Client struct {
 	NamespacesClient *namespaces.NamespacesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	hubsClient := notificationhubs.NewNotificationHubsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&hubsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	hubsClient, err := notificationhubs.NewNotificationHubsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(hubsClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HubsClient client: %+v", err)
+	}
 
-	namespacesClient := namespaces.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&namespacesClient.Client, o.ResourceManagerAuthorizer)
+	namespacesClient, err := namespaces.NewNamespacesClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(namespacesClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building NamespacesClient client: %+v", err)
+	}
 
 	return &Client{
-		HubsClient:       &hubsClient,
-		NamespacesClient: &namespacesClient,
-	}
+		HubsClient:       hubsClient,
+		NamespacesClient: namespacesClient,
+	}, nil
 }

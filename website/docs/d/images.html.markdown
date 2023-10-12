@@ -65,6 +65,8 @@ The `os_disk` block exports the following:
 
 * `size_gb` - the size of the OS Disk in GB.
 
+* `disk_encryption_set_id` -  the ID of the Disk Encryption Set used to encrypt this image.
+
 ---
 
 The `data_disk` block exports the following:

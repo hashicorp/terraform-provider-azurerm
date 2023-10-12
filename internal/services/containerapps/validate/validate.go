@@ -1,8 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -133,5 +137,25 @@ func ContainerAppContainerName(i interface{}, k string) (warnings []string, erro
 		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 60 characters", k))
 		return
 	}
+	return
+}
+
+func ContainerAppScaleRuleConcurrentRequests(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	c, err := strconv.Atoi(v)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %s to be a string representation of an integer, got %+v", k, v))
+		return
+	}
+
+	if c <= 0 {
+		errors = append(errors, fmt.Errorf("value for %s must be at least `1`, got %d", k, c))
+	}
+
 	return
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks
 
 import (
@@ -6,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -30,7 +33,7 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnection() *pluginsdk.Resourc
 			"private_endpoint_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: networkValidate.PrivateEndpointID,
+				ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 			},
 
 			"connections": {

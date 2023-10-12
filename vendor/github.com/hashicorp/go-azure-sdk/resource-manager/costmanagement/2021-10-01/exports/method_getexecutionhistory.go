@@ -21,7 +21,7 @@ type GetExecutionHistoryOperationResponse struct {
 // GetExecutionHistory ...
 func (c ExportsClient) GetExecutionHistory(ctx context.Context, id ScopedExportId) (result GetExecutionHistoryOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

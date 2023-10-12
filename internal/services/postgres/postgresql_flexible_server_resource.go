@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres
 
 import (
@@ -16,12 +19,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-03-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -117,20 +119,24 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
+			"auto_grow_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"storage_mb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				// TODO: Remove "15" after this issue has been resolved:
-				// https://github.com/Azure/azure-rest-api-specs/issues/24186
-				ValidateFunc: validation.StringInSlice(append(servers.PossibleValuesForServerVersion(), "15"), false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -150,7 +156,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"private_dns_zone_id": {
@@ -279,6 +285,20 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							},
 						},
 						"primary_user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+						"geo_backup_key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							RequiredWith: []string{
+								"identity",
+								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
+							},
+						},
+						"geo_backup_user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -543,8 +563,14 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `maintenance_window`: %+v", err)
 			}
 
-			if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
-				d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+			if storage := props.Storage; storage != nil {
+				if storage.AutoGrow != nil {
+					d.Set("auto_grow_enabled", *storage.AutoGrow == servers.StorageAutoGrowEnabled)
+				}
+
+				if storage.StorageSizeGB != nil {
+					d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
@@ -709,7 +735,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("storage_mb") {
+	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
@@ -718,7 +744,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, storageUpdateParameters); err != nil {
-			return fmt.Errorf("updating `storage_mb` for %s: %+v", *id, err)
+			return fmt.Errorf("updating `auto_grow_enabled` / `storage_mb` for %s: %+v", *id, err)
 		}
 	}
 
@@ -858,6 +884,12 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 
 func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage := servers.Storage{}
+
+	autoGrow := servers.StorageAutoGrowDisabled
+	if v, ok := d.GetOk("auto_grow_enabled"); ok && v.(bool) {
+		autoGrow = servers.StorageAutoGrowEnabled
+	}
+	storage.AutoGrow = &autoGrow
 
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))
@@ -1060,9 +1092,23 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 
 	det := servers.ArmServerKeyTypeAzureKeyVault
 	dataEncryption := servers.DataEncryption{
-		Type:                          &det,
-		PrimaryKeyURI:                 utils.String(v["key_vault_key_id"].(string)),
-		PrimaryUserAssignedIdentityId: utils.String(v["primary_user_assigned_identity_id"].(string)),
+		Type: &det,
+	}
+
+	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
+		dataEncryption.PrimaryKeyURI = utils.String(keyVaultKeyId)
+	}
+
+	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
+		dataEncryption.PrimaryUserAssignedIdentityId = utils.String(primaryUserAssignedIdentityId)
+	}
+
+	if geoBackupKeyVaultKeyId := v["geo_backup_key_vault_key_id"].(string); geoBackupKeyVaultKeyId != "" {
+		dataEncryption.GeoBackupKeyURI = utils.String(geoBackupKeyVaultKeyId)
+	}
+
+	if geoBackupUserAssignedIdentityId := v["geo_backup_user_assigned_identity_id"].(string); geoBackupUserAssignedIdentityId != "" {
+		dataEncryption.GeoBackupUserAssignedIdentityId = utils.String(geoBackupUserAssignedIdentityId)
 	}
 
 	return &dataEncryption
@@ -1083,6 +1129,17 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
 		}
 		item["primary_user_assigned_identity_id"] = parsed.ID()
+	}
+
+	if de.GeoBackupKeyURI != nil {
+		item["geo_backup_key_vault_key_id"] = *de.GeoBackupKeyURI
+	}
+	if identity := de.GeoBackupUserAssignedIdentityId; identity != nil {
+		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
+		}
+		item["geo_backup_user_assigned_identity_id"] = parsed.ID()
 	}
 
 	return []interface{}{item}, nil

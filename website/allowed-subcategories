@@ -6,11 +6,13 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Arc Resource Bridge
 ArcKubernetes
 Attestation
 Authorization
 Automanage
 Automation
+Azure Managed Lustre File System
 Azure Stack HCI
 Base
 Batch
@@ -41,11 +43,13 @@ Databox Edge
 Databricks
 Datadog
 Desktop Virtualization
+Dev Center
 Dev Test
 Digital Twins
 Disks
 Elastic
 Fluid Relay
+Graph Services
 HDInsight
 Hardware Security Module
 Healthcare
@@ -72,9 +76,11 @@ Mobile Network
 Monitor
 NetApp
 Network
+Network Function
 New Relic
 Nginx
 Orbital
+Palo Alto
 Policy
 Portal
 PowerBI
@@ -89,6 +95,7 @@ Security Center
 Sentinel
 Service Fabric
 Service Fabric Managed Clusters
+Service Networking
 Spring Cloud
 Storage
 Storage Mover

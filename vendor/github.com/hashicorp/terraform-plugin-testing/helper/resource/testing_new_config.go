@@ -11,16 +11,71 @@ import (
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/mitchellh/go-testing-interface"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/internal/teststep"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/hashicorp/terraform-plugin-testing/internal/logging"
 	"github.com/hashicorp/terraform-plugin-testing/internal/plugintest"
 )
 
-func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, step TestStep, providers *providerFactories) error {
+func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, step TestStep, providers *providerFactories, stepIndex int) error {
 	t.Helper()
 
-	err := wd.SetConfig(ctx, step.mergedConfig(ctx, c))
+	configRequest := teststep.PrepareConfigurationRequest{
+		Directory: step.ConfigDirectory,
+		File:      step.ConfigFile,
+		Raw:       step.Config,
+		TestStepConfigRequest: config.TestStepConfigRequest{
+			StepNumber: stepIndex + 1,
+			TestName:   t.Name(),
+		},
+	}.Exec()
+
+	cfg := teststep.Configuration(configRequest)
+
+	var hasTerraformBlock bool
+	var hasProviderBlock bool
+
+	if cfg != nil {
+		var err error
+
+		hasTerraformBlock, err = cfg.HasTerraformBlock(ctx)
+
+		if err != nil {
+			logging.HelperResourceError(ctx,
+				"Error determining whether configuration contains terraform block",
+				map[string]interface{}{logging.KeyError: err},
+			)
+			t.Fatalf("Error determining whether configuration contains terraform block: %s", err)
+		}
+
+		hasProviderBlock, err = cfg.HasProviderBlock(ctx)
+
+		if err != nil {
+			logging.HelperResourceError(ctx,
+				"Error determining whether configuration contains provider block",
+				map[string]interface{}{logging.KeyError: err},
+			)
+			t.Fatalf("Error determining whether configuration contains provider block: %s", err)
+		}
+	}
+
+	mergedConfig := step.mergedConfig(ctx, c, hasTerraformBlock, hasProviderBlock)
+
+	confRequest := teststep.PrepareConfigurationRequest{
+		Directory: step.ConfigDirectory,
+		File:      step.ConfigFile,
+		Raw:       mergedConfig,
+		TestStepConfigRequest: config.TestStepConfigRequest{
+			StepNumber: stepIndex + 1,
+			TestName:   t.Name(),
+		},
+	}.Exec()
+
+	testStepConfig := teststep.Configuration(confRequest)
+
+	err := wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
 	if err != nil {
 		return fmt.Errorf("Error setting config: %w", err)
 	}
@@ -49,6 +104,24 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		}, wd, providers)
 		if err != nil {
 			return fmt.Errorf("Error running pre-apply plan: %w", err)
+		}
+
+		// Run pre-apply plan checks
+		if len(step.ConfigPlanChecks.PreApply) > 0 {
+			var plan *tfjson.Plan
+			err = runProviderCommand(ctx, t, func() error {
+				var err error
+				plan, err = wd.SavedPlan(ctx)
+				return err
+			}, wd, providers)
+			if err != nil {
+				return fmt.Errorf("Error retrieving pre-apply plan: %w", err)
+			}
+
+			err = runPlanChecks(ctx, t, plan, step.ConfigPlanChecks.PreApply)
+			if err != nil {
+				return fmt.Errorf("Pre-apply plan check(s) failed:\n%w", err)
+			}
 		}
 
 		// We need to keep a copy of the state prior to destroying such
@@ -94,7 +167,6 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		if step.Check != nil {
 			logging.HelperResourceTrace(ctx, "Using TestStep Check")
 
-			state.IsBinaryDrivenTest = true
 			if step.Destroy {
 				if err := step.Check(stateBeforeApplication); err != nil {
 					return fmt.Errorf("Check failed: %w", err)
@@ -129,6 +201,14 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 	}, wd, providers)
 	if err != nil {
 		return fmt.Errorf("Error retrieving post-apply plan: %w", err)
+	}
+
+	// Run post-apply, pre-refresh plan checks
+	if len(step.ConfigPlanChecks.PostApplyPreRefresh) > 0 {
+		err = runPlanChecks(ctx, t, plan, step.ConfigPlanChecks.PostApplyPreRefresh)
+		if err != nil {
+			return fmt.Errorf("Post-apply, pre-refresh plan check(s) failed:\n%w", err)
+		}
 	}
 
 	if !planIsEmpty(plan) && !step.ExpectNonEmptyPlan {
@@ -174,6 +254,14 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		return fmt.Errorf("Error retrieving second post-apply plan: %w", err)
 	}
 
+	// Run post-apply, post-refresh plan checks
+	if len(step.ConfigPlanChecks.PostApplyPostRefresh) > 0 {
+		err = runPlanChecks(ctx, t, plan, step.ConfigPlanChecks.PostApplyPostRefresh)
+		if err != nil {
+			return fmt.Errorf("Post-apply, post-refresh plan check(s) failed:\n%w", err)
+		}
+	}
+
 	// check if plan is empty
 	if !planIsEmpty(plan) && !step.ExpectNonEmptyPlan {
 		var stdout string
@@ -210,6 +298,7 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			return err
 		}
 
+		//nolint:staticcheck // legacy usage
 		if state.Empty() {
 			return nil
 		}
@@ -234,7 +323,7 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		// this fails. If refresh isn't read-only, then this will have
 		// caught a different bug.
 		if idRefreshCheck != nil {
-			if err := testIDRefresh(ctx, t, c, wd, step, idRefreshCheck, providers); err != nil {
+			if err := testIDRefresh(ctx, t, c, wd, step, idRefreshCheck, providers, stepIndex); err != nil {
 				return fmt.Errorf(
 					"[ERROR] Test: ID-only test failed: %s", err)
 			}

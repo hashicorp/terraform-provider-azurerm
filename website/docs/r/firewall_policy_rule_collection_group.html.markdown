@@ -139,7 +139,7 @@ A `application_rule` (application rule) block supports the following:
 
 * `description` - (Optional) The description which should be used for this rule.
 
-* `protocols` - (Optional) One or more `protocols` blocks as defined below. Not required when specifying `destination_fqdn_tags`, but required when specifying `destination_fqdns`.
+* `protocols` - (Required) One or more `protocols` blocks as defined below.
 
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 
@@ -163,6 +163,8 @@ A `network_rule` (network rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
+* `description` - (Optional) The description which should be used for this rule.
+
 * `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `Any`, `TCP`, `UDP`, `ICMP`.
 
 * `destination_ports` - (Required) Specifies a list of destination ports.
@@ -182,6 +184,8 @@ A `network_rule` (network rule) block supports the following:
 A `nat_rule` (NAT rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
+
+* `description` - (Optional) The description which should be used for this rule.
 
 * `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `TCP`, `UDP`.
 

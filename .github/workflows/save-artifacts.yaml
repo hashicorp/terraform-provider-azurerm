@@ -1,0 +1,20 @@
+name: Save Artifacts
+
+on:
+  # This file is reused, and called from other workflows
+  workflow_call:
+
+jobs:
+  save-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - shell: bash
+        run: |
+          mkdir -p wr_actions
+          echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
+          echo ${{ github.event.repository.name }} > wr_actions/ghrepo.txt
+          echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
+      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: artifact
+          path: wr_actions

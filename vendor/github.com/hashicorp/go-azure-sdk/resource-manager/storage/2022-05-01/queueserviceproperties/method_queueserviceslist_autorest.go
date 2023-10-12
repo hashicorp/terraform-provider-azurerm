@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type QueueServicesListOperationResponse struct {
 }
 
 // QueueServicesList ...
-func (c QueueServicePropertiesClient) QueueServicesList(ctx context.Context, id StorageAccountId) (result QueueServicesListOperationResponse, err error) {
+func (c QueueServicePropertiesClient) QueueServicesList(ctx context.Context, id commonids.StorageAccountId) (result QueueServicesListOperationResponse, err error) {
 	req, err := c.preparerForQueueServicesList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "queueserviceproperties.QueueServicePropertiesClient", "QueueServicesList", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c QueueServicePropertiesClient) QueueServicesList(ctx context.Context, id 
 }
 
 // preparerForQueueServicesList prepares the QueueServicesList request.
-func (c QueueServicePropertiesClient) preparerForQueueServicesList(ctx context.Context, id StorageAccountId) (*http.Request, error) {
+func (c QueueServicePropertiesClient) preparerForQueueServicesList(ctx context.Context, id commonids.StorageAccountId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

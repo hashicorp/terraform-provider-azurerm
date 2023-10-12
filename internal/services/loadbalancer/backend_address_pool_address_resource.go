@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loadbalancer
 
 import (
@@ -5,11 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -82,7 +85,7 @@ func (r BackendAddressPoolAddressResource) Arguments() map[string]*pluginsdk.Sch
 			Optional:      true,
 			RequiredWith:  []string{"ip_address"},
 			ConflictsWith: []string{"backend_address_ip_configuration_id"},
-			ValidateFunc:  networkValidate.VirtualNetworkID,
+			ValidateFunc:  commonids.ValidateVirtualNetworkID,
 			Description:   "For regional load balancer, user needs to specify `virtual_network_id` and `ip_address`",
 		},
 

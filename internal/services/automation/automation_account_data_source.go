@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -7,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	identity2 "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -74,7 +77,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 
 func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	iclient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

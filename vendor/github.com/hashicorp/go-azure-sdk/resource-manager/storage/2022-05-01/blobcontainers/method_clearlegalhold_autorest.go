@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type ClearLegalHoldOperationResponse struct {
 }
 
 // ClearLegalHold ...
-func (c BlobContainersClient) ClearLegalHold(ctx context.Context, id ContainerId, input LegalHold) (result ClearLegalHoldOperationResponse, err error) {
+func (c BlobContainersClient) ClearLegalHold(ctx context.Context, id commonids.StorageContainerId, input LegalHold) (result ClearLegalHoldOperationResponse, err error) {
 	req, err := c.preparerForClearLegalHold(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blobcontainers.BlobContainersClient", "ClearLegalHold", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c BlobContainersClient) ClearLegalHold(ctx context.Context, id ContainerId
 }
 
 // preparerForClearLegalHold prepares the ClearLegalHold request.
-func (c BlobContainersClient) preparerForClearLegalHold(ctx context.Context, id ContainerId, input LegalHold) (*http.Request, error) {
+func (c BlobContainersClient) preparerForClearLegalHold(ctx context.Context, id commonids.StorageContainerId, input LegalHold) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

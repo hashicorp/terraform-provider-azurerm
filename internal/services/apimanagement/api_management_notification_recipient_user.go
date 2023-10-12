@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,14 +8,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientuser"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementNotificationRecipientUserModel struct {
@@ -31,7 +34,7 @@ func (r ApiManagementNotificationRecipientUserResource) Arguments() map[string]*
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ApiManagementID,
+			ValidateFunc: apimanagementservice.ValidateServiceID,
 		},
 
 		"notification_type": {
@@ -39,13 +42,13 @@ func (r ApiManagementNotificationRecipientUserResource) Arguments() map[string]*
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(apimanagement.NotificationNameAccountClosedPublisher),
-				string(apimanagement.NotificationNameBCC),
-				string(apimanagement.NotificationNameNewApplicationNotificationMessage),
-				string(apimanagement.NotificationNameNewIssuePublisherNotificationMessage),
-				string(apimanagement.NotificationNamePurchasePublisherNotificationMessage),
-				string(apimanagement.NotificationNameQuotaLimitApproachingPublisherNotificationMessage),
-				string(apimanagement.NotificationNameRequestPublisherNotificationMessage),
+				string(notificationrecipientuser.NotificationNameAccountClosedPublisher),
+				string(notificationrecipientuser.NotificationNameBCC),
+				string(notificationrecipientuser.NotificationNameNewApplicationNotificationMessage),
+				string(notificationrecipientuser.NotificationNameNewIssuePublisherNotificationMessage),
+				string(notificationrecipientuser.NotificationNamePurchasePublisherNotificationMessage),
+				string(notificationrecipientuser.NotificationNameQuotaLimitApproachingPublisherNotificationMessage),
+				string(notificationrecipientuser.NotificationNameRequestPublisherNotificationMessage),
 			}, false),
 		},
 
@@ -82,29 +85,30 @@ func (r ApiManagementNotificationRecipientUserResource) Create() sdk.ResourceFun
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			apiManagementId, err := parse.ApiManagementID(model.ApiManagementId)
+			apiManagementId, err := apimanagementservice.ParseServiceID(model.ApiManagementId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewNotificationRecipientUserID(subscriptionId, apiManagementId.ResourceGroup, apiManagementId.ServiceName, model.NotificationName, model.UserId)
+			id := notificationrecipientuser.NewRecipientUserID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName), model.UserId)
 
 			// CheckEntityExists can not be used, it returns autorest error
-			users, err := client.ListByNotification(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName))
+			notificationId := notificationrecipientuser.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName))
+			users, err := client.ListByNotification(ctx, notificationId)
 			if err != nil {
-				if !utils.ResponseWasNotFound(users.Response) {
+				if !response.WasNotFound(users.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if users.Value != nil {
-				for _, existing := range *users.Value {
+			if m := users.Model; m != nil && m.Value != nil {
+				for _, existing := range *m.Value {
 					if existing.Name != nil && *existing.Name == model.UserId {
 						return metadata.ResourceRequiresImport(r.ResourceType(), id)
 					}
 				}
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName), id.RecipientUserName); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -121,35 +125,37 @@ func (r ApiManagementNotificationRecipientUserResource) Read() sdk.ResourceFunc 
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ApiManagement.NotificationRecipientUserClient
-			id, err := parse.NotificationRecipientUserID(metadata.ResourceData.Id())
+			id, err := notificationrecipientuser.ParseRecipientUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			// CheckEntityExists can not be used, it returns autorest error
-			users, err := client.ListByNotification(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName))
+			notificationId := notificationrecipientuser.NewNotificationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.NotificationName)
+			users, err := client.ListByNotification(ctx, notificationId)
 			if err != nil {
-				if !utils.ResponseWasNotFound(users.Response) {
+				if !response.WasNotFound(users.HttpResponse) {
 					return fmt.Errorf("retrieving %s: %+v", id, err)
 				}
 			}
 
 			found := false
-			if users.Value != nil {
-				for _, existing := range *users.Value {
-					if existing.Name != nil && *existing.Name == id.RecipientUserName {
+			if m := users.Model; m != nil && m.Value != nil {
+				for _, existing := range *m.Value {
+					if existing.Name != nil && *existing.Name == id.UserId {
 						found = true
 					}
 				}
 			}
+
 			if !found {
 				return metadata.MarkAsGone(id)
 			}
 
 			model := ApiManagementNotificationRecipientUserModel{
-				ApiManagementId:  parse.NewApiManagementID(id.SubscriptionId, id.ResourceGroup, id.ServiceName).ID(),
-				NotificationName: id.NotificationName,
-				UserId:           id.RecipientUserName,
+				ApiManagementId:  apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName).ID(),
+				NotificationName: string(id.NotificationName),
+				UserId:           id.UserId,
 			}
 
 			return metadata.Encode(&model)
@@ -163,14 +169,14 @@ func (r ApiManagementNotificationRecipientUserResource) Delete() sdk.ResourceFun
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ApiManagement.NotificationRecipientUserClient
 
-			id, err := parse.NotificationRecipientUserID(metadata.ResourceData.Id())
+			id, err := notificationrecipientuser.ParseRecipientUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			_, err = client.Delete(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName), id.RecipientUserName)
+			_, err = client.Delete(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

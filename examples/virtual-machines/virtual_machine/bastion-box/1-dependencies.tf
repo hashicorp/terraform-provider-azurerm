@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "${var.location}"
@@ -34,7 +37,11 @@ resource "azurerm_subnet" "bastion" {
   virtual_network_name      = "${azurerm_virtual_network.example.name}"
   resource_group_name       = "${azurerm_resource_group.example.name}"
   address_prefixes          = ["10.0.0.128/25"]
-  network_security_group_id = "${azurerm_network_security_group.bastion.id}"
+}
+
+resource "azurerm_subnet_network_security_group_association" "bastion" {
+  subnet_id                 = azurerm_subnet.bastion.id
+  network_security_group_id = azurerm_network_security_group.bastion.id
 }
 
 resource "azurerm_network_security_group" "web" {
@@ -74,5 +81,9 @@ resource "azurerm_subnet" "web" {
   virtual_network_name      = "${azurerm_virtual_network.example.name}"
   resource_group_name       = "${azurerm_resource_group.example.name}"
   address_prefixes          = ["10.0.1.0/24"]
-  network_security_group_id = "${azurerm_network_security_group.web.id}"
+}
+
+resource "azurerm_subnet_network_security_group_association" "web" {
+  subnet_id                 = azurerm_subnet.web.id
+  network_security_group_id = azurerm_network_security_group.web.id
 }

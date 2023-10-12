@@ -25,7 +25,7 @@ type ListEventsCompleteResult struct {
 // ListEvents ...
 func (c WebHooksClient) ListEvents(ctx context.Context, id WebHookId) (result ListEventsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

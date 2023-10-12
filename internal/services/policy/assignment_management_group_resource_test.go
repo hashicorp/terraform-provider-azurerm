@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -891,7 +894,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-pa-%[2]s"
+  name     = "acctestRG-pa-%[2]s"
   location = %[3]q
 }
 

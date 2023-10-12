@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -52,15 +55,15 @@ func (r ResourcePolicyRemediationResource) Exists(ctx context.Context, client *c
 		return nil, err
 	}
 
-	resp, err := client.Policy.RemediationsClient.RemediationsGetAtResource(ctx, *id)
-	if err != nil || resp.Model == nil {
+	resp, err := client.Policy.RemediationsClient.GetAtResource(ctx, *id)
+	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Remediation %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ResourcePolicyRemediationResource) template(data acceptance.TestData) string {

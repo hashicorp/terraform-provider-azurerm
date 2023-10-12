@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
 
+* `public_network_access_enabled` - Should public network access be enabled for the Web App. Defaults to `true`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).
@@ -137,9 +139,16 @@ An `application_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-* `docker_image` - (Optional) The Docker image reference, including repository host as needed.
 
-* `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.
+* `docker_image_name` - (Optional) The docker image, including tag, to be used. e.g. `appsvc/staticsite:latest`.
+
+* `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
+
+* `docker_registry_username` - (Optional) The User Name to use for authentication against the registry to pull the image.
+
+* `docker_registry_password` - (Optional) The User Name to use for authentication against the registry to pull the image.
+
+~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
 * `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
 
@@ -226,6 +235,8 @@ An `auth_settings_v2` block supports the following:
 ~> **NOTE:** Whilst any value will be accepted by the API for `default_provider`, it can leave the app in an unusable state if this value does not correspond to the name of a known provider (either built-in value, or custom_oidc name) as it is used to build the auth endpoint URI.
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
+
+~> **NOTE:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
 
 * `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
 
@@ -743,7 +754,7 @@ A `status_code` block supports the following:
 
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
-* `win32_status` - (Optional) The Win32 Status Code of the Request.
+* `win32_status_code` - (Optional) The Win32 Status Code of the Request.
 
 ---
 

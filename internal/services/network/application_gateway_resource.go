@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -8,10 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -402,7 +408,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.SubnetID,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 
 						"id": {
@@ -539,7 +545,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"firewall_policy_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+							ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
 						},
 
 						"ssl_profile_name": {
@@ -598,7 +604,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: networkValidate.SubnetID,
+										ValidateFunc: commonids.ValidateSubnetID,
 									},
 
 									"private_ip_address": {
@@ -1234,10 +1240,19 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						// TODO: replace cert by certificate in 4.0
 						"verify_client_cert_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+
+						"verify_client_certificate_revocation": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ApplicationGatewayClientRevocationOptionsOCSP),
+							}, false),
 						},
 
 						// lintignore:XS003
@@ -1351,7 +1366,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"firewall_policy_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+										ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
 									},
 								},
 							},
@@ -1503,7 +1518,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+				ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
 			},
 
 			"custom_error_configuration": {
@@ -2180,7 +2195,7 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		firewallPolicyId := ""
 		if props.FirewallPolicy != nil && props.FirewallPolicy.ID != nil {
 			firewallPolicyId = *props.FirewallPolicy.ID
-			policyId, err := parse.ApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(firewallPolicyId)
+			policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(firewallPolicyId)
 			if err == nil {
 				firewallPolicyId = policyId.ID()
 			}
@@ -2715,7 +2730,7 @@ func expandApplicationGatewaySslPolicy(vs []interface{}) *network.ApplicationGat
 				PolicyType: policyType,
 				PolicyName: policyName,
 			}
-		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom {
+		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom || policyType == network.ApplicationGatewaySslPolicyTypeCustomV2 {
 			minProtocolVersion := network.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
 			cipherSuites := make([]network.ApplicationGatewaySslCipherSuite, 0)
 
@@ -2916,7 +2931,11 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 			}
 
 			if fwp := props.FirewallPolicy; fwp != nil && fwp.ID != nil {
-				output["firewall_policy_id"] = *fwp.ID
+				policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(*fwp.ID)
+				if err != nil {
+					return nil, err
+				}
+				output["firewall_policy_id"] = policyId.ID()
 			}
 
 			if sslp := props.SslProfile; sslp != nil {
@@ -4209,11 +4228,18 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 
 		name := v["name"].(string)
 		verifyClientCertIssuerDn := v["verify_client_cert_issuer_dn"].(bool)
+		verifyClientCertificateRevocation := network.ApplicationGatewayClientRevocationOptionsNone
+		if v["verify_client_certificate_revocation"].(string) != "" {
+			verifyClientCertificateRevocation = network.ApplicationGatewayClientRevocationOptions(v["verify_client_certificate_revocation"].(string))
+		}
 
 		output := network.ApplicationGatewaySslProfile{
-			Name: utils.String(name),
+			Name: pointer.To(name),
 			ApplicationGatewaySslProfilePropertiesFormat: &network.ApplicationGatewaySslProfilePropertiesFormat{
-				ClientAuthConfiguration: &network.ApplicationGatewayClientAuthConfiguration{VerifyClientCertIssuerDN: utils.Bool(verifyClientCertIssuerDn)},
+				ClientAuthConfiguration: &network.ApplicationGatewayClientAuthConfiguration{
+					VerifyClientCertIssuerDN: pointer.To(verifyClientCertIssuerDn),
+					VerifyClientRevocation:   verifyClientCertificateRevocation,
+				},
 			},
 		}
 
@@ -4263,7 +4289,17 @@ func flattenApplicationGatewaySslProfiles(input *[]network.ApplicationGatewaySsl
 		}
 
 		output["name"] = name
-		output["verify_client_cert_issuer_dn"] = *v.ClientAuthConfiguration.VerifyClientCertIssuerDN
+
+		verifyClientCertIssuerDn := false
+		verifyClientCertificateRevocation := ""
+		if v.ClientAuthConfiguration != nil {
+			verifyClientCertIssuerDn = pointer.From(v.ClientAuthConfiguration.VerifyClientCertIssuerDN)
+			if v.ClientAuthConfiguration.VerifyClientRevocation != network.ApplicationGatewayClientRevocationOptionsNone {
+				verifyClientCertificateRevocation = string(v.ClientAuthConfiguration.VerifyClientRevocation)
+			}
+		}
+		output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
+		output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 
 		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.SslPolicy)
 
@@ -4533,7 +4569,11 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if fwp := ruleProps.FirewallPolicy; fwp != nil && fwp.ID != nil {
-							ruleOutput["firewall_policy_id"] = *fwp.ID
+							policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(*fwp.ID)
+							if err != nil {
+								return nil, err
+							}
+							ruleOutput["firewall_policy_id"] = policyId.ID()
 						}
 
 						pathOutputs := make([]interface{}, 0)

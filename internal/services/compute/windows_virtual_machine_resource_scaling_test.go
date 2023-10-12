@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -630,7 +633,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctestDH-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -676,7 +679,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctestDH-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -684,7 +687,7 @@ resource "azurerm_dedicated_host" "second" {
   name                    = "acctestDH2-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -730,7 +733,7 @@ resource "azurerm_dedicated_host" "second" {
   name                    = "acctestDH2-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -806,7 +809,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctestDH-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -857,7 +860,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctestDH-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -873,7 +876,7 @@ resource "azurerm_dedicated_host" "second" {
   name                    = "acctestDH2-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.second.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -924,7 +927,7 @@ resource "azurerm_dedicated_host" "second" {
   name                    = "acctestDH2-%d"
   dedicated_host_group_id = azurerm_dedicated_host_group.second.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 

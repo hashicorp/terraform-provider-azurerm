@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks_test
 
 import (
@@ -240,14 +243,14 @@ func TestAccDatabricksWorkspace_managedServices(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_managedServicesAndDbfsCMK(t *testing.T) {
+func TestAccDatabricksWorkspace_managedServicesAndRootDbfsCMK(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
 	r := DatabricksWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managedServicesAndDbfsCMK(data, databricksPrincipalID),
+			Config: r.managedServicesAndRootDbfsCMK(data, databricksPrincipalID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -272,14 +275,14 @@ func TestAccDatabricksWorkspace_managedDiskCMK(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_managedServicesDbfsCMKAndPrivateLink(t *testing.T) {
+func TestAccDatabricksWorkspace_managedServicesRootDbfsCMKAndPrivateLink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
 	r := DatabricksWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managedServicesDbfsCMKAndPrivateLink(data, databricksPrincipalID),
+			Config: r.managedServicesRootDbfsCMKAndPrivateLink(data, databricksPrincipalID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1362,7 +1365,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) managedServicesAndDbfsCMK(data acceptance.TestData, databricksPrincipalID string) string {
+func (DatabricksWorkspaceResource) managedServicesAndRootDbfsCMK(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1393,7 +1396,7 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.test.id
@@ -1598,7 +1601,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) managedServicesDbfsCMKAndPrivateLink(data acceptance.TestData, databricksPrincipalID string) string {
+func (DatabricksWorkspaceResource) managedServicesRootDbfsCMKAndPrivateLink(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1715,7 +1718,7 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.test.id
@@ -1803,6 +1806,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 }
 
 resource "azurerm_private_endpoint" "databricks" {
+  depends_on = [azurerm_databricks_workspace_root_dbfs_customer_managed_key.test]
+
   name                = "acctest-endpoint-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name

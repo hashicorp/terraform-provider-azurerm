@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics
 
 import (
@@ -11,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -114,7 +118,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"reservation_capacity_in_gb_per_day": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
 				ValidateFunc: validation.IntInSlice([]int{
 					int(workspaces.CapacityReservationLevelOneHundred),
 					int(workspaces.CapacityReservationLevelTwoHundred),
@@ -140,6 +143,12 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:          -1.0,
 				DiffSuppressFunc: dailyQuotaGbDiffSuppressFunc,
 				ValidateFunc:     validation.FloatAtLeast(-1.0),
+			},
+
+			"data_collection_rule_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
 			},
 
 			"workspace_id": {
@@ -175,7 +184,12 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 		log.Printf("[INFO] Log Analytics Workspace SKU: OLD: %q, NEW: %q", old, new)
 		// If the old value is not LACluster(e.g. "") return ForceNew because they are
 		// really changing the sku...
-		if !strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) && !strings.EqualFold(old.(string), "") {
+		changingFromLACluster := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) || strings.EqualFold(old.(string), "")
+		// changing from capacity reservation to perGB does not force new when the last sku update date is more than 31-days ago.
+		// to let users do the change, we do not force new in this case and let the API error out.
+		changingFromCapacityReservationToPerGB := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) && strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight))
+		changingFromPerGBToCapacityReservation := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight)) && strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumCapacityReservation))
+		if !changingFromCapacityReservationToPerGB && !changingFromLACluster && !changingFromPerGBToCapacityReservation {
 			d.ForceNew("sku")
 		}
 	}
@@ -304,6 +318,12 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
+	// `data_collection_rule_id` also needs an additional update.
+	// error message: Default dcr is not applicable on workspace creation, please provide it on update.
+	if v, ok := d.GetOk("data_collection_rule_id"); ok {
+		parameters.Properties.DefaultDataCollectionRuleResourceId = pointer.To(v.(string))
+	}
+
 	// `allow_resource_only_permissions` needs an additional update, tacked on https://github.com/Azure/azure-rest-api-specs/issues/21591
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
@@ -430,6 +450,17 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 			d.Set("local_authentication_disabled", disableLocalAuth)
+
+			defaultDataCollectionRuleResourceId := ""
+			if props.DefaultDataCollectionRuleResourceId != nil {
+				dataCollectionId, err := datacollectionrules.ParseDataCollectionRuleID(*props.DefaultDataCollectionRuleResourceId)
+				if err != nil {
+					return err
+				}
+
+				defaultDataCollectionRuleResourceId = dataCollectionId.ID()
+			}
+			d.Set("data_collection_rule_id", defaultDataCollectionRuleResourceId)
 
 			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
 				SubscriptionId:    id.SubscriptionId,

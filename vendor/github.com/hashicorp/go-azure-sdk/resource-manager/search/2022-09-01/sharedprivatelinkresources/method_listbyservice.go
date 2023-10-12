@@ -52,7 +52,7 @@ func (o ListByServiceOperationOptions) ToQuery() *client.QueryParams {
 // ListByService ...
 func (c SharedPrivateLinkResourcesClient) ListByService(ctx context.Context, id SearchServiceId, options ListByServiceOperationOptions) (result ListByServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

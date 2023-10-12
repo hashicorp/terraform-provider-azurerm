@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package analysisservices_test
 
 import (
@@ -6,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -518,7 +522,10 @@ func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *cl
 		return err
 	}
 
-	if err := client.SuspendThenPoll(ctx, *id); err != nil {
+	timeout, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	defer cancel()
+
+	if err := client.SuspendThenPoll(timeout, *id); err != nil {
 		return fmt.Errorf("suspending %s: %+v", *id, err)
 	}
 
@@ -534,7 +541,10 @@ func (t AnalysisServicesServerResource) checkState(expectedState servers.State) 
 			return err
 		}
 
-		resp, err := client.GetDetails(ctx, *id)
+		timeout, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+
+		resp, err := client.GetDetails(timeout, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s to check the state: %+v", *id, err)
 		}

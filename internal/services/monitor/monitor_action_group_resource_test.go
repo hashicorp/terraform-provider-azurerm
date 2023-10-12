@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor_test
 
 import (
@@ -1003,7 +1006,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   webhook_receiver {
     name                    = "callmybackupapi"
-    service_uri             = "https://backup.example.com/warning"
+    service_uri             = "https://example.com/warning/backup"
     use_common_alert_schema = true
   }
 

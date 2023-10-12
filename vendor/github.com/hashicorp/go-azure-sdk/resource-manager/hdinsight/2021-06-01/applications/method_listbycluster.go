@@ -25,7 +25,7 @@ type ListByClusterCompleteResult struct {
 // ListByCluster ...
 func (c ApplicationsClient) ListByCluster(ctx context.Context, id ClusterId) (result ListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

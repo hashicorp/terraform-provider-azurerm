@@ -1,26 +1,30 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedvirtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,7 +45,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DataFactoryID(id)
+			_, err := factories.ParseFactoryID(id)
 			return err
 		}),
 
@@ -62,9 +66,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
@@ -99,6 +101,11 @@ func resourceDataFactory() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"publishing_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
 						},
 					},
 				},
@@ -141,6 +148,11 @@ func resourceDataFactory() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
+						"publishing_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -157,16 +169,9 @@ func resourceDataFactory() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Array",
-								"Bool",
-								"Float",
-								"Int",
-								"Object",
-								"String",
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(factories.PossibleValuesForGlobalParameterType(), false),
 						},
 
 						"value": {
@@ -208,56 +213,62 @@ func resourceDataFactory() *pluginsdk.Resource {
 				RequiredWith: []string{"customer_managed_key_id"},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) && !new.(bool)
+			}),
+		),
 	}
 }
 
 func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.FactoriesClient
-	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
+	client := meta.(*clients.Client).DataFactory.Factories
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := factories.NewFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, "")
+		existing, err := client.Get(ctx, id, factories.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_data_factory", id.ID())
 		}
 	}
 
-	publicNetworkAccess := datafactory.PublicNetworkAccessEnabled
+	publicNetworkAccess := factories.PublicNetworkAccessEnabled
 	enabled := d.Get("public_network_enabled").(bool)
 	if !enabled {
-		publicNetworkAccess = datafactory.PublicNetworkAccessDisabled
+		publicNetworkAccess = factories.PublicNetworkAccessDisabled
 	}
 
-	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	dataFactory := datafactory.Factory{
+	location := location.Normalize(d.Get("location").(string))
+	payload := factories.Factory{
 		Location: utils.String(location),
-		FactoryProperties: &datafactory.FactoryProperties{
-			PublicNetworkAccess: publicNetworkAccess,
+		Properties: &factories.FactoryProperties{
+			PublicNetworkAccess: &publicNetworkAccess,
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
-		dataFactory.FactoryProperties.PurviewConfiguration = &datafactory.PurviewConfiguration{
-			PurviewResourceID: utils.String(purviewId.(string)),
+		payload.Properties.PurviewConfiguration = &factories.PurviewConfiguration{
+			PurviewResourceId: pointer.To(purviewId.(string)),
 		}
 	}
 
@@ -267,11 +278,11 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 
-		dataFactory.FactoryProperties.Encryption = &datafactory.EncryptionConfiguration{
-			VaultBaseURL: &keyVaultKey.KeyVaultBaseUrl,
-			KeyName:      &keyVaultKey.Name,
+		payload.Properties.Encryption = &factories.EncryptionConfiguration{
+			VaultBaseUrl: keyVaultKey.KeyVaultBaseUrl,
+			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
-			Identity: &datafactory.CMKIdentityDefinition{
+			Identity: &factories.CMKIdentityDefinition{
 				UserAssignedIdentity: utils.String(d.Get("customer_managed_key_identity_id").(string)),
 			},
 		}
@@ -281,59 +292,63 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
-	dataFactory.FactoryProperties.GlobalParameters = globalParameters
+	payload.Properties.GlobalParameters = globalParameters
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, dataFactory, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload, factories.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
-	if hasRepo, repo := expandDataFactoryRepoConfiguration(d); hasRepo {
-		repoUpdate := datafactory.FactoryRepoUpdate{
-			FactoryResourceID: utils.String(id.ID()),
-			RepoConfiguration: repo,
-		}
-		if _, err := client.ConfigureFactoryRepo(ctx, location, repoUpdate); err != nil {
-			return fmt.Errorf("configuring Repository for %s: %+v", id, err)
-		}
-	}
-
-	managedVirtualNetworkEnabled := d.Get("managed_virtual_network_enabled").(bool)
-	// only pass datafactory.ManagedVirtualNetworkResource{} will cause rest api error
-	resource := datafactory.ManagedVirtualNetworkResource{
-		Properties: &datafactory.ManagedVirtualNetwork{},
-	}
-	if d.IsNewResource() && managedVirtualNetworkEnabled {
-		if _, err := managedVirtualNetworksClient.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, "default", resource, ""); err != nil {
-			return fmt.Errorf("creating virtual network for %s: %+v", id, err)
-		}
-	} else if !d.IsNewResource() && d.HasChange("managed_virtual_network_enabled") {
-		if !managedVirtualNetworkEnabled {
-			return fmt.Errorf("updating %s: once Managed Virtual Network has been Enabled it's not possible to disable it", id)
-		}
-		if _, err := managedVirtualNetworksClient.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, "default", resource, ""); err != nil {
-			return fmt.Errorf("creating virtual network for %s: %+v", id, err)
-		}
-	}
-
 	d.SetId(id.ID())
+
+	githubConfiguration := expandGitHubRepoConfiguration(d.Get("github_configuration").([]interface{}))
+	if githubConfiguration != nil {
+		repoUpdate := factories.FactoryRepoUpdate{
+			FactoryResourceId: utils.String(id.ID()),
+			RepoConfiguration: githubConfiguration,
+		}
+		locationId := factories.NewLocationID(id.SubscriptionId, location)
+		if _, err := client.ConfigureFactoryRepo(ctx, locationId, repoUpdate); err != nil {
+			return fmt.Errorf("configuring Repository for %s: %+v", locationId, err)
+		}
+	}
+	vstsConfiguration := expandVSTSRepoConfiguration(d.Get("vsts_configuration").([]interface{}))
+	if vstsConfiguration != nil {
+		repoUpdate := factories.FactoryRepoUpdate{
+			FactoryResourceId: utils.String(id.ID()),
+			RepoConfiguration: vstsConfiguration,
+		}
+		locationId := factories.NewLocationID(id.SubscriptionId, location)
+		if _, err := client.ConfigureFactoryRepo(ctx, locationId, repoUpdate); err != nil {
+			return fmt.Errorf("configuring Repository for %s: %+v", locationId, err)
+		}
+	}
+
+	if d.Get("managed_virtual_network_enabled").(bool) {
+		networkPayload := managedvirtualnetworks.ManagedVirtualNetworkResource{
+			Properties: managedvirtualnetworks.ManagedVirtualNetwork{},
+		}
+		managedNetworkId := managedvirtualnetworks.NewManagedVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName, "default")
+		if _, err := managedVirtualNetworksClient.CreateOrUpdate(ctx, managedNetworkId, networkPayload, managedvirtualnetworks.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("creating virtual network for %s: %+v", id, err)
+		}
+	}
 
 	return resourceDataFactoryRead(d, meta)
 }
 
 func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.FactoriesClient
-	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
+	client := meta.(*clients.Client).DataFactory.Factories
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFactoryID(d.Id())
+	id, err := factories.ParseFactoryID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, "")
+	resp, err := client.Get(ctx, *id, factories.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -342,148 +357,114 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", id.FactoryName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if factoryProps := resp.FactoryProperties; factoryProps != nil {
-		customerManagedKeyId := ""
-		customerManagedKeyIdentityId := ""
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-		if enc := factoryProps.Encryption; enc != nil {
-			if enc.VaultBaseURL != nil && enc.KeyName != nil && enc.KeyVersion != nil {
-				customerManagedKeyId = fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
-			}
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
-			if enc.Identity != nil && enc.Identity.UserAssignedIdentity != nil {
-				parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*enc.Identity.UserAssignedIdentity)
-				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *enc.Identity.UserAssignedIdentity, err)
+		if props := model.Properties; props != nil {
+			customerManagedKeyId := ""
+			customerManagedKeyIdentityId := ""
+			if enc := props.Encryption; enc != nil {
+				if enc.VaultBaseUrl != "" && enc.KeyName != "" && enc.KeyVersion != nil {
+					version := ""
+					if enc.KeyVersion != nil && *enc.KeyVersion != "" {
+						version = *enc.KeyVersion
+					}
+					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseUrl, enc.KeyName, version)
+					if err != nil {
+						return fmt.Errorf("parsing Nested Item ID: %+v", err)
+					}
+					customerManagedKeyId = keyId.ID()
 				}
-				customerManagedKeyIdentityId = parsed.ID()
+
+				if encIdentity := enc.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil {
+					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*encIdentity.UserAssignedIdentity)
+					if err != nil {
+						return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
+					}
+					customerManagedKeyIdentityId = parsed.ID()
+				}
 			}
+			d.Set("customer_managed_key_id", customerManagedKeyId)
+			d.Set("customer_managed_key_identity_id", customerManagedKeyIdentityId)
+
+			globalParameters, err := flattenDataFactoryGlobalParameters(props.GlobalParameters)
+			if err != nil {
+				return fmt.Errorf("flattening `global_parameter`: %+v", err)
+			}
+			if err := d.Set("global_parameter", globalParameters); err != nil {
+				return fmt.Errorf("setting `global_parameter`: %+v", err)
+			}
+
+			githubConfiguration := flattenGitHubRepoConfiguration(props.RepoConfiguration)
+			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+				return fmt.Errorf("setting `github_configuration`: %+v", err)
+			}
+
+			vstsConfiguration := flattenVSTSRepoConfiguration(props.RepoConfiguration)
+			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
+			}
+
+			// The API defaults this to `true` but won't return it unless it's configured, so default it on
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = *props.PublicNetworkAccess == factories.PublicNetworkAccessEnabled
+			}
+			d.Set("public_network_enabled", publicNetworkAccessEnabled)
+
+			purviewId := ""
+			if purview := props.PurviewConfiguration; purview != nil && purview.PurviewResourceId != nil {
+				purviewId = *purview.PurviewResourceId
+			}
+			d.Set("purview_id", purviewId)
 		}
 
-		d.Set("customer_managed_key_id", customerManagedKeyId)
-		d.Set("customer_managed_key_identity_id", customerManagedKeyIdentityId)
-
-		if err := d.Set("global_parameter", flattenDataFactoryGlobalParameters(factoryProps.GlobalParameters)); err != nil {
-			return fmt.Errorf("setting `global_parameter`: %+v", err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
-	d.Set("vsts_configuration", []interface{}{})
-	d.Set("github_configuration", []interface{}{})
-	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
-	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
-		if err := d.Set("vsts_configuration", repo); err != nil {
-			return fmt.Errorf("setting `vsts_configuration`: %+v", err)
-		}
-	}
-	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
-		if err := d.Set("github_configuration", repo); err != nil {
-			return fmt.Errorf("setting `github_configuration`: %+v", err)
-		}
-	}
-	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
-		d.Set("vsts_configuration", repo)
-		d.Set("github_configuration", repo)
-	}
-
-	identity, err := flattenIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	// This variable isn't returned from the API if it hasn't been passed in first but we know the default is `true`
-	if resp.PublicNetworkAccess != "" {
-		d.Set("public_network_enabled", resp.PublicNetworkAccess == datafactory.PublicNetworkAccessEnabled)
-	}
-
-	if resp.PurviewConfiguration != nil {
-		d.Set("purview_id", resp.PurviewConfiguration.PurviewResourceID)
-	}
-
-	managedVirtualNetworkEnabled := false
-	managedVirtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.ResourceGroup, id.FactoryName)
+	managedVirtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
 	if err != nil {
 		return err
 	}
-	if managedVirtualNetworkName != nil {
-		managedVirtualNetworkEnabled = true
-	}
-	d.Set("managed_virtual_network_enabled", managedVirtualNetworkEnabled)
+	d.Set("managed_virtual_network_enabled", managedVirtualNetworkName != nil)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	client := meta.(*clients.Client).DataFactory.Factories
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFactoryID(d.Id())
+	id, err := factories.ParseFactoryID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandDataFactoryRepoConfiguration(d *pluginsdk.ResourceData) (bool, datafactory.BasicFactoryRepoConfiguration) {
-	if vstsList, ok := d.GetOk("vsts_configuration"); ok {
-		vsts := vstsList.([]interface{})[0].(map[string]interface{})
-		accountName := vsts["account_name"].(string)
-		branchName := vsts["branch_name"].(string)
-		projectName := vsts["project_name"].(string)
-		repositoryName := vsts["repository_name"].(string)
-		rootFolder := vsts["root_folder"].(string)
-		tenantID := vsts["tenant_id"].(string)
-		return true, &datafactory.FactoryVSTSConfiguration{
-			AccountName:         &accountName,
-			CollaborationBranch: &branchName,
-			ProjectName:         &projectName,
-			RepositoryName:      &repositoryName,
-			RootFolder:          &rootFolder,
-			TenantID:            &tenantID,
-		}
-	}
-
-	if githubList, ok := d.GetOk("github_configuration"); ok {
-		github := githubList.([]interface{})[0].(map[string]interface{})
-		accountName := github["account_name"].(string)
-		branchName := github["branch_name"].(string)
-		gitURL := github["git_url"].(string)
-		repositoryName := github["repository_name"].(string)
-		rootFolder := github["root_folder"].(string)
-		return true, &datafactory.FactoryGitHubConfiguration{
-			AccountName:         &accountName,
-			CollaborationBranch: &branchName,
-			HostName:            &gitURL,
-			RepositoryName:      &repositoryName,
-			RootFolder:          &rootFolder,
-		}
-	}
-
-	return false, nil
-}
-
-func expandDataFactoryGlobalParameters(input []interface{}) (map[string]*datafactory.GlobalParameterSpecification, error) {
+func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factories.GlobalParameterSpecification, error) {
+	result := make(map[string]factories.GlobalParameterSpecification)
 	if len(input) == 0 {
-		return nil, nil
+		return &result, nil
 	}
-	result := make(map[string]*datafactory.GlobalParameterSpecification)
 	for _, item := range input {
 		if item == nil {
 			continue
@@ -495,162 +476,142 @@ func expandDataFactoryGlobalParameters(input []interface{}) (map[string]*datafac
 			return nil, fmt.Errorf("duplicate parameter name")
 		}
 
-		result[name] = &datafactory.GlobalParameterSpecification{
-			Type:  datafactory.GlobalParameterType(v["type"].(string)),
+		result[name] = factories.GlobalParameterSpecification{
+			Type:  factories.GlobalParameterType(v["type"].(string)),
 			Value: v["value"].(string),
 		}
 	}
-	return result, nil
+	return &result, nil
 }
 
-func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
-	result := make([]interface{}, 0)
-
-	if properties := factory.FactoryProperties; properties != nil {
-		repo := properties.RepoConfiguration
-		if repo != nil {
-			settings := map[string]interface{}{}
-			if config, test := repo.AsFactoryGitHubConfiguration(); test {
-				if config.AccountName != nil {
-					settings["account_name"] = *config.AccountName
-				}
-				if config.CollaborationBranch != nil {
-					settings["branch_name"] = *config.CollaborationBranch
-				}
-				if config.HostName != nil {
-					settings["git_url"] = *config.HostName
-				}
-				if config.RepositoryName != nil {
-					settings["repository_name"] = *config.RepositoryName
-				}
-				if config.RootFolder != nil {
-					settings["root_folder"] = *config.RootFolder
-				}
-				return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration, append(result, settings)
-			}
-			if config, test := repo.AsFactoryVSTSConfiguration(); test {
-				if config.AccountName != nil {
-					settings["account_name"] = *config.AccountName
-				}
-				if config.CollaborationBranch != nil {
-					settings["branch_name"] = *config.CollaborationBranch
-				}
-				if config.ProjectName != nil {
-					settings["project_name"] = *config.ProjectName
-				}
-				if config.RepositoryName != nil {
-					settings["repository_name"] = *config.RepositoryName
-				}
-				if config.RootFolder != nil {
-					settings["root_folder"] = *config.RootFolder
-				}
-				if config.TenantID != nil {
-					settings["tenant_id"] = *config.TenantID
-				}
-				return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration, append(result, settings)
-			}
-		}
-	}
-	return datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration, result
-}
-
-func expandIdentity(input []interface{}) (*datafactory.FactoryIdentity, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
+func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParameterSpecification) (*[]interface{}, error) {
+	output := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return &output, nil
 	}
 
-	if expanded.Type == identity.TypeNone {
-		return nil, nil
-	}
-
-	out := datafactory.FactoryIdentity{
-		Type: datafactory.FactoryIdentityType(string(expanded.Type)),
-	}
-
-	// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.Type = datafactory.FactoryIdentityTypeSystemAssignedUserAssigned
-	}
-	if len(expanded.IdentityIds) > 0 {
-		userAssignedIdentities := make(map[string]interface{})
-		for id := range expanded.IdentityIds {
-			userAssignedIdentities[id] = make(map[string]interface{})
-		}
-		out.UserAssignedIdentities = userAssignedIdentities
-	}
-
-	return &out, nil
-}
-
-func flattenIdentity(input *datafactory.FactoryIdentity) (interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: nil,
-		}
-
-		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-		if input.Type == datafactory.FactoryIdentityTypeSystemAssignedUserAssigned {
-			transform.Type = identity.TypeSystemAssignedUserAssigned
-		}
-
-		if input.PrincipalID != nil {
-			transform.PrincipalId = input.PrincipalID.String()
-		}
-		if input.TenantID != nil {
-			transform.TenantId = input.TenantID.String()
-		}
-		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
-		for k := range input.UserAssignedIdentities {
-			identityIds[k] = identity.UserAssignedIdentityDetails{
-				// since v is an `interface{}` there's no guarantee this is returned
-			}
-		}
-
-		transform.IdentityIds = identityIds
-	}
-
-	return identity.FlattenSystemAndUserAssignedMap(transform)
-}
-
-func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalParameterSpecification) []interface{} {
-	if len(input) == 0 {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for name, item := range input {
+	for name, item := range *input {
 		var valueResult string
-		typeResult := azure.TitleCase(string(item.Type))
-
-		if (typeResult == "Array" || typeResult == "Object") && reflect.TypeOf(item.Value).Name() != "string" {
-			j, _ := json.Marshal(item.Value)
-			valueResult = string(j)
+		_, valueIsString := item.Value.(string)
+		if (item.Type == factories.GlobalParameterTypeArray || item.Type == factories.GlobalParameterTypeObject) && !valueIsString {
+			bytes, err := json.Marshal(item.Value)
+			if err != nil {
+				return nil, fmt.Errorf("marshalling value for global parameter %q (value %+v): %+v", name, item.Value, err)
+			}
+			valueResult = string(bytes)
 		} else {
 			valueResult = fmt.Sprintf("%v", item.Value)
 		}
 
-		result = append(result, map[string]interface{}{
+		output = append(output, map[string]interface{}{
 			"name":  name,
-			"type":  typeResult,
+			"type":  string(item.Type),
 			"value": valueResult,
 		})
 	}
-	return result
+	return &output, nil
 }
 
-// Only one VNet is allowed per factory
-func getManagedVirtualNetworkName(ctx context.Context, client *datafactory.ManagedVirtualNetworksClient, resourceGroup, factoryName string) (*string, error) {
-	resp, err := client.ListByFactory(ctx, resourceGroup, factoryName)
+func getManagedVirtualNetworkName(ctx context.Context, client *managedvirtualnetworks.ManagedVirtualNetworksClient, subscriptionId, resourceGroup, factoryName string) (*string, error) {
+	factoryId := managedvirtualnetworks.NewFactoryID(subscriptionId, resourceGroup, factoryName)
+	resp, err := client.ListByFactory(ctx, factoryId)
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.Values()) == 0 {
-		return nil, nil
+
+	if model := resp.Model; model != nil {
+		for _, v := range *model {
+			if v.Name == nil {
+				continue
+			}
+
+			return v.Name, nil
+		}
 	}
-	managedVirtualNetwork := resp.Values()[0]
-	return managedVirtualNetwork.Name, nil
+
+	return nil, nil
+}
+
+func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHubConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	item := input[0].(map[string]interface{})
+	return &factories.FactoryGitHubConfiguration{
+		AccountName:         item["account_name"].(string),
+		CollaborationBranch: item["branch_name"].(string),
+		DisablePublish:      pointer.To(!item["publishing_enabled"].(bool)),
+		HostName:            pointer.To(item["git_url"].(string)),
+		RepositoryName:      item["repository_name"].(string),
+		RootFolder:          item["root_folder"].(string),
+	}
+}
+
+func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []interface{} {
+	output := make([]interface{}, 0)
+
+	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
+		gitUrl := ""
+		if v.HostName != nil {
+			gitUrl = *v.HostName
+		}
+		publishingEnabled := true
+		if v.DisablePublish != nil {
+			publishingEnabled = !*v.DisablePublish
+		}
+		output = append(output, map[string]interface{}{
+			"account_name":       v.AccountName,
+			"branch_name":        v.CollaborationBranch,
+			"git_url":            gitUrl,
+			"publishing_enabled": publishingEnabled,
+			"repository_name":    v.RepositoryName,
+			"root_folder":        v.RootFolder,
+		})
+	}
+
+	return output
+}
+
+func expandVSTSRepoConfiguration(input []interface{}) *factories.FactoryVSTSConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	item := input[0].(map[string]interface{})
+	return &factories.FactoryVSTSConfiguration{
+		AccountName:         item["account_name"].(string),
+		CollaborationBranch: item["branch_name"].(string),
+		DisablePublish:      pointer.To(!item["publishing_enabled"].(bool)),
+		ProjectName:         item["project_name"].(string),
+		RepositoryName:      item["repository_name"].(string),
+		RootFolder:          item["root_folder"].(string),
+		TenantId:            pointer.To(item["tenant_id"].(string)),
+	}
+}
+
+func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []interface{} {
+	output := make([]interface{}, 0)
+
+	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
+		tenantId := ""
+		if v.TenantId != nil {
+			tenantId = *v.TenantId
+		}
+		publishingEnabled := true
+		if v.DisablePublish != nil {
+			publishingEnabled = !*v.DisablePublish
+		}
+		output = append(output, map[string]interface{}{
+			"account_name":       v.AccountName,
+			"branch_name":        v.CollaborationBranch,
+			"project_name":       v.ProjectName,
+			"publishing_enabled": publishingEnabled,
+			"repository_name":    v.RepositoryName,
+			"root_folder":        v.RootFolder,
+			"tenant_id":          tenantId,
+		})
+	}
+
+	return output
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -38,7 +39,7 @@ func (r ListByManagedClusterOperationResponse) LoadMore(ctx context.Context) (re
 }
 
 // ListByManagedCluster ...
-func (c MaintenanceConfigurationsClient) ListByManagedCluster(ctx context.Context, id ManagedClusterId) (resp ListByManagedClusterOperationResponse, err error) {
+func (c MaintenanceConfigurationsClient) ListByManagedCluster(ctx context.Context, id commonids.KubernetesClusterId) (resp ListByManagedClusterOperationResponse, err error) {
 	req, err := c.preparerForListByManagedCluster(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenanceconfigurations.MaintenanceConfigurationsClient", "ListByManagedCluster", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c MaintenanceConfigurationsClient) ListByManagedCluster(ctx context.Contex
 }
 
 // preparerForListByManagedCluster prepares the ListByManagedCluster request.
-func (c MaintenanceConfigurationsClient) preparerForListByManagedCluster(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c MaintenanceConfigurationsClient) preparerForListByManagedCluster(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,12 +143,12 @@ func (c MaintenanceConfigurationsClient) responderForListByManagedCluster(resp *
 }
 
 // ListByManagedClusterComplete retrieves all of the results into a single object
-func (c MaintenanceConfigurationsClient) ListByManagedClusterComplete(ctx context.Context, id ManagedClusterId) (ListByManagedClusterCompleteResult, error) {
+func (c MaintenanceConfigurationsClient) ListByManagedClusterComplete(ctx context.Context, id commonids.KubernetesClusterId) (ListByManagedClusterCompleteResult, error) {
 	return c.ListByManagedClusterCompleteMatchingPredicate(ctx, id, MaintenanceConfigurationOperationPredicate{})
 }
 
 // ListByManagedClusterCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c MaintenanceConfigurationsClient) ListByManagedClusterCompleteMatchingPredicate(ctx context.Context, id ManagedClusterId, predicate MaintenanceConfigurationOperationPredicate) (resp ListByManagedClusterCompleteResult, err error) {
+func (c MaintenanceConfigurationsClient) ListByManagedClusterCompleteMatchingPredicate(ctx context.Context, id commonids.KubernetesClusterId, predicate MaintenanceConfigurationOperationPredicate) (resp ListByManagedClusterCompleteResult, err error) {
 	items := make([]MaintenanceConfiguration, 0)
 
 	page, err := c.ListByManagedCluster(ctx, id)

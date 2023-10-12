@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_sql_server" "example" {
+resource "azurerm_mssql_server" "example" {
   name                         = "my-sql-server"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = azurerm_resource_group.example.location
@@ -31,7 +31,7 @@ resource "azurerm_mssql_elasticpool" "example" {
   name                = "test-epool"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  server_name         = azurerm_sql_server.example.name
+  server_name         = azurerm_mssql_server.example.name
   license_type        = "LicenseIncluded"
   max_size_gb         = 756
 
@@ -78,8 +78,6 @@ The following arguments are supported:
 * `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based or `BusinessCritical` for `vCore` based `sku`.
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
-
--> **Note:** `license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`
 
 ---
 

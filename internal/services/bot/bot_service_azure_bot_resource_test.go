@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package bot_test
 
 import (
@@ -180,12 +183,13 @@ resource "azurerm_application_insights_api_key" "test" {
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
-  name                = "acctestdf%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "global"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
-  sku                 = "F0"
-
+  name                                  = "acctestdf%[1]d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = "global"
+  microsoft_app_id                      = data.azurerm_client_config.current.client_id
+  sku                                   = "F0"
+  local_authentication_enabled          = false
+  icon_url                              = "https://registry.terraform.io/images/providers/azure.png"
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id

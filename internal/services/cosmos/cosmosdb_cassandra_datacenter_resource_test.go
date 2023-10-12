@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos_test
 
 import (
@@ -5,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -21,9 +25,10 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 3),
+			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -52,21 +57,83 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 	})
 }
 
+func testAccCassandraDatacenter_updateSku(t *testing.T) {
+	// Regression test case for MS IcM
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
+	r := CassandraDatacenterResource{}
+
+	if !features.FourPointOhBeta() {
+		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basicSku(data, "Standard_DS14_v2"),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basicSku(data, "Standard_DS13_v2"),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS13_v2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basicSku(data, "Standard_DS14_v2"),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_DS14_v2"),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basicSku(data, "Standard_E2_v5"),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E2_v5"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+				),
+			},
+			data.ImportStep(),
+		})
+	}
+}
+
 func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CassandraDatacenterID(state.ID)
+	id, err := managedcassandras.ParseDataCenterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraDatacentersClient.Get(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName)
+	resp, err := clients.Cosmos.ManagedCassandraClient.CassandraDataCentersGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r CassandraDatacenterResource) basic(data acceptance.TestData, nodeCount int) string {
+func (r CassandraDatacenterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -75,12 +142,28 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
   location                       = azurerm_cosmosdb_cassandra_cluster.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
-  node_count                     = %d
+  node_count                     = 3
   disk_count                     = 4
-  sku_name                       = "Standard_DS14_v2"
   availability_zones_enabled     = false
 }
-`, r.template(data), data.RandomInteger, nodeCount)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CassandraDatacenterResource) basicSku(data acceptance.TestData, skuName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
+  name                           = "acctca-mi-dc-%d"
+  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  node_count                     = 3
+  disk_count                     = 4
+  sku_name                       = "%s"
+  availability_zones_enabled     = false
+}
+`, r.template(data), data.RandomInteger, skuName)
 }
 
 func (r CassandraDatacenterResource) complete(data acceptance.TestData, nodeCount int) string {
@@ -113,7 +196,8 @@ resource "azurerm_key_vault_access_policy" "current_user" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 
@@ -131,7 +215,8 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 
@@ -207,7 +292,8 @@ resource "azurerm_key_vault_access_policy" "current_user" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 
@@ -225,7 +311,8 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
     "Recover",
     "Update",
     "WrapKey",
-    "UnwrapKey"
+    "UnwrapKey",
+    "GetRotationPolicy"
   ]
 }
 
@@ -301,7 +388,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ca-%d"
+  name     = "acctestRG-cassandra-%d"
   location = "%s"
 }
 

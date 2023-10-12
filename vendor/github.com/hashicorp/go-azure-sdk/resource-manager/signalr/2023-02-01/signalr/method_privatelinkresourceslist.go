@@ -25,7 +25,7 @@ type PrivateLinkResourcesListCompleteResult struct {
 // PrivateLinkResourcesList ...
 func (c SignalRClient) PrivateLinkResourcesList(ctx context.Context, id SignalRId) (result PrivateLinkResourcesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

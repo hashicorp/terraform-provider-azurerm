@@ -23,7 +23,7 @@ type EnableAzureMonitorOperationResponse struct {
 // EnableAzureMonitor ...
 func (c ExtensionsClient) EnableAzureMonitor(ctx context.Context, id ClusterId, input AzureMonitorRequest) (result EnableAzureMonitorOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

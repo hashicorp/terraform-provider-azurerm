@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch_test
 
 import (
@@ -59,7 +62,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
+  name     = "acctestRG-batch-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "test" {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package videoanalyzer
 
 import (
@@ -13,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -62,7 +64,7 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 						"id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: storageValidate.StorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"user_assigned_identity_id": {

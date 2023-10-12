@@ -85,6 +85,16 @@ func DataLakeAPI(domainSuffix string) Api {
 	}
 }
 
+func IoTCentral(domainSuffix string) Api {
+	return &ApiEndpoint{
+		domainSuffix:       pointer.To(domainSuffix),
+		endpoint:           nil,
+		appId:              pointer.To(iotCentralAppId),
+		name:               "IoTCentral",
+		resourceIdentifier: pointer.To("https://apps.azureiotcentral.com"),
+	}
+}
+
 func KeyVaultAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices
 
 import (
@@ -45,10 +48,13 @@ func (r VaultGuardProxyResource) ResourceType() string {
 
 func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		// todo 4.0: remove the `name` field as the service only allow create `VaultProxy`
 		"name": {
+			Deprecated:   "The `name` field will be removed in v4.0 of the AzureRM Provider.",
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
+			Default:      "VaultProxy",
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

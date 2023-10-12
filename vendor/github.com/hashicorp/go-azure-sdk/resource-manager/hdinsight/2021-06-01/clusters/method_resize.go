@@ -23,7 +23,7 @@ type ResizeOperationResponse struct {
 // Resize ...
 func (c ClustersClient) Resize(ctx context.Context, id ClusterId, input ClusterResizeParameters) (result ResizeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -181,17 +184,17 @@ func TestAccStorageAccountNetworkRules_redeploy(t *testing.T) {
 }
 
 func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageAccountID(state.ID)
+	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if resp.AccountProperties == nil {

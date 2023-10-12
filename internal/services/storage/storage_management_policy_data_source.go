@@ -1,14 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
@@ -196,19 +200,19 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 }
 
 func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
+	storageAccountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default")
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
+	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, "default")
+	resp, err := client.Get(ctx, *storageAccountId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -217,9 +221,9 @@ func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(id.ID())
 
-	if props := resp.ManagementPolicyProperties; props != nil {
-		if policy := props.Policy; policy != nil {
-			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if err := d.Set("rule", flattenStorageManagementPolicyRules(props.Policy.Rules)); err != nil {
 				return fmt.Errorf("flattening `rule`: %+v", err)
 			}
 		}

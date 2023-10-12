@@ -23,7 +23,7 @@ type ExecuteScriptActionsOperationResponse struct {
 // ExecuteScriptActions ...
 func (c ClustersClient) ExecuteScriptActions(ctx context.Context, id ClusterId, input ExecuteScriptActionParameters) (result ExecuteScriptActionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

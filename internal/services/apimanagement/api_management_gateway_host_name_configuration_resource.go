@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,16 +8,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gatewayhostnameconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
@@ -25,7 +29,7 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 		Delete: resourceApiManagementGatewayHostNameConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.GatewayHostNameConfigurationID(id)
+			_, err := gatewayhostnameconfiguration.ParseHostnameConfigurationID(id)
 			return err
 		}),
 
@@ -43,7 +47,7 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementID,
+				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
 			"gateway_name": schemaz.SchemaApiManagementChildName(),
@@ -89,38 +93,38 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apimId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
+	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
 
-	id := parse.NewGatewayHostNameConfigurationID(apimId.SubscriptionId, apimId.ResourceGroup, apimId.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string))
+	id := gatewayhostnameconfiguration.NewHostnameConfigurationID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, d.Get("name").(string))
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_gateway_host_name_configuration", id.ID())
 		}
 	}
 
-	parameters := apimanagement.GatewayHostnameConfigurationContract{
-		GatewayHostnameConfigurationContractProperties: &apimanagement.GatewayHostnameConfigurationContractProperties{
-			Hostname:                   utils.String(d.Get("host_name").(string)),
-			CertificateID:              utils.String(d.Get("certificate_id").(string)),
-			NegotiateClientCertificate: utils.Bool(d.Get("request_client_certificate_enabled").(bool)),
-			TLS10Enabled:               utils.Bool(d.Get("tls10_enabled").(bool)),
-			TLS11Enabled:               utils.Bool(d.Get("tls11_enabled").(bool)),
-			HTTP2Enabled:               utils.Bool(d.Get("http2_enabled").(bool)),
+	parameters := gatewayhostnameconfiguration.GatewayHostnameConfigurationContract{
+		Properties: &gatewayhostnameconfiguration.GatewayHostnameConfigurationContractProperties{
+			Hostname:                   pointer.To(d.Get("host_name").(string)),
+			CertificateId:              pointer.To(d.Get("certificate_id").(string)),
+			NegotiateClientCertificate: pointer.To(d.Get("request_client_certificate_enabled").(bool)),
+			Tls10Enabled:               pointer.To(d.Get("tls10_enabled").(bool)),
+			Tls11Enabled:               pointer.To(d.Get("tls11_enabled").(bool)),
+			HTTP2Enabled:               pointer.To(d.Get("http2_enabled").(bool)),
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string), parameters, "")
+	_, err = client.CreateOrUpdate(ctx, id, parameters, gatewayhostnameconfiguration.CreateOrUpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
@@ -135,14 +139,14 @@ func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GatewayHostNameConfigurationID(d.Id())
+	id, err := gatewayhostnameconfiguration.ParseHostnameConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.HostnameConfigurationName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -151,19 +155,21 @@ func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.Resource
 		return fmt.Errorf("making read request for %s: %+v", *id, err)
 	}
 
-	apimId := parse.NewApiManagementID(id.SubscriptionId, id.ResourceGroup, id.ServiceName)
+	apimId := apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
 
-	d.Set("name", resp.Name)
 	d.Set("api_management_id", apimId.ID())
-	d.Set("gateway_name", id.GatewayName)
+	d.Set("gateway_name", id.GatewayId)
 
-	if properties := resp.GatewayHostnameConfigurationContractProperties; properties != nil {
-		d.Set("host_name", properties.Hostname)
-		d.Set("certificate_id", properties.CertificateID)
-		d.Set("request_client_certificate_enabled", properties.NegotiateClientCertificate)
-		d.Set("tls10_enabled", properties.TLS10Enabled)
-		d.Set("tls11_enabled", properties.TLS11Enabled)
-		d.Set("http2_enabled", properties.HTTP2Enabled)
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if properties := model.Properties; properties != nil {
+			d.Set("host_name", pointer.From(properties.Hostname))
+			d.Set("certificate_id", pointer.From(properties.CertificateId))
+			d.Set("request_client_certificate_enabled", pointer.From(properties.NegotiateClientCertificate))
+			d.Set("tls10_enabled", pointer.From(properties.Tls10Enabled))
+			d.Set("tls11_enabled", pointer.From(properties.Tls11Enabled))
+			d.Set("http2_enabled", pointer.From(properties.HTTP2Enabled))
+		}
 	}
 
 	return nil
@@ -174,14 +180,14 @@ func resourceApiManagementGatewayHostNameConfigurationDelete(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GatewayHostNameConfigurationID(d.Id())
+	id, err := gatewayhostnameconfiguration.ParseHostnameConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Deleting %s", *id)
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.HostnameConfigurationName, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, gatewayhostnameconfiguration.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

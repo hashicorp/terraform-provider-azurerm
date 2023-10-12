@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,16 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/group"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementGroup() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 		Update: resourceApiManagementGroupCreateUpdate,
 		Delete: resourceApiManagementGroupDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.GroupID(id)
+			_, err := group.ParseGroupID(id)
 			return err
 		}),
 
@@ -63,11 +66,11 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(apimanagement.GroupTypeCustom),
+				Default:  string(group.GroupTypeCustom),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.GroupTypeCustom),
-					string(apimanagement.GroupTypeExternal),
-					string(apimanagement.GroupTypeSystem),
+					string(group.GroupTypeCustom),
+					string(group.GroupTypeExternal),
+					string(group.GroupTypeSystem),
 				}, false),
 			},
 		},
@@ -80,7 +83,7 @@ func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	id := group.NewGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
@@ -88,28 +91,28 @@ func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	groupType := d.Get("type").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_group", id.ID())
 		}
 	}
 
-	parameters := apimanagement.GroupCreateParameters{
-		GroupCreateParametersProperties: &apimanagement.GroupCreateParametersProperties{
-			DisplayName: utils.String(displayName),
-			Description: utils.String(description),
-			ExternalID:  utils.String(externalID),
-			Type:        apimanagement.GroupType(groupType),
+	parameters := group.GroupCreateParameters{
+		Properties: &group.GroupCreateParametersProperties{
+			DisplayName: displayName,
+			Description: pointer.To(description),
+			ExternalId:  pointer.To(externalID),
+			Type:        pointer.To(group.GroupType(groupType)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, group.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
@@ -123,31 +126,32 @@ func resourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GroupID(d.Id())
+	id, err := group.ParseGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("making Read request for %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if properties := resp.GroupContractProperties; properties != nil {
-		d.Set("display_name", properties.DisplayName)
-		d.Set("description", properties.Description)
-		d.Set("external_id", properties.ExternalID)
-		d.Set("type", string(properties.Type))
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if properties := model.Properties; properties != nil {
+			d.Set("display_name", properties.DisplayName)
+			d.Set("description", properties.Description)
+			d.Set("external_id", properties.ExternalId)
+			d.Set("type", string(pointer.From(properties.Type)))
+		}
 	}
 
 	return nil
@@ -158,13 +162,13 @@ func resourceApiManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GroupID(d.Id())
+	id, err := group.ParseGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, group.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

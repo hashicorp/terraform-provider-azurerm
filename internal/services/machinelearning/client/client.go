@@ -1,31 +1,45 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ComputeClient    *machinelearningcomputes.MachineLearningComputesClient
-	WorkspacesClient *workspaces.WorkspacesClient
-	DatastoreClient  *datastore.DatastoreClient
+	Datastore               *datastore.DatastoreClient
+	MachineLearningComputes *machinelearningcomputes.MachineLearningComputesClient
+	Workspaces              *workspaces.WorkspacesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	ComputeClient := machinelearningcomputes.NewMachineLearningComputesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ComputeClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	datastoreClient, err := datastore.NewDatastoreClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Datastore client: %+v", err)
+	}
+	o.Configure(datastoreClient.Client, o.Authorizers.ResourceManager)
 
-	WorkspacesClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspaces client: %+v", err)
+	}
+	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
 
-	DatastoreClient := datastore.NewDatastoreClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DatastoreClient.Client, o.ResourceManagerAuthorizer)
+	computesClient, err := machinelearningcomputes.NewMachineLearningComputesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building MachineLearningComputes client: %+v", err)
+	}
+	o.Configure(computesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ComputeClient:    &ComputeClient,
-		WorkspacesClient: &WorkspacesClient,
-		DatastoreClient:  &DatastoreClient,
-	}
+		MachineLearningComputes: computesClient,
+		Datastore:               datastoreClient,
+		Workspaces:              workspacesClient,
+	}, nil
 }

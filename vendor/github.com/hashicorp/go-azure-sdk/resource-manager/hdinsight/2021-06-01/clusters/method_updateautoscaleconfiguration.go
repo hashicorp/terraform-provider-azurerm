@@ -23,7 +23,7 @@ type UpdateAutoScaleConfigurationOperationResponse struct {
 // UpdateAutoScaleConfiguration ...
 func (c ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, id ClusterId, input AutoscaleConfigurationUpdateParameter) (result UpdateAutoScaleConfigurationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -7,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -18,12 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppSlotResource struct{}
@@ -62,6 +64,7 @@ type LinuxFunctionAppSlotModel struct {
 	OutboundIPAddressList         []string                                 `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string                                   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                 `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess           bool                                     `tfschema:"public_network_access_enabled"`
 	SiteCredentials               []helpers.SiteCredential                 `tfschema:"site_credential"`
 	StorageAccounts               []helpers.StorageAccount                 `tfschema:"storage_account"`
 }
@@ -244,6 +247,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchema(),
@@ -253,7 +262,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 	}
 }
@@ -485,8 +494,18 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: pointer.To(int32(functionAppSlot.DailyMemoryTimeQuota)),
+					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				},
 			}
+
+			pan := helpers.PublicNetworkAccessEnabled
+			if !functionAppSlot.PublicNetworkAccess {
+				pan = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+			siteEnvelope.PublicNetworkAccess = pointer.To(pan)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(functionAppSlot.KeyVaultReferenceIdentityID)
@@ -658,6 +677,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
 				DefaultHostname:             pointer.From(props.DefaultHostName),
+				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -902,6 +922,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
 				existing.SiteConfig = siteConfig
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
@@ -909,6 +930,17 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pan := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pan = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+				existing.PublicNetworkAccess = pointer.To(pan)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
+			}
 
 			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
 			if err != nil {

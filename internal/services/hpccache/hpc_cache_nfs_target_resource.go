@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package hpccache
 
 import (
@@ -103,6 +106,8 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"READ_HEAVY_INFREQ",
 					"READ_HEAVY_CHECK_180",
+					"READ_ONLY",
+					"READ_WRITE",
 					"WRITE_WORKLOAD_15",
 					"WRITE_AROUND",
 					"WRITE_WORKLOAD_CHECK_30",

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration
 
 import (
@@ -95,7 +98,7 @@ func (p ClientFilter) MarshalJSON() ([]byte, error) {
 }
 
 type PercentageFilterParameters struct {
-	Value int `json:"Value"`
+	Value float64 `json:"Value"`
 }
 
 type PercentageFeatureFilter struct {

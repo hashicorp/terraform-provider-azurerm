@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -34,7 +37,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -312,7 +315,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					//lintignore:XS003
+					// lintignore:XS003
 					"peering_addresses": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -362,7 +365,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"custom_route": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

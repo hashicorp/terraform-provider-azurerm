@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package redis
 
 import (
@@ -10,21 +13,20 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -126,7 +128,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"private_static_ip_address": {
@@ -433,7 +435,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
-		parsed, parseErr := networkParse.SubnetID(v.(string))
+		parsed, parseErr := commonids.ParseSubnetID(v.(string))
 		if parseErr != nil {
 			return err
 		}
@@ -441,8 +443,8 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(parsed.Name, network.SubnetResourceName)
-		defer locks.UnlockByName(parsed.Name, network.SubnetResourceName)
+		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
 
 		parameters.Properties.SubnetId = utils.String(v.(string))
 	}
@@ -599,18 +601,20 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	patchSchedule := expandRedisPatchSchedule(d)
+	if d.HasChange("patch_schedule") {
+		patchSchedule := expandRedisPatchSchedule(d)
 
-	patchSchedulesRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
-	if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
-		_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
-		if err != nil {
-			return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
-		}
-	} else {
-		_, err = patchClient.CreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
-		if err != nil {
-			return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
+		patchSchedulesRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+		if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
+			_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
+			if err != nil {
+				return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
+			}
+		} else {
+			_, err = patchClient.CreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
+			if err != nil {
+				return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
+			}
 		}
 	}
 
@@ -689,7 +693,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		subnetId := ""
 		if props.SubnetId != nil {
-			parsed, err := networkParse.SubnetIDInsensitively(*props.SubnetId)
+			parsed, err := commonids.ParseSubnetIDInsensitively(*props.SubnetId)
 			if err != nil {
 				return err
 			}
@@ -748,7 +752,7 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
 	if subnetID := read.Model.Properties.SubnetId; subnetID != nil {
-		parsed, parseErr := networkParse.SubnetIDInsensitively(*subnetID)
+		parsed, parseErr := commonids.ParseSubnetIDInsensitively(*subnetID)
 		if parseErr != nil {
 			return err
 		}
@@ -756,8 +760,8 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(parsed.Name, network.SubnetResourceName)
-		defer locks.UnlockByName(parsed.Name, network.SubnetResourceName)
+		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
@@ -794,6 +798,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		return output, nil
 	}
 	raw := input[0].(map[string]interface{})
+	skuName := d.Get("sku_name").(string)
 
 	if v := raw["maxclients"].(int); v > 0 {
 		output.Maxclients = utils.String(strconv.Itoa(v))
@@ -821,12 +826,19 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	// nolint : staticcheck
 	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
-		if v := raw["rdb_backup_enabled"].(bool); v {
-			if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
-				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+		rdbBackupEnabled := v.(bool)
+
+		// rdb_backup_enabled is available when SKU is Premium
+		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			if rdbBackupEnabled {
+				if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
+					return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+				}
 			}
+			output.RdbBackupEnabled = utils.String(strconv.FormatBool(rdbBackupEnabled))
+		} else if rdbBackupEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			return nil, fmt.Errorf("The `rdb_backup_enabled` property requires a `Premium` sku to be set")
 		}
-		output.RdbBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {
@@ -849,7 +861,10 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	// nolint : staticcheck
 	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
 	if valExists {
-		output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+		// aof_backup_enabled is available when SKU is Premium
+		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+		}
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {

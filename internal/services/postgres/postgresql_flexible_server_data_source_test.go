@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres_test
 
 import (
@@ -19,6 +22,7 @@ func TestAccDataSourcePostgresqlflexibleServer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("administrator_login").Exists(),
+				check.That(data.ResourceName).Key("auto_grow_enabled").Exists(),
 				check.That(data.ResourceName).Key("sku_name").Exists(),
 				check.That(data.ResourceName).Key("storage_mb").Exists(),
 				check.That(data.ResourceName).Key("version").Exists(),

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall
 
 import (
@@ -5,7 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
@@ -64,8 +69,8 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallRCActionTypeAllow),
-					string(network.AzureFirewallRCActionTypeDeny),
+					string(azurefirewalls.AzureFirewallRCActionTypeAllow),
+					string(azurefirewalls.AzureFirewallRCActionTypeDeny),
 				}, false),
 			},
 
@@ -114,9 +119,9 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.AzureFirewallApplicationRuleProtocolTypeHTTP),
-											string(network.AzureFirewallApplicationRuleProtocolTypeHTTPS),
-											string(network.AzureFirewallApplicationRuleProtocolTypeMssql),
+											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeHTTP),
+											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeHTTPS),
+											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeMssql),
 										}, false),
 									},
 									"port": {
@@ -135,7 +140,8 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 }
 
 func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
+	client := meta.(*clients.Client).Firewall.Client.AzureFirewalls
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -150,29 +156,35 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 	locks.ByName(firewallName, AzureFirewallResourceName)
 	defer locks.UnlockByName(firewallName, AzureFirewallResourceName)
 
-	firewall, err := client.Get(ctx, resourceGroup, firewallName)
+	firewallId := azurefirewalls.NewAzureFirewallID(subscriptionId, resourceGroup, firewallName)
+
+	firewall, err := client.Get(ctx, firewallId)
 	if err != nil {
 		return fmt.Errorf("retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
 
-	if firewall.AzureFirewallPropertiesFormat == nil {
-		return fmt.Errorf("retrieving Application Rule Collections (Firewall %q / Resource Group %q): `properties` was nil", firewallName, resourceGroup)
+	if firewall.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", firewallId)
 	}
-	props := *firewall.AzureFirewallPropertiesFormat
+
+	if firewall.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `props` was nil", firewallId)
+	}
+	props := *firewall.Model.Properties
 
 	if props.ApplicationRuleCollections == nil {
-		return fmt.Errorf("retrieving Application Rule Collections (Firewall %q / Resource Group %q): `properties.ApplicationRuleCollections` was nil", firewallName, resourceGroup)
+		return fmt.Errorf("retrieving %s: `props.ApplicationRuleCollections` was nil", firewallId)
 	}
 	ruleCollections := *props.ApplicationRuleCollections
 
 	priority := d.Get("priority").(int)
-	newRuleCollection := network.AzureFirewallApplicationRuleCollection{
+	newRuleCollection := azurefirewalls.AzureFirewallApplicationRuleCollection{
 		Name: utils.String(name),
-		AzureFirewallApplicationRuleCollectionPropertiesFormat: &network.AzureFirewallApplicationRuleCollectionPropertiesFormat{
-			Action: &network.AzureFirewallRCAction{
-				Type: network.AzureFirewallRCActionType(d.Get("action").(string)),
+		Properties: &azurefirewalls.AzureFirewallApplicationRuleCollectionPropertiesFormat{
+			Action: &azurefirewalls.AzureFirewallRCAction{
+				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
 			},
-			Priority: utils.Int32(int32(priority)),
+			Priority: utils.Int64(int64(priority)),
 			Rules:    applicationRules,
 		},
 	}
@@ -180,13 +192,13 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 	index := -1
 	var id string
 	for i, v := range ruleCollections {
-		if v.Name == nil || v.ID == nil {
+		if v.Name == nil || v.Id == nil {
 			continue
 		}
 
 		if *v.Name == name {
 			index = i
-			id = *v.ID
+			id = *v.Id
 			break
 		}
 	}
@@ -205,24 +217,24 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 		ruleCollections = append(ruleCollections, newRuleCollection)
 	}
 
-	firewall.AzureFirewallPropertiesFormat.ApplicationRuleCollections = &ruleCollections
+	firewall.Model.Properties.ApplicationRuleCollections = &ruleCollections
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
-	if err != nil {
-		return fmt.Errorf("creating/updating Application Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+		return fmt.Errorf("creating/updating Application Rule Collection %q in %s: %+v", name, firewallId, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Application Rule Collection %q of Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, firewallName)
+	read, err := client.Get(ctx, firewallId)
 	if err != nil {
 		return fmt.Errorf("retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
 
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", firewallId)
+
+	}
+
 	var collectionID string
-	if props := read.AzureFirewallPropertiesFormat; props != nil {
+	if props := read.Model.Properties; props != nil {
 		if collections := props.ApplicationRuleCollections; collections != nil {
 			for _, collection := range *collections {
 				if collection.Name == nil {
@@ -230,7 +242,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 				}
 
 				if *collection.Name == name {
-					collectionID = *collection.ID
+					collectionID = *collection.Id
 					break
 				}
 			}
@@ -246,7 +258,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 }
 
 func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
+	client := meta.(*clients.Client).Firewall.AzureFirewalls
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -255,26 +267,32 @@ func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
+	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
+
+	read, err := client.Get(ctx, firewallId)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(read.HttpResponse) {
 			log.Printf("[DEBUG] Azure Firewall %q (Resource Group %q) was not found - removing from state!", id.ApplicationRuleCollectionName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Azure Firewall %q (Resource Group %q): %+v", id.ApplicationRuleCollectionName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if read.AzureFirewallPropertiesFormat == nil {
+	if read.Model == nil {
+		return fmt.Errorf("retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `model` was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
+	}
+
+	if read.Model.Properties == nil {
 		return fmt.Errorf("retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
-	props := *read.AzureFirewallPropertiesFormat
+	props := *read.Model.Properties
 
 	if props.ApplicationRuleCollections == nil {
 		return fmt.Errorf("retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `props.ApplicationRuleCollections` was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
-	var rule *network.AzureFirewallApplicationRuleCollection
+	var rule *azurefirewalls.AzureFirewallApplicationRuleCollection
 	for _, r := range *props.ApplicationRuleCollections {
 		if r.Name == nil {
 			continue
@@ -296,9 +314,9 @@ func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, me
 	d.Set("azure_firewall_name", id.AzureFirewallName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := rule.AzureFirewallApplicationRuleCollectionPropertiesFormat; props != nil {
+	if props := rule.Properties; props != nil {
 		if action := props.Action; action != nil {
-			d.Set("action", string(action.Type))
+			d.Set("action", string(pointer.From(action.Type)))
 		}
 
 		if priority := props.Priority; priority != nil {
@@ -315,7 +333,7 @@ func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
+	client := meta.(*clients.Client).Firewall.Client.AzureFirewalls
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -327,9 +345,11 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
 	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
 
-	firewall, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
+	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
+
+	firewall, err := client.Get(ctx, firewallId)
 	if err != nil {
-		if utils.ResponseWasNotFound(firewall.Response) {
+		if response.WasNotFound(firewall.HttpResponse) {
 			// assume deleted
 			return nil
 		}
@@ -337,7 +357,11 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("making Read request on Azure Firewall %s : %+v", *id, err)
 	}
 
-	props := firewall.AzureFirewallPropertiesFormat
+	if firewall.Model == nil {
+		return fmt.Errorf("retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `model` was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
+	}
+
+	props := firewall.Model.Properties
 	if props == nil {
 		return fmt.Errorf("retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
@@ -345,7 +369,7 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `props.ApplicationRuleCollections` was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
-	applicationRules := make([]network.AzureFirewallApplicationRuleCollection, 0)
+	applicationRules := make([]azurefirewalls.AzureFirewallApplicationRuleCollection, 0)
 	for _, rule := range *props.ApplicationRuleCollections {
 		if rule.Name == nil {
 			continue
@@ -357,20 +381,15 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 	}
 	props.ApplicationRuleCollections = &applicationRules
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AzureFirewallName, firewall)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
 		return fmt.Errorf("deleting Application Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Application Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirewallApplicationRule, error) {
-	outputs := make([]network.AzureFirewallApplicationRule, 0)
+func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.AzureFirewallApplicationRule, error) {
+	outputs := make([]azurefirewalls.AzureFirewallApplicationRule, 0)
 
 	for _, input := range inputs {
 		rule := input.(map[string]interface{})
@@ -382,7 +401,7 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirew
 		ruleFqdnTags := rule["fqdn_tags"].([]interface{})
 		ruleTargetFqdns := rule["target_fqdns"].([]interface{})
 
-		output := network.AzureFirewallApplicationRule{
+		output := azurefirewalls.AzureFirewallApplicationRule{
 			Name:            utils.String(ruleName),
 			Description:     utils.String(ruleDescription),
 			SourceAddresses: utils.ExpandStringSlice(ruleSourceAddresses),
@@ -391,13 +410,13 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirew
 			TargetFqdns:     utils.ExpandStringSlice(ruleTargetFqdns),
 		}
 
-		ruleProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)
+		ruleProtocols := make([]azurefirewalls.AzureFirewallApplicationRuleProtocol, 0)
 		for _, v := range rule["protocol"].([]interface{}) {
 			protocol := v.(map[string]interface{})
 			port := protocol["port"].(int)
-			ruleProtocol := network.AzureFirewallApplicationRuleProtocol{
-				Port:         utils.Int32(int32(port)),
-				ProtocolType: network.AzureFirewallApplicationRuleProtocolType(protocol["type"].(string)),
+			ruleProtocol := azurefirewalls.AzureFirewallApplicationRuleProtocol{
+				Port:         utils.Int64(int64(port)),
+				ProtocolType: pointer.To(azurefirewalls.AzureFirewallApplicationRuleProtocolType(protocol["type"].(string))),
 			}
 			ruleProtocols = append(ruleProtocols, ruleProtocol)
 		}
@@ -417,7 +436,7 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirew
 	return &outputs, nil
 }
 
-func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewallApplicationRule) []interface{} {
+func flattenFirewallApplicationRuleCollectionRules(rules *[]azurefirewalls.AzureFirewallApplicationRule) []interface{} {
 	outputs := make([]interface{}, 0)
 	if rules == nil {
 		return outputs
@@ -450,7 +469,7 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewal
 				if port := p.Port; port != nil {
 					protocol["port"] = int(*port)
 				}
-				protocol["type"] = string(p.ProtocolType)
+				protocol["type"] = string(pointer.From(p.ProtocolType))
 				protocols = append(protocols, protocol)
 			}
 		}

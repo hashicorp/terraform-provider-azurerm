@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -106,6 +109,14 @@ func ConstructRoleAssignmentId(azureResourceId, tenantId string) string {
 		return azureResourceId
 	}
 	return fmt.Sprintf("%s|%s", azureResourceId, tenantId)
+}
+
+func DestructRoleAssignmentId(id string) (string, string) {
+	parts := strings.Split(id, "|")
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return id, ""
 }
 
 func RoleAssignmentID(input string) (*RoleAssignmentId, error) {

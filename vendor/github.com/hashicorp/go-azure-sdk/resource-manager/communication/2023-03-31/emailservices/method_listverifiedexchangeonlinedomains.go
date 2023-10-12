@@ -22,7 +22,7 @@ type ListVerifiedExchangeOnlineDomainsOperationResponse struct {
 // ListVerifiedExchangeOnlineDomains ...
 func (c EmailServicesClient) ListVerifiedExchangeOnlineDomains(ctx context.Context, id commonids.SubscriptionId) (result ListVerifiedExchangeOnlineDomainsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type RotateDiskEncryptionKeyOperationResponse struct {
 // RotateDiskEncryptionKey ...
 func (c ClustersClient) RotateDiskEncryptionKey(ctx context.Context, id ClusterId, input ClusterDiskEncryptionParameters) (result RotateDiskEncryptionKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

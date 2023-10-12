@@ -23,7 +23,7 @@ type CreateOperationResponse struct {
 // Create ...
 func (c TasksClient) Create(ctx context.Context, id TaskId, input Task) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

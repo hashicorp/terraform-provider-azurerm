@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
 
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
+
 * `identity` - (Optional) an `identity` block as detailed below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
@@ -186,6 +188,8 @@ An `auth_settings_v2` block supports the following:
 ~> **NOTE:** Whilst any value will be accepted by the API for `default_provider`, it can leave the app in an unusable state if this value does not correspond to the name of a known provider (either built-in value, or custom_oidc name) as it is used to build the auth endpoint URI.
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
+
+~> **NOTE:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
 
 * `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
 

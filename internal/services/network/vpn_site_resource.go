@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,19 +8,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVpnSite() *pluginsdk.Resource {
@@ -28,7 +31,7 @@ func resourceVpnSite() *pluginsdk.Resource {
 		Delete: resourceVpnSiteDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VpnSiteID(id)
+			_, err := virtualwans.ParseVpnSiteID(id)
 			return err
 		}),
 
@@ -55,7 +58,7 @@ func resourceVpnSite() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualWanID,
+				ValidateFunc: virtualwans.ValidateVirtualWANID,
 			},
 
 			"address_cidrs": {
@@ -175,39 +178,38 @@ func resourceVpnSite() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceVpnSiteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VpnSitesClient
+	client := meta.(*clients.Client).Network.VirtualWANs
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
+	id := virtualwans.NewVpnSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.VpnSitesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Vpn Site %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_vpn_site", *resp.ID)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_site", id.ID())
 		}
 	}
 
-	param := network.VpnSite{
-		Name:     &name,
-		Location: &location,
-		VpnSiteProperties: &network.VpnSiteProperties{
-			VirtualWan:       &network.SubResource{ID: utils.String(d.Get("virtual_wan_id").(string))},
-			DeviceProperties: expandVpnSiteDeviceProperties(d),
+	payload := virtualwans.VpnSite{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &virtualwans.VpnSiteProperties{
+			VirtualWAN: &virtualwans.SubResource{
+				Id: utils.String(d.Get("virtual_wan_id").(string)),
+			},
+			DeviceProperties: expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string)),
 			AddressSpace:     expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List()),
 			VpnSiteLinks:     expandVpnSiteLinks(d.Get("link").([]interface{})),
 			O365Policy:       expandVpnSiteO365Policy(d.Get("o365_policy").([]interface{})),
@@ -215,111 +217,101 @@ func resourceVpnSiteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, param)
-	if err != nil {
-		return fmt.Errorf("creating  %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of  %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Vpn Site %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Vpn Site %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	id, err := parse.VpnSiteID(*resp.ID)
-	if err != nil {
-		return err
-	}
 	d.SetId(id.ID())
-
 	return resourceVpnSiteRead(d, meta)
 }
 
 func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VpnSitesClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VpnSiteID(d.Id())
+	id, err := virtualwans.ParseVpnSiteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.VpnSitesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Vpn Site %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %q was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Vpn Site %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VpnSiteName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if prop := resp.VpnSiteProperties; prop != nil {
-		if deviceProp := prop.DeviceProperties; deviceProp != nil {
-			d.Set("device_vendor", deviceProp.DeviceVendor)
-			d.Set("device_model", deviceProp.DeviceModel)
-		}
-		if prop.VirtualWan != nil {
-			d.Set("virtual_wan_id", prop.VirtualWan.ID)
-		}
-		if err := d.Set("address_cidrs", flattenVpnSiteAddressSpace(prop.AddressSpace)); err != nil {
-			return fmt.Errorf("setting `address_cidrs`")
-		}
-		if err := d.Set("link", flattenVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
-			return fmt.Errorf("setting `link`")
-		}
-		if err := d.Set("o365_policy", flattenVpnSiteO365Policy(prop.O365Policy)); err != nil {
-			return fmt.Errorf("setting `o365_policy`")
-		}
-	}
+		if props := model.Properties; props != nil {
+			deviceModel := ""
+			deviceVendor := ""
+			if deviceProp := props.DeviceProperties; deviceProp != nil {
+				deviceModel = pointer.From(deviceProp.DeviceModel)
+				deviceVendor = pointer.From(deviceProp.DeviceVendor)
+			}
+			d.Set("device_model", deviceModel)
+			d.Set("device_vendor", deviceVendor)
 
-	return tags.FlattenAndSet(d, resp.Tags)
-}
+			virtualWanId := ""
+			if props.VirtualWAN != nil && props.VirtualWAN.Id != nil {
+				parsed, err := virtualwans.ParseVirtualWANIDInsensitively(*props.VirtualWAN.Id)
+				if err == nil {
+					virtualWanId = parsed.ID()
+				}
+			}
+			d.Set("virtual_wan_id", virtualWanId)
 
-func resourceVpnSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VpnSitesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+			if err := d.Set("address_cidrs", flattenVpnSiteAddressSpace(props.AddressSpace)); err != nil {
+				return fmt.Errorf("setting `address_cidrs`: %+v", err)
+			}
+			if err := d.Set("link", flattenVpnSiteLinks(props.VpnSiteLinks)); err != nil {
+				return fmt.Errorf("setting `link`: %+v", err)
+			}
+			if err := d.Set("o365_policy", flattenVpnSiteO365Policy(props.O365Policy)); err != nil {
+				return fmt.Errorf("setting `o365_policy`: %+v", err)
+			}
 
-	id, err := parse.VpnSiteID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting Vpn Site %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Vpn Site %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func expandVpnSiteDeviceProperties(d *pluginsdk.ResourceData) *network.DeviceProperties {
-	vendor, model := d.Get("device_vendor").(string), d.Get("device_model").(string)
+func resourceVpnSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualwans.ParseVpnSiteID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err := client.VpnSitesDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func expandVpnSiteDeviceProperties(vendor, model string) *virtualwans.DeviceProperties {
 	if vendor == "" && model == "" {
 		return nil
 	}
-	output := &network.DeviceProperties{}
+	output := &virtualwans.DeviceProperties{}
 	if vendor != "" {
 		output.DeviceVendor = &vendor
 	}
@@ -330,59 +322,59 @@ func expandVpnSiteDeviceProperties(d *pluginsdk.ResourceData) *network.DevicePro
 	return output
 }
 
-func expandVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
+func expandVpnSiteAddressSpace(input []interface{}) *virtualwans.AddressSpace {
 	if len(input) == 0 {
 		return nil
 	}
 
-	addressPrefixes := []string{}
+	addressPrefixes := make([]string, 0)
 	for _, addr := range input {
 		addressPrefixes = append(addressPrefixes, addr.(string))
 	}
 
-	return &network.AddressSpace{
+	return &virtualwans.AddressSpace{
 		AddressPrefixes: &addressPrefixes,
 	}
 }
 
-func flattenVpnSiteAddressSpace(input *network.AddressSpace) []interface{} {
+func flattenVpnSiteAddressSpace(input *virtualwans.AddressSpace) []interface{} {
 	if input == nil {
-		return nil
+		return make([]interface{}, 0)
 	}
 	return utils.FlattenStringSlice(input.AddressPrefixes)
 }
 
-func expandVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
+func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
 	if len(input) == 0 {
 		return nil
 	}
 
-	result := make([]network.VpnSiteLink, 0)
+	result := make([]virtualwans.VpnSiteLink, 0)
 	for _, e := range input {
 		if e == nil {
 			continue
 		}
 		e := e.(map[string]interface{})
-		link := network.VpnSiteLink{
+		link := virtualwans.VpnSiteLink{
 			Name: utils.String(e["name"].(string)),
-			VpnSiteLinkProperties: &network.VpnSiteLinkProperties{
-				LinkProperties: &network.VpnLinkProviderProperties{
-					LinkSpeedInMbps: utils.Int32(int32(e["speed_in_mbps"].(int))),
+			Properties: &virtualwans.VpnSiteLinkProperties{
+				LinkProperties: &virtualwans.VpnLinkProviderProperties{
+					LinkSpeedInMbps: pointer.To(int64(e["speed_in_mbps"].(int))),
 				},
 			},
 		}
 
 		if v, ok := e["provider_name"]; ok {
-			link.VpnSiteLinkProperties.LinkProperties.LinkProviderName = utils.String(v.(string))
+			link.Properties.LinkProperties.LinkProviderName = pointer.To(v.(string))
 		}
 		if v, ok := e["ip_address"]; ok {
-			link.VpnSiteLinkProperties.IPAddress = utils.String(v.(string))
+			link.Properties.IPAddress = pointer.To(v.(string))
 		}
 		if v, ok := e["fqdn"]; ok {
-			link.VpnSiteLinkProperties.Fqdn = utils.String(v.(string))
+			link.Properties.Fqdn = pointer.To(v.(string))
 		}
 		if v, ok := e["bgp"]; ok {
-			link.VpnSiteLinkProperties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]interface{}))
+			link.Properties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]interface{}))
 		}
 
 		result = append(result, link)
@@ -391,9 +383,9 @@ func expandVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 	return &result
 }
 
-func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
+func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []interface{} {
 	if input == nil {
-		return nil
+		return make([]interface{}, 0)
 	}
 
 	output := make([]interface{}, 0)
@@ -404,9 +396,9 @@ func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 			name = *e.Name
 		}
 
-		var id string
-		if e.ID != nil {
-			id = *e.ID
+		id := ""
+		if e.Id != nil {
+			id = *e.Id
 		}
 
 		var (
@@ -417,7 +409,7 @@ func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 			bgpProperty      []interface{}
 		)
 
-		if prop := e.VpnSiteLinkProperties; prop != nil {
+		if prop := e.Properties; prop != nil {
 			if prop.IPAddress != nil {
 				ipAddress = *prop.IPAddress
 			}
@@ -454,22 +446,22 @@ func flattenVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 	return output
 }
 
-func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *network.VpnLinkBgpSettings {
+func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *virtualwans.VpnLinkBgpSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	return &network.VpnLinkBgpSettings{
+	return &virtualwans.VpnLinkBgpSettings{
 		Asn:               utils.Int64(int64(v["asn"].(int))),
 		BgpPeeringAddress: utils.String(v["peering_address"].(string)),
 	}
 }
 
-func flattenVpnSiteVpnSiteBgpSettings(input *network.VpnLinkBgpSettings) []interface{} {
+func flattenVpnSiteVpnSiteBgpSettings(input *virtualwans.VpnLinkBgpSettings) []interface{} {
 	if input == nil {
-		return nil
+		return make([]interface{}, 0)
 	}
 
 	var asn int
@@ -490,38 +482,38 @@ func flattenVpnSiteVpnSiteBgpSettings(input *network.VpnLinkBgpSettings) []inter
 	}
 }
 
-func expandVpnSiteO365Policy(input []interface{}) *network.O365PolicyProperties {
+func expandVpnSiteO365Policy(input []interface{}) *virtualwans.O365PolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	o365Policy := input[0].(map[string]interface{})
 
-	return &network.O365PolicyProperties{
+	return &virtualwans.O365PolicyProperties{
 		BreakOutCategories: expandVpnSiteO365TrafficCategoryPolicy(o365Policy["traffic_category"].([]interface{})),
 	}
 }
 
-func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *network.O365BreakOutCategoryPolicies {
+func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *virtualwans.O365BreakOutCategoryPolicies {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	trafficCategory := input[0].(map[string]interface{})
 
-	return &network.O365BreakOutCategoryPolicies{
+	return &virtualwans.O365BreakOutCategoryPolicies{
 		Allow:    utils.Bool(trafficCategory["allow_endpoint_enabled"].(bool)),
 		Default:  utils.Bool(trafficCategory["default_endpoint_enabled"].(bool)),
 		Optimize: utils.Bool(trafficCategory["optimize_endpoint_enabled"].(bool)),
 	}
 }
 
-func flattenVpnSiteO365Policy(input *network.O365PolicyProperties) []interface{} {
+func flattenVpnSiteO365Policy(input *virtualwans.O365PolicyProperties) []interface{} {
 	if input == nil {
-		return []interface{}{}
+		return make([]interface{}, 0)
 	}
 
-	var trafficCategory []interface{}
+	trafficCategory := make([]interface{}, 0)
 	if input.BreakOutCategories != nil {
 		trafficCategory = flattenVpnSiteO365TrafficCategoryPolicy(input.BreakOutCategories)
 	}
@@ -533,9 +525,9 @@ func flattenVpnSiteO365Policy(input *network.O365PolicyProperties) []interface{}
 	}
 }
 
-func flattenVpnSiteO365TrafficCategoryPolicy(input *network.O365BreakOutCategoryPolicies) []interface{} {
+func flattenVpnSiteO365TrafficCategoryPolicy(input *virtualwans.O365BreakOutCategoryPolicies) []interface{} {
 	if input == nil {
-		return []interface{}{}
+		return make([]interface{}, 0)
 	}
 
 	isAllowed := false

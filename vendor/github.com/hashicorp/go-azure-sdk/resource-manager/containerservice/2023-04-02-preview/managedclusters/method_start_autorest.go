@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type StartOperationResponse struct {
 }
 
 // Start ...
-func (c ManagedClustersClient) Start(ctx context.Context, id ManagedClusterId) (result StartOperationResponse, err error) {
+func (c ManagedClustersClient) Start(ctx context.Context, id commonids.KubernetesClusterId) (result StartOperationResponse, err error) {
 	req, err := c.preparerForStart(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "Start", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ManagedClustersClient) Start(ctx context.Context, id ManagedClusterId) (
 }
 
 // StartThenPoll performs Start then polls until it's completed
-func (c ManagedClustersClient) StartThenPoll(ctx context.Context, id ManagedClusterId) error {
+func (c ManagedClustersClient) StartThenPoll(ctx context.Context, id commonids.KubernetesClusterId) error {
 	result, err := c.Start(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
@@ -50,7 +51,7 @@ func (c ManagedClustersClient) StartThenPoll(ctx context.Context, id ManagedClus
 }
 
 // preparerForStart prepares the Start request.
-func (c ManagedClustersClient) preparerForStart(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForStart(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy
 
 import (
@@ -10,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -68,19 +70,19 @@ func resourceArmResourceGroupPolicyRemediation() *pluginsdk.Resource {
 			"failure_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				ValidateFunc: validate2.FloatInRange(0, 1.0),
+				ValidateFunc: validation.FloatBetween(0, 1.0),
 			},
 
 			"parallel_deployments": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate2.IntegerPositive,
+				ValidateFunc: validation.IntPositive,
 			},
 
 			"resource_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate2.IntegerPositive,
+				ValidateFunc: validation.IntPositive,
 			},
 
 			"location_filters": {
@@ -135,14 +137,14 @@ func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resource
 	id := remediations.NewProviderRemediationID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.RemediationsGetAtResourceGroup(ctx, id)
+		existing, err := client.GetAtResourceGroup(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_resource_group_policy_remediation", *existing.Model.Id)
+		if existing.Model != nil {
+			return tf.ImportAsExistsError("azurerm_resource_group_policy_remediation", id.ID())
 		}
 	}
 
@@ -150,7 +152,7 @@ func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resource
 		Properties: readRemediationProperties(d),
 	}
 
-	if _, err = client.RemediationsCreateOrUpdateAtResourceGroup(ctx, id, parameters); err != nil {
+	if _, err = client.CreateOrUpdateAtResourceGroup(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
@@ -171,7 +173,7 @@ func resourceArmResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, me
 
 	resourceGroupId := resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
 
-	resp, err := client.RemediationsGetAtResourceGroup(ctx, *id)
+	resp, err := client.GetAtResourceGroup(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", id.ID())
@@ -199,7 +201,7 @@ func resourceArmResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, 
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
 	// therefore we first retrieve the remediation to see if the resource_discovery_mode is switched to ReEvaluateCompliance
-	existing, err := client.RemediationsGetAtResourceGroup(ctx, *id)
+	existing, err := client.GetAtResourceGroup(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return nil
@@ -209,7 +211,7 @@ func resourceArmResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, 
 
 	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
-			_, err := client.RemediationsCancelAtResourceGroup(ctx, *id)
+			_, err := client.CancelAtResourceGroup(ctx, *id)
 			return err
 		},
 		resourceGroupPolicyRemediationCancellationRefreshFunc(ctx, client, *id),
@@ -217,14 +219,14 @@ func resourceArmResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("waiting for remediation to delete %s: %+v", id, err)
 	}
 
-	_, err = client.RemediationsDeleteAtResourceGroup(ctx, *id)
+	_, err = client.DeleteAtResourceGroup(ctx, *id)
 
 	return err
 }
 
 func resourceGroupPolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.ProviderRemediationId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.RemediationsGetAtResourceGroup(ctx, id)
+		resp, err := client.GetAtResourceGroup(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
 		}

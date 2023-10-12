@@ -60,7 +60,7 @@ func (o AssetsListOperationOptions) ToQuery() *client.QueryParams {
 // AssetsList ...
 func (c AssetsAndAssetFiltersClient) AssetsList(ctx context.Context, id MediaServiceId, options AssetsListOperationOptions) (result AssetsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

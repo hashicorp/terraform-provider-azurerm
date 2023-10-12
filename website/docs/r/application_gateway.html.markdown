@@ -63,8 +63,8 @@ resource "azurerm_application_gateway" "network" {
   location            = azurerm_resource_group.example.location
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
@@ -105,6 +105,7 @@ resource "azurerm_application_gateway" "network" {
 
   request_routing_rule {
     name                       = local.request_routing_rule_name
+    priority                   = 9
     rule_type                  = "Basic"
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
@@ -135,6 +136,12 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
+
+* `sku` - (Required) A `sku` block as defined below.
+
+---
+
 * `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
 
 * `global` - (Optional) A `global` block as defined below.
@@ -143,19 +150,13 @@ The following arguments are supported:
 
 * `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
 
-* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
-
-* `sku` - (Required) A `sku` block as defined below.
-
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
+
+-> **Please Note**: Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
 * `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
 
 * `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
-
--> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
-
----
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
@@ -183,13 +184,13 @@ The following arguments are supported:
 
 * `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
 
-* `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
+* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
 * `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 SKUs.
 
 ---
 
-A `authentication_certificate` block supports the following:
+An `authentication_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Authentication Certificate to use.
 
@@ -383,7 +384,7 @@ A `path_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as an HTTP Listener.
 
 ---
 
@@ -453,7 +454,9 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
+!> **NOTE:** The `Standard` and `WAF` SKU have been deprecated in favour of the `Standard_v2` and `WAF_v2` SKU. Please see the [Azure documentation](https://aka.ms/V1retirement) for more details.
+
+* `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between `1` and `32`, and `1` to `125` for a V2 SKU. This property is optional if `autoscale_configuration` is set.
 
 ---
 
@@ -467,7 +470,7 @@ A `ssl_certificate` block supports the following:
 
 * `password` - (Optional) Password for the pfx file specified in data. Required if `data` is set.
 
-* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
+* `key_vault_secret_id` - (Optional) The Secret ID of (base-64 encoded unencrypted pfx) the `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for Key Vault to use this feature. Required if `data` is not set.
 
 -> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
 
@@ -507,6 +510,8 @@ A `ssl_profile` block supports the following:
 * `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
 * `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
+ 
+* `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
 
 * `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
 
@@ -524,7 +529,7 @@ A `ssl_policy` block supports the following:
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
-* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
+* `policy_name` - (Optional) The Name of the Policy e.g. AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
 
@@ -544,7 +549,7 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
-* `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
+* `disabled_rule_group` - (Optional) One or more `disabled_rule_group` blocks as defined below.
 
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
 
@@ -552,7 +557,7 @@ A `waf_configuration` block supports the following:
 
 * `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `1`KB to `128`KB. Defaults to `128`KB.
 
-* `exclusion` - (Optional) one or more `exclusion` blocks as defined below.
+* `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
 ---
 
@@ -590,15 +595,15 @@ A `redirect_configuration` block supports the following:
 
 * `target_listener_name` - (Optional) The name of the listener to redirect to. Cannot be set if `target_url` is set.
 
-* `target_url` - (Optional) The Url to redirect the request to. Cannot be set if `target_listener_name` is set.
+* `target_url` - (Optional) The URL to redirect the request to. Cannot be set if `target_listener_name` is set.
 
-* `include_path` - (Optional) Whether or not to include the path in the redirected Url. Defaults to `false`
+* `include_path` - (Optional) Whether to include the path in the redirected URL. Defaults to `false`
 
-* `include_query_string` - (Optional) Whether or not to include the query string in the redirected Url. Default to `false`
+* `include_query_string` - (Optional) Whether to include the query string in the redirected URL. Default to `false`
 
 ---
 
-A `autoscale_configuration` block supports the following:
+An `autoscale_configuration` block supports the following:
 
 * `min_capacity` - (Required) Minimum capacity for autoscaling. Accepted values are in the range `0` to `100`.
 
@@ -610,7 +615,7 @@ A `rewrite_rule_set` block supports the following:
 
 * `name` - (Required) Unique name of the rewrite rule set block
 
-* `rewrite_rule` - (Optional) One or more `rewrite_rule` blocks as defined above.
+* `rewrite_rule` - (Optional) One or more `rewrite_rule` blocks as defined below.
 
 ---
 
@@ -666,9 +671,9 @@ A `url` block supports the following:
 
 * `components` - (Optional) The components used to rewrite the URL. Possible values are `path_only` and `query_string_only` to limit the rewrite to the URL Path or URL Query String only.
 
-~> **Note:** One or both of `path` and `query_string` must be specified. If one of these is not specified, it means the value  will be empty. If you only want to rewrite `path` or `query_string`, use `components`.
+~> **Note:** One or both of `path` and `query_string` must be specified. If one of these is not specified, it means the value will be empty. If you only want to rewrite `path` or `query_string`, use `components`.
 
-* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
+* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configuration](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 
 ## Attributes Reference
 
@@ -687,8 +692,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `frontend_port` - A list of `frontend_port` blocks as defined below.
 
 * `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
-
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? 
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 

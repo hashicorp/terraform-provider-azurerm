@@ -21,7 +21,7 @@ type GetGatewaySettingsOperationResponse struct {
 // GetGatewaySettings ...
 func (c ClustersClient) GetGatewaySettings(ctx context.Context, id ClusterId) (result GetGatewaySettingsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

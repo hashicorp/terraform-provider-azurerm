@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package features
 
 func Default() UserFeatures {
@@ -49,6 +52,9 @@ func Default() UserFeatures {
 			ForceDelete:               false,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
+		},
+		Subscription: SubscriptionFeatures{
+			PreventCancellationOnDestroy: false,
 		},
 	}
 }

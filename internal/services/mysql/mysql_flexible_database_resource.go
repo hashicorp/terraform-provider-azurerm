@@ -1,20 +1,22 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
@@ -23,7 +25,7 @@ func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 		Read:   resourceMySqlFlexibleDatabaseRead,
 		Delete: resourceMySqlFlexibleDatabaseDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FlexibleDatabaseID(id)
+			_, err := databases.ParseDatabaseID(id)
 			return err
 		}),
 
@@ -53,8 +55,8 @@ func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 			"charset": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"collation": {
@@ -67,43 +69,34 @@ func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 }
 
 func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleDatabasesClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Database creation.")
-
-	charset := d.Get("charset").(string)
-	collation := d.Get("collation").(string)
-
-	id := parse.NewFlexibleDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	id := databases.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mysql_flexible_database", id.ID())
 		}
 	}
 
-	properties := mysqlflexibleservers.Database{
-		DatabaseProperties: &mysqlflexibleservers.DatabaseProperties{
-			Charset:   utils.String(charset),
-			Collation: utils.String(collation),
+	payload := databases.Database{
+		Properties: &databases.DatabaseProperties{
+			Charset:   pointer.To(d.Get("charset").(string)),
+			Collation: pointer.To(d.Get("collation").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName, properties)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation of %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -111,18 +104,18 @@ func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleDatabasesClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleDatabaseID(d.Id())
+	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -131,31 +124,30 @@ func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.DatabaseName)
 	d.Set("server_name", id.FlexibleServerName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("charset", resp.Charset)
-	d.Set("collation", resp.Collation)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("charset", props.Charset)
+			d.Set("collation", props.Collation)
+		}
+	}
 
 	return nil
 }
 
 func resourceMySqlFlexibleDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleDatabasesClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleDatabaseID(d.Id())
+	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

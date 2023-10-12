@@ -1,18 +1,22 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func FirewallDataSourcePolicy() *pluginsdk.Resource {
@@ -115,22 +119,22 @@ func FirewallDataSourcePolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
+	client := meta.(*clients.Client).Firewall.Client.FirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := firewallpolicies.NewFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id, firewallpolicies.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -139,33 +143,38 @@ func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.FirewallPolicyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if prop := resp.FirewallPolicyPropertiesFormat; prop != nil {
-		basePolicyID := ""
-		if resp.BasePolicy != nil && resp.BasePolicy.ID != nil {
-			basePolicyID = *resp.BasePolicy.ID
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			basePolicyID := ""
+			if props.BasePolicy != nil && props.BasePolicy.Id != nil {
+				basePolicyID = *props.BasePolicy.Id
+			}
+			d.Set("base_policy_id", basePolicyID)
+			if err := d.Set("child_policies", flattenNetworkSubResourceID(props.ChildPolicies)); err != nil {
+				return fmt.Errorf(`setting "child_policies": %+v`, err)
+			}
+			if err := d.Set("dns", flattenFirewallPolicyDNSSetting(props.DnsSettings)); err != nil {
+				return fmt.Errorf(`setting "dns": %+v`, err)
+			}
+			if err := d.Set("firewalls", flattenNetworkSubResourceID(props.Firewalls)); err != nil {
+				return fmt.Errorf(`setting "firewalls": %+v`, err)
+			}
+			if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(props.RuleCollectionGroups)); err != nil {
+				return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
+			}
+			d.Set("threat_intelligence_mode", string(pointer.From(props.ThreatIntelMode)))
+			if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(props.ThreatIntelWhitelist)); err != nil {
+				return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
+			}
 		}
-		d.Set("base_policy_id", basePolicyID)
-		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
-			return fmt.Errorf(`setting "child_policies": %+v`, err)
-		}
-		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(prop.DNSSettings)); err != nil {
-			return fmt.Errorf(`setting "dns": %+v`, err)
-		}
-		if err := d.Set("firewalls", flattenNetworkSubResourceID(prop.Firewalls)); err != nil {
-			return fmt.Errorf(`setting "firewalls": %+v`, err)
-		}
-		if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(prop.RuleCollectionGroups)); err != nil {
-			return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
-		}
-		d.Set("threat_intelligence_mode", string(prop.ThreatIntelMode))
-		if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(resp.ThreatIntelWhitelist)); err != nil {
-			return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
-		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

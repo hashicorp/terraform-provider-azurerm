@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -6,11 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,7 +30,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 		Update: resourceApiManagementBackendCreateUpdate,
 		Delete: resourceApiManagementBackendDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BackendID(id)
+			_, err := backend.ParseBackendID(id)
 			return err
 		}),
 
@@ -118,8 +122,8 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.BackendProtocolHTTP),
-					string(apimanagement.BackendProtocolSoap),
+					string(backend.BackendProtocolHTTP),
+					string(backend.BackendProtocolSoap),
 				}, false),
 			},
 
@@ -259,17 +263,17 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewBackendID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	id := backend.NewBackendID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_backend", id.ID())
 		}
 	}
@@ -283,23 +287,23 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	tls := expandApiManagementBackendTls(tlsRaw)
 	url := d.Get("url").(string)
 
-	backendContract := apimanagement.BackendContract{
-		BackendContractProperties: &apimanagement.BackendContractProperties{
+	backendContract := backend.BackendContract{
+		Properties: &backend.BackendContractProperties{
 			Credentials: credentials,
-			Protocol:    apimanagement.BackendProtocol(protocol),
+			Protocol:    backend.BackendProtocol(protocol),
 			Proxy:       proxy,
-			TLS:         tls,
-			URL:         utils.String(url),
+			Tls:         tls,
+			Url:         url,
 		},
 	}
 	if description, ok := d.GetOk("description"); ok {
-		backendContract.BackendContractProperties.Description = utils.String(description.(string))
+		backendContract.Properties.Description = pointer.To(description.(string))
 	}
 	if resourceID, ok := d.GetOk("resource_id"); ok {
-		backendContract.BackendContractProperties.ResourceID = utils.String(resourceID.(string))
+		backendContract.Properties.ResourceId = pointer.To(resourceID.(string))
 	}
 	if title, ok := d.GetOk("title"); ok {
-		backendContract.BackendContractProperties.Title = utils.String(title.(string))
+		backendContract.Properties.Title = pointer.To(title.(string))
 	}
 
 	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
@@ -307,12 +311,12 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		if err != nil {
 			return err
 		}
-		backendContract.BackendContractProperties.Properties = &apimanagement.BackendProperties{
+		backendContract.Properties.Properties = &backend.BackendProperties{
 			ServiceFabricCluster: serviceFabricCluster,
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, backendContract, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, backendContract, backend.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -324,14 +328,14 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.BackendID(d.Id())
+	id, err := backend.ParseBackendID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s does not exist - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -340,29 +344,31 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.BackendContractProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("protocol", string(props.Protocol))
-		d.Set("resource_id", props.ResourceID)
-		d.Set("title", props.Title)
-		d.Set("url", props.URL)
-		if err := d.Set("credentials", flattenApiManagementBackendCredentials(props.Credentials)); err != nil {
-			return fmt.Errorf("setting `credentials`: %s", err)
-		}
-		if err := d.Set("proxy", flattenApiManagementBackendProxy(props.Proxy)); err != nil {
-			return fmt.Errorf("setting `proxy`: %s", err)
-		}
-		if properties := props.Properties; properties != nil {
-			if err := d.Set("service_fabric_cluster", flattenApiManagementBackendServiceFabricCluster(properties.ServiceFabricCluster)); err != nil {
-				return fmt.Errorf("setting `service_fabric_cluster`: %s", err)
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("protocol", string(props.Protocol))
+			d.Set("resource_id", pointer.From(props.ResourceId))
+			d.Set("title", pointer.From(props.Title))
+			d.Set("url", props.Url)
+			if err := d.Set("credentials", flattenApiManagementBackendCredentials(props.Credentials)); err != nil {
+				return fmt.Errorf("setting `credentials`: %s", err)
 			}
-		}
-		if err := d.Set("tls", flattenApiManagementBackendTls(props.TLS)); err != nil {
-			return fmt.Errorf("setting `tls`: %s", err)
+			if err := d.Set("proxy", flattenApiManagementBackendProxy(props.Proxy)); err != nil {
+				return fmt.Errorf("setting `proxy`: %s", err)
+			}
+			if properties := props.Properties; properties != nil {
+				if err := d.Set("service_fabric_cluster", flattenApiManagementBackendServiceFabricCluster(properties.ServiceFabricCluster)); err != nil {
+					return fmt.Errorf("setting `service_fabric_cluster`: %s", err)
+				}
+			}
+			if err := d.Set("tls", flattenApiManagementBackendTls(props.Tls)); err != nil {
+				return fmt.Errorf("setting `tls`: %s", err)
+			}
 		}
 	}
 
@@ -374,13 +380,13 @@ func resourceApiManagementBackendDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackendID(d.Id())
+	id, err := backend.ParseBackendID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, backend.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %s", *id, err)
 		}
 	}
@@ -388,12 +394,12 @@ func resourceApiManagementBackendDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandApiManagementBackendCredentials(input []interface{}) *apimanagement.BackendCredentialsContract {
+func expandApiManagementBackendCredentials(input []interface{}) *backend.BackendCredentialsContract {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	contract := apimanagement.BackendCredentialsContract{}
+	contract := backend.BackendCredentialsContract{}
 	if authorizationRaw := v["authorization"]; authorizationRaw != nil {
 		authorization := expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
 		contract.Authorization = authorization
@@ -406,26 +412,26 @@ func expandApiManagementBackendCredentials(input []interface{}) *apimanagement.B
 	}
 	if headerRaw := v["header"]; headerRaw != nil {
 		header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
-		contract.Header = *header
+		contract.Header = header
 	}
 	if queryRaw := v["query"]; queryRaw != nil {
 		query := expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
-		contract.Query = *query
+		contract.Query = query
 	}
 	return &contract
 }
 
-func expandApiManagementBackendCredentialsAuthorization(input []interface{}) *apimanagement.BackendAuthorizationHeaderCredentials {
+func expandApiManagementBackendCredentialsAuthorization(input []interface{}) *backend.BackendAuthorizationHeaderCredentials {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	credentials := apimanagement.BackendAuthorizationHeaderCredentials{}
+	credentials := backend.BackendAuthorizationHeaderCredentials{}
 	if parameter := v["parameter"]; parameter != nil {
-		credentials.Parameter = utils.String(parameter.(string))
+		credentials.Parameter = parameter.(string)
 	}
 	if scheme := v["scheme"]; scheme != nil {
-		credentials.Scheme = utils.String(scheme.(string))
+		credentials.Scheme = scheme.(string)
 	}
 	return &credentials
 }
@@ -438,45 +444,45 @@ func expandApiManagementBackendCredentialsObject(input map[string]interface{}) *
 	return &output
 }
 
-func expandApiManagementBackendProxy(input []interface{}) *apimanagement.BackendProxyContract {
+func expandApiManagementBackendProxy(input []interface{}) *backend.BackendProxyContract {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	contract := apimanagement.BackendProxyContract{}
+	contract := backend.BackendProxyContract{}
 	if password := v["password"]; password != nil {
-		contract.Password = utils.String(password.(string))
+		contract.Password = pointer.To(password.(string))
 	}
 	if url := v["url"]; url != nil {
-		contract.URL = utils.String(url.(string))
+		contract.Url = url.(string)
 	}
 	if username := v["username"]; username != nil {
-		contract.Username = utils.String(username.(string))
+		contract.Username = pointer.To(username.(string))
 	}
 	return &contract
 }
 
-func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error, *apimanagement.BackendServiceFabricClusterProperties) {
+func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error, *backend.BackendServiceFabricClusterProperties) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 	v := input[0].(map[string]interface{})
 	managementEndpoints := v["management_endpoints"].(*pluginsdk.Set).List()
-	maxPartitionResolutionRetries := int32(v["max_partition_resolution_retries"].(int))
-	properties := apimanagement.BackendServiceFabricClusterProperties{
-		ManagementEndpoints:           utils.ExpandStringSlice(managementEndpoints),
-		MaxPartitionResolutionRetries: utils.Int32(maxPartitionResolutionRetries),
+	maxPartitionResolutionRetries := int64(v["max_partition_resolution_retries"].(int))
+	properties := backend.BackendServiceFabricClusterProperties{
+		ManagementEndpoints:           pointer.From(utils.ExpandStringSlice(managementEndpoints)),
+		MaxPartitionResolutionRetries: pointer.To(maxPartitionResolutionRetries),
 	}
 
 	if v2, ok := v["client_certificate_thumbprint"].(string); ok && v2 != "" {
-		properties.ClientCertificatethumbprint = utils.String(v2)
+		properties.ClientCertificatethumbprint = pointer.To(v2)
 	}
 
 	if v2, ok := v["client_certificate_id"].(string); ok && v2 != "" {
-		properties.ClientCertificateID = utils.String(v2)
+		properties.ClientCertificateId = pointer.To(v2)
 	}
 
-	if properties.ClientCertificateID == nil && properties.ClientCertificatethumbprint == nil {
+	if properties.ClientCertificateId == nil && properties.ClientCertificatethumbprint == nil {
 		return fmt.Errorf("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
 	}
 
@@ -496,35 +502,35 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	return nil, &properties
 }
 
-func expandApiManagementBackendServiceFabricClusterServerX509Names(input []interface{}) *[]apimanagement.X509CertificateName {
-	results := make([]apimanagement.X509CertificateName, 0)
+func expandApiManagementBackendServiceFabricClusterServerX509Names(input []interface{}) *[]backend.X509CertificateName {
+	results := make([]backend.X509CertificateName, 0)
 	for _, certificateName := range input {
 		v := certificateName.(map[string]interface{})
-		result := apimanagement.X509CertificateName{
-			IssuerCertificateThumbprint: utils.String(v["issuer_certificate_thumbprint"].(string)),
-			Name:                        utils.String(v["name"].(string)),
+		result := backend.X509CertificateName{
+			IssuerCertificateThumbprint: pointer.To(v["issuer_certificate_thumbprint"].(string)),
+			Name:                        pointer.To(v["name"].(string)),
 		}
 		results = append(results, result)
 	}
 	return &results
 }
 
-func expandApiManagementBackendTls(input []interface{}) *apimanagement.BackendTLSProperties {
+func expandApiManagementBackendTls(input []interface{}) *backend.BackendTlsProperties {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	properties := apimanagement.BackendTLSProperties{}
+	properties := backend.BackendTlsProperties{}
 	if validateCertificateChain := v["validate_certificate_chain"]; validateCertificateChain != nil {
-		properties.ValidateCertificateChain = utils.Bool(validateCertificateChain.(bool))
+		properties.ValidateCertificateChain = pointer.To(validateCertificateChain.(bool))
 	}
 	if validateCertificateName := v["validate_certificate_name"]; validateCertificateName != nil {
-		properties.ValidateCertificateName = utils.Bool(validateCertificateName.(bool))
+		properties.ValidateCertificateName = pointer.To(validateCertificateName.(bool))
 	}
 	return &properties
 }
 
-func flattenApiManagementBackendCredentials(input *apimanagement.BackendCredentialsContract) []interface{} {
+func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsContract) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -539,33 +545,33 @@ func flattenApiManagementBackendCredentials(input *apimanagement.BackendCredenti
 	return append(results, result)
 }
 
-func flattenApiManagementBackendCredentialsObject(input map[string][]string) map[string]interface{} {
+func flattenApiManagementBackendCredentialsObject(input *map[string][]string) map[string]interface{} {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results
 	}
-	for k, v := range input {
+	for k, v := range *input {
 		results[k] = strings.Join(v, ",")
 	}
 	return results
 }
 
-func flattenApiManagementBackendCredentialsAuthorization(input *apimanagement.BackendAuthorizationHeaderCredentials) []interface{} {
+func flattenApiManagementBackendCredentialsAuthorization(input *backend.BackendAuthorizationHeaderCredentials) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 	result := make(map[string]interface{})
-	if parameter := input.Parameter; parameter != nil {
-		result["parameter"] = *parameter
+	if parameter := input.Parameter; parameter != "" {
+		result["parameter"] = parameter
 	}
-	if scheme := input.Scheme; scheme != nil {
-		result["scheme"] = *scheme
+	if scheme := input.Scheme; scheme != "" {
+		result["scheme"] = scheme
 	}
 	return append(results, result)
 }
 
-func flattenApiManagementBackendProxy(input *apimanagement.BackendProxyContract) []interface{} {
+func flattenApiManagementBackendProxy(input *backend.BackendProxyContract) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -574,16 +580,14 @@ func flattenApiManagementBackendProxy(input *apimanagement.BackendProxyContract)
 	if password := input.Password; password != nil {
 		result["password"] = *password
 	}
-	if url := input.URL; url != nil {
-		result["url"] = *url
+	if url := input.Url; url != "" {
+		result["url"] = url
 	}
-	if username := input.Username; username != nil {
-		result["username"] = *username
-	}
+	result["username"] = pointer.From(input.Username)
 	return append(results, result)
 }
 
-func flattenApiManagementBackendServiceFabricCluster(input *apimanagement.BackendServiceFabricClusterProperties) []interface{} {
+func flattenApiManagementBackendServiceFabricCluster(input *backend.BackendServiceFabricClusterProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -593,24 +597,22 @@ func flattenApiManagementBackendServiceFabricCluster(input *apimanagement.Backen
 		result["client_certificate_thumbprint"] = *clientCertificatethumbprint
 	}
 
-	if input.ClientCertificateID != nil {
-		result["client_certificate_id"] = *input.ClientCertificateID
+	if input.ClientCertificateId != nil {
+		result["client_certificate_id"] = *input.ClientCertificateId
 	}
 
 	if managementEndpoints := input.ManagementEndpoints; managementEndpoints != nil {
-		result["management_endpoints"] = *managementEndpoints
+		result["management_endpoints"] = managementEndpoints
 	}
 	if maxPartitionResolutionRetries := input.MaxPartitionResolutionRetries; maxPartitionResolutionRetries != nil {
-		result["max_partition_resolution_retries"] = int(*maxPartitionResolutionRetries)
+		result["max_partition_resolution_retries"] = int(pointer.From(input.MaxPartitionResolutionRetries))
 	}
-	if serverCertificateThumbprints := input.ServerCertificateThumbprints; serverCertificateThumbprints != nil {
-		result["server_certificate_thumbprints"] = *serverCertificateThumbprints
-	}
+	result["server_certificate_thumbprints"] = pointer.From(input.ServerCertificateThumbprints)
 	result["server_x509_name"] = flattenApiManagementBackendServiceFabricClusterServerX509Names(input.ServerX509Names)
 	return append(results, result)
 }
 
-func flattenApiManagementBackendServiceFabricClusterServerX509Names(input *[]apimanagement.X509CertificateName) []interface{} {
+func flattenApiManagementBackendServiceFabricClusterServerX509Names(input *[]backend.X509CertificateName) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -628,17 +630,13 @@ func flattenApiManagementBackendServiceFabricClusterServerX509Names(input *[]api
 	return results
 }
 
-func flattenApiManagementBackendTls(input *apimanagement.BackendTLSProperties) []interface{} {
+func flattenApiManagementBackendTls(input *backend.BackendTlsProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 	result := make(map[string]interface{})
-	if validateCertificateChain := input.ValidateCertificateChain; validateCertificateChain != nil {
-		result["validate_certificate_chain"] = *validateCertificateChain
-	}
-	if validateCertificateName := input.ValidateCertificateName; validateCertificateName != nil {
-		result["validate_certificate_name"] = *validateCertificateName
-	}
+	result["validate_certificate_chain"] = pointer.From(input.ValidateCertificateChain)
+	result["validate_certificate_name"] = pointer.From(input.ValidateCertificateName)
 	return append(results, result)
 }

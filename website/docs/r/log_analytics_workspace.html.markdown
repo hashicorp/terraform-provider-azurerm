@@ -45,6 +45,8 @@ The following arguments are supported:
 
 ~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKUs defined above. More information about [the Pricing SKUs is available at the following URI](https://aka.ms/PricingTierWarning).
 
+~> **NOTE:** Changing `sku` forces a new Log Analytics Workspace to be created, except when changing between `PerGB2018` and `CapacityReservation`. However, changing `sku` to `CapacityReservation` or changing `reservation_capacity_in_gb_per_day` to a higher tier will lead to a 31-days commitment period, during which the SKU cannot be changed to a lower one. Please refer to [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#commitment-tiers) for further information.
+
 ~> **NOTE:** The `Free` SKU has a default `daily_quota_gb` value of `0.5` (GB).
 
 * `retention_in_days` - (Optional) The workspace data retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
@@ -59,9 +61,11 @@ The following arguments are supported:
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
 
-* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace. Must be in increments of 100 between 100 and 5000.
+* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace. Possible values are `100`, `200`, `300`, `400`, `500`, `1000`, `2000` and `5000`.
 
 ~> **NOTE:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
+
+* `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to use for this workspace.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

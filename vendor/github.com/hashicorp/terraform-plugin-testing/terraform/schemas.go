@@ -13,6 +13,10 @@ import (
 // The completeness of this structure depends on how it was constructed.
 // When constructed for a configuration, it will generally include only
 // resource types and data sources used by that configuration.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type ProviderSchema struct {
 	Provider      *configschema.Block
 	ResourceTypes map[string]*configschema.Block
@@ -23,6 +27,10 @@ type ProviderSchema struct {
 
 // ProviderSchemaRequest is used to describe to a ResourceProvider which
 // aspects of schema are required, when calling the GetSchema method.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type ProviderSchemaRequest struct {
 	ResourceTypes []string
 	DataSources   []string

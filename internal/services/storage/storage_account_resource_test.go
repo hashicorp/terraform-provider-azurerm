@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage_test
 
 import (
@@ -8,10 +11,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -692,6 +695,21 @@ func TestAccStorageAccount_blobPropertiesEmptyAllowedExposedHeaders(t *testing.T
 	})
 }
 
+func TestAccStorageAccount_blobProperties_kindStorageNotSupportLastAccessTimeEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blobPropertiesStorageKindNotSupportLastAccessTimeEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_queueProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -906,6 +924,18 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.azureFilesAuthenticationAADKERBUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"azure_files_authentication.0.active_directory.0.storage_sid",
+			"azure_files_authentication.0.active_directory.0.domain_sid",
+			"azure_files_authentication.0.active_directory.0.forest_name",
+			"azure_files_authentication.0.active_directory.0.netbios_domain_name",
+		),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1483,27 +1513,27 @@ func TestAccStorageAccount_emptyShareProperties(t *testing.T) {
 }
 
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageAccountID(state.ID)
+	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r StorageAccountResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageAccountID(state.ID)
+	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := client.Storage.AccountsClient.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return nil, fmt.Errorf("deleting Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Storage.AccountsClient.Delete(ctx, id.ResourceGroupName, id.StorageAccountName); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -3284,6 +3314,48 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r StorageAccountResource) azureFilesAuthenticationAADKERBUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AADKERB"
+    active_directory {
+      domain_name = "adtest2.com"
+      domain_guid = "13a20c9a-d491-47e6-8a39-299e7a32ea27"
+    }
+  }
+
+  tags = {
+    environment = "production"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      azure_files_authentication.0.active_directory.0.storage_sid,
+      azure_files_authentication.0.active_directory.0.domain_sid,
+      azure_files_authentication.0.active_directory.0.forest_name,
+      azure_files_authentication.0.active_directory.0.netbios_domain_name,
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r StorageAccountResource) routing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4403,6 +4475,55 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
   is_hns_enabled           = true
   sftp_enabled             = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) blobPropertiesStorageKindNotSupportLastAccessTimeEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT", "PATCH"]
+      max_age_in_seconds = "500"
+    }
+
+    delete_retention_policy {
+      days = 300
+    }
+
+    default_service_version = "2019-07-07"
+    container_delete_retention_policy {
+      days = 7
+    }
+
+    # Following properties are not supported for "Storage" (v1) kind
+    last_access_time_enabled = false
+    change_feed_enabled      = false
+    versioning_enabled       = false
+    # change_feed_retention_in_days
+    # restore_policy
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

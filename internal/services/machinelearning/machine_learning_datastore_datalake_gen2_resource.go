@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -7,14 +10,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -72,7 +75,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"storage_container_id": {
@@ -137,7 +140,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model MachineLearningDataStoreDataLakeGen2Model
@@ -162,7 +165,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_datalake_gen2", id.ID())
 			}
 
-			containerId, err := storageparse.StorageContainerResourceManagerID(model.StorageContainerID)
+			containerId, err := commonids.ParseStorageContainerID(model.StorageContainerID)
 			if err != nil {
 				return err
 			}
@@ -215,7 +218,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {
@@ -226,7 +229,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
-			containerId, err := storageparse.StorageContainerResourceManagerID(state.StorageContainerID)
+			containerId, err := commonids.ParseStorageContainerID(state.StorageContainerID)
 			if err != nil {
 				return err
 			}
@@ -278,7 +281,8 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
+			storageClient := metadata.Client.Storage
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
@@ -307,7 +311,14 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			containerId := storageparse.NewStorageContainerResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, "default", data.Filesystem)
+			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
+			}
+			if storageAccount == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
+			}
+			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault
@@ -343,7 +354,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -6,15 +9,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
@@ -24,7 +28,7 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 		Update: resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Delete: resourceApiManagementAPIOperationPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApiOperationPolicyID(id)
+			_, err := apioperationpolicy.ParseOperationID(id)
 			return err
 		}),
 
@@ -34,6 +38,12 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 2,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiManagementApiOperationPolicyV0ToV1{},
+			1: migration.ApiManagementApiOperationPolicyV1ToV2{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -67,45 +77,45 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApiOperationPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string), string(apimanagement.PolicyExportFormatXML))
+	id := apioperationpolicy.NewOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, apimanagement.PolicyExportFormat(id.PolicyName))
+		existing, err := client.Get(ctx, id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_api_operation_policy", id.ID())
 		}
 	}
 
-	parameters := apimanagement.PolicyContract{}
+	parameters := apioperationpolicy.PolicyContract{}
 
 	xmlContent := d.Get("xml_content").(string)
 	xmlLink := d.Get("xml_link").(string)
 
 	if xmlContent != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.PolicyContentFormatRawxml,
-			Value:  utils.String(xmlContent),
+		parameters.Properties = &apioperationpolicy.PolicyContractProperties{
+			Format: pointer.To(apioperationpolicy.PolicyContentFormatRawxml),
+			Value:  xmlContent,
 		}
 	}
 
 	if xmlLink != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.PolicyContentFormatRawxmlLink,
-			Value:  utils.String(xmlLink),
+		parameters.Properties = &apioperationpolicy.PolicyContractProperties{
+			Format: pointer.To(apioperationpolicy.PolicyContentFormatRawxmlNegativelink),
+			Value:  xmlLink,
 		}
 	}
 
-	if parameters.PolicyContractProperties == nil {
+	if parameters.Properties == nil {
 		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, apioperationpolicy.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
@@ -119,24 +129,24 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiOperationPolicyID(d.Id())
+	id, err := apioperationpolicy.ParseOperationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroupName
 	serviceName := id.ServiceName
-	apiName := id.ApiName
-	operationName := id.OperationName
+	apiName := getApiName(id.ApiId)
+	operationName := id.OperationId
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationName, apimanagement.PolicyExportFormatXML)
+	resp, err := client.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q) was not found - removing from state!", resourceGroup, serviceName, apiName, operationName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationName, err)
+		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -144,10 +154,12 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 	d.Set("api_name", apiName)
 	d.Set("operation_id", operationName)
 
-	if properties := resp.PolicyContractProperties; properties != nil {
-		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
-		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", html.UnescapeString(*properties.Value))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
+			// as such there is no way to set `xml_link` and we'll let Terraform handle it
+			d.Set("xml_content", html.UnescapeString(props.Value))
+		}
 	}
 
 	return nil
@@ -158,18 +170,16 @@ func resourceApiManagementAPIOperationPolicyDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiOperationPolicyID(d.Id())
+	id, err := apioperationpolicy.ParseOperationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	apiName := id.ApiName
-	operationName := id.OperationName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, operationName, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationName, err)
+	apiName := getApiName(id.ApiId)
+	newId := apioperationpolicy.NewOperationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.OperationId)
+	if resp, err := client.Delete(ctx, newId, apioperationpolicy.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", newId, err)
 		}
 	}
 

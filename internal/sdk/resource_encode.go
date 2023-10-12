@@ -1,8 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
 	"fmt"
 	"reflect"
+	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 // Encode will encode the specified object into the Terraform State
@@ -48,7 +54,8 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldVal := objVal.Field(i)
-		if tfschemaTag, exists := field.Tag.Lookup("tfschema"); exists {
+		if tfschemaTag, exists := field.Tag.Lookup("tfschema"); exists && !(strings.Contains(tfschemaTag, "removedInNextMajorVersion") && features.FourPointOh()) {
+			tfschemaTag = strings.TrimSuffix(tfschemaTag, ",removedInNextMajorVersion")
 			switch field.Type.Kind() {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				iv := fieldVal.Int()

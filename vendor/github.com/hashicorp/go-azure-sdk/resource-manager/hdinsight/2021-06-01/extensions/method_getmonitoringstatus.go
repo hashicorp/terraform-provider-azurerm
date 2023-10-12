@@ -21,7 +21,7 @@ type GetMonitoringStatusOperationResponse struct {
 // GetMonitoringStatus ...
 func (c ExtensionsClient) GetMonitoringStatus(ctx context.Context, id ClusterId) (result GetMonitoringStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

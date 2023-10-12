@@ -23,7 +23,7 @@ type EnableMonitoringOperationResponse struct {
 // EnableMonitoring ...
 func (c ExtensionsClient) EnableMonitoring(ctx context.Context, id ClusterId, input ClusterMonitoringRequest) (result EnableMonitoringOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

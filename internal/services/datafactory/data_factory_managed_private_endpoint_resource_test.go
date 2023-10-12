@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedPrivateEndpointResource struct{}
@@ -61,26 +64,24 @@ func TestAccDataFactoryManagedPrivateEndpoint_privateServiceLink(t *testing.T) {
 }
 
 func (r ManagedPrivateEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedPrivateEndpointID(state.ID)
+	id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	iter, err := client.DataFactory.ManagedPrivateEndpointsClient.ListByFactoryComplete(ctx, id.ResourceGroup, id.FactoryName, id.ManagedVirtualNetworkName)
+	virtualNetworkId := managedprivateendpoints.NewManagedVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName)
+	iter, err := client.DataFactory.ManagedPrivateEndpoints.ListByFactoryComplete(ctx, virtualNetworkId)
 	if err != nil {
 		return nil, fmt.Errorf("listing %s: %+v", id, err)
 	}
-	for iter.NotDone() {
-		managedPrivateEndpoint := iter.Value()
-		if managedPrivateEndpoint.Name != nil && *managedPrivateEndpoint.Name == id.Name {
-			return utils.Bool(true), nil
-		}
 
-		if err := iter.NextWithContext(ctx); err != nil {
-			return nil, err
+	for _, item := range iter.Items {
+		if item.Name != nil && *item.Name == id.ManagedPrivateEndpointName {
+			return pointer.To(true), nil
 		}
 	}
-	return utils.Bool(false), nil
+
+	return pointer.To(false), nil
 }
 
 func (r ManagedPrivateEndpointResource) basic(data acceptance.TestData) string {

@@ -330,6 +330,12 @@ The `site_credential` block exports the following:
 
 * `password` - The password associated with the username, which can be used to publish to this App Service.
 
+---
+
+The `site_config` block exports the following:
+
+* `auto_swap_slot_name` - The Auto-swap slot name.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

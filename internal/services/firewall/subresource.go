@@ -1,18 +1,21 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall
 
 import (
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicies"
 )
 
-func flattenNetworkSubResourceID(input *[]network.SubResource) []interface{} {
+func flattenNetworkSubResourceID(input *[]firewallpolicies.SubResource) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if item.ID != nil {
-			results = append(results, *item.ID)
+		if item.Id != nil {
+			results = append(results, *item.Id)
 		}
 	}
 
