@@ -106,7 +106,7 @@ func (r DevCenterResource) Create() sdk.ResourceFunc {
 
 func (r DevCenterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DevCenter.DevCenterClient
 			id, err := devcenters.ParseDevCenterID(metadata.ResourceData.Id())
