@@ -161,6 +161,5 @@ resource "azurerm_application_load_balancer_frontend" "import" {
   name                         = azurerm_application_load_balancer_frontend.test.name
   application_load_balancer_id = azurerm_application_load_balancer_frontend.test.application_load_balancer_id
 }
-
 `, r.basic(data))
 }
