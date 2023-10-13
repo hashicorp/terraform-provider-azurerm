@@ -1,5 +1,10 @@
 ## 3.77.0 (Unreleased)
 
+FEATURES:
+
+* New Resources: `azurerm_dev_center` [GH-23538]
+* New Resources: `azurerm_dev_center_project` [GH-23538]
+
 ENHANCEMENTS:
 
 * dependencies: updating `storage` to use API Version `2023-01-01` [GH-23543]
