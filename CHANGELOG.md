@@ -1,5 +1,9 @@
 ## 3.77.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating `storage` to use API Version `2023-01-01` [GH-23543]
+
 BUG FIXES:
 
 * Data Source: `azurerm_virtual_hub_connection` - export the `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` attributes in the `routing` block, and fix a bug where these attributes could not be set [GH-23491]
