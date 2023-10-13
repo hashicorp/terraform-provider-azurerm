@@ -182,34 +182,6 @@ func (r ResourceManagementPrivateLinkAssociationResource) Delete() sdk.ResourceF
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-
-			state := &pluginsdk.StateChangeConf{
-				Delay:   10 * time.Second,
-				Pending: []string{"Found"},
-				Target:  []string{"NotFound"},
-				Timeout: time.Until(deadline),
-				Refresh: func() (interface{}, string, error) {
-					resp, err := client.Get(ctx, *id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return resp, "NotFound", nil
-						}
-
-						return resp, "Error", fmt.Errorf("making Read request on %s: %+v", *id, err)
-					}
-
-					return resp, "Found", nil
-				},
-			}
-
-			if _, err := state.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for the Deployment %s: %+v", *id, err)
-			}
-
 			return nil
 		},
 	}
