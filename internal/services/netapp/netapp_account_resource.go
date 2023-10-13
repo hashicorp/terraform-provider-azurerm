@@ -14,8 +14,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -106,6 +107,8 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -137,6 +140,12 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap((d.Get("identity").([]interface{})))
+	if err != nil {
+		return err
+	}
+	accountParameters.Identity = anfAccountIdentity
 
 	if err := client.AccountsCreateOrUpdateThenPoll(ctx, id, accountParameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -179,6 +188,15 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	if d.HasChange("identity") {
+		shouldUpdate = true
+		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		update.Identity = anfAccountIdentity
+	}
+
 	if shouldUpdate {
 		if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id.ID(), err)
@@ -218,6 +236,14 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", anfAccountIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
