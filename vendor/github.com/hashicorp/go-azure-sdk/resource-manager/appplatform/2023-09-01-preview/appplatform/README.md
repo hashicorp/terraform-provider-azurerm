@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-07-01-preview/appplatform` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform` Documentation
 
-The `appplatform` SDK allows for interaction with the Azure Resource Manager Service `appplatform` (API Version `2023-07-01-preview`).
+The `appplatform` SDK allows for interaction with the Azure Resource Manager Service `appplatform` (API Version `2023-09-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-07-01-preview/appplatform"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
 ```
 
 
@@ -2503,6 +2503,23 @@ id := appplatform.NewSpringID("12345678-1234-9876-4563-123456789012", "example-r
 
 // alternatively `client.ServicesListSupportedApmTypes(ctx, id)` can be used to do batched pagination
 items, err := client.ServicesListSupportedApmTypesComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `AppPlatformClient.ServicesListSupportedServerVersions`
+
+```go
+ctx := context.TODO()
+id := appplatform.NewSpringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "springValue")
+
+// alternatively `client.ServicesListSupportedServerVersions(ctx, id)` can be used to do batched pagination
+items, err := client.ServicesListSupportedServerVersionsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

@@ -14,6 +14,7 @@ type AcceleratorGitRepository struct {
 	Commit            *string                `json:"commit,omitempty"`
 	GitTag            *string                `json:"gitTag,omitempty"`
 	IntervalInSeconds *int64                 `json:"intervalInSeconds,omitempty"`
+	SubPath           *string                `json:"subPath,omitempty"`
 	Url               string                 `json:"url"`
 }
 
@@ -30,6 +31,7 @@ func (s *AcceleratorGitRepository) UnmarshalJSON(bytes []byte) error {
 	s.Commit = decoded.Commit
 	s.GitTag = decoded.GitTag
 	s.IntervalInSeconds = decoded.IntervalInSeconds
+	s.SubPath = decoded.SubPath
 	s.Url = decoded.Url
 
 	var temp map[string]json.RawMessage

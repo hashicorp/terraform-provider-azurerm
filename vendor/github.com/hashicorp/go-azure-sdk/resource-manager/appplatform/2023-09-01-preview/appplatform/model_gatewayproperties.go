@@ -7,6 +7,7 @@ type GatewayProperties struct {
 	AddonConfigs          *map[string]interface{}                `json:"addonConfigs,omitempty"`
 	ApiMetadataProperties *GatewayApiMetadataProperties          `json:"apiMetadataProperties,omitempty"`
 	ApmTypes              *[]ApmType                             `json:"apmTypes,omitempty"`
+	Apms                  *[]ApmReference                        `json:"apms,omitempty"`
 	ClientAuth            *GatewayPropertiesClientAuth           `json:"clientAuth,omitempty"`
 	CorsProperties        *GatewayCorsProperties                 `json:"corsProperties,omitempty"`
 	EnvironmentVariables  *GatewayPropertiesEnvironmentVariables `json:"environmentVariables,omitempty"`

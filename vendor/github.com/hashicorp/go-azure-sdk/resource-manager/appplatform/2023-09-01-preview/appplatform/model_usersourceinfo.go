@@ -76,6 +76,14 @@ func unmarshalUserSourceInfoImplementation(input []byte) (UserSourceInfo, error)
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "War") {
+		var out WarUploadedUserSourceInfo
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into WarUploadedUserSourceInfo: %+v", err)
+		}
+		return out, nil
+	}
+
 	out := RawUserSourceInfoImpl{
 		Type:   value,
 		Values: temp,

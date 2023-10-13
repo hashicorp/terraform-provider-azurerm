@@ -1047,6 +1047,47 @@ func parseCustomizedAcceleratorProvisioningState(input string) (*CustomizedAccel
 	return &out, nil
 }
 
+type CustomizedAcceleratorType string
+
+const (
+	CustomizedAcceleratorTypeAccelerator CustomizedAcceleratorType = "Accelerator"
+	CustomizedAcceleratorTypeFragment    CustomizedAcceleratorType = "Fragment"
+)
+
+func PossibleValuesForCustomizedAcceleratorType() []string {
+	return []string{
+		string(CustomizedAcceleratorTypeAccelerator),
+		string(CustomizedAcceleratorTypeFragment),
+	}
+}
+
+func (s *CustomizedAcceleratorType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCustomizedAcceleratorType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseCustomizedAcceleratorType(input string) (*CustomizedAcceleratorType, error) {
+	vals := map[string]CustomizedAcceleratorType{
+		"accelerator": CustomizedAcceleratorTypeAccelerator,
+		"fragment":    CustomizedAcceleratorTypeFragment,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CustomizedAcceleratorType(input)
+	return &out, nil
+}
+
 type CustomizedAcceleratorValidateResultState string
 
 const (
@@ -1654,6 +1695,47 @@ func parseKPackBuildStageProvisioningState(input string) (*KPackBuildStageProvis
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := KPackBuildStageProvisioningState(input)
+	return &out, nil
+}
+
+type KeyVaultCertificateAutoSync string
+
+const (
+	KeyVaultCertificateAutoSyncDisabled KeyVaultCertificateAutoSync = "Disabled"
+	KeyVaultCertificateAutoSyncEnabled  KeyVaultCertificateAutoSync = "Enabled"
+)
+
+func PossibleValuesForKeyVaultCertificateAutoSync() []string {
+	return []string{
+		string(KeyVaultCertificateAutoSyncDisabled),
+		string(KeyVaultCertificateAutoSyncEnabled),
+	}
+}
+
+func (s *KeyVaultCertificateAutoSync) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyVaultCertificateAutoSync(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseKeyVaultCertificateAutoSync(input string) (*KeyVaultCertificateAutoSync, error) {
+	vals := map[string]KeyVaultCertificateAutoSync{
+		"disabled": KeyVaultCertificateAutoSyncDisabled,
+		"enabled":  KeyVaultCertificateAutoSyncEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KeyVaultCertificateAutoSync(input)
 	return &out, nil
 }
 
