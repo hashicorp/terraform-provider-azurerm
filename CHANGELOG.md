@@ -2,18 +2,26 @@
 
 FEATURES:
 
+* New Resource: `azurerm_security_center_storage_defender` [GH-23242]
 * New Resource: `azurerm_spring_cloud_application_insights_application_performance_monitoring` [GH-23107]
 
 ENHANCEMENTS:
 
 * provider: updating to build using Go `1.21.3` [GH-23514]
+* provider: the `roll_instances_when_required` provider feature in the `virtual_machine_scale_set` block is now optional [GH-22976]
+* dependencies: updating to `v0.20231012.1141427` of `github.com/hashicorp/go-azure-sdk` [GH-23534]
+* Data Source: `azurerm_application_gateway` - support for `backend_http_settings`, `global`, `gateway_ip_configuration` and additional attributes [GH-23318]
+* Data Source: `azurerm_network_service_tags` - export the `name` attribute [GH-23382]
 * `azurerm_cosmosdb_postgresql_cluster` - add support for `sql_version` of `16` and `citus_version` of `12.1` [GH-23476]
 * `azurerm_palo_alto_local_rulestack` - correctly normalize the `location` property [GH-23483]
 * `azurerm_static_site` - add support for `app_settings` [GH-23421]
 
 BUG FIXES:
 
+* `azurerm_automation_schedule` - fix a bug when updating `start_time` [GH-23494]
 * `azurerm_eventhub` - remove ForceNew and check `partition_count` is not decreased [GH-23499]
+* `azurerm_managed_lustre_file_system` - update validation for `storage_capacity_in_tb` according to `sku_name` in use [GH-23428]
+* `azurerm_virtual_machine` - fix a crash when the API response for the `os_profile` block contains nil properties [GH-23535]
 
 ## 3.75.0 (September 28, 2023)
 

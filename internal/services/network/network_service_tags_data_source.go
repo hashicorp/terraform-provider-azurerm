@@ -33,6 +33,11 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 				Required: true,
 			},
 
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"location_filter": commonschema.LocationOptional(),
 
 			"address_prefixes": {
@@ -91,6 +96,8 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 			}
 
 			if location.NormalizeNilable(props.Region) == locationFilter {
+				d.Set("name", value.Name)
+
 				addressPrefixes := make([]string, 0)
 				if props.AddressPrefixes != nil {
 					addressPrefixes = *props.AddressPrefixes
