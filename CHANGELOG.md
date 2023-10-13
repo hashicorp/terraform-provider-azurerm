@@ -8,6 +8,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `storage` to use API Version `2023-01-01` [GH-23543]
+* Data Source: `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
+* `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
 
 BUG FIXES:
 
