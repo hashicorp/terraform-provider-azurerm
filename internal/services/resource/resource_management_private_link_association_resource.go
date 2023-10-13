@@ -3,6 +3,8 @@ package resource
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -12,35 +14,33 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"time"
 )
 
-var _ sdk.Resource = PrivateLinkAssociationResource{}
+var _ sdk.Resource = ResourceManagementPrivateLinkAssociationResource{}
 
-type PrivateLinkAssociationResource struct{}
+type ResourceManagementPrivateLinkAssociationResource struct{}
 
-func (r PrivateLinkAssociationResource) ModelObject() interface{} {
-	return &PrivateLinkAssociationResourceSchema{}
+func (r ResourceManagementPrivateLinkAssociationResource) ModelObject() interface{} {
+	return &ResourceManagementPrivateLinkAssociationResourceSchema{}
 }
 
-type PrivateLinkAssociationResourceSchema struct {
-	ManagementGroupId          string `tfschema:"management_group_id"`
-	Name                       string `tfschema:"name"`
-	PrivateLinkId              string `tfschema:"private_link_id"`
-	PublicNetworkAccessEnabled bool   `tfschema:"public_network_access_enabled"`
-	Scope                      string `tfschema:"scope"`
-	TenantID                   string `tfschema:"tenant_id"`
+type ResourceManagementPrivateLinkAssociationResourceSchema struct {
+	ManagementGroupId               string `tfschema:"management_group_id"`
+	Name                            string `tfschema:"name"`
+	ResourceManagementPrivateLinkId string `tfschema:"resource_management_private_link_id"`
+	PublicNetworkAccessEnabled      bool   `tfschema:"public_network_access_enabled"`
+	TenantID                        string `tfschema:"tenant_id"`
 }
 
-func (r PrivateLinkAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ResourceManagementPrivateLinkAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return privatelinkassociation.ValidatePrivateLinkAssociationID
 }
 
-func (r PrivateLinkAssociationResource) ResourceType() string {
-	return "azurerm_private_link_association"
+func (r ResourceManagementPrivateLinkAssociationResource) ResourceType() string {
+	return "azurerm_resource_management_private_link_association"
 }
 
-func (r PrivateLinkAssociationResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ResourceManagementPrivateLinkAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew:     true,
@@ -55,7 +55,7 @@ func (r PrivateLinkAssociationResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: commonids.ValidateManagementGroupID,
 		},
-		"private_link_id": {
+		"resource_management_private_link_id": {
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
@@ -69,12 +69,8 @@ func (r PrivateLinkAssociationResource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r PrivateLinkAssociationResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ResourceManagementPrivateLinkAssociationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"scope": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
-		},
 		"tenant_id": {
 			Computed: true,
 			Type:     pluginsdk.TypeString,
@@ -82,13 +78,13 @@ func (r PrivateLinkAssociationResource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r PrivateLinkAssociationResource) Create() sdk.ResourceFunc {
+func (r ResourceManagementPrivateLinkAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.PrivateLinkAssociationClient
 
-			var config PrivateLinkAssociationResourceSchema
+			var config ResourceManagementPrivateLinkAssociationResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -121,7 +117,7 @@ func (r PrivateLinkAssociationResource) Create() sdk.ResourceFunc {
 
 			payload := privatelinkassociation.PrivateLinkAssociationObject{
 				Properties: &privatelinkassociation.PrivateLinkAssociationProperties{
-					PrivateLink:         pointer.To(config.PrivateLinkId),
+					PrivateLink:         pointer.To(config.ResourceManagementPrivateLinkId),
 					PublicNetworkAccess: r.expandPublicNetworkAccess(config.PublicNetworkAccessEnabled),
 				},
 			}
@@ -136,12 +132,12 @@ func (r PrivateLinkAssociationResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r PrivateLinkAssociationResource) Read() sdk.ResourceFunc {
+func (r ResourceManagementPrivateLinkAssociationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.PrivateLinkAssociationClient
-			schema := PrivateLinkAssociationResourceSchema{}
+			schema := ResourceManagementPrivateLinkAssociationResourceSchema{}
 
 			id, err := privatelinkassociation.ParsePrivateLinkAssociationID(metadata.ResourceData.Id())
 			if err != nil {
@@ -161,9 +157,8 @@ func (r PrivateLinkAssociationResource) Read() sdk.ResourceFunc {
 				schema.Name = id.PlaId
 				if prop := model.Properties; prop != nil {
 					schema.PublicNetworkAccessEnabled = r.flattenPublicNetworkAccess(prop.PublicNetworkAccess)
-					schema.Scope = pointer.From(prop.Scope)
 					schema.TenantID = pointer.From(prop.TenantID)
-					schema.PrivateLinkId = pointer.From(prop.PrivateLink)
+					schema.ResourceManagementPrivateLinkId = pointer.From(prop.PrivateLink)
 				}
 			}
 
@@ -172,7 +167,7 @@ func (r PrivateLinkAssociationResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r PrivateLinkAssociationResource) Delete() sdk.ResourceFunc {
+func (r ResourceManagementPrivateLinkAssociationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -187,12 +182,40 @@ func (r PrivateLinkAssociationResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+
+			state := &pluginsdk.StateChangeConf{
+				Delay:   10 * time.Second,
+				Pending: []string{"Found"},
+				Target:  []string{"NotFound"},
+				Timeout: time.Until(deadline),
+				Refresh: func() (interface{}, string, error) {
+					resp, err := client.Get(ctx, *id)
+					if err != nil {
+						if response.WasNotFound(resp.HttpResponse) {
+							return resp, "NotFound", nil
+						}
+
+						return resp, "Error", fmt.Errorf("making Read request on %s: %+v", *id, err)
+					}
+
+					return resp, "Found", nil
+				},
+			}
+
+			if _, err := state.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for the Deployment %s: %+v", *id, err)
+			}
+
 			return nil
 		},
 	}
 }
 
-func (r PrivateLinkAssociationResource) expandPublicNetworkAccess(input bool) *privatelinkassociation.PublicNetworkAccessOptions {
+func (r ResourceManagementPrivateLinkAssociationResource) expandPublicNetworkAccess(input bool) *privatelinkassociation.PublicNetworkAccessOptions {
 	output := privatelinkassociation.PublicNetworkAccessOptionsEnabled
 	if !input {
 		output = privatelinkassociation.PublicNetworkAccessOptionsDisabled
@@ -201,7 +224,7 @@ func (r PrivateLinkAssociationResource) expandPublicNetworkAccess(input bool) *p
 	return &output
 }
 
-func (r PrivateLinkAssociationResource) flattenPublicNetworkAccess(input *privatelinkassociation.PublicNetworkAccessOptions) bool {
+func (r ResourceManagementPrivateLinkAssociationResource) flattenPublicNetworkAccess(input *privatelinkassociation.PublicNetworkAccessOptions) bool {
 	if input == nil || *input == privatelinkassociation.PublicNetworkAccessOptionsEnabled {
 		return true
 	}

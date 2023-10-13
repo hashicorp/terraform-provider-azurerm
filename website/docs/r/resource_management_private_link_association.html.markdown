@@ -1,14 +1,14 @@
 ---
 subcategory: "Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_private_link_association"
+page_title: "Azure Resource Manager: azurerm_resource_management_private_link_association"
 description: |-
-  Manages a Private Link Association.
+  Manages a Resource Management Private Link Association.
 ---
 
-# azurerm_private_link_association
+# azurerm_resource_management_private_link_association
 
-Manages a Private Link Association.
+Manages a Resource Management Private Link Association.
 
 ## Example Usage
 
@@ -30,10 +30,10 @@ resource "azurerm_resource_management_private_link" "example" {
   location            = azurerm_resource_group.example.location
 }
 
-resource "azurerm_private_link_association" "example" {
-  management_group_id           = azurerm_management_group.example.id
-  private_link_id               = azurerm_resource_management_private_link.example.id
-  public_network_access_enabled = true
+resource "azurerm_resource_management_private_link_association" "example" {
+  management_group_id                 = azurerm_management_group.example.id
+  resource_management_private_link_id = azurerm_resource_management_private_link.example.id
+  public_network_access_enabled       = true
 }
 
 ```
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 **Note:** For now, `management_group_id` must be the ID of [Root Management Group](https://learn.microsoft.com/en-us/azure/governance/management-groups/overview#root-management-group-for-each-directory).
 
-* `private_link_id` - (Required) The Resource ID of Resource Management Private Link. Changing this forces a new Private Link Association to be created.
+* `resource_management_private_link_id` - (Required) The Resource ID of Resource Management Private Link. Changing this forces a new Private Link Association to be created.
 
 * `public_network_access_enabled` - (Required) Whether public network access is allowed. Changing this forces a new Private Link Association to be created.
 
@@ -58,9 +58,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Private Link Association.
 
-* `scope` - The scope of the private link association.
-
-* `tenant_id` - The TenantID.
+* `tenant_id` - The Tenant ID.
 
 ---
 
@@ -77,5 +75,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 An existing Private Link Association can be imported into Terraform using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_private_link_association.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/privateLinkAssociations/00000000-0000-0000-0000-000000000000
+terraform import azurerm_resource_management_private_link_association.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/privateLinkAssociations/00000000-0000-0000-0000-000000000000
 ```
