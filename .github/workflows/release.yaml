@@ -34,7 +34,6 @@ jobs:
 
   terraform-provider-release:
     name: 'Terraform Provider Release'
-    runs-on: [custom, linux, xl]
     needs: [go-version, release-notes]
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@v2
     secrets:
