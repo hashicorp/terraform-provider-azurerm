@@ -132,21 +132,13 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
-			ConflictsWith: []string{
-				"storage_uses_managed_identity",
-				"storage_key_vault_secret_id",
-			},
-			Description: "The access key which will be used to access the storage account for the Function App.",
+			Description:  "The access key which will be used to access the storage account for the Function App.",
 		},
 
 		"storage_uses_managed_identity": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-			ConflictsWith: []string{
-				"storage_account_access_key",
-				"storage_key_vault_secret_id",
-			},
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 			Description: "Should the Function App use its Managed Identity to access storage?",
 		},
 
@@ -1150,6 +1142,12 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			rd := metadata.ResourceDiff
+
+			storageAccountAccessKey := rd.Get("storage_account_access_key").(string)
+			storageUseManagedIdentity := rd.Get("storage_uses_managed_identity").(bool)
+			if len(storageAccountAccessKey) > 0 && storageUseManagedIdentity {
+				return fmt.Errorf("`storage_account_access_key` must be empty if `storage_uses_managed_identity` is set to `true`")
+			}
 
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")

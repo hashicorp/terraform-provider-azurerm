@@ -1434,6 +1434,19 @@ func TestAccWindowsFunctionApp_basicOutputs(t *testing.T) {
 	})
 }
 
+// Conflicting Types
+func TestAccWindowsFunctionApp_storageAccessKeyAndManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.storageAccessKeyAndManagedIdentity(data, SkuBasicPlan),
+			ExpectError: regexp.MustCompile("`storage_account_access_key` must be empty if `storage_uses_managed_identity` is set to `true`"),
+		},
+	})
+}
+
 // Exists
 
 func (r WindowsFunctionAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -3716,4 +3729,27 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.template(data, planSKU), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) storageAccessKeyAndManagedIdentity(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_account_access_key    = azurerm_storage_account.test.primary_access_key
+  storage_uses_managed_identity = true
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
