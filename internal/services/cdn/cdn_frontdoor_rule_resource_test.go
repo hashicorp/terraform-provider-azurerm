@@ -401,6 +401,8 @@ func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorAny(t *testing.T) {
 			Config: r.urlFilenameConditionOperator(data, "Any"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("conditions.0.url_filename_condition.0.operator").HasValue("Any"),
+				check.That(data.ResourceName).Key("conditions.0.url_filename_condition.0.match_values").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
