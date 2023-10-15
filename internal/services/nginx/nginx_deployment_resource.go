@@ -45,7 +45,9 @@ type DeploymentModel struct {
 	Sku                    string                                     `tfschema:"sku"`
 	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
 	Location               string                                     `tfschema:"location"`
+	Capacity               int64                                      `tfschema:"capacity"`
 	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
 	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
@@ -95,10 +97,22 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		"capacity": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntPositive,
+		},
+
 		"diagnose_support_enabled": {
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ValidateFunc: nil,
+		},
+
+		"email": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"logging_storage_account": {
@@ -222,7 +236,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+					return fmt.Errorf("retrieving %s: %v", id, err)
 				}
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
@@ -280,6 +294,18 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			if len(model.NetworkInterface) > 0 {
 				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.FromString(model.NetworkInterface[0].SubnetId)
+			}
+
+			if model.Capacity > 0 {
+				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					Capacity: pointer.FromInt64(model.Capacity),
+				}
+			}
+
+			if model.Email != "" {
+				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
+					PreferredEmail: pointer.FromString(model.Email),
+				}
 			}
 
 			req.Properties = prop
@@ -377,6 +403,14 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 						}
 					}
 
+					if scaling := props.ScalingProperties; scaling != nil {
+						output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+					}
+
+					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
+						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+					}
+
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %v", err)
@@ -432,6 +466,18 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if meta.ResourceData.HasChange("diagnose_support_enabled") {
 				req.Properties.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
+			}
+
+			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
+				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					Capacity: pointer.FromInt64(model.Capacity),
+				}
+			}
+
+			if meta.ResourceData.HasChange("email") {
+				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
+					PreferredEmail: pointer.FromString(model.Email),
+				}
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {
