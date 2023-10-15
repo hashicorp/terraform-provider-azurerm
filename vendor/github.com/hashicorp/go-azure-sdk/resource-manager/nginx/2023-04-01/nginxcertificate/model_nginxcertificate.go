@@ -13,6 +13,5 @@ type NginxCertificate struct {
 	Name       *string                     `json:"name,omitempty"`
 	Properties *NginxCertificateProperties `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData      `json:"systemData,omitempty"`
-	Tags       *map[string]string          `json:"tags,omitempty"`
 	Type       *string                     `json:"type,omitempty"`
 }
