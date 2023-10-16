@@ -28,14 +28,14 @@ func (r DevCenterProjectResource) ModelObject() interface{} {
 }
 
 type DevCenterProjectResourceSchema struct {
-	Description        string                 `tfschema:"description"`
-	DevCenterId        string                 `tfschema:"dev_center_id"`
-	DevCenterUri       string                 `tfschema:"dev_center_uri"`
-	Location           string                 `tfschema:"location"`
-	MaxDevBoxesPerUser int64                  `tfschema:"max_dev_boxes_per_user"`
-	Name               string                 `tfschema:"name"`
-	ResourceGroupName  string                 `tfschema:"resource_group_name"`
-	Tags               map[string]interface{} `tfschema:"tags"`
+	Description            string                 `tfschema:"description"`
+	DevCenterId            string                 `tfschema:"dev_center_id"`
+	DevCenterUri           string                 `tfschema:"dev_center_uri"`
+	Location               string                 `tfschema:"location"`
+	MaximumDevBoxesPerUser int64                  `tfschema:"maximum_dev_boxes_per_user"`
+	Name                   string                 `tfschema:"name"`
+	ResourceGroupName      string                 `tfschema:"resource_group_name"`
+	Tags                   map[string]interface{} `tfschema:"tags"`
 }
 
 func (r DevCenterProjectResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -63,7 +63,7 @@ func (r DevCenterProjectResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
-		"max_dev_boxes_per_user": {
+		"maximum_dev_boxes_per_user": {
 			Optional: true,
 			Type:     pluginsdk.TypeInt,
 		},
@@ -202,7 +202,7 @@ func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProp
 	output.Description = &input.Description
 	output.DevCenterId = input.DevCenterId
 
-	output.MaxDevBoxesPerUser = &input.MaxDevBoxesPerUser
+	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
 	return nil
 }
 
@@ -210,7 +210,7 @@ func (r DevCenterProjectResource) mapProjectPropertiesToDevCenterProjectResource
 	output.Description = pointer.From(input.Description)
 	output.DevCenterId = input.DevCenterId
 	output.DevCenterUri = pointer.From(input.DevCenterUri)
-	output.MaxDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
+	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
 	return nil
 }
 
@@ -243,12 +243,12 @@ func (r DevCenterProjectResource) mapProjectToDevCenterProjectResourceSchema(inp
 }
 
 func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input DevCenterProjectResourceSchema, output *projects.ProjectUpdateProperties) error {
-	output.MaxDevBoxesPerUser = &input.MaxDevBoxesPerUser
+	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
 	return nil
 }
 
 func (r DevCenterProjectResource) mapProjectUpdatePropertiesToDevCenterProjectResourceSchema(input projects.ProjectUpdateProperties, output *DevCenterProjectResourceSchema) error {
-	output.MaxDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
+	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
 	return nil
 }
 
