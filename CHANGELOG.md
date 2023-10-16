@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.62.0` of `github.com/hashicorp/go-azure-helpers` [GH-23581]
 * `netapp`: updating to use API Version `2023-05-01` [GH-23576]
 * `springcloud`: updating to use API Version `2023-09-01-preview` [GH-23544]
 * `storage`: updating to use API Version `2023-01-01` [GH-23543]
