@@ -919,9 +919,9 @@ A `workload_autoscaler_profile` block supports the following:
 
 A `http_proxy_config` block supports the following:
 
-* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP. Changing this forces a new resource to be created.
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
 
-* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS. Changing this forces a new resource to be created.
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
 
 * `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
