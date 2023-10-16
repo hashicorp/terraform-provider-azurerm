@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * `springcloud`: updating to use API Version `2023-09-01-preview` [GH-23544]
 * `storage`: updating to use API Version `2023-01-01` [GH-23543]
+* `internal/sdk`: fixing an issue where struct fields containing `removedInNextMajorVersion` wouldn't be decoded correctly [GH-23564]
 * provider: the `roll_instances_when_required` provider feature in the `virtual_machine_scale_set` block is now optional [GH-22976]
 * Data Source: `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
 * `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
