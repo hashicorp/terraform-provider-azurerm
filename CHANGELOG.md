@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `netapp`: updating to use API Version `2023-05-01` [GH-23576]
 * `springcloud`: updating to use API Version `2023-09-01-preview` [GH-23544]
 * `storage`: updating to use API Version `2023-01-01` [GH-23543]
 * `internal/sdk`: fixing an issue where struct fields containing `removedInNextMajorVersion` wouldn't be decoded correctly [GH-23564]
