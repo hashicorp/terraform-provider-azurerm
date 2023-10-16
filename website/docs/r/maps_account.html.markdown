@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the Azure Maps Account. Possible values are `S0`, `S1` and `G2`. Changing this forces a new resource to be created.
 
-~> **Note:** `S0` and `S1` are deprecated by Service API. Suggest to use `G2`. Please see more at this [document](https://learn.microsoft.com/azure/azure-maps/how-to-manage-pricing-tier).
+~> **Note:** Gen1 SKUs (`S0` and `S1`) are deprecated and can no longer be used for new deployments, which should instead use a Gen2 SKU (`G2`) - more information can be found [in the Azure documentation](https://learn.microsoft.com/azure/azure-maps/how-to-manage-pricing-tier).
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled for this Azure Maps Account? When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication. Defaults to `true`.
 
