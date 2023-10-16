@@ -1,5 +1,5 @@
 ---
-subcategory: "Dev Center Project"
+subcategory: "Dev Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_center_project"
 description: |-
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Description of the project. Changing this forces a new Dev Center Project to be created.
 
-* `max_dev_boxes_per_user` - (Optional) When specified, limits the maximum number of Dev Boxes a single user can create across all pools in the project.
+* `maximum_dev_boxes_per_user` - (Optional) When specified, limits the maximum number of Dev Boxes a single user can create across all pools in the project.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project.
 
