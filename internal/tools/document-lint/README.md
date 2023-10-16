@@ -1,14 +1,14 @@
 # Introduction 
-This tool is to fix the documetn mismatch and format issues of terraform azurerm provider.
+This tool detects and fixes inconsistencies in the AzureRM Terraform Provider resource documentation.
 
-What Can It Do:
-1. document format fix.
-2. check required/optional value of properties
-3. check default value of properties
-4. check force new value
-5. check timeout of create/update/read/delete
-6. check properties missed/redundant in document
-7. check possible values of proeprties in document
+## The following can be checked/fixed:
+1. Formatting of documentation.
+2. The Required/Optional value of properties.
+3. The Default value of properties.
+4. The ForceNew value of properties.
+5. The TimeOut value of create/update/read/delete functions.
+6. Properties that are present in the schema but missing in the documentation and vice versa.
+7. The list of PossibleValues.
 
 # Getting Started
 ```bash

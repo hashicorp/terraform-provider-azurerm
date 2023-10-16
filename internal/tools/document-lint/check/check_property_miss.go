@@ -44,7 +44,7 @@ func (c propertyMissDiff) String() string {
 		// it can be in the wrong place
 		return fmt.Sprintf("%s does not exist in the schema - should this be %s?", c.checkBase.Str(), util.FixedCode(util.XPathBase(c.correctName)))
 	}
-	return fmt.Sprintf("%s does not exist in the %s or poor formatted", c.checkBase.Str(), c.MissType)
+	return fmt.Sprintf("%s does not exist in the %s or is poorly formatted", c.checkBase.Str(), c.MissType)
 }
 
 func (c propertyMissDiff) Fix(line string) (result string, err error) {
