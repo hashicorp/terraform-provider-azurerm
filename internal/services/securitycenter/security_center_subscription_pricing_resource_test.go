@@ -98,7 +98,18 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 	})
 }
 
-func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T) {
+func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"cloudPosture": {
+			"basic":          testAccSecurityCenterSubscriptionPricing_cloudPostureExtension,
+			"freeToStandard": testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandardDisabledExtensions,
+			"standardToFree": testAccSecurityCenterSubscriptionPricing_cloudPostureExtensioStandardToFreeExtensions,
+		},
+	})
+
+}
+
+func testAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
@@ -135,7 +146,7 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 	})
 }
 
-func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandardDisabledExtensions(t *testing.T) {
+func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandardDisabledExtensions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
@@ -162,7 +173,7 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandar
 	})
 }
 
-func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtensioStandardToFreeExtensions(t *testing.T) {
+func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensioStandardToFreeExtensions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
