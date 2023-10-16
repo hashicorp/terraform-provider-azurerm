@@ -13,7 +13,7 @@ func ResourceDeploymentScriptAzureCliVersion(i interface{}, k string) ([]string,
 
 	var errors []error
 	if matched := regexp.MustCompile(`^\d+\.\d+\.\d+$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q should be in format x.y.z", k))
+		errors = append(errors, fmt.Errorf("%q should be in the format `X.Y.Z` (e.g. `2.30.0`)", k))
 	}
 
 	return nil, errors

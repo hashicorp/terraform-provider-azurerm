@@ -13,7 +13,7 @@ func ResourceDeploymentScriptAzurePowerShellVersion(i interface{}, k string) ([]
 
 	var errors []error
 	if matched := regexp.MustCompile(`^\d+\.\d+$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q should be in format x.y", k))
+		errors = append(errors, fmt.Errorf("%q should be in the format `X.Y` (e.g. `9.7`)", k))
 	}
 
 	return nil, errors
