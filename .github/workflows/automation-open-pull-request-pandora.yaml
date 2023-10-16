@@ -4,9 +4,8 @@ name: Open Pull Request when an `auto-pr` is pushed for Pandora
 on:
   push:
     branches:
-      - 'auto-pr/**'
-    branches-ignore:
-      - 'auto-pr/deps/updating-go-azure-sdk-to-**'
+      - 'auto-pr/**' # deprecated
+      - 'auto-pandora-pr/**'
 
 jobs:
   open-pull-request:
