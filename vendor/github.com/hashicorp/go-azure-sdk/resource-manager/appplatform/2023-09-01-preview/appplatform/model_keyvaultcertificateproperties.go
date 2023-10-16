@@ -11,10 +11,11 @@ import (
 var _ CertificateProperties = KeyVaultCertificateProperties{}
 
 type KeyVaultCertificateProperties struct {
-	CertVersion       *string `json:"certVersion,omitempty"`
-	ExcludePrivateKey *bool   `json:"excludePrivateKey,omitempty"`
-	KeyVaultCertName  string  `json:"keyVaultCertName"`
-	VaultUri          string  `json:"vaultUri"`
+	AutoSync          *KeyVaultCertificateAutoSync `json:"autoSync,omitempty"`
+	CertVersion       *string                      `json:"certVersion,omitempty"`
+	ExcludePrivateKey *bool                        `json:"excludePrivateKey,omitempty"`
+	KeyVaultCertName  string                       `json:"keyVaultCertName"`
+	VaultUri          string                       `json:"vaultUri"`
 
 	// Fields inherited from CertificateProperties
 	ActivateDate      *string                               `json:"activateDate,omitempty"`

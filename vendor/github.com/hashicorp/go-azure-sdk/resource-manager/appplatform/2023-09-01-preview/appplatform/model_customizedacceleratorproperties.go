@@ -5,9 +5,11 @@ package appplatform
 
 type CustomizedAcceleratorProperties struct {
 	AcceleratorTags   *[]string                               `json:"acceleratorTags,omitempty"`
+	AcceleratorType   *CustomizedAcceleratorType              `json:"acceleratorType,omitempty"`
 	Description       *string                                 `json:"description,omitempty"`
 	DisplayName       *string                                 `json:"displayName,omitempty"`
 	GitRepository     AcceleratorGitRepository                `json:"gitRepository"`
 	IconUrl           *string                                 `json:"iconUrl,omitempty"`
+	Imports           *[]string                               `json:"imports,omitempty"`
 	ProvisioningState *CustomizedAcceleratorProvisioningState `json:"provisioningState,omitempty"`
 }

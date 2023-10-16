@@ -669,3 +669,26 @@ func (p SupportedApmTypeOperationPredicate) Matches(input SupportedApmType) bool
 
 	return true
 }
+
+type SupportedServerVersionOperationPredicate struct {
+	Server  *string
+	Value   *string
+	Version *string
+}
+
+func (p SupportedServerVersionOperationPredicate) Matches(input SupportedServerVersion) bool {
+
+	if p.Server != nil && (input.Server == nil || *p.Server != *input.Server) {
+		return false
+	}
+
+	if p.Value != nil && (input.Value == nil || *p.Value != *input.Value) {
+		return false
+	}
+
+	if p.Version != nil && (input.Version == nil || *p.Version != *input.Version) {
+		return false
+	}
+
+	return true
+}

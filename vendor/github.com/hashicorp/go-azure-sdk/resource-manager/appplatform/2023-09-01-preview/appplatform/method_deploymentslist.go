@@ -23,6 +23,7 @@ type DeploymentsListCompleteResult struct {
 }
 
 type DeploymentsListOperationOptions struct {
+	Expand  *string
 	Version *[]string
 }
 
@@ -43,6 +44,9 @@ func (o DeploymentsListOperationOptions) ToOData() *odata.Query {
 
 func (o DeploymentsListOperationOptions) ToQuery() *client.QueryParams {
 	out := client.QueryParams{}
+	if o.Expand != nil {
+		out.Append("$expand", fmt.Sprintf("%v", *o.Expand))
+	}
 	if o.Version != nil {
 		out.Append("version", fmt.Sprintf("%v", *o.Version))
 	}
