@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
