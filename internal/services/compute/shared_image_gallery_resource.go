@@ -71,6 +71,8 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(galleries.GallerySharingPermissionTypesCommunity),
+								string(galleries.GallerySharingPermissionTypesGroups),
+								string(galleries.GallerySharingPermissionTypesPrivate),
 							}, false),
 						},
 
