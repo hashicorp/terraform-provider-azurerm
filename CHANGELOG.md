@@ -13,6 +13,8 @@ ENHANCEMENTS:
 * provider: the `roll_instances_when_required` provider feature in the `virtual_machine_scale_set` block is now optional [GH-22976]
 * Data Source: `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
 * `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
+* `azurerm_resource_deployment_script_azure_cli` - improve validation for the `version` property to support newer versions [GH-23370]
+* `azurerm_resource_deployment_script_azure_power_shell` - improve validation for the `version` property to support newer versions [GH-23370]
 
 BUG FIXES:
 
