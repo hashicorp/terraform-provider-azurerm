@@ -6,6 +6,7 @@ package sdk
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -57,6 +58,7 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 		debugLogger.Infof("Field", field)
 
 		if val, exists := field.Tag.Lookup("tfschema"); exists {
+			val = strings.TrimSuffix(val, ",removedInNextMajorVersion")
 			tfschemaValue, valExists := stateRetriever.GetOkExists(val)
 			if !valExists {
 				continue
@@ -192,6 +194,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 					debugLogger.Infof("nestedField ", nestedField)
 
 					if val, exists := nestedField.Tag.Lookup("tfschema"); exists {
+						val = strings.TrimSuffix(val, ",removedInNextMajorVersion")
 						nestedTFSchemaValue := test[val]
 						if err := setValue(elem.Interface(), nestedTFSchemaValue, j, fieldName, debugLogger); err != nil {
 							return err
