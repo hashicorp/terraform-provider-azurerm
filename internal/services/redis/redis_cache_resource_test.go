@@ -31,8 +31,8 @@ func TestAccRedisCache_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("minimum_tls_version").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
-				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", true),
-				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", true),
+				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string"),
+				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string"),
 			),
 		},
 		data.ImportStep(),
@@ -48,8 +48,8 @@ func TestAccRedisCache_withoutSSL(t *testing.T) {
 			Config: r.basic(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", true),
-				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", true),
+				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string"),
+				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string"),
 			),
 		},
 		data.ImportStep(),
@@ -1492,7 +1492,7 @@ resource "azurerm_redis_cache" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) acceptance.TestCheckFunc {
+func testCheckSSLInConnectionString(resourceName string, propertyName string) acceptance.TestCheckFunc {
 	return func(s *acceptance.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -1501,11 +1501,8 @@ func testCheckSSLInConnectionString(resourceName string, propertyName string, re
 		}
 
 		connectionString := rs.Primary.Attributes[propertyName]
-		if strings.Contains(connectionString, fmt.Sprintf("ssl=%t", requireSSL)) {
+		if strings.Contains(connectionString, fmt.Sprintf("ssl=%t", true)) {
 			return nil
-		}
-		if strings.Contains(connectionString, fmt.Sprintf("ssl=%t", !requireSSL)) {
-			return fmt.Errorf("Bad: wrong SSL setting in connection string: %s", propertyName)
 		}
 
 		return fmt.Errorf("Bad: missing SSL setting in connection string: %s", propertyName)
