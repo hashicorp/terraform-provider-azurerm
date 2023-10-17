@@ -156,7 +156,8 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if len(d.Get("extension").(*pluginsdk.Set).List()) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+	// the list always contains a empty element...
+	if len(d.Get("extension").(*pluginsdk.Set).List()) > 1 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
 		return fmt.Errorf("extensions cannot be enabled when using free tier")
 	}
 
