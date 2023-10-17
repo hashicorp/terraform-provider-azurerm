@@ -100,7 +100,7 @@ func (r ResourceManagementPrivateLinkAssociationResource) Create() sdk.ResourceF
 
 			managementGroupId, err := commonids.ParseManagementGroupID(config.ManagementGroupId)
 			if err != nil {
-				return fmt.Errorf("parse management group id: %+v", err)
+				return err
 			}
 
 			id := privatelinkassociation.NewPrivateLinkAssociationID(managementGroupId.GroupId, name)

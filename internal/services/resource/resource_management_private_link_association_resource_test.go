@@ -122,16 +122,6 @@ resource "azurerm_resource_management_private_link_association" "import" {
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-variable "random_string" {
-  default = %q
-}
-variable "random_integer" {
-  default = %d
-}
-
 data "azurerm_client_config" "test" {}
 
 data "azurerm_management_group" "test" {
@@ -139,14 +129,14 @@ data "azurerm_management_group" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${var.random_integer}"
-  location = var.primary_location
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_resource_management_private_link" "test" {
   location            = azurerm_resource_group.test.location
-  name                = "acctestrmpl-${var.random_string}"
+  name                = "acctestrmpl-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
