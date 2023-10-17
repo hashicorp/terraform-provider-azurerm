@@ -48,8 +48,8 @@ func TestAccRedisCache_withoutSSL(t *testing.T) {
 			Config: r.basic(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", false),
-				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", false),
+				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", true),
+				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", true),
 			),
 		},
 		data.ImportStep(),
