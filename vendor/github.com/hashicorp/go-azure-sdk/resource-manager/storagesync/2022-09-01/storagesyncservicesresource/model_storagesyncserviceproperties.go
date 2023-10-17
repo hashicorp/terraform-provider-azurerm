@@ -11,4 +11,5 @@ type StorageSyncServiceProperties struct {
 	ProvisioningState          *string                      `json:"provisioningState,omitempty"`
 	StorageSyncServiceStatus   *int64                       `json:"storageSyncServiceStatus,omitempty"`
 	StorageSyncServiceUid      *string                      `json:"storageSyncServiceUid,omitempty"`
+	UseIdentity                *bool                        `json:"useIdentity,omitempty"`
 }

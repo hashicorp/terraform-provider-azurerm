@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2022-09-01/syncgroupresource` Documentation
 
-The `syncgroupresource` SDK allows for interaction with the Azure Resource Manager Service `storagesync` (API Version `2020-03-01`).
+The `syncgroupresource` SDK allows for interaction with the Azure Resource Manager Service `storagesync` (API Version `2022-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2022-09-01/syncgroupresource"
 ```
 
 

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2022-09-01/storagesyncservicesresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2022-09-01/syncgroupresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
