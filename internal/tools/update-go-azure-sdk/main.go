@@ -49,6 +49,20 @@ func main() {
 		log.Fatalf("validating input: %+v", err)
 	}
 
+	absolutePathToAzureRMProvider, err := filepath.Abs(input.azurermRepoPath)
+	if err != nil {
+		log.Fatalf("determining absolute path to the AzureRM Provider at %q: %+v", input.azurermRepoPath, err)
+	}
+	input.azurermRepoPath = absolutePathToAzureRMProvider
+
+	if input.goSdkRepoPath != "" {
+		absolutePathToGoSdk, err := filepath.Abs(input.goSdkRepoPath)
+		if err != nil {
+			log.Fatalf("determining absolute path to the Go SDK at %q: %+v", input.goSdkRepoPath, err)
+		}
+		input.goSdkRepoPath = absolutePathToGoSdk
+	}
+
 	if err := run(context.Background(), input); err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -375,6 +389,24 @@ func determineApiVersionsCurrentlyUsedForService(workingDirectory string, servic
 	apiVersions := make(map[string]struct{}, 0)
 	for _, line := range *imports {
 		logger.Trace(fmt.Sprintf("Parsing import line %q..", line))
+
+		// if there's an import alias, we need to remove that to determine the correct API version
+		if !strings.HasPrefix(line, `"`) {
+			// if the import is (force) imported (even if unused)
+			if strings.HasPrefix(line, "_") {
+				line = strings.TrimPrefix(line, "_")
+				line = strings.TrimSpace(line)
+			}
+
+			if !strings.Contains(line, " ") {
+				return nil, fmt.Errorf("the import line %q looks like an import alias but didn't parse in the format `alias \"importpath\"`", line)
+			}
+			components := strings.Split(line, " ")
+			if len(components) != 2 {
+				return nil, fmt.Errorf("expected the import alias to be in the format `alias \"path\"` but got %q which was %d segments: %+v", line, len(components), components)
+			}
+			line = strings.TrimSpace(components[1])
+		}
 
 		// pull out the api version, which is predictable
 		line = strings.TrimPrefix(line, `"`)
