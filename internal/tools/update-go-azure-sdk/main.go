@@ -407,13 +407,19 @@ func determineApiVersionsCurrentlyUsedForService(workingDirectory string, servic
 			}
 			line = strings.TrimSpace(components[1])
 		}
+		serviceImportPath := fmt.Sprintf("github.com/hashicorp/go-azure-sdk/resource-manager/%s/", serviceName)
+		if !strings.Contains(line, serviceImportPath) {
+			logger.Trace(fmt.Sprintf("Skipping line %q since it's not for this SDK..", line))
+			continue
+		}
 
 		// pull out the api version, which is predictable
 		line = strings.TrimPrefix(line, `"`)
-		line = strings.TrimPrefix(line, fmt.Sprintf("github.com/hashicorp/go-azure-sdk/resource-manager/%s/", serviceName))
+		line = strings.TrimPrefix(line, serviceImportPath)
 		line = strings.TrimSuffix(line, `"`)
 		components := strings.Split(line, "/")
 		apiVersion := components[0]
+		logger.Trace(fmt.Sprintf("Found API Version %q from %q", apiVersion, line))
 		apiVersions[apiVersion] = struct{}{}
 	}
 
