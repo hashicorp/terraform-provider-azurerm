@@ -551,9 +551,10 @@ func retryHSMUpdateError(timeout time.Duration, action string, id string, retryF
 		}
 		retryableErrors := []string{
 			"try again later",
+			"A conflict occurred that prevented the operation from completing",
 		}
 		for _, retryableError := range retryableErrors {
-			if strings.Contains(strings.ToLower(err.Error()), retryableError) {
+			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower(retryableError)) {
 				return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 			}
 		}
