@@ -246,7 +246,7 @@ A `disk_volume_configuration` block supports the following:
 
 * `size_in_gb` - (Required) The size of the Disk in GB. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The name of the Disk SKU. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The name of the Disk SKU. Possible values are `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
 
 ---
 

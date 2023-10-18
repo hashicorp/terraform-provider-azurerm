@@ -473,10 +473,10 @@ func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageRefe
 	result := make([]ImageReference, 0)
 
 	imageReference := ImageReference{
-		Offer:     *input.Offer,
-		Publisher: *input.Publisher,
-		Sku:       *input.Sku,
-		Version:   *input.Version,
+		Offer:     pointer.From(input.Offer),
+		Publisher: pointer.From(input.Publisher),
+		Sku:       pointer.From(input.Sku),
+		Version:   pointer.From(input.Version),
 	}
 
 	return append(result, imageReference)

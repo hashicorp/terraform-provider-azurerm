@@ -777,11 +777,12 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = *identity
+				state.Identity = pointer.From(identity)
 
 				props := &model.Properties
 				state.Environment = string(props.Environment)
 				state.SapProduct = string(props.SapProduct)
+				state.Tags = pointer.From(model.Tags)
 
 				if config := props.Configuration; config != nil {
 					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
@@ -793,12 +794,8 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil && v.Name != nil {
-					state.ManagedResourceGroupName = *v.Name
-				}
-
-				if model.Tags != nil {
-					state.Tags = *model.Tags
+				if v := props.ManagedResourceGroupConfiguration; v != nil {
+					state.ManagedResourceGroupName = pointer.From(v.Name)
 				}
 			}
 
@@ -989,17 +986,14 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 
 	singleServerConfig := SingleServerConfiguration{
 		AppResourceGroupName:        input.AppResourceGroup,
+		DatabaseType:                string(pointer.From(input.DatabaseType)),
 		DiskVolumeConfigurations:    flattenDiskVolumeConfigurations(input.DbDiskConfiguration),
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.single_server_configuration", basePath)),
 	}
 
-	if v := input.DatabaseType; v != nil {
-		singleServerConfig.DatabaseType = string(*v)
-	}
-
-	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil && networkConfiguration.IsSecondaryIPEnabled != nil {
-		singleServerConfig.IsSecondaryIpEnabled = *networkConfiguration.IsSecondaryIPEnabled
+	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil {
+		singleServerConfig.IsSecondaryIpEnabled = pointer.From(networkConfiguration.IsSecondaryIPEnabled)
 	}
 
 	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
