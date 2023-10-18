@@ -393,14 +393,18 @@ func parseEngineType(input string) (*EngineType, error) {
 type LanguageExtensionImageName string
 
 const (
-	LanguageExtensionImageNamePythonThreeOneZeroEight LanguageExtensionImageName = "Python3_10_8"
-	LanguageExtensionImageNamePythonThreeSixFive      LanguageExtensionImageName = "Python3_6_5"
-	LanguageExtensionImageNameR                       LanguageExtensionImageName = "R"
+	LanguageExtensionImageNamePythonCustomImage         LanguageExtensionImageName = "PythonCustomImage"
+	LanguageExtensionImageNamePythonThreeOneZeroEight   LanguageExtensionImageName = "Python3_10_8"
+	LanguageExtensionImageNamePythonThreeOneZeroEightDL LanguageExtensionImageName = "Python3_10_8_DL"
+	LanguageExtensionImageNamePythonThreeSixFive        LanguageExtensionImageName = "Python3_6_5"
+	LanguageExtensionImageNameR                         LanguageExtensionImageName = "R"
 )
 
 func PossibleValuesForLanguageExtensionImageName() []string {
 	return []string{
+		string(LanguageExtensionImageNamePythonCustomImage),
 		string(LanguageExtensionImageNamePythonThreeOneZeroEight),
+		string(LanguageExtensionImageNamePythonThreeOneZeroEightDL),
 		string(LanguageExtensionImageNamePythonThreeSixFive),
 		string(LanguageExtensionImageNameR),
 	}
@@ -408,9 +412,11 @@ func PossibleValuesForLanguageExtensionImageName() []string {
 
 func parseLanguageExtensionImageName(input string) (*LanguageExtensionImageName, error) {
 	vals := map[string]LanguageExtensionImageName{
-		"python3_10_8": LanguageExtensionImageNamePythonThreeOneZeroEight,
-		"python3_6_5":  LanguageExtensionImageNamePythonThreeSixFive,
-		"r":            LanguageExtensionImageNameR,
+		"pythoncustomimage": LanguageExtensionImageNamePythonCustomImage,
+		"python3_10_8":      LanguageExtensionImageNamePythonThreeOneZeroEight,
+		"python3_10_8_dl":   LanguageExtensionImageNamePythonThreeOneZeroEightDL,
+		"python3_6_5":       LanguageExtensionImageNamePythonThreeSixFive,
+		"r":                 LanguageExtensionImageNameR,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -653,5 +659,33 @@ func parseState(input string) (*State, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := State(input)
+	return &out, nil
+}
+
+type VnetState string
+
+const (
+	VnetStateDisabled VnetState = "Disabled"
+	VnetStateEnabled  VnetState = "Enabled"
+)
+
+func PossibleValuesForVnetState() []string {
+	return []string{
+		string(VnetStateDisabled),
+		string(VnetStateEnabled),
+	}
+}
+
+func parseVnetState(input string) (*VnetState, error) {
+	vals := map[string]VnetState{
+		"disabled": VnetStateDisabled,
+		"enabled":  VnetStateEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VnetState(input)
 	return &out, nil
 }

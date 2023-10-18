@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/scripts` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/scripts` Documentation
 
-The `scripts` SDK allows for interaction with the Azure Resource Manager Service `kusto` (API Version `2023-05-02`).
+The `scripts` SDK allows for interaction with the Azure Resource Manager Service `kusto` (API Version `2023-08-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/scripts"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/scripts"
 ```
 
 
