@@ -23,6 +23,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_virtual_hub_connection` - export the `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` attributes in the `routing` block, and fix a bug where these attributes could not be set [GH-23491]
 * `azurerm_shared_image_gallery` - added options `Private` and `Groups` for `sharing.permission` [GH-23570]
+*  `azurerm_redis_cache` - fixed incorrect ssl values for `redis_primary_connection_string` and `secondary_connection_string` [GH-23575]
 
 ## 3.76.0 (October 12, 2023)
 
