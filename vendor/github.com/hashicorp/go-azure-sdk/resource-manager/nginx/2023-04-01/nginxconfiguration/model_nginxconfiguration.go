@@ -13,6 +13,5 @@ type NginxConfiguration struct {
 	Name       *string                       `json:"name,omitempty"`
 	Properties *NginxConfigurationProperties `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData        `json:"systemData,omitempty"`
-	Tags       *map[string]string            `json:"tags,omitempty"`
 	Type       *string                       `json:"type,omitempty"`
 }
