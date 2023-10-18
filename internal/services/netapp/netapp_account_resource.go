@@ -356,8 +356,7 @@ func expandEncryption(ctx context.Context, input []interface{}, keyVaultsClient 
 
 	v := input[0].(map[string]interface{})
 
-	keyId, err := keyVaultParse.ParseNestedKeyID(v["key_vault_key_id"].(string))
-	//keyId, err := keyVaultParse.ParseOptionallyVersionedNestedKeyID(v["key_vault_key_id"].(string))
+	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedKeyID(v["key_vault_key_id"].(string))
 	if err != nil {
 		return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 	}
