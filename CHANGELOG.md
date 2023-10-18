@@ -8,7 +8,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.62.0` of `github.com/hashicorp/go-azure-helpers` [GH-23581]
-* dependencies: updating  Kusto SDK from `2023-05-02` to `2023-08-15` [GH-23598]
+* dependencies: updating Kusto SDK from `2023-05-02` to `2023-08-15` [GH-23598]
+* dependencies: updating nginx from `2022-08-01` to `2023-04-01` [GH-23583]
 * `netapp`: updating to use API Version `2023-05-01` [GH-23576]
 * `springcloud`: updating to use API Version `2023-09-01-preview` [GH-23544]
 * `storage`: updating to use API Version `2023-01-01` [GH-23543]
