@@ -14,7 +14,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/go-cmp v0.5.9
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-azure-helpers v0.47.0
 	github.com/hashicorp/go-azure-sdk v0.20230105.1121404
 	github.com/hashicorp/go-multierror v1.1.1
@@ -28,8 +28,8 @@ require (
 	github.com/sergi/go-diff v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
 	github.com/tombuildsstuff/kermit v0.20221207.1110610
-	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
-	golang.org/x/net v0.8.0
+	golang.org/x/crypto v0.14.0
+	golang.org/x/net v0.17.0
 	golang.org/x/time v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -46,7 +46,7 @@ require (
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -80,12 +80,12 @@ require (
 	github.com/vmihailenco/tagparser v0.1.1 // indirect
 	github.com/zclconf/go-cty v1.12.1 // indirect
 	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/oauth2 v0.10.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210629200056-84d6f6074151 // indirect
-	google.golang.org/grpc v1.50.1 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
+	google.golang.org/grpc v1.58.3 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 )
