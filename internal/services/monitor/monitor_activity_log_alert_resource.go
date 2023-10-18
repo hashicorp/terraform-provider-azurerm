@@ -222,6 +222,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 								"Reliability",
 								"OperationalExcellence",
 								"Performance",
+								"HighAvailability",
 							},
 								false,
 							),
