@@ -98,6 +98,8 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
 				metaData := runArgs(d, meta, rw.logger)
 
+				ctx, cancel := context.WithTimeout(ctx, rw.resource.Read().Timeout)
+				defer cancel()
 				err := v.CustomImporter()(ctx, metaData)
 				if err != nil {
 					return nil, err

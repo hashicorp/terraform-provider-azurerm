@@ -602,6 +602,12 @@ func resourceIotHub() *pluginsdk.Resource {
 				},
 			},
 
+			"local_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -779,6 +785,8 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	props.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
+
 	if v, ok := d.GetOk("min_tls_version"); ok {
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
@@ -894,6 +902,12 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		d.Set("min_tls_version", properties.MinTLSVersion)
+
+		localAuthenticationEnabled := true
+		if properties.DisableLocalAuth != nil {
+			localAuthenticationEnabled = !*properties.DisableLocalAuth
+		}
+		d.Set("local_authentication_enabled", localAuthenticationEnabled)
 	}
 
 	identity, err := flattenIotHubIdentity(hub.Identity)

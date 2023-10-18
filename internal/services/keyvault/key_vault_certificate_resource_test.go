@@ -138,8 +138,7 @@ func TestAccKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 			),
 		},
 		{
-			Config:  r.softDeleteRecovery(data, false),
-			Destroy: true,
+			Config: r.softDeleteCertificate(data, false),
 		},
 		{
 			Config: r.softDeleteRecovery(data, true),
@@ -1171,13 +1170,27 @@ resource "azurerm_key_vault_certificate" "test" {
 `, r.template(data), data.RandomString)
 }
 
+func (r KeyVaultCertificateResource) softDeleteCertificate(data acceptance.TestData, purge bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_deleted_certificates_on_destroy = %t
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%s`, purge, r.template(data))
+}
+
 func (r KeyVaultCertificateResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy    = "%t"
-      recover_soft_deleted_key_vaults = true
+      purge_soft_deleted_certificates_on_destroy = %t
+      recover_soft_deleted_key_vaults            = true
     }
   }
 }

@@ -76,6 +76,11 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionLog),
 							}, false),
 						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 						"match_conditions": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
@@ -163,12 +168,29 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeMatchRule),
+								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeRateLimitRule),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeInvalid),
 							}, false),
 						},
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+						},
+						"rate_limit_duration": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForApplicationGatewayFirewallRateLimitDuration(), false),
+						},
+						"rate_limit_threshold": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"group_rate_limit_by": {
+							// group variables combination not supported yet, use a single variable name
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForApplicationGatewayFirewallUserSessionVariable(), false),
 						},
 					},
 				},
@@ -344,6 +366,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Optional: true,
 							Default:  true,
 						},
+
 						"mode": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -353,23 +376,34 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							}, false),
 							Default: string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
 						},
+
 						"request_body_check": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
+
 						"file_upload_limit_in_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 4000),
 							Default:      100,
 						},
+
 						"max_request_body_size_in_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(8, 2000),
 							Default:      128,
 						},
+
+						"request_body_inspect_limit_in_kb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      128,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
 						"log_scrubbing": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
@@ -599,12 +633,39 @@ func expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input []
 		matchConditions := v["match_conditions"].([]interface{})
 		action := v["action"].(string)
 
+		enabled := webapplicationfirewallpolicies.WebApplicationFirewallStateEnabled
+		if value, ok := v["enabled"].(bool); ok && !value {
+			enabled = webapplicationfirewallpolicies.WebApplicationFirewallStateDisabled
+		}
+
 		result := webapplicationfirewallpolicies.WebApplicationFirewallCustomRule{
+			State:           pointer.To(enabled),
 			Action:          webapplicationfirewallpolicies.WebApplicationFirewallAction(action),
 			MatchConditions: expandWebApplicationFirewallPolicyMatchCondition(matchConditions),
 			Name:            pointer.To(name),
 			Priority:        int64(priority),
 			RuleType:        webapplicationfirewallpolicies.WebApplicationFirewallRuleType(ruleType),
+		}
+
+		if rateLimitDuration, ok := v["rate_limit_duration"]; ok && rateLimitDuration.(string) != "" {
+			result.RateLimitDuration = pointer.To(webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration(rateLimitDuration.(string)))
+		}
+
+		if rateLimitThreshHold, ok := v["rate_limit_threshold"]; ok && rateLimitThreshHold.(int) > 0 {
+			result.RateLimitThreshold = pointer.To(int64(rateLimitThreshHold.(int)))
+		}
+
+		if groupBy, ok := v["group_rate_limit_by"]; ok && groupBy.(string) != "" {
+			groups := []webapplicationfirewallpolicies.GroupByUserSession{
+				{
+					GroupByVariables: []webapplicationfirewallpolicies.GroupByVariable{
+						{
+							VariableName: webapplicationfirewallpolicies.ApplicationGatewayFirewallUserSessionVariable(groupBy.(string)),
+						},
+					},
+				},
+			}
+			result.GroupByUserSession = &groups
 		}
 
 		results = append(results, result)
@@ -628,13 +689,15 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := webapplicationfirewallpolicies.PolicySettings{
-		State:                  pointer.To(enabled),
-		Mode:                   pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
-		RequestBodyCheck:       pointer.To(requestBodyCheck),
-		MaxRequestBodySizeInKb: pointer.To(int64(maxRequestBodySizeInKb)),
-		FileUploadLimitInMb:    pointer.To(int64(fileUploadLimitInMb)),
-		LogScrubbing:           expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		State:                       pointer.To(enabled),
+		Mode:                        pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		RequestBodyCheck:            pointer.To(requestBodyCheck),
+		MaxRequestBodySizeInKb:      pointer.To(int64(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:         pointer.To(int64(fileUploadLimitInMb)),
+		LogScrubbing:                expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		RequestBodyInspectLimitInKB: pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
 	}
+
 	return &result
 }
 
@@ -946,9 +1009,18 @@ func flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input *
 			v["name"] = *name
 		}
 		v["action"] = string(item.Action)
+		v["enabled"] = pointer.From(item.State) == webapplicationfirewallpolicies.WebApplicationFirewallStateEnabled
 		v["match_conditions"] = flattenWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
 		v["priority"] = int(item.Priority)
 		v["rule_type"] = string(item.RuleType)
+		v["rate_limit_duration"] = pointer.From(item.RateLimitDuration)
+		v["rate_limit_threshold"] = pointer.From(item.RateLimitThreshold)
+
+		if item.GroupByUserSession != nil && len(*item.GroupByUserSession) > 0 {
+			if groupVariable := (*item.GroupByUserSession)[0].GroupByVariables; len(groupVariable) > 0 {
+				v["group_rate_limit_by"] = groupVariable[0].VariableName
+			}
+		}
 
 		results = append(results, v)
 	}
@@ -969,6 +1041,7 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["max_request_body_size_in_kb"] = int(pointer.From(input.MaxRequestBodySizeInKb))
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
+	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
 
 	return []interface{}{result}
 }

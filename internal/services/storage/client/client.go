@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	storage_v2022_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01"
+	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
@@ -43,7 +43,7 @@ type Client struct {
 	SyncGroupsClient            *syncgroupresource.SyncGroupResourceClient
 	SubscriptionId              string
 
-	ResourceManager *storage_v2022_05_01.Client
+	ResourceManager *storage_v2023_01_01.Client
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
@@ -71,7 +71,7 @@ func NewClient(options *common.ClientOptions) (*Client, error) {
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
 
-	resourceManager := storage_v2022_05_01.NewClientWithBaseURI(options.ResourceManagerEndpoint,
+	resourceManager := storage_v2023_01_01.NewClientWithBaseURI(options.ResourceManagerEndpoint,
 		func(c *autorest.Client) {
 			c.Authorizer = options.ResourceManagerAuthorizer
 		})

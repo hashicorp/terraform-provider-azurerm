@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"regexp"
 
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 type MaintenanceAssignmentVirtualMachineId struct {
-	VirtualMachineId    *parseCompute.VirtualMachineId
+	VirtualMachineId    *commonids.VirtualMachineId
 	VirtualMachineIdRaw string
 	Name                string
 }
@@ -23,7 +23,7 @@ func MaintenanceAssignmentVirtualMachineID(input string) (*MaintenanceAssignment
 	}
 
 	targetResourceId, name := groups[1], groups[2]
-	virtualMachineId, err := parseCompute.VirtualMachineID(targetResourceId)
+	virtualMachineId, err := commonids.ParseVirtualMachineIDInsensitively(targetResourceId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Maintenance Assignment Virtual Machine ID: %q: Expected valid virtual machine ID", input)
 	}

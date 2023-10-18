@@ -79,6 +79,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
 
+        // Dev Center only available in some regions / has a quota of 5
+        "devcenter" to testConfiguration(parallelism = 4, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", false)),
+
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
@@ -168,6 +171,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Synapse is only available in certain locations
         "synapse" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // ServiceNetworking is available in certain locations
+        "servicenetworking" to testConfiguration(locationOverride = LocationConfiguration("eastus","westus","westeurope", false)),
 
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),

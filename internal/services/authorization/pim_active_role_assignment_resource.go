@@ -201,13 +201,18 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("generating uuid: %+v", err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
+
 			requestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(config.Scope, uuid)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Missing"},
 				Target:     []string{"Created"},
 				Refresh:    createActiveRoleAssignment(ctx, clientRequest, requestId, &payload),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
@@ -219,7 +224,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				Target:     []string{"Found"},
 				Refresh:    waitForActiveRoleAssignment(ctx, clientInstances, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -341,13 +346,17 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			}
 			deleteId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, uuid)
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
 			// wait for resource to deleted
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Exist"},
 				Target:     []string{"Deleted"},
 				Refresh:    deleteActiveRoleAssignment(ctx, clientRequest, deleteId, &payload),
 				MinTimeout: 1 * time.Minute,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -360,7 +369,7 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				Target:     []string{"Missing"},
 				Refresh:    waitForActiveRoleAssignment(ctx, clientInstances, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {

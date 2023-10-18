@@ -420,6 +420,11 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 				ApiVersion: pointer.To(version),
 			},
 		}
+
+		if v, ok := d.GetOk("service_url"); ok {
+			apiParams.Properties.ServiceUrl = pointer.To(v.(string))
+		}
+
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
 		if len(wsdlSelectorVs) > 0 {
@@ -436,10 +441,9 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		if versionSetId != "" {
 			apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
 		}
-		if err := client.CreateOrUpdateThenPoll(ctx, id, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, newId, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
-
 	}
 
 	description := d.Get("description").(string)

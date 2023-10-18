@@ -64,9 +64,9 @@ var (
 
 func resourceApiManagementService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementServiceCreateUpdate,
+		Create: resourceApiManagementServiceCreate,
 		Read:   resourceApiManagementServiceRead,
-		Update: resourceApiManagementServiceCreateUpdate,
+		Update: resourceApiManagementServiceUpdate,
 		Delete: resourceApiManagementServiceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apimanagementservice.ParseServiceID(id)
@@ -666,7 +666,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	apiClient := meta.(*clients.Client).ApiManagement.ApiClient
 	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
@@ -681,16 +681,14 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management", id.ID())
+			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -711,51 +709,49 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		publicNetworkAccess = apimanagementservice.PublicNetworkAccessDisabled
 	}
 
-	if d.IsNewResource() {
-		// before creating check to see if the resource exists in the soft delete state
-		deletedServiceId := deletedservice.NewDeletedServiceID(id.SubscriptionId, location, id.ServiceName)
-		softDeleted, err := deletedServicesClient.GetByName(ctx, deletedServiceId)
-		if err != nil {
-			// If Terraform lacks permission to read at the Subscription we'll get 403, not 404
-			if !response.WasNotFound(softDeleted.HttpResponse) && !response.WasForbidden(softDeleted.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing Soft-Deleted API Management %q (Location %q): %+v", id.ServiceName, location, err)
-			}
+	// before creating check to see if the resource exists in the soft delete state
+	deletedServiceId := deletedservice.NewDeletedServiceID(id.SubscriptionId, location, id.ServiceName)
+	softDeleted, err := deletedServicesClient.GetByName(ctx, deletedServiceId)
+	if err != nil {
+		// If Terraform lacks permission to read at the Subscription we'll get 403, not 404
+		if !response.WasNotFound(softDeleted.HttpResponse) && !response.WasForbidden(softDeleted.HttpResponse) {
+			return fmt.Errorf("checking for the presence of an existing Soft-Deleted API Management %q (Location %q): %+v", id.ServiceName, location, err)
+		}
+	}
+
+	// if so, does the user want us to recover it?
+	if !response.WasNotFound(softDeleted.HttpResponse) && !response.WasForbidden(softDeleted.HttpResponse) {
+		if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
+			// this exists but the users opted out, so they must import this it out-of-band
+			return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
 		}
 
-		// if so, does the user want us to recover it?
-		if !response.WasNotFound(softDeleted.HttpResponse) && !response.WasForbidden(softDeleted.HttpResponse) {
-			if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
-				// this exists but the users opted out, so they must import this it out-of-band
-				return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
-			}
+		// First recover the deleted API Management, since all other properties are ignored during a restore operation
+		// (don't set the ID just yet to avoid tainting on failure)
+		params := apimanagementservice.ApiManagementServiceResource{
+			Location: location,
+			Properties: apimanagementservice.ApiManagementServiceProperties{
+				Restore: pointer.To(true),
+			},
+			Sku: sku,
+		}
 
-			// First recover the deleted API Management, since all other properties are ignored during a restore operation
-			// (don't set the ID just yet to avoid tainting on failure)
-			params := apimanagementservice.ApiManagementServiceResource{
-				Location: location,
-				Properties: apimanagementservice.ApiManagementServiceProperties{
-					Restore: pointer.To(true),
-				},
-				Sku: sku,
-			}
-
-			// retry to restore service since there is an API issue : https://github.com/Azure/azure-rest-api-specs/issues/25262
-			err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-				resp, err := client.CreateOrUpdate(ctx, id, params)
-				if err != nil {
-					if response.WasBadRequest(resp.HttpResponse) {
-						return pluginsdk.RetryableError(err)
-					}
-					return pluginsdk.NonRetryableError(err)
-				}
-				if err := resp.Poller.PollUntilDone(ctx); err != nil {
-					return pluginsdk.NonRetryableError(err)
-				}
-				return nil
-			})
+		// retry to restore service since there is an API issue : https://github.com/Azure/azure-rest-api-specs/issues/25262
+		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			resp, err := client.CreateOrUpdate(ctx, id, params)
 			if err != nil {
-				return fmt.Errorf("recovering %s: %+v", id, err)
+				if response.WasBadRequest(resp.HttpResponse) {
+					return pluginsdk.RetryableError(err)
+				}
+				return pluginsdk.NonRetryableError(err)
 			}
+			if err := resp.Poller.PollUntilDone(ctx); err != nil {
+				return pluginsdk.NonRetryableError(err)
+			}
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("recovering %s: %+v", id, err)
 		}
 	}
 
@@ -856,50 +852,48 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	d.SetId(id.ID())
 
 	// Remove sample products and APIs after creating (v3.0 behaviour)
-	if d.IsNewResource() {
-		apiServiceId := api.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+	apiServiceId := api.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 
-		listResp, err := apiClient.ListByService(ctx, apiServiceId, api.ListByServiceOperationOptions{})
-		if err != nil {
-			return fmt.Errorf("listing APIs after creation of %s: %+v", id, err)
-		}
-		if model := listResp.Model; model != nil {
-			for _, contract := range *model {
-				if contract.Id == nil {
-					continue
-				}
-				apiId, err := api.ParseApiID(pointer.From(contract.Id))
-				if err != nil {
-					return fmt.Errorf("parsing API ID: %+v", err)
-				}
-				log.Printf("[DEBUG] Deleting %s", apiId)
-				if delResp, err := apiClient.Delete(ctx, *apiId, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
-					if !response.WasNotFound(delResp.HttpResponse) {
-						return fmt.Errorf("deleting %s: %+v", *apiId, err)
-					}
+	listResp, err := apiClient.ListByService(ctx, apiServiceId, api.ListByServiceOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("listing APIs after creation of %s: %+v", id, err)
+	}
+	if model := listResp.Model; model != nil {
+		for _, contract := range *model {
+			if contract.Id == nil {
+				continue
+			}
+			apiId, err := api.ParseApiID(pointer.From(contract.Id))
+			if err != nil {
+				return fmt.Errorf("parsing API ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", apiId)
+			if delResp, err := apiClient.Delete(ctx, *apiId, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
+				if !response.WasNotFound(delResp.HttpResponse) {
+					return fmt.Errorf("deleting %s: %+v", *apiId, err)
 				}
 			}
 		}
+	}
 
-		produceServiceId := product.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
-		proListResp, err := productsClient.ListByService(ctx, produceServiceId, product.ListByServiceOperationOptions{})
-		if err != nil {
-			return fmt.Errorf("listing products after creation of %s: %+v", id, err)
-		}
-		if model := proListResp.Model; model != nil {
-			for _, contract := range *model {
-				if contract.Id == nil {
-					continue
-				}
-				productId, err := product.ParseProductID(pointer.From(contract.Id))
-				if err != nil {
-					return fmt.Errorf("parsing product ID: %+v", err)
-				}
-				log.Printf("[DEBUG] Deleting %s", productId)
-				if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
-					if !response.WasNotFound(delResp.HttpResponse) {
-						return fmt.Errorf("deleting %s: %+v", *productId, err)
-					}
+	produceServiceId := product.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+	proListResp, err := productsClient.ListByService(ctx, produceServiceId, product.ListByServiceOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("listing products after creation of %s: %+v", id, err)
+	}
+	if model := proListResp.Model; model != nil {
+		for _, contract := range *model {
+			if contract.Id == nil {
+				continue
+			}
+			productId, err := product.ParseProductID(pointer.From(contract.Id))
+			if err != nil {
+				return fmt.Errorf("parsing product ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", productId)
+			if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
+				if !response.WasNotFound(delResp.HttpResponse) {
+					return fmt.Errorf("deleting %s: %+v", *productId, err)
 				}
 			}
 		}
@@ -919,7 +913,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
+	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
 		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
 	}
 	if sku.Name != apimanagementservice.SkuTypeConsumption {
@@ -951,7 +945,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	if d.HasChange("policy") {
+	if _, ok := d.GetOk("policy"); ok {
 		policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		// remove the existing policy
 		if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
@@ -979,6 +973,249 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 		if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
 			return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+		}
+	}
+
+	return resourceApiManagementServiceRead(d, meta)
+}
+
+func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
+
+	log.Printf("[INFO] preparing arguments for API Management Service creation.")
+
+	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	_, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+	}
+
+	props := apimanagementservice.ApiManagementServiceUpdateProperties{}
+	payload := apimanagementservice.ApiManagementServiceUpdateParameters{}
+
+	if d.HasChange("sku_name") {
+		payload.Sku = pointer.To(sku)
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("public_ip_address_id") {
+		publicIpAddressId := d.Get("public_ip_address_id").(string)
+		if publicIpAddressId != "" {
+			if sku.Name != apimanagementservice.SkuTypePremium && sku.Name != apimanagementservice.SkuTypeDeveloper {
+				if d.Get("virtual_network_type").(string) == string(apimanagementservice.VirtualNetworkTypeNone) {
+					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+				}
+			}
+			props.PublicIPAddressId = pointer.To(publicIpAddressId)
+		}
+	}
+
+	if d.HasChange("notification_sender_email") {
+		props.NotificationSenderEmail = pointer.To(d.Get("notification_sender_email").(string))
+	}
+
+	if d.HasChange("virtual_network_type") {
+		virtualNetworkType := d.Get("virtual_network_type").(string)
+		props.VirtualNetworkType = pointer.To(apimanagementservice.VirtualNetworkType(virtualNetworkType))
+
+		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
+			virtualNetworkConfiguration := expandAzureRmApiManagementVirtualNetworkConfigurations(d)
+			if virtualNetworkConfiguration == nil {
+				return fmt.Errorf("You must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
+			}
+			props.VirtualNetworkConfiguration = virtualNetworkConfiguration
+		}
+	}
+
+	if d.HasChanges("security", "protocols") {
+		customProperties, err := expandApiManagementCustomProperties(d, sku.Name == apimanagementservice.SkuTypeConsumption)
+		if err != nil {
+			return err
+		}
+		props.CustomProperties = pointer.To(customProperties)
+	}
+
+	if d.HasChange("certificate") {
+		props.Certificates = expandAzureRmApiManagementCertificates(d)
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := apimanagementservice.PublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = apimanagementservice.PublicNetworkAccessDisabled
+		}
+
+		props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+	}
+
+	if d.HasChange("publisher_name") {
+		props.PublisherName = pointer.To(d.Get("publisher_name").(string))
+	}
+
+	if d.HasChange("publisher_email") {
+		props.PublisherEmail = pointer.To(d.Get("publisher_email").(string))
+	}
+
+	if d.HasChange("hostname_configuration") {
+		props.HostnameConfigurations = expandAzureRmApiManagementHostnameConfigurations(d)
+	}
+
+	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
+	if d.HasChange("identity") {
+		identityRaw := d.Get("identity").([]interface{})
+		identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = identity
+	}
+
+	if d.HasChange("additional_location") {
+		props.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		if err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("client_certificate_enabled") {
+		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
+		if enableClientCertificate && sku.Name != apimanagementservice.SkuTypeConsumption {
+			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
+		}
+		props.EnableClientCertificate = pointer.To(enableClientCertificate)
+	}
+
+	if d.HasChange("gateway_disabled") {
+		gateWayDisabled := d.Get("gateway_disabled").(bool)
+		if gateWayDisabled && props.AdditionalLocations != nil && len(*props.AdditionalLocations) == 0 {
+			return fmt.Errorf("`gateway_disabled` is only supported when `additional_location` is set")
+		}
+		props.DisableGateway = pointer.To(gateWayDisabled)
+	}
+
+	if d.HasChange("min_api_version") {
+		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{
+			MinApiVersion: nil,
+		}
+
+		if v, ok := d.GetOk("min_api_version"); ok {
+			props.ApiVersionConstraint.MinApiVersion = pointer.To(v.(string))
+		}
+	}
+
+	if d.HasChange("zones") {
+		if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
+			if sku.Name != apimanagementservice.SkuTypePremium {
+				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+			}
+
+			if d.Get("public_ip_address_id").(string) == "" {
+				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			}
+			zones := zones.ExpandUntyped(v)
+			payload.Zones = &zones
+		}
+	}
+
+	payload.Properties = pointer.To(props)
+
+	if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	if d.HasChange("sign_in") {
+		signInSettingsRaw := d.Get("sign_in").([]interface{})
+		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
+			return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+		}
+		if sku.Name != apimanagementservice.SkuTypeConsumption {
+			signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+			signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
+			signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+			if _, err := signInClient.CreateOrUpdate(ctx, signInSettingServiceId, signInSettings, signinsettings.CreateOrUpdateOperationOptions{}); err != nil {
+				return fmt.Errorf(" setting Sign In settings for %s: %+v", id, err)
+			}
+		}
+	}
+
+	if d.HasChange("sign_up") {
+		signUpSettingsRaw := d.Get("sign_up").([]interface{})
+		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
+			return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+		}
+		if sku.Name != apimanagementservice.SkuTypeConsumption {
+			signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+			signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
+			signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+			if _, err := signUpClient.CreateOrUpdate(ctx, signUpSettingServiceId, signUpSettings, signupsettings.CreateOrUpdateOperationOptions{}); err != nil {
+				return fmt.Errorf(" setting Sign Up settings for %s: %+v", id, err)
+			}
+		}
+	}
+
+	if d.HasChange("delegation") {
+		delegationSettingsRaw := d.Get("delegation").([]interface{})
+		if sku.Name == apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+			return fmt.Errorf("`delegation` is not support for sku tier `Consumption`")
+		}
+		if sku.Name != apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+			delegationSettingServiceId := delegationsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+			delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
+			delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
+			if _, err := delegationClient.CreateOrUpdate(ctx, delegationSettingServiceId, delegationSettings, delegationsettings.CreateOrUpdateOperationOptions{}); err != nil {
+				return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
+			}
+		}
+	}
+
+	if d.HasChange("policy") {
+		policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
+		policiesRaw := d.Get("policy").([]interface{})
+		policyContract, err := expandApiManagementPolicies(policiesRaw)
+		if err != nil {
+			return err
+		}
+
+		policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+		// remove the existing policy
+		if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
+			if !response.WasNotFound(delResp.HttpResponse) {
+				return fmt.Errorf("removing Policies from %s: %+v", id, err)
+			}
+		}
+
+		// then add the new one, if it exists
+		if policyContract != nil {
+			if _, err := policyClient.CreateOrUpdate(ctx, policyServiceId, *policyContract, policy.CreateOrUpdateOperationOptions{}); err != nil {
+				return fmt.Errorf(" setting Policies for %s: %+v", id, err)
+			}
+		}
+	}
+
+	if d.HasChange("tenant_access") {
+		tenantAccessRaw := d.Get("tenant_access").([]interface{})
+		if sku.Name == apimanagementservice.SkuTypeConsumption && len(tenantAccessRaw) > 0 {
+			return fmt.Errorf("`tenant_access` is not supported for sku tier `Consumption`")
+		}
+		if sku.Name != apimanagementservice.SkuTypeConsumption && d.HasChange("tenant_access") {
+			tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
+			tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
+			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
+			tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+			if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+				return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+			}
 		}
 	}
 

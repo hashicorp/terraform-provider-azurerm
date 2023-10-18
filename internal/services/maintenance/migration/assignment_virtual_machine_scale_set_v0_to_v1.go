@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -45,7 +45,7 @@ func (AssignmentVirtualMachineScaleSetV0ToV1) UpgradeFunc() pluginsdk.StateUpgra
 			return nil, fmt.Errorf("parsing old id %q: %+v", oldIdRaw, err)
 		}
 
-		virtualMachineScaleSetId, err := parseCompute.VirtualMachineScaleSetIDInsensitively(oldId.Scope)
+		virtualMachineScaleSetId, err := commonids.ParseVirtualMachineScaleSetIDInsensitively(oldId.Scope)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q as a virtual machine scale set id: %+v", oldId.Scope, err)
 		}

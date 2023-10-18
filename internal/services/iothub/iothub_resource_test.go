@@ -314,6 +314,36 @@ func TestAccIotHub_minTLSVersion(t *testing.T) {
 	})
 }
 
+func TestAccIotHub_LocalAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableLocalAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableLocalAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccIotHub_cloudToDevice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
@@ -1402,6 +1432,72 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, data.RandomInteger, "eastus", data.RandomInteger)
+}
+
+func (IotHubResource) disableLocalAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+  tags = {
+    purpose = "testing"
+  }
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  local_authentication_enabled = false
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+  `, data.RandomInteger, "eastus", data.RandomInteger)
+}
+
+func (IotHubResource) enableLocalAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+  tags = {
+    purpose = "testing"
+  }
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  local_authentication_enabled = true
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+  `, data.RandomInteger, "eastus", data.RandomInteger)
 }
 
 func (IotHubResource) cloudToDevice(data acceptance.TestData) string {

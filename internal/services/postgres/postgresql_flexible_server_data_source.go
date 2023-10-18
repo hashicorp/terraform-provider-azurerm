@@ -41,6 +41,11 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"auto_grow_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -112,8 +117,14 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 			d.Set("version", string(pointer.From(props.Version)))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
-			if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
-				d.Set("storage_mb", (*props.Storage.StorageSizeGB * 1024))
+			if storage := props.Storage; storage != nil {
+				if storage.AutoGrow != nil {
+					d.Set("auto_grow_enabled", *storage.AutoGrow == servers.StorageAutoGrowEnabled)
+				}
+
+				if storage.StorageSizeGB != nil {
+					d.Set("storage_mb", (*props.Storage.StorageSizeGB * 1024))
+				}
 			}
 
 			if backup := props.Backup; backup != nil {

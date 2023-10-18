@@ -282,6 +282,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Datastore
+			storageClient := metadata.Client.Storage
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
@@ -310,7 +311,14 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			containerId := commonids.NewStorageContainerID(subscriptionId, workspaceId.ResourceGroupName, data.AccountName, data.Filesystem)
+			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
+			}
+			if storageAccount == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
+			}
+			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault

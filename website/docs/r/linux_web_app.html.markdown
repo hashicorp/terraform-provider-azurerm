@@ -236,6 +236,8 @@ An `auth_settings_v2` block supports the following:
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
+~> **NOTE:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
+
 * `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
 
 * `http_route_api_prefix` - (Optional) The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`.
