@@ -74,9 +74,9 @@ A `workload_profile` block supports the following:
 
 * `workload_profile_type` - (Required) Workload profile type for the workloads to run on. 
 
-* `maximum_count` - (Optional) The maximum number of containers that can be deployed in the Container App Environment.
+* `maximum_container_count` - (Optional) The maximum number of containers that can be deployed in the Container App Environment.
 
-* `minimum_count` - (Optional) The minimum number of containers that can be deployed in the Container App Environment.
+* `minimum_container_count` - (Optional) The minimum number of containers that can be deployed in the Container App Environment.
 
 ## Attributes Reference
 
