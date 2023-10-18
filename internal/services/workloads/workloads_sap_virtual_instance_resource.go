@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
@@ -600,7 +599,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.VirtualMachineID,
+						ValidateFunc: commonids.ValidateVirtualMachineID,
 					},
 
 					"managed_storage_account_name": {

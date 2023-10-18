@@ -12,7 +12,7 @@ import (
 type InfrastructureConfiguration interface {
 }
 
-// RawModeOfTransitImpl is returned when the Discriminated Value
+// RawInfrastructureConfigurationImpl is returned when the Discriminated Value
 // doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
