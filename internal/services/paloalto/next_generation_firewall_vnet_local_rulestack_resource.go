@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -130,6 +131,9 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 				},
 				Tags: tags.Expand(model.Tags),
 			}
+
+			locks.ByID(ruleStackID.ID())
+			defer locks.UnlockByID(ruleStackID.ID())
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
