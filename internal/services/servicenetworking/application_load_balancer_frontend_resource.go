@@ -191,7 +191,7 @@ func (f FrontendsResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err := client.Update(ctx, *id, update); err != nil {
-				return fmt.Errorf("updating `azurerm_alb_frontend` %s: %+v", *id, err)
+				return fmt.Errorf("updating `azurerm_application_load_balancer_frontend` %s: %+v", *id, err)
 			}
 
 			return nil
