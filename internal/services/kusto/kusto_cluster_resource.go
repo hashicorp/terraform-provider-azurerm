@@ -145,24 +145,32 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"virtual_network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: commonids.ValidateSubnetID,
 						},
 						"engine_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
+						},
+						"state": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      clusters.VnetStateEnabled,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForVnetState(), false),
 						},
 					},
 				},
@@ -234,7 +242,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+			"zones": commonschema.ZonesMultipleOptional(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -575,11 +583,13 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 	subnetID := vnet["subnet_id"].(string)
 	enginePublicIPID := vnet["engine_public_ip_id"].(string)
 	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
+	state := clusters.VnetState(vnet["state"].(string))
 
 	return &clusters.VirtualNetworkConfiguration{
 		SubnetId:                 subnetID,
 		EnginePublicIPId:         enginePublicIPID,
 		DataManagementPublicIPId: dataManagementPublicIPID,
+		State:                    pointer.To(state),
 	}
 }
 
@@ -666,6 +676,7 @@ func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []inter
 		"subnet_id":                    vnet.SubnetId,
 		"engine_public_ip_id":          vnet.EnginePublicIPId,
 		"data_management_public_ip_id": vnet.DataManagementPublicIPId,
+		"state":                        string(*vnet.State),
 	}
 
 	return []interface{}{output}
