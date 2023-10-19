@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,6 +85,12 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 				Default:  false,
 				ForceNew: true,
 			},
+
+			"user_assigned_identity": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
 		},
 	}
 }
@@ -126,6 +133,16 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	if err != nil {
 		return err
 	}
+
+	userAssignedIdentity := d.Get("user_assigned_identity").(string)
+	if userAssignedIdentity != "" && keyVaultProps != nil {
+		for i := 0; i < len(*keyVaultProps); i++ {
+			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
+				UserAssignedIdentity: utils.String(userAssignedIdentity),
+			}
+		}
+	}
+
 	namespace.Properties.Encryption.KeyVaultProperties = keyVaultProps
 	namespace.Properties.Encryption.RequireInfrastructureEncryption = utils.Bool(d.Get("infrastructure_encryption_enabled").(bool))
 

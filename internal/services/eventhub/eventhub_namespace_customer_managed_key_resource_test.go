@@ -33,6 +33,21 @@ func TestAccEventHubNamespaceCustomerManagedKey_basic(t *testing.T) {
 	})
 }
 
+func TestAccEventHubNamespaceCustomerManagedKey_withCustomUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_customer_managed_key", "test")
+	r := EventHubNamespaceCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCustomUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventHubNamespaceCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_customer_managed_key", "test")
 	r := EventHubNamespaceCustomerManagedKeyResource{}
@@ -125,6 +140,31 @@ func (r EventHubNamespaceCustomerManagedKeyResource) basic(data acceptance.TestD
 resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
   eventhub_namespace_id = azurerm_eventhub_namespace.test.id
   key_vault_key_ids     = [azurerm_key_vault_key.test.id]
+}
+`, r.template(data))
+}
+
+func (r EventHubNamespaceCustomerManagedKeyResource) withCustomUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "test"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault_access_policy" "test3" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_user_assigned_identity.test.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+  key_permissions = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
+}
+
+resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
+  eventhub_namespace_id      = azurerm_eventhub_namespace.test.id
+  key_vault_key_ids          = [azurerm_key_vault_key.test.id]
+  user_assigned_identity     = azurerm_user_assigned_identity.test.id
 }
 `, r.template(data))
 }
