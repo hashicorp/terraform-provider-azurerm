@@ -1350,11 +1350,11 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		if props := model.Properties; props != nil {
-			if err = d.Set("authentication_certificate", flattenApplicationGatewayDataSourceAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
+			if err = d.Set("authentication_certificate", flattenApplicationGatewayDataSourceAuthenticationCertificates(props.AuthenticationCertificates)); err != nil {
 				return fmt.Errorf("setting `authentication_certificate`: %+v", err)
 			}
 
-			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayDataSourceTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
+			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayDataSourceTrustedRootCertificates(props.TrustedRootCertificates)); err != nil {
 				return fmt.Errorf("setting `trusted_root_certificate`: %+v", err)
 			}
 
@@ -1455,7 +1455,7 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `autoscale_configuration`: %+v", setErr)
 			}
 
-			if setErr := d.Set("ssl_certificate", flattenApplicationGatewayDataSourceSslCertificates(props.SslCertificates, d)); setErr != nil {
+			if setErr := d.Set("ssl_certificate", flattenApplicationGatewayDataSourceSslCertificates(props.SslCertificates)); setErr != nil {
 				return fmt.Errorf("setting `ssl_certificate`: %+v", setErr)
 			}
 
@@ -1560,7 +1560,7 @@ func flattenApplicationGatewayDataSourceSslProfiles(input *[]applicationgateways
 	return results, nil
 }
 
-func flattenApplicationGatewayDataSourceSslCertificates(input *[]applicationgateways.ApplicationGatewaySslCertificate, d *pluginsdk.ResourceData) []interface{} {
+func flattenApplicationGatewayDataSourceSslCertificates(input *[]applicationgateways.ApplicationGatewaySslCertificate) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1609,7 +1609,7 @@ func flattenApplicationGatewayDataSourceTrustedClientCertificates(input *[]appli
 	return results
 }
 
-func flattenApplicationGatewayDataSourceAuthenticationCertificates(certs *[]applicationgateways.ApplicationGatewayAuthenticationCertificate, d *pluginsdk.ResourceData) []interface{} {
+func flattenApplicationGatewayDataSourceAuthenticationCertificates(certs *[]applicationgateways.ApplicationGatewayAuthenticationCertificate) []interface{} {
 	results := make([]interface{}, 0)
 	if certs == nil {
 		return results
@@ -1625,7 +1625,7 @@ func flattenApplicationGatewayDataSourceAuthenticationCertificates(certs *[]appl
 	return results
 }
 
-func flattenApplicationGatewayDataSourceTrustedRootCertificates(certs *[]applicationgateways.ApplicationGatewayTrustedRootCertificate, d *pluginsdk.ResourceData) []interface{} {
+func flattenApplicationGatewayDataSourceTrustedRootCertificates(certs *[]applicationgateways.ApplicationGatewayTrustedRootCertificate) []interface{} {
 	results := make([]interface{}, 0)
 	if certs == nil {
 		return results
