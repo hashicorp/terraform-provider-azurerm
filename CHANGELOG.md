@@ -28,6 +28,7 @@ BUG FIXES:
 * `azurerm_shared_image_gallery` - added options `Private` and `Groups` for `sharing.permission` [GH-23570]
 * `azurerm_redis_cache` - fixed incorrect ssl values for `redis_primary_connection_string` and `secondary_connection_string` [GH-23575]
 * `azurerm_monitor_activity_log_alert` - `recommend_category` now supports setting `HighAvailability` [GH-23605]
+* `azurerm_recovery_services_vault` - `encryption` can now be used with `cross_region_restore_enabled` [GH-23618]
 
 ## 3.76.0 (October 12, 2023)
 
