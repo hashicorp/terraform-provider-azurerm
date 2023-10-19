@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
 * `azurerm_resource_deployment_script_azure_cli` - improve validation for the `version` property to support newer versions [GH-23370]
 * `azurerm_resource_deployment_script_azure_power_shell` - improve validation for the `version` property to support newer versions [GH-23370]
+* `azurerm_nginx_deployment` - add support for `capacity` anf `email` [GH-23596]
 
 BUG FIXES:
 
