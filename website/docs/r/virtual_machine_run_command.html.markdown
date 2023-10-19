@@ -6,8 +6,6 @@ description: |-
   Manages a Virtual Machine Run Command.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_virtual_machine_run_command
 
 Manages a Virtual Machine Run Command.
