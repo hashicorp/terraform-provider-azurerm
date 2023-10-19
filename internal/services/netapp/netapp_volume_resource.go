@@ -112,7 +112,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
