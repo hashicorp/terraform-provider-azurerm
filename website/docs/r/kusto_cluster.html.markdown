@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
-* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.
 
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON`, `PYTHON_3.10.8` and `R`. `PYTHON` is used to specify Python 3.6.5 image and `PYTHON_3.10.8` is used to specify Python 3.10.8 image. Note that `PYTHON_3.10.8` is only available in skus which support nested virtualization.
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 ~> **NOTE:** In v3.0 of `azurerm` a new or updated Kusto Cluster will only allow your own tenant by default. Explicit configuration of this setting will change from `trusted_external_tenants = ["MyTenantOnly"]` to `trusted_external_tenants = []`.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located.
 
 ---
 
@@ -103,6 +103,10 @@ A `virtual_network_configuration` block supports the following:
 * `engine_public_ip_id` - (Required) Engine service's public IP address resource id.
 
 * `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
+
+* `state` - (Optional) The state of the virtual network. Possible values are: `Enabled` and `Disabled`. Defaults to `Enabled`.
+
+~> **NOTE:** Currently `state` supports changes only from `Enabled` to `Disabled`.
 
 ---
 
