@@ -106,7 +106,7 @@ A `virtual_network_configuration` block supports the following:
 
 * `state` - (Optional) The state of the virtual network. Possible values are: `Enabled` and `Disabled`. Defaults to `Enabled`.
 
-~> **NOTE:** Currently `state` supports changes only from `Enabled` to `Disabled`.
+~> **NOTE:** Currently `state` supports changes only from `Enabled` to `Disabled` and `public_network_access_enabled` will also be set to `false` when `state` is set to `Disabled`.
 
 ---
 
