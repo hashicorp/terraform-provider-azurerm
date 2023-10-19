@@ -2789,7 +2789,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 }
@@ -7114,6 +7114,11 @@ resource "azurerm_application_gateway" "test" {
     capacity = 1
   }
 
+  ssl_policy {
+    policy_type = "Predefined"
+    policy_name = "AppGwSslPolicy20150501"
+  }
+
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = azurerm_subnet.test.id
@@ -7209,6 +7214,11 @@ resource "azurerm_application_gateway" "test" {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 1
+  }
+
+  ssl_policy {
+    policy_type = "Predefined"
+    policy_name = "AppGwSslPolicy20170401"
   }
 
   gateway_ip_configuration {
@@ -7309,6 +7319,11 @@ resource "azurerm_application_gateway" "test" {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 1
+  }
+  ssl_policy {
+    policy_type          = "Custom"
+    min_protocol_version = "TLSv1_1"
+    cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
   }
 
   gateway_ip_configuration {
@@ -7414,6 +7429,10 @@ resource "azurerm_application_gateway" "test" {
     name     = "Standard_v2"
     tier     = "Standard_v2"
     capacity = 1
+  }
+
+  ssl_policy {
+    disabled_protocols = ["TLSv1_0", "TLSv1_1"]
   }
 
   gateway_ip_configuration {
