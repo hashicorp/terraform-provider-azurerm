@@ -192,7 +192,7 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Whether to enable Infrastructure Encryption (Double Encryption). Changing this forces a new resource to be created.
 
-* `user_assigned_identity` - (Optional) The ID of a user-assigned identity that will be used to access the key within Azure KeyVault. This user *must* also be assigned to the parent EventHub within an Identity block, otherwise this association will fail.
+* `user_assigned_identity` - (Optional) The ID of a user-assigned identity that will be used to access the key within Azure KeyVault. This user *must* also be assigned to the parent EventHub within an Identity block, otherwise this association will fail. *If this is not specified, the System Assigned Identity will be used to retrieve the key within Azure KeyVault.*
 
 ## Attributes Reference
 
