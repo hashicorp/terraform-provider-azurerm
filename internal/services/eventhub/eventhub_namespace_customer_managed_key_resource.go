@@ -85,6 +85,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 				Default:  false,
 				ForceNew: true,
 			},
+
 			"user_assigned_identity": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
