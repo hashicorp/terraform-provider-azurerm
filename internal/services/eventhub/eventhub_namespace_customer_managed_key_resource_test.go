@@ -149,9 +149,9 @@ func (r EventHubNamespaceCustomerManagedKeyResource) withUserAssignedIdentity(da
 %s
 
 resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
-  eventhub_namespace_id  = azurerm_eventhub_namespace.test.id
-  key_vault_key_ids      = [azurerm_key_vault_key.test.id]
-  
+  eventhub_namespace_id = azurerm_eventhub_namespace.test.id
+  key_vault_key_ids     = [azurerm_key_vault_key.test.id]
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
