@@ -88,7 +88,6 @@ func (f FrontendsResource) Create() sdk.ResourceFunc {
 			}
 
 			controllerId := trafficcontrollerinterface.NewTrafficControllerID(trafficControllerId.SubscriptionId, trafficControllerId.ResourceGroupName, trafficControllerId.TrafficControllerName)
-
 			controller, err := trafficControllerClient.Get(ctx, controllerId)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", controllerId, err)
