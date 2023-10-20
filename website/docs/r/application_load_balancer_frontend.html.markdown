@@ -21,7 +21,6 @@ resource "azurerm_application_load_balancer" "example" {
 
 resource "azurerm_application_load_balancer_frontend" "example" {
   name                         = "example"
-  location                     = "West Europe"
   application_load_balancer_id = azurerm_application_load_balancer.example.id
 }
 ```
@@ -31,8 +30,6 @@ resource "azurerm_application_load_balancer_frontend" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Application Gateway for Containers Frontend. Changing this forces a new resource to be created.
-
-* `location` - (Required) The Azure Region where the Application Gateway for Containers Frontend should exist. Changing this forces a new resource to be created. Available regions can be found [here](https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/overview#supported-regions).
 
 * `application_load_balancer_id` - (Required) The ID of the Application Gateway for Containers. Changing this forces a new resource to be created.
 
