@@ -3,6 +3,7 @@ package servicenetworking
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -12,8 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/associationsinterface"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/trafficcontrollerinterface"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,13 +29,13 @@ type AssociationModel struct {
 
 var _ sdk.ResourceWithUpdate = AssociationResource{}
 
-func (t AssociationResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (t AssociationResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,62}[a-zA-Z0-9]$`), "the name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. The value must be 1-64 characters long."),
 		},
 
 		"application_load_balancer_id": {
@@ -57,8 +56,8 @@ func (t AssociationResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (t AssociationResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+func (t AssociationResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (t AssociationResource) ModelObject() interface{} {
@@ -84,43 +83,38 @@ func (t AssociationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %v", err)
 			}
 
-			parsedTrafficControllerId, err := associationsinterface.ParseTrafficControllerID(config.ApplicationLoadBalancerId)
+			albId, err := associationsinterface.ParseTrafficControllerID(config.ApplicationLoadBalancerId)
 			if err != nil {
 				return err
 			}
 
-			controllerId := trafficcontrollerinterface.NewTrafficControllerID(parsedTrafficControllerId.SubscriptionId, parsedTrafficControllerId.ResourceGroupName, parsedTrafficControllerId.TrafficControllerName)
+			id := associationsinterface.NewAssociationID(albId.SubscriptionId, albId.ResourceGroupName, albId.TrafficControllerName, config.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(t.ResourceType(), id)
+			}
+
+			controllerId := trafficcontrollerinterface.NewTrafficControllerID(albId.SubscriptionId, albId.ResourceGroupName, albId.TrafficControllerName)
 			controller, err := trafficControllerClient.Get(ctx, controllerId)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", controllerId, err)
 			}
 
-			if controller.Model == nil {
-				return fmt.Errorf("retrieving %s: Model was nil", controllerId)
-			}
-
-			loc := controller.Model.Location
-
-			id := associationsinterface.NewAssociationID(parsedTrafficControllerId.SubscriptionId, parsedTrafficControllerId.ResourceGroupName, parsedTrafficControllerId.TrafficControllerName, config.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
-				}
-			}
-
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(t.ResourceType(), id.ID())
-			}
-
 			association := associationsinterface.Association{
-				Location: location.Normalize(loc),
 				Properties: &associationsinterface.AssociationProperties{
 					Subnet: &associationsinterface.AssociationSubnet{
 						Id: config.SubnetId,
 					},
 					AssociationType: associationsinterface.AssociationTypeSubnets,
 				},
+			}
+
+			if controller.Model != nil {
+				association.Location = location.Normalize(controller.Model.Location)
 			}
 
 			if len(config.Tags) > 0 {
@@ -167,7 +161,11 @@ func (t AssociationResource) Read() sdk.ResourceFunc {
 
 				if prop := model.Properties; prop != nil {
 					if prop.Subnet != nil {
-						state.SubnetId = prop.Subnet.Id
+						parsedSubnedId, err := commonids.ParseSubnetID(prop.Subnet.Id)
+						if err != nil {
+							return err
+						}
+						state.SubnetId = parsedSubnedId.ID()
 					}
 				}
 			}
@@ -193,7 +191,7 @@ func (t AssociationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parsing id %v", err)
 			}
 
-			// thought `AssociationSubnetUpdate` is defined in the SDK, per testing the subnet id can not be updated.
+			// Thought `AssociationSubnetUpdate` defined in the SDK contains the `subnetId`, while per testing the it can not be updated
 			associationUpdate := associationsinterface.AssociationUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -201,7 +199,7 @@ func (t AssociationResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err = client.Update(ctx, *id, associationUpdate); err != nil {
-				return fmt.Errorf("updating `azurerm_application_load_balancer_association` %s: %v", id.ID(), err)
+				return fmt.Errorf("updating %s: %v", id.ID(), err)
 			}
 
 			return nil
