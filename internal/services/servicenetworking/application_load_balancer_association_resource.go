@@ -161,11 +161,11 @@ func (t AssociationResource) Read() sdk.ResourceFunc {
 
 				if prop := model.Properties; prop != nil {
 					if prop.Subnet != nil {
-						parsedSubnedId, err := commonids.ParseSubnetID(prop.Subnet.Id)
+						parsedSubnetId, err := commonids.ParseSubnetID(prop.Subnet.Id)
 						if err != nil {
 							return err
 						}
-						state.SubnetId = parsedSubnedId.ID()
+						state.SubnetId = parsedSubnetId.ID()
 					}
 				}
 			}
@@ -191,7 +191,7 @@ func (t AssociationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parsing id %v", err)
 			}
 
-			// Thought `AssociationSubnetUpdate` defined in the SDK contains the `subnetId`, while per testing the it can not be updated
+			// Thought `AssociationSubnetUpdate` defined in the SDK contains the `subnetId`, while per testing it can not be updated
 			associationUpdate := associationsinterface.AssociationUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
