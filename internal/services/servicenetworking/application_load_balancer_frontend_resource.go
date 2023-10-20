@@ -147,7 +147,6 @@ func (f FrontendsResource) Read() sdk.ResourceFunc {
 			}
 
 			trafficControllerId := frontendsinterface.NewTrafficControllerID(id.SubscriptionId, id.ResourceGroupName, id.TrafficControllerName)
-
 			state := FrontendsModel{
 				Name:                      id.FrontendName,
 				ApplicationLoadBalancerId: trafficControllerId.ID(),
