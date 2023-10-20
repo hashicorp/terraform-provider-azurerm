@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* New Resources: `azurerm_application_load_balancer_frontend` [GH-23411]
 * New Resources: `azurerm_dev_center` [GH-23538]
 * New Resources: `azurerm_dev_center_project` [GH-23538]
 
