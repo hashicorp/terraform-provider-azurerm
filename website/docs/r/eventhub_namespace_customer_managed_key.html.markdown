@@ -178,7 +178,11 @@ resource "azurerm_key_vault_key" "example" {
 resource "azurerm_eventhub_namespace_customer_managed_key" "example" {
   eventhub_namespace_id = azurerm_eventhub_namespace.example.id
   key_vault_key_ids     = [azurerm_key_vault_key.example.id]
-  user_assigned_identity = azurerm_user_assigned_identity.example.id
+  
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
 }
 ```
 
@@ -193,6 +197,20 @@ The following arguments are supported:
 * `infrastructure_encryption_enabled` - (Optional) Whether to enable Infrastructure Encryption (Double Encryption). Changing this forces a new resource to be created.
 
 * `user_assigned_identity` - (Optional) The ID of a user-assigned identity that will be used to access the key within Azure KeyVault. This user *must* also be assigned to the parent EventHub within an Identity block, otherwise this association will fail. *If this is not specified, the System Assigned Identity will be used to retrieve the key within Azure KeyVault.*
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned` or `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
+
+~> **Note:** This is required when `type` is set to `UserAssigned`.
+
+~> **Note:** While `identity_ids` is an array, only the first value is used as the Identity.
+
+~> **Note:** If using a User Assigned Identity, make sure to assign the identity the appropriate permissions to access the Key Vault.
 
 ## Attributes Reference
 

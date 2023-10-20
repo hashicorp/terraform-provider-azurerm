@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -86,11 +87,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"user_assigned_identity": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			},
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 		},
 	}
 }
@@ -134,7 +131,24 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		return err
 	}
 
-	userAssignedIdentity := d.Get("user_assigned_identity").(string)
+	assignedIdentities, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	if assignedIdentities.Type == identity.TypeUserAssigned && len(assignedIdentities.IdentityIds) != 1 {
+		return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
+	}
+
+	var userAssignedIdentity = ""
+	for k := range assignedIdentities.IdentityIds {
+		userAssignedIdentity = k
+	}
+
+	if err := checkCustomUserIdAssignedToParentEventHub(userAssignedIdentity, namespace.Identity.IdentityIds); err != nil {
+		return err
+	}
+
 	if userAssignedIdentity != "" {
 		for i := 0; i < len(*keyVaultProps); i++ {
 			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
@@ -153,6 +167,21 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	d.SetId(id.ID())
 
 	return resourceEventHubNamespaceCustomerManagedKeyRead(d, meta)
+}
+
+// Check if the same ID has been asigned to the parent EventHub, return a nice error if it isn't.
+//
+// The default Azure API error is hard to decipher. This also prevents us from wasting time deploying resources that won't work.
+func checkCustomUserIdAssignedToParentEventHub(userAssignedIdentity string, eventHubIdentities map[string]identity.UserAssignedIdentityDetails) error {
+	if userAssignedIdentity != "" {
+		for item := range eventHubIdentities {
+			if item == userAssignedIdentity {
+				return nil
+			}
+		}
+		return fmt.Errorf("customer managed key user identity '%s' must also be assigned to the parent event hub identity", userAssignedIdentity)
+	}
+	return nil
 }
 
 func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -197,8 +226,7 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 }
 
 func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace")
-`)
+	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace`)
 	return nil
 }
 
