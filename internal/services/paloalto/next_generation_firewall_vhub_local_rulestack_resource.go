@@ -80,7 +80,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Attributes() map[strin
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 			localRuleStackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
@@ -222,7 +222,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Delete() sdk.ResourceF
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 
@@ -278,6 +278,12 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 
 			if metadata.ResourceData.HasChange("tags") {
 				firewall.Tags = tags.Expand(model.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("rulestack_id") {
+				ruleStackID, _ := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+				locks.ByID(ruleStackID.ID())
+				defer locks.UnlockByID(ruleStackID.ID())
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {

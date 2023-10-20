@@ -75,7 +75,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) ResourceType() string 
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 			localRulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
@@ -216,7 +216,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) IDValidationFunc() plu
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 
@@ -273,6 +273,12 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 
 			if metadata.ResourceData.HasChange("tags") {
 				firewall.Tags = tags.Expand(model.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("rulestack_id") {
+				ruleStackID, _ := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+				locks.ByID(ruleStackID.ID())
+				defer locks.UnlockByID(ruleStackID.ID())
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
