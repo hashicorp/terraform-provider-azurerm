@@ -1,3 +1,10 @@
+## 3.78.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* Data Source: `azurerm_monitor_workspace` - export query_endpoint [GH-23629]
+
+
 ## 3.77.0 (October 19, 2023)
 
 FEATURES:
