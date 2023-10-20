@@ -117,12 +117,11 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		},
 
 		"release_train": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"version"},
-			ValidateFunc:  validation.StringIsNotEmpty,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"release_namespace": {
@@ -144,11 +143,10 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		},
 
 		"version": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"release_train"},
-			ValidateFunc:  validation.StringIsNotEmpty,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 
