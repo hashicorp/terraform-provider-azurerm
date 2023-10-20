@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,21 +23,6 @@ func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccResourceManagementPrivateLinkAssociation_name(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	r := ResourceManagementPrivateLinkAssociationTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.name(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -75,6 +61,7 @@ func (r ResourceManagementPrivateLinkAssociationTestResource) Exists(ctx context
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) basic(data acceptance.TestData) string {
+	randomUUID, _ := uuid.GenerateUUID()
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -83,28 +70,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_resource_management_private_link_association" "test" {
+  name                                = "%s"
   management_group_id                 = data.azurerm_management_group.test.id
   resource_management_private_link_id = azurerm_resource_management_private_link.test.id
   public_network_access_enabled       = true
 }
-`, r.template(data))
-}
-
-func (r ResourceManagementPrivateLinkAssociationTestResource) name(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_resource_management_private_link_association" "test" {
-  name                                = "12345678-1234-1234-1234-123456789012"
-  management_group_id                 = data.azurerm_management_group.test.id
-  resource_management_private_link_id = azurerm_resource_management_private_link.test.id
-  public_network_access_enabled       = true
-}
-`, r.template(data))
+`, r.template(data), randomUUID)
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) requiresImport(data acceptance.TestData) string {

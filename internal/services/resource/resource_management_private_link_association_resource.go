@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -44,8 +43,7 @@ func (r ResourceManagementPrivateLinkAssociationResource) Arguments() map[string
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew:     true,
-			Optional:     true,
-			Computed:     true,
+			Required:     true,
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -89,21 +87,12 @@ func (r ResourceManagementPrivateLinkAssociationResource) Create() sdk.ResourceF
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var name string
-			if config.Name != "" {
-				name = config.Name
-			}
-
-			if name == "" {
-				name = uuid.New().String()
-			}
-
 			managementGroupId, err := commonids.ParseManagementGroupID(config.ManagementGroupId)
 			if err != nil {
 				return err
 			}
 
-			id := privatelinkassociation.NewPrivateLinkAssociationID(managementGroupId.GroupId, name)
+			id := privatelinkassociation.NewPrivateLinkAssociationID(managementGroupId.GroupId, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -152,9 +141,10 @@ func (r ResourceManagementPrivateLinkAssociationResource) Read() sdk.ResourceFun
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			schema.ManagementGroupId = commonids.NewManagementGroupID(id.GroupId).ID()
+			schema.Name = id.PlaId
+
 			if model := resp.Model; model != nil {
-				schema.ManagementGroupId = commonids.NewManagementGroupID(id.GroupId).ID()
-				schema.Name = id.PlaId
 				if prop := model.Properties; prop != nil {
 					schema.PublicNetworkAccessEnabled = r.flattenPublicNetworkAccess(prop.PublicNetworkAccess)
 					schema.TenantID = pointer.From(prop.TenantID)
