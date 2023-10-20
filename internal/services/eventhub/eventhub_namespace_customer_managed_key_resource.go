@@ -136,23 +136,20 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	if assignedIdentities.Type == identity.TypeUserAssigned && len(assignedIdentities.IdentityIds) != 1 {
-		return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
-	}
-
-	userAssignedIdentity := ""
-	for k := range assignedIdentities.IdentityIds {
-		userAssignedIdentity = k
-	}
-
-	if userAssignedIdentity != "" {
-		if err := checkUserManagedIdentityIsAssignedToParentEventHub(userAssignedIdentity, namespace.Identity.IdentityIds); err != nil {
-			return err
+	if assignedIdentities.Type == identity.TypeUserAssigned {
+		if len(assignedIdentities.IdentityIds) != 1 {
+			return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
 		}
 
-		for i := 0; i < len(*keyVaultProps); i++ {
-			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
-				UserAssignedIdentity: utils.String(userAssignedIdentity),
+		if userAssignedIdentity, err := checkUserManagedIdentityIsAssignedToParentEventHub(assignedIdentities.IdentityIds, namespace.Identity.IdentityIds); err != nil {
+			if err != nil {
+				return err
+			}
+
+			for i := 0; i < len(*keyVaultProps); i++ {
+				(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
+					UserAssignedIdentity: userAssignedIdentity,
+				}
 			}
 		}
 	}
@@ -271,13 +268,20 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]int
 	return results, nil
 }
 
-// Check if the same identity has been assigned to the parent EventHub, return a nice error if it isn't.
-func checkUserManagedIdentityIsAssignedToParentEventHub(userAssignedIdentity string, eventHubIdentities map[string]identity.UserAssignedIdentityDetails) error {
+// Check if the same identity has been assigned to the parent EventHub. Returns the first ID if valid, else return a nice error if it isn't.
+//
+// This resource can only utilize a single Managed Identity
+func checkUserManagedIdentityIsAssignedToParentEventHub(userAssignedIdentities map[string]identity.UserAssignedIdentityDetails, eventHubIdentities map[string]identity.UserAssignedIdentityDetails) (*string, error) {
+	userAssignedIdentity := ""
+	for k := range userAssignedIdentities {
+		userAssignedIdentity = k
+	}
+
 	for item := range eventHubIdentities {
 		if item == userAssignedIdentity {
-			return nil
+			return &userAssignedIdentity, nil
 		}
 	}
 
-	return fmt.Errorf("user managed identity '%s' must also be assigned to the parent event hub", userAssignedIdentity)
+	return nil, fmt.Errorf("user managed identity '%s' must also be assigned to the parent event hub", userAssignedIdentity)
 }
