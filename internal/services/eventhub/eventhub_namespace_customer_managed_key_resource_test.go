@@ -33,13 +33,13 @@ func TestAccEventHubNamespaceCustomerManagedKey_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventHubNamespaceCustomerManagedKey_withCustomUserIdentity(t *testing.T) {
+func TestAccEventHubNamespaceCustomerManagedKey_withUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_customer_managed_key", "test")
 	r := EventHubNamespaceCustomerManagedKeyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withCustomUserIdentity(data),
+			Config: r.withUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -144,7 +144,7 @@ resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
 `, r.template(data))
 }
 
-func (r EventHubNamespaceCustomerManagedKeyResource) withCustomUserIdentity(data acceptance.TestData) string {
+func (r EventHubNamespaceCustomerManagedKeyResource) withUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +157,7 @@ resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, r.templateWithCustomIdentity(data))
+`, r.templateWithUserAssignedIdentity(data))
 }
 
 func (r EventHubNamespaceCustomerManagedKeyResource) update(data acceptance.TestData) string {
@@ -294,7 +294,7 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
-func (r EventHubNamespaceCustomerManagedKeyResource) templateWithCustomIdentity(data acceptance.TestData) string {
+func (r EventHubNamespaceCustomerManagedKeyResource) templateWithUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
