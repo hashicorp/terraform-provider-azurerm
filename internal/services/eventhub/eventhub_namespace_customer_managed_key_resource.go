@@ -169,9 +169,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	return resourceEventHubNamespaceCustomerManagedKeyRead(d, meta)
 }
 
-// Check if the same ID has been asigned to the parent EventHub, return a nice error if it isn't.
-//
-// The default Azure API error is hard to decipher. This also prevents us from wasting time deploying resources that won't work.
+// Check if the same identity has been assigned to the parent EventHub, return a nice error if it isn't.
 func checkCustomUserIdAssignedToParentEventHub(userAssignedIdentity string, eventHubIdentities map[string]identity.UserAssignedIdentityDetails) error {
 	if userAssignedIdentity != "" {
 		for item := range eventHubIdentities {
