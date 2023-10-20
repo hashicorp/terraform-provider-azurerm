@@ -189,7 +189,7 @@ func (t ApplicationLoadBalancerResource) Delete() sdk.ResourceFunc {
 			}
 
 			// a workaround for that some child resources may still exist for seconds before it fully deleted.
-			// tracked o https://github.com/Azure/azure-rest-api-specs/issues/26000n
+			// tracked o https://github.com/Azure/azure-rest-api-specs/issues/26000
 			// it will cause the error "Can not delete resource before nested resources are deleted."
 			deadline, ok := ctx.Deadline()
 			if !ok {
