@@ -100,7 +100,6 @@ func (f FrontendsResource) Create() sdk.ResourceFunc {
 			loc := controller.Model.Location
 
 			id := frontendsinterface.NewFrontendID(trafficControllerId.SubscriptionId, trafficControllerId.ResourceGroupName, trafficControllerId.TrafficControllerName, config.Name)
-
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
