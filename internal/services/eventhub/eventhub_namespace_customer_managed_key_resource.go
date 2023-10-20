@@ -140,16 +140,16 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
 	}
 
-	var userAssignedIdentity = ""
+	userAssignedIdentity := ""
 	for k := range assignedIdentities.IdentityIds {
 		userAssignedIdentity = k
 	}
 
-	if err := checkCustomUserIdAssignedToParentEventHub(userAssignedIdentity, namespace.Identity.IdentityIds); err != nil {
-		return err
-	}
-
 	if userAssignedIdentity != "" {
+		if err := checkCustomUserIdAssignedToParentEventHub(userAssignedIdentity, namespace.Identity.IdentityIds); err != nil {
+			return err
+		}
+
 		for i := 0; i < len(*keyVaultProps); i++ {
 			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
 				UserAssignedIdentity: utils.String(userAssignedIdentity),
@@ -273,10 +273,6 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]int
 
 // Check if the same identity has been assigned to the parent EventHub, return a nice error if it isn't.
 func checkCustomUserIdAssignedToParentEventHub(userAssignedIdentity string, eventHubIdentities map[string]identity.UserAssignedIdentityDetails) error {
-	if userAssignedIdentity == "" {
-		return nil
-	}
-
 	for item := range eventHubIdentities {
 		if item == userAssignedIdentity {
 			return nil
