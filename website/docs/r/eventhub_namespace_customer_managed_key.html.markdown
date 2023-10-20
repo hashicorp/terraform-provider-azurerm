@@ -140,8 +140,8 @@ resource "azurerm_key_vault" "example" {
 
 resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
-  tenant_id       = azurerm_user_assigned_identity.test.tenant_id
-  object_id       = azurerm_user_assigned_identity.test.principal_id
+  tenant_id    = azurerm_user_assigned_identity.test.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
 }
@@ -178,7 +178,7 @@ resource "azurerm_key_vault_key" "example" {
 resource "azurerm_eventhub_namespace_customer_managed_key" "example" {
   eventhub_namespace_id = azurerm_eventhub_namespace.example.id
   key_vault_key_ids     = [azurerm_key_vault_key.example.id]
-  
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.example.id]

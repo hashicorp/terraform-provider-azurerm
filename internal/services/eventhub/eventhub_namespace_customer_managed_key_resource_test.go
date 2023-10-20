@@ -149,9 +149,9 @@ func (r EventHubNamespaceCustomerManagedKeyResource) withCustomUserIdentity(data
 %s
 
 resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
-  eventhub_namespace_id      = azurerm_eventhub_namespace.test.id
-  key_vault_key_ids          = [azurerm_key_vault_key.test.id]
-  user_assigned_identity     = azurerm_user_assigned_identity.test.id
+  eventhub_namespace_id  = azurerm_eventhub_namespace.test.id
+  key_vault_key_ids      = [azurerm_key_vault_key.test.id]
+  user_assigned_identity = azurerm_user_assigned_identity.test.id
 }
 `, r.templateWithCustomIdentity(data))
 }
@@ -314,9 +314,9 @@ resource "azurerm_eventhub_cluster" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-	location            = azurerm_resource_group.test.location
-	name                = "acctest-identity-%s"
-	resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-identity-%s"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_eventhub_namespace" "test" {
@@ -327,7 +327,7 @@ resource "azurerm_eventhub_namespace" "test" {
   dedicated_cluster_id = azurerm_eventhub_cluster.test.id
 
   identity {
-    type = "UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
@@ -345,8 +345,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id       = azurerm_user_assigned_identity.test.tenant_id
-  object_id       = azurerm_user_assigned_identity.test.principal_id
+  tenant_id    = azurerm_user_assigned_identity.test.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
 }
