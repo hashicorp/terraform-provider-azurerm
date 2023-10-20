@@ -20,17 +20,17 @@ ENHANCEMENTS:
 * `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
 * `azurerm_resource_deployment_script_azure_cli` - improve validation for the `version` property to support newer versions [GH-23370]
 * `azurerm_resource_deployment_script_azure_power_shell` - improve validation for the `version` property to support newer versions [GH-23370]
-* `azurerm_nginx_deployment` - add support for `capacity` anf `email` [GH-23596]
+* `azurerm_nginx_deployment` - support for the `capacity` and `email` properties [GH-23596]
 
 BUG FIXES:
 
 * Data Source: `azurerm_virtual_hub_connection` - export the `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` attributes in the `routing` block, and fix a bug where these attributes could not be set [GH-23491]
-* `azurerm_cdn_frontdoor_rule` - `url_filename_condition`: make `match_values` optional if `operator` is set to `Any` [GH-23541]
-* `azurerm_shared_image_gallery` - added options `Private` and `Groups` for `sharing.permission` [GH-23570]
+* `azurerm_cdn_frontdoor_rule` - the `url_filename_condition` properties `match_values` is now optional if `operator` is set to `Any` [GH-23541]
+* `azurerm_shared_image_gallery` - added the `Private` and `Groups` options for the `sharing.permission` property [GH-23570]
 * `azurerm_redis_cache` - fixed incorrect ssl values for `redis_primary_connection_string` and `secondary_connection_string` [GH-23575]
-* `azurerm_monitor_activity_log_alert` - `recommend_category` now supports setting `HighAvailability` [GH-23605]
-* `azurerm_recovery_services_vault` - `encryption` can now be used with `cross_region_restore_enabled` [GH-23618]
-* `azurerm_storage_account_customer_managed_key` - fix nil pointer dereference panic for keyvault id  [GH-23599]
+* `azurerm_monitor_activity_log_alert` - the `recommend_category` property now can be set to `HighAvailability` [GH-23605]
+* `azurerm_recovery_services_vault` - the `encryption` property can now be used with the `cross_region_restore_enabled` property [GH-23618]
+* `azurerm_storage_account_customer_managed_key` - prevent a panic when the keyvault id is empty [GH-23599]
 
 ## 3.76.0 (October 12, 2023)
 
