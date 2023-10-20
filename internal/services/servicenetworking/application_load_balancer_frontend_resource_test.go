@@ -125,7 +125,7 @@ provider "azurerm" {
   }
 }
 
-	%s
+%s
 
 resource "azurerm_application_load_balancer_frontend" "test" {
   name                         = "acct-frnt-%d"
