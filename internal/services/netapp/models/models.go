@@ -7,6 +7,24 @@ const (
 	MaxQuotaTargetIDSizeInKiB int64 = 4294967295
 )
 
+type NetAppAccountEncryption struct {
+	NetAppAccountID                   string                         `tfschema:"netapp_account_id"`
+	UserAssignedIdentityID            string                         `tfschema:"user_assigned_identity_id"`
+	SystemAssignedIdentityPrincipalID string                         `tfschema:"system_assigned_identity_principal_id"`
+	Encryption                        []NetAppAccountEncryptionModel `tfschema:"encryption"`
+}
+
+type NetAppAccountEncryptionDataSourceModel struct {
+	NetAppAccountID                   string                         `tfschema:"netapp_account_id"`
+	UserAssignedIdentityID            string                         `tfschema:"user_assigned_identity_id"`
+	SystemAssignedIdentityPrincipalID string                         `tfschema:"system_assigned_identity_principal_id"`
+	Encryption                        []NetAppAccountEncryptionModel `tfschema:"encryption"`
+}
+
+type NetAppAccountEncryptionModel struct {
+	KeyVaultKeyID string `tfschema:"key_vault_key_id"`
+}
+
 type NetAppVolumeGroupVolume struct {
 	Id                           string                         `tfschema:"id"`
 	Name                         string                         `tfschema:"name"`

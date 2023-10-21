@@ -14,7 +14,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -23,11 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -115,22 +110,6 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"encryption": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_key_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-						},
-					},
-				},
-			},
-
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -138,8 +117,6 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 
 func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,18 +158,6 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		if anfAccountIdentity != nil {
 			accountParameters.Identity = anfAccountIdentityExpanded
-		}
-	}
-
-	encryptionRaw := d.Get("encryption")
-	if encryptionRaw != nil {
-		encryption := encryptionRaw.([]interface{})
-		encryptionExpanded, err := expandEncryption(ctx, encryption, keyVaultsClient, resourcesClient, expandAnfAccountIdentityResourceId(accountParameters.Identity))
-		if err != nil {
-			return err
-		}
-		if encryptionExpanded != nil {
-			accountParameters.Properties.Encryption = encryptionExpanded
 		}
 	}
 
@@ -294,10 +259,6 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		if err := d.Set("encryption", flattenEncryption(model.Properties.Encryption)); err != nil {
-			return fmt.Errorf("setting `encryption`: %+v", err)
-		}
-
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 
@@ -343,86 +304,6 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		results = append(results, result)
 	}
 	return &results
-}
-
-func expandEncryption(ctx context.Context, input []interface{}, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, anfAccountIdentityResourceId string) (*netappaccounts.AccountEncryption, error) {
-	defaultEnc := netappaccounts.AccountEncryption{
-		KeySource: pointer.To(netappaccounts.KeySourceMicrosoftPointNetApp),
-	}
-
-	if len(input) == 0 || input[0] == nil {
-		return &defaultEnc, nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedKeyID(v["key_vault_key_id"].(string))
-	if err != nil {
-		return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
-	}
-
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyId.KeyVaultBaseUrl)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving the resource id the key vault at url %q: %s", keyId.KeyVaultBaseUrl, err)
-	}
-
-	parsedKeyVaultID, err := commonids.ParseKeyVaultID(pointer.From(keyVaultID))
-	if err != nil {
-		return nil, err
-	}
-
-	encryptionIdentity := &netappaccounts.EncryptionIdentity{}
-	if anfAccountIdentityResourceId != "" {
-		encryptionIdentity = &netappaccounts.EncryptionIdentity{
-			UserAssignedIdentity: pointer.To(anfAccountIdentityResourceId),
-		}
-	}
-
-	encryptionProperty := netappaccounts.AccountEncryption{
-		Identity:  encryptionIdentity,
-		KeySource: pointer.To(netappaccounts.KeySourceMicrosoftPointKeyVault),
-		KeyVaultProperties: &netappaccounts.KeyVaultProperties{
-			KeyName:            keyId.Name,
-			KeyVaultUri:        keyId.KeyVaultBaseUrl,
-			KeyVaultResourceId: parsedKeyVaultID.ID(),
-		},
-	}
-
-	return &encryptionProperty, nil
-}
-
-func expandAnfAccountIdentityResourceId(anfAccountIdentity *identity.LegacySystemAndUserAssignedMap) string {
-	if anfAccountIdentity == nil || anfAccountIdentity.Type != identity.TypeUserAssigned {
-		return ""
-	}
-
-	identityIds := anfAccountIdentity.IdentityIds
-	if len(identityIds) == 0 {
-		return ""
-	}
-
-	keys := make([]string, 0, len(identityIds))
-	for key := range identityIds {
-		keys = append(keys, key)
-	}
-
-	if len(keys) > 0 {
-		return keys[0]
-	}
-
-	return ""
-}
-
-func flattenEncryption(encryptionProperties *netappaccounts.AccountEncryption) []interface{} {
-	if encryptionProperties == nil || *encryptionProperties.KeySource == netappaccounts.KeySourceMicrosoftPointNetApp {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"key_vault_key_id": encryptionProperties.KeyVaultProperties.KeyVaultUri + "keys/" + encryptionProperties.KeyVaultProperties.KeyName,
-		},
-	}
 }
 
 func waitForAccountCreateOrUpdate(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) error {
