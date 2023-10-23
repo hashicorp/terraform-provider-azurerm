@@ -519,6 +519,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar"
+      }
+      http_headers {
+        name  = "head_bar"
+        value = "value2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"
@@ -794,6 +802,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar"
+      }
+      http_headers {
+        name  = "head_bar"
+        value = "value2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"
