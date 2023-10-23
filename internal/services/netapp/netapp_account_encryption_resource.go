@@ -168,7 +168,9 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			update := netappaccounts.NetAppAccountPatch{}
+			update := netappaccounts.NetAppAccountPatch{
+				Properties: &netappaccounts.AccountProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("user_assigned_identity_id") || metadata.ResourceData.HasChange("system_assigned_identity_principal_id") || metadata.ResourceData.HasChange("encryption") {
 				encryptionExpanded, err := expandEncryption(ctx, state.Encryption, keyVaultsClient, resourcesClient, pointer.To(state))
