@@ -137,7 +137,12 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, metadata.ResourceData); err != nil {
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("create context for %s had no deadline", id)
+			}
+
+			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, time.Until(deadline)); err != nil {
 				return err
 			}
 
@@ -264,7 +269,12 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, metadata.ResourceData); err != nil {
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("update context for %s had no deadline", *id)
+			}
+
+			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, time.Until(deadline)); err != nil {
 				return err
 			}
 
@@ -296,8 +306,13 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("delete context for %s had no deadline", *id)
+			}
+
 			statusClient := metadata.Client.Network.NetworkManagers
-			if err = resourceManagerDeploymentWaitForDeleted(ctx, statusClient, id, metadata.ResourceData); err != nil {
+			if err = resourceManagerDeploymentWaitForDeleted(ctx, statusClient, id, time.Until(deadline)); err != nil {
 				return err
 			}
 
@@ -307,14 +322,14 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networkmanagers.NetworkManagersClient, managerDeploymentId *parse.ManagerDeploymentId, d *pluginsdk.ResourceData) error {
+func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networkmanagers.NetworkManagersClient, managerDeploymentId *parse.ManagerDeploymentId, d time.Duration) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotStarted", "Deploying", "Deployed", "Failed"},
 		Target:     []string{"NotFound"},
 		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId),
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		Timeout:    d,
 	}
 
 	_, err := state.WaitForStateContext(ctx)
@@ -325,14 +340,14 @@ func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networ
 	return nil
 }
 
-func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *networkmanagers.NetworkManagersClient, managerDeploymentId *parse.ManagerDeploymentId, d *pluginsdk.ResourceData) error {
+func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *networkmanagers.NetworkManagersClient, managerDeploymentId *parse.ManagerDeploymentId, d time.Duration) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotStarted", "Deploying"},
 		Target:     []string{"Deployed"},
 		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId),
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		Timeout:    d,
 	}
 
 	_, err := state.WaitForStateContext(ctx)
