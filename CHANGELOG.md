@@ -2,7 +2,8 @@
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_monitor_workspace` - export query_endpoint [GH-23629]
+* dependencies: updating to `v0.20231019.1094042` of `github.com/hashicorp/go-azure-sdk` [GH-23652]
+* Data Source: `azurerm_monitor_workspace` - export `query_endpoint` [GH-23629]
 
 
 ## 3.77.0 (October 19, 2023)
