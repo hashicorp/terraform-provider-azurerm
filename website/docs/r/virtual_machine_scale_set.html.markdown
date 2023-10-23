@@ -112,8 +112,8 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -250,8 +250,8 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
