@@ -199,8 +199,11 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 		}
 
 		d.Set("key_vault_key_ids", keyVaultKeyIds)
-		// d.Set("identity", getUserManagedIdentity(props.Encryption))
 		d.Set("infrastructure_encryption_enabled", props.Encryption.RequireInfrastructureEncryption)
+
+		if err := d.Set("identity", getUserManagedIdentity(props.Encryption)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 	}
 
 	return nil
@@ -235,20 +238,27 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 }
 
 // Get the user managed id for the custom key if one exists
-// func getUserManagedIdentity(input *namespaces.Encryption) *namespaces.UserAssignedIdentityProperties {
-// 	if input == nil || input.KeyVaultProperties == nil {
-// 		return nil
-// 	}
+func getUserManagedIdentity(input *namespaces.Encryption) *[]interface{} {
+	if input == nil || input.KeyVaultProperties == nil {
+		return nil
+	}
 
-// 	// we can only have a single managed id, so just take the first one and call it a day
-// 	for _, item := range *input.KeyVaultProperties {
-// 		if item.Identity != nil {
-// 			return item.Identity
-// 		}
-// 	}
+	// we can only have a single managed id, so just take the first one and call it a day
+	for _, item := range *input.KeyVaultProperties {
+		if item.Identity != nil {
+			return &[]interface{}{
+				map[string]interface{}{
+					"type":         "UserAssigned",
+					"identity_ids": []string{*item.Identity.UserAssignedIdentity},
+					"principal_id": "",
+					"tenant_id":    "",
+				},
+			}
+		}
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]string, error) {
 	results := make([]string, 0)
