@@ -1,8 +1,9 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2021-09-01/monitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2021-09-01/tagrules"
+	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -11,15 +12,21 @@ type Client struct {
 	TagRulesClient *tagrules.TagRulesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	monitorClient := monitors.NewMonitorsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&monitorClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	monitorClient, err := monitors.NewMonitorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Dynatrace Monitor client: %+v", err)
+	}
+	o.Configure(monitorClient.Client, o.Authorizers.ResourceManager)
 
-	tagRulesClient := tagrules.NewTagRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&tagRulesClient.Client, o.ResourceManagerAuthorizer)
+	tagRulesClient, err := tagrules.NewTagRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Dynatrace Tag Rules client: %+v", err)
+	}
+	o.Configure(tagRulesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		MonitorClient:  &monitorClient,
-		TagRulesClient: &tagRulesClient,
-	}
+		MonitorClient:  monitorClient,
+		TagRulesClient: tagRulesClient,
+	}, nil
 }

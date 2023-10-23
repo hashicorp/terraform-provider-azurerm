@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2021-09-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -108,8 +108,12 @@ resource "azurerm_dynatrace_monitors" "test" {
   plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
-    plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
+    plan           = "dynatraceapitestplan"
     effective_date = "2019-08-30T15:14:33Z"
+  }
+
+  tags = {
+	environment = "Dev"
   }
 }
 `, template, data.RandomInteger)

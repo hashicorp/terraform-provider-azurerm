@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2021-09-01/monitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2021-09-01/tagrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/tagrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -143,7 +143,7 @@ func (r TagRulesResource) Read() sdk.ResourceFunc {
 				monitorId := monitors.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
 
 				state := TagRulesResourceModel{
-					Name:        id.RuleSetName,
+					Name:        id.TagRuleName,
 					Monitor:     monitorId.ID(),
 					LogRules:    FlattenLogRules(props.LogRules),
 					MetricRules: FlattenMetricRules(props.MetricRules),
