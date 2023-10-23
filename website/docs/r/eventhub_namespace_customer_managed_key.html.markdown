@@ -143,7 +143,7 @@ resource "azurerm_key_vault_access_policy" "example" {
   tenant_id    = azurerm_user_assigned_identity.test.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "example2" {
@@ -204,13 +204,13 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned` or `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Event Hub Customer Managed Key.
 
 ~> **Note:** This is required when `type` is set to `UserAssigned`.
 
-~> **Note:** While `identity_ids` is an array, only the first value is used as the Identity.
+~> **Note:** While `identity_ids` is an array, only the first value is used as the Identity. Any other values will be ignored.
 
-~> **Note:** If using a User Assigned Identity, make sure to assign the identity the appropriate permissions to access the Key Vault.
+~> **Note:** If using a User Assigned Identity, make sure to assign the identity the appropriate permissions to access the Key Vault key. Failure to grant `Get, UnwrapKey, and WrapKey` will cause this resource to fail to apply.
 
 ## Attributes Reference
 
