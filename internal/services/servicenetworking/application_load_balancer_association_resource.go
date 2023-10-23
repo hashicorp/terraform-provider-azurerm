@@ -83,7 +83,7 @@ func (t AssociationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %v", err)
 			}
 
-			albId, err := associationsinterface.ParseTrafficControllerID(config.ApplicationLoadBalancerId)
+			albId, err := trafficcontrollerinterface.ParseTrafficControllerID(config.ApplicationLoadBalancerId)
 			if err != nil {
 				return err
 			}
@@ -98,10 +98,9 @@ func (t AssociationResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(t.ResourceType(), id)
 			}
 
-			controllerId := trafficcontrollerinterface.NewTrafficControllerID(albId.SubscriptionId, albId.ResourceGroupName, albId.TrafficControllerName)
-			controller, err := trafficControllerClient.Get(ctx, controllerId)
+			controller, err := trafficControllerClient.Get(ctx, *albId)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", controllerId, err)
+				return fmt.Errorf("retrieving %s: %+v", *albId, err)
 			}
 
 			association := associationsinterface.Association{
