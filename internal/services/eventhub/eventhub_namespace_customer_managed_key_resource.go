@@ -120,7 +120,6 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace := resp.Model
-
 	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 	namespace.Properties.Encryption = &namespaces.Encryption{
 		KeySource: &keySource,
@@ -141,15 +140,14 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 			return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
 		}
 
-		if userAssignedIdentity, err := checkUserManagedIdentityIsAssignedToParentEventHub(assignedIdentities.IdentityIds, namespace.Identity.IdentityIds); err != nil {
-			if err != nil {
-				return err
-			}
+		userAssignedIdentity, err := checkUserManagedIdentityIsAssignedToParentEventHub(assignedIdentities.IdentityIds, namespace.Identity.IdentityIds)
+		if err != nil {
+			return err
+		}
 
-			for i := 0; i < len(*keyVaultProps); i++ {
-				(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
-					UserAssignedIdentity: userAssignedIdentity,
-				}
+		for i := 0; i < len(*keyVaultProps); i++ {
+			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
+				UserAssignedIdentity: userAssignedIdentity,
 			}
 		}
 	}
@@ -201,6 +199,7 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 		}
 
 		d.Set("key_vault_key_ids", keyVaultKeyIds)
+		d.Set("identity", getUserManagedIdentity(props.Encryption))
 		d.Set("infrastructure_encryption_enabled", props.Encryption.RequireInfrastructureEncryption)
 	}
 
@@ -235,8 +234,23 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 	return &results, nil
 }
 
-func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+// Get the user managed id for the custom key if one exists
+func getUserManagedIdentity(input *namespaces.Encryption) *namespaces.UserAssignedIdentityProperties {
+	if input == nil || input.KeyVaultProperties == nil {
+		return nil
+	}
+
+	for _, item := range *input.KeyVaultProperties {
+		if item.Identity != nil {
+			return item.Identity
+		}
+	}
+
+	return nil
+}
+
+func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]string, error) {
+	results := make([]string, 0)
 	if input == nil || input.KeyVaultProperties == nil {
 		return results, nil
 	}
