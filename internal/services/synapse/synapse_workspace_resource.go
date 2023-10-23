@@ -313,7 +313,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"azure_ad_only_authentication_enabled": {
+			"azuread_authentication_only": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -365,7 +365,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
 			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 			Encryption:                       expandEncryptionDetails(d),
-			AzureADOnlyAuthentication:        utils.Bool(d.Get("azure_ad_only_authentication_enabled").(bool)),
+			AzureADOnlyAuthentication:        utils.Bool(d.Get("azuread_authentication_only").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -527,7 +527,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
 		d.Set("public_network_access_enabled", resp.PublicNetworkAccess == synapse.WorkspacePublicNetworkAccessEnabled)
-		d.Set("azure_ad_only_authentication_enabled", props.AzureADOnlyAuthentication)
+		d.Set("azuread_authentication_only", props.AzureADOnlyAuthentication)
 		cmk := flattenEncryptionDetails(props.Encryption)
 		if err := d.Set("customer_managed_key", cmk); err != nil {
 			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
@@ -624,18 +624,18 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("azure_ad_only_authentication_enabled") {
+	if d.HasChange("azuread_authentication_only") {
 		future, err := azureADOnlyAuthenticationsClient.Create(ctx, id.ResourceGroup, id.Name, synapse.AzureADOnlyAuthentication{
 			AzureADOnlyAuthenticationProperties: &synapse.AzureADOnlyAuthenticationProperties{
-				AzureADOnlyAuthentication: pointer.To(d.Get("azure_ad_only_authentication_enabled").(bool)),
+				AzureADOnlyAuthentication: pointer.To(d.Get("azuread_authentication_only").(bool)),
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("updating azure_ad_only_authentication_enabled for %s: %+v", id, err)
+			return fmt.Errorf("updating azuread_authentication_only for %s: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for azure_ad_only_authentication_enabled to finish updating for %s: %+v", id, err)
+			return fmt.Errorf("waiting for azuread_authentication_only to finish updating for %s: %+v", id, err)
 		}
 	}
 

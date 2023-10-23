@@ -183,7 +183,7 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Optional) The Password associated with the `sql_administrator_login` for the SQL administrator. If this is not provided `aad_admin` or `customer_managed_key` must be provided.
 
-* `azure_ad_only_authentication_enabled` - (Optional) Is Azure Active Directory Authentication the only way to authenticate with resources inside this synapse Workspace. Defaults to `false`.
+* `azuread_authentication_only` - (Optional) Is Azure Active Directory Authentication the only way to authenticate with resources inside this synapse Workspace. Defaults to `false`.
 
 ---
 
