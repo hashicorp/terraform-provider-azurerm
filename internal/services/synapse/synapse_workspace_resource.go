@@ -6,6 +6,7 @@ package synapse
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"net/url"
 	"strings"
@@ -312,6 +313,12 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"azure_ad_only_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -358,6 +365,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
 			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 			Encryption:                       expandEncryptionDetails(d),
+			AzureADOnlyAuthentication:        utils.Bool(d.Get("azure_ad_only_authentication_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -519,6 +527,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
 		d.Set("public_network_access_enabled", resp.PublicNetworkAccess == synapse.WorkspacePublicNetworkAccessEnabled)
+		d.Set("azure_ad_only_authentication_enabled", props.AzureADOnlyAuthentication)
 		cmk := flattenEncryptionDetails(props.Encryption)
 		if err := d.Set("customer_managed_key", cmk); err != nil {
 			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
@@ -559,6 +568,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
+	azureADOnlyAuthenticationsClient := meta.(*clients.Client).Synapse.WorkspaceAzureADOnlyAuthenticationsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -611,6 +621,21 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+		}
+	}
+
+	if d.HasChange("azure_ad_only_authentication_enabled") {
+		future, err := azureADOnlyAuthenticationsClient.Create(ctx, id.ResourceGroup, id.Name, synapse.AzureADOnlyAuthentication{
+			AzureADOnlyAuthenticationProperties: &synapse.AzureADOnlyAuthenticationProperties{
+				AzureADOnlyAuthentication: pointer.To(d.Get("azure_ad_only_authentication_enabled").(bool)),
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("updating azure_ad_only_authentication_enabled for %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for azure_ad_only_authentication_enabled to finish updating for %s: %+v", id, err)
 		}
 	}
 
