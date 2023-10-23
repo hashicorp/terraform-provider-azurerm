@@ -422,7 +422,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.EventGrid, err = eventgrid.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for EventGrid: %+v", err)
 	}
-	client.Dynatrace = dynatrace.NewClient(o)
+	if client.Dynatrace, err = dynatrace.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dynatrace: %+v", err)
+	}
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
