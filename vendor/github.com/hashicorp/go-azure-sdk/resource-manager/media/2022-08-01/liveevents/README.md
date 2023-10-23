@@ -110,22 +110,6 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `LiveEventsClient.OperationLocation`
-
-```go
-ctx := context.TODO()
-id := liveevents.NewOperationLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "liveEventValue", "operationIdValue")
-
-read, err := client.OperationLocation(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
 ### Example Usage: `LiveEventsClient.Reset`
 
 ```go
