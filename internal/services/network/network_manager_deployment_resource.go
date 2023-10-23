@@ -139,7 +139,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("create context for %s had no deadline", id)
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, time.Until(deadline)); err != nil {
@@ -271,7 +271,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("update context for %s had no deadline", *id)
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, time.Until(deadline)); err != nil {
@@ -308,7 +308,7 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("delete context for %s had no deadline", *id)
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			statusClient := metadata.Client.Network.NetworkManagers
