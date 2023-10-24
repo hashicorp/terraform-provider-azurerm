@@ -16,7 +16,8 @@ func (p *PluginSdkResourceData) GetOk(key string) (interface{}, bool) {
 }
 
 func (p *PluginSdkResourceData) GetOkExists(key string) (interface{}, bool) {
-	return p.resourceData.GetOkExists(key)
+	//lint:ignore SA1019 Wrapper for compatibility
+	return p.resourceData.GetOkExists(key) //nolint:staticcheck
 }
 
 func (p *PluginSdkResourceData) GetChange(key string) (interface{}, interface{}) {
