@@ -249,6 +249,7 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.state").HasValue("Enabled"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.vnetUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -911,7 +912,11 @@ resource "azurerm_kusto_cluster" "test" {
 func (KustoClusterResource) vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+      resource_group {
+        prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1021,7 +1026,11 @@ resource "azurerm_kusto_cluster" "test" {
 func (KustoClusterResource) vnetUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+      resource_group {
+        prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
