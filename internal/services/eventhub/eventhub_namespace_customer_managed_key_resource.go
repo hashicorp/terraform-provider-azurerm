@@ -136,18 +136,37 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if assignedIdentities.Type == identity.TypeUserAssigned {
+		isIdentityAssignedToParent := false
+		userAssignedIdentity := ""
+
+		// only a single user assigned ID can be used
 		if len(assignedIdentities.IdentityIds) != 1 {
 			return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
 		}
 
-		userAssignedIdentity, err := checkUserManagedIdentityIsAssignedToParentEventHub(assignedIdentities.IdentityIds, namespace.Identity.IdentityIds)
-		if err != nil {
-			return err
+		if namespace.Identity == nil {
+			return fmt.Errorf("user assigned identity must also be assigned to the parent event hub - currently no user assigned identities are assigned to the parent event hub")
 		}
 
+		for k := range assignedIdentities.IdentityIds {
+			userAssignedIdentity = k
+		}
+
+		for item := range namespace.Identity.IdentityIds {
+			if item == userAssignedIdentity {
+				isIdentityAssignedToParent = true
+			}
+		}
+
+		if !isIdentityAssignedToParent {
+			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub", userAssignedIdentity)
+		}
+
+		// multiple keys can be assigned to an event hub, but only a single user managed ID can be utilized for all of them
+		// we just use the same user assigned ID for all keys assigned to the event hub
 		for i := 0; i < len(*keyVaultProps); i++ {
 			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
-				UserAssignedIdentity: userAssignedIdentity,
+				UserAssignedIdentity: &userAssignedIdentity,
 			}
 		}
 	}
@@ -237,13 +256,13 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 	return &results, nil
 }
 
-// Get the user managed id for the custom key if one exists
+// Get the user managed id for the custom keys
 func getUserManagedIdentity(input *namespaces.Encryption) *[]interface{} {
 	if input == nil || input.KeyVaultProperties == nil {
 		return nil
 	}
 
-	// we can only have a single managed id, so just take the first one and call it a day
+	// we can only have a single user managed id for N number of keys, so just take the first one and call it a day
 	for _, item := range *input.KeyVaultProperties {
 		if item.Identity != nil {
 			return &[]interface{}{
