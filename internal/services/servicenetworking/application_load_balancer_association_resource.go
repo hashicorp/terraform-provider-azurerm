@@ -3,7 +3,6 @@ package servicenetworking
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,11 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/associationsinterface"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/trafficcontrollerinterface"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type AssociationResource struct{}
+type ApplicationLoadBalancerAssociationResource struct{}
 
 type AssociationModel struct {
 	Name                      string            `tfschema:"name"`
@@ -27,15 +26,15 @@ type AssociationModel struct {
 	Tags                      map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithUpdate = AssociationResource{}
+var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerAssociationResource{}
 
-func (t AssociationResource) Arguments() map[string]*pluginsdk.Schema {
+func (t ApplicationLoadBalancerAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,62}[a-zA-Z0-9]$`), "the name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. The value must be 1-64 characters long."),
+			ValidateFunc: validate.ApplicationLoadBalancerAssociationName(),
 		},
 
 		"application_load_balancer_id": {
@@ -56,22 +55,22 @@ func (t AssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (t AssociationResource) Attributes() map[string]*pluginsdk.Schema {
+func (t ApplicationLoadBalancerAssociationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (t AssociationResource) ModelObject() interface{} {
+func (t ApplicationLoadBalancerAssociationResource) ModelObject() interface{} {
 	return &AssociationModel{}
 }
 
-func (t AssociationResource) ResourceType() string {
+func (t ApplicationLoadBalancerAssociationResource) ResourceType() string {
 	return "azurerm_application_load_balancer_association"
 }
 
-func (t AssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (t ApplicationLoadBalancerAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return associationsinterface.ValidateAssociationID
 }
-func (t AssociationResource) Create() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -112,9 +111,11 @@ func (t AssociationResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if controller.Model != nil {
-				association.Location = location.Normalize(controller.Model.Location)
+			if controller.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *albId)
 			}
+
+			association.Location = location.Normalize(controller.Model.Location)
 
 			if len(config.Tags) > 0 {
 				association.Tags = &config.Tags
@@ -130,7 +131,7 @@ func (t AssociationResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (t AssociationResource) Read() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerAssociationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -174,7 +175,7 @@ func (t AssociationResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (t AssociationResource) Update() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerAssociationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -206,7 +207,7 @@ func (t AssociationResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (t AssociationResource) Delete() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerAssociationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

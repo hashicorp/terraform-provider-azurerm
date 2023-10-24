@@ -15,7 +15,7 @@ Manages an Application Gateway for Containers Association.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
-  location = "northeurope"
+  location = "westeurope"
 }
 
 resource "azurerm_application_load_balancer" "example" {
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet which the Application Gateway for Containers associated to. Changing this forces a new resource to be created.
 
-**Note:** The subnet should be delegated by `Microsoft.ServiceNetworking/trafficControllers` as the example. 
+**Note:** The subnet to be used must have a delegation for  `Microsoft.ServiceNetworking/trafficControllers` as shown in the example above.
 
 ---
 

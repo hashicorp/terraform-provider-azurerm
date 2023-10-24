@@ -20,7 +20,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ApplicationLoadBalancerResource{},
 		FrontendsResource{},
-		AssociationResource{},
+		ApplicationLoadBalancerAssociationResource{},
 	}
 }
 
