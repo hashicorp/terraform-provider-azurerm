@@ -311,21 +311,3 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]str
 
 	return results, nil
 }
-
-// Check if the same identity has been assigned to the parent EventHub. Returns the first ID if valid, else return a nice error if it isn't.
-//
-// This resource can only utilize a single Managed Identity
-func checkUserManagedIdentityIsAssignedToParentEventHub(userAssignedIdentities map[string]identity.UserAssignedIdentityDetails, eventHubIdentities map[string]identity.UserAssignedIdentityDetails) (*string, error) {
-	userAssignedIdentity := ""
-	for k := range userAssignedIdentities {
-		userAssignedIdentity = k
-	}
-
-	for item := range eventHubIdentities {
-		if item == userAssignedIdentity {
-			return &userAssignedIdentity, nil
-		}
-	}
-
-	return nil, fmt.Errorf("user managed identity '%s' must also be assigned to the parent event hub", userAssignedIdentity)
-}
