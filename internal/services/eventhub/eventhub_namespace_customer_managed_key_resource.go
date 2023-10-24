@@ -139,7 +139,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		isIdentityAssignedToParent := false
 		userAssignedIdentity := ""
 
-		// only a single user assigned ID can be used
+		// only a single user assigned ID can be used (azure's error message is very unclear so we are doing these checks to make it clear the requirements to the user)
 		if len(assignedIdentities.IdentityIds) != 1 {
 			return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
 		}
