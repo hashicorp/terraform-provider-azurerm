@@ -262,7 +262,7 @@ func getUserManagedIdentity(input *namespaces.Encryption) *[]interface{} {
 		return nil
 	}
 
-	// we can only have a single user managed id for N number of keys, so just take the first one and call it a day
+	// we can only have a single user managed id for N number of keys, azure portal only allows setting a single one and then applies it to each key
 	for _, item := range *input.KeyVaultProperties {
 		if item.Identity != nil {
 			return &[]interface{}{
