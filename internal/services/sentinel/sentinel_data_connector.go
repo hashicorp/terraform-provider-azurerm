@@ -42,7 +42,8 @@ func importSentinelDataConnector(expectKind securityinsight.DataConnectorKind) f
 			return err
 		}
 
-		client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+		// client := meta.(*clients.Client).Sentinel.DataConnectorsClient // TODO - change this when https://github.com/Azure/azure-rest-api-specs/issues/21487 is resolved
+		client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
