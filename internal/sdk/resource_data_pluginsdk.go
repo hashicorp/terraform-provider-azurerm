@@ -64,6 +64,7 @@ func (p *PluginSdkResourceData) Id() string {
 }
 
 func (p *PluginSdkResourceData) Set(key string, value interface{}) error {
+	// lintignore:R001
 	return p.resourceData.Set(key, value)
 }
 
