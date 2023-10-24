@@ -76,6 +76,8 @@ A `link` block supports the following:
 
 * `macsec_cak_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the Mac security CAK key for this Express Route Port Link.
 
+* `macsec_sci_enabled` - (Optional) Should Secure Channel Identifier on the Express Route Port Link be enabled? Defaults to `false`.
+
 ~> **NOTE** `macsec_ckn_keyvault_secret_id` and `macsec_cak_keyvault_secret_id` should be used together with `identity`, so that the Express Route Port instance have the right permission to access the Key Vault.
 
 ## Attributes Reference
