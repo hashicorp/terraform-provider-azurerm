@@ -1,5 +1,9 @@
 ## 3.78.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_resource_management_private_link_association` [GH-23546]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20231019.1094042` of `github.com/hashicorp/go-azure-sdk` [GH-23652]
