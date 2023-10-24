@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"strings"
 )
 
 func RedisCacheLocation(input interface{}, key string) (warnings []string, errors []error) {
@@ -16,7 +17,7 @@ func RedisCacheLocation(input interface{}, key string) (warnings []string, error
 		return
 	}
 
-	if v == "default" {
+	if strings.ToLower(v) == "default" {
 		return warnings, errors
 	}
 
