@@ -210,7 +210,7 @@ An `identity` block supports the following:
 
 ~> **Note:** While `identity_ids` is an array, only the first value is used as the Identity. Any other values will be ignored.
 
-~> **Note:** If using a User Assigned Identity, make sure to assign the identity the appropriate permissions to access the Key Vault key. Failure to grant `Get, UnwrapKey, and WrapKey` will cause this resource to fail to apply.
+~> **Note:** If using a User Assigned Identity, make sure to assign the identity the appropriate permissions to access the Key Vault key. Failure to grant `Get, UnwrapKey, and WrapKey` will cause this resource to fail to apply. Additionally, the same User Assigned Identity *must* also be assigned to the parent Event Hub.
 
 ## Attributes Reference
 
