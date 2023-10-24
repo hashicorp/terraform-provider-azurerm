@@ -88,8 +88,22 @@ func (r DataConnectorAwsS3Resource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 func (r DataConnectorAwsS3Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesS3)(ctx, metadata.ResourceData, metadata.Client)
-		return err
+		id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		client := metadata.Client.Sentinel.DataConnectorsClient
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
+		}
+
+		if err = assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAmazonWebServicesS3); err != nil {
+			return err
+		}
+
+		return nil
 	}
 }
 
