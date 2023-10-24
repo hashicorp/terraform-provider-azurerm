@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -43,7 +44,7 @@ func (r ResourceManagementPrivateLinkAssociationResource) Arguments() map[string
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew:     true,
-			Required:     true,
+			Optional:     true,
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -92,7 +93,16 @@ func (r ResourceManagementPrivateLinkAssociationResource) Create() sdk.ResourceF
 				return err
 			}
 
-			id := privatelinkassociation.NewPrivateLinkAssociationID(managementGroupId.GroupId, config.Name)
+			var name string
+			if config.Name != "" {
+				name = config.Name
+			}
+
+			if name == "" {
+				name = uuid.New().String()
+			}
+
+			id := privatelinkassociation.NewPrivateLinkAssociationID(managementGroupId.GroupId, name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {

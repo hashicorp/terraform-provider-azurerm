@@ -46,6 +46,21 @@ func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T
 	})
 }
 
+func TestAccResourceManagementPrivateLinkAssociation_generateName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
+	r := ResourceManagementPrivateLinkAssociationTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.generateName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ResourceManagementPrivateLinkAssociationTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatelinkassociation.ParsePrivateLinkAssociationID(state.ID)
 	if err != nil {
@@ -76,6 +91,25 @@ resource "azurerm_resource_management_private_link_association" "test" {
   public_network_access_enabled       = true
 }
 `, r.template(data), randomUUID)
+}
+
+func (r ResourceManagementPrivateLinkAssociationTestResource) generateName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_resource_management_private_link_association" "test" {
+  management_group_id                 = data.azurerm_management_group.test.id
+  resource_management_private_link_id = azurerm_resource_management_private_link.test.id
+  public_network_access_enabled       = true
+  lifecycle {
+    ignore_changes = [name]
+  }
+}
+`, r.template(data))
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) requiresImport(data acceptance.TestData) string {

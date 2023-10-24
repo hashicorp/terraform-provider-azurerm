@@ -46,8 +46,6 @@ resource "azurerm_resource_management_private_link_association" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of this Private Link Association, which should be a UUID. A new UUID will be generated if not provided. Changing this forces a new Private Link Association to be created.
-
 * `management_group_id` - (Required) Specifies the Management Group ID within which this Private Link Association should exist. Changing this forces a new Private Link Association to be created.
 
 **Note:** For now, `management_group_id` must be the ID of [Root Management Group](https://learn.microsoft.com/en-us/azure/governance/management-groups/overview#root-management-group-for-each-directory).
@@ -55,6 +53,20 @@ The following arguments are supported:
 * `resource_management_private_link_id` - (Required) The Resource ID of Resource Management Private Link. Changing this forces a new Private Link Association to be created.
 
 * `public_network_access_enabled` - (Required) Whether public network access is allowed. Changing this forces a new Private Link Association to be created.
+ 
+* `name` - (Optional) Specifies the name of this Private Link Association, which should be a UUID. If `name` is not provided, a UUID will be generated, you should use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess). Changing this forces a new Private Link Association to be created.
+
+```hcl
+resource "azurerm_resource_management_private_link_association" "example" {
+  management_group_id                 = azurerm_management_group.example.id
+  resource_management_private_link_id = azurerm_resource_management_private_link.example.id
+  public_network_access_enabled       = true
+  lifecycle {
+    ignore_changes = [name]
+  }
+}
+
+```
 
 ## Attributes Reference
 
