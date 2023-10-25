@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20231019.1094042` of `github.com/hashicorp/go-azure-sdk` [GH-23652]
+* dependencies: updating to `v0.20231025.1113325` of `github.com/hashicorp/go-azure-sdk` [GH-23684]
 * Data Source: `azurerm_monitor_workspace` - export `query_endpoint` [GH-23629]
 * `azurerm_express_route_port` - support for `macsec_sci_enabled` [GH-23625]
 * `azurerm_synapse_workspace` - add support for `azuread_authentication_only` [GH-23659]
