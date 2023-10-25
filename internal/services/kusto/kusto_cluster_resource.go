@@ -166,11 +166,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
-						"state": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      clusters.VnetStateEnabled,
-							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForVnetState(), false),
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
 						},
 					},
 				},
@@ -583,7 +582,10 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 	subnetID := vnet["subnet_id"].(string)
 	enginePublicIPID := vnet["engine_public_ip_id"].(string)
 	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
-	state := clusters.VnetState(vnet["state"].(string))
+	state := clusters.VnetStateEnabled
+	if !vnet["enabled"].(bool) {
+		state = clusters.VnetStateDisabled
+	}
 
 	return &clusters.VirtualNetworkConfiguration{
 		SubnetId:                 subnetID,
@@ -676,7 +678,7 @@ func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []inter
 		"subnet_id":                    vnet.SubnetId,
 		"engine_public_ip_id":          vnet.EnginePublicIPId,
 		"data_management_public_ip_id": vnet.DataManagementPublicIPId,
-		"state":                        string(*vnet.State),
+		"enabled":                      vnet.State == nil || *vnet.State == clusters.VnetStateEnabled,
 	}
 
 	return []interface{}{output}

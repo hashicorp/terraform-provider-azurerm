@@ -104,9 +104,9 @@ A `virtual_network_configuration` block supports the following:
 
 * `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
 
-* `state` - (Optional) The state of the virtual network. Possible values are: `Enabled` and `Disabled`. Defaults to `Enabled`.
+* `enabled` - (Optional) Whether the virtual network is enabled. Possible values are: `true` and `false`. Defaults to `true`.
 
-~> **NOTE:** Currently `state` supports changes only from `Enabled` to `Disabled` and `public_network_access_enabled` will also be set to `false` when `state` is set to `Disabled`.
+~> **NOTE:** Currently `enabled` supports changes only from `true` to `false` and `public_network_access_enabled` will also be set to `false` when `enabled` is set to `false`.
 
 ---
 

@@ -246,7 +246,7 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -258,7 +258,7 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.state").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1128,7 +1128,7 @@ resource "azurerm_kusto_cluster" "test" {
     subnet_id                    = azurerm_subnet.test.id
     engine_public_ip_id          = azurerm_public_ip.engine_pip.id
     data_management_public_ip_id = azurerm_public_ip.management_pip.id
-    state                        = "Disabled"
+    enabled                      = false
   }
 
   depends_on = [
