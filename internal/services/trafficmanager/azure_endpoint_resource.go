@@ -324,7 +324,6 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceAzureEndpointRead(d, meta)
 }
 
