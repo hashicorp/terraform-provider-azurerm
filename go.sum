@@ -119,15 +119,8 @@ github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brv
 github.com/hashicorp/go-azure-helpers v0.12.0/go.mod h1:Zc3v4DNeX6PDdy7NljlYpnrdac1++qNW0I4U+ofGwpg=
 github.com/hashicorp/go-azure-helpers v0.62.0 h1:3Ob1yFAO71Pbdnm14HUI4dGZUaO/Nqmncu5cKMGsDBg=
 github.com/hashicorp/go-azure-helpers v0.62.0/go.mod h1:ELmZ65vzHJNTk6ml4jsPD+xq2gZb7t78D35s+XN02Kk=
-<<<<<<< HEAD
-github.com/hashicorp/go-azure-sdk v0.20231019.1094042 h1:qq46U47oKC8v6T5QjNg6qpAKhyw8arjGNWOKK/ejKoU=
-github.com/hashicorp/go-azure-sdk v0.20231019.1094042/go.mod h1:3IQjdvuhEckMgdWpvQs4e4VdiiRLIm4z82kO814t/Lw=
-github.com/hashicorp/go-azure-sdk v0.20231024.1145744 h1:aQ3rp+EELAvaKcMh4e4PbHl3wpSw4EBWCox5srVXECk=
-github.com/hashicorp/go-azure-sdk v0.20231024.1145744/go.mod h1:3IQjdvuhEckMgdWpvQs4e4VdiiRLIm4z82kO814t/Lw=
-=======
 github.com/hashicorp/go-azure-sdk v0.20231025.1113325 h1:LS2ZBtyK3cViLw2FQt11jm9YCdHRp2UQpe1pu5SKlZY=
 github.com/hashicorp/go-azure-sdk v0.20231025.1113325/go.mod h1:3IQjdvuhEckMgdWpvQs4e4VdiiRLIm4z82kO814t/Lw=
->>>>>>> d766df415f0c98006aa5d2bbff8ed9a93ae63e14
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -242,12 +235,8 @@ github.com/sergi/go-diff v1.2.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNX
 github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/skeema/knownhosts v1.2.0 h1:h9r9cf0+u7wSE+M183ZtMGgOJKiL96brpaz5ekfJCpM=
 github.com/skeema/knownhosts v1.2.0/go.mod h1:g4fPeYpque7P0xefxtGzV81ihjC8sX2IqpAoNkjxbMo=
-<<<<<<< HEAD
-github.com/spf13/cast v1.3.1/go.mod h1:Qx5cxh0v+4UWYiBimWS+eyWzqEqokIECu5etghLkUJE=
-=======
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/goconvey v1.6.4/go.mod h1:syvi0/a8iFYH4r/RixwvyeAJjdLS9QV7WQ/tjFTllLA=
->>>>>>> d766df415f0c98006aa5d2bbff8ed9a93ae63e14
 github.com/spf13/pflag v1.0.2/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
