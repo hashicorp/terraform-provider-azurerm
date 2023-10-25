@@ -1,7 +1,9 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2022-09-04/openshiftclusters"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -9,11 +11,14 @@ type Client struct {
 	OpenShiftClustersClient *openshiftclusters.OpenShiftClustersClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	openshiftClustersClient := openshiftclusters.NewOpenShiftClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&openshiftClustersClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	openshiftClustersClient, err := openshiftclusters.NewOpenShiftClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating OpenShiftClustersClient: %+v", err)
+	}
+	o.Configure(openshiftClustersClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		OpenShiftClustersClient: &openshiftClustersClient,
-	}
+		OpenShiftClustersClient: openshiftClustersClient,
+	}, nil
 }

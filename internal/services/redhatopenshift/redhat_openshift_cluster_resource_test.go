@@ -3,10 +3,9 @@ package redhatopenshift_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2022-09-04/openshiftclusters"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2022-04-01/redhatopenshift"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,8 +28,8 @@ func TestAccOpenShiftCluster_basic1(t *testing.T) {
 				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
 			),
 		},
 	})
@@ -49,8 +48,8 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPrivate)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPrivate)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPrivate)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPrivate)),
 			),
 		},
 	})
@@ -88,8 +87,8 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
 			),
 		},
 	})
@@ -368,6 +367,8 @@ provider "azurerm" {
 
 provider "azuread" {}
 
+data "azurerm_client_config" "current" {}
+
 data "azuread_client_config" "test" {}
 
 resource "azuread_application" "test" {
@@ -403,7 +404,6 @@ resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-aro-%[1]d-2"
   location = "%[2]s"
 }
-
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%[1]d"

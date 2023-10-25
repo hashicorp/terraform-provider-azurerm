@@ -558,7 +558,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
 	}
-	client.RedHatOpenshift = redhatopenshift.NewClient(o)
+	if client.RedHatOpenshift, err = redhatopenshift.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RedHatOpenshift: %+v", err)
+	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
 	}

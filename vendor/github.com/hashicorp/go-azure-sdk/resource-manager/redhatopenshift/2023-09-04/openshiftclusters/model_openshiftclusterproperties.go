@@ -13,4 +13,5 @@ type OpenShiftClusterProperties struct {
 	ProvisioningState       *ProvisioningState       `json:"provisioningState,omitempty"`
 	ServicePrincipalProfile *ServicePrincipalProfile `json:"servicePrincipalProfile,omitempty"`
 	WorkerProfiles          *[]WorkerProfile         `json:"workerProfiles,omitempty"`
+	WorkerProfilesStatus    *[]WorkerProfile         `json:"workerProfilesStatus,omitempty"`
 }

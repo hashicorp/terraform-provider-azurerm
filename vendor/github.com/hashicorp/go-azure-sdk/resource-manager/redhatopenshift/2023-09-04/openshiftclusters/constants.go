@@ -1,6 +1,10 @@
 package openshiftclusters
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEncryptionAtHost() []string {
 		string(EncryptionAtHostDisabled),
 		string(EncryptionAtHostEnabled),
 	}
+}
+
+func (s *EncryptionAtHost) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionAtHost(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEncryptionAtHost(input string) (*EncryptionAtHost, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForFipsValidatedModules() []string {
 	}
 }
 
+func (s *FipsValidatedModules) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFipsValidatedModules(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseFipsValidatedModules(input string) (*FipsValidatedModules, error) {
 	vals := map[string]FipsValidatedModules{
 		"disabled": FipsValidatedModulesDisabled,
@@ -58,6 +88,88 @@ func parseFipsValidatedModules(input string) (*FipsValidatedModules, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := FipsValidatedModules(input)
+	return &out, nil
+}
+
+type OutboundType string
+
+const (
+	OutboundTypeLoadbalancer       OutboundType = "Loadbalancer"
+	OutboundTypeUserDefinedRouting OutboundType = "UserDefinedRouting"
+)
+
+func PossibleValuesForOutboundType() []string {
+	return []string{
+		string(OutboundTypeLoadbalancer),
+		string(OutboundTypeUserDefinedRouting),
+	}
+}
+
+func (s *OutboundType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOutboundType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseOutboundType(input string) (*OutboundType, error) {
+	vals := map[string]OutboundType{
+		"loadbalancer":       OutboundTypeLoadbalancer,
+		"userdefinedrouting": OutboundTypeUserDefinedRouting,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := OutboundType(input)
+	return &out, nil
+}
+
+type PreconfiguredNSG string
+
+const (
+	PreconfiguredNSGDisabled PreconfiguredNSG = "Disabled"
+	PreconfiguredNSGEnabled  PreconfiguredNSG = "Enabled"
+)
+
+func PossibleValuesForPreconfiguredNSG() []string {
+	return []string{
+		string(PreconfiguredNSGDisabled),
+		string(PreconfiguredNSGEnabled),
+	}
+}
+
+func (s *PreconfiguredNSG) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePreconfiguredNSG(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePreconfiguredNSG(input string) (*PreconfiguredNSG, error) {
+	vals := map[string]PreconfiguredNSG{
+		"disabled": PreconfiguredNSGDisabled,
+		"enabled":  PreconfiguredNSGEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PreconfiguredNSG(input)
 	return &out, nil
 }
 
@@ -81,6 +193,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
@@ -113,6 +238,19 @@ func PossibleValuesForVisibility() []string {
 		string(VisibilityPrivate),
 		string(VisibilityPublic),
 	}
+}
+
+func (s *Visibility) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVisibility(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVisibility(input string) (*Visibility, error) {
