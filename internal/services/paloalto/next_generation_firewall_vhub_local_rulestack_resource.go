@@ -281,7 +281,10 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 			}
 
 			if metadata.ResourceData.HasChange("rulestack_id") {
-				ruleStackID, _ := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+				ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+				if err != nil {
+					return fmt.Errorf("parsing rulestack_id %s: %+v", model.RuleStackId, err)
+				}
 				locks.ByID(ruleStackID.ID())
 				defer locks.UnlockByID(ruleStackID.ID())
 			}
