@@ -1,4 +1,4 @@
-package liveevents
+package privatelinkassociation
 
 import (
 	"context"
@@ -11,18 +11,17 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type OperationLocationOperationResponse struct {
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *LiveEvent
+	Model        *PrivateLinkAssociation
 }
 
-// OperationLocation ...
-func (c LiveEventsClient) OperationLocation(ctx context.Context, id OperationLocationId) (result OperationLocationOperationResponse, err error) {
+// Get ...
+func (c PrivateLinkAssociationClient) Get(ctx context.Context, id PrivateLinkAssociationId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusAccepted,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,

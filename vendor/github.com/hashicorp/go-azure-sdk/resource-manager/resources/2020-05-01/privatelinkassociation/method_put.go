@@ -1,4 +1,4 @@
-package liveoutputs
+package privatelinkassociation
 
 import (
 	"context"
@@ -11,26 +11,30 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type OperationLocationOperationResponse struct {
+type PutOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *LiveOutput
+	Model        *PrivateLinkAssociation
 }
 
-// OperationLocation ...
-func (c LiveOutputsClient) OperationLocation(ctx context.Context, id LiveOutputOperationLocationId) (result OperationLocationOperationResponse, err error) {
+// Put ...
+func (c PrivateLinkAssociationClient) Put(ctx context.Context, id PrivateLinkAssociationId, input PrivateLinkAssociationObject) (result PutOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusAccepted,
+			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
+		HttpMethod: http.MethodPut,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 

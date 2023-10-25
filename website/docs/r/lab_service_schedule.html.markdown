@@ -35,9 +35,9 @@ resource "azurerm_lab_service_lab" "example" {
     }
 
     image_reference {
-      offer     = "0001-com-ubuntu-server-focal"
-      publisher = "canonical"
-      sku       = "20_04-lts"
+      publisher = "Canonical"
+      offer     = "0001-com-ubuntu-server-jammy"
+      sku       = "22_04-lts"
       version   = "latest"
     }
 

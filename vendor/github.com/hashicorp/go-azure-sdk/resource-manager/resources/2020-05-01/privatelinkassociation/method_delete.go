@@ -1,4 +1,4 @@
-package accounts
+package privatelinkassociation
 
 import (
 	"context"
@@ -11,20 +11,20 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type MediaServicesOperationStatusesGetOperationResponse struct {
+type DeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *MediaServiceOperationStatus
 }
 
-// MediaServicesOperationStatusesGet ...
-func (c AccountsClient) MediaServicesOperationStatusesGet(ctx context.Context, id MediaServicesOperationStatusId) (result MediaServicesOperationStatusesGetOperationResponse, err error) {
+// Delete ...
+func (c PrivateLinkAssociationClient) Delete(ctx context.Context, id PrivateLinkAssociationId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
+		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
 	}
 
@@ -40,10 +40,6 @@ func (c AccountsClient) MediaServicesOperationStatusesGet(ctx context.Context, i
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
-	}
-
-	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

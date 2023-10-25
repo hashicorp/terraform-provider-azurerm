@@ -1,9 +1,11 @@
-package streamingendpoints
+package privatelinkassociation
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -11,22 +13,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type OperationLocationOperationResponse struct {
+type ListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *StreamingEndpoint
+	Model        *PrivateLinkAssociationGetResult
 }
 
-// OperationLocation ...
-func (c StreamingEndpointsClient) OperationLocation(ctx context.Context, id StreamingEndpointOperationLocationId) (result OperationLocationOperationResponse, err error) {
+// List ...
+func (c PrivateLinkAssociationClient) List(ctx context.Context, id commonids.ManagementGroupId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusAccepted,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       id.ID(),
+		Path:       fmt.Sprintf("%s/providers/Microsoft.Authorization/privateLinkAssociations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
