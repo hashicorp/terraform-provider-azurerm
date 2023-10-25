@@ -87,24 +87,7 @@ func (r DataConnectorAwsS3Resource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func (r DataConnectorAwsS3Resource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := parse.DataConnectorID(metadata.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-
-		client := metadata.Client.Sentinel.DataConnectorsClient
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-		if err != nil {
-			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
-		}
-
-		if err = assertDataConnectorKind(resp.Value, securityinsight.DataConnectorKindAmazonWebServicesS3); err != nil {
-			return err
-		}
-
-		return nil
-	}
+	return importDataConnectorTyped(securityinsight.DataConnectorKindAmazonWebServicesS3)
 }
 
 func (r DataConnectorAwsS3Resource) Create() sdk.ResourceFunc {
