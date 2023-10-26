@@ -96,51 +96,51 @@ resource "azurerm_workloads_sap_virtual_instance" "example" {
       }
 
       disk_volume_configuration {
-        volume_name = "hana/data"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/data"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/log"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/log"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/shared"
-        count       = 1
-        size_in_gb  = 256
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/shared"
+        number_of_disks = 1
+        size_in_gb      = 256
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "usr/sap"
-        count       = 1
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "usr/sap"
+        number_of_disks = 1
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "backup"
-        count       = 2
-        size_in_gb  = 256
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "backup"
+        number_of_disks = 2
+        size_in_gb      = 256
+        sku_name        = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "os"
-        count       = 1
-        size_in_gb  = 64
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "os"
+        number_of_disks = 1
+        size_in_gb      = 64
+        sku_name        = "StandardSSD_LRS"
       }
 
       virtual_machine_full_resource_names {
         host_name               = "apphostName0"
         os_disk_name            = "app0osdisk"
-        vm_name                 = "appvm0"
+        virtual_machine_name    = "appvm0"
         network_interface_names = ["appnic0"]
 
         data_disk_names = {
@@ -242,7 +242,7 @@ A `disk_volume_configuration` block supports the following:
 
 * `volume_name` - (Required) The name of the DB volume of the disk configuration. Possible values are `backup`, `hana/data`, `hana/log`, `hana/shared`, `os` and `usr/sap`. Changing this forces a new resource to be created.
 
-* `count` - (Required) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
+* `number_of_disks` - (Required) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
 
 * `size_in_gb` - (Required) The size of the Disk in GB. Changing this forces a new resource to be created.
 
@@ -292,7 +292,7 @@ A `virtual_machine_full_resource_names` block supports the following:
 
 * `os_disk_name` - (Optional) The full name of the OS Disk attached to the VM. Changing this forces a new resource to be created.
 
-* `vm_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
+* `virtual_machine_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
 
 ---
 
@@ -400,7 +400,7 @@ A `virtual_machine` block supports the following:
 
 * `os_disk_name` - (Optional) The full name of the OS Disk attached to the VM. Changing this forces a new resource to be created.
 
-* `vm_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
+* `virtual_machine_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
 
 ---
 

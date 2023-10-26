@@ -251,51 +251,51 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       }
 
       disk_volume_configuration {
-        volume_name = "hana/data"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/data"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/log"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/log"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/shared"
-        count       = 1
-        size_in_gb  = 256
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/shared"
+        number_of_disks = 1
+        size_in_gb      = 256
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "usr/sap"
-        count       = 1
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "usr/sap"
+        number_of_disks = 1
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "backup"
-        count       = 2
-        size_in_gb  = 256
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "backup"
+        number_of_disks = 2
+        size_in_gb      = 256
+        sku_name        = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "os"
-        count       = 1
-        size_in_gb  = 64
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "os"
+        number_of_disks = 1
+        size_in_gb      = 64
+        sku_name        = "StandardSSD_LRS"
       }
 
       virtual_machine_full_resource_names {
         host_name               = "apphostName0"
         os_disk_name            = "app0osdisk"
-        vm_name                 = "appvm0"
+        virtual_machine_name    = "appvm0"
         network_interface_names = ["appnic0"]
 
         data_disk_names = {
@@ -367,51 +367,51 @@ resource "azurerm_workloads_sap_virtual_instance" "import" {
       }
 
       disk_volume_configuration {
-        volume_name = "hana/data"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/data"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/log"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/log"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/shared"
-        count       = 1
-        size_in_gb  = 256
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/shared"
+        number_of_disks = 1
+        size_in_gb      = 256
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "usr/sap"
-        count       = 1
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "usr/sap"
+        number_of_disks = 1
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "backup"
-        count       = 2
-        size_in_gb  = 256
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "backup"
+        number_of_disks = 2
+        size_in_gb      = 256
+        sku_name        = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "os"
-        count       = 1
-        size_in_gb  = 64
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "os"
+        number_of_disks = 1
+        size_in_gb      = 64
+        sku_name        = "StandardSSD_LRS"
       }
 
       virtual_machine_full_resource_names {
         host_name               = "apphostName0"
         os_disk_name            = "app0osdisk"
-        vm_name                 = "appvm0"
+        virtual_machine_name    = "appvm0"
         network_interface_names = ["appnic0"]
 
         data_disk_names = {
@@ -543,45 +543,45 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         }
 
         disk_volume_configuration {
-          volume_name = "hana/data"
-          count       = 3
-          size_in_gb  = 128
-          sku_name    = "Premium_LRS"
+          volume_name     = "hana/data"
+          number_of_disks = 3
+          size_in_gb      = 128
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "hana/log"
-          count       = 3
-          size_in_gb  = 128
-          sku_name    = "Premium_LRS"
+          volume_name     = "hana/log"
+          number_of_disks = 3
+          size_in_gb      = 128
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "hana/shared"
-          count       = 1
-          size_in_gb  = 256
-          sku_name    = "Premium_LRS"
+          volume_name     = "hana/shared"
+          number_of_disks = 1
+          size_in_gb      = 256
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "usr/sap"
-          count       = 1
-          size_in_gb  = 128
-          sku_name    = "Premium_LRS"
+          volume_name     = "usr/sap"
+          number_of_disks = 1
+          size_in_gb      = 128
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "backup"
-          count       = 2
-          size_in_gb  = 256
-          sku_name    = "StandardSSD_LRS"
+          volume_name     = "backup"
+          number_of_disks = 2
+          size_in_gb      = 256
+          sku_name        = "StandardSSD_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "os"
-          count       = 1
-          size_in_gb  = 64
-          sku_name    = "StandardSSD_LRS"
+          volume_name     = "os"
+          number_of_disks = 1
+          size_in_gb      = 64
+          sku_name        = "StandardSSD_LRS"
         }
       }
 
@@ -592,7 +592,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
           virtual_machine {
             host_name               = "apphostName0"
             os_disk_name            = "app0osdisk"
-            vm_name                 = "appvm0"
+            virtual_machine_name    = "appvm0"
             network_interface_names = ["appnic0"]
 
             data_disk_names = {
@@ -614,7 +614,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
           virtual_machine {
             host_name               = "ascshostName"
             os_disk_name            = "ascsosdisk"
-            vm_name                 = "ascsvm"
+            virtual_machine_name    = "ascsvm"
             network_interface_names = ["ascsnic"]
 
             data_disk_names = {
@@ -636,7 +636,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
           virtual_machine {
             host_name               = "dbprhost"
             os_disk_name            = "dbprosdisk"
-            vm_name                 = "dbvmpr"
+            virtual_machine_name    = "dbvmpr"
             network_interface_names = ["dbprnic"]
 
             data_disk_names = {
@@ -723,51 +723,51 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       }
 
       disk_volume_configuration {
-        volume_name = "hana/data"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/data"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/log"
-        count       = 3
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/log"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "hana/shared"
-        count       = 1
-        size_in_gb  = 256
-        sku_name    = "Premium_LRS"
+        volume_name     = "hana/shared"
+        number_of_disks = 1
+        size_in_gb      = 256
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "usr/sap"
-        count       = 1
-        size_in_gb  = 128
-        sku_name    = "Premium_LRS"
+        volume_name     = "usr/sap"
+        number_of_disks = 1
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "backup"
-        count       = 2
-        size_in_gb  = 256
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "backup"
+        number_of_disks = 2
+        size_in_gb      = 256
+        sku_name        = "StandardSSD_LRS"
       }
 
       disk_volume_configuration {
-        volume_name = "os"
-        count       = 1
-        size_in_gb  = 64
-        sku_name    = "StandardSSD_LRS"
+        volume_name     = "os"
+        number_of_disks = 1
+        size_in_gb      = 64
+        sku_name        = "StandardSSD_LRS"
       }
 
       virtual_machine_full_resource_names {
         host_name               = "apphostName0"
         os_disk_name            = "app0osdisk"
-        vm_name                 = "appvm0"
+        virtual_machine_name    = "appvm0"
         network_interface_names = ["appnic0"]
 
         data_disk_names = {
@@ -924,45 +924,45 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         }
 
         disk_volume_configuration {
-          volume_name = "hana/data"
-          count       = 3
-          size_in_gb  = 128
-          sku_name    = "Premium_LRS"
+          volume_name     = "hana/data"
+          number_of_disks = 3
+          size_in_gb      = 128
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "hana/log"
-          count       = 3
-          size_in_gb  = 128
-          sku_name    = "Premium_LRS"
+          volume_name     = "hana/log"
+          number_of_disks = 3
+          size_in_gb      = 128
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "hana/shared"
-          count       = 1
-          size_in_gb  = 256
-          sku_name    = "Premium_LRS"
+          volume_name     = "hana/shared"
+          number_of_disks = 1
+          size_in_gb      = 256
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "usr/sap"
-          count       = 1
-          size_in_gb  = 128
-          sku_name    = "Premium_LRS"
+          volume_name     = "usr/sap"
+          number_of_disks = 1
+          size_in_gb      = 128
+          sku_name        = "Premium_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "backup"
-          count       = 2
-          size_in_gb  = 256
-          sku_name    = "StandardSSD_LRS"
+          volume_name     = "backup"
+          number_of_disks = 2
+          size_in_gb      = 256
+          sku_name        = "StandardSSD_LRS"
         }
 
         disk_volume_configuration {
-          volume_name = "os"
-          count       = 1
-          size_in_gb  = 64
-          sku_name    = "StandardSSD_LRS"
+          volume_name     = "os"
+          number_of_disks = 1
+          size_in_gb      = 64
+          sku_name        = "StandardSSD_LRS"
         }
       }
 
@@ -973,7 +973,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
           virtual_machine {
             host_name               = "apphostName0"
             os_disk_name            = "app0osdisk"
-            vm_name                 = "appvm0"
+            virtual_machine_name    = "appvm0"
             network_interface_names = ["appnic0"]
 
             data_disk_names = {
@@ -995,7 +995,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
           virtual_machine {
             host_name               = "ascshostName"
             os_disk_name            = "ascsosdisk"
-            vm_name                 = "ascsvm"
+            virtual_machine_name    = "ascsvm"
             network_interface_names = ["ascsnic"]
 
             data_disk_names = {
@@ -1017,7 +1017,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
           virtual_machine {
             host_name               = "dbprhost"
             os_disk_name            = "dbprosdisk"
-            vm_name                 = "dbvmpr"
+            virtual_machine_name    = "dbvmpr"
             network_interface_names = ["dbprnic"]
 
             data_disk_names = {
