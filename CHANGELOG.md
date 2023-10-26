@@ -13,6 +13,9 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - `private_dns_zone_id` is no longer ForceNew and case is suppressed  [GH-23660]
 * `azurerm_synapse_workspace` - add support for `azuread_authentication_only` [GH-23659]
 
+BUG FIXES:
+
+* `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - added lock for ruleStackID [GH-23601]
 
 ## 3.77.0 (October 19, 2023)
 
