@@ -196,21 +196,11 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Whether to enable Infrastructure Encryption (Double Encryption). Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `user_assigned_identity_id` - (Optional) The ID of a User Managed Identity that will be used to access Key Vaults that contain the encryption keys.
 
----
+~> **Note:** If using `user_assigned_identity_id`, ensure the User Assigned Identity is also assigned to the parent Event Hub.
 
-An `identity` block supports the following:
-
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Hub Customer Managed Key. Possible values are `SystemAssigned` or `UserAssigned`.
-
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Event Hub Customer Managed Key.
-
-~> **Note:** This is required when `type` is set to `UserAssigned`.
-
-~> **Note:** While `identity_ids` is an array, only the first value is used as the Identity. Any other values will be ignored.
-
-~> **Note:** If using a User Assigned Identity, make sure to assign the identity the appropriate permissions to access the Key Vault key. Failure to grant `Get, UnwrapKey, and WrapKey` will cause this resource to fail to apply. Additionally, the same User Assigned Identity *must* also be assigned to the parent Event Hub.
+~> **Note:** If using `user_assigned_identity_id`, make sure to assign the identity the appropriate permissions to access the Key Vault key. Failure to grant `Get, UnwrapKey, and WrapKey` will cause this resource to fail to apply.
 
 ## Attributes Reference
 

@@ -10,8 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -87,7 +86,11 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
 		},
 	}
 }
@@ -130,28 +133,13 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 		return err
 	}
 
-	assignedIdentities, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	if assignedIdentities.Type == identity.TypeUserAssigned {
-		isIdentityAssignedToParent := false
-		userAssignedIdentity := ""
-
-		// only a single user assigned ID can be used (azure's error message is very unclear so we are doing these checks to make it clear the requirements to the user)
-		if len(assignedIdentities.IdentityIds) != 1 {
-			return fmt.Errorf("exactly one identity_ids is required if identity type is UserAssigned")
-		}
-
+	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
+	if userAssignedIdentity != "" {
 		if namespace.Identity == nil {
-			return fmt.Errorf("user assigned identity must also be assigned to the parent event hub - currently no user assigned identities are assigned to the parent event hub")
+			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub - currently no user assigned identities are assigned to the parent event hub", userAssignedIdentity)
 		}
 
-		for k := range assignedIdentities.IdentityIds {
-			userAssignedIdentity = k
-		}
-
+		isIdentityAssignedToParent := false
 		for item := range namespace.Identity.IdentityIds {
 			if item == userAssignedIdentity {
 				isIdentityAssignedToParent = true
@@ -162,8 +150,6 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub", userAssignedIdentity)
 		}
 
-		// multiple keys can be assigned to an event hub, but only a single user managed ID can be utilized for all of them
-		// we just use the same user assigned ID for all keys assigned to the event hub
 		for i := 0; i < len(*keyVaultProps); i++ {
 			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
 				UserAssignedIdentity: &userAssignedIdentity,
@@ -220,8 +206,13 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 		d.Set("key_vault_key_ids", keyVaultKeyIds)
 		d.Set("infrastructure_encryption_enabled", props.Encryption.RequireInfrastructureEncryption)
 
-		if err := d.Set("identity", getUserManagedIdentity(props.Encryption)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+		rawUserAssignerIdentity, err := getUserManagedIdentity(props.Encryption)
+		if err != nil {
+			return err
+		}
+
+		if err := d.Set("user_assigned_identity_id", rawUserAssignerIdentity); err != nil {
+			return fmt.Errorf("setting `user_assigned_identity_id`: %+v", err)
 		}
 	}
 
@@ -257,26 +248,23 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 }
 
 // Get the user managed id for the custom keys
-func getUserManagedIdentity(input *namespaces.Encryption) *[]interface{} {
-	if input == nil || input.KeyVaultProperties == nil {
-		return nil
-	}
-
-	// we can only have a single user managed id for N number of keys, azure portal only allows setting a single one and then applies it to each key
-	for _, item := range *input.KeyVaultProperties {
-		if item.Identity != nil {
-			return &[]interface{}{
-				map[string]interface{}{
-					"type":         "UserAssigned",
-					"identity_ids": []string{*item.Identity.UserAssignedIdentity},
-					"principal_id": "",
-					"tenant_id":    "",
-				},
+//
+// we can only have a single user managed id for N number of keys, azure portal only allows setting a single one and then applies it to each key
+func getUserManagedIdentity(input *namespaces.Encryption) (*string, error) {
+	if input != nil || input.KeyVaultProperties != nil {
+		for _, item := range *input.KeyVaultProperties {
+			if item.Identity != nil {
+				userAssignedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*item.Identity.UserAssignedIdentity)
+				if err != nil {
+					return nil, fmt.Errorf("parsing `user_assigned_identity_id`: %+v", err)
+				}
+				uaid := userAssignedId.ID()
+				return &uaid, nil
 			}
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]string, error) {
