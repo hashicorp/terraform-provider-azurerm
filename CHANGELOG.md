@@ -1,28 +1,52 @@
-## 3.77.0 (Unreleased)
+## 3.78.0 (Unreleased)
 
 FEATURES:
 
-* New Resources: `azurerm_dev_center` [GH-23538]
-* New Resources: `azurerm_dev_center_project` [GH-23538]
+* New Resource: `azurerm_resource_management_private_link_association` [GH-23546]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.62.0` of `github.com/hashicorp/go-azure-helpers` [GH-23581]
-* `netapp`: updating to use API Version `2023-05-01` [GH-23576]
-* `springcloud`: updating to use API Version `2023-09-01-preview` [GH-23544]
-* `storage`: updating to use API Version `2023-01-01` [GH-23543]
-* `internal/sdk`: fixing an issue where struct fields containing `removedInNextMajorVersion` wouldn't be decoded correctly [GH-23564]
-* `internal/sdk`: struct tag parsing is now handled consistently during both encoding and decoding [GH-23568]
-* provider: the `roll_instances_when_required` provider feature in the `virtual_machine_scale_set` block is now optional [GH-22976]
-* Data Source: `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
-* `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` [GH-23555]
-* `azurerm_resource_deployment_script_azure_cli` - improve validation for the `version` property to support newer versions [GH-23370]
-* `azurerm_resource_deployment_script_azure_power_shell` - improve validation for the `version` property to support newer versions [GH-23370]
+* dependencies: updating to `v0.20231025.1113325` of `github.com/hashicorp/go-azure-sdk` [GH-23684]
+* Data Source: `azurerm_monitor_workspace` - export `query_endpoint` [GH-23629]
+* `azurerm_express_route_port` - support for `macsec_sci_enabled` [GH-23625]
+* `azurerm_postgresql_flexible_server` - `private_dns_zone_id` is no longer ForceNew and case is suppressed  [GH-23660]
+* `azurerm_synapse_workspace` - add support for `azuread_authentication_only` [GH-23659]
+
+
+## 3.77.0 (October 19, 2023)
+
+FEATURES:
+
+* New Resources: `azurerm_application_load_balancer_frontend` ([#23411](https://github.com/hashicorp/terraform-provider-azurerm/issues/23411))
+* New Resources: `azurerm_dev_center` ([#23538](https://github.com/hashicorp/terraform-provider-azurerm/issues/23538))
+* New Resources: `azurerm_dev_center_project` ([#23538](https://github.com/hashicorp/terraform-provider-azurerm/issues/23538))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.62.0` of `github.com/hashicorp/go-azure-helpers` ([#23581](https://github.com/hashicorp/terraform-provider-azurerm/issues/23581))
+* dependencies: updating Kusto SDK from `2023-05-02` to `2023-08-15` ([#23598](https://github.com/hashicorp/terraform-provider-azurerm/issues/23598))
+* dependencies: updating nginx from `2022-08-01` to `2023-04-01` ([#23583](https://github.com/hashicorp/terraform-provider-azurerm/issues/23583))
+* `netapp`: updating to use API Version `2023-05-01` ([#23576](https://github.com/hashicorp/terraform-provider-azurerm/issues/23576))
+* `springcloud`: updating to use API Version `2023-09-01-preview` ([#23544](https://github.com/hashicorp/terraform-provider-azurerm/issues/23544))
+* `storage`: updating to use API Version `2023-01-01` ([#23543](https://github.com/hashicorp/terraform-provider-azurerm/issues/23543))
+* `internal/sdk`: fixing an issue where struct fields containing `removedInNextMajorVersion` wouldn't be decoded correctly ([#23564](https://github.com/hashicorp/terraform-provider-azurerm/issues/23564))
+* `internal/sdk`: struct tag parsing is now handled consistently during both encoding and decoding ([#23568](https://github.com/hashicorp/terraform-provider-azurerm/issues/23568))
+* provider: the `roll_instances_when_required` provider feature in the `virtual_machine_scale_set` block is now optional ([#22976](https://github.com/hashicorp/terraform-provider-azurerm/issues/22976))
+* Data Source: `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` ([#23555](https://github.com/hashicorp/terraform-provider-azurerm/issues/23555))
+* `azurerm_automation_account`: refactoring the remaining usage of `Azure/azure-sdk-for-go` to use `hashicorp/go-azure-sdk` ([#23555](https://github.com/hashicorp/terraform-provider-azurerm/issues/23555))
+* `azurerm_resource_deployment_script_azure_cli` - improve validation for the `version` property to support newer versions ([#23370](https://github.com/hashicorp/terraform-provider-azurerm/issues/23370))
+* `azurerm_resource_deployment_script_azure_power_shell` - improve validation for the `version` property to support newer versions ([#23370](https://github.com/hashicorp/terraform-provider-azurerm/issues/23370))
+* `azurerm_nginx_deployment` - support for the `capacity` and `email` properties ([#23596](https://github.com/hashicorp/terraform-provider-azurerm/issues/23596))
 
 BUG FIXES:
 
-* Data Source: `azurerm_virtual_hub_connection` - export the `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` attributes in the `routing` block, and fix a bug where these attributes could not be set [GH-23491]
-* `azurerm_shared_image_gallery` - added options `Private` and `Groups` for `sharing.permission` [GH-23570]
+* Data Source: `azurerm_virtual_hub_connection` - export the `inbound_route_map_id`, `outbound_route_map_id`, and `static_vnet_local_route_override_criteria` attributes in the `routing` block, and fix a bug where these attributes could not be set ([#23491](https://github.com/hashicorp/terraform-provider-azurerm/issues/23491))
+* `azurerm_cdn_frontdoor_rule` - the `url_filename_condition` properties `match_values` is now optional if `operator` is set to `Any` ([#23541](https://github.com/hashicorp/terraform-provider-azurerm/issues/23541))
+* `azurerm_shared_image_gallery` - added the `Private` and `Groups` options for the `sharing.permission` property ([#23570](https://github.com/hashicorp/terraform-provider-azurerm/issues/23570))
+* `azurerm_redis_cache` - fixed incorrect ssl values for `redis_primary_connection_string` and `secondary_connection_string` ([#23575](https://github.com/hashicorp/terraform-provider-azurerm/issues/23575))
+* `azurerm_monitor_activity_log_alert` - the `recommend_category` property now can be set to `HighAvailability` ([#23605](https://github.com/hashicorp/terraform-provider-azurerm/issues/23605))
+* `azurerm_recovery_services_vault` - the `encryption` property can now be used with the `cross_region_restore_enabled` property ([#23618](https://github.com/hashicorp/terraform-provider-azurerm/issues/23618))
+* `azurerm_storage_account_customer_managed_key` - prevent a panic when the keyvault id is empty ([#23599](https://github.com/hashicorp/terraform-provider-azurerm/issues/23599))
 
 ## 3.76.0 (October 12, 2023)
 
