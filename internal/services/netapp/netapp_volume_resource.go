@@ -116,6 +116,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
 				}, false),
+				RequiredWith: []string{"encryption_key_source", "key_vault_private_endpoint_id"},
 			},
 
 			"protocols": {
@@ -283,6 +284,22 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ForceNew: true,
 				Optional: true,
 				Default:  false,
+			},
+
+			"encryption_key_source": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string(volumes.PossibleValuesForEncryptionKeySource()), false),
+				RequiredWith: []string{"key_vault_private_endpoint_id"},
+			},
+
+			"key_vault_private_endpoint_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				RequiredWith: []string{"encryption_key_source"},
 			},
 		},
 	}
@@ -463,6 +480,14 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		parameters.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
+	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
+		parameters.Properties.EncryptionKeySource = pointer.To(volumes.EncryptionKeySource(encryptionKeySource.(string)))
+	}
+
+	if keyVaultPrivateEndpointID, ok := d.GetOk("key_vault_private_endpoint_id"); ok {
+		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
+	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -618,6 +643,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
+		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 
 		avsDataStore := false
 		if props.AvsDataStore != nil {

@@ -151,13 +151,17 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	anfAccountIdentityRaw := d.Get("identity")
 	if anfAccountIdentityRaw != nil {
-		anfAccountIdentity := anfAccountIdentityRaw.([]interface{})
-		anfAccountIdentityExpanded, err := identity.ExpandLegacySystemAndUserAssignedMap(anfAccountIdentity)
-		if err != nil {
-			return err
-		}
-		if anfAccountIdentity != nil {
-			accountParameters.Identity = anfAccountIdentityExpanded
+		anfAccountIdentity, ok := anfAccountIdentityRaw.([]interface{})
+
+		if ok && len(anfAccountIdentity) > 0 {
+
+			anfAccountIdentityExpanded, err := identity.ExpandLegacySystemAndUserAssignedMap(anfAccountIdentity)
+			if err != nil {
+				return err
+			}
+			if anfAccountIdentity != nil {
+				accountParameters.Identity = anfAccountIdentityExpanded
+			}
 		}
 	}
 
@@ -208,6 +212,7 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
+
 		update.Identity = anfAccountIdentity
 	}
 
@@ -227,6 +232,7 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
+	//identityClient := meta.(*clients.Client).ManagedIdentity.V20230131.ManagedIdentities
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -251,12 +257,15 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
 
-		anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-		if err != nil {
-			return fmt.Errorf("flattening `identity`: %+v", err)
-		}
-		if err := d.Set("identity", anfAccountIdentity); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+		if model.Identity != nil {
+			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+
+			if err := d.Set("identity", anfAccountIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)

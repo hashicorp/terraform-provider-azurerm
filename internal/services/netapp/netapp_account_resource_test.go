@@ -155,17 +155,17 @@ func TestAccNetAppAccount_updateManagedIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.userAssignedManagedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.systemAssignedManagedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
 		data.ImportStep(),

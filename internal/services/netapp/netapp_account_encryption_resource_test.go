@@ -110,20 +110,18 @@ func (r NetAppAccountEncryptionResource) cmkSystemAssigned(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
-%[2]s
-
 data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[3]d"
+	name                            = "anfakv%[2]d"
 	location                        = azurerm_resource_group.test.location
 	resource_group_name             = azurerm_resource_group.test.name
 	enabled_for_disk_encryption     = true
 	enabled_for_deployment          = true
 	enabled_for_template_deployment = true
 	purge_protection_enabled        = true
-	tenant_id                       = "%[4]s"
+	tenant_id                       = "%[3]s"
 
 	sku_name = "standard"
 
@@ -149,7 +147,7 @@ resource "azurerm_key_vault_access_policy" "test-currentuser" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[3]d"
+	name         = "anfenckey%[2]d"
 	key_vault_id = azurerm_key_vault.test.id
 	key_type     = "RSA"
 	key_size     = 2048
@@ -168,26 +166,8 @@ resource "azurerm_key_vault_key" "test" {
 	]
 }
 
-resource "azurerm_private_endpoint" "test" {
-	name                   = "acctest-pe-akv-%[3]d"
-	location               = azurerm_resource_group.test.location
-	resource_group_name    = azurerm_resource_group.test.name
-	subnet_id              = azurerm_subnet.test-non-delegated.id
-
-	private_service_connection {
-		name                          = "acctest-pe-sc-akv-%[3]d"
-		private_connection_resource_id = azurerm_key_vault.test.id
-		is_manual_connection          = false
-		subresource_names             = ["Vault"]
-	}
-
-	tags = {
-		CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
-	}
-}
-
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[3]d"
+	name                = "acctest-NetAppAccount-%[2]d"
 	location            = azurerm_resource_group.test.location
 	resource_group_name = azurerm_resource_group.test.name
 
@@ -222,21 +202,18 @@ resource "azurerm_netapp_account_encryption" "test" {
 	}
 
 	depends_on = [
-		azurerm_key_vault_access_policy.test-systemassigned,
-		azurerm_private_endpoint.test
+		azurerm_key_vault_access_policy.test-systemassigned
 	]
 }
-`, r.template(data), r.networkTemplate(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomInteger, tenantID)
 }
 
 func (r NetAppAccountEncryptionResource) cmkUserAssigned(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-%[2]s
-
 resource "azurerm_user_assigned_identity" "test" {
-	name                = "user-assigned-identity-%[3]d"
+	name                = "user-assigned-identity-%[2]d"
 	location            = azurerm_resource_group.test.location
 	resource_group_name = azurerm_resource_group.test.name
   
@@ -249,19 +226,19 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[3]d"
+	name                            = "anfakv%[2]d"
 	location                        = azurerm_resource_group.test.location
 	resource_group_name             = azurerm_resource_group.test.name
 	enabled_for_disk_encryption     = true
 	enabled_for_deployment          = true
 	enabled_for_template_deployment = true
 	purge_protection_enabled        = true
-	tenant_id                       = "%[4]s"
+	tenant_id                       = "%[3]s"
   
 	sku_name = "standard"
 
 	access_policy {
-		tenant_id = "%[4]s"
+		tenant_id = "%[3]s"
 		object_id = data.azurerm_client_config.current.object_id
 	
 		key_permissions = [
@@ -276,7 +253,7 @@ resource "azurerm_key_vault" "test" {
 	}
 
 	access_policy {
-		tenant_id = "%[4]s"
+		tenant_id = "%[3]s"
 		object_id = azurerm_user_assigned_identity.test.principal_id
 	
 		key_permissions = [
@@ -292,7 +269,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[3]d"
+	name         = "anfenckey%[2]d"
 	key_vault_id = azurerm_key_vault.test.id
 	key_type     = "RSA"
 	key_size     = 2048
@@ -307,26 +284,8 @@ resource "azurerm_key_vault_key" "test" {
 	]
 }
 
-resource "azurerm_private_endpoint" "test" {
-	name                   = "acctest-pe-akv-%[3]d"
-	location               = azurerm_resource_group.test.location
-	resource_group_name    = azurerm_resource_group.test.name
-	subnet_id              = azurerm_subnet.test-non-delegated.id
-
-	private_service_connection {
-	  name                          = "acctest-pe-sc-akv-%[3]d"
-	  private_connection_resource_id = azurerm_key_vault.test.id
-	  is_manual_connection          = false
-	  subresource_names             = ["Vault"]
-	}
-	
-	tags = {
-		CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
-	  }
-}
-
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[3]d"
+	name                = "acctest-NetAppAccount-%[2]d"
 	location            = azurerm_resource_group.test.location
 	resource_group_name = azurerm_resource_group.test.name
   
@@ -350,32 +309,26 @@ resource "azurerm_netapp_account_encryption" "test" {
 	encryption {
 		key_vault_key_id = azurerm_key_vault_key.test.versionless_id
 	}
-
-	depends_on = [
-		azurerm_private_endpoint.test
-	]
 }
-`, r.template(data), r.networkTemplate(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomInteger, tenantID)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate1(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-%[2]s
-
 data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[3]d"
+	name                            = "anfakv%[2]d"
 	location                        = azurerm_resource_group.test.location
 	resource_group_name             = azurerm_resource_group.test.name
 	enabled_for_disk_encryption     = true
 	enabled_for_deployment          = true
 	enabled_for_template_deployment = true
 	purge_protection_enabled        = true
-	tenant_id                       = "%[4]s"
+	tenant_id                       = "%[3]s"
 
 	sku_name = "standard"
 
@@ -401,7 +354,7 @@ resource "azurerm_key_vault_access_policy" "test-currentuser" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[3]d"
+	name         = "anfenckey%[2]d"
 	key_vault_id = azurerm_key_vault.test.id
 	key_type     = "RSA"
 	key_size     = 2048
@@ -421,7 +374,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_key" "test-new-key" {
-	name         = "anfenckey-new%[3]d"
+	name         = "anfenckey-new%[2]d"
 	key_vault_id = azurerm_key_vault.test.id
 	key_type     = "RSA"
 	key_size     = 2048
@@ -441,26 +394,8 @@ resource "azurerm_key_vault_key" "test-new-key" {
 	]
 }
 
-resource "azurerm_private_endpoint" "test" {
-	name                   = "acctest-pe-akv-%[3]d"
-	location               = azurerm_resource_group.test.location
-	resource_group_name    = azurerm_resource_group.test.name
-	subnet_id              = azurerm_subnet.test-non-delegated.id
-
-	private_service_connection {
-		name                          = "acctest-pe-sc-akv-%[3]d"
-		private_connection_resource_id = azurerm_key_vault.test.id
-		is_manual_connection          = false
-		subresource_names             = ["Vault"]
-	}
-
-	tags = {
-		CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
-	}
-}
-
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[3]d"
+	name                = "acctest-NetAppAccount-%[2]d"
 	location            = azurerm_resource_group.test.location
 	resource_group_name = azurerm_resource_group.test.name
 
@@ -495,32 +430,28 @@ resource "azurerm_netapp_account_encryption" "test" {
 	}
 
 	depends_on = [
-		azurerm_key_vault_access_policy.test-systemassigned,
-		azurerm_private_endpoint.test
+		azurerm_key_vault_access_policy.test-systemassigned
 	]
 }
-
-`, r.template(data), r.networkTemplate(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomInteger, tenantID)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate2(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-%[2]s
-
 data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[3]d"
+	name                            = "anfakv%[2]d"
 	location                        = azurerm_resource_group.test.location
 	resource_group_name             = azurerm_resource_group.test.name
 	enabled_for_disk_encryption     = true
 	enabled_for_deployment          = true
 	enabled_for_template_deployment = true
 	purge_protection_enabled        = true
-	tenant_id                       = "%[4]s"
+	tenant_id                       = "%[3]s"
 
 	sku_name = "standard"
 
@@ -546,7 +477,7 @@ resource "azurerm_key_vault_access_policy" "test-currentuser" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[3]d"
+	name         = "anfenckey%[2]d"
 	key_vault_id = azurerm_key_vault.test.id
 	key_type     = "RSA"
 	key_size     = 2048
@@ -566,7 +497,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_key" "test-new-key" {
-	name         = "anfenckey-new%[3]d"
+	name         = "anfenckey-new%[2]d"
 	key_vault_id = azurerm_key_vault.test.id
 	key_type     = "RSA"
 	key_size     = 2048
@@ -586,26 +517,8 @@ resource "azurerm_key_vault_key" "test-new-key" {
 	]
 }
 
-resource "azurerm_private_endpoint" "test" {
-	name                   = "acctest-pe-akv-%[3]d"
-	location               = azurerm_resource_group.test.location
-	resource_group_name    = azurerm_resource_group.test.name
-	subnet_id              = azurerm_subnet.test-non-delegated.id
-
-	private_service_connection {
-		name                          = "acctest-pe-sc-akv-%[3]d"
-		private_connection_resource_id = azurerm_key_vault.test.id
-		is_manual_connection          = false
-		subresource_names             = ["Vault"]
-	}
-
-	tags = {
-		CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
-	}
-}
-
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[3]d"
+	name                = "acctest-NetAppAccount-%[2]d"
 	location            = azurerm_resource_group.test.location
 	resource_group_name = azurerm_resource_group.test.name
 
@@ -640,51 +553,10 @@ resource "azurerm_netapp_account_encryption" "test" {
 	}
 
 	depends_on = [
-		azurerm_key_vault_access_policy.test-systemassigned,
-		azurerm_private_endpoint.test
+		azurerm_key_vault_access_policy.test-systemassigned
 	]
 }
-
-`, r.template(data), r.networkTemplate(data), data.RandomInteger, tenantID)
-}
-
-func (NetAppAccountEncryptionResource) networkTemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_virtual_network" "test" {
-	name                = "acctest-VirtualNetwork-%[1]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	address_space       = ["10.6.0.0/16"]
-
-	tags = {
-		"CreatedOnDate"    = "2022-07-08T23:50:21Z",
-		"SkipASMAzSecPack" = "true"
-	}
-}
-
-resource "azurerm_subnet" "test-delegated" {
-	name                 = "acctest-Delegated-Subnet-%[1]d"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.6.1.0/24"]
-
-	delegation {
-		name = "testdelegation"
-
-		service_delegation {
-		name    = "Microsoft.Netapp/volumes"
-		actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-		}
-	}
-}
-
-resource "azurerm_subnet" "test-non-delegated" {
-	name                 = "acctest-Non-Delegated-Subnet-%[1]d"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.6.0.0/24"]
-}
-`, data.RandomInteger)
+`, r.template(data), data.RandomInteger, tenantID)
 }
 
 func (NetAppAccountEncryptionResource) template(data acceptance.TestData) string {
@@ -711,6 +583,5 @@ resource "azurerm_resource_group" "test" {
     "SkipNRMSNSG"      = "true"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
