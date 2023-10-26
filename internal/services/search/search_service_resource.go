@@ -300,12 +300,9 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			DisableLocalAuth: pointer.To(!localAuthenticationEnabled),
 			PartitionCount:   pointer.To(partitionCount),
 			ReplicaCount:     pointer.To(replicaCount),
+			SemanticSearch:   pointer.To(semanticSearchSku),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if semanticSearchSku != services.SearchSemanticSearchDisabled {
-		payload.Properties.SemanticSearch = pointer.To(semanticSearchSku)
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
