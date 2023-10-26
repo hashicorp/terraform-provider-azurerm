@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20231025.1113325` of `github.com/hashicorp/go-azure-sdk` [GH-23684]
+* dependencies: updating to `v1.58.3` of `google.golang.org/grpc` [GH-23691]
 * Data Source: `azurerm_monitor_workspace` - export `query_endpoint` [GH-23629]
 * `azurerm_express_route_port` - support for `macsec_sci_enabled` [GH-23625]
 * `azurerm_postgresql_flexible_server` - `private_dns_zone_id` is no longer ForceNew and case is suppressed  [GH-23660]
