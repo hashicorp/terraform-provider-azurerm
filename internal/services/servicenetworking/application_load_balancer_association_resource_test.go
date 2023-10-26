@@ -33,7 +33,7 @@ func (r AssociationResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func TestAccApplicationLoadBalancerAssociation_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_association", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
 	r := AssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,7 +48,7 @@ func TestAccApplicationLoadBalancerAssociation_basic(t *testing.T) {
 }
 
 func TestAccApplicationLoadBalancerAssociation_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_association", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
 	r := AssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -77,7 +77,7 @@ func TestAccApplicationLoadBalancerAssociation_update(t *testing.T) {
 }
 
 func TestAccApplicationLoadBalancerAssociation_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_association", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
 	r := AssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -92,7 +92,7 @@ func TestAccApplicationLoadBalancerAssociation_complete(t *testing.T) {
 }
 
 func TestAccApplicationLoadBalancerAssociation_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_association", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_subnet_association", "test")
 
 	r := AssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -154,7 +154,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_application_load_balancer_association" "test" {
+resource "azurerm_application_load_balancer_subnet_association" "test" {
   name                         = "acct-%d"
   application_load_balancer_id = azurerm_application_load_balancer.test.id
   subnet_id                    = azurerm_subnet.test.id
@@ -171,7 +171,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_application_load_balancer_association" "test" {
+resource "azurerm_application_load_balancer_subnet_association" "test" {
   name                         = "acct-%d"
   application_load_balancer_id = azurerm_application_load_balancer.test.id
   subnet_id                    = azurerm_subnet.test.id
@@ -186,10 +186,10 @@ func (r AssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-resource "azurerm_application_load_balancer_association" "import" {
-  name                         = azurerm_application_load_balancer_association.test.name
-  application_load_balancer_id = azurerm_application_load_balancer_association.test.application_load_balancer_id
-  subnet_id                    = azurerm_application_load_balancer_association.test.subnet_id
+resource "azurerm_application_load_balancer_subnet_association" "import" {
+  name                         = azurerm_application_load_balancer_subnet_association.test.name
+  application_load_balancer_id = azurerm_application_load_balancer_subnet_association.test.application_load_balancer_id
+  subnet_id                    = azurerm_application_load_balancer_subnet_association.test.subnet_id
 }
 `, r.basic(data))
 }

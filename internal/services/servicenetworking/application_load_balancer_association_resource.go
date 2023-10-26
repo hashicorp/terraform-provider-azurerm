@@ -54,7 +54,7 @@ func (t ApplicationLoadBalancerAssociationResource) ModelObject() interface{} {
 }
 
 func (t ApplicationLoadBalancerAssociationResource) ResourceType() string {
-	return "azurerm_application_load_balancer_association"
+	return "azurerm_application_load_balancer_subnet_association"
 }
 
 func (t ApplicationLoadBalancerAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

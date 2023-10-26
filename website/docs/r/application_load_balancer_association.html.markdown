@@ -1,14 +1,14 @@
 ---
 subcategory: "Service Networking"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_application_load_balancer_association"
+page_title: "Azure Resource Manager: azurerm_application_load_balancer_subnet_association"
 description: |-
-  Manages an Application Gateway for Containers Association.
+  Manages an association between an Application Gateway for Containers and a Subnet.
 ---
 
-# azurerm_application_load_balancer_association
+# azurerm_application_load_balancer_subnet_association
 
-Manages an Application Gateway for Containers Association.
+Manages an association between an Application Gateway for Containers and a Subnet.
 
 ## Example Usage
 
@@ -47,7 +47,7 @@ resource "azurerm_subnet" "example" {
   }
 }
 
-resource "azurerm_application_load_balancer_association" "example" {
+resource "azurerm_application_load_balancer_subnet_association" "example" {
   name                         = "example"
   application_load_balancer_id = azurerm_application_load_balancer.example.id
   subnet_id                    = azurerm_subnet_example.id
@@ -90,5 +90,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Application Gateway for Containers Associations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_load_balancer_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ServiceNetworking/trafficControllers/alb1/associations/association1
+terraform import azurerm_application_load_balancer_subnet_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ServiceNetworking/trafficControllers/alb1/associations/association1
 ```
