@@ -106,7 +106,7 @@ A `virtual_network_configuration` block supports the following:
 
 * `enabled` - (Optional) Whether the virtual network is enabled. Possible values are: `true` and `false`. Defaults to `true`.
 
-~> **NOTE:** Currently `enabled` supports changes only from `true` to `false` and `public_network_access_enabled` will also be set to `false` when `enabled` is set to `false`.
+~> **NOTE:** The `enabled` field only supports changing the value from `true` to `false`. Changing the `enabled` field to `false` will cause the `public_network_access_enabled` field to be set to `false` as well.
 
 ---
 
