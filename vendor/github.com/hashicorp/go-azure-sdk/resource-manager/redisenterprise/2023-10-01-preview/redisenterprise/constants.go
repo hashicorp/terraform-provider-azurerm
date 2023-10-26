@@ -132,6 +132,47 @@ func parseClusteringPolicy(input string) (*ClusteringPolicy, error) {
 	return &out, nil
 }
 
+type CmkIdentityType string
+
+const (
+	CmkIdentityTypeSystemAssignedIdentity CmkIdentityType = "systemAssignedIdentity"
+	CmkIdentityTypeUserAssignedIdentity   CmkIdentityType = "userAssignedIdentity"
+)
+
+func PossibleValuesForCmkIdentityType() []string {
+	return []string{
+		string(CmkIdentityTypeSystemAssignedIdentity),
+		string(CmkIdentityTypeUserAssignedIdentity),
+	}
+}
+
+func (s *CmkIdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCmkIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseCmkIdentityType(input string) (*CmkIdentityType, error) {
+	vals := map[string]CmkIdentityType{
+		"systemassignedidentity": CmkIdentityTypeSystemAssignedIdentity,
+		"userassignedidentity":   CmkIdentityTypeUserAssignedIdentity,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CmkIdentityType(input)
+	return &out, nil
+}
+
 type EvictionPolicy string
 
 const (
@@ -483,6 +524,8 @@ const (
 	ResourceStateEnableFailed  ResourceState = "EnableFailed"
 	ResourceStateEnabling      ResourceState = "Enabling"
 	ResourceStateRunning       ResourceState = "Running"
+	ResourceStateScaling       ResourceState = "Scaling"
+	ResourceStateScalingFailed ResourceState = "ScalingFailed"
 	ResourceStateUpdateFailed  ResourceState = "UpdateFailed"
 	ResourceStateUpdating      ResourceState = "Updating"
 )
@@ -499,6 +542,8 @@ func PossibleValuesForResourceState() []string {
 		string(ResourceStateEnableFailed),
 		string(ResourceStateEnabling),
 		string(ResourceStateRunning),
+		string(ResourceStateScaling),
+		string(ResourceStateScalingFailed),
 		string(ResourceStateUpdateFailed),
 		string(ResourceStateUpdating),
 	}
@@ -529,6 +574,8 @@ func parseResourceState(input string) (*ResourceState, error) {
 		"enablefailed":  ResourceStateEnableFailed,
 		"enabling":      ResourceStateEnabling,
 		"running":       ResourceStateRunning,
+		"scaling":       ResourceStateScaling,
+		"scalingfailed": ResourceStateScalingFailed,
 		"updatefailed":  ResourceStateUpdateFailed,
 		"updating":      ResourceStateUpdating,
 	}
@@ -544,9 +591,12 @@ func parseResourceState(input string) (*ResourceState, error) {
 type SkuName string
 
 const (
+	SkuNameEnterpriseEFive                SkuName = "Enterprise_E5"
 	SkuNameEnterpriseEFiveZero            SkuName = "Enterprise_E50"
+	SkuNameEnterpriseEFourHundred         SkuName = "Enterprise_E400"
 	SkuNameEnterpriseEOneHundred          SkuName = "Enterprise_E100"
 	SkuNameEnterpriseEOneZero             SkuName = "Enterprise_E10"
+	SkuNameEnterpriseETwoHundred          SkuName = "Enterprise_E200"
 	SkuNameEnterpriseETwoZero             SkuName = "Enterprise_E20"
 	SkuNameEnterpriseFlashFOneFiveHundred SkuName = "EnterpriseFlash_F1500"
 	SkuNameEnterpriseFlashFSevenHundred   SkuName = "EnterpriseFlash_F700"
@@ -555,9 +605,12 @@ const (
 
 func PossibleValuesForSkuName() []string {
 	return []string{
+		string(SkuNameEnterpriseEFive),
 		string(SkuNameEnterpriseEFiveZero),
+		string(SkuNameEnterpriseEFourHundred),
 		string(SkuNameEnterpriseEOneHundred),
 		string(SkuNameEnterpriseEOneZero),
+		string(SkuNameEnterpriseETwoHundred),
 		string(SkuNameEnterpriseETwoZero),
 		string(SkuNameEnterpriseFlashFOneFiveHundred),
 		string(SkuNameEnterpriseFlashFSevenHundred),
@@ -580,9 +633,12 @@ func (s *SkuName) UnmarshalJSON(bytes []byte) error {
 
 func parseSkuName(input string) (*SkuName, error) {
 	vals := map[string]SkuName{
+		"enterprise_e5":         SkuNameEnterpriseEFive,
 		"enterprise_e50":        SkuNameEnterpriseEFiveZero,
+		"enterprise_e400":       SkuNameEnterpriseEFourHundred,
 		"enterprise_e100":       SkuNameEnterpriseEOneHundred,
 		"enterprise_e10":        SkuNameEnterpriseEOneZero,
+		"enterprise_e200":       SkuNameEnterpriseETwoHundred,
 		"enterprise_e20":        SkuNameEnterpriseETwoZero,
 		"enterpriseflash_f1500": SkuNameEnterpriseFlashFOneFiveHundred,
 		"enterpriseflash_f700":  SkuNameEnterpriseFlashFSevenHundred,

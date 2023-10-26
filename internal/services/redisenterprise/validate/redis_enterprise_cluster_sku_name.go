@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -71,11 +71,14 @@ func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, 
 
 func getValidRedisEnterpriseClusterSkus() []string {
 	return []string{
+		string(redisenterprise.SkuNameEnterpriseEFive),
 		string(redisenterprise.SkuNameEnterpriseEOneZero),
 		string(redisenterprise.SkuNameEnterpriseETwoZero),
 		string(redisenterprise.SkuNameEnterpriseEFiveZero),
 		string(redisenterprise.SkuNameEnterpriseEOneHundred),
+		string(redisenterprise.SkuNameEnterpriseETwoHundred),
 		string(redisenterprise.SkuNameEnterpriseFlashFThreeHundred),
+		string(redisenterprise.SkuNameEnterpriseEFourHundred),
 		string(redisenterprise.SkuNameEnterpriseFlashFSevenHundred),
 		string(redisenterprise.SkuNameEnterpriseFlashFOneFiveHundred),
 	}
