@@ -27,7 +27,7 @@ func (r AssociationResource) Exists(ctx context.Context, clients *clients.Client
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("while checking existence for %q: %+v", id.String(), err)
+		return nil, fmt.Errorf("while checking existence of %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }

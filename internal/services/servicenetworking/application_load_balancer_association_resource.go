@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/associationsinterface"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/trafficcontrollerinterface"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,11 +19,11 @@ import (
 
 type ApplicationLoadBalancerAssociationResource struct{}
 
-type AssociationModel struct {
-	Name                      string            `tfschema:"name"`
-	ApplicationLoadBalancerId string            `tfschema:"application_load_balancer_id"`
-	SubnetId                  string            `tfschema:"subnet_id"`
-	Tags                      map[string]string `tfschema:"tags"`
+type AssociationResourceModel struct {
+	Name                      string                 `tfschema:"name"`
+	ApplicationLoadBalancerId string                 `tfschema:"application_load_balancer_id"`
+	SubnetId                  string                 `tfschema:"subnet_id"`
+	Tags                      map[string]interface{} `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerAssociationResource{}
@@ -37,19 +37,9 @@ func (t ApplicationLoadBalancerAssociationResource) Arguments() map[string]*plug
 			ValidateFunc: validate.ApplicationLoadBalancerAssociationName(),
 		},
 
-		"application_load_balancer_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: associationsinterface.ValidateTrafficControllerID,
-		},
+		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(associationsinterface.TrafficControllerId{}),
 
-		"subnet_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		},
+		"subnet_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.SubnetId{}),
 
 		"tags": commonschema.Tags(),
 	}
@@ -60,7 +50,7 @@ func (t ApplicationLoadBalancerAssociationResource) Attributes() map[string]*plu
 }
 
 func (t ApplicationLoadBalancerAssociationResource) ModelObject() interface{} {
-	return &AssociationModel{}
+	return &AssociationResourceModel{}
 }
 
 func (t ApplicationLoadBalancerAssociationResource) ResourceType() string {
@@ -77,7 +67,7 @@ func (t ApplicationLoadBalancerAssociationResource) Create() sdk.ResourceFunc {
 			trafficControllerClient := metadata.Client.ServiceNetworking.TrafficControllerInterface
 			client := metadata.Client.ServiceNetworking.AssociationsInterface
 
-			var config AssociationModel
+			var config AssociationResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding %v", err)
 			}
@@ -99,26 +89,22 @@ func (t ApplicationLoadBalancerAssociationResource) Create() sdk.ResourceFunc {
 
 			controller, err := trafficControllerClient.Get(ctx, *albId)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *albId, err)
+				return fmt.Errorf("retrieving parent %s: %+v", *albId, err)
+			}
+
+			if controller.Model == nil {
+				return fmt.Errorf("retrieving parent %s: model was nil", *albId)
 			}
 
 			association := associationsinterface.Association{
+				Location: location.Normalize(controller.Model.Location),
 				Properties: &associationsinterface.AssociationProperties{
 					Subnet: &associationsinterface.AssociationSubnet{
 						Id: config.SubnetId,
 					},
 					AssociationType: associationsinterface.AssociationTypeSubnets,
 				},
-			}
-
-			if controller.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *albId)
-			}
-
-			association.Location = location.Normalize(controller.Model.Location)
-
-			if len(config.Tags) > 0 {
-				association.Tags = &config.Tags
+				Tags: tags.Expand(config.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, association); err != nil {
@@ -147,21 +133,21 @@ func (t ApplicationLoadBalancerAssociationResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retreiving %s: %v", id.ID(), err)
+				return fmt.Errorf("retreiving %s: %v", *id, err)
 			}
 
 			trafficControllerId := associationsinterface.NewTrafficControllerID(id.SubscriptionId, id.ResourceGroupName, id.TrafficControllerName)
-			state := AssociationModel{
+			state := AssociationResourceModel{
 				Name:                      id.AssociationName,
 				ApplicationLoadBalancerId: trafficControllerId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
-				state.Tags = pointer.From(model.Tags)
+				state.Tags = tags.Flatten(model.Tags)
 
 				if prop := model.Properties; prop != nil {
 					if prop.Subnet != nil {
-						parsedSubnetId, err := commonids.ParseSubnetID(prop.Subnet.Id)
+						parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(prop.Subnet.Id)
 						if err != nil {
 							return err
 						}
@@ -181,25 +167,25 @@ func (t ApplicationLoadBalancerAssociationResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ServiceNetworking.AssociationsInterface
 
-			var plan AssociationModel
+			var plan AssociationResourceModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %v", err)
 			}
 
 			id, err := associationsinterface.ParseAssociationID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing id %v", err)
+				return err
 			}
 
 			// Thought `AssociationSubnetUpdate` defined in the SDK contains the `subnetId`, while per testing it can not be updated
 			associationUpdate := associationsinterface.AssociationUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
-				associationUpdate.Tags = &plan.Tags
+				associationUpdate.Tags = tags.Expand(plan.Tags)
 			}
 
 			if _, err = client.Update(ctx, *id, associationUpdate); err != nil {
-				return fmt.Errorf("updating %s: %v", id.ID(), err)
+				return fmt.Errorf("updating %s: %v", *id, err)
 			}
 
 			return nil
@@ -219,7 +205,7 @@ func (t ApplicationLoadBalancerAssociationResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %v", id.ID(), err)
+				return fmt.Errorf("deleting %s: %v", *id, err)
 			}
 
 			return nil
