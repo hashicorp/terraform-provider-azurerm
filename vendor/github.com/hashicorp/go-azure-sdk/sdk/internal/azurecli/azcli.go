@@ -14,17 +14,20 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
+var cliVersion *struct {
+	AzureCli          *string      `json:"azure-cli,omitempty"`
+	AzureCliCore      *string      `json:"azure-cli-core,omitempty"`
+	AzureCliTelemetry *string      `json:"azure-cli-telemetry,omitempty"`
+	Extensions        *interface{} `json:"extensions,omitempty"`
+}
+
 // CheckAzVersion tries to determine the version of Azure CLI in the path and checks for a compatible version
 func CheckAzVersion(minVersion string, nextMajorVersion *string) error {
-	var cliVersion *struct {
-		AzureCli          *string      `json:"azure-cli,omitempty"`
-		AzureCliCore      *string      `json:"azure-cli-core,omitempty"`
-		AzureCliTelemetry *string      `json:"azure-cli-telemetry,omitempty"`
-		Extensions        *interface{} `json:"extensions,omitempty"`
-	}
-	err := JSONUnmarshalAzCmd(&cliVersion, "version")
-	if err != nil {
-		return fmt.Errorf("could not parse Azure CLI version: %v", err)
+	if cliVersion == nil {
+		err := JSONUnmarshalAzCmd(&cliVersion, "version")
+		if err != nil {
+			return fmt.Errorf("could not parse Azure CLI version: %v", err)
+		}
 	}
 
 	if cliVersion.AzureCli == nil {
