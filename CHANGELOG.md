@@ -18,6 +18,7 @@ BUG FIXES:
 
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - added lock for ruleStackID [GH-23601]
 * `azurerm_cognitive_deployment` - remove forceNew tag from `rai_policy_name` [GH-23697]
+* `azurerm_backup_policy_vm` - fix payload by using current datetime [GH-23586]
 
 ## 3.77.0 (October 19, 2023)
 
