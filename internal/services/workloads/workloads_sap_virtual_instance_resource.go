@@ -1966,11 +1966,7 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 	}
 
 	if len(configuration.SingleServerConfiguration) != 0 {
-		singleServerConfiguration, err := expandSingleServerConfiguration(configuration.SingleServerConfiguration)
-		if err != nil {
-			return nil, err
-		}
-		result.InfrastructureConfiguration = singleServerConfiguration
+		result.InfrastructureConfiguration = expandSingleServerConfiguration(configuration.SingleServerConfiguration)
 	}
 
 	if len(configuration.ThreeTierConfiguration) != 0 {
@@ -1984,7 +1980,7 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 	return result, nil
 }
 
-func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvirtualinstances.SingleServerConfiguration, error) {
+func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirtualinstances.SingleServerConfiguration {
 	singleServerConfiguration := input[0]
 
 	result := &sapvirtualinstances.SingleServerConfiguration{
@@ -2003,7 +1999,7 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvir
 		result.DatabaseType = &dbType
 	}
 
-	return result, nil
+	return result
 }
 
 func expandThreeTierConfiguration(input []ThreeTierConfiguration) (*sapvirtualinstances.ThreeTierConfiguration, error) {
