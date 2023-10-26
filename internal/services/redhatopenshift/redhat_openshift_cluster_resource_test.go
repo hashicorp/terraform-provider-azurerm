@@ -15,7 +15,7 @@ import (
 
 type OpenShiftClusterResource struct{}
 
-func TestAccOpenShiftCluster_basic1(t *testing.T) {
+func TestAccOpenShiftCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
@@ -146,7 +146,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.redhatopenshift"]
+  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2", "azurerm_role_assignment.role_contributor2"]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
@@ -189,7 +189,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.redhatopenshift"]
+  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
 }
   `, r.template(data), data.RandomInteger)
 }
@@ -233,7 +233,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.redhatopenshift"]
+  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
 }
   `, r.template(data), data.RandomInteger)
 }
@@ -246,7 +246,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestKV-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  tenant_id                   = data.azurerm_client_config.test.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
@@ -255,8 +255,8 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_key_vault_access_policy" "service-principal" {
   key_vault_id = azurerm_key_vault.test.id
 
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  tenant_id = data.azurerm_client_config.test.tenant_id
+  object_id = data.azurerm_client_config.test.object_id
 
   key_permissions = [
     "Create",
@@ -348,7 +348,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_key_vault_access_policy.disk-encryption", "azurerm_role_assignment.redhatopenshift"]
+  depends_on = ["azurerm_key_vault_access_policy.disk-encryption", "azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
@@ -367,7 +367,7 @@ provider "azurerm" {
 
 provider "azuread" {}
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "test" {}
 
 data "azuread_client_config" "test" {}
 
@@ -384,24 +384,37 @@ resource "azuread_service_principal_password" "test" {
 }
 
 resource "azuread_service_principal" "redhatopenshift" {
-  // This is the RedHatOpenShift service principal id
-  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
-  use_existing   = true
+	  // This is the RedHatOpenShift service principal id
+	  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+	  use_existing   = true
 }
 
-resource "azurerm_role_assignment" "redhatopenshift" {
+resource "azurerm_role_assignment" "role_network1" {
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
-  principal_id         = azuread_service_principal.redhatopenshift.id
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "role_network2" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azuread_service_principal.redhatopenshift.object_id
+}
+
+#resource "azurerm_role_assignment" "role_contributor1" {
+#  scope                = "/subscriptions/${data.azurerm_client_config.test.subscription_id}"
+#  role_definition_name = "Contributor"
+#  principal_id         = azuread_service_principal.test.object_id
+#}
+
+resource "azurerm_role_assignment" "role_contributor2" {
+  scope                = "/subscriptions/${data.azurerm_client_config.test.subscription_id}"
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.redhatopenshift.object_id
 }
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG-aro-%[1]d-2"
   location = "%[2]s"
 }
 
