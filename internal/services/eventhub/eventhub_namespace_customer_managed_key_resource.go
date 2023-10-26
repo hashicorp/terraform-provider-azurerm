@@ -135,6 +135,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
 	if userAssignedIdentity != "" {
+		// this provides a more helpful error message than the API response
 		if namespace.Identity == nil {
 			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub - currently no user assigned identities are assigned to the parent event hub", userAssignedIdentity)
 		}
@@ -146,6 +147,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 			}
 		}
 
+		// this provides a more helpful error message than the API response
 		if !isIdentityAssignedToParent {
 			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub", userAssignedIdentity)
 		}
