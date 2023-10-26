@@ -37,6 +37,8 @@ func TestAccSearchService_basicSku(t *testing.T) {
 
 func TestAccSearchService_freeSku(t *testing.T) {
 	// Regression test case for issue #10151
+	// NOTE: combining the semanticSearchUpdateFreeSkuError and freeSku test case
+	// together due to the quota of one 'free' sku per subscription...
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
 
@@ -49,6 +51,10 @@ func TestAccSearchService_freeSku(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:      r.semanticSearchUpdate(data, "free", "free"),
+			ExpectError: regexp.MustCompile(`can only be specified when`),
+		},
 	})
 }
 
@@ -57,26 +63,6 @@ func TestAccSearchService_semanticSearchBasicFreeSkuError(t *testing.T) {
 	r := SearchServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.semanticSearchUpdate(data, "free", "free"),
-			ExpectError: regexp.MustCompile(`can only be specified when`),
-		},
-	})
-}
-
-func TestAccSearchService_semanticSearchUpdateFreeSkuError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.semanticSearchBasic(data, "free"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config:      r.semanticSearchUpdate(data, "free", "free"),
 			ExpectError: regexp.MustCompile(`can only be specified when`),
