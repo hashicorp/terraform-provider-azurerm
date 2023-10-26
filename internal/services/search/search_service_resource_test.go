@@ -28,7 +28,7 @@ func TestAccSearchService_basicSku(t *testing.T) {
 			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -45,7 +45,7 @@ func TestAccSearchService_freeSku(t *testing.T) {
 			Config: r.basic(data, "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -59,7 +59,7 @@ func TestAccSearchService_semanticSearchBasicFreeSkuError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.semanticSearchUpdate(data, "free", "free"),
-			ExpectError: regexp.MustCompile(`'semantic_search_sku' can only be set to`),
+			ExpectError: regexp.MustCompile(`can only be specified when`),
 		},
 	})
 }
@@ -73,13 +73,13 @@ func TestAccSearchService_semanticSearchUpdateFreeSkuError(t *testing.T) {
 			Config: r.semanticSearchBasic(data, "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config:      r.semanticSearchUpdate(data, "free", "free"),
-			ExpectError: regexp.MustCompile(`'semantic_search_sku' can only be set to`),
+			ExpectError: regexp.MustCompile(`can only be specified when`),
 		},
 	})
 }
@@ -93,7 +93,7 @@ func TestAccSearchService_semanticSearchUpdate(t *testing.T) {
 			Config: r.semanticSearchBasic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -125,7 +125,7 @@ func TestAccSearchService_semanticSearchUpdate(t *testing.T) {
 			Config: r.semanticSearchBasic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -479,7 +479,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-search-%d"
   location = "%s"
 }
-`, data.RandomInteger, "eastus2euap")
+`, data.RandomInteger, "westus")
 }
 
 func (r SearchServiceResource) basic(data acceptance.TestData, sku string) string {

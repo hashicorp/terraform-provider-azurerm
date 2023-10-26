@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `replica_count` - (Optional) Specifies the number of Replica's which should be created for this Search Service. This field cannot be set when using a `free` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)).
 
-* `semantic_search_sku` - (Optional) The Semantic Search SKU which should be used for this Search Service. Possible values include `disabled`, `free` and `standard`. Defaults to `disabled`.
+* `semantic_search_sku` - (Optional) Specifies the Semantic Search SKU which should be used for this Search Service. Possible values include `free` and `standard`.
 
 ~> **NOTE:** The `semantic_search_sku` cannot be defined if your Search Services `sku` is set to `free`. The Semantic Search feature is only available in certain regions, please see the [product documentation](https://learn.microsoft.com/azure/search/semantic-search-overview#availability-and-pricing) for more information.
 

@@ -164,9 +164,7 @@ func resourceSearchService() *pluginsdk.Resource {
 			"semantic_search_sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  services.SearchSemanticSearchDisabled,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SearchSemanticSearchDisabled),
 					string(services.SearchSemanticSearchFree),
 					string(services.SearchSemanticSearchStandard),
 				}, false),
@@ -220,7 +218,11 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	cmkEnforcementEnabled := d.Get("customer_managed_key_enforcement_enabled").(bool)
 	localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
 	authenticationFailureMode := d.Get("authentication_failure_mode").(string)
-	semanticSearchSku := d.Get("semantic_search_sku").(string)
+
+	semanticSearchSku := services.SearchSemanticSearchDisabled
+	if v := d.Get("semantic_search_sku").(string); v != "" {
+		semanticSearchSku = services.SearchSemanticSearch(v)
+	}
 
 	cmkEnforcement := services.SearchEncryptionWithCmkDisabled
 	if cmkEnforcementEnabled {
@@ -246,8 +248,8 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
-	if skuName == services.SkuNameFree && semanticSearchSku != string(services.SearchSemanticSearchDisabled) {
-		return fmt.Errorf("'semantic_search_sku' can only be set to %q if the 'sku' field is set to %q, got %q", string(services.SearchSemanticSearchDisabled), string(services.SkuNameFree), semanticSearchSku)
+	if skuName == services.SkuNameFree && semanticSearchSku != services.SearchSemanticSearchDisabled {
+		return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
 	}
 
 	// The number of replicas can be between 1 and 12 for 'standard', 'storage_optimized_l1' and storage_optimized_l2' SKUs
@@ -298,9 +300,12 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			DisableLocalAuth: pointer.To(!localAuthenticationEnabled),
 			PartitionCount:   pointer.To(partitionCount),
 			ReplicaCount:     pointer.To(replicaCount),
-			SemanticSearch:   pointer.To(services.SearchSemanticSearch(semanticSearchSku)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if semanticSearchSku != services.SearchSemanticSearchDisabled {
+		payload.Properties.SemanticSearch = pointer.To(semanticSearchSku)
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
@@ -453,14 +458,17 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("semantic_search_sku") {
-		semanticSearchSku := d.Get("semantic_search_sku").(string)
-
-		// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
-		if pointer.From(model.Sku.Name) == services.SkuNameFree && semanticSearchSku != string(services.SearchSemanticSearchDisabled) {
-			return fmt.Errorf("'semantic_search_sku' can only be set to %q if the 'sku' field is set to %q, got %q", string(services.SearchSemanticSearchDisabled), string(services.SkuNameFree), semanticSearchSku)
+		semanticSearchSku := services.SearchSemanticSearchDisabled
+		if v := d.Get("semantic_search_sku").(string); v != "" {
+			semanticSearchSku = services.SearchSemanticSearch(v)
 		}
 
-		model.Properties.SemanticSearch = pointer.To(services.SearchSemanticSearch(semanticSearchSku))
+		// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
+		if pointer.From(model.Sku.Name) == services.SkuNameFree && semanticSearchSku != services.SearchSemanticSearchDisabled {
+			return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
+		}
+
+		model.Properties.SemanticSearch = pointer.To(semanticSearchSku)
 	}
 
 	if d.HasChange("tags") {
@@ -515,7 +523,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			hostingMode := services.HostingModeDefault
 			localAuthEnabled := true
 			authFailureMode := ""
-			semanticSearchSku := string(services.SearchSemanticSearchDisabled)
+			semanticSearchSku := ""
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(pointer.From(count))
@@ -555,7 +563,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				}
 			}
 
-			if props.SemanticSearch != nil {
+			if props.SemanticSearch != nil && pointer.From(props.SemanticSearch) != services.SearchSemanticSearchDisabled {
 				semanticSearchSku = string(pointer.From(props.SemanticSearch))
 			}
 
