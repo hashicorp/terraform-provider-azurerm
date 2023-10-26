@@ -209,13 +209,18 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 		d.Set("infrastructure_encryption_enabled", props.Encryption.RequireInfrastructureEncryption)
 
 		if props.Encryption.KeyVaultProperties != nil {
-			userAssignedIdentity, err := getUserManagedIdentity(props.Encryption.KeyVaultProperties)
-			if err != nil {
-				return err
-			}
-
-			if err := d.Set("user_assigned_identity_id", userAssignedIdentity); err != nil {
-				return fmt.Errorf("setting `user_assigned_identity_id`: %+v", err)
+			// we can only have a single user managed id for N number of keys, azure portal only allows setting a single one and then applies it to each key
+			for _, item := range *props.Encryption.KeyVaultProperties {
+				if item.Identity != nil {
+					userAssignedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*item.Identity.UserAssignedIdentity)
+					if err != nil {
+						return fmt.Errorf("parsing `user_assigned_identity_id`: %+v", err)
+					}
+					if err := d.Set("user_assigned_identity_id", userAssignedId.ID()); err != nil {
+						return fmt.Errorf("setting `user_assigned_identity_id`: %+v", err)
+					}
+					break
+				}
 			}
 		}
 	}
@@ -249,25 +254,6 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 	}
 
 	return &results, nil
-}
-
-// Get the user managed id for the custom keys
-//
-// we can only have a single user managed id for N number of keys, azure portal only allows setting a single one and then applies it to each key
-func getUserManagedIdentity(input *[]namespaces.KeyVaultProperties) (*string, error) {
-	for _, item := range *input {
-		if item.Identity != nil {
-			userAssignedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*item.Identity.UserAssignedIdentity)
-			if err != nil {
-				return nil, fmt.Errorf("parsing `user_assigned_identity_id`: %+v", err)
-			}
-			uaid := userAssignedId.ID()
-			return &uaid, nil
-		}
-	}
-
-	// system managed ID is being used
-	return nil, nil
 }
 
 func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]string, error) {
