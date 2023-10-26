@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_express_route_port` - support for `macsec_sci_enabled` [GH-23625]
 * `azurerm_postgresql_flexible_server` - `private_dns_zone_id` is no longer ForceNew and case is suppressed  [GH-23660]
 * `azurerm_synapse_workspace` - add support for `azuread_authentication_only` [GH-23659]
+* `azurerm_redis_enterprise_cluster` - support for new location `Japan East` [GH-23696]
 
 BUG FIXES:
 
