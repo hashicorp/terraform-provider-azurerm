@@ -28,7 +28,7 @@ func TestAccSearchService_basicSku(t *testing.T) {
 			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
 			),
 		},
 		data.ImportStep(),
@@ -45,7 +45,7 @@ func TestAccSearchService_freeSku(t *testing.T) {
 			Config: r.basic(data, "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
 			),
 		},
 		data.ImportStep(),
@@ -73,7 +73,7 @@ func TestAccSearchService_semanticSearchUpdateFreeSkuError(t *testing.T) {
 			Config: r.semanticSearchBasic(data, "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
 			),
 		},
 		data.ImportStep(),
@@ -90,42 +90,42 @@ func TestAccSearchService_semanticSearchUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.semanticSearchBasic(data, "Standard"),
+			Config: r.semanticSearchBasic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.semanticSearchUpdate(data, "Standard", "free"),
+			Config: r.semanticSearchUpdate(data, "standard", "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("free"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("free"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.semanticSearchUpdate(data, "Standard", "Standard"),
+			Config: r.semanticSearchUpdate(data, "standard", "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.semanticSearchUpdate(data, "Standard", "free"),
+			Config: r.semanticSearchUpdate(data, "standard", "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("free"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("free"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.semanticSearchBasic(data, "Standard"),
+			Config: r.semanticSearchBasic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("semantic_serach_sku").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("disabled"),
 			),
 		},
 		data.ImportStep(),
