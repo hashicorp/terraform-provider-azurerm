@@ -255,6 +255,8 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 				}
 
 				props.AssociatedRulestack = ruleStack
+				locks.ByID(ruleStackID.ID())
+				defer locks.UnlockByID(ruleStackID.ID())
 			}
 
 			if metadata.ResourceData.HasChange("network_profile") {
@@ -273,15 +275,6 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 
 			if metadata.ResourceData.HasChange("tags") {
 				firewall.Tags = tags.Expand(model.Tags)
-			}
-
-			if metadata.ResourceData.HasChange("rulestack_id") {
-				ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
-				if err != nil {
-					return fmt.Errorf("parsing rulestack_id %s: %+v", model.RuleStackId, err)
-				}
-				locks.ByID(ruleStackID.ID())
-				defer locks.UnlockByID(ruleStackID.ID())
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
