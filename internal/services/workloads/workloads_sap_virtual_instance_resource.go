@@ -1399,24 +1399,8 @@ func (r WorkloadsSAPVirtualInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.Create(ctx, id, *parameters); err != nil {
+			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{
-					"Accepted",
-					"Creating",
-					"Preparing System Configuration",
-				},
-				Target:       []string{string(sapvirtualinstances.SapVirtualInstanceProvisioningStateSucceeded)},
-				Refresh:      sapVirtualInstanceStateRefreshFunc(ctx, client, id),
-				Timeout:      60 * time.Minute,
-				PollInterval: 10 * time.Second,
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -1545,32 +1529,6 @@ func (r WorkloadsSAPVirtualInstanceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func sapVirtualInstanceStateRefreshFunc(ctx context.Context, client *sapvirtualinstances.SAPVirtualInstancesClient, id sapvirtualinstances.SapVirtualInstanceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
-		}
-
-		if model := res.Model; model != nil {
-			if provisioningState := model.Properties.ProvisioningState; provisioningState != nil {
-				if *provisioningState == sapvirtualinstances.SapVirtualInstanceProvisioningStateFailed {
-					errorMessage := "the provisioning state is in a failed state"
-
-					if model.Properties.Errors != nil && model.Properties.Errors.Properties != nil && model.Properties.Errors.Properties.Message != nil {
-						errorMessage = fmt.Sprintf("%s due to %s", errorMessage, *model.Properties.Errors.Properties.Message)
-					}
-
-					return res, string(*provisioningState), fmt.Errorf(errorMessage)
-				}
-
-				return res, string(*provisioningState), nil
-			}
-		}
-		return nil, "", fmt.Errorf("unable to read state")
-	}
-}
-
 func expandDiscoveryConfiguration(input []DiscoveryConfiguration) *sapvirtualinstances.DiscoveryConfiguration {
 	configuration := input[0]
 
@@ -1639,9 +1597,9 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 	return result
 }
 
-func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNames) (*sapvirtualinstances.SingleServerFullResourceNames, error) {
+func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNames) *sapvirtualinstances.SingleServerFullResourceNames {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	virtualMachineFullResourceNames := input[0]
@@ -1665,7 +1623,7 @@ func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNam
 		result.VirtualMachine.VirtualMachineName = utils.String(v)
 	}
 
-	return result, nil
+	return result
 }
 
 func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkInterfaceResourceNames {
@@ -2029,14 +1987,9 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvirtualinstances.SingleServerConfiguration, error) {
 	singleServerConfiguration := input[0]
 
-	virtualMachineFullResourceNames, err := expandVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineFullResourceNames)
-	if err != nil {
-		return nil, err
-	}
-
 	result := &sapvirtualinstances.SingleServerConfiguration{
 		AppResourceGroup:    singleServerConfiguration.AppResourceGroupName,
-		CustomResourceNames: virtualMachineFullResourceNames,
+		CustomResourceNames: expandVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineFullResourceNames),
 		DbDiskConfiguration: expandDiskVolumeConfigurations(singleServerConfiguration.DiskVolumeConfigurations),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled),
