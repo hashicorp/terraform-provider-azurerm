@@ -354,6 +354,10 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
+
+		if (*vnet.State == clusters.VnetStateDisabled) && (*clusterProperties.PublicNetworkAccess == clusters.PublicNetworkAccessEnabled) {
+			return fmt.Errorf("public_network_access must be disabled when virtual_network_configuration is disabled")
+		}
 	}
 
 	if v, ok := d.GetOk("allowed_fqdns"); ok {
@@ -674,11 +678,16 @@ func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []inter
 		return []interface{}{}
 	}
 
+	enabled := true
+	if vnet.State != nil {
+		enabled = *vnet.State == clusters.VnetStateEnabled
+	}
+
 	output := map[string]interface{}{
 		"subnet_id":                    vnet.SubnetId,
 		"engine_public_ip_id":          vnet.EnginePublicIPId,
 		"data_management_public_ip_id": vnet.DataManagementPublicIPId,
-		"enabled":                      vnet.State == nil || *vnet.State == clusters.VnetStateEnabled,
+		"enabled":                      enabled,
 	}
 
 	return []interface{}{output}
