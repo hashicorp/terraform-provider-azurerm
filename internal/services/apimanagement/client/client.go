@@ -34,7 +34,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/group"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/groupuser"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/identityprovider"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/logger"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/namedvalue"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientemail"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientuser"
@@ -52,6 +51,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tag"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/user"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

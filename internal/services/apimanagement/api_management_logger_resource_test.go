@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/logger"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,6 +58,31 @@ func TestAccApiManagementLogger_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccApiManagementLogger_managedIdentityEventHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedIdentityEventHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
+				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.endpoint_address").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.client_id").HasValue("SystemAssigned"),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"eventhub.0.endpoint_address", "eventhub.0.client_id"},
+		},
 	})
 }
 
@@ -245,6 +270,66 @@ resource "azurerm_api_management_logger" "test" {
     connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
   }
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (ApiManagementLoggerResource) managedIdentityEventHub(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_api_management_logger" "test" {
+  name                = "acctestapimnglogger-%d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  eventhub {
+    name              = azurerm_eventhub.test.name
+    endpoint_address   = "${azurerm_eventhub_namespace.test.name}.servicebus.windows.net"
+    client_id = "SystemAssigned" 
+  }
+}
+
+resource "azurerm_role_assignment" "test" {
+	scope                = azurerm_eventhub.test.id
+	role_definition_name = "Azure Event Hubs Data Sender"
+	principal_id         = azurerm_api_management.test.identity[0].principal_id
+  }
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 

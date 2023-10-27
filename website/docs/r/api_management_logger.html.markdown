@@ -79,7 +79,11 @@ An `eventhub` block supports the following:
 
 * `name` - (Required) The name of an EventHub.
 
-* `connection_string` - (Required) The connection string of an EventHub Namespace.
+* `connection_string` - (Optional) The connection string of an EventHub Namespace. (Required if not using `client_id` and `endpoint_address`)
+
+* `client_id` - (Optional) The client_id of the managed identity or SystemAssigned identity with the "Azure Event Hubs Data Sender" role to the target EventHub Namespace. (Required if using `endpoint_address`)
+
+* `endpoint_address` - (Optional) The endpoint address of an EventHub Namespace. (Required if using `client_id`)
 
 ## Attributes Reference
 
