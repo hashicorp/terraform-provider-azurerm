@@ -1,5 +1,9 @@
 ## 3.79.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `arc_kuberenetes_cluster_extension_resource` - `version` and `release_train` can now be set simultaneously [GH-23692]
+
 BUG FIXES:
 
 * `azurerm_backup_policy_vm` - fix payload by using current datetime [GH-23586]
