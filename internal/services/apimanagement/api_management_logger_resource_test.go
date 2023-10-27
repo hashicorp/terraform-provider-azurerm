@@ -318,17 +318,18 @@ resource "azurerm_api_management_logger" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   eventhub {
-    name              = azurerm_eventhub.test.name
-    endpoint_address   = "${azurerm_eventhub_namespace.test.name}.servicebus.windows.net"
-    client_id = "SystemAssigned" 
+    name             = azurerm_eventhub.test.name
+    endpoint_address = "${azurerm_eventhub_namespace.test.name}.servicebus.windows.net"
+    client_id        = "SystemAssigned"
   }
 }
 
 resource "azurerm_role_assignment" "test" {
-	scope                = azurerm_eventhub.test.id
-	role_definition_name = "Azure Event Hubs Data Sender"
-	principal_id         = azurerm_api_management.test.identity[0].principal_id
-  }
+  scope                = azurerm_eventhub.test.id
+  role_definition_name = "Azure Event Hubs Data Sender"
+  principal_id         = azurerm_api_management.test.identity[0].principal_id
+}
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
