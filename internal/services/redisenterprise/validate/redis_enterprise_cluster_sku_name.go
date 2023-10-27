@@ -24,7 +24,7 @@ func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, 
 	}
 
 	skuParts := strings.Split(value, "-")
-	validSkus := getValidRedisEnterpriseClusterSkus()
+	validSkus := redisenterprise.PossibleValuesForSkuName()
 	validValues := "2, 4, 6, ..."
 	// Validate the SKU Name section
 	for _, str := range validSkus {
@@ -67,19 +67,4 @@ func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, 
 	}
 
 	return warnings, errors
-}
-
-func getValidRedisEnterpriseClusterSkus() []string {
-	return []string{
-		string(redisenterprise.SkuNameEnterpriseEFive),
-		string(redisenterprise.SkuNameEnterpriseEOneZero),
-		string(redisenterprise.SkuNameEnterpriseETwoZero),
-		string(redisenterprise.SkuNameEnterpriseEFiveZero),
-		string(redisenterprise.SkuNameEnterpriseEOneHundred),
-		string(redisenterprise.SkuNameEnterpriseETwoHundred),
-		string(redisenterprise.SkuNameEnterpriseFlashFThreeHundred),
-		string(redisenterprise.SkuNameEnterpriseEFourHundred),
-		string(redisenterprise.SkuNameEnterpriseFlashFSevenHundred),
-		string(redisenterprise.SkuNameEnterpriseFlashFOneFiveHundred),
-	}
 }
