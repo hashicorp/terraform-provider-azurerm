@@ -134,7 +134,8 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
-	if userAssignedIdentity != "" {
+	if userAssignedIdentity != "" && keyVaultProps != nil {
+
 		// this provides a more helpful error message than the API response
 		if namespace.Identity == nil {
 			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub - currently no user assigned identities are assigned to the parent event hub", userAssignedIdentity)
@@ -208,10 +209,10 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 		d.Set("key_vault_key_ids", keyVaultKeyIds)
 		d.Set("infrastructure_encryption_enabled", props.Encryption.RequireInfrastructureEncryption)
 
-		if props.Encryption.KeyVaultProperties != nil {
+		if kvprops := props.Encryption.KeyVaultProperties; kvprops != nil {
 			// we can only have a single user managed id for N number of keys, azure portal only allows setting a single one and then applies it to each key
-			for _, item := range *props.Encryption.KeyVaultProperties {
-				if item.Identity != nil {
+			for _, item := range *kvprops {
+				if item.Identity != nil && item.Identity.UserAssignedIdentity != nil {
 					userAssignedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*item.Identity.UserAssignedIdentity)
 					if err != nil {
 						return fmt.Errorf("parsing `user_assigned_identity_id`: %+v", err)
@@ -219,6 +220,7 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 					if err := d.Set("user_assigned_identity_id", userAssignedId.ID()); err != nil {
 						return fmt.Errorf("setting `user_assigned_identity_id`: %+v", err)
 					}
+
 					break
 				}
 			}
