@@ -176,13 +176,9 @@ resource "azurerm_key_vault_key" "example" {
 }
 
 resource "azurerm_eventhub_namespace_customer_managed_key" "example" {
-  eventhub_namespace_id = azurerm_eventhub_namespace.example.id
-  key_vault_key_ids     = [azurerm_key_vault_key.example.id]
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.example.id]
-  }
+  eventhub_namespace_id     = azurerm_eventhub_namespace.example.id
+  key_vault_key_ids         = [azurerm_key_vault_key.example.id]
+  user_assigned_identity_id = azurerm_user_assigned_identity.example.id
 }
 ```
 
