@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: updating search service from `2022-09-01` to `2023-11-01` [GH-23698] 
 * Data Source: `azurerm_monitor_workspace` - export `query_endpoint` [GH-23629]
 * `azurerm_express_route_port` - support for `macsec_sci_enabled` [GH-23625]
+* `azurerm_eventhub_namespace_customer_managed_key` - support for the `user_assigned_identity_id` property [GH-23635]
 * `azurerm_postgresql_flexible_server` - `private_dns_zone_id` is no longer ForceNew and case is suppressed  [GH-23660]
 * `azurerm_synapse_workspace` - add support for `azuread_authentication_only` [GH-23659]
 * `azurerm_redis_enterprise_cluster` - support for new location `Japan East` [GH-23696]
