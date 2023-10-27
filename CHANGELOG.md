@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `arc_kuberenetes_cluster_extension_resource` - `version` and `release_train` can now be set simultaneously [GH-23692]
+* `azurerm_storage_management_policy` - Support for properties rule.*.actions.*.base_blob.0.tier_to_cold_after_days_since_{modification|last_access_time|creation}_greater_than and rule.*.actions.*.{snapshot|version}.0.tier_to_cold_after_days_since_creation_greater_than [GH-23574]
 
 BUG FIXES:
 
