@@ -1,3 +1,9 @@
+## 3.79.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_backup_policy_vm` - fix payload by using current datetime [GH-23586]
+
 ## 3.78.0 (October 26, 2023)
 
 FEATURES:
@@ -21,7 +27,6 @@ BUG FIXES:
 
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - added lock for ruleStackID ([#23601](https://github.com/hashicorp/terraform-provider-azurerm/issues/23601))
 * `azurerm_cognitive_deployment` - remove forceNew tag from `rai_policy_name` ([#23697](https://github.com/hashicorp/terraform-provider-azurerm/issues/23697))
-* `azurerm_backup_policy_vm` - fix payload by using current datetime ([#23586](https://github.com/hashicorp/terraform-provider-azurerm/issues/23586))
 
 ## 3.77.0 (October 19, 2023)
 
