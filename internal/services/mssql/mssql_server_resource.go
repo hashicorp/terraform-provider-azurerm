@@ -16,8 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                  // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                          // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -215,7 +217,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	version := d.Get("version").(string)
 
 	t := d.Get("tags").(map[string]interface{})
-	metadata := tags.ExpandTo(t)
+	metadata := tags.PointerTo(t)
 
 	serverId := servers.ServerId{
 		SubscriptionId:    subscriptionId,
@@ -315,7 +317,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.Name)
 		}
 
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id.String(), err)
 	}
 
 	d.SetId(id.ID())
@@ -344,7 +346,17 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	serverId := servers.ServerId{
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ServerName:        id.Name,
+	}
+
+	options := servers.GetOperationOptions{
+		Expand: nil,
+	}
+
+	existing, err := client.Get(ctx, serverId, options)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -353,122 +365,127 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	version := d.Get("version").(string)
 
 	t := d.Get("tags").(map[string]interface{})
-	metadata := tags.Expand(t)
+	metadata := tags.PointerTo(t)
 
 	props := servers.Server{
-		Location: utils.String(location),
+		Location: location,
 		Tags:     metadata,
-		ServerProperties: &servers.ServerProperties{
-			Version:                       utils.String(version),
-			PublicNetworkAccess:           servers.ServerNetworkAccessFlagEnabled,
-			RestrictOutboundNetworkAccess: servers.ServerNetworkAccessFlagDisabled,
+		Properties: &servers.ServerProperties{
+			Version:                       pointer.To(version),
+			PublicNetworkAccess:           pointer.To(servers.ServerPublicNetworkAccessFlagEnabled),
+			RestrictOutboundNetworkAccess: pointer.To(servers.ServerNetworkAccessFlagDisabled),
 		},
 	}
-
-	if v, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := expandSqlServerIdentity(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		props.Identity = expandedIdentity
-	} else {
-		props.Identity = existing.Identity
-	}
-
-	if d.HasChange("key_vault_key_id") {
-		keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
-
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
-		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
-		}
-
-		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-			props.KeyID = pointer.To(keyId.ID())
+	if model := existing.Model; model != nil {
+		if v, ok := d.GetOk("identity"); ok {
+			expandedIdentity, err := expandSqlServerIdentity(v.([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			props.Identity = expandedIdentity
 		} else {
-			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
-		}
-	}
-
-	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
-		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
-	}
-
-	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
-	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
-		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
-	}
-
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		props.Properties.PublicNetworkAccess = servers.ServerNetworkAccessFlagDisabled
-	}
-
-	if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
-		props.Properties.RestrictOutboundNetworkAccess = servers.ServerNetworkAccessFlagEnabled
-	}
-
-	if d.HasChange("administrator_login_password") {
-		adminPassword := d.Get("administrator_login_password").(string)
-		props.Properties.AdministratorLoginPassword = utils.String(adminPassword)
-	}
-
-	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
-		props.Properties.MinimalTLSVersion = utils.String(v.(string))
-	}
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
-	if err != nil {
-		return fmt.Errorf("issuing update request for %s: %+v", id.String(), err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasConflict(future.Response()) {
-			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.Name)
+			props.Identity = model.Identity
 		}
 
-		return fmt.Errorf("waiting for update of %s: %+v", id.String(), err)
+		if d.HasChange("key_vault_key_id") {
+			keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
+
+			keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+			if err != nil {
+				return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			}
+
+			if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
+				props.Properties.KeyId = pointer.To(keyId.ID())
+			} else {
+				return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
+			}
+		}
+
+		if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
+			props.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
+		}
+
+		// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
+		if props.Properties.KeyId != nil && props.Properties.PrimaryUserAssignedIdentityId == nil {
+			return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
+		}
+
+		if v := d.Get("public_network_access_enabled"); !v.(bool) {
+			props.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
+		}
+
+		if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
+			props.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
+		}
+
+		if d.HasChange("administrator_login_password") {
+			adminPassword := d.Get("administrator_login_password").(string)
+			props.Properties.AdministratorLoginPassword = utils.String(adminPassword)
+		}
+
+		if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
+			props.Properties.MinimalTlsVersion = utils.String(v.(string))
+		}
+
+		future, err := client.CreateOrUpdate(ctx, serverId, props)
+		if err != nil {
+			return fmt.Errorf("issuing update request for %s: %+v", id.String(), err)
+		}
+
+		if err = future.Poller.PollUntilDone(ctx); err != nil {
+			if response.WasConflict(future.HttpResponse) {
+				return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.Name)
+			}
+
+			return fmt.Errorf("waiting for update of %s: %+v", id.String(), err)
+		}
 	}
 
 	d.SetId(id.ID())
 
 	if d.HasChange("azuread_administrator") {
-		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, id.ResourceGroup, id.Name)
+		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, serverazureadonlyauthentications.ServerId(serverId))
+
 		if err != nil {
-			if aadOnlyDeleteFuture.Response() == nil || aadOnlyDeleteFuture.Response().StatusCode != http.StatusBadRequest {
-				return fmt.Errorf("deleting AD Only Authentications %s: %+v", id.String(), err)
+			if aadOnlyDeleteFuture.HttpResponse == nil || aadOnlyDeleteFuture.HttpResponse.StatusCode != http.StatusBadRequest {
+				return fmt.Errorf("deleting Azure Active Directory Only Authentications %s: %+v", id.String(), err)
 			}
-			log.Printf("[INFO] AD Only Authentication is not removed as AD Admin is not set for %s: %+v", id.String(), err)
-		} else if err = aadOnlyDeleteFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of AD Only Authentications %s: %+v", id.String(), err)
+
+			log.Printf("[INFO] Azure Active Directory Only Authentication was not removed since Azure Active Directory Administrators has not set for %s: %+v", id.String(), err)
+			return fmt.Errorf("deleting Azure Active Directory Only Authentication since `azuread_administrator` has not set for %s: %+v", id.String(), err)
+		}
+
+		if err = aadOnlyDeleteFuture.Poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for the deletion of Azure Active Directory Only Authentications %s: %+v", id.String(), err)
 		}
 
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
-			adminFuture, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *adminParams)
+			adminFuture, err := adminClient.CreateOrUpdate(ctx, serverazureadadministrators.ServerId(serverId), pointer.From(adminParams))
 			if err != nil {
-				return fmt.Errorf("creating AAD admin %s: %+v", id.String(), err)
+				return fmt.Errorf("creating Azure Active Directory Administrators %s: %+v", id.String(), err)
 			}
 
-			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
+			if err = adminFuture.Poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for creation of Azure Active Directory Administrators %s: %+v", id.String(), err)
 			}
 		} else {
-			adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
+			adminDelFuture, err := adminClient.Delete(ctx, serverazureadadministrators.ServerId(serverId))
 			if err != nil {
-				return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
+				return fmt.Errorf("deleting Azure Active Directory Administrators  %s: %+v", id.String(), err)
 			}
 
-			if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
+			if err = adminDelFuture.Poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of Azure Active Directory Administrators %s: %+v", id.String(), err)
 			}
 		}
 	}
 
 	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
-		aadOnlyAuthentictionsParams := servers.ServerAzureADOnlyAuthentication{
-			AzureADOnlyAuthProperties: &servers.AzureADOnlyAuthProperties{
-				AzureADOnlyAuthentication: utils.Bool(aadOnlyAuthentictionsEnabled),
-			},
+		aadOnlyAuthentictionsParams := servers.ServerExternalAdministrator{
+			AzureADOnlyAuthentication: pointer.To(aadOnlyAuthentictionsEnabled),
 		}
+
 		aadOnlyEnabledFuture, err := aadOnlyAuthenticationsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
 		if err != nil {
 			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
@@ -479,12 +496,13 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	connection := servers.ServerConnectionPolicy{
-		ServerConnectionPolicyProperties: &servers.ServerConnectionPolicyProperties{
-			ConnectionType: servers.ServerConnectionType(d.Get("connection_policy").(string)),
+	connection := serverconnectionpolicies.ServerConnectionPolicy{
+		Properties: &serverconnectionpolicies.ServerConnectionPolicyProperties{
+			ConnectionType: serverconnectionpolicies.ServerConnectionType(d.Get("connection_policy").(string)),
 		},
 	}
-	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
+
+	if _, err = connectionClient.CreateOrUpdate(ctx, serverconnectionpolicies.ServerId(serverId), connection); err != nil {
 		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
 	}
 
@@ -647,35 +665,34 @@ func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
 	if len(input) == 0 || input[0] == nil {
 		return false
 	}
+
 	admin := input[0].(map[string]interface{})
+
 	if v, ok := admin["azuread_authentication_only"]; ok && v != nil {
 		return v.(bool)
 	}
+
 	return false
 }
 
-func expandMsSqlServerAdministrator(input []interface{}) *servers.ServerAzureADAdministrator {
+func expandMsSqlServerAdministrator(input []interface{}) *serverazureadadministrators.ServerAzureADAdministrator {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	admin := input[0].(map[string]interface{})
-	sid, _ := uuid.FromString(admin["object_id"].(string))
 
-	adminParams := servers.ServerAzureADAdministrator{
-		AdministratorProperties: &servers.AdministratorProperties{
-			AdministratorType: utils.String("ActiveDirectory"),
-			Login:             utils.String(admin["login_username"].(string)),
-			Sid:               &sid,
-		},
+	adminParams := serverazureadadministrators.ServerAzureADAdministrator{
+		AdministratorType: pointer.To(servers.AdministratorTypeActiveDirectory),
+		Login:             pointer.To(admin["login_username"].(string)),
+		Sid:               pointer.To(admin["object_id"].(string)),
 	}
 
 	if v, ok := admin["tenant_id"]; ok && v != "" {
-		tid, _ := uuid.FromString(v.(string))
-		adminParams.TenantID = &tid
+		adminParams.TenantId = pointer.To(v.(string))
 	}
 
-	return &adminParams
+	return pointer.To(adminParams)
 }
 
 func expandMsSqlServerAdministrators(input []interface{}) *servers.ServerExternalAdministrator {

@@ -4,9 +4,13 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                               // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                  // nolint: staticcheck
+	"fmt"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                                       // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                          // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
@@ -30,8 +34,8 @@ type Client struct {
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *sql.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
-	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
-	ServerAzureADOnlyAuthenticationsClient             *sql.ServerAzureADOnlyAuthenticationsClient
+	ServerAzureADAdministratorsClient                  *serverazureadadministrators.ServerAzureADAdministratorsClient
+	ServerAzureADOnlyAuthenticationsClient             *serverazureadonlyauthentications.ServerAzureADOnlyAuthenticationsClient
 	ServerConnectionPoliciesClient                     *serverconnectionpolicies.ServerConnectionPoliciesClient
 	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
@@ -47,7 +51,7 @@ type Client struct {
 	VirtualNetworkRulesClient                          *sql.VirtualNetworkRulesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	backupShortTermRetentionPoliciesClient := sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -96,14 +100,23 @@ func NewClient(o *common.ClientOptions) *Client {
 	restorableDroppedDatabasesClient := sql.NewRestorableDroppedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDroppedDatabasesClient.Client, o.ResourceManagerAuthorizer)
 
-	serverAzureADAdministratorsClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&serverAzureADAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+	serverAzureADAdministratorsClient, err := serverazureadadministrators.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	if err != nil {
+		return nil, fmt.Errorf("building Azure Active Directory Administrators Client: %+v", err)
+	}
+	o.Configure(serverAzureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
-	serverAzureADOnlyAuthenticationsClient := sql.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&serverAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
+	serverAzureADOnlyAuthenticationsClient := serverazureadonlyauthentications.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	if err != nil {
+		return nil, fmt.Errorf("building Azure Active Directory Only Authentication Client: %+v", err)
+	}
+	o.Configure(serverAzureADOnlyAuthenticationsClient.Client, o.Authorizers.ResourceManager)
 
-	serverConnectionPoliciesClient, _ := serverconnectionpolicies.NewServerConnectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(serverConnectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	serverConnectionPoliciesClient, err := serverconnectionpolicies.NewServerConnectionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Server Connection Policies Client: %+v", err)
+	}
+	o.Configure(serverConnectionPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	serverDNSAliasClient := sql.NewServerDNSAliasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverDNSAliasClient.Client, o.ResourceManagerAuthorizer)
@@ -123,8 +136,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverVulnerabilityAssessmentsClient := sql.NewServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	serversClient, _ := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(serversClient.Client, o.ResourceManagerAuthorizer)
+	serversClient, err := servers.NewServersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Server Client: %+v", err)
+	}
+	o.Configure(serversClient.Client, o.Authorizers.ResourceManager)
 
 	transparentDataEncryptionsClient := sql.NewTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&transparentDataEncryptionsClient.Client, o.ResourceManagerAuthorizer)
@@ -173,5 +189,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		VirtualMachinesClient:                           &virtualMachinesClient,
 		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
 		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
-	}
+	}, nil
 }

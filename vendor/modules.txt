@@ -896,6 +896,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/frontendsinterface
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/trafficcontrollerinterface
 github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners

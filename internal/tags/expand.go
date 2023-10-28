@@ -19,7 +19,7 @@ func Expand(tagsMap map[string]interface{}) map[string]*string {
 	return output
 }
 
-func ExpandTo(tagsMap map[string]interface{}) *map[string]string {
+func PointerTo(tagsMap map[string]interface{}) *map[string]string {
 	output := make(map[string]string, len(tagsMap))
 
 	for i, v := range tagsMap {
