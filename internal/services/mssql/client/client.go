@@ -4,7 +4,9 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                               // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                  // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
@@ -30,14 +32,14 @@ type Client struct {
 	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *sql.ServerAzureADOnlyAuthenticationsClient
-	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
+	ServerConnectionPoliciesClient                     *serverconnectionpolicies.ServerConnectionPoliciesClient
 	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerDevOpsAuditSettingsClient                    *sql.ServerDevOpsAuditSettingsClient
 	ServerKeysClient                                   *sql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
-	ServersClient                                      *sql.ServersClient
+	ServersClient                                      *servers.ServersClient
 	TransparentDataEncryptionsClient                   *sql.TransparentDataEncryptionsClient
 	VirtualMachinesAvailabilityGroupListenersClient    *availabilitygrouplisteners.AvailabilityGroupListenersClient
 	VirtualMachinesClient                              *sqlvirtualmachines.SqlVirtualMachinesClient
@@ -100,8 +102,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverAzureADOnlyAuthenticationsClient := sql.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
 
-	serverConnectionPoliciesClient := sql.NewServerConnectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&serverConnectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	serverConnectionPoliciesClient, _ := serverconnectionpolicies.NewServerConnectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(serverConnectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	serverDNSAliasClient := sql.NewServerDNSAliasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverDNSAliasClient.Client, o.ResourceManagerAuthorizer)
@@ -121,8 +123,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverVulnerabilityAssessmentsClient := sql.NewServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	serversClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
+	serversClient, _ := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(serversClient.Client, o.ResourceManagerAuthorizer)
 
 	transparentDataEncryptionsClient := sql.NewTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&transparentDataEncryptionsClient.Client, o.ResourceManagerAuthorizer)
@@ -158,14 +160,14 @@ func NewClient(o *common.ClientOptions) *Client {
 		RestorableDroppedDatabasesClient:                &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:               &serverAzureADAdministratorsClient,
 		ServerAzureADOnlyAuthenticationsClient:          &serverAzureADOnlyAuthenticationsClient,
-		ServerConnectionPoliciesClient:                  &serverConnectionPoliciesClient,
+		ServerConnectionPoliciesClient:                  serverConnectionPoliciesClient,
 		ServerDNSAliasClient:                            &serverDNSAliasClient,
 		ServerDevOpsAuditSettingsClient:                 &serverDevOpsAuditSettingsClient,
 		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
 		ServerKeysClient:                                &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:               &serverSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient:            &serverVulnerabilityAssessmentsClient,
-		ServersClient:                                   &serversClient,
+		ServersClient:                                   serversClient,
 		TransparentDataEncryptionsClient:                &transparentDataEncryptionsClient,
 		VirtualMachinesAvailabilityGroupListenersClient: &virtualMachinesAvailabilityGroupListenersClient,
 		VirtualMachinesClient:                           &virtualMachinesClient,
