@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                                       // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
@@ -33,7 +34,7 @@ type Client struct {
 	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *sql.ReplicationLinksClient
-	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
+	RestorableDroppedDatabasesClient                   *restorabledroppeddatabases.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *serverazureadadministrators.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *serverazureadonlyauthentications.ServerAzureADOnlyAuthenticationsClient
 	ServerConnectionPoliciesClient                     *serverconnectionpolicies.ServerConnectionPoliciesClient
@@ -97,16 +98,19 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	replicationLinksClient := sql.NewReplicationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&replicationLinksClient.Client, o.ResourceManagerAuthorizer)
 
-	restorableDroppedDatabasesClient := sql.NewRestorableDroppedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&restorableDroppedDatabasesClient.Client, o.ResourceManagerAuthorizer)
+	restorableDroppedDatabasesClient, err := restorabledroppeddatabases.NewRestorableDroppedDatabasesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Restorable Dropped Databases Client: %+v", err)
+	}
+	o.Configure(restorableDroppedDatabasesClient.Client, o.Authorizers.ResourceManager)
 
-	serverAzureADAdministratorsClient, err := serverazureadadministrators.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serverAzureADAdministratorsClient, err := serverazureadadministrators.NewServerAzureADAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Azure Active Directory Administrators Client: %+v", err)
 	}
 	o.Configure(serverAzureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
-	serverAzureADOnlyAuthenticationsClient := serverazureadonlyauthentications.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serverAzureADOnlyAuthenticationsClient := serverazureadonlyauthentications.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Azure Active Directory Only Authentication Client: %+v", err)
 	}

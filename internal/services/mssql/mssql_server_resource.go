@@ -482,17 +482,19 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
-		aadOnlyAuthentictionsParams := servers.ServerExternalAdministrator{
-			AzureADOnlyAuthentication: pointer.To(aadOnlyAuthentictionsEnabled),
+		aadOnlyAuthentictionsParams := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+			Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
+				AzureADOnlyAuthentication: aadOnlyAuthentictionsEnabled,
+			},
 		}
 
-		aadOnlyEnabledFuture, err := aadOnlyAuthenticationsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthentictionsParams)
+		aadOnlyEnabledFuture, err := aadOnlyAuthenticationsClient.CreateOrUpdate(ctx, serverazureadonlyauthentications.ServerId(serverId), aadOnlyAuthentictionsParams)
 		if err != nil {
-			return fmt.Errorf("setting AAD only authentication for %s: %+v", id.String(), err)
+			return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id.String(), err)
 		}
 
-		if err = aadOnlyEnabledFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for setting of AAD only authentication for %s: %+v", id.String(), err)
+		if err = aadOnlyEnabledFuture.Poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for update of Azure Active Directory Only Authentication for %s: %+v", id.String(), err)
 		}
 	}
 
@@ -503,7 +505,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, err = connectionClient.CreateOrUpdate(ctx, serverconnectionpolicies.ServerId(serverId), connection); err != nil {
-		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
+		return fmt.Errorf("updating request for Connection Policy %s: %+v", id.String(), err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -512,6 +514,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -521,15 +524,25 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	serverId := servers.ServerId{
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ServerName:        id.Name,
+	}
+
+	options := servers.GetOperationOptions{
+		Expand: nil,
+	}
+
+	resp, err := client.Get(ctx, serverId, options)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %s - removing from state", id.String())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] Error retrieving SQL Server %s - removing from state", id.String())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading SQL Server %s: %v", id.Name, err)
+		return fmt.Errorf("retrieving SQL Server %s: %v", id.Name, err)
 	}
 
 	d.Set("name", id.Name)
