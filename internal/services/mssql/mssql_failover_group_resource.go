@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -186,7 +187,13 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name, ""); err != nil {
+			serversServerId := servers.ServerId{
+				SubscriptionId:    serverId.SubscriptionId,
+				ResourceGroupName: serverId.ResourceGroup,
+				ServerName:        serverId.Name,
+			}
+
+			if _, err = serversClient.Get(ctx, serversServerId, servers.GetOperationOptions{}); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", serverId, err)
 			}
 

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint: staticcheck
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -145,16 +146,26 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return tf.ImportAsExistsError("azurerm_mssql_database", id.ID())
 	}
 
-	server, err := serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name, "")
+	serverServerId := servers.ServerId{
+		SubscriptionId:    serverId.SubscriptionId,
+		ResourceGroupName: serverId.ResourceGroup,
+		ServerName:        serverId.Name,
+	}
+
+	server, err := serversClient.Get(ctx, serverServerId, servers.GetOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %q", serverId, err)
 	}
 
-	if server.Location == nil || *server.Location == "" {
-		return fmt.Errorf("reading %s: Location was nil/empty", serverId)
+	if server.Model == nil {
+		return fmt.Errorf("server model was nil")
 	}
-	location := *server.Location
 
+	if server.Model.Location == "" {
+		return fmt.Errorf("reading %s: Location was empty", serverId)
+	}
+
+	location := server.Model.Location
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
@@ -652,7 +663,13 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+q", id, err)
 	}
 
-	_, err = serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name, "")
+	serverServerId := servers.ServerId{
+		SubscriptionId:    serverId.SubscriptionId,
+		ResourceGroupName: serverId.ResourceGroup,
+		ServerName:        serverId.Name,
+	}
+
+	_, err = serversClient.Get(ctx, serverServerId, servers.GetOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %q", serverId, err)
 	}

@@ -7,14 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                    // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMsSqlServer() *pluginsdk.Resource {
@@ -74,40 +77,56 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	serverId := servers.ServerId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ServerName:        id.Name,
+	}
+
+	resp, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
 
-	d.SetId(id.ID())
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		t := make(map[string]interface{}, 0)
+		if model.Tags != nil {
+			t = tags.ExpandFrom(model.Tags)
+		}
 
-	if props := resp.ServerProperties; props != nil {
-		d.Set("version", props.Version)
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		d.SetId(id.ID())
+		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
+
+		if props := model.Properties; props != nil {
+			d.Set("version", props.Version)
+			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		}
+
+		identity, err := flattenSqlServerIdentity(model.Identity)
+		if err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, restorabledroppeddatabases.ServerId(serverId))
+		if err != nil {
+			return fmt.Errorf("listing %s Restorable Dropped Databases: %v", id, err)
+		}
+
+		if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage)); err != nil {
+			return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
+		}
+
+		return tags.FlattenAndSet(d, tags.Expand(t))
 	}
 
-	identity, err := flattenSqlServerIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("listing %s Restorable Dropped Databases: %v", id, err)
-	}
-	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage.Response())); err != nil {
-		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return fmt.Errorf("model was `nil`")
 }

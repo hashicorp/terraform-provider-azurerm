@@ -594,7 +594,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("connection_policy", string(model.Properties.ConnectionType))
 	}
 
-	restorableListPage, err := restorableDroppedDatabasesClient.ListByServer(ctx, restorabledroppeddatabases.ServerId(serverId))
+	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, restorabledroppeddatabases.ServerId(serverId))
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", id.Name, err)
 	}
@@ -776,20 +776,20 @@ func flatternMsSqlServerAdministrators(admin servers.ServerExternalAdministrator
 	}
 }
 
-func flattenSqlServerRestorableDatabases(resp restorabledroppeddatabases.ListByServerOperationResponse) []string {
-	if resp.Model == nil {
+func flattenSqlServerRestorableDatabases(resp restorabledroppeddatabases.ListByServerCompleteResult) []string {
+	if len(resp.Items) == 0 {
 		return []string{}
 	}
 
 	res := make([]string, 0)
-	for _, r := range *resp.Model {
+	for _, r := range resp.Items {
 		var id string
 		if r.Id != nil {
 			id = *r.Id
+			res = append(res, id)
 		}
-
-		res = append(res, id)
 	}
+
 	return res
 }
 

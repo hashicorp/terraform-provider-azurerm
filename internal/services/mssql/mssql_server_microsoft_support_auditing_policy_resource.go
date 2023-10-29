@@ -10,6 +10,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -178,12 +180,18 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.Resource
 		return fmt.Errorf("reading MsSql Server %s Microsoft Support Auditing Policy (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 
-	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.ServerName, "")
-	if err != nil || serverResp.ID == nil || *serverResp.ID == "" {
+	serverId := servers.ServerId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ServerName:        id.ServerName,
+	}
+
+	serverResp, err := serverClient.Get(ctx, serverId, servers.GetOperationOptions{})
+	if err != nil || serverResp.Model == nil || serverResp.Model.Id == nil || pointer.From(serverResp.Model.Id) == "" {
 		return fmt.Errorf("reading MsSql Server %q ID is empty or nil(Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 
-	d.Set("server_id", serverResp.ID)
+	d.Set("server_id", serverResp.Model.Id)
 
 	if props := resp.ServerDevOpsAuditSettingsProperties; props != nil {
 		d.Set("blob_storage_endpoint", props.StorageEndpoint)

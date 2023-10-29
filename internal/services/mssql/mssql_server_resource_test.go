@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint:staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -268,15 +270,25 @@ func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	serverId := servers.ServerId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ServerName:        id.Name,
+	}
+
+	resp, err := client.MSSQL.ServersClient.Get(ctx, serverId, servers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 		}
 		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("server model was nil")
+	}
+
+	return utils.Bool(resp.Model.Id != nil), nil
 }
 
 func (MsSqlServerResource) basic(data acceptance.TestData) string {
