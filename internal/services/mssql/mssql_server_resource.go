@@ -10,12 +10,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
@@ -225,11 +225,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		ServerName:        id.Name,
 	}
 
-	options := servers.GetOperationOptions{
-		Expand: nil,
-	}
-
-	existing, err := client.Get(ctx, serverId, options)
+	existing, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -352,11 +348,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		ServerName:        id.Name,
 	}
 
-	options := servers.GetOperationOptions{
-		Expand: nil,
-	}
-
-	existing, err := client.Get(ctx, serverId, options)
+	existing, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -530,11 +522,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		ServerName:        id.Name,
 	}
 
-	options := servers.GetOperationOptions{
-		Expand: nil,
-	}
-
-	resp, err := client.Get(ctx, serverId, options)
+	resp, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Error retrieving SQL Server %s - removing from state", id.String())
@@ -547,68 +535,80 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	identity, err := flattenSqlServerIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+	t := make(map[string]interface{})
 
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+	if model := resp.Model; model != nil {
+		t = tags.ExpandFrom(model.Tags)
 
-	if props := resp.ServerProperties; props != nil {
-		d.Set("version", props.Version)
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
-		// todo remove `|| *v == "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
-		if v := props.MinimalTLSVersion; v == nil || *v == "None" {
-			d.Set("minimum_tls_version", "Disabled")
-		} else {
-			d.Set("minimum_tls_version", props.MinimalTLSVersion)
+		if location := model.Location; location != "" {
+			d.Set("location", azure.NormalizeLocation(location))
 		}
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == servers.ServerNetworkAccessFlagEnabled)
-		d.Set("outbound_network_restriction_enabled", props.RestrictOutboundNetworkAccess == servers.ServerNetworkAccessFlagEnabled)
-		primaryUserAssignedIdentityID := ""
-		if props.PrimaryUserAssignedIdentityID != nil && *props.PrimaryUserAssignedIdentityID != "" {
-			parsedPrimaryUserAssignedIdentityID, err := commonids.ParseUserAssignedIdentityIDInsensitively(*props.PrimaryUserAssignedIdentityID)
-			if err != nil {
-				return err
+		identity, err := flattenSqlServerIdentity(model.Identity)
+		if err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("version", props.Version)
+			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+
+			// todo remove `|| *v == "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
+			if v := props.MinimalTlsVersion; v == nil || *v == "None" {
+				d.Set("minimum_tls_version", "Disabled")
+			} else {
+				d.Set("minimum_tls_version", props.MinimalTlsVersion)
 			}
-			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
-		}
-		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
-		d.Set("transparent_data_encryption_key_vault_key_id", props.KeyID)
-		if props.Administrators != nil {
-			d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
+
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == servers.ServerPublicNetworkAccessFlagEnabled)
+			d.Set("outbound_network_restriction_enabled", pointer.From(props.RestrictOutboundNetworkAccess) == servers.ServerNetworkAccessFlagEnabled)
+
+			primaryUserAssignedIdentityID := ""
+			if props.PrimaryUserAssignedIdentityId != nil && pointer.From(props.PrimaryUserAssignedIdentityId) != "" {
+				parsedPrimaryUserAssignedIdentityID, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(props.PrimaryUserAssignedIdentityId))
+				if err != nil {
+					return err
+				}
+				primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
+			}
+
+			d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
+			d.Set("transparent_data_encryption_key_vault_key_id", props.KeyId)
+
+			if props.Administrators != nil {
+				d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
+			}
 		}
 	}
 
-	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
+	connection, err := connectionClient.Get(ctx, serverconnectionpolicies.ServerId(serverId))
 	if err != nil {
 		return fmt.Errorf("reading SQL Server %s Blob Connection Policy: %v ", id.Name, err)
 	}
 
-	if props := connection.ServerConnectionPolicyProperties; props != nil {
-		d.Set("connection_policy", string(props.ConnectionType))
+	if model := connection.Model; model != nil && model.Properties != nil {
+		d.Set("connection_policy", string(model.Properties.ConnectionType))
 	}
 
-	restorableListPage, err := restorableDroppedDatabasesClient.ListByServer(ctx, id.ResourceGroup, id.Name)
+	restorableListPage, err := restorableDroppedDatabasesClient.ListByServer(ctx, restorabledroppeddatabases.ServerId(serverId))
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", id.Name, err)
 	}
-	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage.Response())); err != nil {
+	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage)); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, tags.Expand(t))
 }
 
 func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	id, err := parse.ServerID(d.Id())
@@ -616,27 +616,34 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	serverId := servers.ServerId{
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ServerName:        id.Name,
+	}
+
+	err = client.DeleteThenPoll(ctx, serverId)
 	if err != nil {
 		return fmt.Errorf("deleting SQL Server %s: %+v", id.Name, err)
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	return nil
 }
 
-func expandSqlServerIdentity(input []interface{}) (*servers.ResourceIdentity, error) {
+func expandSqlServerIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	out := servers.ResourceIdentity{
-		Type: servers.IdentityType(string(expanded.Type)),
+	out := identity.LegacySystemAndUserAssignedMap{
+		Type: identity.Type(string(expanded.Type)),
 	}
+
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*servers.UserIdentity)
+		out.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &servers.UserIdentity{
+			out.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 				// intentionally empty
 			}
 		}
@@ -645,7 +652,7 @@ func expandSqlServerIdentity(input []interface{}) (*servers.ResourceIdentity, er
 	return &out, nil
 }
 
-func flattenSqlServerIdentity(input *servers.ResourceIdentity) (*[]interface{}, error) {
+func flattenSqlServerIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interface{}, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
@@ -653,20 +660,24 @@ func flattenSqlServerIdentity(input *servers.ResourceIdentity) (*[]interface{}, 
 			Type:        identity.Type(string(input.Type)),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-		if input.PrincipalID != nil {
-			transform.PrincipalId = input.PrincipalID.String()
+
+		if input.PrincipalId != "" {
+			transform.PrincipalId = input.PrincipalId
 		}
-		if input.TenantID != nil {
-			transform.TenantId = input.TenantID.String()
+
+		if input.TenantId != "" {
+			transform.TenantId = input.TenantId
 		}
-		for k, v := range input.UserAssignedIdentities {
+
+		for k, v := range input.IdentityIds {
 			details := identity.UserAssignedIdentityDetails{}
-			if v.ClientID != nil {
-				details.ClientId = utils.String(v.ClientID.String())
+			if v.ClientId != nil {
+				details.ClientId = v.ClientId
 			}
-			if v.PrincipalID != nil {
-				details.PrincipalId = utils.String(v.PrincipalID.String())
+			if v.PrincipalId != nil {
+				details.PrincipalId = v.PrincipalId
 			}
+
 			transform.IdentityIds[k] = details
 		}
 	}
@@ -696,13 +707,15 @@ func expandMsSqlServerAdministrator(input []interface{}) *serverazureadadministr
 	admin := input[0].(map[string]interface{})
 
 	adminParams := serverazureadadministrators.ServerAzureADAdministrator{
-		AdministratorType: pointer.To(servers.AdministratorTypeActiveDirectory),
-		Login:             pointer.To(admin["login_username"].(string)),
-		Sid:               pointer.To(admin["object_id"].(string)),
+		Properties: &serverazureadadministrators.AdministratorProperties{
+			AdministratorType: serverazureadadministrators.AdministratorType(servers.AdministratorTypeActiveDirectory),
+			Login:             admin["login_username"].(string),
+			Sid:               admin["object_id"].(string),
+		},
 	}
 
 	if v, ok := admin["tenant_id"]; ok && v != "" {
-		adminParams.TenantId = pointer.To(v.(string))
+		adminParams.Properties.TenantId = pointer.To(v.(string))
 	}
 
 	return pointer.To(adminParams)
@@ -714,17 +727,16 @@ func expandMsSqlServerAdministrators(input []interface{}) *servers.ServerExterna
 	}
 
 	admin := input[0].(map[string]interface{})
-	sid, _ := uuid.FromString(admin["object_id"].(string))
+	sid := admin["object_id"].(string)
 
 	adminParams := servers.ServerExternalAdministrator{
-		AdministratorType: servers.AdministratorTypeActiveDirectory,
-		Login:             utils.String(admin["login_username"].(string)),
-		Sid:               &sid,
+		AdministratorType: pointer.To(servers.AdministratorTypeActiveDirectory),
+		Login:             pointer.To(admin["login_username"].(string)),
+		Sid:               pointer.To(sid),
 	}
 
 	if v, ok := admin["tenant_id"]; ok && v != "" {
-		tid, _ := uuid.FromString(v.(string))
-		adminParams.TenantID = &tid
+		adminParams.TenantId = pointer.To(v.(string))
 	}
 
 	if v, ok := admin["azuread_authentication_only"]; ok && v != "" {
@@ -742,16 +754,16 @@ func flatternMsSqlServerAdministrators(admin servers.ServerExternalAdministrator
 	}
 
 	if admin.Sid != nil {
-		sid = admin.Sid.String()
+		sid = pointer.From(admin.Sid)
 	}
 
-	if admin.TenantID != nil {
-		tid = admin.TenantID.String()
+	if admin.TenantId != nil {
+		tid = pointer.From(admin.TenantId)
 	}
 
 	var aadOnlyAuthentictionsEnabled bool
 	if admin.AzureADOnlyAuthentication != nil {
-		aadOnlyAuthentictionsEnabled = *admin.AzureADOnlyAuthentication
+		aadOnlyAuthentictionsEnabled = pointer.From(admin.AzureADOnlyAuthentication)
 	}
 
 	return []interface{}{
@@ -764,16 +776,18 @@ func flatternMsSqlServerAdministrators(admin servers.ServerExternalAdministrator
 	}
 }
 
-func flattenSqlServerRestorableDatabases(resp servers.RestorableDroppedDatabaseListResult) []string {
-	if resp.Value == nil || len(*resp.Value) == 0 {
+func flattenSqlServerRestorableDatabases(resp restorabledroppeddatabases.ListByServerOperationResponse) []string {
+	if resp.Model == nil {
 		return []string{}
 	}
+
 	res := make([]string, 0)
-	for _, r := range *resp.Value {
+	for _, r := range *resp.Model {
 		var id string
-		if r.ID != nil {
-			id = *r.ID
+		if r.Id != nil {
+			id = *r.Id
 		}
+
 		res = append(res, id)
 	}
 	return res

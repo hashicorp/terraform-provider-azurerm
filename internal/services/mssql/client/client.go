@@ -110,7 +110,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(serverAzureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
-	serverAzureADOnlyAuthenticationsClient := serverazureadonlyauthentications.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.Environment.ResourceManager)
+	serverAzureADOnlyAuthenticationsClient, err := serverazureadonlyauthentications.NewServerAzureADOnlyAuthenticationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Azure Active Directory Only Authentication Client: %+v", err)
 	}
@@ -177,9 +177,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		LongTermRetentionPoliciesClient:                 &longTermRetentionPoliciesClient,
 		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
 		ReplicationLinksClient:                          &replicationLinksClient,
-		RestorableDroppedDatabasesClient:                &restorableDroppedDatabasesClient,
-		ServerAzureADAdministratorsClient:               &serverAzureADAdministratorsClient,
-		ServerAzureADOnlyAuthenticationsClient:          &serverAzureADOnlyAuthenticationsClient,
+		RestorableDroppedDatabasesClient:                restorableDroppedDatabasesClient,
+		ServerAzureADAdministratorsClient:               serverAzureADAdministratorsClient,
+		ServerAzureADOnlyAuthenticationsClient:          serverAzureADOnlyAuthenticationsClient,
 		ServerConnectionPoliciesClient:                  serverConnectionPoliciesClient,
 		ServerDNSAliasClient:                            &serverDNSAliasClient,
 		ServerDevOpsAuditSettingsClient:                 &serverDevOpsAuditSettingsClient,
