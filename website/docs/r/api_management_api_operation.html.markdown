@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `response` - (Optional) One or more `response` blocks as defined below.
 
-* `template_parameter` - (Optional) One or more `template_parameter` blocks as defined below.  Required if `url_template` contains one or more parameters.
+* `template_parameter` - (Optional) One or more `template_parameter` blocks as defined below. Required if `url_template` contains one or more parameters.
 
 ---
 

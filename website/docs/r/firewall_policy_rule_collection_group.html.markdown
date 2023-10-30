@@ -105,7 +105,7 @@ A `application_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the application rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) One or more `application_rule` (application rule) blocks as defined below.
+* `rule` - (Required) One or more `application_rule` blocks as defined below.
 
 ---
 
@@ -117,7 +117,7 @@ A `network_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the network rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) One or more `network_rule` (network rule) blocks as defined below.
+* `rule` - (Required) One or more `network_rule` blocks as defined below.
 
 ---
 
@@ -129,7 +129,7 @@ A `nat_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the NAT rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) A `nat_rule` (NAT rule) block as defined below.
+* `rule` - (Required) A `nat_rule` block as defined below.
 
 ---
 
@@ -139,7 +139,7 @@ A `application_rule` (application rule) block supports the following:
 
 * `description` - (Optional) The description which should be used for this rule.
 
-* `protocols` - (Required) One or more `protocols` blocks as defined below.
+* `protocols` - (Optional) One or more `protocols` blocks as defined below.
 
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 

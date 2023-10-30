@@ -116,19 +116,17 @@ resource "azurerm_netapp_volume_quota_rule" "quota4" {
 
 The following arguments are supported:
 
-* `account_name` - (Required) The name of the NetApp Account where the volume is located. Changing this forces a new Volume Quota Rule to be created.
-
 * `location` - (Required) The Azure Region where the Volume Quota Rule should exist. Changing this forces a new Volume Quota Rule to be created.
 
 * `name` - (Required) The name which should be used for this Volume Quota Rule. Changing this forces a new Volume Quota Rule to be created.
 
-* `volume_id` - (Required) The NetApp volume ID where the Volume Quota Rule is assigned to.
+* `volume_id` - (Required) The NetApp volume ID where the Volume Quota Rule is assigned to. Changing this forces a new resource to be created.
 
 * `quota_size_in_kib` - (Required) Quota size in kibibytes.
 
-* `quota_type` - (Required) Quota type. Possible values are `DefaultGroupQuota`, `DefaultUserQuota`, `IndividualGroupQuota` and `IndividualUserQuota`. Please note that `IndividualGroupQuota` and `DefaultGroupQuota` are not applicable to SMB and dual-protocol volumes.
+* `quota_type` - (Required) Quota type. Possible values are `DefaultGroupQuota`, `DefaultUserQuota`, `IndividualGroupQuota` and `IndividualUserQuota`. Please note that `IndividualGroupQuota` and `DefaultGroupQuota` are not applicable to SMB and dual-protocol volumes. Changing this forces a new resource to be created.
 
-* `quota_target` - (Optional) Quota Target. This can be Unix UID/GID for NFSv3/NFSv4.1 volumes and Windows User SID for CIFS based volumes. 
+* `quota_target` - (Optional) Quota Target. This can be Unix UID/GID for NFSv3/NFSv4.1 volumes and Windows User SID for CIFS based volumes. Changing this forces a new resource to be created.
 
 -> **NOTE:** `quota_target ` must be used when `quota_type` is `IndividualGroupQuota` or `IndividualUserQuota`
 
@@ -144,7 +142,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Volume Quota Rule.
+* `create` - (Defaults to 90 minutes) Used when creating the Volume Quota Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Volume Quota Rule.
 * `update` - (Defaults to 2 hours) Used when updating the Volume Quota Rule.
 * `delete` - (Defaults to 2 hours) Used when deleting the Volume Quota Rule.

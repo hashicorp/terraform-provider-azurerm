@@ -117,7 +117,7 @@ The following arguments are supported:
 
 * `schedule` - (Required) One or more `schedule` blocks as defined below.
 
-* `host_pool` - (Required) One or more `host_pool` blocks as defined below.
+* `host_pool` - (Optional) One or more `host_pool` blocks as defined below.
 
 * `time_zone` - (Required) Specifies the Time Zone which should be used by the Scaling Plan for time based events, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 

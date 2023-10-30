@@ -116,7 +116,7 @@ A `schema_column` block supports the following:
 
 An `azure_blob_fs_location` block supports the following:
 
-* `file_system` - (Required) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
+* `file_system` - (Optional) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
 
 * `dynamic_file_system_enabled` - (Optional) Is the `file_system` using dynamic expression, function or system variables? Defaults to `false`.
 
