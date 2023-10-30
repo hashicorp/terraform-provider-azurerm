@@ -118,7 +118,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "%[3]s.com"
+    domain = "aro-%[3]s.com"
   }
 
   main_profile {
@@ -146,7 +146,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2", "azurerm_role_assignment.role_contributor2"]
+  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
@@ -401,17 +401,11 @@ resource "azurerm_role_assignment" "role_network2" {
   principal_id         = azuread_service_principal.redhatopenshift.object_id
 }
 
-#resource "azurerm_role_assignment" "role_contributor1" {
+#resource "azurerm_role_assignment" "role_contributor2" {
 #  scope                = "/subscriptions/${data.azurerm_client_config.test.subscription_id}"
 #  role_definition_name = "Contributor"
-#  principal_id         = azuread_service_principal.test.object_id
+#  principal_id         = azuread_service_principal.redhatopenshift.object_id
 #}
-
-resource "azurerm_role_assignment" "role_contributor2" {
-  scope                = "/subscriptions/${data.azurerm_client_config.test.subscription_id}"
-  role_definition_name = "Contributor"
-  principal_id         = azuread_service_principal.redhatopenshift.object_id
-}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%[1]d"
