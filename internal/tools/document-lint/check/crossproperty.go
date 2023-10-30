@@ -131,7 +131,11 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 				f.FormatErr = md.IncorrectlyBlockMarked
 			}
 		}
-		res = append(res, newFormatErr(f.Content, f.FormatErr, newCheckBase(f.Line, path, f)))
+		if strings.Contains(f.FormatErr, "misspell of name from") {
+			res = append(res, newPropertyMiss(newCheckBase(f.Line, path, f), Misspelling))
+		} else {
+			res = append(res, newFormatErr(f.Content, f.FormatErr, newCheckBase(f.Line, path, f)))
+		}
 		return
 	}
 
@@ -184,8 +188,21 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 		if str, ok := s.Default.(string); ok && str == "" {
 			defaultStr = `""` // empty string in code
 		}
+		shouldSkip := func() bool {
+			if defaultStr == f.Default {
+				return true
+			}
+			// `false` not specified in the schema, but in the document, it's fine.
+			if f.Default == "false" && s.Type == pluginsdk.TypeBool && s.Default == nil {
+				return true
+			}
+			if defaultStr == "false" && f.Default == "" {
+				return true
+			}
+			return false
+		}()
 		// for many default value is `false`, just skip them for now
-		if defaultStr != f.Default && defaultStr != "false" {
+		if !shouldSkip {
 			// maybe numbers: convert to number and compare
 			if defNum, e1 := strconv.ParseFloat(defaultStr, 64); e1 == nil {
 				if fNum, e2 := strconv.ParseFloat(f.Default, 64); e2 == nil {
