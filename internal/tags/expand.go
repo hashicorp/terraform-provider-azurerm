@@ -19,26 +19,26 @@ func Expand(tagsMap map[string]interface{}) map[string]*string {
 	return output
 }
 
-func ExpandFrom(tagsMap *map[string]string) map[string]interface{} {
-	output := make(map[string]interface{}, len(pointer.From(tagsMap)))
-
-	for i, v := range pointer.From(tagsMap) {
-		// Validate should have ignored this error already
-		value, _ := TagValueToString(v)
-		output[i] = &value
-	}
-
-	return output
-}
-
 func PointerTo(tagsMap map[string]interface{}) *map[string]string {
-	output := make(map[string]string, len(tagsMap))
+	output := make(map[string]string)
 
 	for i, v := range tagsMap {
-		// Validate should have ignored this error already
 		value, _ := TagValueToString(v)
 		output[i] = value
 	}
 
 	return pointer.To(output)
+}
+
+func FlattenTags(tagsMap *map[string]string) map[string]*string {
+	output := make(map[string]*string)
+
+	if tagsMap != nil {
+		for i, v := range *tagsMap {
+			value, _ := TagValueToString(v)
+			output[i] = pointer.To(value)
+		}
+	}
+
+	return output
 }

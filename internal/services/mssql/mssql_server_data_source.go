@@ -93,11 +93,6 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if model := resp.Model; model != nil {
-		t := make(map[string]interface{}, 0)
-		if model.Tags != nil {
-			t = tags.ExpandFrom(model.Tags)
-		}
-
 		d.SetId(id.ID())
 		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 
@@ -125,7 +120,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, tags.Expand(t))
+		return tags.FlattenAndSet(d, tags.FlattenTags(model.Tags))
 	}
 
 	return fmt.Errorf("model was `nil`")

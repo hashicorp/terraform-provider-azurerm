@@ -216,9 +216,6 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	version := d.Get("version").(string)
 
-	t := d.Get("tags").(map[string]interface{})
-	metadata := tags.PointerTo(t)
-
 	serverId := servers.ServerId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: id.ResourceGroup,
@@ -238,7 +235,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	props := servers.Server{
 		Location: location,
-		Tags:     metadata,
+		Tags:     tags.PointerTo(d.Get("tags").(map[string]interface{})),
 		Properties: &servers.ServerProperties{
 			Version:                       pointer.To(version),
 			PublicNetworkAccess:           pointer.To(servers.ServerPublicNetworkAccessFlagEnabled),
@@ -356,12 +353,9 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	version := d.Get("version").(string)
 
-	t := d.Get("tags").(map[string]interface{})
-	metadata := tags.PointerTo(t)
-
 	props := servers.Server{
 		Location: location,
-		Tags:     metadata,
+		Tags:     tags.PointerTo(d.Get("tags").(map[string]interface{})),
 		Properties: &servers.ServerProperties{
 			Version:                       pointer.To(version),
 			PublicNetworkAccess:           pointer.To(servers.ServerPublicNetworkAccessFlagEnabled),
@@ -535,14 +529,15 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	t := make(map[string]interface{})
+	t := pointer.To(make(map[string]string))
 
 	if model := resp.Model; model != nil {
-		t = tags.ExpandFrom(model.Tags)
+		t = model.Tags
 
 		if location := model.Location; location != "" {
 			d.Set("location", azure.NormalizeLocation(location))
 		}
+
 		identity, err := flattenSqlServerIdentity(model.Identity)
 		if err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
@@ -602,7 +597,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, tags.Expand(t))
+	return tags.FlattenAndSet(d, tags.FlattenTags(t))
 }
 
 func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
