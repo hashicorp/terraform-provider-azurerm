@@ -128,6 +128,8 @@ A `encryption` block supports the following:
 
 * `key_vault_key_id` - (Required) The versionless ID of the customer managed key.
 
+A full example of the `azurerm_netapp_account_encryption` resource and NetApp Volume with customer-managed keys encryption enabled can be found in [the `./examples/netapp/nfsv3_volume_cmk_userassigned` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/nfsv3_volume_cmk_userassigned)
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
