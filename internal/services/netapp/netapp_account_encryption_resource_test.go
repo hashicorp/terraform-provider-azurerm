@@ -62,15 +62,8 @@ func TestAccNetAppAccountEncryption_updateKey(t *testing.T) {
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
-	regexInitialKey, err := regexp.Compile(`anfenckey\d+$`)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	regexNewKey, err := regexp.Compile(`.*anfenckey-new.*`)
-	if err != nil {
-		t.Fatal(err)
-	}
+	regexInitialKey := regexp.MustCompile(`anfenckey\d+$`)
+	regexNewKey := regexp.MustCompile(`.*anfenckey-new.*`)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,96 +107,96 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[2]d"
-	location                        = azurerm_resource_group.test.location
-	resource_group_name             = azurerm_resource_group.test.name
-	enabled_for_disk_encryption     = true
-	enabled_for_deployment          = true
-	enabled_for_template_deployment = true
-	purge_protection_enabled        = true
-	tenant_id                       = "%[3]s"
+  name                            = "anfakv%[2]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%[3]s"
 
-	sku_name = "standard"
+  sku_name = "standard"
 
-	tags = {
-		"CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
-	key_vault_id = azurerm_key_vault.test.id
-	tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
-	object_id = data.azurerm_client_config.current.object_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-	key_permissions = [
-		"Get",
-		"Create",
-		"Delete",
-		"WrapKey",
-		"UnwrapKey",
-		"GetRotationPolicy",
-		"SetRotationPolicy",
-	]
+  key_permissions = [
+    "Get",
+    "Create",
+    "Delete",
+    "WrapKey",
+    "UnwrapKey",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[2]d"
-	key_vault_id = azurerm_key_vault.test.id
-	key_type     = "RSA"
-	key_size     = 2048
+  name         = "anfenckey%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-	key_opts = [
-		"decrypt",
-		"encrypt",
-		"sign",
-		"unwrapKey",
-		"verify",
-		"wrapKey",
-	]
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 
-	depends_on = [
-       azurerm_key_vault_access_policy.test-currentuser
-	]
+  depends_on = [
+    azurerm_key_vault_access_policy.test-currentuser
+  ]
 }
 
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[2]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	identity {
-		type = "SystemAssigned"
-	}
+  identity {
+    type = "SystemAssigned"
+  }
 
-	tags = {
-		"CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-systemassigned" {
-	key_vault_id = azurerm_key_vault.test.id
-	tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
-	object_id    = azurerm_netapp_account.test.identity.0.principal_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
+  object_id    = azurerm_netapp_account.test.identity.0.principal_id
 
-	key_permissions = [
-		"Get",
-		"Encrypt",
-		"Decrypt"
-	]
+  key_permissions = [
+    "Get",
+    "Encrypt",
+    "Decrypt"
+  ]
 }
 
 resource "azurerm_netapp_account_encryption" "test" {
-	netapp_account_id = azurerm_netapp_account.test.id
+  netapp_account_id = azurerm_netapp_account.test.id
 
-	system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
+  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
 
-	encryption {
-		key_vault_key_id = azurerm_key_vault_key.test.versionless_id
-	}
+  encryption {
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
+  }
 
-	depends_on = [
-		azurerm_key_vault_access_policy.test-systemassigned
-	]
+  depends_on = [
+    azurerm_key_vault_access_policy.test-systemassigned
+  ]
 }
 `, r.template(data), data.RandomInteger, tenantID)
 }
@@ -213,102 +206,102 @@ func (r NetAppAccountEncryptionResource) cmkUserAssigned(data acceptance.TestDat
 %[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
-	name                = "user-assigned-identity-%[2]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-  
-	tags = {
-	  CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
-	}
+  name                = "user-assigned-identity-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+  }
 }
 
 data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[2]d"
-	location                        = azurerm_resource_group.test.location
-	resource_group_name             = azurerm_resource_group.test.name
-	enabled_for_disk_encryption     = true
-	enabled_for_deployment          = true
-	enabled_for_template_deployment = true
-	purge_protection_enabled        = true
-	tenant_id                       = "%[3]s"
-  
-	sku_name = "standard"
+  name                            = "anfakv%[2]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%[3]s"
 
-	access_policy {
-		tenant_id = "%[3]s"
-		object_id = data.azurerm_client_config.current.object_id
-	
-		key_permissions = [
-		  "Get",
-		  "Create",
-		  "Delete",
-		  "WrapKey",
-		  "UnwrapKey",
-		  "GetRotationPolicy",
-		  "SetRotationPolicy",
-		]
-	}
+  sku_name = "standard"
 
-	access_policy {
-		tenant_id = "%[3]s"
-		object_id = azurerm_user_assigned_identity.test.principal_id
-	
-		key_permissions = [
-		  "Get",
-		  "Encrypt",
-		  "Decrypt"
-		]
-	}
+  access_policy {
+    tenant_id = "%[3]s"
+    object_id = data.azurerm_client_config.current.object_id
 
-	tags = {
-		"CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+    key_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "WrapKey",
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
+    ]
+  }
+
+  access_policy {
+    tenant_id = "%[3]s"
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "Encrypt",
+      "Decrypt"
+    ]
+  }
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[2]d"
-	key_vault_id = azurerm_key_vault.test.id
-	key_type     = "RSA"
-	key_size     = 2048
-  
-	key_opts = [
-	  "decrypt",
-	  "encrypt",
-	  "sign",
-	  "unwrapKey",
-	  "verify",
-	  "wrapKey",
-	]
+  name         = "anfenckey%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 }
 
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[2]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-  
-	identity {
-		type = "UserAssigned"
-		identity_ids = [
-		  azurerm_user_assigned_identity.test.id
-		]
-	}
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	tags = {
-	  "CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_netapp_account_encryption" "test" {
-	netapp_account_id = azurerm_netapp_account.test.id
-	
-	user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  netapp_account_id = azurerm_netapp_account.test.id
 
-	encryption {
-		key_vault_key_id = azurerm_key_vault_key.test.versionless_id
-	}
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+
+  encryption {
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
+  }
 }
 `, r.template(data), data.RandomInteger, tenantID)
 }
@@ -321,117 +314,117 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[2]d"
-	location                        = azurerm_resource_group.test.location
-	resource_group_name             = azurerm_resource_group.test.name
-	enabled_for_disk_encryption     = true
-	enabled_for_deployment          = true
-	enabled_for_template_deployment = true
-	purge_protection_enabled        = true
-	tenant_id                       = "%[3]s"
+  name                            = "anfakv%[2]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%[3]s"
 
-	sku_name = "standard"
+  sku_name = "standard"
 
-	tags = {
-		"CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
-	key_vault_id = azurerm_key_vault.test.id
-	tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
-	object_id = data.azurerm_client_config.current.object_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-	key_permissions = [
-		"Get",
-		"Create",
-		"Delete",
-		"WrapKey",
-		"UnwrapKey",
-		"GetRotationPolicy",
-		"SetRotationPolicy",
-	]
+  key_permissions = [
+    "Get",
+    "Create",
+    "Delete",
+    "WrapKey",
+    "UnwrapKey",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[2]d"
-	key_vault_id = azurerm_key_vault.test.id
-	key_type     = "RSA"
-	key_size     = 2048
+  name         = "anfenckey%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-	key_opts = [
-		"decrypt",
-		"encrypt",
-		"sign",
-		"unwrapKey",
-		"verify",
-		"wrapKey",
-	]
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 
-	depends_on = [
-       azurerm_key_vault_access_policy.test-currentuser
-	]
+  depends_on = [
+    azurerm_key_vault_access_policy.test-currentuser
+  ]
 }
 
 resource "azurerm_key_vault_key" "test-new-key" {
-	name         = "anfenckey-new%[2]d"
-	key_vault_id = azurerm_key_vault.test.id
-	key_type     = "RSA"
-	key_size     = 2048
+  name         = "anfenckey-new%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-	key_opts = [
-		"decrypt",
-		"encrypt",
-		"sign",
-		"unwrapKey",
-		"verify",
-		"wrapKey",
-	]
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 
-	depends_on = [
-		azurerm_key_vault_key.test,
-       azurerm_key_vault_access_policy.test-currentuser
-	]
+  depends_on = [
+    azurerm_key_vault_key.test,
+    azurerm_key_vault_access_policy.test-currentuser
+  ]
 }
 
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[2]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	identity {
-		type = "SystemAssigned"
-	}
+  identity {
+    type = "SystemAssigned"
+  }
 
-	tags = {
-		"CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-systemassigned" {
-	key_vault_id = azurerm_key_vault.test.id
-	tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
-	object_id    = azurerm_netapp_account.test.identity.0.principal_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
+  object_id    = azurerm_netapp_account.test.identity.0.principal_id
 
-	key_permissions = [
-		"Get",
-		"Encrypt",
-		"Decrypt"
-	]
+  key_permissions = [
+    "Get",
+    "Encrypt",
+    "Decrypt"
+  ]
 }
 
 resource "azurerm_netapp_account_encryption" "test" {
-	netapp_account_id = azurerm_netapp_account.test.id
+  netapp_account_id = azurerm_netapp_account.test.id
 
-	system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
+  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
 
-	encryption {
-		key_vault_key_id = azurerm_key_vault_key.test.versionless_id
-	}
+  encryption {
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
+  }
 
-	depends_on = [
-		azurerm_key_vault_access_policy.test-systemassigned
-	]
+  depends_on = [
+    azurerm_key_vault_access_policy.test-systemassigned
+  ]
 }
 `, r.template(data), data.RandomInteger, tenantID)
 }
@@ -444,117 +437,117 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "anfakv%[2]d"
-	location                        = azurerm_resource_group.test.location
-	resource_group_name             = azurerm_resource_group.test.name
-	enabled_for_disk_encryption     = true
-	enabled_for_deployment          = true
-	enabled_for_template_deployment = true
-	purge_protection_enabled        = true
-	tenant_id                       = "%[3]s"
+  name                            = "anfakv%[2]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%[3]s"
 
-	sku_name = "standard"
+  sku_name = "standard"
 
-	tags = {
-		"CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
-	key_vault_id = azurerm_key_vault.test.id
-	tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
-	object_id = data.azurerm_client_config.current.object_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-	key_permissions = [
-		"Get",
-		"Create",
-		"Delete",
-		"WrapKey",
-		"UnwrapKey",
-		"GetRotationPolicy",
-		"SetRotationPolicy",
-	]
+  key_permissions = [
+    "Get",
+    "Create",
+    "Delete",
+    "WrapKey",
+    "UnwrapKey",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
-	name         = "anfenckey%[2]d"
-	key_vault_id = azurerm_key_vault.test.id
-	key_type     = "RSA"
-	key_size     = 2048
+  name         = "anfenckey%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-	key_opts = [
-		"decrypt",
-		"encrypt",
-		"sign",
-		"unwrapKey",
-		"verify",
-		"wrapKey",
-	]
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 
-	depends_on = [
-       azurerm_key_vault_access_policy.test-currentuser
-	]
+  depends_on = [
+    azurerm_key_vault_access_policy.test-currentuser
+  ]
 }
 
 resource "azurerm_key_vault_key" "test-new-key" {
-	name         = "anfenckey-new%[2]d"
-	key_vault_id = azurerm_key_vault.test.id
-	key_type     = "RSA"
-	key_size     = 2048
+  name         = "anfenckey-new%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
-	key_opts = [
-		"decrypt",
-		"encrypt",
-		"sign",
-		"unwrapKey",
-		"verify",
-		"wrapKey",
-	]
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 
-	depends_on = [
-		azurerm_key_vault_key.test,
-       azurerm_key_vault_access_policy.test-currentuser
-	]
+  depends_on = [
+    azurerm_key_vault_key.test,
+    azurerm_key_vault_access_policy.test-currentuser
+  ]
 }
 
 resource "azurerm_netapp_account" "test" {
-	name                = "acctest-NetAppAccount-%[2]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	identity {
-		type = "SystemAssigned"
-	}
+  identity {
+    type = "SystemAssigned"
+  }
 
-	tags = {
-		"CreatedOnDate" = "2022-07-08T23:50:21Z"
-	}
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-systemassigned" {
-	key_vault_id = azurerm_key_vault.test.id
-	tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
-	object_id    = azurerm_netapp_account.test.identity.0.principal_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
+  object_id    = azurerm_netapp_account.test.identity.0.principal_id
 
-	key_permissions = [
-		"Get",
-		"Encrypt",
-		"Decrypt"
-	]
+  key_permissions = [
+    "Get",
+    "Encrypt",
+    "Decrypt"
+  ]
 }
 
 resource "azurerm_netapp_account_encryption" "test" {
-	netapp_account_id = azurerm_netapp_account.test.id
+  netapp_account_id = azurerm_netapp_account.test.id
 
-	system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
+  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
 
-	encryption {
-		key_vault_key_id = azurerm_key_vault_key.test-new-key.versionless_id
-	}
+  encryption {
+    key_vault_key_id = azurerm_key_vault_key.test-new-key.versionless_id
+  }
 
-	depends_on = [
-		azurerm_key_vault_access_policy.test-systemassigned
-	]
+  depends_on = [
+    azurerm_key_vault_access_policy.test-systemassigned
+  ]
 }
 `, r.template(data), data.RandomInteger, tenantID)
 }
@@ -579,8 +572,8 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipNRMSNSG"      = "true"
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "SkipNRMSNSG"   = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

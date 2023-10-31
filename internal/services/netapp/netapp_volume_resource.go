@@ -290,7 +290,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string(volumes.PossibleValuesForEncryptionKeySource()), false),
+				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 				RequiredWith: []string{"key_vault_private_endpoint_id"},
 			},
 

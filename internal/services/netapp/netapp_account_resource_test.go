@@ -318,10 +318,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipNRMSNSG"      = "true"
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "SkipNRMSNSG"   = "true"
   }
 }
+
 
 `, data.RandomInteger, data.Locations.Primary)
 }

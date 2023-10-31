@@ -4,11 +4,9 @@
 package netapp
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -169,11 +167,6 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	// Wait for account to complete create
-	if err := waitForAccountCreateOrUpdate(ctx, client, id); err != nil {
-		return err
-	}
-
 	d.SetId(id.ID())
 	return resourceNetAppAccountRead(d, meta)
 }
@@ -220,11 +213,6 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id.ID(), err)
 		}
-
-		// Wait for account to complete update
-		if err = waitForAccountCreateOrUpdate(ctx, client, *id); err != nil {
-			return err
-		}
 	}
 
 	return resourceNetAppAccountRead(d, meta)
@@ -232,7 +220,6 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
-	//identityClient := meta.(*clients.Client).ManagedIdentity.V20230131.ManagedIdentities
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -313,43 +300,4 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		results = append(results, result)
 	}
 	return &results
-}
-
-func waitForAccountCreateOrUpdate(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"204", "404"},
-		Target:                    []string{"200", "202"},
-		Refresh:                   netappAccountStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
-	}
-
-	return nil
-}
-
-func netappAccountStateRefreshFunc(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.AccountsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving %s: %s", id.ID(), err)
-			}
-		}
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		return res, statusCode, nil
-	}
 }

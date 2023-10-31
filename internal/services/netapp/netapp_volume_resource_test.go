@@ -333,16 +333,16 @@ func (NetAppVolumeResource) volEncryptionCmkUserAssigned(data acceptance.TestDat
 %[2]s
 
 resource "azurerm_private_endpoint" "test" {
-  name                   = "acctest-pe-akv-%[3]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  subnet_id              = azurerm_subnet.test-non-delegated.id
+  name                = "acctest-pe-akv-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test-non-delegated.id
 
   private_service_connection {
-    name                          = "acctest-pe-sc-akv-%[3]d"
+    name                           = "acctest-pe-sc-akv-%[3]d"
     private_connection_resource_id = azurerm_key_vault.test.id
-    is_manual_connection          = false
-    subresource_names             = ["Vault"]
+    is_manual_connection           = false
+    subresource_names              = ["Vault"]
   }
 
   tags = {
@@ -404,16 +404,16 @@ func (NetAppVolumeResource) volEncryptionCmkSystemAssigned(data acceptance.TestD
 %[2]s
 
 resource "azurerm_private_endpoint" "test" {
-  name                   = "acctest-pe-akv-%[3]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  subnet_id              = azurerm_subnet.test-non-delegated.id
+  name                = "acctest-pe-akv-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test-non-delegated.id
 
   private_service_connection {
-    name                          = "acctest-pe-sc-akv-%[3]d"
+    name                           = "acctest-pe-sc-akv-%[3]d"
     private_connection_resource_id = azurerm_key_vault.test.id
-    is_manual_connection          = false
-    subresource_names             = ["Vault"]
+    is_manual_connection           = false
+    subresource_names              = ["Vault"]
   }
 
   tags = {
@@ -1278,38 +1278,38 @@ resource "azurerm_netapp_pool" "test" {
 func (NetAppVolumeResource) networkTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_virtual_network" "test" {
-	name                = "acctest-VirtualNetwork-%[1]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	address_space       = ["10.6.0.0/16"]
+  name                = "acctest-VirtualNetwork-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
 
-	tags = {
-		"CreatedOnDate"    = "2022-07-08T23:50:21Z",
-		"SkipASMAzSecPack" = "true"
-	}
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
 }
 
 resource "azurerm_subnet" "test-delegated" {
-	name                 = "acctest-Delegated-Subnet-%[1]d"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.6.1.0/24"]
+  name                 = "acctest-Delegated-Subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.1.0/24"]
 
-	delegation {
-		name = "testdelegation"
+  delegation {
+    name = "testdelegation"
 
-		service_delegation {
-		name    = "Microsoft.Netapp/volumes"
-		actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-		}
-	}
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
 }
 
 resource "azurerm_subnet" "test-non-delegated" {
-	name                 = "acctest-Non-Delegated-Subnet-%[1]d"
-	resource_group_name  = azurerm_resource_group.test.name
-	virtual_network_name = azurerm_virtual_network.test.name
-	address_prefixes     = ["10.6.0.0/24"]
+  name                 = "acctest-Non-Delegated-Subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.0.0/24"]
 }
 `, data.RandomInteger)
 }

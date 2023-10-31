@@ -37,7 +37,7 @@ func (d NetAppAccountEncryptionDataSource) basic(data acceptance.TestData, tenan
 %s
 
 data "azurerm_netapp_account_encryption" "test" {
-    netapp_account_id = azurerm_netapp_account_encryption.test.netapp_account_id
+  netapp_account_id = azurerm_netapp_account_encryption.test.netapp_account_id
 }
 `, NetAppAccountEncryptionResource{}.cmkSystemAssigned(data, tenantID))
 }
