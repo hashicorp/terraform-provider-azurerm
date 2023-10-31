@@ -156,6 +156,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: Switch this field to use None pattern...
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -296,6 +297,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
 	}
 
+	// TODO 4.0: Switch this field to use None pattern...
 	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.Properties.MinimalTlsVersion = utils.String(v.(string))
 	}
@@ -362,6 +364,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			RestrictOutboundNetworkAccess: pointer.To(servers.ServerNetworkAccessFlagDisabled),
 		},
 	}
+
 	if model := existing.Model; model != nil {
 		if v, ok := d.GetOk("identity"); ok {
 			expandedIdentity, err := expandSqlServerIdentity(v.([]interface{}))
@@ -410,6 +413,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			props.Properties.AdministratorLoginPassword = utils.String(adminPassword)
 		}
 
+		// TODO 4.0: Switch this field to use None pattern...
 		if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 			props.Properties.MinimalTlsVersion = utils.String(v.(string))
 		}
@@ -440,9 +444,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			log.Printf("[INFO] Azure Active Directory Only Authentication was not removed since Azure Active Directory Administrators has not set for %s: %+v", id.String(), err)
 			return fmt.Errorf("deleting Azure Active Directory Only Authentication since `azuread_administrator` has not set for %s: %+v", id.String(), err)
-		}
-
-		if err = aadOnlyDeleteFuture.Poller.PollUntilDone(ctx); err != nil {
+		} else if err = aadOnlyDeleteFuture.Poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for the deletion of Azure Active Directory Only Authentications %s: %+v", id.String(), err)
 		}
 
