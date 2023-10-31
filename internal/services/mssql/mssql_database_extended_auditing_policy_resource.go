@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -133,19 +134,24 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name, params); err != nil {
-		return fmt.Errorf("creating MsSql Database %q Extended Auditing Policy (Sql Server %q / Resource Group %q): %+v", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
+		return fmt.Errorf("creating extended auditing policy for %s: %+v", dbId.String(), err)
 	}
 
 	read, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %+v", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
+		return fmt.Errorf("retrieving the extended auditing policy for %s: %+v", dbId.String(), err)
 	}
 
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("reading MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q) ID is empty or nil", dbId.Name, dbId.ServerName, dbId.ResourceGroup)
+	if read.ID == nil || pointer.From(read.ID) == "" {
+		return fmt.Errorf("the extended auditing policy ID for %s is 'nil' or 'empty'", dbId.String())
 	}
 
-	d.SetId(*read.ID)
+	readId, err := parse.DatabaseExtendedAuditingPolicyID(pointer.From(read.ID))
+	if err != nil {
+		return err
+	}
+
+	d.SetId(readId.ID())
 
 	return resourceMsSqlDatabaseExtendedAuditingPolicyRead(d, meta)
 }
