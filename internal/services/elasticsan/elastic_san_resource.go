@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/elasticsans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -27,19 +28,19 @@ func (r ElasticSANResource) ModelObject() interface{} {
 }
 
 type ElasticSANResourceModel struct {
-	BaseSizeInTiB             int64                        `tfschema:"base_size_in_tib"`
-	ExtendedCapacitySizeInTiB int64                        `tfschema:"extended_capacity_size_in_tib"`
-	Location                  string                       `tfschema:"location"`
-	Name                      string                       `tfschema:"name"`
-	ResourceGroupName         string                       `tfschema:"resource_group_name"`
-	Sku                       []ElasticSANResourceSkuModel `tfschema:"sku"`
-	Tags                      map[string]interface{}       `tfschema:"tags"`
-	TotalIops                 int64                        `tfschema:"total_iops"`
-	TotalMBps                 int64                        `tfschema:"total_mbps"`
-	TotalSizeInTiB            int64                        `tfschema:"total_size_in_tib"`
-	TotalVolumeSizeInGiB      int64                        `tfschema:"total_volume_size_in_gib"`
-	VolumeGroupCount          int64                        `tfschema:"volume_group_count"`
-	Zones                     []string                     `tfschema:"zones"`
+	BaseSizeInTiB        int64                        `tfschema:"base_size_in_tib"`
+	ExtendedSizeInTiB    int64                        `tfschema:"extended_size_in_tib"`
+	Location             string                       `tfschema:"location"`
+	Name                 string                       `tfschema:"name"`
+	ResourceGroupName    string                       `tfschema:"resource_group_name"`
+	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
+	Tags                 map[string]interface{}       `tfschema:"tags"`
+	TotalIops            int64                        `tfschema:"total_iops"`
+	TotalMBps            int64                        `tfschema:"total_mbps"`
+	TotalSizeInTiB       int64                        `tfschema:"total_size_in_tib"`
+	TotalVolumeSizeInGiB int64                        `tfschema:"total_volume_size_in_gib"`
+	VolumeGroupCount     int64                        `tfschema:"volume_group_count"`
+	Zones                []string                     `tfschema:"zones"`
 }
 
 type ElasticSANResourceSkuModel struct {
@@ -58,9 +59,10 @@ func (r ElasticSANResource) ResourceType() string {
 func (r ElasticSANResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Required: true,
-			ForceNew: true,
-			Type:     pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validate.ElasticSanName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -75,7 +77,7 @@ func (r ElasticSANResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
 
-		"extended_capacity_size_in_tib": {
+		"extended_size_in_tib": {
 			Optional:     true,
 			Type:         pluginsdk.TypeInt,
 			ValidateFunc: validation.IntBetween(1, 100),
@@ -174,12 +176,15 @@ func (r ElasticSANResource) Create() sdk.ResourceFunc {
 				Tags:     tags.Expand(config.Tags),
 				Properties: elasticsans.ElasticSanProperties{
 					BaseSizeTiB:             config.BaseSizeInTiB,
-					ExtendedCapacitySizeTiB: config.ExtendedCapacitySizeInTiB,
+					ExtendedCapacitySizeTiB: config.ExtendedSizeInTiB,
 					Sku:                     r.ExpandSku(config.Sku),
 				},
 			}
 
 			if config.Zones != nil {
+				if payload.Properties.Sku.Name == elasticsans.SkuNamePremiumZRS {
+					return fmt.Errorf("zones are not supported for the %s SKU", elasticsans.SkuNamePremiumZRS)
+				}
 				payload.Properties.AvailabilityZones = pointer.To(zones.Expand(config.Zones))
 			}
 
@@ -224,7 +229,7 @@ func (r ElasticSANResource) Read() sdk.ResourceFunc {
 				schema.Sku = r.FlattenSku(prop.Sku)
 				schema.Zones = zones.Flatten(prop.AvailabilityZones)
 				schema.BaseSizeInTiB = prop.BaseSizeTiB
-				schema.ExtendedCapacitySizeInTiB = prop.ExtendedCapacitySizeTiB
+				schema.ExtendedSizeInTiB = prop.ExtendedCapacitySizeTiB
 				schema.TotalIops = pointer.From(prop.TotalIops)
 				schema.TotalMBps = pointer.From(prop.TotalMBps)
 				schema.TotalSizeInTiB = pointer.From(prop.TotalSizeTiB)
@@ -282,11 +287,11 @@ func (r ElasticSANResource) Update() sdk.ResourceFunc {
 				payload.Properties.BaseSizeTiB = pointer.FromInt64(config.BaseSizeInTiB)
 			}
 
-			if metadata.ResourceData.HasChange("extended_capacity_size_in_tib") {
+			if metadata.ResourceData.HasChange("extended_size_in_tib") {
 				if payload.Properties == nil {
 					payload.Properties = &elasticsans.ElasticSanUpdateProperties{}
 				}
-				payload.Properties.ExtendedCapacitySizeTiB = pointer.FromInt64(config.ExtendedCapacitySizeInTiB)
+				payload.Properties.ExtendedCapacitySizeTiB = pointer.FromInt64(config.ExtendedSizeInTiB)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -303,6 +308,10 @@ func (r ElasticSANResource) Update() sdk.ResourceFunc {
 }
 
 func (r ElasticSANResource) ExpandSku(input []ElasticSANResourceSkuModel) elasticsans.Sku {
+	if len(input) == 0 {
+		return elasticsans.Sku{}
+	}
+
 	output := elasticsans.Sku{
 		Name: elasticsans.SkuName(input[0].Name),
 	}

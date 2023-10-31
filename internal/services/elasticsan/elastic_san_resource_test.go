@@ -109,12 +109,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san" "test" {
-  name                          = "acctestes-${var.random_string}"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  base_size_in_tib              = 1
-  extended_capacity_size_in_tib = 1
-  zones                         = ["1"]
+  name                 = "acctestes-${var.random_string}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  base_size_in_tib     = 1
+  extended_size_in_tib = 1
+  zones                = ["1"]
   sku {
     name = "Premium_LRS"
   }
@@ -148,12 +148,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san" "test" {
-  name                          = "acctestes-${var.random_string}"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  base_size_in_tib              = 2
-  extended_capacity_size_in_tib = 4
-  zones                         = ["1"]
+  name                 = "acctestes-${var.random_string}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  base_size_in_tib     = 2
+  extended_size_in_tib = 4
+  zones                = ["1"]
   sku {
     name = "Premium_LRS"
     tier = "Premium"
@@ -174,12 +174,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san" "test" {
-  name                          = "acctestes-${var.random_string}"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  base_size_in_tib              = 2
-  extended_capacity_size_in_tib = 4
-  zones                         = ["1", "2"]
+  name                 = "acctestes-${var.random_string}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  base_size_in_tib     = 2
+  extended_size_in_tib = 4
+  zones                = ["1", "2"]
   sku {
     name = "Premium_LRS"
     tier = "Premium"
