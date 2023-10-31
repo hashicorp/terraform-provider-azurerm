@@ -342,7 +342,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	serverId := servers.ServerId{
-		SubscriptionId:    subscriptionId,
+		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ServerName:        id.Name,
 	}
@@ -502,7 +502,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -513,7 +512,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	serverId := servers.ServerId{
-		SubscriptionId:    subscriptionId,
+		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ServerName:        id.Name,
 	}
@@ -605,7 +604,6 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	id, err := parse.ServerID(d.Id())
@@ -614,7 +612,7 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	serverId := servers.ServerId{
-		SubscriptionId:    subscriptionId,
+		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ServerName:        id.Name,
 	}
