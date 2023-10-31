@@ -1,0 +1,29 @@
+---
+name: Open Pull Request when an `auto-pr` is pushed for Pandora
+
+on:
+  push:
+    branches:
+      - 'auto-pr/**' # deprecated
+      - 'auto-pandora-pr/**'
+
+jobs:
+  open-pull-request:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: "open a pull request"
+        id: open-pr
+        run: |
+          # this runs everytime the PR gets pushed too, whilst you can only create a PR a single time
+          # so we should be smarter, but piping this to /dev/null is a fine workaround for MVP
+          gh pr create --title "$PR_TITLE" --body "$PR_BODY" -B "$PR_TARGET" > /dev/null
+
+        env:
+          PR_TITLE: "Auto PR: Regenerating based on (${{ github.sha }})"
+          PR_BODY: "Regenerating the Terraform Provider based on the latest changes"
+          PR_TARGET: "main"
+          GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}

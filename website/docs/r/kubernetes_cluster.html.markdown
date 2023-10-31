@@ -667,6 +667,8 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `network_policy` is set to `azure`, the `network_plugin` field can only be set to `azure`.
 
+~> **Note:** When `network_policy` is set to `cilium`, the `ebpf_data_plane` field must be set to `cilium`.
+
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Changing this forces a new resource to be created.
@@ -919,9 +921,9 @@ A `workload_autoscaler_profile` block supports the following:
 
 A `http_proxy_config` block supports the following:
 
-* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP. Changing this forces a new resource to be created.
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
 
-* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS. Changing this forces a new resource to be created.
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
 
 * `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 

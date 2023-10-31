@@ -26,6 +26,7 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -163,10 +164,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
+				// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
 				// This is `computed`, because there is a breaking change to require this field when setting vnet.
 				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
 				// We need to ignore the diff when remote is set private dns zone
-				ForceNew:     true,
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
@@ -666,6 +668,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("when `administrator_login` is first set, `authentication.password_auth_enabled` must be set to `true`")
 			}
 		}
+	}
+
+	if d.HasChange("private_dns_zone_id") {
+		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
 
 	var requireFailover bool

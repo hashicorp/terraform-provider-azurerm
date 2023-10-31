@@ -11,17 +11,17 @@ permissions:
 
 jobs:
   go-version:
-    runs-on: ubuntu-latest
+    runs-on: [custom, linux, xl]
     outputs:
       version: ${{ steps.go-version.outputs.version }}
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - id: go-version
         run: echo "version=$(cat ./.go-version)" >>${GITHUB_OUTPUT}
   release-notes:
-    runs-on: ubuntu-latest
+    runs-on: [custom, linux, xl]
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
       - name: Generate Release Notes
@@ -36,6 +36,7 @@ jobs:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@v2
+    
     secrets:
       hc-releases-github-token: '${{ secrets.HASHI_RELEASES_GITHUB_TOKEN }}'
       hc-releases-host-staging: '${{ secrets.HC_RELEASES_HOST_STAGING }}'
@@ -47,7 +48,7 @@ jobs:
       signore-client-id: '${{ secrets.SIGNORE_CLIENT_ID }}'
       signore-client-secret: '${{ secrets.SIGNORE_CLIENT_SECRET }}'
     with:
-      goreleaser-release-args: --timeout 2h
+      goreleaser-release-args: --timeout 2h --verbose --parallelism 8
       hc-releases-aws-role-duration-seconds: 7200
       release-notes: true
       setup-go-version: '${{ needs.go-version.outputs.version }}'

@@ -108,7 +108,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"rai_policy_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
@@ -288,6 +287,10 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("scale.0.capacity") {
 				properties.Sku.Capacity = pointer.To(model.ScaleSettings[0].Capacity)
+			}
+
+			if metadata.ResourceData.HasChange("rai_policy_name") {
+				properties.Properties.RaiPolicyName = pointer.To(model.RaiPolicyName)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {

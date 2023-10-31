@@ -1,6 +1,6 @@
 package devcenter
 
-// NOTE: this file is temporary to enable the project to compile prior to auto-generation
+// NOTE: this file is generated - manual changes will be overwritten.
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
@@ -10,7 +10,7 @@ type autoRegistration struct {
 }
 
 func (autoRegistration) Name() string {
-	return "Dev Center"
+	return "DevCenter"
 }
 
 func (autoRegistration) DataSources() []sdk.DataSource {
@@ -18,7 +18,10 @@ func (autoRegistration) DataSources() []sdk.DataSource {
 }
 
 func (autoRegistration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		DevCenterProjectResource{},
+		DevCenterResource{},
+	}
 }
 
 func (autoRegistration) WebsiteCategories() []string {

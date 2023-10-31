@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
@@ -22,6 +23,7 @@ type Client struct {
 	FeaturesClient                      *features.FeaturesClient
 	GroupsClient                        *resources.GroupsClient
 	LocksClient                         *managementlocks.ManagementLocksClient
+	PrivateLinkAssociationClient        *privatelinkassociation.PrivateLinkAssociationClient
 	ResourceManagementPrivateLinkClient *resourcemanagementprivatelink.ResourceManagementPrivateLinkClient
 	ResourceProvidersClient             *providers.ProvidersClient
 	ResourcesClient                     *resources.Client
@@ -56,6 +58,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(locksClient.Client, o.Authorizers.ResourceManager)
 
+	privateLinkAssociationClient, err := privatelinkassociation.NewPrivateLinkAssociationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PrivateLinkAssociation client: %+v", err)
+	}
+	o.Configure(privateLinkAssociationClient.Client, o.Authorizers.ResourceManager)
+
 	resourceManagementPrivateLinkClient, err := resourcemanagementprivatelink.NewResourceManagementPrivateLinkClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ResourceManagementPrivateLink client: %+v", err)
@@ -83,6 +91,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DeploymentScriptsClient:             deploymentScriptsClient,
 		FeaturesClient:                      featuresClient,
 		LocksClient:                         locksClient,
+		PrivateLinkAssociationClient:        privateLinkAssociationClient,
 		ResourceManagementPrivateLinkClient: resourceManagementPrivateLinkClient,
 		ResourceProvidersClient:             resourceProvidersClient,
 		ResourcesClient:                     &resourcesClient,

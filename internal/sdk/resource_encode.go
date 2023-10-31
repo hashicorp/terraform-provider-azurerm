@@ -6,7 +6,6 @@ package sdk
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
@@ -54,28 +53,37 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldVal := objVal.Field(i)
-		if tfschemaTag, exists := field.Tag.Lookup("tfschema"); exists && !(strings.Contains(tfschemaTag, "removedInNextMajorVersion") && features.FourPointOh()) {
-			tfschemaTag = strings.TrimSuffix(tfschemaTag, ",removedInNextMajorVersion")
+		structTags, err := parseStructTags(field.Tag)
+		if err != nil {
+			return nil, fmt.Errorf("parsing struct tags for %q: %+v", field.Name, err)
+		}
+
+		if structTags != nil {
+			if structTags.removedInNextMajorVersion && features.FourPointOh() {
+				debugLogger.Infof("The HCL Path %q is marked as removed - skipping", structTags.hclPath)
+				continue
+			}
+
 			switch field.Type.Kind() {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				iv := fieldVal.Int()
-				debugLogger.Infof("Setting %q to %d", tfschemaTag, iv)
-				output[tfschemaTag] = iv
+				debugLogger.Infof("Setting %q to %d", structTags.hclPath, iv)
+				output[structTags.hclPath] = iv
 
 			case reflect.Float32, reflect.Float64:
 				fv := fieldVal.Float()
-				debugLogger.Infof("Setting %q to %f", tfschemaTag, fv)
-				output[tfschemaTag] = fv
+				debugLogger.Infof("Setting %q to %f", structTags.hclPath, fv)
+				output[structTags.hclPath] = fv
 
 			case reflect.String:
 				sv := fieldVal.String()
-				debugLogger.Infof("Setting %q to %q", tfschemaTag, sv)
-				output[tfschemaTag] = sv
+				debugLogger.Infof("Setting %q to %q", structTags.hclPath, sv)
+				output[structTags.hclPath] = sv
 
 			case reflect.Bool:
 				bv := fieldVal.Bool()
-				debugLogger.Infof("Setting %q to %t", tfschemaTag, bv)
-				output[tfschemaTag] = bv
+				debugLogger.Infof("Setting %q to %t", structTags.hclPath, bv)
+				output[structTags.hclPath] = bv
 
 			case reflect.Map:
 				iter := fieldVal.MapRange()
@@ -83,42 +91,42 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 				for iter.Next() {
 					attr[iter.Key().String()] = iter.Value().Interface()
 				}
-				output[tfschemaTag] = attr
+				output[structTags.hclPath] = attr
 
 			case reflect.Slice:
 				sv := fieldVal.Slice(0, fieldVal.Len())
 				attr := make([]interface{}, sv.Len())
 				switch sv.Type() {
 				case reflect.TypeOf([]string{}):
-					debugLogger.Infof("Setting %q to []string", tfschemaTag)
+					debugLogger.Infof("Setting %q to []string", structTags.hclPath)
 					if sv.Len() > 0 {
-						output[tfschemaTag] = sv.Interface()
+						output[structTags.hclPath] = sv.Interface()
 					} else {
-						output[tfschemaTag] = make([]string, 0)
+						output[structTags.hclPath] = make([]string, 0)
 					}
 
 				case reflect.TypeOf([]int{}):
-					debugLogger.Infof("Setting %q to []int", tfschemaTag)
+					debugLogger.Infof("Setting %q to []int", structTags.hclPath)
 					if sv.Len() > 0 {
-						output[tfschemaTag] = sv.Interface()
+						output[structTags.hclPath] = sv.Interface()
 					} else {
-						output[tfschemaTag] = make([]int, 0)
+						output[structTags.hclPath] = make([]int, 0)
 					}
 
 				case reflect.TypeOf([]float64{}):
-					debugLogger.Infof("Setting %q to []float64", tfschemaTag)
+					debugLogger.Infof("Setting %q to []float64", structTags.hclPath)
 					if sv.Len() > 0 {
-						output[tfschemaTag] = sv.Interface()
+						output[structTags.hclPath] = sv.Interface()
 					} else {
-						output[tfschemaTag] = make([]float64, 0)
+						output[structTags.hclPath] = make([]float64, 0)
 					}
 
 				case reflect.TypeOf([]bool{}):
-					debugLogger.Infof("Setting %q to []bool", tfschemaTag)
+					debugLogger.Infof("Setting %q to []bool", structTags.hclPath)
 					if sv.Len() > 0 {
-						output[tfschemaTag] = sv.Interface()
+						output[structTags.hclPath] = sv.Interface()
 					} else {
-						output[tfschemaTag] = make([]bool, 0)
+						output[structTags.hclPath] = make([]bool, 0)
 					}
 
 				default:
@@ -135,11 +143,11 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 						}
 						attr[i] = serialized
 					}
-					debugLogger.Infof("[SLICE] Setting %q to %+v", tfschemaTag, attr)
-					output[tfschemaTag] = attr
+					debugLogger.Infof("[SLICE] Setting %q to %+v", structTags.hclPath, attr)
+					output[structTags.hclPath] = attr
 				}
 			default:
-				return output, fmt.Errorf("unknown type %+v for key %q", field.Type.Kind(), tfschemaTag)
+				return output, fmt.Errorf("unknown type %+v for key %q", field.Type.Kind(), structTags.hclPath)
 			}
 		}
 	}

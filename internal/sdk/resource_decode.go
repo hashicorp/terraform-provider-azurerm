@@ -56,8 +56,13 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 		field := objType.Field(i)
 		debugLogger.Infof("Field", field)
 
-		if val, exists := field.Tag.Lookup("tfschema"); exists {
-			tfschemaValue, valExists := stateRetriever.GetOkExists(val)
+		structTags, err := parseStructTags(field.Tag)
+		if err != nil {
+			return fmt.Errorf("parsing struct tags for %q: %+v", field.Name, err)
+		}
+
+		if structTags != nil {
+			tfschemaValue, valExists := stateRetriever.GetOkExists(structTags.hclPath)
 			if !valExists {
 				continue
 			}
@@ -191,8 +196,13 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 					nestedField := elem.Type().Elem().Field(j)
 					debugLogger.Infof("nestedField ", nestedField)
 
-					if val, exists := nestedField.Tag.Lookup("tfschema"); exists {
-						nestedTFSchemaValue := test[val]
+					structTags, err := parseStructTags(nestedField.Tag)
+					if err != nil {
+						return fmt.Errorf("parsing struct tags for nested field %q: %+v", nestedField.Name, err)
+					}
+
+					if structTags != nil {
+						nestedTFSchemaValue := test[structTags.hclPath]
 						if err := setValue(elem.Interface(), nestedTFSchemaValue, j, fieldName, debugLogger); err != nil {
 							return err
 						}
