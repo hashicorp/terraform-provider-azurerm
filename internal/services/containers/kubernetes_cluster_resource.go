@@ -440,12 +440,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"http_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"https_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"no_proxy": {
 							Type:     pluginsdk.TypeSet,
