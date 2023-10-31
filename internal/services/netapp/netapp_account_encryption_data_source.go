@@ -104,7 +104,7 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.AccountsGet(ctx, pointer.From(id))
 			if err != nil {
 				if resp.HttpResponse.StatusCode == http.StatusNotFound {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("not found %s: %v", id, err)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
