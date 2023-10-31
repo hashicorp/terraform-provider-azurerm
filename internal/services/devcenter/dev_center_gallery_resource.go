@@ -3,6 +3,8 @@ package devcenter
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/galleries"
@@ -11,12 +13,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 type DevCenterGalleryResource struct{}
-
-//var _ sdk.ResourceWithUpdate = DevCenterGalleryResource{}
 
 func (r DevCenterGalleryResource) ModelObject() interface{} {
 	return &DevCenterGalleryResourceModel{}
@@ -66,7 +65,7 @@ func (r DevCenterGalleryResource) Attributes() map[string]*schema.Schema {
 }
 
 func (r DevCenterGalleryResource) ResourceType() string {
-	return "azurerm_dev_center_gallery_resource"
+	return "azurerm_dev_center_gallery"
 }
 
 func (r DevCenterGalleryResource) Create() sdk.ResourceFunc {
