@@ -14,7 +14,6 @@ var skipResource = []string{
 	"azurerm_load_test",
 	"azurerm_kubernetes_fleet_manager",
 }
-
 var skipPropMap = map[string]struct{}{}
 var skipResourceMap = map[string]struct{}{}
 

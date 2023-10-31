@@ -65,7 +65,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("westeurope","eastus","canadacentral", false)),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false)),
+        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),

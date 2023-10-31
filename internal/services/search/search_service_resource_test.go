@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,6 +28,7 @@ func TestAccSearchService_basicSku(t *testing.T) {
 			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -36,6 +37,8 @@ func TestAccSearchService_basicSku(t *testing.T) {
 
 func TestAccSearchService_freeSku(t *testing.T) {
 	// Regression test case for issue #10151
+	// NOTE: combining the semanticSearchUpdateFreeSkuError and freeSku test case
+	// together due to the quota of one 'free' sku per subscription...
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
 
@@ -44,6 +47,71 @@ func TestAccSearchService_freeSku(t *testing.T) {
 			Config: r.basic(data, "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.semanticSearchUpdate(data, "free", "free"),
+			ExpectError: regexp.MustCompile(`can only be specified when`),
+		},
+	})
+}
+
+func TestAccSearchService_semanticSearchBasicFreeSkuError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.semanticSearchUpdate(data, "free", "free"),
+			ExpectError: regexp.MustCompile(`can only be specified when`),
+		},
+	})
+}
+
+func TestAccSearchService_semanticSearchUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.semanticSearchBasic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.semanticSearchUpdate(data, "standard", "free"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("free"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.semanticSearchUpdate(data, "standard", "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("standard"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.semanticSearchUpdate(data, "standard", "free"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue("free"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.semanticSearchBasic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -391,6 +459,15 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (SearchServiceResource) semanticSearchTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-search-%d"
+  location = "%s"
+}
+`, data.RandomInteger, "westus")
+}
+
 func (r SearchServiceResource) basic(data acceptance.TestData, sku string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -407,6 +484,43 @@ resource "azurerm_search_service" "test" {
   sku                 = "%s"
 }
 `, template, data.RandomInteger, sku)
+}
+
+func (r SearchServiceResource) semanticSearchBasic(data acceptance.TestData, sku string) string {
+	template := r.semanticSearchTemplate(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+}
+`, template, data.RandomInteger, sku)
+}
+
+func (r SearchServiceResource) semanticSearchUpdate(data acceptance.TestData, sku string, semanticSearchSku string) string {
+	template := r.semanticSearchTemplate(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+  semantic_search_sku = "%s"
+}
+`, template, data.RandomInteger, sku, semanticSearchSku)
 }
 
 func (r SearchServiceResource) requiresImport(data acceptance.TestData) string {

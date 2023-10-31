@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `scale` - (Required) A `scale` block as defined below. Changing this forces a new resource to be created.
 
-* `rai_policy_name` - (Optional) The name of RAI policy. Changing this forces a new resource to be created.
+* `rai_policy_name` - (Optional) The name of RAI policy.
 
 ---
 
