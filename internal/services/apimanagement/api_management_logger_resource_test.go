@@ -73,16 +73,11 @@ func TestAccApiManagementLogger_managedIdentityEventHub(t *testing.T) {
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
 				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
-				check.That(data.ResourceName).Key("eventhub.0.endpoint_address").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.endpoint_uri").Exists(),
 				check.That(data.ResourceName).Key("eventhub.0.client_id").HasValue("SystemAssigned"),
 			),
 		},
-		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"eventhub.0.endpoint_address", "eventhub.0.client_id"},
-		},
+		data.ImportStep("eventhub.0.endpoint_uri", "eventhub.0.client_id"),
 	})
 }
 
@@ -318,9 +313,9 @@ resource "azurerm_api_management_logger" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   eventhub {
-    name             = azurerm_eventhub.test.name
-    endpoint_address = "${azurerm_eventhub_namespace.test.name}.servicebus.windows.net"
-    client_id        = "SystemAssigned"
+    name         = azurerm_eventhub.test.name
+    endpoint_uri = "${azurerm_eventhub_namespace.test.name}.servicebus.windows.net"
+    client_id    = "SystemAssigned"
   }
 }
 
@@ -329,6 +324,8 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Azure Event Hubs Data Sender"
   principal_id         = azurerm_api_management.test.identity[0].principal_id
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

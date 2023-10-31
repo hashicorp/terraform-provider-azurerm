@@ -73,16 +73,36 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"eventhub.0.connection_string",
+								"eventhub.0.endpoint_uri",
+							},
+							ConflictsWith: []string{
+								"eventhub.0.endpoint_uri",
+								"eventhub.0.client_id",
+							},
 						},
-						"endpoint_address": {
+						"endpoint_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"eventhub.0.connection_string",
+								"eventhub.0.endpoint_uri",
+							},
+							ConflictsWith: []string{
+								"eventhub.0.connection_string",
+							},
+							RequiredWith: []string{"eventhub.0.client_id"},
 						},
 						"client_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							ConflictsWith: []string{
+								"eventhub.0.connection_string",
+							},
+							RequiredWith: []string{"eventhub.0.endpoint_uri"},
 						},
 					},
 				},
@@ -156,12 +176,8 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if len(eventHubRaw) > 0 {
-
 		parameters.Properties.LoggerType = logger.LoggerTypeAzureEventHub
-		credentials, err := expandApiManagementLoggerEventHub(eventHubRaw)
-		if err != nil {
-			return err
-		}
+		credentials := expandApiManagementLoggerEventHub(eventHubRaw)
 		parameters.Properties.Credentials = credentials
 	} else if len(appInsightsRaw) > 0 {
 		parameters.Properties.LoggerType = logger.LoggerTypeApplicationInsights
@@ -239,10 +255,7 @@ func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if hasEventHub {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeAzureEventHub)
-		credentials, err := expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
-		if err != nil {
-			return err
-		}
+		credentials := expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
 		parameters.Properties.Credentials = credentials
 	} else if hasAppInsights {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeApplicationInsights)
@@ -275,29 +288,23 @@ func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandApiManagementLoggerEventHub(input []interface{}) (*map[string]string, error) {
+func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 	credentials := make(map[string]string)
 	eventHub := input[0].(map[string]interface{})
 
 	connectionString := eventHub["connection_string"].(string)
-	endpointAddress := eventHub["endpoint_address"].(string)
+	endpointAddress := eventHub["endpoint_uri"].(string)
 	clientId := eventHub["client_id"].(string)
-	if len(eventHub["connection_string"].(string)) == 0 && len(eventHub["endpoint_address"].(string)) == 0 {
-		return nil, fmt.Errorf("Either `connection_string` or `endpoint_address` is required")
-	}
 
 	credentials["name"] = eventHub["name"].(string)
 	if len(connectionString) > 0 {
 		credentials["connectionString"] = connectionString
 	} else if len(endpointAddress) > 0 {
-		if len(clientId) == 0 {
-			return nil, fmt.Errorf("`client_id` is required when `endpoint_address` is specified")
-		}
 		credentials["endpointAddress"] = endpointAddress
-		credentials["identityClientId"] = eventHub["client_id"].(string)
+		credentials["identityClientId"] = clientId
 	}
 
-	return &credentials, nil
+	return &credentials
 }
 
 func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[string]string {
@@ -317,11 +324,11 @@ func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *l
 			if conn, ok := existingEventHub["connection_string"]; ok {
 				eventHub["connection_string"] = conn.(string)
 			}
-			if endpoint, ok := existingEventHub["endpoint_address"]; ok {
-				eventHub["endpoint_address"] = endpoint.(string)
+			if endpoint, ok := existingEventHub["endpoint_uri"]; ok {
+				eventHub["endpoint_uri"] = endpoint
 			}
 			if clientId, ok := existingEventHub["client_id"]; ok {
-				eventHub["client_id"] = clientId.(string)
+				eventHub["client_id"] = clientId
 			}
 		}
 		result = append(result, eventHub)
