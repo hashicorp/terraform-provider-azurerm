@@ -31,8 +31,8 @@ resource "azurerm_api_management_api_operation" "example" {
   description         = "This can only be done by the logged in user."
 
   template_parameter {
-    name    = "id"
-    type    = "number"
+    name     = "id"
+    type     = "number"
     required = true
   }
 
