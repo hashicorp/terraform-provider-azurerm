@@ -101,7 +101,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, "default")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failed to check for presence of existing Server %q Sql Microsoft Support Auditing (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
+				return fmt.Errorf("failed to check for presence of existing Server %q Sql Microsoft Support Auditing (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
 			}
 		}
 
