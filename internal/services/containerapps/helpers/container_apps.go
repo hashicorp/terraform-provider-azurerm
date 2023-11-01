@@ -276,6 +276,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		External:      pointer.To(ingress.IsExternal),
 		Fqdn:          pointer.To(ingress.FQDN),
 		TargetPort:    pointer.To(int64(ingress.TargetPort)),
+		ExposedPort:   pointer.To(int64(ingress.ExposedPort)),
 		Traffic:       expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
@@ -296,6 +297,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 		IsExternal:     pointer.From(ingress.External),
 		FQDN:           pointer.From(ingress.Fqdn),
 		TargetPort:     int(pointer.From(ingress.TargetPort)),
+		ExposedPort:    int(pointer.From(ingress.ExposedPort)),
 		TrafficWeights: flattenContainerAppIngressTraffic(ingress.Traffic, appName),
 	}
 
