@@ -5,20 +5,23 @@ State migrations come into play if a resource's implementation needs to change, 
 Common scenarios where a state migration would be required in Azure are:
 * To correct the format of a Resource ID, the most common example is updating the casing of a segment e.g. `/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1` -> `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1`
 * Updating the default value of a property in the schema
-* Recasting property values in the schema
+* Recasting property values in the schema, unlike the scenario's above this also requires changes to the user's config, thus should only be in a major version release
 
-**Note:** In a lot of cases the changes made by a state migration are not backward compatible, care should be taken when adding state migrations and thorough manual testing should be done. See the section on Testing below.
+**Note:** State migrations are one-way by design meaning they're not backward compatible. Once they've been run you can no longer downgrade to an older version of the provider. Care should be taken when adding state migrations and thorough manual testing should be done. See the section on Testing below.
 
 ## Conventions within the AzureRM Provider
 
 State migrations are service specific and are thus kept under a `migration` folder of a service e.g.
 
+```
 ├── compute
 │   ├── client
 │   ├── migration
 │   │   ├── managed_disk_v0_to_v1.go
 │   ├── managed_disk_resource.go
 ...
+```
+
 
 The migration file follows the naming convention of `[resourceName]_[initialVersion]_to_[finalVersion].go` e.g. `managed_disk_v0_to_v1.go`
 
@@ -27,7 +30,7 @@ The migration file follows the naming convention of `[resourceName]_[initialVers
 We will step through an example on how to add a state migration for a made up resource, `capybara_resource.go` in the `animals` service, where one of the Resource ID segments has been cased incorrectly. The state migration will make the following modification:
 `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/Capybaras/capybara1` -> `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/capybaras/capybara1`
 
-1. Create an empty file under the service's migration folder called `capybara_v0_to_v1.go`
+1. Create an empty file under the service's migration folder called `capybara_v0_to_v1.go` e.g. (e.g. `./internal/services/animals/migration/capybara_v0_to_v1.go`)
 
 2. The bare minimum required within the file is shown below. Regardless of what the state migration is modifying, `Schema()` and `UpgradeFunc()` must be specified since these are referenced by the resource.
 ```go
@@ -41,13 +44,13 @@ import (
 
 type CapybaraV0ToV1 struct{}
 
-func (s CapybaraV0ToV1) Schema() map[string]*pluginsdk.Schema {
+func (CapybaraV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		// TODO implement me!
 	}
 }
 
-func (s CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		// TODO implement me!
 		return nil, nil
@@ -55,8 +58,9 @@ func (s CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 }
 ```
 
-3. Copy over the schema for `capybara_resource.go`. If nothing in the schema is changing then this can be copied over 1:1, however you will want to go through and remove some property attributes that are not required. 
-The information in `Schema()` is used to help core serialize/deserialize the values when sending the data over RPC. For this reason the following property attributes should be removed from the schema since they unnecessarily bloat the code base:
+3. Copy over the schema for `capybara_resource.go`. If nothing in the schema is changing then this can be copied over 1:1, however you will want to go through and remove some property attributes that are not required.
+   The `Schema()` is a point-in-time reference to the Terraform Schema for this Resource at this point - and is used by Terraform to deserialize/serialize the object from the Terraform State. For this reason only a subset of attributes should be defined here (including `Type`, `Required`, `Optional`, `Computed` and `Elem` [for maps/lists/sets, including any custom hash functions]) - and the following attributes can be removed from the Schema:
+   
    * Default
    * ValidateFunc
    * ForceNew
@@ -66,7 +70,12 @@ The information in `Schema()` is used to help core serialize/deserialize the val
    * ConflictsWith
    * ExactlyOneOf
    * RequiredWith
-4. Fill out the UpgradeFunc to make the modification to the Resource ID. In most cases this involves parsing the old ID insensitively and then overwriting the value for `id` in the state. The file should now look like this:
+   
+   Other caveats to look out for when copying the schema over are:
+   * in-lining any schema elements which are returned by functions
+   * removing any if/else logic within the Schema, in most cases this will be feature flags e.g. `features.FourPointOh()`
+   
+4. Fill out the UpgradeFunc to update the Terraform State for this resource. Typically this involves parsing the old Resource ID case-insensitively and then setting the correct casing for the `id` field (which is what this example assumes) - however note that State Migrations aren't limited to the `id` field. The file should now look like this:
 ```go
 package migration
 
@@ -105,14 +114,14 @@ func (s CapybaraV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := capybaras.ParseCapybaraIDInsensitively(oldId)
+		parsed, err := capybaras.ParseCapybaraIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}
 
+		newId := parsed.ID()
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
-
-		rawState["id"] = newId.ID()
+		rawState["id"] = newId
 		return rawState, nil
 	}
 }
@@ -148,7 +157,7 @@ type CapybaraResourceModel struct {
 
 func (r CapybaraResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
+		SchemaVersion: 1, // This field references the version which the state migration updates the schema to i.e. v0 -> v1
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.CapybaraV0ToV1{},
 		},
@@ -166,5 +175,5 @@ Currently no automated testing for state migrations exist since the testing fram
 1. Create the resource using an older version of the provider
 2. Locally build a version of the provider containing the state migration
 3. Enable development overrides for Terraform
-4. Run `terraform plan` using the locally built version of the provider
+4. Run `terraform plan` and/or `terraform apply` using the locally built version of the provider
 5. Verify that there are no plan differences
