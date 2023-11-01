@@ -3,6 +3,7 @@ package networkfunction_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -17,6 +18,10 @@ import (
 type NetworkFunctionCollectorPolicyResource struct{}
 
 func TestAccNetworkFunctionCollectorPolicy(t *testing.T) {
+	if os.Getenv("ARM_NETWORK_FUNCTION_PEERING_LOCATION") == "" {
+		t.Skip("Skipping as ARM_NETWORK_FUNCTION_PEERING_LOCATION is not specified")
+	}
+
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccNetworkFunctionCollectorPolicy_basic,
@@ -122,7 +127,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CoreSite-Los-Angeles-LA1"
+  peering_location    = "%[3]s"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
@@ -160,7 +165,7 @@ resource "azurerm_network_function_azure_traffic_collector" "test" {
     azurerm_express_route_circuit_peering.test
   ]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_NETWORK_FUNCTION_PEERING_LOCATION"))
 }
 
 func (r NetworkFunctionCollectorPolicyResource) basic(data acceptance.TestData) string {
