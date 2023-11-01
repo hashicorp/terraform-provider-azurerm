@@ -4,6 +4,7 @@
 package sdk
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"reflect"
 	"testing"
 
@@ -91,6 +92,208 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 				"salut":   "tous les monde",
 				"guten":   "tag",
 				"morning": "alvaro",
+			},
+		},
+	}.test(t)
+}
+
+func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
+	type SimpleType struct {
+		String           string             `tfschema:"string"`
+		StringPtr        *string            `tfschema:"string_ptr"`
+		Number           int                `tfschema:"number"`
+		NumberPtr        *int               `tfschema:"number_ptr"`
+		Price            float64            `tfschema:"price"`
+		PricePtr         *float64           `tfschema:"price_ptr"`
+		Enabled          bool               `tfschema:"enabled"`
+		EnabledPtr       *bool              `tfschema:"enabled_ptr"`
+		ListOfFloats     []float64          `tfschema:"list_of_floats"`
+		ListOfNumbers    []int              `tfschema:"list_of_numbers"`
+		ListOfStrings    []string           `tfschema:"list_of_strings"`
+		ListOfStringsPtr *[]string          `tfschema:"list_of_strings_ptr"`
+		MapOfBools       map[string]bool    `tfschema:"map_of_bools"`
+		MapOfNumbers     map[string]int     `tfschema:"map_of_numbers"`
+		MapOfStrings     map[string]string  `tfschema:"map_of_strings"`
+		MapOfStringsPtr  *map[string]string `tfschema:"map_of_strings_ptr"`
+	}
+
+	encodeTestData{
+		Input: &SimpleType{
+			String:  "world",
+			Number:  42,
+			Price:   129.99,
+			Enabled: true,
+			ListOfFloats: []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			ListOfNumbers: []int{1, 2, 3},
+			ListOfStrings: []string{
+				"have",
+				"you",
+				"heard",
+			},
+			MapOfBools: map[string]bool{
+				"awesome_feature": true,
+			},
+			MapOfNumbers: map[string]int{
+				"hello": 1,
+				"there": 3,
+			},
+			MapOfStrings: map[string]string{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+		},
+		Expected: map[string]interface{}{
+			"number":      int64(42),
+			"number_ptr":  nil,
+			"price":       float64(129.99),
+			"price_ptr":   nil,
+			"string":      "world",
+			"string_ptr":  nil,
+			"enabled":     true,
+			"enabled_ptr": nil,
+			"list_of_floats": []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			"list_of_numbers": []int{1, 2, 3},
+			"list_of_strings": []string{
+				"have",
+				"you",
+				"heard",
+			},
+			"list_of_strings_ptr": nil,
+			"map_of_bools": map[string]interface{}{
+				"awesome_feature": true,
+			},
+			"map_of_numbers": map[string]interface{}{
+				"hello": 1,
+				"there": 3,
+			},
+			"map_of_strings": map[string]interface{}{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+			"map_of_strings_ptr": nil,
+		},
+	}.test(t)
+}
+
+func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
+	type SimpleType struct {
+		String           string             `tfschema:"string"`
+		StringPtr        *string            `tfschema:"string_ptr"`
+		Number           int                `tfschema:"number"`
+		NumberPtr        *int               `tfschema:"number_ptr"`
+		Price            float64            `tfschema:"price"`
+		PricePtr         *float64           `tfschema:"price_ptr"`
+		Enabled          bool               `tfschema:"enabled"`
+		EnabledPtr       *bool              `tfschema:"enabled_ptr"`
+		ListOfFloats     []float64          `tfschema:"list_of_floats"`
+		ListOfNumbers    []int              `tfschema:"list_of_numbers"`
+		ListOfStrings    []string           `tfschema:"list_of_strings"`
+		ListOfStringsPtr *[]string          `tfschema:"list_of_strings_ptr"`
+		MapOfBools       map[string]bool    `tfschema:"map_of_bools"`
+		MapOfNumbers     map[string]int     `tfschema:"map_of_numbers"`
+		MapOfStrings     map[string]string  `tfschema:"map_of_strings"`
+		MapOfStringsPtr  *map[string]string `tfschema:"map_of_strings_ptr"`
+	}
+
+	encodeTestData{
+		Input: &SimpleType{
+			String:     "world",
+			StringPtr:  pointer.To("foo"),
+			Number:     42,
+			NumberPtr:  pointer.To(22),
+			Price:      129.99,
+			PricePtr:   pointer.To(3.50),
+			Enabled:    true,
+			EnabledPtr: pointer.To(true),
+			ListOfFloats: []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			ListOfNumbers: []int{1, 2, 3},
+			ListOfStrings: []string{
+				"have",
+				"you",
+				"heard",
+			},
+			ListOfStringsPtr: pointer.To([]string{
+				"about",
+				"the",
+				"bird",
+			}),
+			MapOfBools: map[string]bool{
+				"awesome_feature": true,
+			},
+			MapOfNumbers: map[string]int{
+				"hello": 1,
+				"there": 3,
+			},
+			MapOfStrings: map[string]string{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+			MapOfStringsPtr: pointer.To(map[string]string{
+				"foo": "bar",
+			}),
+		},
+		Expected: map[string]interface{}{
+			"number":      int64(42),
+			"number_ptr":  int64(22),
+			"price":       float64(129.99),
+			"price_ptr":   float64(3.50),
+			"string":      "world",
+			"string_ptr":  "foo",
+			"enabled":     true,
+			"enabled_ptr": true,
+			"list_of_floats": []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			"list_of_numbers": []int{1, 2, 3},
+			"list_of_strings": []string{
+				"have",
+				"you",
+				"heard",
+			},
+			"list_of_strings_ptr": []string{
+				"about",
+				"the",
+				"bird",
+			},
+			"map_of_bools": map[string]interface{}{
+				"awesome_feature": true,
+			},
+			"map_of_numbers": map[string]interface{}{
+				"hello": 1,
+				"there": 3,
+			},
+			"map_of_strings": map[string]interface{}{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+			"map_of_strings_ptr": map[string]interface{}{
+				"foo": "bar",
 			},
 		},
 	}.test(t)

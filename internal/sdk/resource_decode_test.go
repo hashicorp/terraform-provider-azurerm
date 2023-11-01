@@ -4,6 +4,7 @@
 package sdk
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"reflect"
 	"testing"
 )
@@ -203,6 +204,85 @@ func TestDecode_TopLevelFieldsOptional(t *testing.T) {
 			MapOfBools:   map[string]bool{},
 			MapOfNumbers: map[string]int{},
 			MapOfStrings: map[string]string{},
+		},
+		ExpectError: false,
+	}.test(t)
+}
+
+func TestDecode_TopLevelFieldsOptionalNullValues(t *testing.T) {
+	type SimpleType struct {
+		Required      string             `tfschema:"required"`
+		String        *string            `tfschema:"string"`
+		Number        *int               `tfschema:"number"`
+		Price         *float64           `tfschema:"price"`
+		Enabled       *bool              `tfschema:"enabled"`
+		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
+		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
+		ListOfStrings *[]string          `tfschema:"list_of_strings"`
+		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
+	}
+	decodeTestData{
+		State: map[string]interface{}{
+			"required":        "name",
+			"number":          nil,
+			"price":           nil,
+			"string":          nil,
+			"enabled":         nil,
+			"list_of_floats":  nil,
+			"list_of_numbers": nil,
+			"list_of_strings": nil,
+			"map_of_bools":    nil,
+			"map_of_numbers":  nil,
+			"map_of_strings":  nil,
+		},
+		Input: &SimpleType{},
+		Expected: &SimpleType{
+			Required: "name",
+		},
+		ExpectError: false,
+	}.test(t)
+}
+
+func TestDecode_TopLevelFieldsOptionalMixedValues(t *testing.T) {
+	type SimpleType struct {
+		Required      string             `tfschema:"required"`
+		String        *string            `tfschema:"string"`
+		Number        *int               `tfschema:"number"`
+		Price         *float64           `tfschema:"price"`
+		Enabled       *bool              `tfschema:"enabled"`
+		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
+		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
+		ListOfStrings *[]string          `tfschema:"list_of_strings"`
+		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
+	}
+	decodeTestData{
+		State: map[string]interface{}{
+			"required":        "name",
+			"number":          nil,
+			"price":           pointer.To(3.5),
+			"string":          nil,
+			"enabled":         pointer.To(false),
+			"list_of_floats":  nil,
+			"list_of_numbers": nil,
+			"list_of_strings": &[]string{
+				"have",
+				"you",
+				"heard",
+			},
+			"map_of_bools": nil,
+			"map_of_numbers": &map[string]interface{}{
+				"ten":       10,
+				"twentyone": 21,
+			},
+			"map_of_strings": nil,
+		},
+		Input: &SimpleType{},
+		Expected: &SimpleType{
+			Required: "name",
 		},
 		ExpectError: false,
 	}.test(t)

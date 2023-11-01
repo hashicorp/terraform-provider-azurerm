@@ -54,7 +54,7 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 	objType := reflect.TypeOf(input).Elem()
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
-		debugLogger.Infof("Field", field)
+		debugLogger.Infof("Field: %#v", field.Name)
 
 		structTags, err := parseStructTags(field.Tag)
 		if err != nil {
@@ -67,8 +67,8 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 				continue
 			}
 
-			debugLogger.Infof("TFSchemaValue: ", tfschemaValue)
-			debugLogger.Infof("Input Type: ", reflect.ValueOf(input).Elem().Field(i).Type())
+			debugLogger.Infof("TFSchemaValue: %+v", tfschemaValue)
+			debugLogger.Infof("Input Type: %+v", reflect.ValueOf(input).Elem().Field(i).Type())
 
 			fieldName := reflect.ValueOf(input).Elem().Field(i).String()
 			if err := setValue(input, tfschemaValue, i, fieldName, debugLogger); err != nil {
