@@ -270,7 +270,7 @@ func TestAccContainerAppResource_completeTcpExposedPort(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "rev1"),
+			Config: r.completeTcpExposedPort(data, "rev1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
