@@ -513,6 +513,9 @@ resource "azurerm_managed_application" "test" {
           key_0 = 0
         }
       }
+    },
+    arrayParameter = {
+      value = ["value_1", "value_2"]
     }
   })
 }
