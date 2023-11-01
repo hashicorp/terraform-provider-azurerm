@@ -451,6 +451,9 @@ resource "azurerm_managed_application" "test" {
           key_0 = 0
         }
       }
+    },
+    arrayParameter = {
+      value = ["value_1", "value_2"]
     }
   })
 }
@@ -600,6 +603,9 @@ func (r ManagedApplicationResource) templateAllSupportedParametersTypes(data acc
          },
          "objectParameter": {
             "type": "object"
+         },
+         "arrayParameter": {
+            "type": "array"
          }
 `
 	return r.template(data, parameters)
@@ -675,6 +681,10 @@ resource "azurerm_managed_application_definition" "test" {
               "key_0": 0
             }
           }
+        },
+        "arrayOutput": {
+          "type": "array",
+          "value": ["value_1", "value_2"]
         }
       }
     }
