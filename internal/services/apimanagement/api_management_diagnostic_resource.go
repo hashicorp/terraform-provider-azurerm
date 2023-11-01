@@ -157,19 +157,11 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if !features.FourPointOh() {
-		if d.Get("identifier") == "applicationinsights" {
-			if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
-				parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
-			} else {
-				parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormatName)
-			}
-		}
-	} else {
-		if d.Get("identifier") == "applicationinsights" {
-			if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
-				parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
-			}
+	if d.Get("identifier") == "applicationinsights" {
+		if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
+		} else if !features.FourPointOh() {
+			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormatName)
 		}
 	}
 
