@@ -83,13 +83,6 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 
 		"location": commonschema.Location(),
 
-		"administrator_login_password": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringLenBetween(8, 256),
-		},
-
 		"coordinator_storage_quota_in_mb": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
@@ -121,6 +114,13 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				validation.IntBetween(0, 20),
 				validation.IntNotInSlice([]int{1}),
 			),
+		},
+
+		"administrator_login_password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringLenBetween(8, 256),
 		},
 
 		"citus_version": {
