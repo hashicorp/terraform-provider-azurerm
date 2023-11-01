@@ -575,7 +575,7 @@ resource "azurerm_api_management_api_operation" "test" {
   api_name            = azurerm_api_management_api.test.name
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-	display_name        = "Acceptance Test Operation"
+  display_name        = "Acceptance Test Operation"
   method              = "DELETE"
   url_template        = "/users/{id}/delete"
   description         = "This can only be done by the logged in user."
