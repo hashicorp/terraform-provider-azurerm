@@ -33,8 +33,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_client_config":   dataSourceArmClientConfig(),
-		"azurerm_role_definition": dataSourceArmRoleDefinition(),
+		"azurerm_client_config": dataSourceArmClientConfig(),
 	}
 }
 
@@ -42,12 +41,13 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_role_assignment": resourceArmRoleAssignment(),
-		"azurerm_role_definition": resourceArmRoleDefinition(),
 	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ArmRoleDefinitionDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
@@ -55,6 +55,7 @@ func (r Registration) Resources() []sdk.Resource {
 		PimActiveRoleAssignmentResource{},
 		PimEligibleRoleAssignmentResource{},
 		RoleAssignmentMarketplaceResource{},
+		ArmRoleDefinitionResource{},
 	}
 	return resources
 }
