@@ -18,19 +18,16 @@ func (s SpringCloudCustomizedAcceleratorV0ToV1) Schema() map[string]*pluginsdk.S
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"spring_cloud_accelerator_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"git_repository": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"url": {
@@ -39,11 +36,8 @@ func (s SpringCloudCustomizedAcceleratorV0ToV1) Schema() map[string]*pluginsdk.S
 					},
 
 					"basic_auth": {
-						Type:          pluginsdk.TypeList,
-						Optional:      true,
-						ForceNew:      true,
-						MaxItems:      1,
-						ConflictsWith: []string{"git_repository.0.ssh_auth"},
+						Type:     pluginsdk.TypeList,
+						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"username": {
@@ -52,32 +46,26 @@ func (s SpringCloudCustomizedAcceleratorV0ToV1) Schema() map[string]*pluginsdk.S
 								},
 
 								"password": {
-									Type:      pluginsdk.TypeString,
-									Required:  true,
-									Sensitive: true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 							},
 						},
 					},
 
 					"ssh_auth": {
-						Type:          pluginsdk.TypeList,
-						Optional:      true,
-						ForceNew:      true,
-						MaxItems:      1,
-						ConflictsWith: []string{"git_repository.0.basic_auth"},
+						Type:     pluginsdk.TypeList,
+						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"private_key": {
-									Type:      pluginsdk.TypeString,
-									Required:  true,
-									Sensitive: true,
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 
 								"host_key": {
-									Type:      pluginsdk.TypeString,
-									Optional:  true,
-									Sensitive: true,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
 								},
 
 								"host_key_algorithm": {
@@ -89,9 +77,8 @@ func (s SpringCloudCustomizedAcceleratorV0ToV1) Schema() map[string]*pluginsdk.S
 					},
 
 					"branch": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 
 					"ca_certificate_id": {
@@ -100,15 +87,13 @@ func (s SpringCloudCustomizedAcceleratorV0ToV1) Schema() map[string]*pluginsdk.S
 					},
 
 					"commit": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 
 					"git_tag": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 
 					"interval_in_seconds": {

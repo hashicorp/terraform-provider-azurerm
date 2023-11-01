@@ -18,13 +18,11 @@ func (s SpringCloudAcceleratorV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"spring_cloud_service_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 	}
 }
