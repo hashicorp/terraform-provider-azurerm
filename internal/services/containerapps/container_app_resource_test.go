@@ -1638,7 +1638,6 @@ resource "azurerm_container_app" "test" {
   }
 
   ingress {
-    allow_insecure_connections = true
     external_enabled           = true
     target_port                = 5000
     exposed_port               = 5555
