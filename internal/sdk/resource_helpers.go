@@ -53,10 +53,3 @@ func parseStructTags(input reflect.StructTag) (*decodedStructTags, error) {
 
 	return output, nil
 }
-
-func NewResourceDataForTest() ResourceMetaData {
-	return ResourceMetaData{
-		ResourceData:             &PluginSdkResourceData{},
-		serializationDebugLogger: NullLogger{},
-	}
-}
