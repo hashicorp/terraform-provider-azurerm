@@ -152,6 +152,7 @@ type Ingress struct {
 	IsExternal     bool            `tfschema:"external_enabled"`
 	FQDN           string          `tfschema:"fqdn"`
 	TargetPort     int             `tfschema:"target_port"`
+	ExposedPort    int             `tfschema:"exposed_port"`
 	TrafficWeights []TrafficWeight `tfschema:"traffic_weight"`
 	Transport      string          `tfschema:"transport"`
 }
@@ -192,6 +193,13 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Description:  "The target port on the container for the Ingress traffic.",
 				},
 
+				"exposed_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 65535),
+					Description:  "The exposed port on the container for the Ingress traffic.",
+				},
+
 				"traffic_weight": ContainerAppIngressTrafficWeight(),
 
 				"transport": {
@@ -199,7 +207,7 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(containerapps.IngressTransportMethodAuto),
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
-					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`",
+					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
 				},
 			},
 		},
@@ -238,12 +246,18 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 					Description: "The target port on the container for the Ingress traffic.",
 				},
 
+				"exposed_port": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The exposed port on the container for the Ingress traffic.",
+				},
+
 				"traffic_weight": ContainerAppIngressTrafficWeightComputed(),
 
 				"transport": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`",
+					Description: "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
 				},
 			},
 		},
