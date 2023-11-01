@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,6 +55,7 @@ type SshAuthModel struct {
 type SpringCloudCustomizedAcceleratorResource struct{}
 
 var _ sdk.ResourceWithUpdate = SpringCloudCustomizedAcceleratorResource{}
+var _ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
 
 func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_customized_accelerator"
@@ -65,6 +67,15 @@ func (s SpringCloudCustomizedAcceleratorResource) ModelObject() interface{} {
 
 func (s SpringCloudCustomizedAcceleratorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.SpringCloudCustomizedAcceleratorID
+}
+
+func (s SpringCloudCustomizedAcceleratorResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudCustomizedAcceleratorV0ToV1{},
+		},
+	}
 }
 
 func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema.Schema {
