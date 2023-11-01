@@ -124,6 +124,21 @@ func TestAccApiManagementApiOperation_representations(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApiOperation_templateParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
+	r := ApiManagementApiOperationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.templateParameter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagementApiOperation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 	r := ApiManagementApiOperationResource{}
@@ -546,6 +561,33 @@ SAMPLE
 
       }
     }
+  }
+}
+`, r.template(data))
+}
+
+func (r ApiManagementApiOperationResource) templateParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation" "test" {
+  operation_id        = "acctest-operation"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+	display_name        = "Acceptance Test Operation"
+  method              = "DELETE"
+  url_template        = "/users/{id}/delete"
+  description         = "This can only be done by the logged in user."
+
+  template_parameter {
+    name     = "id"
+    type     = "number"
+    required = true
+  }
+
+  response {
+    status_code = 200
   }
 }
 `, r.template(data))
