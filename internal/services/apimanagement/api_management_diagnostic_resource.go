@@ -157,11 +157,19 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if d.Get("identifier") == "applicationinsights" {
-		if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
-			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
-		} else {
-			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormatName)
+	if !features.FourPointOh() {
+		if d.Get("identifier") == "applicationinsights" {
+			if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+				parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
+			} else {
+				parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormatName)
+			}
+		}
+	} else {
+		if d.Get("identifier") == "applicationinsights" {
+			if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+				parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
+			}
 		}
 	}
 
@@ -272,7 +280,11 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("backend_request", nil)
 				d.Set("backend_response", nil)
 			}
+
 			format := ""
+			if !features.FourPointOh() {
+				format = string(diagnostic.OperationNameFormatName)
+			}
 			if props.OperationNameFormat != nil {
 				format = string(pointer.From(props.OperationNameFormat))
 			}
