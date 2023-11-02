@@ -425,6 +425,10 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
+				if model.SourceResourceId == "" && model.AdministratorLoginPassword == "" {
+					return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.AdministratorLoginPassword = &model.AdministratorLoginPassword
 			}
 
