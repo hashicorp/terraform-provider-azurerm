@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"           // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -18,7 +19,7 @@ import (
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
 // reading any replication links then attempting to discover and match the corresponding server/database resources for
 // the other end of the link.
-func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id parse.DatabaseId, rolesToFind []sql.ReplicationRole) ([]sql.Database, error) {
+func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id parse.DatabaseId, rolesToFind []sql.ReplicationRole) ([]sql.Database, error) {
 	var partnerDatabases []sql.Database
 
 	matchesRole := func(role sql.ReplicationRole) bool {
