@@ -14,11 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 )
 
-func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs map[string]struct{}, environment environments.Environment) error {
+func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs map[string]struct{}) error {
 	if cachedResourceProviders == nil || registeredResourceProviders == nil || unregisteredResourceProviders == nil {
 		if err := populateCache(ctx, client, subscriptionId); err != nil {
 			return fmt.Errorf("populating Resource Provider cache: %+v", err)
