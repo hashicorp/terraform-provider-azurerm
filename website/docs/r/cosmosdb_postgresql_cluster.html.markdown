@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `node_count` - (Required) The worker node count of the Azure Cosmos DB for PostgreSQL Cluster. Possible value is between `0` and `20` except `1`.
 
-* `administrator_login_password` - (Optional) The password of the administrator login.
+* `administrator_login_password` - (Optional) The password of the administrator login. This is required when `source_resource_id` is not set.
 
 * `citus_version` - (Optional) The citus extension version on the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `8.3`, `9.0`, `9.1`, `9.2`, `9.3`, `9.4`, `9.5`, `10.0`, `10.1`, `10.2`, `11.0`, `11.1`, `11.2`, `11.3` and `12.1`.
 
