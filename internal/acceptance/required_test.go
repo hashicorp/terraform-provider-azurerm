@@ -44,7 +44,7 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	requiredResourceProviders := resourceproviders.Required()
 	subscriptionId := commonids.NewSubscriptionID(armClient.Account.SubscriptionId)
 
-	if err = resourceproviders.EnsureRegistered(ctx, client, subscriptionId, requiredResourceProviders); err != nil {
+	if err = resourceproviders.EnsureRegistered(ctx, client, subscriptionId, requiredResourceProviders, config.Environment); err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}
 

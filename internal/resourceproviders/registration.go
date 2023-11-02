@@ -26,7 +26,7 @@ func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, su
 	}
 
 	log.Printf("[DEBUG] Determining which Resource Providers require Registration")
-	providersToRegister, err := DetermineWhichRequiredResourceProvidersRequireRegistration(requiredRPs, environment)
+	providersToRegister, err := DetermineWhichRequiredResourceProvidersRequireRegistration(requiredRPs)
 	if err != nil {
 		return fmt.Errorf("determining which Required Resource Providers require registration: %+v", err)
 	}
