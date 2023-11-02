@@ -1441,7 +1441,7 @@ resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  firewall_policy_id                = azurerm_web_application_firewall_policy.test.id
+  firewall_policy_id  = azurerm_web_application_firewall_policy.test.id
   sku {
     name     = "WAF_v2"
     tier     = "WAF_v2"
