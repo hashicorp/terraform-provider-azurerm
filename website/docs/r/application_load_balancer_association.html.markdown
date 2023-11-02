@@ -50,7 +50,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_application_load_balancer_subnet_association" "example" {
   name                         = "example"
   application_load_balancer_id = azurerm_application_load_balancer.example.id
-  subnet_id                    = azurerm_subnet_example.id
+  subnet_id                    = azurerm_subnet.example.id
 }
 ```
 
