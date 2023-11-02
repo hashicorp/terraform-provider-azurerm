@@ -378,10 +378,8 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 
 			if v := model.SourceResourceId; v != "" {
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
-			} else {
-				if model.AdministratorLoginPassword == "" {
-					return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
-				}
+			} else if model.AdministratorLoginPassword == "" {
+				return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
 			}
 
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
