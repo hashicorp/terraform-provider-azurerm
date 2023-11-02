@@ -338,12 +338,16 @@ An `ingress` block supports the following:
 * `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
+ 
+* `exposed_port` - (Required) The exposed port on the container for the Ingress traffic.
+
+~> **Note:** `exposed_port` can only be specified when `transport` is set to `tcp`.
 
 * `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
 
 ~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
 
-* `transport` - (Optional) The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
+* `transport` - (Optional) The transport method for the Ingress. Possible values include `auto`, `http`, `http2` and `tcp`. Defaults to `auto`
 
 ---
 
