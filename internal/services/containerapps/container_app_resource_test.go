@@ -1596,10 +1596,11 @@ resource "azurerm_container_app" "test" {
   }
 
   ingress {
-    external_enabled           = true
-    target_port                = 5000
-    exposed_port               = 5555
-    transport                  = "tcp"
+    external_enabled = true
+    target_port      = 5000
+    exposed_port     = 5555
+    transport        = "tcp"
+
     traffic_weight {
       latest_revision = true
       percentage      = 100
