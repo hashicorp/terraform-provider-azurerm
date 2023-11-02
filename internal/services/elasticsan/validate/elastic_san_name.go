@@ -13,10 +13,10 @@ func ElasticSanName(i interface{}, k string) (warnings []string, errors []error)
 	}
 
 	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{1,22}[a-z0-9]$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q must be 3 to 24 characters long, must be lowercase, and can only contain alphanumeric characters, underscores, and hyphens", k))
+		errors = append(errors, fmt.Errorf("%q must be between 3 and 24 characters. It can contain only lowercase letters, numbers, underscores (_) and hyphens (-). It must start and end with a lowercase letter or number", k))
 	}
 
-	if matched := regexp.MustCompile(`(_|-)+[_-]`).Match([]byte(v)); matched {
+	if matched := regexp.MustCompile(`[_-][_-]`).Match([]byte(v)); matched {
 		errors = append(errors, fmt.Errorf("%q must have hyphens and underscores be surrounded by alphanumeric character", k))
 	}
 
