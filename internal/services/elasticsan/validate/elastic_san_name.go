@@ -12,31 +12,12 @@ func ElasticSanName(i interface{}, k string) (warnings []string, errors []error)
 		return
 	}
 
-	// name can be 3-24 characters in length
-	const minLength = 3
-	if len(v) < minLength {
-		errors = append(errors, fmt.Errorf("%q can be at least %d characters, got %d", k, minLength, len(v)))
-	}
-
-	const maxLength = 24
-	if len(v) > maxLength {
-		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
-	}
-
-	if matched := regexp.MustCompile(`^[a-z0-9_-]+$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain lower case characters, numbers, dashes and underscores", k))
-	}
-
-	if matched := regexp.MustCompile(`^[a-z0-9]`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q must begin with an alphanumeric character", k))
-	}
-
-	if matched := regexp.MustCompile(`[a-z0-9]$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q must end with an alphanumeric character", k))
+	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{1,22}[a-z0-9]$`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q must be 3 to 24 characters long, must be lowercase, and can only contain alphanumeric characters, underscores, and hyphens", k))
 	}
 
 	if matched := regexp.MustCompile(`(_|-)+[_-]`).Match([]byte(v)); matched {
-		errors = append(errors, fmt.Errorf("%q must have hyphens and underscores be surrounded by letters or numbers", k))
+		errors = append(errors, fmt.Errorf("%q must have hyphens and underscores be surrounded by alphanumeric character", k))
 	}
 
 	return warnings, errors

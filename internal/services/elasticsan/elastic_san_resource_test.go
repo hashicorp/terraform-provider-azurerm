@@ -3,6 +3,7 @@ package elasticsan_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/elasticsans"
@@ -27,6 +28,18 @@ func TestAccElasticSAN_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccElasticSAN_zoneWithZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
+	r := ElasticSANTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.zoneWithZRS(data),
+			ExpectError: regexp.MustCompile("zones are not supported"),
+		},
 	})
 }
 
@@ -117,6 +130,28 @@ resource "azurerm_elastic_san" "test" {
   zones                = ["1"]
   sku {
     name = "Premium_LRS"
+  }
+}
+`, r.template(data))
+}
+
+func (r ElasticSANTestResource) zoneWithZRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_elastic_san" "test" {
+  name                 = "acctestes-${var.random_string}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  base_size_in_tib     = 1
+  extended_size_in_tib = 1
+  zones                = ["1"]
+  sku {
+    name = "Premium_ZRS"
   }
 }
 `, r.template(data))
