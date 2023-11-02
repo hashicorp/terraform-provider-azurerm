@@ -2,12 +2,17 @@
 
 ENHANCEMENTS:
 
-* `arc_kuberenetes_cluster_extension_resource` - `version` and `release_train` can now be set simultaneously [GH-23692]
+* `azurerm_arc_kuberenetes_cluster_extension_resource` - `version` and `release_train` can now be set simultaneously [GH-23692]
+* `azurerm_container_apps` - added support for the `ingress.exposed_port` property [GH-23752]
+* `azurerm_cosmosdb_postgresql_cluster` - read replica clusters can be created without specifying `administrator_login_password` [GH-23750]
+* `azurerm_managed_application` - arrays can be supplied in the `parameter_values` property [GH-23754]
 * `azurerm_storage_management_policy` - Support for properties rule.*.actions.*.base_blob.0.tier_to_cold_after_days_since_{modification|last_access_time|creation}_greater_than and rule.*.actions.*.{snapshot|version}.0.tier_to_cold_after_days_since_creation_greater_than [GH-23574]
 
 BUG FIXES:
 
+* `azurerm_api_management_diagnostic` - `operation_name_format` will only be sent if `identifier` is set to `applicationinsights` [GH-23736]
 * `azurerm_backup_policy_vm` - fix payload by using current datetime [GH-23586]
+* `azurerm_kubernetes_cluster` - `custom_ca_trust_certificates_base64` can not be removed, only updated [GH-23737]
 
 ## 3.78.0 (October 26, 2023)
 
