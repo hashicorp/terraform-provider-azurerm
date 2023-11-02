@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"   // nolint: staticcheck
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +99,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 		}
 
-		d.Set("create_mode", string(sql.CreateModeSecondary))
+		d.Set("create_mode", string(databases.CreateModeSecondary))
 		d.Set("creation_source_database_id", partnerDatabaseId.ID())
 
 		return []*pluginsdk.ResourceData{d}, nil
@@ -245,7 +246,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	createMode, ok := d.GetOk("create_mode")
-	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
+	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(databases.CreateModeCopy) || createMode.(string) == string(databases.CreateModePointInTimeRestore) || createMode.(string) == string(databases.CreateModeSecondary)) && !dbok {
 		return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode.(string))
 	}
 	if _, dbok := d.GetOk("recover_database_id"); ok && createMode.(string) == string(sql.CreateModeRecovery) && !dbok {
@@ -1202,18 +1203,8 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ForceNew: true,
 			Default:  string(sql.CreateModeDefault),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sql.CreateModeCopy),
-				string(sql.CreateModeDefault),
-				string(sql.CreateModeOnlineSecondary),
-				string(sql.CreateModePointInTimeRestore),
-				string(sql.CreateModeRestore),
-				string(sql.CreateModeRecovery),
-				string(sql.CreateModeRestoreExternalBackup),
-				string(sql.CreateModeRestoreExternalBackupSecondary),
-				string(sql.CreateModeRestoreLongTermRetentionBackup),
-				string(sql.CreateModeSecondary),
-			}, false),
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForCreateMode(),
+				false),
 			ConflictsWith: []string{"import"},
 		},
 		"import": {

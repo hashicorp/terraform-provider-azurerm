@@ -252,6 +252,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
+	// NOTE: You must set the admin before seeting the values of the admin...
 	if azureADAdministrator, ok := d.GetOk("azuread_administrator"); ok {
 		props.Properties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
 	}

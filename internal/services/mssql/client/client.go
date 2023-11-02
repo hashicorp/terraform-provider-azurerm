@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                                       // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                        // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
@@ -23,7 +24,7 @@ type Client struct {
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	DatabaseSecurityAlertPoliciesClient                *sql.DatabaseSecurityAlertPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
-	DatabasesClient                                    *sql.DatabasesClient
+	DatabasesClient                                    *databases.DatabasesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	EncryptionProtectorClient                          *sql.EncryptionProtectorsClient
 	FailoverGroupsClient                               *sql.FailoverGroupsClient
@@ -65,8 +66,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	databaseVulnerabilityAssessmentRuleBaselinesClient := sql.NewDatabaseVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseVulnerabilityAssessmentRuleBaselinesClient.Client, o.ResourceManagerAuthorizer)
 
-	databasesClient := sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&databasesClient.Client, o.ResourceManagerAuthorizer)
+	databasesClient, err := databases.NewDatabasesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Databases Client: %+v", err)
+	}
+	o.Configure(databasesClient.Client, o.Authorizers.ResourceManager)
 
 	elasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&elasticPoolsClient.Client, o.ResourceManagerAuthorizer)
@@ -166,7 +170,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseSecurityAlertPoliciesClient:                &databaseSecurityAlertPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
-		DatabasesClient:                                 &databasesClient,
+		DatabasesClient:                                 databasesClient,
 		ElasticPoolsClient:                              &elasticPoolsClient,
 		EncryptionProtectorClient:                       &encryptionProtectorClient,
 		FailoverGroupsClient:                            &failoverGroupsClient,
