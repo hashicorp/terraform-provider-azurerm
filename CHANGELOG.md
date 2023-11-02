@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* provider: log instead of error when RPs are unavailable when validating RP registrations [GH-23380]
 * `azurerm_arc_kuberenetes_cluster_extension_resource` - `version` and `release_train` can now be set simultaneously [GH-23692]
 * `azurerm_container_apps` - added support for the `ingress.exposed_port` property [GH-23752]
 * `azurerm_cosmosdb_postgresql_cluster` - read replica clusters can be created without specifying `administrator_login_password` [GH-23750]
