@@ -186,15 +186,15 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 
 	dbResp, err := dbClient.Get(ctx, databaseId, databases.GetOperationOptions{})
 	if err != nil {
-		if dbResp.Model == nil {
-			return fmt.Errorf("reading MsSql Database %q: Model is nil: %+v", id.ServerName, err)
-		}
+		return fmt.Errorf("reading MsSql Database %s: %+v", id.ID(), err)
+	}
 
-		if dbResp.Model.Id == nil {
-			return fmt.Errorf("reading MsSql Database %q ID is nil: %+v", id.ServerName, err)
-		}
+	if dbResp.Model == nil {
+		return fmt.Errorf("retrieving MsSql Database %s: Model is nil", id.ID())
+	}
 
-		return fmt.Errorf("reading MsSql Database %q: %+v", id.ServerName, err)
+	if dbResp.Model.Id == nil {
+		return fmt.Errorf("retrieving MsSql Database %s: ID is nil", id.ID())
 	}
 
 	d.Set("database_id", dbResp.Model.Id)
