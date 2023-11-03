@@ -56,5 +56,8 @@ func Default() UserFeatures {
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,
 		},
+		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
+			RestartServerOnConfigurationValueChange: true,
+		},
 	}
 }

@@ -4,18 +4,19 @@
 package features
 
 type UserFeatures struct {
-	ApiManagement          ApiManagementFeatures
-	AppConfiguration       AppConfigurationFeatures
-	ApplicationInsights    ApplicationInsightFeatures
-	CognitiveAccount       CognitiveAccountFeatures
-	VirtualMachine         VirtualMachineFeatures
-	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
-	KeyVault               KeyVaultFeatures
-	TemplateDeployment     TemplateDeploymentFeatures
-	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
-	ResourceGroup          ResourceGroupFeatures
-	ManagedDisk            ManagedDiskFeatures
-	Subscription           SubscriptionFeatures
+	ApiManagement            ApiManagementFeatures
+	AppConfiguration         AppConfigurationFeatures
+	ApplicationInsights      ApplicationInsightFeatures
+	CognitiveAccount         CognitiveAccountFeatures
+	VirtualMachine           VirtualMachineFeatures
+	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
+	KeyVault                 KeyVaultFeatures
+	TemplateDeployment       TemplateDeploymentFeatures
+	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
+	ResourceGroup            ResourceGroupFeatures
+	ManagedDisk              ManagedDiskFeatures
+	Subscription             SubscriptionFeatures
+	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -78,4 +79,8 @@ type AppConfigurationFeatures struct {
 
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
+}
+
+type PostgresqlFlexibleServerFeatures struct {
+	RestartServerOnConfigurationValueChange bool
 }
