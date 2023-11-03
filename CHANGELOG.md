@@ -1,19 +1,19 @@
-## 3.79.0 (Unreleased)
+## 3.79.0 (November 02, 2023)
 
 ENHANCEMENTS:
 
-* provider: log instead of error when RPs are unavailable when validating RP registrations [GH-23380]
-* `azurerm_arc_kuberenetes_cluster_extension_resource` - the `version` and `release_train` properties can now be set simultaneously [GH-23692]
-* `azurerm_container_apps` - support for the `ingress.exposed_port` property [GH-23752]
-* `azurerm_cosmosdb_postgresql_cluster` - read replica clusters can be created without specifying `administrator_login_password` property [GH-23750]
-* `azurerm_managed_application` - arrays can be supplied in the `parameter_values` property [GH-23754]
-* `azurerm_storage_management_policy` - support for properties `rule.*.actions.*.base_blob.0.tier_to_cold_after_days_since_{modification|last_access_time|creation}_greater_than and rule.*.actions.*.{snapshot|version}.0.tier_to_cold_after_days_since_creation_greater_than` [GH-23574]
+* provider: log instead of error when RPs are unavailable when validating RP registrations ([#23380](https://github.com/hashicorp/terraform-provider-azurerm/issues/23380))
+* `azurerm_arc_kuberenetes_cluster_extension_resource` - the `version` and `release_train` properties can now be set simultaneously ([#23692](https://github.com/hashicorp/terraform-provider-azurerm/issues/23692))
+* `azurerm_container_apps` - support for the `ingress.exposed_port` property ([#23752](https://github.com/hashicorp/terraform-provider-azurerm/issues/23752))
+* `azurerm_cosmosdb_postgresql_cluster` - read replica clusters can be created without specifying `administrator_login_password` property ([#23750](https://github.com/hashicorp/terraform-provider-azurerm/issues/23750))
+* `azurerm_managed_application` - arrays can be supplied in the `parameter_values` property ([#23754](https://github.com/hashicorp/terraform-provider-azurerm/issues/23754))
+* `azurerm_storage_management_policy` - support for properties `rule.*.actions.*.base_blob.0.tier_to_cold_after_days_since_{modification|last_access_time|creation}_greater_than and rule.*.actions.*.{snapshot|version}.0.tier_to_cold_after_days_since_creation_greater_than` ([#23574](https://github.com/hashicorp/terraform-provider-azurerm/issues/23574))
 
 BUG FIXES:
 
-* `azurerm_api_management_diagnostic` - the `operation_name_format` attribute will only be sent if `identifier` is set to `applicationinsights` [GH-23736]
-* `azurerm_backup_policy_vm` - fix payload by using current datetime [GH-23586]
-* `azurerm_kubernetes_cluster` - the `custom_ca_trust_certificates_base64` property can not be removed, only updated [GH-23737]
+* `azurerm_api_management_diagnostic` - the `operation_name_format` attribute will only be sent if `identifier` is set to `applicationinsights` ([#23736](https://github.com/hashicorp/terraform-provider-azurerm/issues/23736))
+* `azurerm_backup_policy_vm` - fix payload by using current datetime ([#23586](https://github.com/hashicorp/terraform-provider-azurerm/issues/23586))
+* `azurerm_kubernetes_cluster` - the `custom_ca_trust_certificates_base64` property can not be removed, only updated ([#23737](https://github.com/hashicorp/terraform-provider-azurerm/issues/23737))
 
 ## 3.78.0 (October 26, 2023)
 
