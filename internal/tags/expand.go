@@ -34,7 +34,7 @@ func FlattenTags(tagsMap *map[string]string) map[string]*string {
 	output := make(map[string]*string)
 
 	if tagsMap != nil {
-		for i, v := range *tagsMap {
+		for i, v := range pointer.From(tagsMap) {
 			value, _ := TagValueToString(v)
 			output[i] = pointer.To(value)
 		}

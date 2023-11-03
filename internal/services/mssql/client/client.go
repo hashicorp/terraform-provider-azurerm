@@ -184,7 +184,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		JobCredentialsClient:                            &jobCredentialsClient,
 		LongTermRetentionPoliciesClient:                 &longTermRetentionPoliciesClient,
 		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
-		ReplicationLinksClient:                          &replicationLinksClient,
+		ReplicationLinksClient:                          replicationLinksClient,
 		RestorableDroppedDatabasesClient:                restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:               serverAzureADAdministratorsClient,
 		ServerAzureADOnlyAuthenticationsClient:          serverAzureADOnlyAuthenticationsClient,

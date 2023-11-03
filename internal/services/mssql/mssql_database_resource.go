@@ -217,19 +217,23 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 			}
 
+			databaseId := databases.DatabaseId{
+				SubscriptionId:    partnerDatabaseId.SubscriptionId,
+				ResourceGroupName: partnerDatabaseId.ResourceGroup,
+				ServerName:        partnerDatabaseId.ServerName,
+				DatabaseName:      partnerDatabaseId.Name,
+			}
+
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName.(string), *partnerDatabase.Sku.Name) {
-				future, err := client.Update(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name, sql.DatabaseUpdate{
-					Sku: &sql.Sku{
-						Name: utils.String(skuName.(string)),
-					},
+				err := client.UpdateThenPoll(ctx, databaseId, databases.DatabaseUpdate{
+					Sku: pointer.To(databases.Sku{
+						Name: skuName.(string),
+					}),
 				})
+
 				if err != nil {
 					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for SKU update for Replication Partner %s: %+v", partnerDatabaseId, err)
 				}
 			}
 		}
@@ -1368,12 +1372,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(sql.CurrentBackupStorageRedundancyGeo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sql.CurrentBackupStorageRedundancyGeo),
-				string(sql.CurrentBackupStorageRedundancyLocal),
-				string(sql.CurrentBackupStorageRedundancyZone),
-			}, false),
+			Default:  string(databases.BackupStorageRedundancyGeo),
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForBackupStorageRedundancy(),
+				false),
 		},
 
 		"zone_redundant": {
