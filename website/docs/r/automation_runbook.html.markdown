@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `log_verbose` - (Required) Verbose log option.
 
-* `publish_content_link` - (Optional) The published runbook content link.
+* `publish_content_link` - (Optional) One `publish_content_link` block as defined below.
 
 * `description` - (Optional) A description for this credential.
 

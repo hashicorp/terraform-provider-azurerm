@@ -85,7 +85,7 @@ A `maintenance_window` block supports the following:
 
 * `day_of_week` - (Required) The day of the week on which the maintenance window will occur. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
-* `time_of_day_utc` - (Required) The time of day (in UTC) to start the maintenance window.
+* `time_of_day_in_utc` - (Required) The time of day (in UTC) to start the maintenance window.
 
 ---
 

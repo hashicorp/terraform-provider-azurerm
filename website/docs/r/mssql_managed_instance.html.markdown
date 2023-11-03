@@ -241,7 +241,7 @@ The following arguments are supported:
 
 * `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`.
 
-* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created. Possible values are `GRS`, `LRS` and `ZRS`. The default value is `GRS`.
+* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created. Possible values are `GRS`, `LRS` and `ZRS`. Defaults to `GRS`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

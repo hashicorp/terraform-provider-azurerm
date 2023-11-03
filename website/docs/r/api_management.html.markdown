@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
 
-* `certificate` - (Optional) One or more (up to 10) `certificate` blocks as defined below.
+* `certificate` - (Optional) One or more `certificate` blocks (up to 10) as defined below.
 
 * `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 ~> **NOTE:** This option is applicable only to the Management plane, not the API gateway or Developer portal. It is required to be `true` on the creation.
 
-* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. Defaults to `None`.
 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://learn.microsoft.com/azure/api-management/virtual-network-reference).
 

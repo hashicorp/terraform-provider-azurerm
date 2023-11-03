@@ -234,7 +234,7 @@ The `rule_group` block supports the following:
 
 The `managed_rule_set` block supports the following:
 
-* `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet` and `OWASP`.
+* `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet` and `OWASP`. Defaults to `OWASP`.
 
 * `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
@@ -264,7 +264,7 @@ The `log_scrubbing` block supports the following:
 
 * `enabled` - (Optional) Whether the log scrubbing is enabled or disabled. Defaults to `true`.
 
-* `rule` - (Optional) One or more `scrubbing_rule` as define below.
+* `rule` - (Optional) One or more `scrubbing_rule` blocks as define below.
 
 ---
 

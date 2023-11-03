@@ -107,7 +107,7 @@ A `http_server_location` block supports the following:
 
 A `azure_blob_fs_location` block supports the following:
 
-* `file_system` - (Required) The container on the Azure Data Lake Storage Account hosting the file.
+* `file_system` - (Optional) The container on the Azure Data Lake Storage Account hosting the file.
 
 * `dynamic_file_system_enabled` - (Optional) Is the `file_system` using dynamic expression, function or system variables? Defaults to `false`.
 
