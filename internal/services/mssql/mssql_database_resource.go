@@ -16,9 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"        // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"          // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                   // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"            // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                     // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies" // nolint: staticcheck
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1432,12 +1433,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"state": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  string(sql.SecurityAlertPolicyStateDisabled),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sql.SecurityAlertPolicyStateDisabled),
-							string(sql.SecurityAlertPolicyStateEnabled),
-							string(sql.SecurityAlertPolicyStateNew),
-						}, false),
+						Default:  string(serversecurityalertpolicies.SecurityAlertsPolicyStateDisabled),
+						ValidateFunc: validation.StringInSlice(serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState(),
+							false),
 					},
 
 					"storage_account_access_key": {
