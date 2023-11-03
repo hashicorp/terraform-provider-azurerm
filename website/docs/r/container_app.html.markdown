@@ -339,7 +339,7 @@ An `ingress` block supports the following:
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
  
-* `exposed_port` - (Required) The exposed port on the container for the Ingress traffic.
+* `exposed_port` - (Optional) The exposed port on the container for the Ingress traffic.
 
 ~> **Note:** `exposed_port` can only be specified when `transport` is set to `tcp`.
 

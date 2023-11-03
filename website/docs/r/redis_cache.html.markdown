@@ -119,7 +119,7 @@ A `patch_schedule` block supports the following:
 
 A `redis_configuration` block supports the following:
 
-* `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache.
+* `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache. Defaults to `false`.
 
 ~> **NOTE:** `aof_backup_enabled` can only be set when SKU is `Premium`.
 
@@ -146,7 +146,7 @@ redis_configuration {
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
-* `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKUs.
+* `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKUs. Defaults to `false`.
 
 -> **NOTE:** If `rdb_backup_enabled` set to `true`, `rdb_storage_connection_string` must also be set.
 

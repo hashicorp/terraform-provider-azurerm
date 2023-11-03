@@ -191,7 +191,7 @@ A `network` block supports the following:
 
 -> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
 
-* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 

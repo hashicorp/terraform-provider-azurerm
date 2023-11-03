@@ -172,7 +172,7 @@ an `auth_settings` block supports the following:
 
 An `auth_settings_v2` block supports the following:
 
-* `auth_enabled` - (Optional) Should the AuthV2 Settings be enabled.
+* `auth_enabled` - (Optional) Should the AuthV2 Settings be enabled. Defaults to `false`.
 
 * `runtime_version` - (Optional) The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`.
 
@@ -256,7 +256,7 @@ An `active_directory_v2` block supports the following:
 
 * `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
 
-* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request?
+* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`.
 
 * `allowed_groups` - (Optional) The list of allowed Group Names for the Default Authorisation Policy.
 
