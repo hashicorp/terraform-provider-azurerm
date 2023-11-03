@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) Specifies the display name of the alert rule.
 
-* `enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule is enabled. Value should be `true` or `false`. The default is `true`. Defaults to `true`.
+* `enabled` - (Optional) Specifies the flag which indicates whether this scheduled query rule is enabled. Value should be `true` or `false`. Defaults to `true`.
 
 * `mute_actions_after_alert_duration` - (Optional) Mute actions for the chosen period of time in ISO 8601 duration format after the alert is fired. Possible values are `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D` and `P2D`.
 

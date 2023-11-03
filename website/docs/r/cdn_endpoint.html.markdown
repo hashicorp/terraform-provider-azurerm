@@ -52,9 +52,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `is_http_allowed` - (Optional) Defaults to `true`. Defaults to `true`.
+* `is_http_allowed` - (Optional) Specifies if http allowed. Defaults to `true`.
 
-* `is_https_allowed` - (Optional) Defaults to `true`. Defaults to `true`.
+* `is_https_allowed` - (Optional) Specifies if https allowed. Defaults to `true`.
 
 * `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
 
@@ -228,7 +228,7 @@ A `url_rewrite_action` block supports the following:
 
 * `destination` - (Required) This value must start with a `/` and can't be longer than 260 characters.
 
-* `preserve_unmatched_path` - (Optional) Defaults to `true`. Defaults to `true`.
+* `preserve_unmatched_path` - (Optional) Whether preserve an unmatched path. Defaults to `true`.
 
 ---
 

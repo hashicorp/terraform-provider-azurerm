@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `endpoint_names` - (Required) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>. Defaults to `true`.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>. Defaults to `true`.
 
 ## Attributes Reference
 

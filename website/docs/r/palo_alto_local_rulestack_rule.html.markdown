@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `category` - (Optional) A `category` block as defined below.
 
-* `decryption_rule_type` - (Optional) The type of Decryption to perform on the rule. Possible values include `SSLInboundInspection`, `SSLOutboundInspection`, and `None` Defaults to `None`. Defaults to `None`.
+* `decryption_rule_type` - (Optional) The type of Decryption to perform on the rule. Possible values include `SSLInboundInspection`, `SSLOutboundInspection`, and `None`. Defaults to `None`.
 
 * `description` - (Optional) The description for the rule.
 
