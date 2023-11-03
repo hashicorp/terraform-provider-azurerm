@@ -1256,7 +1256,7 @@ func TestExpandFeaturesSubscription(t *testing.T) {
 			},
 		},
 		{
-			Name: "No Downtime Resize Enabled",
+			Name: "Subscription cancellation on destroy is Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"subscription": []interface{}{
