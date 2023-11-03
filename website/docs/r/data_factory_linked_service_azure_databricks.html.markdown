@@ -134,7 +134,7 @@ You must specify exactly one of the following modes for cluster integration:
 
 * `existing_cluster_id` - (Optional) The cluster_id of an existing cluster within the linked ADB instance.
 
-* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by `instance_pool` block below.
+* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as one `instance_pool` block defined below.
 
 * `new_cluster_config` - (Optional) Creates new clusters within the linked ADB instance as defined in the `new_cluster_config` block below.
 

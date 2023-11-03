@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The display name of this Batch Job. Changing this forces a new Batch Job to be created.
 
-* `task_retry_maximum` - (Optional) The number of retries to each Batch Task belongs to this Batch Job. If this is set to `0`, the Batch service does not retry Tasks. If this is set to `-1`, the Batch service retries Batch Tasks without limit. Default value is `0`.
+* `task_retry_maximum` - (Optional) The number of retries to each Batch Task belongs to this Batch Job. If this is set to `0`, the Batch service does not retry Tasks. If this is set to `-1`, the Batch service retries Batch Tasks without limit.
 
 * `priority` - (Optional) The priority of this Batch Job, possible values can range from -1000 (lowest) to 1000 (highest). Defaults to `0`.
 

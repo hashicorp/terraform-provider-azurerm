@@ -39,8 +39,6 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Azure Cosmos DB for PostgreSQL Cluster should exist. Changing this forces a new resource to be created.
 
-* `administrator_login_password` - (Required) The password of the administrator login.
-
 * `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216`, and `33554432`.
 
 -> **NOTE:** More information on [the types of compute resources available for CosmosDB can be found in the product documentation](https://learn.microsoft.com/azure/cosmos-db/postgresql/resources-compute)
@@ -48,6 +46,8 @@ The following arguments are supported:
 * `coordinator_vcore_count` - (Required) The coordinator vCore count for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64` and `96`.
 
 * `node_count` - (Required) The worker node count of the Azure Cosmos DB for PostgreSQL Cluster. Possible value is between `0` and `20` except `1`.
+
+* `administrator_login_password` - (Optional) The password of the administrator login. This is required when `source_resource_id` is not set.
 
 * `citus_version` - (Optional) The citus extension version on the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `8.3`, `9.0`, `9.1`, `9.2`, `9.3`, `9.4`, `9.5`, `10.0`, `10.1`, `10.2`, `11.0`, `11.1`, `11.2`, `11.3` and `12.1`.
 

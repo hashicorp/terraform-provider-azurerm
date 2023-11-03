@@ -123,7 +123,7 @@ A `rotation_policy` block supports the following:
 
 * `automatic` - (Optional) An `automatic` block as defined below.
 
-* `notify_before_expiry` - (Optional) Notify at a given duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Default is `P30D`.
+* `notify_before_expiry` - (Optional) Notify at a given duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
 ---
 

@@ -101,6 +101,8 @@ The following arguments are supported:
 ---
 
 
+---
+
 A `expiration` block supports the following:
 
 * `duration_days` - (Optional) The duration of the role assignment in days. Conflicts with `schedule.0.expiration.0.duration_hours`,`schedule.0.expiration.0.end_date_time` Changing this forces a new Pim Eligible Role Assignment to be created.
@@ -131,7 +133,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Pim Eligible Role Assignment.
 * `principal_type` - The type of principal.
-*
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

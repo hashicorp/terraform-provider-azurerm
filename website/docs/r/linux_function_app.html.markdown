@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
-* `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
+* `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Optional`.
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
@@ -233,7 +233,7 @@ An `auth_settings_v2` block supports the following:
 
 * `config_file_path` - (Optional) The path to the App Auth settings.
 
-* ~> **Note:** Relative Paths are evaluated from the Site Root directory.
+~> **Note:** Relative Paths are evaluated from the Site Root directory.
 
 * `require_authentication` - (Optional) Should the authentication flow be used for all requests.
 
@@ -275,7 +275,7 @@ An `auth_settings_v2` block supports the following:
 
 * `twitter_v2` - (Optional) A `twitter_v2` block as defined below.
 
-* `login` - (Optional) A `login` block as defined below.
+* `login` - (Required) A `login` block as defined below.
 
 ---
 
@@ -311,7 +311,7 @@ An `active_directory_v2` block supports the following:
 
 * `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
 
-* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`
+* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`.
 
 * `allowed_groups` - (Optional) The list of allowed Group Names for the Default Authorisation Policy.
 
@@ -477,7 +477,7 @@ A `connection_string` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) Specifies a list of origins that should be allowed to make cross-origin calls.
+* `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Are credentials allowed in CORS requests? Defaults to `false`.
 
@@ -563,7 +563,7 @@ An `identity` block supports the following:
 
 An `ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 
@@ -611,7 +611,7 @@ A `schedule` block supports the following:
 
 A `scm_ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 
@@ -695,7 +695,7 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker process. Defaults to `true`.
+* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker process. Defaults to `false`.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 

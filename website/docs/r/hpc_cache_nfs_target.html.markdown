@@ -141,7 +141,7 @@ The following arguments are supported:
 
 * `usage_model` - (Required) The type of usage of the HPC Cache NFS Target. Possible values are: `READ_HEAVY_INFREQ`, `READ_HEAVY_CHECK_180`, `READ_ONLY`, `READ_WRITE`, `WRITE_WORKLOAD_15`, `WRITE_AROUND`, `WRITE_WORKLOAD_CHECK_30`, `WRITE_WORKLOAD_CHECK_60` and `WRITE_WORKLOAD_CLOUDWS`.
 
-* `namespace_junction` - (Required) Can be specified multiple times to define multiple `namespace_junction`. Each `namespace_juntion` block supports fields documented below.
+* `namespace_junction` - (Required) Can be specified multiple times to define multiple `namespace_junction`. Each `namespace_junction` block supports fields documented below.
 
 ---
 

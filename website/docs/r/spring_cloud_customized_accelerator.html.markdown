@@ -65,8 +65,6 @@ The following arguments are supported:
 
 * `accelerator_tags` - (Optional) Specifies a list of accelerator tags.
 
-* `ca_certificate_id` - (Optional) Specifies the ID of the CA Spring Cloud Certificate for https URL of Git repository.
-
 * `description` - (Optional) Specifies the description of the Spring Cloud Customized Accelerator.
 
 * `display_name` - (Optional) Specifies the display name of the Spring Cloud Customized Accelerator..
@@ -82,6 +80,8 @@ A `git_repository` block supports the following:
 * `basic_auth` - (Optional) A `basic_auth` block as defined below. Conflicts with `git_repository.0.ssh_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
 
 * `branch` - (Optional) Specifies the Git repository branch to be used.
+
+* `ca_certificate_id` - (Optional) Specifies the ID of the CA Spring Cloud Certificate for https URL of Git repository.
 
 * `commit` - (Optional) Specifies the Git repository commit to be used.
 
@@ -129,5 +129,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Customized Accelerators can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_customized_accelerator.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/applicationAccelerators/default/customizedAccelerators/customizedAccelerator1
+terraform import azurerm_spring_cloud_customized_accelerator.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/applicationAccelerators/default/customizedAccelerators/customizedAccelerator1
 ```
