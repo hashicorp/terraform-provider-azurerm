@@ -1,14 +1,20 @@
 package redhatopenshift
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
+
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 type Registration struct{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Red Hat Openshift"
+}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/redhatopenshift"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
@@ -18,14 +24,12 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
-// SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		RedHatOpenShiftCluster{},
+	}
 }
 
-// SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_redhat_openshift_cluster": resourceOpenShiftCluster(),
-	}
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
 }

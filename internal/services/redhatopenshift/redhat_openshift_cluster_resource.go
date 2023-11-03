@@ -11,19 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	openShiftValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 var randomDomainName = GenerateRandomDomainName()
@@ -54,9 +51,10 @@ type ServicePrincipal struct {
 }
 
 type ClusterProfile struct {
-	PullSecret  string `tfschema:"pull_secret"`
-	Domain      string `tfschema:"domain"`
-	FipsEnabled bool   `tfschema:"fips_enabled"`
+	PullSecret      string `tfschema:"pull_secret"`
+	Domain          string `tfschema:"domain"`
+	FipsEnabled     bool   `tfschema:"fips_enabled"`
+	ResourceGroupId string `tfschema:"resource_group_id"`
 }
 
 type NetworkProfile struct {
@@ -82,11 +80,13 @@ type WorkerProfile struct {
 
 type IngressProfile struct {
 	Visibility string `tfschema:"visibility"`
-	Ip         string `tfschema:"ip"`
+	IpAddress  string `tfschema:"ip_address"`
+	Name       string `tfschema:"name"`
 }
 
 type ApiServerProfile struct {
 	Visibility string `tfschema:"visibility"`
+	IpAddress  string `tfschema:"ip_address"`
 	Url        string `tfschema:"url"`
 }
 
@@ -400,6 +400,59 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 	}
 }
 
+func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state RedHatOpenShiftClusterModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			parameter := openshiftclusters.OpenShiftClusterUpdate{}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameter.Tags = pointer.To(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("cluster_profile") {
+				if parameter.Properties == nil {
+					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				parameter.Properties.ClusterProfile = expandOpenshiftClusterProfile(state.ClusterProfile, subscriptionId)
+			}
+
+			if metadata.ResourceData.HasChange("main_profile") {
+				if parameter.Properties == nil {
+					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				parameter.Properties.MasterProfile = expandOpenshiftMasterProfile(state.MainProfile)
+			}
+
+			if metadata.ResourceData.HasChange("worker_profile") {
+				if parameter.Properties == nil {
+					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				parameter.Properties.WorkerProfiles = expandOpenshiftWorkerProfiles(state.WorkerProfile)
+			}
+
+			if err := client.UpdateThenPoll(ctx, *id, parameter); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+
+		Timeout: 90 * time.Minute,
+	}
+}
+
 func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -421,56 +474,37 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 			}
 
-			model := RedHatOpenShiftClusterModel{
+			state := RedHatOpenShiftClusterModel{
 				Name:          id.OpenShiftClusterName,
-				ResourceGroup: id.ResourceGroup,
+				ResourceGroup: id.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil {
-				model.Location = location.Normalize(model.Location)
-				model.Tags = pointer.From(model.Tags)
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
-					clusterProfile := flattenOpenShiftClusterProfile(props.ClusterProfile)
-					if err := d.Set("cluster_profile", clusterProfile); err != nil {
-						return fmt.Errorf("setting `cluster_profile`: %+v", err)
+					state.ClusterProfile = flattenOpenShiftClusterProfile(props.ClusterProfile)
+					state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, metadata.ResourceData)
+					state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
+					state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
+					state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
+					state.IngressProfile = flattenOpenShiftIngressProfiles(props.IngressProfiles)
+
+					workerProfiles, err := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
+					if err != nil {
+						return fmt.Errorf("flattening worker profiles: %+v", err)
+					}
+					state.WorkerProfile = workerProfiles
+
+					if props.ConsoleProfile != nil {
+						state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
 					}
 
-					servicePrincipalProfile := flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, d)
-					if err := d.Set("service_principal", servicePrincipalProfile); err != nil {
-						return fmt.Errorf("setting `service_principal`: %+v", err)
+					if props.ClusterProfile != nil {
+						state.Version = pointer.From(props.ClusterProfile.Version)
 					}
-
-					networkProfile := flattenOpenShiftNetworkProfile(props.NetworkProfile)
-					if err := d.Set("network_profile", networkProfile); err != nil {
-						return fmt.Errorf("setting `network_profile`: %+v", err)
-					}
-
-					mainProfile := flattenOpenShiftMasterProfile(props.MasterProfile)
-					if err := d.Set("main_profile", mainProfile); err != nil {
-						return fmt.Errorf("setting `main_profile`: %+v", err)
-					}
-
-					workerProfiles := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
-					if err := d.Set("worker_profile", workerProfiles); err != nil {
-						return fmt.Errorf("setting `worker_profile`: %+v", err)
-					}
-
-					apiServerProfile := flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
-					if err := d.Set("api_server_profile", apiServerProfile); err != nil {
-						return fmt.Errorf("setting `api_server_profile`: %+v", err)
-					}
-
-					ingressProfiles := flattenOpenShiftIngressProfiles(props.IngressProfiles)
-					if err := d.Set("ingress_profile", ingressProfiles); err != nil {
-						return fmt.Errorf("setting `ingress_profile`: %+v", err)
-					}
-
-					d.Set("version", props.ClusterProfile.Version)
-					d.Set("console_url", props.ConsoleProfile.Url)
 				}
-
-				return tags.FlattenAndSet(d, model.Tags)
 			}
 
 			return nil
@@ -478,41 +512,29 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 	}
 }
 
-func resourceOpenShiftClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedHatOpenshift.OpenShiftClustersClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf("while parsing resource ID: %+v", err)
+			}
 
-	id, err := openshiftclusters.ParseProviderOpenShiftClusterID(d.Id())
-	if err != nil {
-		return err
+			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
+
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+		Timeout: 90 * time.Minute,
 	}
-
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id.ID(), err)
-	}
-
-	return nil
 }
 
-func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) []interface{} {
+func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) []ClusterProfile {
 	if profile == nil {
-		return []interface{}{}
-	}
-
-	resourceGroupId := ""
-	if profile.ResourceGroupId != nil {
-		resourceGroupId = *profile.ResourceGroupId
-	}
-
-	clusterDomain := ""
-	if profile.Domain != nil {
-		clusterDomain = *profile.Domain
-	}
-
-	pullSecret := ""
-	if profile.PullSecret != nil {
-		pullSecret = *profile.PullSecret
+		return []ClusterProfile{}
 	}
 
 	fipsEnabled := false
@@ -520,24 +542,19 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) [
 		fipsEnabled = *profile.FipsValidatedModules == openshiftclusters.FipsValidatedModulesEnabled
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"pull_secret":       pullSecret,
-			"domain":            clusterDomain,
-			"fips_enabled":      fipsEnabled,
-			"resource_group_id": resourceGroupId,
+	return []ClusterProfile{
+		{
+			PullSecret:      pointer.From(profile.PullSecret),
+			Domain:          pointer.From(profile.Domain),
+			FipsEnabled:     fipsEnabled,
+			ResourceGroupId: pointer.From(profile.ResourceGroupId),
 		},
 	}
 }
 
-func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServicePrincipalProfile, d *pluginsdk.ResourceData) []interface{} {
+func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServicePrincipalProfile, d *pluginsdk.ResourceData) []ServicePrincipal {
 	if profile == nil {
-		return []interface{}{}
-	}
-
-	clientID := ""
-	if profile.ClientId != nil {
-		clientID = *profile.ClientId
+		return []ServicePrincipal{}
 	}
 
 	// client secret isn't returned by the API so pass the existing value along
@@ -558,45 +575,30 @@ func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServiceP
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"client_id":     clientID,
-			"client_secret": clientSecret,
+	return []ServicePrincipal{
+		{
+			ClientId:     pointer.From(profile.ClientId),
+			ClientSecret: clientSecret,
 		},
 	}
 }
 
-func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) []interface{} {
+func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) []NetworkProfile {
 	if profile == nil {
-		return []interface{}{}
+		return []NetworkProfile{}
 	}
 
-	podCidr := ""
-	if profile.PodCidr != nil {
-		podCidr = *profile.PodCidr
-	}
-
-	serviceCidr := ""
-	if profile.ServiceCidr != nil {
-		serviceCidr = *profile.ServiceCidr
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"pod_cidr":     podCidr,
-			"service_cidr": serviceCidr,
+	return []NetworkProfile{
+		{
+			PodCidr:     pointer.From(profile.PodCidr),
+			ServiceCidr: pointer.From(profile.ServiceCidr),
 		},
 	}
 }
 
-func flattenOpenShiftMasterProfile(profile *openshiftclusters.MasterProfile) []interface{} {
+func flattenOpenShiftMainProfile(profile *openshiftclusters.MasterProfile) []MainProfile {
 	if profile == nil {
-		return []interface{}{}
-	}
-
-	subnetId := ""
-	if profile.SubnetId != nil {
-		subnetId = *profile.SubnetId
+		return []MainProfile{}
 	}
 
 	encryptionAtHostEnabled := false
@@ -604,136 +606,77 @@ func flattenOpenShiftMasterProfile(profile *openshiftclusters.MasterProfile) []i
 		encryptionAtHostEnabled = *profile.EncryptionAtHost == openshiftclusters.EncryptionAtHostEnabled
 	}
 
-	diskEncryptionSetId := ""
-	if profile.DiskEncryptionSetId != nil {
-		diskEncryptionSetId = *profile.DiskEncryptionSetId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"vm_size":                    profile.VMSize,
-			"subnet_id":                  subnetId,
-			"encryption_at_host_enabled": encryptionAtHostEnabled,
-			"disk_encryption_set_id":     diskEncryptionSetId,
+	return []MainProfile{
+		{
+			VmSize:                  pointer.From(profile.VMSize),
+			SubnetId:                pointer.From(profile.SubnetId),
+			EncryptionAtHostEnabled: encryptionAtHostEnabled,
+			DiskEncryptionSetId:     pointer.From(profile.DiskEncryptionSetId),
 		},
 	}
 }
 
-func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile) []interface{} {
+func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile) ([]WorkerProfile, error) {
 	if profiles == nil || len(*profiles) == 0 {
-		return []interface{}{}
+		return []WorkerProfile{}, nil
 	}
-
-	results := make([]interface{}, 0)
-
-	result := make(map[string]interface{})
-	result["node_count"] = int32(len(*profiles))
 
 	rawProfiles := *profiles
 	profile := rawProfiles[0]
 
-	nodeCount := int64(0)
-	if profile.Count != nil {
-		nodeCount = *profile.Count
-	}
-
-	diskSizeGB := int64(0)
-	if profile.DiskSizeGB != nil {
-		diskSizeGB = *profile.DiskSizeGB
-	}
-
-	vmSize := ""
-	if profile.VMSize != nil {
-		vmSize = *profile.VMSize
-	}
-
-	subnetId := ""
-	if profile.SubnetId != nil {
-		subnetId = *profile.SubnetId
-	}
-
 	encryptionAtHostEnabled := false
 	if profile.EncryptionAtHost != nil {
 		encryptionAtHostEnabled = *profile.EncryptionAtHost == openshiftclusters.EncryptionAtHostEnabled
 	}
 
-	diskEncryptionSetId := ""
-	if profile.DiskEncryptionSetId != nil {
-		diskEncryptionSetId = *profile.DiskEncryptionSetId
+	subnetIdString := ""
+	if profile.SubnetId != nil {
+		subnetId, err := commonids.ParseSubnetIDInsensitively(*profile.SubnetId)
+		if err != nil {
+			return []WorkerProfile{}, fmt.Errorf("parsing subnet id: %+v", err)
+		}
+		subnetIdString = subnetId.ID()
 	}
 
-	results = append(results, result)
-
-	return []interface{}{
-		map[string]interface{}{
-			"node_count":                 nodeCount,
-			"vm_size":                    vmSize,
-			"disk_size_gb":               diskSizeGB,
-			"subnet_id":                  subnetId,
-			"encryption_at_host_enabled": encryptionAtHostEnabled,
-			"disk_encryption_set_id":     diskEncryptionSetId,
+	return []WorkerProfile{
+		{
+			NodeCount:               pointer.From(profile.Count),
+			VmSize:                  pointer.From(profile.VMSize),
+			DiskSizeGb:              pointer.From(profile.DiskSizeGB),
+			SubnetId:                subnetIdString,
+			EncryptionAtHostEnabled: encryptionAtHostEnabled,
+			DiskEncryptionSetId:     pointer.From(profile.DiskEncryptionSetId),
 		},
-	}
+	}, nil
 }
 
-func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfile) []interface{} {
+func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfile) []ApiServerProfile {
 	if profile == nil {
-		return []interface{}{}
+		return []ApiServerProfile{}
 	}
 
-	visibility := ""
-	if profile.Visibility != nil {
-		visibility = string(*profile.Visibility)
-	}
-
-	url := ""
-	if profile.Url != nil {
-		url = *profile.Url
-	}
-
-	ipAddress := ""
-	if profile.IP != nil {
-		ipAddress = *profile.IP
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"visibility": visibility,
-			"url":        url,
-			"ip_address": ipAddress,
+	return []ApiServerProfile{
+		{
+			Visibility: string(pointer.From(profile.Visibility)),
+			Url:        pointer.From(profile.Url),
+			IpAddress:  pointer.From(profile.IP),
 		},
 	}
 }
 
-func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfile) []interface{} {
+func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfile) []IngressProfile {
 	if profiles == nil {
-		return []interface{}{}
+		return []IngressProfile{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]IngressProfile, 0)
 
 	for _, profile := range *profiles {
-		visibility := ""
-		if profile.Visibility != nil {
-			visibility = string(*profile.Visibility)
-		}
-
-		name := ""
-		if profile.Name != nil {
-			name = *profile.Name
-		}
-
-		ipAddress := ""
-		if profile.IP != nil {
-			ipAddress = *profile.IP
-		}
-
-		result := make(map[string]interface{})
-		result["visibility"] = visibility
-		result["name"] = name
-		result["ip_address"] = ipAddress
-
-		results = append(results, result)
+		results = append(results, IngressProfile{
+			Visibility: string(pointer.From(profile.Visibility)),
+			IpAddress:  pointer.From(profile.IP),
+			Name:       pointer.From(profile.Name),
+		})
 	}
 
 	return results
