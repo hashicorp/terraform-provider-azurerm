@@ -35,7 +35,7 @@ var codeReg = regexp.MustCompile("`([^`]+)`")
 
 var blockHeadReg = regexp.MustCompile("^(an?|An?|The)[^`]+(`[a-zA-Z0-9_]+`[, and]*)+.*blocks?.*$")
 
-var DefaultsReg = regexp.MustCompile("[.,?;](?: *[Tt]he)? *[Dd]efaults?[^.]+(?:to|is) ('[^']+'|`[^`]+`|\"[^\"]+\")[ .,]?")
+var DefaultsReg = regexp.MustCompile("[.,?;](?: *[Tt]he)? *[Dd]efaults?[^`'\".]+(?:to|is) ('[^']+'|`[^`]+`|\"[^\"]+\")[ .,]?")
 
 func getDefaultValue(line string) string {
 	if vals := DefaultsReg.FindStringSubmatch(line); len(vals) > 0 {
