@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                   // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"           // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"            // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies" // nolint: staticcheck
@@ -424,20 +425,13 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// For datawarehouse SKUs only
 	if strings.HasPrefix(skuName.(string), "DW") {
-		isEnabled := d.Get("geo_backup_enabled").(bool)
-		var geoBackupPolicyState sql.GeoBackupPolicyState
+		enabled := d.Get("geo_backup_enabled").(bool)
 
 		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
-		if !isEnabled {
-			if isEnabled {
-				geoBackupPolicyState = sql.GeoBackupPolicyStateEnabled
-			} else {
-				geoBackupPolicyState = sql.GeoBackupPolicyStateDisabled
-			}
-
-			geoBackupPolicy := sql.GeoBackupPolicy{
-				GeoBackupPolicyProperties: &sql.GeoBackupPolicyProperties{
-					State: geoBackupPolicyState,
+		if !enabled {
+			geoBackupPolicy := geobackuppolicies.GeoBackupPolicy{
+				GeoBackupPolicyProperties: &geobackuppolicies.GeoBackupPolicyProperties{
+					State: geobackuppolicies.GeoBackupPolicyStateDisabled,
 				},
 			}
 

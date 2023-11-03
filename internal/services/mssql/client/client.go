@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                                       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                        // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"                // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"                 // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
@@ -31,7 +32,7 @@ type Client struct {
 	EncryptionProtectorClient                          *sql.EncryptionProtectorsClient
 	FailoverGroupsClient                               *sql.FailoverGroupsClient
 	FirewallRulesClient                                *sql.FirewallRulesClient
-	GeoBackupPoliciesClient                            *sql.GeoBackupPoliciesClient
+	GeoBackupPoliciesClient                            *geobackuppolicies.GeoBackupPoliciesClient
 	JobAgentsClient                                    *sql.JobAgentsClient
 	JobCredentialsClient                               *sql.JobCredentialsClient
 	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
@@ -86,8 +87,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	geoBackupPoliciesClient := sql.NewGeoBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&geoBackupPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	geoBackupPoliciesClient := geobackuppolicies.NewGeoBackupPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Geo Backup Policies Client: %+v", err)
+	}
+	o.Configure(geoBackupPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	jobAgentsClient := sql.NewJobAgentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&jobAgentsClient.Client, o.ResourceManagerAuthorizer)
@@ -155,11 +159,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(serversClient.Client, o.Authorizers.ResourceManager)
 
-	transparentDataEncryptionsClient, err := transparentdataencryptions.NewTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	transparentDataEncryptionsClient, err := transparentdataencryptions.NewTransparentDataEncryptionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Transparent Data Encryptions Client: %+v", err)
 	}
-	o.ConfigureClient(&transparentDataEncryptionsClient.Client, o.ResourceManagerAuthorizer)
+	o.Configure(transparentDataEncryptionsClient.Client, o.Authorizers.ResourceManager)
 
 	virtualMachinesAvailabilityGroupListenersClient := availabilitygrouplisteners.NewAvailabilityGroupListenersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&virtualMachinesAvailabilityGroupListenersClient.Client, o.ResourceManagerAuthorizer)
@@ -183,7 +187,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		EncryptionProtectorClient:                       &encryptionProtectorClient,
 		FailoverGroupsClient:                            &failoverGroupsClient,
 		FirewallRulesClient:                             &firewallRulesClient,
-		GeoBackupPoliciesClient:                         &geoBackupPoliciesClient,
+		GeoBackupPoliciesClient:                         geoBackupPoliciesClient,
 		JobAgentsClient:                                 &jobAgentsClient,
 		JobCredentialsClient:                            &jobCredentialsClient,
 		LongTermRetentionPoliciesClient:                 &longTermRetentionPoliciesClient,
