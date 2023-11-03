@@ -149,5 +149,5 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		log.Print("Model Properties were nil")
 	}
 
-	return tags.FlattenAndSet(d, tags.FlattenTags(resp.Model.Tags))
+	return tags.FlattenAndSet(d, tags.ExpandFromPointer(resp.Model.Tags))
 }

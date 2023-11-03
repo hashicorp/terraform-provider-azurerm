@@ -599,7 +599,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, tags.FlattenTags(t))
+	return tags.FlattenAndSet(d, tags.ExpandFromPointer(t))
 }
 
 func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {

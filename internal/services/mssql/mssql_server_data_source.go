@@ -120,7 +120,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, tags.FlattenTags(model.Tags))
+		return tags.FlattenAndSet(d, tags.ExpandFromPointer(model.Tags))
 	}
 
 	return fmt.Errorf("model was `nil`")

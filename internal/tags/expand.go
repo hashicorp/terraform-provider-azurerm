@@ -30,7 +30,7 @@ func PointerTo(tagsMap map[string]interface{}) *map[string]string {
 	return pointer.To(output)
 }
 
-func FlattenTags(tagsMap *map[string]string) map[string]*string {
+func ExpandFromPointer(tagsMap *map[string]string) map[string]*string {
 	output := make(map[string]*string)
 
 	if tagsMap != nil {
