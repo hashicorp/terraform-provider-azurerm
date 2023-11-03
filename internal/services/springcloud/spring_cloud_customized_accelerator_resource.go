@@ -6,6 +6,7 @@ package springcloud
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -87,24 +88,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_accelerator_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: func(input interface{}, key string) (warnings []string, errors []error) {
-				v, ok := input.(string)
-				if !ok {
-					errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-					return
-				}
-
-				if _, err := appplatform.ParseApplicationAcceleratorIDInsensitively(v); err != nil {
-					errors = append(errors, err)
-				}
-
-				return
-			},
-		},
+		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(appplatform.ApplicationAcceleratorId{}),
 
 		"git_repository": {
 			Type:     pluginsdk.TypeList,
@@ -252,7 +236,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.AppPlatformClient
-			springAcceleratorId, err := appplatform.ParseApplicationAcceleratorIDInsensitively(model.SpringCloudAcceleratorId)
+			springAcceleratorId, err := appplatform.ParseApplicationAcceleratorID(model.SpringCloudAcceleratorId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
