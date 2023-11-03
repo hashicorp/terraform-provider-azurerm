@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"            // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"  // nolint: staticcheck
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,9 +98,9 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	if len(partnerDatabases) > 0 {
 		partnerDatabase := partnerDatabases[0]
 
-		partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+		partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.Id)
 		if err != nil {
-			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
+			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 		}
 
 		d.Set("create_mode", string(databases.CreateModeSecondary))
@@ -202,9 +203,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.Id)
 			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
 
 			locks.ByID(partnerDatabaseId.ID())
@@ -213,9 +214,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Update the SKUs of any partner databases where deemed necessary
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.Id)
 			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
 
 			databaseId := databases.DatabaseId{
@@ -226,7 +227,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName.(string), *partnerDatabase.Sku.Name) {
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName.(string), partnerDatabase.Sku.Name) {
 				err := client.UpdateThenPoll(ctx, databaseId, databases.DatabaseUpdate{
 					Sku: pointer.To(databases.Sku{
 						Name: skuName.(string),
@@ -240,33 +241,33 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	params := sql.Database{
-		Name:     &name,
-		Location: &location,
-		DatabaseProperties: &sql.DatabaseProperties{
-			AutoPauseDelay:                   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
-			Collation:                        utils.String(d.Get("collation").(string)),
-			ElasticPoolID:                    utils.String(d.Get("elastic_pool_id").(string)),
-			LicenseType:                      sql.DatabaseLicenseType(d.Get("license_type").(string)),
+	input := databases.Database{
+		Name:     pointer.To(name),
+		Location: location,
+		Properties: &databases.DatabaseProperties{
+			AutoPauseDelay:                   pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int64))),
+			Collation:                        pointer.To(d.Get("collation").(string)),
+			ElasticPoolId:                    pointer.To(d.Get("elastic_pool_id").(string)),
+			LicenseType:                      pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string))),
 			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
-			HighAvailabilityReplicaCount:     utils.Int32(int32(d.Get("read_replica_count").(int))),
-			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
-			RequestedBackupStorageRedundancy: sql.RequestedBackupStorageRedundancy(d.Get("storage_account_type").(string)),
-			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
-			IsLedgerOn:                       utils.Bool(ledgerEnabled),
+			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int64))),
+			SampleName:                       pointer.To(databases.SampleName(d.Get("sample_name").(string))),
+			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
+			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
+			IsLedgerOn:                       pointer.To(ledgerEnabled),
 		},
 
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.PointerTo(d.Get("tags").(map[string]interface{})),
 	}
 
 	createMode, ok := d.GetOk("create_mode")
 	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(databases.CreateModeCopy) || createMode.(string) == string(databases.CreateModePointInTimeRestore) || createMode.(string) == string(databases.CreateModeSecondary)) && !dbok {
 		return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode.(string))
 	}
-	if _, dbok := d.GetOk("recover_database_id"); ok && createMode.(string) == string(sql.CreateModeRecovery) && !dbok {
+	if _, dbok := d.GetOk("recover_database_id"); ok && createMode.(string) == string(databases.CreateModeRecovery) && !dbok {
 		return fmt.Errorf("'recover_database_id' is required for create_mode %s", createMode.(string))
 	}
-	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
+	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(databases.CreateModeRestore) && !dbok {
 		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
 	}
 
@@ -277,112 +278,115 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		if v, ok := d.GetOk("maintenance_configuration_name"); ok {
 			maintenanceConfigId = publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, v.(string))
 		}
-		params.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
+		input.Properties.MaintenanceConfigurationId = utils.String(maintenanceConfigId.ID())
 	}
 
-	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
+	input.Properties.CreateMode = pointer.To(databases.CreateMode(createMode.(string)))
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
-		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
-			params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int)) * 1073741824)
+		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
+			input.Properties.MaxSizeBytes = pointer.To(int64(v.(int)) * 1073741824)
 		}
 		// `max_size_gb` only has change if it is configured
-		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.CreateModeSecondary)) {
+		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
 		}
 	}
 
-	readScale := sql.DatabaseReadScaleDisabled
+	readScale := databases.DatabaseReadScaleDisabled
 	if v := d.Get("read_scale").(bool); v {
-		readScale = sql.DatabaseReadScaleEnabled
+		readScale = databases.DatabaseReadScaleEnabled
 	}
-	params.DatabaseProperties.ReadScale = readScale
+	input.Properties.ReadScale = pointer.To(readScale)
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
-		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(sql.CreateModePointInTimeRestore) {
-			return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(sql.CreateModePointInTimeRestore))
+		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(databases.CreateModePointInTimeRestore) {
+			return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
 		}
-		restorePointInTime, err := time.Parse(time.RFC3339, v.(string))
+
+		_, err := time.Parse(time.RFC3339, v.(string))
 		if err != nil {
 			return fmt.Errorf("parsing `restore_point_in_time` value %q for %s: %+v", v, id, err)
 		}
-		params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
+
+		input.Properties.RestorePointInTime = pointer.To(v.(string))
 	}
 
 	skuName, ok := d.GetOk("sku_name")
 	if ok {
-		params.Sku = &sql.Sku{
-			Name: utils.String(skuName.(string)),
-		}
+		input.Sku = pointer.To(databases.Sku{
+			Name: skuName.(string),
+		})
 	}
 
 	if v, ok := d.GetOk("creation_source_database_id"); ok {
-		params.DatabaseProperties.SourceDatabaseID = utils.String(v.(string))
+		input.Properties.SourceDatabaseId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("recover_database_id"); ok {
-		params.DatabaseProperties.RecoverableDatabaseID = utils.String(v.(string))
+		input.Properties.RecoverableDatabaseId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("restore_dropped_database_id"); ok {
-		params.DatabaseProperties.RestorableDroppedDatabaseID = utils.String(v.(string))
+		input.Properties.RestorableDroppedDatabaseId = pointer.To(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, params)
+	err = client.CreateOrUpdateThenPoll(ctx, databaseId, input)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded"
 	log.Printf("[DEBUG] Waiting for %s to become ready", id)
 	pendingStatuses := make([]string, 0)
-	for _, s := range sql.PossibleDatabaseStatusValues() {
-		if s != sql.DatabaseStatusOnline {
-			pendingStatuses = append(pendingStatuses, string(s))
+	for _, s := range databases.PossibleValuesForDatabaseStatus() {
+		if s != string(databases.DatabaseStatusOnline) {
+			pendingStatuses = append(pendingStatuses, s)
 		}
 	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: pendingStatuses,
-		Target:  []string{string(sql.DatabaseStatusOnline)},
+		Target:  []string{string(databases.DatabaseStatusOnline)},
 		Refresh: func() (interface{}, string, error) {
 			log.Printf("[DEBUG] Checking to see if %s is online...", id)
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			resp, err := client.Get(ctx, databaseId, databases.GetOperationOptions{})
 			if err != nil {
 				return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
 			}
 
-			if props := resp.DatabaseProperties; props != nil {
-				return resp, string(props.Status), nil
+			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Status != nil {
+				return resp, string(pointer.From(resp.Model.Properties.Status)), nil
 			}
 
 			return resp, "", nil
 		},
-		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 2,
+		MinTimeout:                1 * time.Minute,
+		Timeout:                   time.Until(deadline),
 	}
-
-	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
 
 	// Cannot set transparent data encryption for secondary databases
-	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
-		statusProperty := sql.TransparentDataEncryptionStatusDisabled
+	if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
+		stateProperty := transparentdataencryptions.TransparentDataEncryptionStateDisabled
 		encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
 		if encryptionStatus {
-			statusProperty = sql.TransparentDataEncryptionStatusEnabled
+			stateProperty = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 		}
-		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, sql.TransparentDataEncryption{
-			TransparentDataEncryptionProperties: &sql.TransparentDataEncryptionProperties{
-				Status: statusProperty,
+		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+			Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
+				State: stateProperty,
 			},
 		})
 		if err != nil {
@@ -1055,10 +1059,10 @@ func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
+func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy serversecurityalertpolicies.ServerSecurityAlertPolicy) []interface{} {
 	// The SQL database security alert API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
-	properties := policy.SecurityAlertsPolicyProperties
+	properties := policy.Properties
 	if properties == nil {
 		return []interface{}{}
 	}
@@ -1105,13 +1109,13 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	return []interface{}{securityAlertPolicy}
 }
 
-func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.DatabaseSecurityAlertPolicy {
-	policy := sql.DatabaseSecurityAlertPolicy{
-		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
-			State: sql.SecurityAlertsPolicyStateDisabled,
+func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) serversecurityalertpolicies.ServerSecurityAlertPolicy {
+	policy := serversecurityalertpolicies.ServerSecurityAlertPolicy{
+		Properties: &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
+			State: serversecurityalertpolicies.SecurityAlertsPolicyStateDisabled,
 		},
 	}
-	properties := policy.SecurityAlertsPolicyProperties
+	properties := policy.Properties
 
 	td, ok := d.GetOk("threat_detection_policy")
 	if !ok {
@@ -1121,8 +1125,8 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 	if tdl := td.([]interface{}); len(tdl) > 0 {
 		securityAlert := tdl[0].(map[string]interface{})
 
-		properties.State = sql.SecurityAlertsPolicyState(securityAlert["state"].(string))
-		properties.EmailAccountAdmins = utils.Bool(securityAlert["email_account_admins"].(string) == "Enabled")
+		properties.State = serversecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
+		properties.EmailAccountAdmins = utils.Bool(securityAlert["email_account_admins"].(string) == string(EmailAccountAdminsStatusEnabled))
 
 		if v, ok := securityAlert["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
@@ -1189,6 +1193,20 @@ func resourceMsSqlDatabaseMaintenanceNames() []string {
 		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2"}
 }
 
+type EmailAccountAdminsStatus string
+
+const (
+	EmailAccountAdminsStatusDisabled EmailAccountAdminsStatus = "Disabled"
+	EmailAccountAdminsStatusEnabled  EmailAccountAdminsStatus = "Enabled"
+)
+
+func PossibleValuesForEmailAccountAdminsStatus() []string {
+	return []string{
+		string(EmailAccountAdminsStatusDisabled),
+		string(EmailAccountAdminsStatusEnabled),
+	}
+}
+
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -1239,10 +1257,8 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"storage_key_type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sql.StorageKeyTypeSharedAccessKey),
-							string(sql.StorageKeyTypeStorageAccessKey),
-						}, false),
+						ValidateFunc: validation.StringInSlice(databases.PossibleValuesForStorageKeyType(),
+							false),
 					},
 					"administrator_login": {
 						Type:     pluginsdk.TypeString,
@@ -1289,10 +1305,8 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sql.DatabaseLicenseTypeBasePrice),
-				string(sql.DatabaseLicenseTypeLicenseIncluded),
-			}, false),
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForDatabaseLicenseType(),
+				false),
 		},
 
 		"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
@@ -1408,11 +1422,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"email_account_admins": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  "Disabled",
-						ValidateFunc: validation.StringInSlice([]string{
-							"Disabled",
-							"Enabled",
-						}, false),
+						Default:  EmailAccountAdminsStatusDisabled,
+						ValidateFunc: validation.StringInSlice(PossibleValuesForEmailAccountAdminsStatus(),
+							false),
 					},
 
 					"email_addresses": {
@@ -1430,6 +1442,11 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 
+					// NOTE: I believe that this was originally implemented incorrect, where it exposed the
+					// 'serveradvancedthreatprotectionsettings.PossibleValuesForAdvancedThreatProtectionState'
+					// which contains the values of 'Enabled', 'Disabled', and 'New'
+					// where 'serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState'
+					// only contains 'Enabled' and 'Disabled'
 					"state": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,

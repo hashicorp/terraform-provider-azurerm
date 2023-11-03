@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                          // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
@@ -47,7 +48,7 @@ type Client struct {
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
 	ServersClient                                      *servers.ServersClient
-	TransparentDataEncryptionsClient                   *sql.TransparentDataEncryptionsClient
+	TransparentDataEncryptionsClient                   *transparentdataencryptions.TransparentDataEncryptionsClient
 	VirtualMachinesAvailabilityGroupListenersClient    *availabilitygrouplisteners.AvailabilityGroupListenersClient
 	VirtualMachinesClient                              *sqlvirtualmachines.SqlVirtualMachinesClient
 	VirtualMachineGroupsClient                         *sqlvirtualmachinegroups.SqlVirtualMachineGroupsClient
@@ -154,7 +155,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(serversClient.Client, o.Authorizers.ResourceManager)
 
-	transparentDataEncryptionsClient := sql.NewTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	transparentDataEncryptionsClient, err := transparentdataencryptions.NewTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	if err != nil {
+		return nil, fmt.Errorf("building Transparent Data Encryptions Client: %+v", err)
+	}
 	o.ConfigureClient(&transparentDataEncryptionsClient.Client, o.ResourceManagerAuthorizer)
 
 	virtualMachinesAvailabilityGroupListenersClient := availabilitygrouplisteners.NewAvailabilityGroupListenersClientWithBaseURI(o.ResourceManagerEndpoint)
@@ -196,7 +200,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ServerSecurityAlertPoliciesClient:               &serverSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient:            &serverVulnerabilityAssessmentsClient,
 		ServersClient:                                   serversClient,
-		TransparentDataEncryptionsClient:                &transparentDataEncryptionsClient,
+		TransparentDataEncryptionsClient:                transparentDataEncryptionsClient,
 		VirtualMachinesAvailabilityGroupListenersClient: &virtualMachinesAvailabilityGroupListenersClient,
 		VirtualMachinesClient:                           &virtualMachinesClient,
 		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
