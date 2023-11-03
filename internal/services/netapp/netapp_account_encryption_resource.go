@@ -254,6 +254,31 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NetApp.AccountClient
+
+			id, err := netappaccounts.ParseNetAppAccountID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			metadata.Logger.Infof("Decoding state for %s", id)
+			var state netAppModels.NetAppAccountEncryption
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			metadata.Logger.Infof("Updating %s", id)
+
+			update := netappaccounts.NetAppAccountPatch{
+				Properties: &netappaccounts.AccountProperties{},
+			}
+
+			update.Properties.Encryption = &netappaccounts.AccountEncryption{}
+
+			if err := client.AccountsUpdateThenPoll(ctx, pointer.From(id), update); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}

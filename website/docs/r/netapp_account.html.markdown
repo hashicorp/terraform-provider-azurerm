@@ -94,7 +94,7 @@ The `identity` block supports the following:
 * `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
 ---
 
-~> **IMPORTANT:** Changing identity type from `UserAssigned` to `SystemAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module.
+~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module. 
 
 ## Attributes Reference
 

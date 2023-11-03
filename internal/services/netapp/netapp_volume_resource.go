@@ -481,6 +481,11 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
+		// Validating Microsoft.KeyVault encryption key provider is enabled only on Standard network features
+		if volumes.EncryptionKeySource(encryptionKeySource.(string)) == volumes.EncryptionKeySourceMicrosoftPointKeyVault && networkFeatures == volumes.NetworkFeaturesBasic {
+			return fmt.Errorf("volume encryption cannot be enabled when network features is set to basic: %s", id.ID())
+		}
+
 		parameters.Properties.EncryptionKeySource = pointer.To(volumes.EncryptionKeySource(encryptionKeySource.(string)))
 	}
 
