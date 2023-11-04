@@ -138,12 +138,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Palo Alto Next Generation Firewall VHub Local Rulestack.
 
-* `pan_etag` - The Etag value of the configuration.
-
-* `panorama_config` - A `panorama_config` block as defined below.
-
----
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

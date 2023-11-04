@@ -480,6 +480,8 @@ A `storage_blob_direct` block supports the following:
 ---
 
 
+---
+
 A `storage_table_direct` block supports the following:
 
 * `table_name` - (Required) The Storage Table name.

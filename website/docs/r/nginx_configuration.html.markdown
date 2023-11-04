@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `config_file` - (Optional) One or more `config_file` blocks as defined below.
 
-* `protected_file` - (Optional) One or more `protected_file` (Protected File) blocks with sensitive information as defined below. If specified `config_file` must also be specified.
+* `protected_file` - (Optional) One or more `protected_file` blocks with sensitive information as defined below. If specified `config_file` must also be specified.
 
 ---
 

@@ -493,6 +493,8 @@ func extractParameterOrOutputValue(v interface{}) (string, error) {
 		return v.(string), nil
 	case map[string]interface{}:
 		return compactParameterOrOutputValue(v)
+	case []interface{}:
+		return compactParameterOrOutputValue(v)
 	default:
 		return "", fmt.Errorf("unexpected type %T", t)
 	}

@@ -111,6 +111,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) != "" || new.(string) != string(managedclusters.NetworkPolicyCilium)
 			}),
+			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -440,12 +443,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"http_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"https_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"no_proxy": {
 							Type:     pluginsdk.TypeSet,
@@ -2616,7 +2617,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 			}
 
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
 			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
 
 			enablePrivateCluster := false

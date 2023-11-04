@@ -201,9 +201,9 @@ An `identity` block supports the following:
 
 A `replica` block supports the following:
 
-* `location` - (Required) Specifies the supported Azure location where the replica exists. Changing this forces a new replica to be created.
+* `location` - (Required) Specifies the supported Azure location where the replica exists.
 
-* `name` - (Required) Specifies the name of the replica. Changing this forces a new replica to be created.
+* `name` - (Required) Specifies the name of the replica.
 
 ---
 

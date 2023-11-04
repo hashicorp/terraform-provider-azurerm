@@ -1987,8 +1987,12 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("firewall_policy_id") {
-		applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
-			ID: utils.String(d.Get("firewall_policy_id").(string)),
+		if d.Get("firewall_policy_id").(string) != "" {
+			applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+				ID: utils.String(d.Get("firewall_policy_id").(string)),
+			}
+		} else {
+			applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = nil
 		}
 	}
 

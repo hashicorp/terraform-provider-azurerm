@@ -97,8 +97,6 @@ A `grouping` block supports the following:
 
 A `kpi` block supports the following:
 
-* `enabled` - (Required) Should a KPI be enabled?
-
 * `type` - (Required) KPI type. Possible values are `Budget` and `Forecast`.
 
 ---

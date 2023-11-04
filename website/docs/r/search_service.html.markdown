@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `local_authentication_enabled` - (Optional) Specifies whether the Search Service allows authenticating using API Keys? Defaults to `false`.
+* `local_authentication_enabled` - (Optional) Specifies whether the Search Service allows authenticating using API Keys? Defaults to `true`.
 
 * `partition_count` - (Optional) Specifies the number of partitions which should be created. This field cannot be set when using a `free` or `basic` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)). Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
 
