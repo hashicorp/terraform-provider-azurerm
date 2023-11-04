@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -112,7 +111,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 		return []*pluginsdk.ResourceData{d}, nil
 	}
 
-	d.Set("create_mode", string(sql.CreateModeDefault))
+	d.Set("create_mode", string(databases.CreateModeDefault))
 
 	return []*pluginsdk.ResourceData{d}, nil
 }
@@ -832,11 +831,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	createMode := d.Get("create_mode").(string)
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
-		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
+		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
 			props.MaxSizeBytes = utils.Int64(int64(v.(int)) * 1073741824)
 		}
 		// `max_size_gb` only has change if it is configured
-		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
+		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
 		}
 	}
@@ -851,7 +850,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("restore_point_in_time") {
 		if v, ok := d.GetOk("restore_point_in_time"); ok {
-			if createMode != string(sql.CreateModePointInTimeRestore) {
+			if createMode != string(databases.CreateModePointInTimeRestore) {
 				return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
 			}
 			_, err := time.Parse(time.RFC3339, v.(string))
@@ -899,7 +898,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: pendingStatuses,
-		Target:  []string{string(sql.DatabaseStatusOnline)},
+		Target:  []string{string(databases.DatabaseStatusOnline)},
 		Refresh: func() (interface{}, string, error) {
 			log.Printf("[DEBUG] Checking to see if %s is online...", id)
 
@@ -1256,7 +1255,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  string(sql.CreateModeDefault),
+			Default:  string(databases.CreateModeDefault),
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForCreateMode(),
 				false),
 			ConflictsWith: []string{"import"},
@@ -1387,7 +1386,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(sql.SampleNameAdventureWorksLT),
+				string(databases.SampleNameAdventureWorksLT),
 			}, false),
 		},
 
