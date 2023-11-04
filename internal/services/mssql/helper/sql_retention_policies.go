@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	// nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"        // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func LongTermRetentionPolicySchema() *pluginsdk.Schema {
@@ -105,57 +105,57 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 		return nil
 	}
 
-	longTermRetentionPolicy := input[0].(map[string]interface{})
+	policy := input[0].(map[string]interface{})
 
-	longTermPolicyProperties := longtermretentionpolicies.LongTermRetentionPolicyProperties{
-		WeeklyRetention:  utils.String("PT0S"),
-		MonthlyRetention: utils.String("PT0S"),
-		YearlyRetention:  utils.String("PT0S"),
-		WeekOfYear:       utils.Int32(1),
+	output := longtermretentionpolicies.LongTermRetentionPolicyProperties{
+		WeeklyRetention:  pointer.To("PT0S"),
+		MonthlyRetention: pointer.To("PT0S"),
+		YearlyRetention:  pointer.To("PT0S"),
+		WeekOfYear:       pointer.To(int64(1)),
 	}
 
-	if v, ok := longTermRetentionPolicy["weekly_retention"]; ok {
-		longTermPolicyProperties.WeeklyRetention = utils.String(v.(string))
+	if v, ok := policy["weekly_retention"]; ok {
+		output.WeeklyRetention = pointer.To(v.(string))
 	}
 
-	if v, ok := longTermRetentionPolicy["monthly_retention"]; ok {
-		longTermPolicyProperties.MonthlyRetention = utils.String(v.(string))
+	if v, ok := policy["monthly_retention"]; ok {
+		output.MonthlyRetention = pointer.To(v.(string))
 	}
 
-	if v, ok := longTermRetentionPolicy["yearly_retention"]; ok {
-		longTermPolicyProperties.YearlyRetention = utils.String(v.(string))
+	if v, ok := policy["yearly_retention"]; ok {
+		output.YearlyRetention = pointer.To(v.(string))
 	}
 
-	if v, ok := longTermRetentionPolicy["week_of_year"]; ok {
-		longTermPolicyProperties.WeekOfYear = utils.Int32(int32(v.(int)))
+	if v, ok := policy["week_of_year"]; ok {
+		output.WeekOfYear = pointer.To(int64(v.(int64)))
 	}
 
-	return &longTermPolicyProperties
+	return pointer.To(output)
 }
 
-func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *longtermretentionpolicies.LongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
-	if longTermRetentionPolicy == nil {
+func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+	if input == nil {
 		return []interface{}{}
 	}
 
 	monthlyRetention := "PT0S"
-	if longTermRetentionPolicy.MonthlyRetention != nil {
-		monthlyRetention = *longTermRetentionPolicy.MonthlyRetention
+	if input.Properties.MonthlyRetention != nil {
+		monthlyRetention = pointer.From(input.Properties.MonthlyRetention)
 	}
 
 	weeklyRetention := "PT0S"
-	if longTermRetentionPolicy.WeeklyRetention != nil {
-		weeklyRetention = *longTermRetentionPolicy.WeeklyRetention
+	if input.Properties.WeeklyRetention != nil {
+		weeklyRetention = pointer.From(input.Properties.WeeklyRetention)
 	}
 
-	weekOfYear := int32(1)
-	if longTermRetentionPolicy.WeekOfYear != nil && *longTermRetentionPolicy.WeekOfYear != 0 {
-		weekOfYear = *longTermRetentionPolicy.WeekOfYear
+	weekOfYear := int64(1)
+	if input.Properties.WeekOfYear != nil && pointer.From(input.Properties.WeekOfYear) != 0 {
+		weekOfYear = pointer.From(input.Properties.WeekOfYear)
 	}
 
 	yearlyRetention := "PT0S"
-	if longTermRetentionPolicy.YearlyRetention != nil {
-		yearlyRetention = *longTermRetentionPolicy.YearlyRetention
+	if input.Properties.YearlyRetention != nil {
+		yearlyRetention = *input.Properties.YearlyRetention
 	}
 
 	return []interface{}{
@@ -173,40 +173,42 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretenti
 		return nil
 	}
 
-	shortTermRetentionPolicy := input[0].(map[string]interface{})
+	policy := input[0].(map[string]interface{})
 
-	shortTermPolicyProperties := backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties{
-		RetentionDays: utils.Int32(7),
+	props := backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties{
+		RetentionDays: pointer.To(int64(7)),
 	}
 
-	if v, ok := shortTermRetentionPolicy["retention_days"]; ok {
-		shortTermPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
+	if v, ok := policy["retention_days"]; ok {
+		props.RetentionDays = pointer.To(int64(v.(int)))
 	}
 
-	if v, ok := shortTermRetentionPolicy["backup_interval_in_hours"]; ok {
-		shortTermPolicyProperties.DiffBackupIntervalInHours = utils.Int32(int32(v.(int)))
+	if v, ok := policy["backup_interval_in_hours"]; ok {
+		props.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHours(int64(v.(int64))))
 	}
 
-	return &shortTermPolicyProperties
+	return &props
 }
 
-func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
 	result := make([]interface{}, 0)
 
-	if shortTermRetentionPolicy == nil {
+	if input == nil {
 		return result
 	}
 
-	flattenShortTermRetentionPolicy := map[string]interface{}{}
+	output := map[string]interface{}{}
 
-	flattenShortTermRetentionPolicy["retention_days"] = int32(7)
-	if shortTermRetentionPolicy.RetentionDays != nil {
-		flattenShortTermRetentionPolicy["retention_days"] = *backupshorttermretentionpolicies.RetentionDays
+	output["retention_days"] = int64(7)
+	if input.Properties.RetentionDays != nil {
+		output["retention_days"] = pointer.From(input.Properties.RetentionDays)
 	}
 
-	if shortTermRetentionPolicy.DiffBackupIntervalInHours != nil {
-		flattenShortTermRetentionPolicy["backup_interval_in_hours"] = *backupshorttermretentionpolicies.DiffBackupIntervalInHours
+	if input.Properties.DiffBackupIntervalInHours != nil {
+		output["backup_interval_in_hours"] = pointer.From(input.Properties.DiffBackupIntervalInHours)
 	}
-	result = append(result, flattenShortTermRetentionPolicy)
+
+	result = append(result, output)
+
 	return result
 }
