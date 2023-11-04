@@ -7,7 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	// nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"        // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -98,14 +100,14 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandLongTermRetentionPolicy(input []interface{}) *sql.BaseLongTermRetentionPolicyProperties {
+func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.LongTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	longTermRetentionPolicy := input[0].(map[string]interface{})
 
-	longTermPolicyProperties := sql.BaseLongTermRetentionPolicyProperties{
+	longTermPolicyProperties := longtermretentionpolicies.LongTermRetentionPolicyProperties{
 		WeeklyRetention:  utils.String("PT0S"),
 		MonthlyRetention: utils.String("PT0S"),
 		YearlyRetention:  utils.String("PT0S"),
@@ -131,7 +133,7 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *sql.BaseLongTermRetenti
 	return &longTermPolicyProperties
 }
 
-func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.LongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *longtermretentionpolicies.LongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
 	if longTermRetentionPolicy == nil {
 		return []interface{}{}
 	}
@@ -166,14 +168,14 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.LongTermRetenti
 	}
 }
 
-func ExpandShortTermRetentionPolicy(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
+func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	shortTermRetentionPolicy := input[0].(map[string]interface{})
 
-	shortTermPolicyProperties := sql.BackupShortTermRetentionPolicyProperties{
+	shortTermPolicyProperties := backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties{
 		RetentionDays: utils.Int32(7),
 	}
 
@@ -188,7 +190,7 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *sql.BackupShortTermRet
 	return &shortTermPolicyProperties
 }
 
-func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
 	result := make([]interface{}, 0)
 
 	if shortTermRetentionPolicy == nil {
@@ -199,11 +201,11 @@ func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTe
 
 	flattenShortTermRetentionPolicy["retention_days"] = int32(7)
 	if shortTermRetentionPolicy.RetentionDays != nil {
-		flattenShortTermRetentionPolicy["retention_days"] = *shortTermRetentionPolicy.RetentionDays
+		flattenShortTermRetentionPolicy["retention_days"] = *backupshorttermretentionpolicies.RetentionDays
 	}
 
 	if shortTermRetentionPolicy.DiffBackupIntervalInHours != nil {
-		flattenShortTermRetentionPolicy["backup_interval_in_hours"] = *shortTermRetentionPolicy.DiffBackupIntervalInHours
+		flattenShortTermRetentionPolicy["backup_interval_in_hours"] = *backupshorttermretentionpolicies.DiffBackupIntervalInHours
 	}
 	result = append(result, flattenShortTermRetentionPolicy)
 	return result

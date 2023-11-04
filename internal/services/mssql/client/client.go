@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                        // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"    // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"                // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionbackups"         // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"        // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"                 // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
@@ -27,7 +27,7 @@ import (
 )
 
 type Client struct {
-	BackupShortTermRetentionPoliciesClient             *backupshorttermretentionpolicies.LongTermRetentionPoliciesClient
+	BackupShortTermRetentionPoliciesClient             *backupshorttermretentionpolicies.BackupShortTermRetentionPoliciesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	DatabaseSecurityAlertPoliciesClient                *databasesecurityalertpolicies.DatabaseSecurityAlertPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
@@ -39,7 +39,7 @@ type Client struct {
 	GeoBackupPoliciesClient                            *geobackuppolicies.GeoBackupPoliciesClient
 	JobAgentsClient                                    *sql.JobAgentsClient
 	JobCredentialsClient                               *sql.JobCredentialsClient
-	LongTermRetentionPoliciesClient                    *longtermretentionbackups.LongTermRetentionPoliciesClient
+	LongTermRetentionPoliciesClient                    *longtermretentionpolicies.LongTermRetentionPoliciesClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *replicationlinks.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *restorabledroppeddatabases.RestorableDroppedDatabasesClient
@@ -109,7 +109,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	jobCredentialsClient := sql.NewJobCredentialsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&jobCredentialsClient.Client, o.ResourceManagerAuthorizer)
 
-	longTermRetentionPoliciesClient, err := longtermretentionbackups.NewLongTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	longTermRetentionPoliciesClient, err := longtermretentionpolicies.NewLongTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Long Term Retention Policies Client: %+v", err)
 	}
