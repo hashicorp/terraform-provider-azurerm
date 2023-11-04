@@ -16,13 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                     // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"             // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"              // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                       // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"   // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"    // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                        // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"    // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"                // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionbackups"         // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"                 // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                          // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"      // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"       // nolint: staticcheck
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -460,7 +462,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
 	if longTermRetentionProps != nil {
-		longTermRetentionPolicy := sql.LongTermRetentionPolicy{}
+		longTermRetentionPolicy := longtermretentionbackups.LongTermRetentionPolicy{}
 
 		// DataWarehouse SKU's do not support LRP currently
 		if !strings.HasPrefix(skuName.(string), "DW") {
@@ -479,7 +481,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
 	if backupShortTermPolicyProps != nil {
-		backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{}
+		backupShortTermPolicy := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
 		if !strings.HasPrefix(skuName.(string), "DW") {
 			backupShortTermPolicy.BackupShortTermRetentionPolicyProperties = backupShortTermPolicyProps

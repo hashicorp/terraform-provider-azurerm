@@ -7,9 +7,11 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                                       // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                        // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"    // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"                // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionbackups"         // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"                 // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
@@ -25,7 +27,7 @@ import (
 )
 
 type Client struct {
-	BackupShortTermRetentionPoliciesClient             *sql.BackupShortTermRetentionPoliciesClient
+	BackupShortTermRetentionPoliciesClient             *backupshorttermretentionpolicies.LongTermRetentionPoliciesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	DatabaseSecurityAlertPoliciesClient                *databasesecurityalertpolicies.DatabaseSecurityAlertPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
@@ -37,7 +39,7 @@ type Client struct {
 	GeoBackupPoliciesClient                            *geobackuppolicies.GeoBackupPoliciesClient
 	JobAgentsClient                                    *sql.JobAgentsClient
 	JobCredentialsClient                               *sql.JobCredentialsClient
-	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
+	LongTermRetentionPoliciesClient                    *longtermretentionbackups.LongTermRetentionPoliciesClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *replicationlinks.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *restorabledroppeddatabases.RestorableDroppedDatabasesClient
@@ -59,8 +61,11 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	backupShortTermRetentionPoliciesClient := sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&backupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	backupShortTermRetentionPoliciesClient, err := backupshorttermretentionpolicies.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Backup Short Term Retention Policies Client: %+v", err)
+	}
+	o.Configure(backupShortTermRetentionPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	databaseExtendedBlobAuditingPoliciesClient := sql.NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -104,8 +109,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	jobCredentialsClient := sql.NewJobCredentialsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&jobCredentialsClient.Client, o.ResourceManagerAuthorizer)
 
-	longTermRetentionPoliciesClient := sql.NewLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&longTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	longTermRetentionPoliciesClient, err := longtermretentionbackups.NewLongTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Long Term Retention Policies Client: %+v", err)
+	}
+	o.Configure(longTermRetentionPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	outboundFirewallRulesClient := sql.NewOutboundFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&outboundFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -186,31 +194,31 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&virtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		BackupShortTermRetentionPoliciesClient:             &backupShortTermRetentionPoliciesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
-		ElasticPoolsClient:                                 &elasticPoolsClient,
-		EncryptionProtectorClient:                          &encryptionProtectorClient,
-		FailoverGroupsClient:                               &failoverGroupsClient,
-		FirewallRulesClient:                                &firewallRulesClient,
-		JobAgentsClient:                                    &jobAgentsClient,
-		JobCredentialsClient:                               &jobCredentialsClient,
-		LongTermRetentionPoliciesClient:                    &longTermRetentionPoliciesClient,
-		OutboundFirewallRulesClient:                        &outboundFirewallRulesClient,
-		ServerDNSAliasClient:                               &serverDNSAliasClient,
-		ServerDevOpsAuditSettingsClient:                    &serverDevOpsAuditSettingsClient,
-		ServerExtendedBlobAuditingPoliciesClient:           &serverExtendedBlobAuditingPoliciesClient,
-		ServerKeysClient:                                   &serverKeysClient,
-		ServerVulnerabilityAssessmentsClient:               &serverVulnerabilityAssessmentsClient,
-		VirtualMachinesAvailabilityGroupListenersClient:    &virtualMachinesAvailabilityGroupListenersClient,
-		VirtualMachinesClient:                              &virtualMachinesClient,
-		VirtualMachineGroupsClient:                         &virtualMachineGroupsClient,
-		VirtualNetworkRulesClient:                          &virtualNetworkRulesClient,
+		ElasticPoolsClient:                              &elasticPoolsClient,
+		EncryptionProtectorClient:                       &encryptionProtectorClient,
+		FailoverGroupsClient:                            &failoverGroupsClient,
+		FirewallRulesClient:                             &firewallRulesClient,
+		JobAgentsClient:                                 &jobAgentsClient,
+		JobCredentialsClient:                            &jobCredentialsClient,
+		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
+		ServerDNSAliasClient:                            &serverDNSAliasClient,
+		ServerDevOpsAuditSettingsClient:                 &serverDevOpsAuditSettingsClient,
+		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
+		ServerKeysClient:                                &serverKeysClient,
+		ServerVulnerabilityAssessmentsClient:            &serverVulnerabilityAssessmentsClient,
+		VirtualMachinesAvailabilityGroupListenersClient: &virtualMachinesAvailabilityGroupListenersClient,
+		VirtualMachinesClient:                           &virtualMachinesClient,
+		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
+		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
 
 		// 2023-02-01-preview Clients
+		BackupShortTermRetentionPoliciesClient: backupShortTermRetentionPoliciesClient,
 		DatabasesClient:                        databasesClient,
 		DatabaseSecurityAlertPoliciesClient:    databaseSecurityAlertPoliciesClient,
 		GeoBackupPoliciesClient:                geoBackupPoliciesClient,
+		LongTermRetentionPoliciesClient:        longTermRetentionPoliciesClient,
 		ReplicationLinksClient:                 replicationLinksClient,
 		RestorableDroppedDatabasesClient:       restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:      serverAzureADAdministratorsClient,
