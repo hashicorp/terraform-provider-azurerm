@@ -16,12 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                   // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"           // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"            // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                     // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"  // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                     // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"             // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"              // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                       // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"   // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"    // nolint: staticcheck
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -118,7 +119,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
-	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
+	databaseSecurityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
@@ -385,7 +386,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		if encryptionStatus {
 			stateProperty = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 		}
-		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, transparentdataencryptions.DatabaseId(databaseId), transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
 			Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
 				State: stateProperty,
 			},
@@ -395,12 +396,16 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-			c, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			c, err := client.Get(ctx, databaseId, databases.GetOperationOptions{})
 			if err != nil {
 				return pluginsdk.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
 			}
-			if c.DatabaseProperties.Status == sql.DatabaseStatusScaling {
-				return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
+			if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
+				if c.Model.Properties.Status == pointer.To(databases.DatabaseStatus(databases.DatabaseStatusScaling)) {
+					return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
+				}
+			} else {
+				return pluginsdk.RetryableError(fmt.Errorf("retrieving database status %s: Model, Properties or Status is nil", id.String()))
 			}
 
 			return nil
@@ -411,12 +416,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if _, ok := d.GetOk("import"); ok {
 		importParameters := expandMsSqlServerImport(d)
-		importFuture, err := client.Import(ctx, id.ResourceGroup, id.ServerName, id.Name, importParameters)
+		err := client.ImportThenPoll(ctx, databaseId, importParameters)
 		if err != nil {
-			return fmt.Errorf("while import bacpac into the new database %s (Resource Group %s): %+v", id.Name, id.ResourceGroup, err)
-		}
-
-		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("while import bacpac into the new database %s (Resource Group %s): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
@@ -429,22 +430,22 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
 		if !enabled {
-			geoBackupPolicy := geobackuppolicies.GeoBackupPolicy{
-				GeoBackupPolicyProperties: &geobackuppolicies.GeoBackupPolicyProperties{
+			input := geobackuppolicies.GeoBackupPolicy{
+				Properties: pointer.To(geobackuppolicies.GeoBackupPolicyProperties{
 					State: geobackuppolicies.GeoBackupPolicyStateDisabled,
-				},
+				}),
 			}
 
-			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, geoBackupPolicy); err != nil {
+			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, geobackuppolicies.DatabaseId(databaseId), input); err != nil {
 				return fmt.Errorf("setting Geo Backup Policies for %s: %+v", id, err)
 			}
 		}
 	}
 
 	if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		result, err := securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d))
+		result, err := databaseSecurityAlertPoliciesClient.CreateOrUpdate(ctx, databasesecurityalertpolicies.DatabaseId(databaseId), expandMsSqlDatabaseSecurityAlertPolicy(d))
 
-		if utils.ResponseWasNotFound(result.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			return pluginsdk.RetryableError(fmt.Errorf("database %s is still creating", id.String()))
 		}
 
@@ -519,9 +520,16 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	databaseId := databases.DatabaseId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ServerName:        id.ServerName,
+		DatabaseName:      id.Name,
+	}
+
+	resp, err := client.Get(ctx, databaseId, databases.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -609,7 +617,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("long_term_retention_policy", zero)
 		d.Set("short_term_retention_policy", zero)
 
-		geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, databaseId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				d.SetId("")
@@ -1103,11 +1111,11 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy ser
 	return []interface{}{securityAlertPolicy}
 }
 
-func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) serversecurityalertpolicies.ServerSecurityAlertPolicy {
-	policy := serversecurityalertpolicies.ServerSecurityAlertPolicy{
-		Properties: &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
-			State: serversecurityalertpolicies.SecurityAlertsPolicyStateDisabled,
-		},
+func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databasesecurityalertpolicies.DatabaseSecurityAlertPolicy {
+	policy := databasesecurityalertpolicies.DatabaseSecurityAlertPolicy{
+		Properties: pointer.To(databasesecurityalertpolicies.SecurityAlertsPolicyProperties{
+			State: databasesecurityalertpolicies.SecurityAlertsPolicyStateDisabled,
+		}),
 	}
 	properties := policy.Properties
 
@@ -1119,7 +1127,7 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) serversecur
 	if tdl := td.([]interface{}); len(tdl) > 0 {
 		securityAlert := tdl[0].(map[string]interface{})
 
-		properties.State = serversecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
+		properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
 		properties.EmailAccountAdmins = utils.Bool(securityAlert["email_account_admins"].(string) == string(EmailAccountAdminsStatusEnabled))
 
 		if v, ok := securityAlert["disabled_alerts"]; ok {
@@ -1139,7 +1147,7 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) serversecur
 			properties.EmailAddresses = &expandedEmails
 		}
 		if v, ok := securityAlert["retention_days"]; ok {
-			properties.RetentionDays = utils.Int32(int32(v.(int)))
+			properties.RetentionDays = pointer.To(int64(v.(int64)))
 		}
 		if v, ok := securityAlert["storage_account_access_key"]; ok && v.(string) != "" {
 			properties.StorageAccountAccessKey = utils.String(v.(string))
@@ -1154,23 +1162,23 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) serversecur
 	return policy
 }
 
-func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out sql.ImportExistingDatabaseDefinition) {
+func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExistingDatabaseDefinition) {
 	v := d.Get("import")
 	dbImportRefs := v.([]interface{})
 	dbImportRef := dbImportRefs[0].(map[string]interface{})
-	out = sql.ImportExistingDatabaseDefinition{
-		StorageKeyType:             sql.StorageKeyType(dbImportRef["storage_key_type"].(string)),
-		StorageKey:                 utils.String(dbImportRef["storage_key"].(string)),
-		StorageURI:                 utils.String(dbImportRef["storage_uri"].(string)),
-		AdministratorLogin:         utils.String(dbImportRef["administrator_login"].(string)),
-		AdministratorLoginPassword: utils.String(dbImportRef["administrator_login_password"].(string)),
-		AuthenticationType:         utils.String(dbImportRef["authentication_type"].(string)),
+	out = databases.ImportExistingDatabaseDefinition{
+		StorageKeyType:             databases.StorageKeyType(dbImportRef["storage_key_type"].(string)),
+		StorageKey:                 dbImportRef["storage_key"].(string),
+		StorageUri:                 dbImportRef["storage_uri"].(string),
+		AdministratorLogin:         dbImportRef["administrator_login"].(string),
+		AdministratorLoginPassword: dbImportRef["administrator_login_password"].(string),
+		AuthenticationType:         pointer.To(dbImportRef["authentication_type"].(string)),
 	}
 
 	if storageAccountId, ok := d.GetOk("storage_account_id"); ok {
-		out.NetworkIsolation = &sql.NetworkIsolationSettings{
-			StorageAccountResourceID: utils.String(storageAccountId.(string)),
-			SQLServerResourceID:      utils.String(d.Get("server_id").(string)),
+		out.NetworkIsolation = &databases.NetworkIsolationSettings{
+			StorageAccountResourceId: pointer.To(storageAccountId.(string)),
+			SqlServerResourceId:      pointer.To(d.Get("server_id").(string)),
 		}
 	}
 	return

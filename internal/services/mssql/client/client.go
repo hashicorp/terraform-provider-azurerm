@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                                       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                        // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"    // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"                // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"                 // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                          // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"      // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"       // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
@@ -25,7 +27,7 @@ import (
 type Client struct {
 	BackupShortTermRetentionPoliciesClient             *sql.BackupShortTermRetentionPoliciesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
-	DatabaseSecurityAlertPoliciesClient                *sql.DatabaseSecurityAlertPoliciesClient
+	DatabaseSecurityAlertPoliciesClient                *databasesecurityalertpolicies.DatabaseSecurityAlertPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 	DatabasesClient                                    *databases.DatabasesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
@@ -46,7 +48,7 @@ type Client struct {
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerDevOpsAuditSettingsClient                    *sql.ServerDevOpsAuditSettingsClient
 	ServerKeysClient                                   *sql.ServerKeysClient
-	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
+	ServerSecurityAlertPoliciesClient                  *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
 	ServersClient                                      *servers.ServersClient
 	TransparentDataEncryptionsClient                   *transparentdataencryptions.TransparentDataEncryptionsClient
@@ -63,8 +65,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	databaseExtendedBlobAuditingPoliciesClient := sql.NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	databaseSecurityAlertPoliciesClient := sql.NewDatabaseSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&databaseSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	databaseSecurityAlertPoliciesClient, err := databasesecurityalertpolicies.NewDatabaseSecurityAlertPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Databases Security Alert Policies Client: %+v", err)
+	}
+	o.Configure(databaseSecurityAlertPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	databaseVulnerabilityAssessmentRuleBaselinesClient := sql.NewDatabaseVulnerabilityAssessmentRuleBaselinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseVulnerabilityAssessmentRuleBaselinesClient.Client, o.ResourceManagerAuthorizer)
@@ -87,7 +92,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	geoBackupPoliciesClient := geobackuppolicies.NewGeoBackupPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	geoBackupPoliciesClient, err := geobackuppolicies.NewGeoBackupPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Geo Backup Policies Client: %+v", err)
 	}
@@ -147,8 +152,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	serverKeysClient := sql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	serverSecurityAlertPoliciesClient := sql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	serverSecurityAlertPoliciesClient, err := serversecurityalertpolicies.NewServerSecurityAlertPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Server Security Alert Policies Client: %+v", err)
+	}
+	o.Configure(serverSecurityAlertPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	serverVulnerabilityAssessmentsClient := sql.NewServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
@@ -180,34 +188,36 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		BackupShortTermRetentionPoliciesClient:             &backupShortTermRetentionPoliciesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
-		DatabaseSecurityAlertPoliciesClient:                &databaseSecurityAlertPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
-		DatabasesClient:                                 databasesClient,
-		ElasticPoolsClient:                              &elasticPoolsClient,
-		EncryptionProtectorClient:                       &encryptionProtectorClient,
-		FailoverGroupsClient:                            &failoverGroupsClient,
-		FirewallRulesClient:                             &firewallRulesClient,
-		GeoBackupPoliciesClient:                         geoBackupPoliciesClient,
-		JobAgentsClient:                                 &jobAgentsClient,
-		JobCredentialsClient:                            &jobCredentialsClient,
-		LongTermRetentionPoliciesClient:                 &longTermRetentionPoliciesClient,
-		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
-		ReplicationLinksClient:                          replicationLinksClient,
-		RestorableDroppedDatabasesClient:                restorableDroppedDatabasesClient,
-		ServerAzureADAdministratorsClient:               serverAzureADAdministratorsClient,
-		ServerAzureADOnlyAuthenticationsClient:          serverAzureADOnlyAuthenticationsClient,
-		ServerConnectionPoliciesClient:                  serverConnectionPoliciesClient,
-		ServerDNSAliasClient:                            &serverDNSAliasClient,
-		ServerDevOpsAuditSettingsClient:                 &serverDevOpsAuditSettingsClient,
-		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
-		ServerKeysClient:                                &serverKeysClient,
-		ServerSecurityAlertPoliciesClient:               &serverSecurityAlertPoliciesClient,
-		ServerVulnerabilityAssessmentsClient:            &serverVulnerabilityAssessmentsClient,
-		ServersClient:                                   serversClient,
-		TransparentDataEncryptionsClient:                transparentDataEncryptionsClient,
-		VirtualMachinesAvailabilityGroupListenersClient: &virtualMachinesAvailabilityGroupListenersClient,
-		VirtualMachinesClient:                           &virtualMachinesClient,
-		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
-		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
+		ElasticPoolsClient:                                 &elasticPoolsClient,
+		EncryptionProtectorClient:                          &encryptionProtectorClient,
+		FailoverGroupsClient:                               &failoverGroupsClient,
+		FirewallRulesClient:                                &firewallRulesClient,
+		JobAgentsClient:                                    &jobAgentsClient,
+		JobCredentialsClient:                               &jobCredentialsClient,
+		LongTermRetentionPoliciesClient:                    &longTermRetentionPoliciesClient,
+		OutboundFirewallRulesClient:                        &outboundFirewallRulesClient,
+		ServerDNSAliasClient:                               &serverDNSAliasClient,
+		ServerDevOpsAuditSettingsClient:                    &serverDevOpsAuditSettingsClient,
+		ServerExtendedBlobAuditingPoliciesClient:           &serverExtendedBlobAuditingPoliciesClient,
+		ServerKeysClient:                                   &serverKeysClient,
+		ServerVulnerabilityAssessmentsClient:               &serverVulnerabilityAssessmentsClient,
+		VirtualMachinesAvailabilityGroupListenersClient:    &virtualMachinesAvailabilityGroupListenersClient,
+		VirtualMachinesClient:                              &virtualMachinesClient,
+		VirtualMachineGroupsClient:                         &virtualMachineGroupsClient,
+		VirtualNetworkRulesClient:                          &virtualNetworkRulesClient,
+
+		// 2023-02-01-preview Clients
+		DatabasesClient:                        databasesClient,
+		DatabaseSecurityAlertPoliciesClient:    databaseSecurityAlertPoliciesClient,
+		GeoBackupPoliciesClient:                geoBackupPoliciesClient,
+		ReplicationLinksClient:                 replicationLinksClient,
+		RestorableDroppedDatabasesClient:       restorableDroppedDatabasesClient,
+		ServerAzureADAdministratorsClient:      serverAzureADAdministratorsClient,
+		ServerAzureADOnlyAuthenticationsClient: serverAzureADOnlyAuthenticationsClient,
+		ServerConnectionPoliciesClient:         serverConnectionPoliciesClient,
+		ServerSecurityAlertPoliciesClient:      serverSecurityAlertPoliciesClient,
+		TransparentDataEncryptionsClient:       transparentDataEncryptionsClient,
+		ServersClient:                          serversClient,
 	}, nil
 }
