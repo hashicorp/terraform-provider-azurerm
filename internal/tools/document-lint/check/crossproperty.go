@@ -8,7 +8,6 @@ import (
 	schema2 "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/md"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/model"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"

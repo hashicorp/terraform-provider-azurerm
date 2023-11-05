@@ -1,16 +1,37 @@
-## 3.78.0 (Unreleased)
-
-FEATURES:
-
-* New Resource: `azurerm_resource_management_private_link_association` [GH-23546]
+## 3.79.0 (Unreleased)
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20231025.1113325` of `github.com/hashicorp/go-azure-sdk` [GH-23684]
-* Data Source: `azurerm_monitor_workspace` - export `query_endpoint` [GH-23629]
-* `azurerm_express_route_port` - support for `macsec_sci_enabled` [GH-23625]
-* `azurerm_synapse_workspace` - add support for `azuread_authentication_only` [GH-23659]
+* `arc_kuberenetes_cluster_extension_resource` - `version` and `release_train` can now be set simultaneously [GH-23692]
+* `azurerm_storage_management_policy` - Support for properties rule.*.actions.*.base_blob.0.tier_to_cold_after_days_since_{modification|last_access_time|creation}_greater_than and rule.*.actions.*.{snapshot|version}.0.tier_to_cold_after_days_since_creation_greater_than [GH-23574]
 
+BUG FIXES:
+
+* `azurerm_backup_policy_vm` - fix payload by using current datetime [GH-23586]
+
+## 3.78.0 (October 26, 2023)
+
+FEATURES:
+
+* New Resource: `azurerm_resource_management_private_link_association` ([#23546](https://github.com/hashicorp/terraform-provider-azurerm/issues/23546))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20231025.1113325` of `github.com/hashicorp/go-azure-sdk` ([#23684](https://github.com/hashicorp/terraform-provider-azurerm/issues/23684))
+* dependencies: updating to `v1.58.3` of `google.golang.org/grpc` ([#23691](https://github.com/hashicorp/terraform-provider-azurerm/issues/23691))
+* dependencies: updating search service from `2022-09-01` to `2023-11-01` ([#23698](https://github.com/hashicorp/terraform-provider-azurerm/issues/23698)) 
+* Data Source: `azurerm_monitor_workspace` - export `query_endpoint` ([#23629](https://github.com/hashicorp/terraform-provider-azurerm/issues/23629))
+* `azurerm_express_route_port` - support for `macsec_sci_enabled` ([#23625](https://github.com/hashicorp/terraform-provider-azurerm/issues/23625))
+* `azurerm_eventhub_namespace_customer_managed_key` - support for the `user_assigned_identity_id` property ([#23635](https://github.com/hashicorp/terraform-provider-azurerm/issues/23635))
+* `azurerm_postgresql_flexible_server` - `private_dns_zone_id` is no longer ForceNew and case is suppressed  ([#23660](https://github.com/hashicorp/terraform-provider-azurerm/issues/23660))
+* `azurerm_synapse_workspace` - add support for `azuread_authentication_only` ([#23659](https://github.com/hashicorp/terraform-provider-azurerm/issues/23659))
+* `azurerm_redis_enterprise_cluster` - support for new location `Japan East` ([#23696](https://github.com/hashicorp/terraform-provider-azurerm/issues/23696))
+* `azurerm_search_service` - support for `semantic_search_sku` field ([#23698](https://github.com/hashicorp/terraform-provider-azurerm/issues/23698))
+
+BUG FIXES:
+
+* `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - added lock for ruleStackID ([#23601](https://github.com/hashicorp/terraform-provider-azurerm/issues/23601))
+* `azurerm_cognitive_deployment` - remove forceNew tag from `rai_policy_name` ([#23697](https://github.com/hashicorp/terraform-provider-azurerm/issues/23697))
 
 ## 3.77.0 (October 19, 2023)
 
