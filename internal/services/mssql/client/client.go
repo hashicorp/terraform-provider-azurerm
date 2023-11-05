@@ -46,18 +46,20 @@ type Client struct {
 	ServerAzureADAdministratorsClient                  *serverazureadadministrators.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *serverazureadonlyauthentications.ServerAzureADOnlyAuthenticationsClient
 	ServerConnectionPoliciesClient                     *serverconnectionpolicies.ServerConnectionPoliciesClient
-	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
-	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
-	ServerDevOpsAuditSettingsClient                    *sql.ServerDevOpsAuditSettingsClient
-	ServerKeysClient                                   *sql.ServerKeysClient
-	ServerSecurityAlertPoliciesClient                  *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
-	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
-	ServersClient                                      *servers.ServersClient
-	TransparentDataEncryptionsClient                   *transparentdataencryptions.TransparentDataEncryptionsClient
-	VirtualMachinesAvailabilityGroupListenersClient    *availabilitygrouplisteners.AvailabilityGroupListenersClient
-	VirtualMachinesClient                              *sqlvirtualmachines.SqlVirtualMachinesClient
-	VirtualMachineGroupsClient                         *sqlvirtualmachinegroups.SqlVirtualMachineGroupsClient
-	VirtualNetworkRulesClient                          *sql.VirtualNetworkRulesClient
+
+	ServerDNSAliasClient                            *sql.ServerDNSAliasesClient
+	ServerExtendedBlobAuditingPoliciesClient        *sql.ExtendedServerBlobAuditingPoliciesClient
+	ServerDevOpsAuditSettingsClient                 *sql.ServerDevOpsAuditSettingsClient
+	ServerKeysClient                                *sql.ServerKeysClient
+	ServerSecurityAlertPoliciesClient               *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
+	LegacyServerSecurityAlertPoliciesClient         *sql.ServerSecurityAlertPoliciesClient
+	ServerVulnerabilityAssessmentsClient            *sql.ServerVulnerabilityAssessmentsClient
+	ServersClient                                   *servers.ServersClient
+	TransparentDataEncryptionsClient                *transparentdataencryptions.TransparentDataEncryptionsClient
+	VirtualMachinesAvailabilityGroupListenersClient *availabilitygrouplisteners.AvailabilityGroupListenersClient
+	VirtualMachinesClient                           *sqlvirtualmachines.SqlVirtualMachinesClient
+	VirtualMachineGroupsClient                      *sqlvirtualmachinegroups.SqlVirtualMachineGroupsClient
+	VirtualNetworkRulesClient                       *sql.VirtualNetworkRulesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -160,6 +162,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	serverKeysClient := sql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverKeysClient.Client, o.ResourceManagerAuthorizer)
 
+	legacyServerSecurityAlertPoliciesClient := sql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&legacyServerSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	serverSecurityAlertPoliciesClient, err := serversecurityalertpolicies.NewServerSecurityAlertPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Server Security Alert Policies Client: %+v", err)
@@ -212,6 +217,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualMachinesClient:                           &virtualMachinesClient,
 		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
 		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
+
+		// Legacy Clients
+		LegacyServerSecurityAlertPoliciesClient: &legacyServerSecurityAlertPoliciesClient,
 
 		// 2023-02-01-preview Clients
 		BackupShortTermRetentionPoliciesClient: backupShortTermRetentionPoliciesClient,
