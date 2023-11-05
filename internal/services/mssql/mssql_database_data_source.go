@@ -125,7 +125,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if props := resp.Model.Properties; props != nil {
 		d.Set("collation", props.Collation)
 		d.Set("elastic_pool_id", props.ElasticPoolId)
-		d.Set("license_type", props.LicenseType)
+		d.Set("license_type", string(pointer.From(props.LicenseType)))
 		d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)

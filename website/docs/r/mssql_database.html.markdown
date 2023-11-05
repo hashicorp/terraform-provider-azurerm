@@ -143,9 +143,9 @@ a `import` block supports the following:
 ---
 a `threat_detection_policy` block supports the following:
 
-* `state` - (Optional) The State of the Policy. Possible values are `Enabled` or `Disabled`.
+* `state` - (Optional) The State of the Policy. Possible values are `Enabled` or `Disabled`. Defaults to `Disabled`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
-* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered? Possible values are `Enabled` or `Disabled`.
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered? Possible values are `Enabled` or `Disabled`. Defaults to `Disabled`.
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.

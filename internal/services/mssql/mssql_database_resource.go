@@ -247,12 +247,12 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Name:     pointer.To(name),
 		Location: location,
 		Properties: &databases.DatabaseProperties{
-			AutoPauseDelay:                   pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int64))),
+			AutoPauseDelay:                   pointer.To(d.Get("auto_pause_delay_in_minutes").(int64)),
 			Collation:                        pointer.To(d.Get("collation").(string)),
 			ElasticPoolId:                    pointer.To(d.Get("elastic_pool_id").(string)),
 			LicenseType:                      pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string))),
 			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
-			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int64))),
+			HighAvailabilityReplicaCount:     pointer.To(d.Get("read_replica_count").(int64)),
 			SampleName:                       pointer.To(databases.SampleName(d.Get("sample_name").(string))),
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
@@ -401,7 +401,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				return pluginsdk.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
 			}
 			if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
-				if c.Model.Properties.Status == pointer.To(databases.DatabaseStatus(databases.DatabaseStatusScaling)) {
+				if c.Model.Properties.Status == pointer.To(databases.DatabaseStatusScaling) {
 					return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
 				}
 			} else {
@@ -548,7 +548,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("read_scale", props.ReadScale == pointer.To(databases.DatabaseReadScaleEnabled))
 
 			if props.LicenseType != nil {
-				d.Set("license_type", props.LicenseType)
+				d.Set("license_type", string(pointer.From(props.LicenseType)))
 			} else {
 				// value not returned, try to set from state
 				d.Set("license_type", d.Get("license_type").(string))
@@ -783,7 +783,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	props := databases.DatabaseUpdateProperties{}
 
 	if d.HasChange("auto_pause_delay_in_minutes") {
-		props.AutoPauseDelay = pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int64)))
+		props.AutoPauseDelay = pointer.To(d.Get("auto_pause_delay_in_minutes").(int64))
 	}
 
 	if d.HasChange("elastic_pool_id") {
@@ -799,7 +799,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("read_replica_count") {
-		props.HighAvailabilityReplicaCount = pointer.To(int64(d.Get("read_replica_count").(int64)))
+		props.HighAvailabilityReplicaCount = pointer.To(d.Get("read_replica_count").(int64))
 	}
 
 	if d.HasChange("sample_name") {
@@ -887,7 +887,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	pendingStatuses := make([]string, 0)
 	for _, s := range databases.PossibleValuesForDatabaseStatus() {
 		if s != string(databases.DatabaseStatusOnline) {
-			pendingStatuses = append(pendingStatuses, string(s))
+			pendingStatuses = append(pendingStatuses, s)
 		}
 	}
 
@@ -1166,7 +1166,7 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 			properties.EmailAddresses = &expandedEmails
 		}
 		if v, ok := securityAlert["retention_days"]; ok {
-			properties.RetentionDays = pointer.To(int64(v.(int64)))
+			properties.RetentionDays = pointer.To(v.(int64))
 		}
 		if v, ok := securityAlert["storage_account_access_key"]; ok && v.(string) != "" {
 			properties.StorageAccountAccessKey = utils.String(v.(string))
