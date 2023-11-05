@@ -79,7 +79,7 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 							},
 							ConflictsWith: []string{
 								"eventhub.0.endpoint_uri",
-								"eventhub.0.client_id",
+								"eventhub.0.user_assigned_identity_client_id",
 							},
 						},
 						"endpoint_uri": {
@@ -93,16 +93,14 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 							ConflictsWith: []string{
 								"eventhub.0.connection_string",
 							},
-							RequiredWith: []string{"eventhub.0.client_id"},
 						},
-						"client_id": {
+						"user_assigned_identity_client_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.IsUUID,
 							ConflictsWith: []string{
 								"eventhub.0.connection_string",
 							},
-							RequiredWith: []string{"eventhub.0.endpoint_uri"},
 						},
 					},
 				},
@@ -294,14 +292,19 @@ func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 
 	connectionString := eventHub["connection_string"].(string)
 	endpointAddress := eventHub["endpoint_uri"].(string)
-	clientId := eventHub["client_id"].(string)
+	clientId := eventHub["user_assigned_identity_client_id"].(string)
 
 	credentials["name"] = eventHub["name"].(string)
 	if len(connectionString) > 0 {
 		credentials["connectionString"] = connectionString
 	} else if len(endpointAddress) > 0 {
 		credentials["endpointAddress"] = endpointAddress
-		credentials["identityClientId"] = clientId
+		// This field is required by the API and only accepts either a valid UUID or `SystemAssigned` as a value, so we default this to `SystemAssigned` in the create if the field is omitted
+		credentials["identityClientId"] = "SystemAssigned"
+		if clientId != "" {
+			credentials["identityClientId"] = clientId
+		}
+
 	}
 
 	return &credentials
@@ -327,8 +330,10 @@ func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *l
 			if endpoint, ok := existingEventHub["endpoint_uri"]; ok {
 				eventHub["endpoint_uri"] = endpoint
 			}
-			if clientId, ok := existingEventHub["client_id"]; ok {
-				eventHub["client_id"] = clientId
+			if clientId, ok := existingEventHub["user_assigned_identity_client_id"]; ok {
+				if clientId != "SystemAssigned" {
+					eventHub["user_assigned_identity_client_id"] = clientId
+				}
 			}
 		}
 		result = append(result, eventHub)

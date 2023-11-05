@@ -83,7 +83,7 @@ An `eventhub` block supports the following:
 
 ~> **Note:** At least one of `connection_string` or `endpoint_uri` must be specified
 
-* `client_id` - (Optional) The client_id of the managed identity or SystemAssigned identity with the "Azure Event Hubs Data Sender" role to the target EventHub Namespace. Required when `endpoint_uri` is set.
+* `user_assigned_identity_client_id` - (Optional) The Client Id of the User Assigned Identity  with the "Azure Event Hubs Data Sender" role to the target EventHub Namespace. Required when `endpoint_uri` is set. If not specified the System Assigned Identity will be used.
 
 * `endpoint_uri` - (Optional) The endpoint address of an EventHub Namespace. Required when `client_id` is set.
 
