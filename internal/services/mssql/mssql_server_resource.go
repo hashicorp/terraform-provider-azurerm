@@ -131,11 +131,8 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(serverconnectionpolicies.ServerConnectionTypeDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(serverconnectionpolicies.ServerConnectionTypeDefault),
-					string(serverconnectionpolicies.ServerConnectionTypeProxy),
-					string(serverconnectionpolicies.ServerConnectionTypeRedirect),
-				}, false),
+				ValidateFunc: validation.StringInSlice(serverconnectionpolicies.PossibleValuesForServerConnectionType(),
+					false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
