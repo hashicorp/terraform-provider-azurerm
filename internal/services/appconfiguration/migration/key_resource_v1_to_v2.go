@@ -9,7 +9,9 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -51,7 +53,17 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("parseing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
-		configurationStoreEndpoint := fmt.Sprintf("https://%s.azconfig.io", configurationStoreId.ConfigurationStoreName)
+		envName := meta.(*clients.Client).Account.Environment.Name
+		appConfigSuffix := ""
+		switch envName {
+		case environments.AzurePublicCloud:
+			appConfigSuffix = "azconfig.io"
+		case environments.AzureUSGovernmentCloud:
+			appConfigSuffix = "azconfig.azure.us"
+		case environments.AzureChinaCloud:
+			appConfigSuffix = "azconfig.azure.cn"
+		}
+		configurationStoreEndpoint := fmt.Sprintf("https://%s.%s", configurationStoreId.ConfigurationStoreName, appConfigSuffix)
 
 		nestedItemId, err := parse.NewNestedItemID(configurationStoreEndpoint, parsedOldId.Key, parsedOldId.Label)
 		if err != nil {
