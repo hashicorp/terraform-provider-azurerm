@@ -127,7 +127,7 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 	}
 
 	if v, ok := policy["week_of_year"]; ok {
-		output.WeekOfYear = pointer.To(v.(int64))
+		output.WeekOfYear = pointer.To(int64(v.(int)))
 	}
 
 	return pointer.To(output)
@@ -184,7 +184,7 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretenti
 	}
 
 	if v, ok := policy["backup_interval_in_hours"]; ok {
-		props.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHours(v.(int64)))
+		props.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHours(int64(v.(int))))
 	}
 
 	return &props
