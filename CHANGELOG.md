@@ -1,3 +1,9 @@
+## 3.80.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_postgresql_database` - update the validation of `collation` to include support for `French_France.1252` [GH-23783]
+
 ## 3.79.0 (November 02, 2023)
 
 ENHANCEMENTS:
