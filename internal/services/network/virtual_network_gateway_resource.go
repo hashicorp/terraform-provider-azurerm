@@ -392,13 +392,13 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 									}, false),
 								},
 
-								"sa_lifetime_seconds": {
+								"sa_lifetime_in_seconds": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntBetween(300, 172799),
 								},
 
-								"sa_data_size_kilobytes": {
+								"sa_data_size_in_kilobytes": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ValidateFunc: validation.IntBetween(1024, 2147483647),
@@ -1108,8 +1108,8 @@ func expandVirtualNetworkGatewayIpsecPolicies(input []interface{}) *[]network.Ip
 			IpsecEncryption:     network.IpsecEncryption(v["ipsec_encryption"].(string)),
 			IpsecIntegrity:      network.IpsecIntegrity(v["ipsec_integrity"].(string)),
 			PfsGroup:            network.PfsGroup(v["pfs_group"].(string)),
-			SaLifeTimeSeconds:   utils.Int32(int32(v["sa_lifetime_seconds"].(int))),
-			SaDataSizeKilobytes: utils.Int32(int32(v["sa_data_size_kilobytes"].(int))),
+			SaLifeTimeSeconds:   utils.Int32(int32(v["sa_lifetime_in_seconds"].(int))),
+			SaDataSizeKilobytes: utils.Int32(int32(v["sa_data_size_in_kilobytes"].(int))),
 		})
 	}
 
@@ -1499,14 +1499,14 @@ func flattenVirtualNetworkGatewayIPSecPolicies(input *[]network.IpsecPolicy) []i
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"dh_group":               string(item.DhGroup),
-			"ipsec_encryption":       string(item.IpsecEncryption),
-			"ipsec_integrity":        string(item.IpsecIntegrity),
-			"ike_encryption":         string(item.IkeEncryption),
-			"ike_integrity":          string(item.IkeIntegrity),
-			"pfs_group":              string(item.PfsGroup),
-			"sa_data_size_kilobytes": pointer.From(item.SaDataSizeKilobytes),
-			"sa_lifetime_seconds":    pointer.From(item.SaLifeTimeSeconds),
+			"dh_group":                  string(item.DhGroup),
+			"ipsec_encryption":          string(item.IpsecEncryption),
+			"ipsec_integrity":           string(item.IpsecIntegrity),
+			"ike_encryption":            string(item.IkeEncryption),
+			"ike_integrity":             string(item.IkeIntegrity),
+			"pfs_group":                 string(item.PfsGroup),
+			"sa_data_size_in_kilobytes": pointer.From(item.SaDataSizeKilobytes),
+			"sa_lifetime_in_seconds":    pointer.From(item.SaLifeTimeSeconds),
 		})
 	}
 	return results

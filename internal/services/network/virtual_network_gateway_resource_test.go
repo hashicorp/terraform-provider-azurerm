@@ -849,14 +849,14 @@ resource "azurerm_virtual_network_gateway" "test" {
     }
 
     ipsec_policy {
-      sa_lifetime_seconds    = 300
-      sa_data_size_kilobytes = 1024
-      ipsec_encryption       = "AES256"
-      ipsec_integrity        = "SHA256"
-      ike_encryption         = "AES128"
-      ike_integrity          = "SHA256"
-      dh_group               = "DHGroup14"
-      pfs_group              = "PFS14"
+      sa_lifetime_in_seconds    = 300
+      sa_data_size_in_kilobytes = 1024
+      ipsec_encryption          = "AES256"
+      ipsec_integrity           = "SHA256"
+      ike_encryption            = "AES128"
+      ike_integrity             = "SHA256"
+      dh_group                  = "DHGroup14"
+      pfs_group                 = "PFS14"
     }
   }
 }

@@ -290,9 +290,9 @@ The `ipsec_policy` block supports:
 
 * `pfs_group` - (Required) The Pfs Group, used in IKE Phase 2. Possible values are `ECP256`, `ECP384`, `PFS1`, `PFS2`, `PFS14`, `PFS24`, `PFS2048`, `PFSMM` and `None`.
 
-* `sa_lifetime_seconds` - (Required) The IPSec Security Association lifetime in seconds for a Site-to-Site VPN tunnel. Possible values are between `300` and `172799`.
+* `sa_lifetime_in_seconds` - (Required) The IPSec Security Association lifetime in seconds for a Site-to-Site VPN tunnel. Possible values are between `300` and `172799`.
 
-* `sa_data_size_kilobytes` - (Required) The IPSec Security Association payload size in KB for a Site-to-Site VPN tunnel. Possible values are between `1024` and `2147483647`.
+* `sa_data_size_in_kilobytes` - (Required) The IPSec Security Association payload size in KB for a Site-to-Site VPN tunnel. Possible values are between `1024` and `2147483647`.
 
 ---
 
