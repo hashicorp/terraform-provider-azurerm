@@ -533,19 +533,44 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		skuName := ""
 		ledgerEnabled := false
 
-		d.Set("name", pointer.From(model.Name))
+		if model.Name != nil {
+			d.Set("name", pointer.From(model.Name))
+		}
+
 		d.Set("server_id", serverId.ID())
 
 		if props := model.Properties; props != nil {
-			d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
-			d.Set("collation", props.Collation)
-			d.Set("elastic_pool_id", props.ElasticPoolId)
-			d.Set("min_capacity", props.MinCapacity)
-			d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
-			d.Set("sku_name", skuName)
-			d.Set("storage_account_type", string(pointer.From(props.RequestedBackupStorageRedundancy)))
-			d.Set("zone_redundant", props.ZoneRedundant)
-			d.Set("read_scale", props.ReadScale == pointer.To(databases.DatabaseReadScaleEnabled))
+			if props.AutoPauseDelay != nil {
+				d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
+			}
+
+			if props.Collation != nil {
+				d.Set("collation", props.Collation)
+			}
+
+			if props.ElasticPoolId != nil {
+				d.Set("elastic_pool_id", props.ElasticPoolId)
+			}
+
+			if props.MinCapacity != nil {
+				d.Set("min_capacity", props.MinCapacity)
+			}
+
+			if props.HighAvailabilityReplicaCount != nil {
+				d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
+			}
+
+			if props.RequestedBackupStorageRedundancy != nil {
+				d.Set("storage_account_type", string(pointer.From(props.RequestedBackupStorageRedundancy)))
+			}
+
+			if props.ZoneRedundant != nil {
+				d.Set("zone_redundant", props.ZoneRedundant)
+			}
+
+			if props.ReadScale != nil {
+				d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScale(databases.DatabaseReadScaleEnabled))
+			}
 
 			if props.LicenseType != nil {
 				d.Set("license_type", string(pointer.From(props.LicenseType)))
@@ -575,6 +600,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				configurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
 			}
 
+			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
 		}
