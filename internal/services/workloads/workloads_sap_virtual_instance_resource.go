@@ -52,7 +52,7 @@ type DiscoveryConfiguration struct {
 }
 
 type OsSapConfiguration struct {
-	DeployerVmPackages []DeployerVmPackages `tfschema:"deployer_vm_packages"`
+	DeployerVmPackages []DeployerVmPackages `tfschema:"deployer_virtual_machine_packages"`
 	SapFqdn            string               `tfschema:"sap_fqdn"`
 }
 
@@ -81,7 +81,7 @@ type DiskVolumeConfiguration struct {
 type VirtualMachineConfiguration struct {
 	ImageReference []ImageReference `tfschema:"image"`
 	OSProfile      []OSProfile      `tfschema:"os_profile"`
-	VmSize         string           `tfschema:"vm_size"`
+	VmSize         string           `tfschema:"virtual_machine_size"`
 }
 
 type ImageReference struct {
@@ -259,7 +259,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 									ValidateFunc: validate.SAPFQDN,
 								},
 
-								"deployer_vm_packages": {
+								"deployer_virtual_machine_packages": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
 									ForceNew: true,
@@ -386,7 +386,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 												},
 											},
 
-											"vm_size": {
+											"virtual_machine_size": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -619,7 +619,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 															},
 														},
 
-														"vm_size": {
+														"virtual_machine_size": {
 															Type:         pluginsdk.TypeString,
 															Required:     true,
 															ForceNew:     true,
@@ -732,7 +732,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 															},
 														},
 
-														"vm_size": {
+														"virtual_machine_size": {
 															Type:         pluginsdk.TypeString,
 															Required:     true,
 															ForceNew:     true,
@@ -845,7 +845,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 															},
 														},
 
-														"vm_size": {
+														"virtual_machine_size": {
 															Type:         pluginsdk.TypeString,
 															Required:     true,
 															ForceNew:     true,

@@ -88,7 +88,7 @@ resource "azurerm_workloads_sap_virtual_instance" "example" {
       secondary_ip_enabled    = true
 
       virtual_machine_configuration {
-        vm_size = "Standard_E32ds_v4"
+        virtual_machine_size = "Standard_E32ds_v4"
 
         image {
           offer     = "RHEL-SAP-HA"
@@ -215,13 +215,13 @@ An `os_sap_configuration` block supports the following:
 
 * `sap_fqdn` - (Required) The FQDN of the SAP system. Changing this forces a new resource to be created.
 
-* `deployer_vm_packages` - (Optional) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
+* `deployer_virtual_machine_packages` - (Optional) A `deployer_virtual_machine_packages` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
-A `deployer_vm_packages` block supports the following:
+A `deployer_virtual_machine_packages` block supports the following:
 
-* `storage_account_id` - (Required) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) A `deployer_virtual_machine_packages` block as defined below. Changing this forces a new resource to be created.
 
 * `url` - (Required) The URL of the deployer VM packages file. Changing this forces a new resource to be created.
 
@@ -265,7 +265,7 @@ A `virtual_machine_configuration` block supports the following:
 
 * `os_profile` - (Required) An `os_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `vm_size` - (Required) The size of the Virtual Machine. Changing this forces a new resource to be created.
+* `virtual_machine_size` - (Required) The size of the Virtual Machine. Changing this forces a new resource to be created.
 
 ---
 

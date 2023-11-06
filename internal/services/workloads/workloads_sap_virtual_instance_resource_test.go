@@ -243,7 +243,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       secondary_ip_enabled    = true
 
       virtual_machine_configuration {
-        vm_size = "Standard_E32ds_v4"
+        virtual_machine_size = "Standard_E32ds_v4"
 
         image {
           offer     = "RHEL-SAP-HA"
@@ -359,7 +359,7 @@ resource "azurerm_workloads_sap_virtual_instance" "import" {
       secondary_ip_enabled    = true
 
       virtual_machine_configuration {
-        vm_size = "Standard_E32ds_v4"
+        virtual_machine_size = "Standard_E32ds_v4"
 
         image {
           offer     = "RHEL-SAP-HA"
@@ -475,7 +475,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     os_sap_configuration {
       sap_fqdn = "sap.bpaas.com"
 
-      deployer_vm_packages {
+      deployer_virtual_machine_packages {
         storage_account_id = azurerm_storage_account.test.id
         url                = "https://www.bing.com"
       }
@@ -490,7 +490,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         subnet_id      = azurerm_subnet.test.id
 
         virtual_machine_configuration {
-          vm_size = "Standard_D16ds_v4"
+          virtual_machine_size = "Standard_D16ds_v4"
 
           image {
             offer     = "RHEL-SAP-HA"
@@ -512,7 +512,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         subnet_id      = azurerm_subnet.test.id
 
         virtual_machine_configuration {
-          vm_size = "Standard_D16ds_v4"
+          virtual_machine_size = "Standard_D16ds_v4"
 
           image {
             offer     = "RHEL-SAP-HA"
@@ -535,7 +535,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         database_type  = "HANA"
 
         virtual_machine_configuration {
-          vm_size = "Standard_E16ds_v4"
+          virtual_machine_size = "Standard_E16ds_v4"
 
           image {
             offer     = "RHEL-SAP-HA"
@@ -715,7 +715,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       secondary_ip_enabled    = true
 
       virtual_machine_configuration {
-        vm_size = "Standard_E32ds_v4"
+        virtual_machine_size = "Standard_E32ds_v4"
 
         image {
           offer     = "RHEL-SAP-HA"
@@ -856,7 +856,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     os_sap_configuration {
       sap_fqdn = "sap.bpaas.com"
 
-      deployer_vm_packages {
+      deployer_virtual_machine_packages {
         storage_account_id = azurerm_storage_account.test.id
         url                = "https://www.bing.com"
       }
@@ -871,7 +871,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         subnet_id      = azurerm_subnet.test.id
 
         virtual_machine_configuration {
-          vm_size = "Standard_D16ds_v4"
+          virtual_machine_size = "Standard_D16ds_v4"
 
           image {
             offer     = "RHEL-SAP-HA"
@@ -893,7 +893,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         subnet_id      = azurerm_subnet.test.id
 
         virtual_machine_configuration {
-          vm_size = "Standard_D16ds_v4"
+          virtual_machine_size = "Standard_D16ds_v4"
 
           image {
             offer     = "RHEL-SAP-HA"
@@ -916,7 +916,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
         database_type  = "HANA"
 
         virtual_machine_configuration {
-          vm_size = "Standard_E16ds_v4"
+          virtual_machine_size = "Standard_E16ds_v4"
 
           image {
             offer     = "RHEL-SAP-HA"
