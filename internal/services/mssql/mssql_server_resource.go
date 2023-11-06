@@ -249,7 +249,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.AdministratorLoginPassword = utils.String(v.(string))
 	}
 
-	// NOTE: You must set the admin before seeting the values of the admin...
+	// NOTE: You must set the admin before setting the values of the admin...
 	if azureADAdministrator, ok := d.GetOk("azuread_administrator"); ok {
 		props.Properties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
 	}
@@ -434,7 +434,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("azuread_administrator") {
 		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, serverazureadonlyauthentications.ServerId(serverId))
-
 		if err != nil {
 			if aadOnlyDeleteFuture.HttpResponse == nil || aadOnlyDeleteFuture.HttpResponse.StatusCode != http.StatusBadRequest {
 				return fmt.Errorf("deleting Azure Active Directory Only Authentications %s: %+v", id.String(), err)
