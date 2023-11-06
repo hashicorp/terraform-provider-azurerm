@@ -569,7 +569,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			if props.ReadScale != nil {
-				d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScale(databases.DatabaseReadScaleEnabled))
+				d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScaleEnabled)
 			}
 
 			if props.LicenseType != nil {
