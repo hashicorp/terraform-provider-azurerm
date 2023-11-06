@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.63.0` of `github.com/hashicorp/go-azure-helpers` [GH-23785]
+* dependencies: updating to `v0.20231106.1151347` of `github.com/hashicorp/go-azure-sdk` [GH-23787]
 * `azurerm_postgresql_database` - update the validation of `collation` to include support for `French_France.1252` [GH-23783]
 
 ## 3.79.0 (November 02, 2023)
