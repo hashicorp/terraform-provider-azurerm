@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-<<<<<<< HEAD
-=======
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -27,11 +24,7 @@ type ListByServerCompleteResult struct {
 }
 
 // ListByServer ...
-<<<<<<< HEAD
-func (c ServerAzureADOnlyAuthenticationsClient) ListByServer(ctx context.Context, id ServerId) (result ListByServerOperationResponse, err error) {
-=======
 func (c ServerAzureADOnlyAuthenticationsClient) ListByServer(ctx context.Context, id commonids.SqlServerId) (result ListByServerOperationResponse, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -69,20 +62,12 @@ func (c ServerAzureADOnlyAuthenticationsClient) ListByServer(ctx context.Context
 }
 
 // ListByServerComplete retrieves all the results into a single object
-<<<<<<< HEAD
-func (c ServerAzureADOnlyAuthenticationsClient) ListByServerComplete(ctx context.Context, id ServerId) (ListByServerCompleteResult, error) {
-=======
 func (c ServerAzureADOnlyAuthenticationsClient) ListByServerComplete(ctx context.Context, id commonids.SqlServerId) (ListByServerCompleteResult, error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	return c.ListByServerCompleteMatchingPredicate(ctx, id, ServerAzureADOnlyAuthenticationOperationPredicate{})
 }
 
 // ListByServerCompleteMatchingPredicate retrieves all the results and then applies the predicate
-<<<<<<< HEAD
-func (c ServerAzureADOnlyAuthenticationsClient) ListByServerCompleteMatchingPredicate(ctx context.Context, id ServerId, predicate ServerAzureADOnlyAuthenticationOperationPredicate) (result ListByServerCompleteResult, err error) {
-=======
 func (c ServerAzureADOnlyAuthenticationsClient) ListByServerCompleteMatchingPredicate(ctx context.Context, id commonids.SqlServerId, predicate ServerAzureADOnlyAuthenticationOperationPredicate) (result ListByServerCompleteResult, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	items := make([]ServerAzureADOnlyAuthentication, 0)
 
 	resp, err := c.ListByServer(ctx, id)

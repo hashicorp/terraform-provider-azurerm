@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-<<<<<<< HEAD
-=======
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -52,11 +49,7 @@ func (o FailoverOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // Failover ...
-<<<<<<< HEAD
-func (c DatabasesClient) Failover(ctx context.Context, id DatabaseId, options FailoverOperationOptions) (result FailoverOperationResponse, err error) {
-=======
 func (c DatabasesClient) Failover(ctx context.Context, id commonids.SqlDatabaseId, options FailoverOperationOptions) (result FailoverOperationResponse, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -92,11 +85,7 @@ func (c DatabasesClient) Failover(ctx context.Context, id commonids.SqlDatabaseI
 }
 
 // FailoverThenPoll performs Failover then polls until it's completed
-<<<<<<< HEAD
-func (c DatabasesClient) FailoverThenPoll(ctx context.Context, id DatabaseId, options FailoverOperationOptions) error {
-=======
 func (c DatabasesClient) FailoverThenPoll(ctx context.Context, id commonids.SqlDatabaseId, options FailoverOperationOptions) error {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	result, err := c.Failover(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Failover: %+v", err)

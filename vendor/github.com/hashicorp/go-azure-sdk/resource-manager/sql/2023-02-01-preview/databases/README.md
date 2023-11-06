@@ -24,11 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := databases.Database{
 	// ...
@@ -45,11 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -61,11 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := databases.ExportDatabaseDefinition{
 	// ...
@@ -82,11 +70,7 @@ if err := client.ExportThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 if err := client.FailoverThenPoll(ctx, id, databases.DefaultFailoverOperationOptions()); err != nil {
 	// handle the error
@@ -98,11 +82,7 @@ if err := client.FailoverThenPoll(ctx, id, databases.DefaultFailoverOperationOpt
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 read, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
 if err != nil {
@@ -118,11 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := databases.ImportExistingDatabaseDefinition{
 	// ...
@@ -139,11 +115,7 @@ if err := client.ImportThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
-=======
 id := databases.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 // alternatively `client.ListByElasticPool(ctx, id)` can be used to do batched pagination
 items, err := client.ListByElasticPoolComplete(ctx, id)
@@ -160,11 +132,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := databases.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)
@@ -181,11 +149,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := databases.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 // alternatively `client.ListInaccessibleByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListInaccessibleByServerComplete(ctx, id)
@@ -202,11 +166,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 if err := client.PauseThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -218,11 +178,7 @@ if err := client.PauseThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := databases.ResourceMoveDefinition{
 	// ...
@@ -243,11 +199,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 if err := client.ResumeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -259,11 +211,7 @@ if err := client.ResumeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := databases.DatabaseUpdate{
 	// ...
@@ -280,11 +228,7 @@ if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 if err := client.UpgradeDataWarehouseThenPoll(ctx, id); err != nil {
 	// handle the error

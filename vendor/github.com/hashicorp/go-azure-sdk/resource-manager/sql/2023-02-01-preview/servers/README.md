@@ -45,11 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := servers.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := servers.Server{
 	// ...
@@ -66,11 +62,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := servers.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -82,11 +74,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := servers.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 read, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
 if err != nil {
@@ -102,11 +90,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := servers.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := servers.ImportNewDatabaseDefinition{
 	// ...
@@ -157,11 +141,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := servers.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 if err := client.RefreshStatusThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -173,11 +153,7 @@ if err := client.RefreshStatusThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := servers.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := servers.ServerUpdate{
 	// ...

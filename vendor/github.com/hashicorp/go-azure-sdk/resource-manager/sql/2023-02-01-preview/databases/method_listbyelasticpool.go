@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-<<<<<<< HEAD
-=======
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -27,11 +24,7 @@ type ListByElasticPoolCompleteResult struct {
 }
 
 // ListByElasticPool ...
-<<<<<<< HEAD
-func (c DatabasesClient) ListByElasticPool(ctx context.Context, id ElasticPoolId) (result ListByElasticPoolOperationResponse, err error) {
-=======
 func (c DatabasesClient) ListByElasticPool(ctx context.Context, id commonids.SqlElasticPoolId) (result ListByElasticPoolOperationResponse, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -69,20 +62,12 @@ func (c DatabasesClient) ListByElasticPool(ctx context.Context, id commonids.Sql
 }
 
 // ListByElasticPoolComplete retrieves all the results into a single object
-<<<<<<< HEAD
-func (c DatabasesClient) ListByElasticPoolComplete(ctx context.Context, id ElasticPoolId) (ListByElasticPoolCompleteResult, error) {
-=======
 func (c DatabasesClient) ListByElasticPoolComplete(ctx context.Context, id commonids.SqlElasticPoolId) (ListByElasticPoolCompleteResult, error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	return c.ListByElasticPoolCompleteMatchingPredicate(ctx, id, DatabaseOperationPredicate{})
 }
 
 // ListByElasticPoolCompleteMatchingPredicate retrieves all the results and then applies the predicate
-<<<<<<< HEAD
-func (c DatabasesClient) ListByElasticPoolCompleteMatchingPredicate(ctx context.Context, id ElasticPoolId, predicate DatabaseOperationPredicate) (result ListByElasticPoolCompleteResult, err error) {
-=======
 func (c DatabasesClient) ListByElasticPoolCompleteMatchingPredicate(ctx context.Context, id commonids.SqlElasticPoolId, predicate DatabaseOperationPredicate) (result ListByElasticPoolCompleteResult, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	items := make([]Database, 0)
 
 	resp, err := c.ListByElasticPool(ctx, id)

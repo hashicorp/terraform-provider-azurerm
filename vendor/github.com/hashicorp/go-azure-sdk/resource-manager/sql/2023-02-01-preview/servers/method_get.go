@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-<<<<<<< HEAD
-=======
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -50,11 +47,7 @@ func (o GetOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // Get ...
-<<<<<<< HEAD
-func (c ServersClient) Get(ctx context.Context, id ServerId, options GetOperationOptions) (result GetOperationResponse, err error) {
-=======
 func (c ServersClient) Get(ctx context.Context, id commonids.SqlServerId, options GetOperationOptions) (result GetOperationResponse, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

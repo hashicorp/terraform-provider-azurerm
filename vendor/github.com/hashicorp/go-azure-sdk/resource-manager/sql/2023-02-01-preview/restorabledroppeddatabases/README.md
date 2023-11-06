@@ -40,11 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := restorabledroppeddatabases.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-=======
 id := restorabledroppeddatabases.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)

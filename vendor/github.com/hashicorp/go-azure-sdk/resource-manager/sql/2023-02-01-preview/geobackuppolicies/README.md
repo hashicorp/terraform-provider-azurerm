@@ -24,11 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := geobackuppolicies.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := geobackuppolicies.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := geobackuppolicies.GeoBackupPolicy{
 	// ...
@@ -49,11 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := geobackuppolicies.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := geobackuppolicies.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,11 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := geobackuppolicies.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := geobackuppolicies.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

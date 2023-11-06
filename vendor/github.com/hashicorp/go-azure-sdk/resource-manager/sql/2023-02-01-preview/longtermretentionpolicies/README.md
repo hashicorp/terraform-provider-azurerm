@@ -24,11 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := longtermretentionpolicies.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := longtermretentionpolicies.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 payload := longtermretentionpolicies.LongTermRetentionPolicy{
 	// ...
@@ -45,11 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := longtermretentionpolicies.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := longtermretentionpolicies.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -65,11 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-<<<<<<< HEAD
-id := longtermretentionpolicies.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
-=======
 id := longtermretentionpolicies.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 // alternatively `client.ListByDatabase(ctx, id)` can be used to do batched pagination
 items, err := client.ListByDatabaseComplete(ctx, id)

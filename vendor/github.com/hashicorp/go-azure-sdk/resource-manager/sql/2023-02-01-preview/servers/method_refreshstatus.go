@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-<<<<<<< HEAD
-=======
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -25,11 +22,7 @@ type RefreshStatusOperationResponse struct {
 }
 
 // RefreshStatus ...
-<<<<<<< HEAD
-func (c ServersClient) RefreshStatus(ctx context.Context, id ServerId) (result RefreshStatusOperationResponse, err error) {
-=======
 func (c ServersClient) RefreshStatus(ctx context.Context, id commonids.SqlServerId) (result RefreshStatusOperationResponse, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -64,11 +57,7 @@ func (c ServersClient) RefreshStatus(ctx context.Context, id commonids.SqlServer
 }
 
 // RefreshStatusThenPoll performs RefreshStatus then polls until it's completed
-<<<<<<< HEAD
-func (c ServersClient) RefreshStatusThenPoll(ctx context.Context, id ServerId) error {
-=======
 func (c ServersClient) RefreshStatusThenPoll(ctx context.Context, id commonids.SqlServerId) error {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	result, err := c.RefreshStatus(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshStatus: %+v", err)

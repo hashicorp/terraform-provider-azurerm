@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-<<<<<<< HEAD
-=======
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -27,11 +24,7 @@ type ListInaccessibleByServerCompleteResult struct {
 }
 
 // ListInaccessibleByServer ...
-<<<<<<< HEAD
-func (c DatabasesClient) ListInaccessibleByServer(ctx context.Context, id ServerId) (result ListInaccessibleByServerOperationResponse, err error) {
-=======
 func (c DatabasesClient) ListInaccessibleByServer(ctx context.Context, id commonids.SqlServerId) (result ListInaccessibleByServerOperationResponse, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -69,20 +62,12 @@ func (c DatabasesClient) ListInaccessibleByServer(ctx context.Context, id common
 }
 
 // ListInaccessibleByServerComplete retrieves all the results into a single object
-<<<<<<< HEAD
-func (c DatabasesClient) ListInaccessibleByServerComplete(ctx context.Context, id ServerId) (ListInaccessibleByServerCompleteResult, error) {
-=======
 func (c DatabasesClient) ListInaccessibleByServerComplete(ctx context.Context, id commonids.SqlServerId) (ListInaccessibleByServerCompleteResult, error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	return c.ListInaccessibleByServerCompleteMatchingPredicate(ctx, id, DatabaseOperationPredicate{})
 }
 
 // ListInaccessibleByServerCompleteMatchingPredicate retrieves all the results and then applies the predicate
-<<<<<<< HEAD
-func (c DatabasesClient) ListInaccessibleByServerCompleteMatchingPredicate(ctx context.Context, id ServerId, predicate DatabaseOperationPredicate) (result ListInaccessibleByServerCompleteResult, err error) {
-=======
 func (c DatabasesClient) ListInaccessibleByServerCompleteMatchingPredicate(ctx context.Context, id commonids.SqlServerId, predicate DatabaseOperationPredicate) (result ListInaccessibleByServerCompleteResult, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	items := make([]Database, 0)
 
 	resp, err := c.ListInaccessibleByServer(ctx, id)

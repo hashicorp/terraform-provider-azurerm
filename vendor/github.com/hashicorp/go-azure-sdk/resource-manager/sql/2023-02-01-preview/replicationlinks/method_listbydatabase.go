@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-<<<<<<< HEAD
-=======
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -27,11 +24,7 @@ type ListByDatabaseCompleteResult struct {
 }
 
 // ListByDatabase ...
-<<<<<<< HEAD
-func (c ReplicationLinksClient) ListByDatabase(ctx context.Context, id DatabaseId) (result ListByDatabaseOperationResponse, err error) {
-=======
 func (c ReplicationLinksClient) ListByDatabase(ctx context.Context, id commonids.SqlDatabaseId) (result ListByDatabaseOperationResponse, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -69,20 +62,12 @@ func (c ReplicationLinksClient) ListByDatabase(ctx context.Context, id commonids
 }
 
 // ListByDatabaseComplete retrieves all the results into a single object
-<<<<<<< HEAD
-func (c ReplicationLinksClient) ListByDatabaseComplete(ctx context.Context, id DatabaseId) (ListByDatabaseCompleteResult, error) {
-=======
 func (c ReplicationLinksClient) ListByDatabaseComplete(ctx context.Context, id commonids.SqlDatabaseId) (ListByDatabaseCompleteResult, error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	return c.ListByDatabaseCompleteMatchingPredicate(ctx, id, ReplicationLinkOperationPredicate{})
 }
 
 // ListByDatabaseCompleteMatchingPredicate retrieves all the results and then applies the predicate
-<<<<<<< HEAD
-func (c ReplicationLinksClient) ListByDatabaseCompleteMatchingPredicate(ctx context.Context, id DatabaseId, predicate ReplicationLinkOperationPredicate) (result ListByDatabaseCompleteResult, err error) {
-=======
 func (c ReplicationLinksClient) ListByDatabaseCompleteMatchingPredicate(ctx context.Context, id commonids.SqlDatabaseId, predicate ReplicationLinkOperationPredicate) (result ListByDatabaseCompleteResult, err error) {
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	items := make([]ReplicationLink, 0)
 
 	resp, err := c.ListByDatabase(ctx, id)
