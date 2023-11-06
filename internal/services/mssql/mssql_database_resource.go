@@ -512,6 +512,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	d.Set("server_id", serverId.ID())
 
 	databaseId := databases.DatabaseId{
 		SubscriptionId:    id.SubscriptionId,
@@ -529,15 +530,14 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if model := resp.Model; model != nil {
-		skuName := ""
-		ledgerEnabled := false
+	geoBackupPolicy := true
+	skuName := ""
+	ledgerEnabled := false
 
+	if model := resp.Model; model != nil {
 		if model.Name != nil {
 			d.Set("name", pointer.From(model.Name))
 		}
-
-		d.Set("server_id", serverId.ID())
 
 		if props := model.Properties; props != nil {
 			if props.AutoPauseDelay != nil {
@@ -630,8 +630,6 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				}
 			}
 		} else {
-			geoBackupPolicy := true
-
 			// DW SKUs need the retention policies to be empty for state consistency
 			emptySlice := make([]interface{}, 0)
 			d.Set("long_term_retention_policy", emptySlice)
@@ -639,7 +637,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, geobackuppolicies.DatabaseId(databaseId))
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(geoPoliciesResponse.HttpResponse) {
 					d.SetId("")
 					return nil
 				}
@@ -653,11 +651,11 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					geoBackupPolicy = false
 				}
 			}
-
-			if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
-				return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
-			}
 		}
+	}
+
+	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
+		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
 	}
 
 	securityAlertPolicy, err := securityAlertPoliciesClient.Get(ctx, databasesecurityalertpolicies.DatabaseId(databaseId))
@@ -669,7 +667,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	tde, err := transparentEncryptionClient.Get(ctx, transparentdataencryptions.DatabaseId(databaseId))
 	if err != nil {
-		return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
+		return fmt.Errorf("while retrieving Transparent Data Encryption status of %s: %+v", id, err)
 	}
 
 	tdeStatus := false

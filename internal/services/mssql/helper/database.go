@@ -41,6 +41,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 	results, err := replicationLinksClient.ListByDatabaseComplete(ctx, replicationDatabaseId)
 	if err != nil {
+		// Not sure if this is really an error anymore given the change in the API...
 		if strings.Contains(err.Error(), "ResourceNotFound") {
 			log.Printf("[INFO] %s does not exist, skipping lookup for Replication Links", id)
 			return partnerDatabases, nil
@@ -48,7 +49,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
 	}
 
-	// Not sure if this is really an error anymove given the change in the API...
+	// Not sure if this is really an error anymore given the change in the API...
 	if len(results.Items) == 0 {
 		// return nil, fmt.Errorf("reading Replication Links for %s: replicationlinks.ListByDatabaseCompleteResult was empty", id)
 		log.Printf("[INFO] reading Replication Links for %s: replicationlinks.ListByDatabaseCompleteResult was empty", id)
