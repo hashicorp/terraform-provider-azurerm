@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+<<<<<<< HEAD
+=======
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,7 +23,11 @@ type GetOperationResponse struct {
 }
 
 // Get ...
+<<<<<<< HEAD
 func (c ServerSecurityAlertPoliciesClient) Get(ctx context.Context, id ServerId) (result GetOperationResponse, err error) {
+=======
+func (c ServerSecurityAlertPoliciesClient) Get(ctx context.Context, id commonids.SqlServerId) (result GetOperationResponse, err error) {
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+<<<<<<< HEAD
+=======
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +25,11 @@ type ExportOperationResponse struct {
 }
 
 // Export ...
+<<<<<<< HEAD
 func (c DatabasesClient) Export(ctx context.Context, id DatabaseId, input ExportDatabaseDefinition) (result ExportOperationResponse, err error) {
+=======
+func (c DatabasesClient) Export(ctx context.Context, id commonids.SqlDatabaseId, input ExportDatabaseDefinition) (result ExportOperationResponse, err error) {
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +68,11 @@ func (c DatabasesClient) Export(ctx context.Context, id DatabaseId, input Export
 }
 
 // ExportThenPoll performs Export then polls until it's completed
+<<<<<<< HEAD
 func (c DatabasesClient) ExportThenPoll(ctx context.Context, id DatabaseId, input ExportDatabaseDefinition) error {
+=======
+func (c DatabasesClient) ExportThenPoll(ctx context.Context, id commonids.SqlDatabaseId, input ExportDatabaseDefinition) error {
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	result, err := c.Export(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Export: %+v", err)

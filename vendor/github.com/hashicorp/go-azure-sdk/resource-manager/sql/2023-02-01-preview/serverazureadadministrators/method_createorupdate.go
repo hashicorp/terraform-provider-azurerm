@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+<<<<<<< HEAD
+=======
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +25,11 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
+<<<<<<< HEAD
 func (c ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Context, id ServerId, input ServerAzureADAdministrator) (result CreateOrUpdateOperationResponse, err error) {
+=======
+func (c ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Context, id commonids.SqlServerId, input ServerAzureADAdministrator) (result CreateOrUpdateOperationResponse, err error) {
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +69,11 @@ func (c ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Context, i
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
+<<<<<<< HEAD
 func (c ServerAzureADAdministratorsClient) CreateOrUpdateThenPoll(ctx context.Context, id ServerId, input ServerAzureADAdministrator) error {
+=======
+func (c ServerAzureADAdministratorsClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.SqlServerId, input ServerAzureADAdministrator) error {
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

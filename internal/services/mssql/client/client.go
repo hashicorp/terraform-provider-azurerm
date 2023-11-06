@@ -24,6 +24,23 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+
+	// @tombuildsstuff: force-importing these packages to vendor them to reduce the size of
+	// https://github.com/hashicorp/terraform-provider-azurerm/pull/23721, meaning that
+	// @WodansSon can remove the underscore as these are used to make these regular imports
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"
+	_ "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
 )
 
 type Client struct {
@@ -63,11 +80,16 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+<<<<<<< HEAD
 	backupShortTermRetentionPoliciesClient, err := backupshorttermretentionpolicies.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Backup Short Term Retention Policies Client: %+v", err)
 	}
 	o.Configure(backupShortTermRetentionPoliciesClient.Client, o.Authorizers.ResourceManager)
+=======
+	backupShortTermRetentionPoliciesClient := sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&backupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 	databaseExtendedBlobAuditingPoliciesClient := sql.NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -217,6 +239,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualMachinesClient:                           &virtualMachinesClient,
 		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
 		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
+<<<<<<< HEAD
 
 		// Legacy Clients
 		LegacyServerSecurityAlertPoliciesClient: &legacyServerSecurityAlertPoliciesClient,
@@ -235,5 +258,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ServerSecurityAlertPoliciesClient:      serverSecurityAlertPoliciesClient,
 		TransparentDataEncryptionsClient:       transparentDataEncryptionsClient,
 		ServersClient:                          serversClient,
+=======
+>>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	}, nil
 }
