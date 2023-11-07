@@ -157,7 +157,7 @@ func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
 }
 
 func FlattenDynatraceUserInfo(input []interface{}) []UserInfo {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return []UserInfo{}
 	}
 
