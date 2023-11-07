@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `extended_size_in_tib` - (Required) Specifies the extended size of the Elastic SAN resource in TiB. Possible values are between `1` and `100`.
 
+-> **NOTE** `base_size_in_tib` and `extended_size_in_tib` cannot be reduced.
+
 * `sku` - (Required) A `sku` block as defined below.
 
 * `zones` - (Optional) Logical zone for the Elastic SAN resource. Changing this forces a new resource to be created.
@@ -57,7 +59,7 @@ The `sku` block supports the following arguments:
 
 * `name` - (Required) The SKU name. Possible values are `Premium_LRS` and `Premium_ZRS`.
 
--> **NOTE** `Premium_ZRS` SKU is only available in limited Azure regions including `France Central`, `North Europe`, `West Europe`, and `West US 2`. Please refer to this [document](https://azure.microsoft.com/en-us/updates/regional-expansion-azure-elastic-san-public-preview-is-now-available-in-more-regions/) for more details.
+-> **NOTE** `Premium_ZRS` SKU is only available in limited Azure regions including `France Central`, `North Europe`, `West Europe`, and `West US 2`. Please refer to this [document](https://azure.microsoft.com/updates/regional-expansion-azure-elastic-san-public-preview-is-now-available-in-more-regions) for more details.
 
 * `tier` - (Optional) The SKU tier. The only possible value is `Premium`.
 

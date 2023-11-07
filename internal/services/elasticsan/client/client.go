@@ -9,7 +9,7 @@ import (
 )
 
 type Client struct {
-	Client *elasticSanV20230101.Client
+	*elasticSanV20230101.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {

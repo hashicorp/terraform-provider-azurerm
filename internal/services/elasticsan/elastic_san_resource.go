@@ -28,18 +28,18 @@ func (r ElasticSANResource) ModelObject() interface{} {
 }
 
 type ElasticSANResourceModel struct {
-	BaseSizeInTiB        int64                        `tfschema:"base_size_in_tib"`
-	ExtendedSizeInTiB    int64                        `tfschema:"extended_size_in_tib"`
+	BaseSizeInTiB        int                          `tfschema:"base_size_in_tib"`
+	ExtendedSizeInTiB    int                          `tfschema:"extended_size_in_tib"`
 	Location             string                       `tfschema:"location"`
 	Name                 string                       `tfschema:"name"`
 	ResourceGroupName    string                       `tfschema:"resource_group_name"`
 	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
 	Tags                 map[string]interface{}       `tfschema:"tags"`
-	TotalIops            int64                        `tfschema:"total_iops"`
-	TotalMBps            int64                        `tfschema:"total_mbps"`
-	TotalSizeInTiB       int64                        `tfschema:"total_size_in_tib"`
-	TotalVolumeSizeInGiB int64                        `tfschema:"total_volume_size_in_gib"`
-	VolumeGroupCount     int64                        `tfschema:"volume_group_count"`
+	TotalIops            int                          `tfschema:"total_iops"`
+	TotalMBps            int                          `tfschema:"total_mbps"`
+	TotalSizeInTiB       int                          `tfschema:"total_size_in_tib"`
+	TotalVolumeSizeInGiB int                          `tfschema:"total_volume_size_in_gib"`
+	VolumeGroupCount     int                          `tfschema:"volume_group_count"`
 	Zones                []string                     `tfschema:"zones"`
 }
 
@@ -146,11 +146,37 @@ func (r ElasticSANResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
+func (k ElasticSANResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config ElasticSANResourceModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if len(config.Zones) > 0 && len(config.Sku) > 0 && config.Sku[0].Name == string(elasticsans.SkuNamePremiumZRS) {
+				return fmt.Errorf("zones are not supported for the %s SKU", elasticsans.SkuNamePremiumZRS)
+			}
+
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("base_size_in_tib"); newVal.(int) < oldVal.(int) {
+				return fmt.Errorf("base_size_in_tib cannot be reduced")
+			}
+
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("extended_size_in_tib"); newVal.(int) < oldVal.(int) {
+				return fmt.Errorf("extended_size_in_tib cannot be reduced")
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r ElasticSANResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ElasticSan.Client.ElasticSans
+			client := metadata.Client.ElasticSan.ElasticSans
 
 			var config ElasticSANResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -175,16 +201,13 @@ func (r ElasticSANResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Tags:     tags.Expand(config.Tags),
 				Properties: elasticsans.ElasticSanProperties{
-					BaseSizeTiB:             config.BaseSizeInTiB,
-					ExtendedCapacitySizeTiB: config.ExtendedSizeInTiB,
-					Sku:                     r.ExpandSku(config.Sku),
+					BaseSizeTiB:             int64(config.BaseSizeInTiB),
+					ExtendedCapacitySizeTiB: int64(config.ExtendedSizeInTiB),
+					Sku:                     ExpandSku(config.Sku),
 				},
 			}
 
-			if config.Zones != nil {
-				if payload.Properties.Sku.Name == elasticsans.SkuNamePremiumZRS {
-					return fmt.Errorf("zones are not supported for the %s SKU", elasticsans.SkuNamePremiumZRS)
-				}
+			if len(config.Zones) > 0 {
 				payload.Properties.AvailabilityZones = pointer.To(zones.Expand(config.Zones))
 			}
 
@@ -202,7 +225,7 @@ func (r ElasticSANResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ElasticSan.Client.ElasticSans
+			client := metadata.Client.ElasticSan.ElasticSans
 			schema := ElasticSANResourceModel{}
 
 			id, err := elasticsans.ParseElasticSanID(metadata.ResourceData.Id())
@@ -226,15 +249,15 @@ func (r ElasticSANResource) Read() sdk.ResourceFunc {
 				schema.Tags = tags.Flatten(model.Tags)
 
 				prop := model.Properties
-				schema.Sku = r.FlattenSku(prop.Sku)
+				schema.Sku = FlattenSku(prop.Sku)
 				schema.Zones = zones.Flatten(prop.AvailabilityZones)
-				schema.BaseSizeInTiB = prop.BaseSizeTiB
-				schema.ExtendedSizeInTiB = prop.ExtendedCapacitySizeTiB
-				schema.TotalIops = pointer.From(prop.TotalIops)
-				schema.TotalMBps = pointer.From(prop.TotalMBps)
-				schema.TotalSizeInTiB = pointer.From(prop.TotalSizeTiB)
-				schema.TotalVolumeSizeInGiB = pointer.From(prop.TotalVolumeSizeGiB)
-				schema.VolumeGroupCount = pointer.From(prop.VolumeGroupCount)
+				schema.BaseSizeInTiB = int(prop.BaseSizeTiB)
+				schema.ExtendedSizeInTiB = int(prop.ExtendedCapacitySizeTiB)
+				schema.TotalIops = int(pointer.From(prop.TotalIops))
+				schema.TotalMBps = int(pointer.From(prop.TotalMBps))
+				schema.TotalSizeInTiB = int(pointer.From(prop.TotalSizeTiB))
+				schema.TotalVolumeSizeInGiB = int(pointer.From(prop.TotalVolumeSizeGiB))
+				schema.VolumeGroupCount = int(pointer.From(prop.VolumeGroupCount))
 			}
 
 			return metadata.Encode(&schema)
@@ -246,7 +269,7 @@ func (r ElasticSANResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ElasticSan.Client.ElasticSans
+			client := metadata.Client.ElasticSan.ElasticSans
 
 			id, err := elasticsans.ParseElasticSanID(metadata.ResourceData.Id())
 			if err != nil {
@@ -266,7 +289,7 @@ func (r ElasticSANResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ElasticSan.Client.ElasticSans
+			client := metadata.Client.ElasticSan.ElasticSans
 
 			id, err := elasticsans.ParseElasticSanID(metadata.ResourceData.Id())
 			if err != nil {
@@ -284,14 +307,14 @@ func (r ElasticSANResource) Update() sdk.ResourceFunc {
 				if payload.Properties == nil {
 					payload.Properties = &elasticsans.ElasticSanUpdateProperties{}
 				}
-				payload.Properties.BaseSizeTiB = pointer.FromInt64(config.BaseSizeInTiB)
+				payload.Properties.BaseSizeTiB = pointer.To(int64(config.BaseSizeInTiB))
 			}
 
 			if metadata.ResourceData.HasChange("extended_size_in_tib") {
 				if payload.Properties == nil {
 					payload.Properties = &elasticsans.ElasticSanUpdateProperties{}
 				}
-				payload.Properties.ExtendedCapacitySizeTiB = pointer.FromInt64(config.ExtendedSizeInTiB)
+				payload.Properties.ExtendedCapacitySizeTiB = pointer.To(int64(config.ExtendedSizeInTiB))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -307,7 +330,7 @@ func (r ElasticSANResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ElasticSANResource) ExpandSku(input []ElasticSANResourceSkuModel) elasticsans.Sku {
+func ExpandSku(input []ElasticSANResourceSkuModel) elasticsans.Sku {
 	if len(input) == 0 {
 		return elasticsans.Sku{}
 	}
@@ -323,7 +346,7 @@ func (r ElasticSANResource) ExpandSku(input []ElasticSANResourceSkuModel) elasti
 	return output
 }
 
-func (r ElasticSANResource) FlattenSku(input elasticsans.Sku) []ElasticSANResourceSkuModel {
+func FlattenSku(input elasticsans.Sku) []ElasticSANResourceSkuModel {
 	return []ElasticSANResourceSkuModel{
 		{
 			Name: string(input.Name),

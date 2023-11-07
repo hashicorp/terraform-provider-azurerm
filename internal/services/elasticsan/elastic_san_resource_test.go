@@ -99,13 +99,34 @@ func TestAccElasticSAN_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
+func TestAccElasticSAN_reduceBaseSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
+	r := ElasticSANTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.basic(data),
+			ExpectError: regexp.MustCompile("base_size_in_tib cannot be reduced"),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ElasticSANTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := elasticsans.ParseElasticSanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ElasticSan.Client.ElasticSans.Get(ctx, *id)
+	resp, err := clients.ElasticSan.ElasticSans.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -122,10 +143,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san" "test" {
-  name                 = "acctestes-${var.random_string}"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  base_size_in_tib     = 1
+  name                = "acctestes-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  base_size_in_tib    = 1
   sku {
     name = "Premium_LRS"
   }
