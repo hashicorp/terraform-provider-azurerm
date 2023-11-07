@@ -126,8 +126,6 @@ resource "azurerm_elastic_san" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   base_size_in_tib     = 1
-  extended_size_in_tib = 1
-  zones                = ["1"]
   sku {
     name = "Premium_LRS"
   }
@@ -188,7 +186,6 @@ resource "azurerm_elastic_san" "test" {
   location             = azurerm_resource_group.test.location
   base_size_in_tib     = 2
   extended_size_in_tib = 4
-  zones                = ["1"]
   sku {
     name = "Premium_LRS"
     tier = "Premium"
