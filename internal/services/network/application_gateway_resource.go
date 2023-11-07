@@ -318,6 +318,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"frontend_ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
