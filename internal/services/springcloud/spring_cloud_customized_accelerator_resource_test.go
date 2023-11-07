@@ -188,7 +188,7 @@ resource "azurerm_spring_cloud_customized_accelerator" "test" {
     url                 = "https://github.com/sample-accelerators/fragments.git"
     branch              = "main"
     interval_in_seconds = 100
-    sub_path            = "java-version"
+    path                = "java-version"
   }
 
   accelerator_tags = ["tag-a", "tag-b"]

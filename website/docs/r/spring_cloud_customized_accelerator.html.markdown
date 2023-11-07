@@ -93,7 +93,7 @@ A `git_repository` block supports the following:
 
 * `ssh_auth` - (Optional) A `ssh_auth` block as defined below. Conflicts with `git_repository.0.basic_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
 
-* `sub_path` - (Optional) Specifies the folder path inside the git repository to consider as the root of the accelerator or fragment.
+* `path` - (Optional) Specifies the path under the git repository to be treated as the root directory of the accelerator or the fragment (depending on `accelerator_type`).
 
 ---
 

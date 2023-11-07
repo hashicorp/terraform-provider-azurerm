@@ -41,7 +41,7 @@ type GitRepositoryModel struct {
 	GitTag            string           `tfschema:"git_tag"`
 	IntervalInSeconds int64            `tfschema:"interval_in_seconds"`
 	Url               string           `tfschema:"url"`
-	SubPath           string           `tfschema:"sub_path"`
+	Path              string           `tfschema:"path"`
 }
 
 type BasicAuthModel struct {
@@ -192,7 +192,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 						ValidateFunc: validation.IntAtLeast(10),
 					},
 
-					"sub_path": {
+					"path": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -462,7 +462,7 @@ func expandSpringCloudCustomizedAcceleratorGitRepository(repository []GitReposit
 		Commit:      pointer.To(repo.Commit),
 		GitTag:      pointer.To(repo.GitTag),
 		AuthSetting: authSetting,
-		SubPath:     pointer.To(repo.SubPath),
+		SubPath:     pointer.To(repo.Path),
 	}
 	if repo.IntervalInSeconds != 0 {
 		res.IntervalInSeconds = pointer.To(repo.IntervalInSeconds)
@@ -543,7 +543,7 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 			GitTag:            gitTag,
 			IntervalInSeconds: intervalInSeconds,
 			Url:               url,
-			SubPath:           subPath,
+			Path:              subPath,
 		},
 	}
 }
