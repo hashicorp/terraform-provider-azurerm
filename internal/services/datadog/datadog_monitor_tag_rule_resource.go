@@ -6,7 +6,6 @@ package datadog
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -257,6 +256,7 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("removing %s: %+v", *id, err)
 	}
+
 	return nil
 }
 
@@ -373,10 +373,6 @@ func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 
 func isDefaultSettings(input *rules.MonitoringTagRules) bool {
 	if input == nil {
-		return false
-	}
-
-	if input.Name == nil || !strings.EqualFold(*input.Name, "default") {
 		return false
 	}
 
