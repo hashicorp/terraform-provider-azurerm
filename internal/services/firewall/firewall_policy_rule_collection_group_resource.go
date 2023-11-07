@@ -126,6 +126,24 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											},
 										},
 									},
+									"http_headers": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"value": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
+									},
 									"source_addresses": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -616,10 +634,21 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]firewallpolicyr
 				Port:         utils.Int64(int64(proto["port"].(int))),
 			})
 		}
+
+		var httpHeader []firewallpolicyrulecollectiongroups.FirewallPolicyHTTPHeaderToInsert
+		for _, h := range condition["http_headers"].([]interface{}) {
+			header := h.(map[string]interface{})
+			httpHeader = append(httpHeader, firewallpolicyrulecollectiongroups.FirewallPolicyHTTPHeaderToInsert{
+				HeaderName:  pointer.To(header["name"].(string)),
+				HeaderValue: pointer.To(header["value"].(string)),
+			})
+		}
+
 		output := &firewallpolicyrulecollectiongroups.ApplicationRule{
 			Name:                 utils.String(condition["name"].(string)),
 			Description:          utils.String(condition["description"].(string)),
 			Protocols:            &protocols,
+			HTTPHeadersToInsert:  &httpHeader,
 			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
 			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
@@ -839,10 +868,19 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 			}
 		}
 
+		httpHeaders := make([]interface{}, 0)
+		for _, header := range pointer.From(rule.HTTPHeadersToInsert) {
+			httpHeaders = append(httpHeaders, map[string]interface{}{
+				"name":  pointer.From(header.HeaderName),
+				"value": pointer.From(header.HeaderValue),
+			})
+		}
+
 		output = append(output, map[string]interface{}{
 			"name":                  name,
 			"description":           description,
 			"protocols":             protocols,
+			"http_headers":          httpHeaders,
 			"source_addresses":      utils.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":      utils.FlattenStringSlice(rule.SourceIPGroups),
 			"destination_addresses": utils.FlattenStringSlice(rule.DestinationAddresses),

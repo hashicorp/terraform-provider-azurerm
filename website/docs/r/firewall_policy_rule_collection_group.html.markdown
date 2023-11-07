@@ -141,6 +141,8 @@ A `application_rule` (application rule) block supports the following:
 
 * `protocols` - (Optional) One or more `protocols` blocks as defined below.
 
+* `http_headers` - (Required) Specifies a list of HTTP/HTTPS headers to insert. One or more `http_headers` blocks as defined below.
+
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups.
@@ -212,6 +214,14 @@ A `protocols` block supports the following:
 * `type` - (Required) Protocol type. Possible values are `Http` and `Https`.
 
 * `port` - (Required) Port number of the protocol. Range is 0-64000.
+
+---
+
+A `http_headers` block supports the following:
+
+* `name` - (Required) Specifies the name of the header.
+
+* `value` - (Required) Specifies the value of the value.
 
 ## Attributes Reference
 
