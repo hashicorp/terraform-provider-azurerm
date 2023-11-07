@@ -401,6 +401,9 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	}
 
 	autoHeal := autoHealSettings[0]
+	if len(autoHeal.Triggers) == 0 {
+		return result
+	}
 
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
