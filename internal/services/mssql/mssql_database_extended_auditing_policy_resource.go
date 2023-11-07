@@ -10,7 +10,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -105,7 +106,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for presence of existing Database %q Sql Auditing (MsSql Server %q / Resource Group %q): %s", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
+				return fmt.Errorf("checking for the presence of existing %s: %+v", dbId, err)
 			}
 		}
 
@@ -135,18 +136,19 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name, params); err != nil {
-		return fmt.Errorf("creating extended auditing policy for %s: %+v", dbId.String(), err)
+		return fmt.Errorf("creating extended auditing policy for %s: %+v", dbId, err)
 	}
 
 	read, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving the extended auditing policy for %s: %+v", dbId.String(), err)
+		return fmt.Errorf("retrieving the extended auditing policy for %s: %+v", dbId, err)
 	}
 
 	if read.ID == nil || pointer.From(read.ID) == "" {
 		return fmt.Errorf("the extended auditing policy ID for %s is 'nil' or 'empty'", dbId.String())
 	}
 
+	// TODO: update this to use the Database ID - requiring a State Migration
 	readId, err := parse.DatabaseExtendedAuditingPolicyID(pointer.From(read.ID))
 	if err != nil {
 		return err
@@ -177,14 +179,9 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("reading MsSql Database %s Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %s", id.DatabaseName, id.ServerName, id.ResourceGroup, err)
 	}
 
-	databaseId := databases.DatabaseId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.ServerName,
-		DatabaseName:      id.DatabaseName,
-	}
+	databaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName)
 
-	dbResp, err := dbClient.Get(ctx, databaseId, databases.GetOperationOptions{})
+	dbResp, err := dbClient.Get(ctx, databaseId, databases.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("reading MsSql Database %s: %+v", id.ID(), err)
 	}
@@ -197,7 +194,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving MsSql Database %s: ID is nil", id.ID())
 	}
 
-	d.Set("database_id", dbResp.Model.Id)
+	d.Set("database_id", databaseId.ID())
 
 	if props := resp.ExtendedDatabaseBlobAuditingPolicyProperties; props != nil {
 		d.Set("storage_endpoint", props.StorageEndpoint)

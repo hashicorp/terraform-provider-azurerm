@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -790,14 +791,9 @@ func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 		return nil, err
 	}
 
-	databaseId := databases.DatabaseId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.ServerName,
-		DatabaseName:      id.Name,
-	}
+	databaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 
-	resp, err := client.MSSQL.DatabasesClient.Get(ctx, databaseId, databases.GetOperationOptions{})
+	resp, err := client.MSSQL.DatabasesClient.Get(ctx, databaseId, databases.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("SQL Database %q (Server %q, Resource Group %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
@@ -806,7 +802,7 @@ func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 		return nil, fmt.Errorf("reading SQL Database %q (Server %q, Resource Group %q): %v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
-	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (MsSqlDatabaseResource) template(data acceptance.TestData) string {

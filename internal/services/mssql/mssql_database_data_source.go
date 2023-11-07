@@ -10,11 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -85,7 +86,13 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": {
+				Type:     pluginsdk.TypeMap,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -102,52 +109,53 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	databaseId := databases.DatabaseId{
-		SubscriptionId:    serverId.SubscriptionId,
-		ResourceGroupName: serverId.ResourceGroup,
-		ServerName:        serverId.Name,
-		DatabaseName:      name,
-	}
+	databaseId := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, name)
 
-	resp, err := client.Get(ctx, databaseId, databases.GetOperationOptions{})
+	resp, err := client.Get(ctx, databaseId, databases.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("database %q %s was not found", name, serverId.ID())
+			return fmt.Errorf("%s was not found", databaseId)
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Database %q %s: %+v", name, serverId.ID(), err)
+		return fmt.Errorf("making Read request on AzureRM %s: %+v", databaseId, err)
 	}
 
-	d.SetId(parse.NewDatabaseID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, name).ID())
+	d.SetId(databaseId.ID())
 	d.Set("name", name)
 	d.Set("server_id", mssqlServerId)
 
-	if props := resp.Model.Properties; props != nil {
-		d.Set("collation", props.Collation)
-		d.Set("elastic_pool_id", props.ElasticPoolId)
-		d.Set("license_type", string(pointer.From(props.LicenseType)))
-		d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
-		d.Set("sku_name", props.CurrentServiceObjectiveName)
-		d.Set("zone_redundant", props.ZoneRedundant)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("collation", props.Collation)
+			d.Set("elastic_pool_id", props.ElasticPoolId)
+			d.Set("license_type", string(pointer.From(props.LicenseType)))
+			d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
+			d.Set("sku_name", props.CurrentServiceObjectiveName)
+			d.Set("zone_redundant", props.ZoneRedundant)
 
-		if props.MaxSizeBytes != nil {
-			d.Set("max_size_gb", int32((pointer.From(props.MaxSizeBytes))/int64(1073741824)))
+			if props.MaxSizeBytes != nil {
+				d.Set("max_size_gb", int32((pointer.From(props.MaxSizeBytes))/int64(1073741824)))
+			}
+
+			readScale := databases.DatabaseReadScaleDisabled
+			if props.ReadScale != nil {
+				readScale = pointer.From(props.ReadScale)
+			}
+			d.Set("read_scale", readScale == databases.DatabaseReadScaleEnabled)
+
+			storageAccountType := databases.BackupStorageRedundancyGeo
+			if props.CurrentBackupStorageRedundancy != nil {
+				storageAccountType = pointer.From(props.CurrentBackupStorageRedundancy)
+			}
+			d.Set("storage_account_type", storageAccountType)
+		} else {
+			log.Print("[INFO] Model Properties were nil")
 		}
 
-		readScale := databases.DatabaseReadScaleDisabled
-		if props.ReadScale != nil {
-			readScale = pointer.From(props.ReadScale)
+		if model.Tags != nil {
+			return tags.FlattenAndSet(d, model.Tags)
 		}
-		d.Set("read_scale", readScale == databases.DatabaseReadScaleEnabled)
-
-		storageAccountType := databases.BackupStorageRedundancyGeo
-		if props.CurrentBackupStorageRedundancy != nil {
-			storageAccountType = pointer.From(props.CurrentBackupStorageRedundancy)
-		}
-		d.Set("storage_account_type", storageAccountType)
-	} else {
-		log.Print("Model Properties were nil")
 	}
 
-	return tags.FlattenAndSet(d, tags.ExpandFromPointer(resp.Model.Tags))
+	return nil
 }

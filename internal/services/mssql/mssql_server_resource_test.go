@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint:staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -270,13 +271,9 @@ func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	serverId := servers.ServerId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.Name,
-	}
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	resp, err := client.MSSQL.ServersClient.Get(ctx, serverId, servers.GetOperationOptions{})
+	resp, err := client.MSSQL.ServersClient.Get(ctx, serverId, servers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)

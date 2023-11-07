@@ -9,13 +9,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                    // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -63,7 +62,13 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": {
+				Type:     pluginsdk.TypeMap,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -75,15 +80,9 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	serverId := servers.ServerId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.Name,
-	}
-
-	resp, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
+	resp, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -111,7 +110,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, restorabledroppeddatabases.ServerId(serverId))
+		restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, id)
 		if err != nil {
 			return fmt.Errorf("listing %s Restorable Dropped Databases: %v", id, err)
 		}
@@ -120,7 +119,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, tags.ExpandFromPointer(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return fmt.Errorf("model was `nil`")

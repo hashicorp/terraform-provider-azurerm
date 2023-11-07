@@ -7,10 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	// nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"        // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -133,7 +132,7 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 	return pointer.To(output)
 }
 
-func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -190,7 +189,7 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretenti
 	return &props
 }
 
-func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input == nil {

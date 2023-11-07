@@ -209,18 +209,12 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	version := d.Get("version").(string)
 
-	serverId := servers.ServerId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.Name,
-	}
-
-	existing, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
+	existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -300,17 +294,17 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.MinimalTlsVersion = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, serverId, props)
+	future, err := client.CreateOrUpdate(ctx, id, props)
 	if err != nil {
-		return fmt.Errorf("issuing create request for %s: %+v", id.String(), err)
+		return fmt.Errorf("issuing create request for %s: %+v", id, err)
 	}
 
 	if err = future.Poller.PollUntilDone(ctx); err != nil {
 		if response.WasConflict(future.HttpResponse) {
-			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.Name)
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.ServerName)
 		}
 
-		return fmt.Errorf("waiting for creation of %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -321,8 +315,8 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if err = connectionClient.CreateOrUpdateThenPoll(ctx, serverconnectionpolicies.ServerId(serverId), connection); err != nil {
-		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id.String(), err)
+	if err = connectionClient.CreateOrUpdateThenPoll(ctx, id, connection); err != nil {
+		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id, err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -337,15 +331,9 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	serverId := servers.ServerId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.Name,
-	}
-
-	existing, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
+	existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -416,52 +404,52 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			props.Properties.MinimalTlsVersion = utils.String(v.(string))
 		}
 
-		future, err := client.CreateOrUpdate(ctx, serverId, props)
+		future, err := client.CreateOrUpdate(ctx, id, props)
 		if err != nil {
-			return fmt.Errorf("issuing update request for %s: %+v", id.String(), err)
+			return fmt.Errorf("issuing update request for %s: %+v", id, err)
 		}
 
 		if err = future.Poller.PollUntilDone(ctx); err != nil {
 			if response.WasConflict(future.HttpResponse) {
-				return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.Name)
+				return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.ServerName)
 			}
 
-			return fmt.Errorf("waiting for update of %s: %+v", id.String(), err)
+			return fmt.Errorf("waiting for update of %s: %+v", id, err)
 		}
 	}
 
 	d.SetId(id.ID())
 
 	if d.HasChange("azuread_administrator") {
-		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, serverazureadonlyauthentications.ServerId(serverId))
+		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, id)
 		if err != nil {
 			if aadOnlyDeleteFuture.HttpResponse == nil || aadOnlyDeleteFuture.HttpResponse.StatusCode != http.StatusBadRequest {
-				return fmt.Errorf("deleting Azure Active Directory Only Authentications %s: %+v", id.String(), err)
+				return fmt.Errorf("deleting Azure Active Directory Only Authentications %s: %+v", id, err)
 			}
 
-			log.Printf("[INFO] Azure Active Directory Only Authentication was not removed since Azure Active Directory Administrators has not set for %s: %+v", id.String(), err)
-			return fmt.Errorf("deleting Azure Active Directory Only Authentication since `azuread_administrator` has not set for %s: %+v", id.String(), err)
+			log.Printf("[INFO] Azure Active Directory Only Authentication was not removed since Azure Active Directory Administrators has not set for %s: %+v", id, err)
+			return fmt.Errorf("deleting Azure Active Directory Only Authentication since `azuread_administrator` has not set for %s: %+v", id, err)
 		} else if err = aadOnlyDeleteFuture.Poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the deletion of Azure Active Directory Only Authentications %s: %+v", id.String(), err)
+			return fmt.Errorf("waiting for the deletion of Azure Active Directory Only Authentications %s: %+v", id, err)
 		}
 
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
-			adminFuture, err := adminClient.CreateOrUpdate(ctx, serverazureadadministrators.ServerId(serverId), pointer.From(adminParams))
+			adminFuture, err := adminClient.CreateOrUpdate(ctx, id, pointer.From(adminParams))
 			if err != nil {
-				return fmt.Errorf("creating Azure Active Directory Administrators %s: %+v", id.String(), err)
+				return fmt.Errorf("creating Azure Active Directory Administrators %s: %+v", id, err)
 			}
 
 			if err = adminFuture.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for creation of Azure Active Directory Administrators %s: %+v", id.String(), err)
+				return fmt.Errorf("waiting for creation of Azure Active Directory Administrators %s: %+v", id, err)
 			}
 		} else {
-			adminDelFuture, err := adminClient.Delete(ctx, serverazureadadministrators.ServerId(serverId))
+			adminDelFuture, err := adminClient.Delete(ctx, id)
 			if err != nil {
-				return fmt.Errorf("deleting Azure Active Directory Administrators  %s: %+v", id.String(), err)
+				return fmt.Errorf("deleting Azure Active Directory Administrators  %s: %+v", id, err)
 			}
 
 			if err = adminDelFuture.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for deletion of Azure Active Directory Administrators %s: %+v", id.String(), err)
+				return fmt.Errorf("waiting for deletion of Azure Active Directory Administrators %s: %+v", id, err)
 			}
 		}
 	}
@@ -473,13 +461,13 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			},
 		}
 
-		aadOnlyEnabledFuture, err := aadOnlyAuthenticationsClient.CreateOrUpdate(ctx, serverazureadonlyauthentications.ServerId(serverId), aadOnlyAuthentictionsParams)
+		aadOnlyEnabledFuture, err := aadOnlyAuthenticationsClient.CreateOrUpdate(ctx, id, aadOnlyAuthentictionsParams)
 		if err != nil {
-			return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id.String(), err)
+			return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
 		}
 
 		if err = aadOnlyEnabledFuture.Poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for update of Azure Active Directory Only Authentication for %s: %+v", id.String(), err)
+			return fmt.Errorf("waiting for update of Azure Active Directory Only Authentication for %s: %+v", id, err)
 		}
 	}
 
@@ -489,8 +477,8 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if _, err = connectionClient.CreateOrUpdate(ctx, serverconnectionpolicies.ServerId(serverId), connection); err != nil {
-		return fmt.Errorf("updating request for Connection Policy %s: %+v", id.String(), err)
+	if _, err = connectionClient.CreateOrUpdate(ctx, id, connection); err != nil {
+		return fmt.Errorf("updating request for Connection Policy %s: %+v", id, err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -503,30 +491,24 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerID(d.Id())
+	id, err := commonids.ParseSqlServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	serverId := servers.ServerId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.Name,
-	}
-
-	resp, err := client.Get(ctx, serverId, servers.GetOperationOptions{})
+	resp, err := client.Get(ctx, pointer.From(id), servers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] Error retrieving SQL Server %s - removing from state", id.String())
+			log.Printf("[INFO] Error retrieving SQL Server %s - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving SQL Server %s: %v", id.Name, err)
+		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	t := pointer.To(make(map[string]string))
 
 	if model := resp.Model; model != nil {
@@ -578,18 +560,18 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	connection, err := connectionClient.Get(ctx, serverconnectionpolicies.ServerId(serverId))
+	connection, err := connectionClient.Get(ctx, pointer.From(id))
 	if err != nil {
-		return fmt.Errorf("reading SQL Server %s Blob Connection Policy: %v ", id.Name, err)
+		return fmt.Errorf("reading SQL Server Blob Connection Policy %s: %v ", id, err)
 	}
 
 	if model := connection.Model; model != nil && model.Properties != nil {
 		d.Set("connection_policy", string(model.Properties.ConnectionType))
 	}
 
-	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, restorabledroppeddatabases.ServerId(serverId))
+	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, pointer.From(id))
 	if err != nil {
-		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", id.Name, err)
+		return fmt.Errorf("listing SQL Server Restorable Dropped Databases %s: %v", id, err)
 	}
 	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage)); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
@@ -603,20 +585,14 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerID(d.Id())
+	id, err := commonids.ParseSqlServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	serverId := servers.ServerId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.Name,
-	}
-
-	err = client.DeleteThenPoll(ctx, serverId)
+	err = client.DeleteThenPoll(ctx, pointer.From(id))
 	if err != nil {
-		return fmt.Errorf("deleting SQL Server %s: %+v", id.Name, err)
+		return fmt.Errorf("deleting SQL Server %s: %+v", id, err)
 	}
 
 	return nil

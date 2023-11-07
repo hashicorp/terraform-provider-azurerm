@@ -11,7 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -92,16 +93,16 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 
 	log.Printf("[INFO] preparing arguments for MsSql Server Microsoft Support Auditing Policy creation.")
 
-	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, "default")
+		existing, err := client.Get(ctx, serverId.ResourceGroupName, serverId.ServerName, "default")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for presence of existing Server %q Sql Microsoft Support Auditing (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
+				return fmt.Errorf("retrieving MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 			}
 		}
 
@@ -136,24 +137,24 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 		params.ServerDevOpsAuditSettingsProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, "default", params)
+	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroupName, serverId.ServerName, "default", params)
 	if err != nil {
-		return fmt.Errorf("creating MsSql Server %q Microsoft Support Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("creating MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MsSql Server %q Microsoft Support Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("waiting for the creation of the MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 	}
 
-	read, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, "default")
+	read, err := client.Get(ctx, serverId.ResourceGroupName, serverId.ServerName, "default")
 	if err != nil {
-		return fmt.Errorf("retrieving MsSql Server %q Microsoft Support Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("retrieving MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 	}
 
 	if read.Name == nil || *read.Name == "" {
-		return fmt.Errorf("reading MsSql Server %q Microsoft Support Auditing Policy (Resource Group %q) Name is empty or nil", serverId.Name, serverId.ResourceGroup)
+		return fmt.Errorf("reading MsSql Server Microsoft Support Auditing Policy %s: 'Name' is 'empty' or 'nil'", serverId)
 	}
-	id := parse.NewServerMicrosoftSupportAuditingPolicyID(subscriptionId, serverId.ResourceGroup, serverId.Name, *read.Name)
+	id := parse.NewServerMicrosoftSupportAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, *read.Name)
 
 	d.SetId(id.ID())
 
@@ -180,13 +181,9 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.Resource
 		return fmt.Errorf("reading MsSql Server %s Microsoft Support Auditing Policy (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 
-	serverId := servers.ServerId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ServerName:        id.ServerName,
-	}
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	serverResp, err := serverClient.Get(ctx, serverId, servers.GetOperationOptions{})
+	serverResp, err := serverClient.Get(ctx, serverId, servers.DefaultGetOperationOptions())
 	if err != nil || serverResp.Model == nil || serverResp.Model.Id == nil || pointer.From(serverResp.Model.Id) == "" {
 		return fmt.Errorf("reading MsSql Server %q ID is empty or nil(Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}

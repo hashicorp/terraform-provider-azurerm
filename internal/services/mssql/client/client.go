@@ -6,20 +6,20 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"                                       // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"                        // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"    // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"                // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"        // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"                 // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                          // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"      // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"       // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
@@ -63,33 +63,27 @@ type Client struct {
 	ServerAzureADAdministratorsClient                  *serverazureadadministrators.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *serverazureadonlyauthentications.ServerAzureADOnlyAuthenticationsClient
 	ServerConnectionPoliciesClient                     *serverconnectionpolicies.ServerConnectionPoliciesClient
-
-	ServerDNSAliasClient                            *sql.ServerDNSAliasesClient
-	ServerExtendedBlobAuditingPoliciesClient        *sql.ExtendedServerBlobAuditingPoliciesClient
-	ServerDevOpsAuditSettingsClient                 *sql.ServerDevOpsAuditSettingsClient
-	ServerKeysClient                                *sql.ServerKeysClient
-	ServerSecurityAlertPoliciesClient               *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
-	LegacyServerSecurityAlertPoliciesClient         *sql.ServerSecurityAlertPoliciesClient
-	ServerVulnerabilityAssessmentsClient            *sql.ServerVulnerabilityAssessmentsClient
-	ServersClient                                   *servers.ServersClient
-	TransparentDataEncryptionsClient                *transparentdataencryptions.TransparentDataEncryptionsClient
-	VirtualMachinesAvailabilityGroupListenersClient *availabilitygrouplisteners.AvailabilityGroupListenersClient
-	VirtualMachinesClient                           *sqlvirtualmachines.SqlVirtualMachinesClient
-	VirtualMachineGroupsClient                      *sqlvirtualmachinegroups.SqlVirtualMachineGroupsClient
-	VirtualNetworkRulesClient                       *sql.VirtualNetworkRulesClient
+	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
+	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
+	ServerDevOpsAuditSettingsClient                    *sql.ServerDevOpsAuditSettingsClient
+	ServerKeysClient                                   *sql.ServerKeysClient
+	ServerSecurityAlertPoliciesClient                  *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
+	LegacyServerSecurityAlertPoliciesClient            *sql.ServerSecurityAlertPoliciesClient
+	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
+	ServersClient                                      *servers.ServersClient
+	TransparentDataEncryptionsClient                   *transparentdataencryptions.TransparentDataEncryptionsClient
+	VirtualMachinesAvailabilityGroupListenersClient    *availabilitygrouplisteners.AvailabilityGroupListenersClient
+	VirtualMachinesClient                              *sqlvirtualmachines.SqlVirtualMachinesClient
+	VirtualMachineGroupsClient                         *sqlvirtualmachinegroups.SqlVirtualMachineGroupsClient
+	VirtualNetworkRulesClient                          *sql.VirtualNetworkRulesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-<<<<<<< HEAD
 	backupShortTermRetentionPoliciesClient, err := backupshorttermretentionpolicies.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Backup Short Term Retention Policies Client: %+v", err)
 	}
 	o.Configure(backupShortTermRetentionPoliciesClient.Client, o.Authorizers.ResourceManager)
-=======
-	backupShortTermRetentionPoliciesClient := sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&backupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 
 	databaseExtendedBlobAuditingPoliciesClient := sql.NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -239,7 +233,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualMachinesClient:                           &virtualMachinesClient,
 		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
 		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
-<<<<<<< HEAD
 
 		// Legacy Clients
 		LegacyServerSecurityAlertPoliciesClient: &legacyServerSecurityAlertPoliciesClient,
@@ -258,7 +251,5 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ServerSecurityAlertPoliciesClient:      serverSecurityAlertPoliciesClient,
 		TransparentDataEncryptionsClient:       transparentDataEncryptionsClient,
 		ServersClient:                          serversClient,
-=======
->>>>>>> 5e957238fca9519400c2479c7d1f73e3d1b0871c
 	}, nil
 }

@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -182,22 +184,16 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			serverId, err := parse.ServerID(model.ServerId)
+			serverId, err := commonids.ParseSqlServerID(model.ServerId)
 			if err != nil {
 				return err
 			}
 
-			serversServerId := servers.ServerId{
-				SubscriptionId:    serverId.SubscriptionId,
-				ResourceGroupName: serverId.ResourceGroup,
-				ServerName:        serverId.Name,
-			}
-
-			if _, err = serversClient.Get(ctx, serversServerId, servers.GetOperationOptions{}); err != nil {
+			if _, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions()); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", serverId, err)
 			}
 
-			id := parse.NewFailoverGroupID(subscriptionId, serverId.ResourceGroup, serverId.Name, model.Name)
+			id := parse.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, model.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 			if err != nil {
