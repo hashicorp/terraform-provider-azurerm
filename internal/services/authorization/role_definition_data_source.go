@@ -205,9 +205,6 @@ func (a ArmRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			state.Permissions = flattenDataSourceRoleDefinitionPermissions(role.Permissions)
 			state.AssignableScopes = pointer.From(role.AssignableScopes)
 
-			// The sdk managed id start with two "/" when scope is tenant level (empty).
-			// So we use the id from response without parsing and reformating it.
-			// Tracked on https://github.com/hashicorp/pandora/issues/3257
 			metadata.ResourceData.SetId(*role.ID)
 			return metadata.Encode(&state)
 		},
