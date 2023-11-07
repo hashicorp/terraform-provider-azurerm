@@ -267,12 +267,12 @@ func TestDecode_TopLevelFieldsOptionalMixedValues(t *testing.T) {
 		State: map[string]interface{}{
 			"required":        "name",
 			"number":          nil,
-			"price":           pointer.To(3.5),
+			"price":           3.5,
 			"string":          nil,
-			"enabled":         pointer.To(false),
+			"enabled":         false,
 			"list_of_floats":  nil,
 			"list_of_numbers": nil,
-			"list_of_strings": &[]interface{}{
+			"list_of_strings": []interface{}{
 				"have",
 				"you",
 				"heard",
