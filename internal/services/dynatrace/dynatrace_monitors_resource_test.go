@@ -113,7 +113,7 @@ resource "azurerm_dynatrace_monitors" "test" {
   }
 
   tags = {
-	environment = "Dev"
+    environment = "Dev"
   }
 }
 `, template, data.RandomInteger)
