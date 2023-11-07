@@ -108,7 +108,7 @@ resource "azurerm_dynatrace_monitors" "test" {
   plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
-    plan           = "dynatraceapitestplan"
+    plan           = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
     effective_date = "2019-08-30T15:14:33Z"
   }
 
@@ -143,7 +143,7 @@ resource "azurerm_dynatrace_monitors" "test" {
   plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
-    plan           = "azureportalintegration_privatepreview@TIDhjdtn7tfnxcy"
+    plan           = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
     effective_date = "2019-08-30T15:14:33Z"
   }
 
@@ -181,5 +181,5 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, "eastus2euap", data.RandomString)
 }
