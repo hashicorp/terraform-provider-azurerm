@@ -5,7 +5,6 @@ package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -133,9 +132,11 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("sku_name", props.CurrentServiceObjectiveName)
 			d.Set("zone_redundant", props.ZoneRedundant)
 
+			maxSizeGb := int64(0)
 			if props.MaxSizeBytes != nil {
-				d.Set("max_size_gb", int32((pointer.From(props.MaxSizeBytes))/int64(1073741824)))
+				maxSizeGb = int64((pointer.From(props.MaxSizeBytes)) / int64(1073741824))
 			}
+			d.Set("max_size_gb", maxSizeGb)
 
 			readScale := databases.DatabaseReadScaleDisabled
 			if props.ReadScale != nil {
@@ -143,13 +144,11 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("read_scale", readScale == databases.DatabaseReadScaleEnabled)
 
-			storageAccountType := databases.BackupStorageRedundancyGeo
+			storageAccountType := string(databases.BackupStorageRedundancyGeo)
 			if props.CurrentBackupStorageRedundancy != nil {
-				storageAccountType = pointer.From(props.CurrentBackupStorageRedundancy)
+				storageAccountType = string(pointer.From(props.CurrentBackupStorageRedundancy))
 			}
 			d.Set("storage_account_type", storageAccountType)
-		} else {
-			log.Print("[INFO] Model Properties were nil")
 		}
 
 		if model.Tags != nil {

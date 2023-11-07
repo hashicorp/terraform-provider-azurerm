@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 )
 
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
@@ -33,23 +32,15 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		return false
 	}
 
-	replicationDatabaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.DatabaseName)
-
-	results, err := replicationLinksClient.ListByDatabaseComplete(ctx, replicationDatabaseId)
+	replicationSourceDatabaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.DatabaseName)
+	results, err := replicationLinksClient.ListByDatabaseComplete(ctx, replicationSourceDatabaseId)
 	if err != nil {
 		// Not sure if this is really an error anymore given the change in the API...
 		if strings.Contains(err.Error(), "ResourceNotFound") {
-			log.Printf("[INFO] %s does not exist, skipping lookup for Replication Links", id)
+			log.Printf("[INFO] %s returned no result records, skipping lookup for Replication Links", id)
 			return partnerDatabases, nil
 		}
 		return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
-	}
-
-	// Not sure if this is really an error anymore given the change in the API...
-	if len(results.Items) == 0 {
-		// return nil, fmt.Errorf("reading Replication Links for %s: replicationlinks.ListByDatabaseCompleteResult was empty", id)
-		log.Printf("[INFO] reading Replication Links for %s: replicationlinks.ListByDatabaseCompleteResult was empty", id)
-		return partnerDatabases, nil
 	}
 
 	var linkProps *replicationlinks.ReplicationLinkProperties
@@ -63,72 +54,57 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			}
 
 			log.Printf("[INFO] Replication Link found for %s", id)
+			var partnerTargetDatabaseId *commonids.SqlDatabaseId
 
-			// Look for candidate partner SQL servers
-			filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", pointer.From(linkProps.PartnerServer))
-			var resourceList []resources.GenericResourceExpanded
-
-			for resourcesIterator, err := resourcesClient.ListComplete(ctx, filter, "", nil); resourcesIterator.NotDone(); err = resourcesIterator.NextWithContext(ctx) {
+			if linkProps.PartnerDatabaseId != nil {
+				partnerTargetDatabaseId, err = commonids.ParseDatabaseID(pointer.From(linkProps.PartnerDatabaseId))
 				if err != nil {
-					return nil, fmt.Errorf("retrieving Partner SQL Servers with filter %q for %s: %+v", filter, id, err)
+					return nil, fmt.Errorf("parsing Partner SQL Server ID %s: %+v", pointer.From(linkProps.PartnerDatabaseId), err)
 				}
-				resourceList = append(resourceList, resourcesIterator.Value())
-			}
-
-			for _, server := range resourceList {
-				if server.ID == nil {
-					log.Printf("[INFO] Partner SQL Server ID was nil for %s", id)
-					continue
-				}
-
-				partnerServerId, err := parse.ServerID(pointer.From(server.ID))
-				if err != nil {
-					return nil, fmt.Errorf("parsing Partner SQL Server ID %q: %+v", pointer.From(server.ID), err)
-				}
-
-				partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroup, partnerServerId.Name, pointer.From(linkProps.PartnerDatabase))
 
 				// Check if like-named server has a database named like the partner database, also with a replication link
-				linksPossiblePartnerIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, partnerDatabaseId)
+				partnerResults, err := replicationLinksClient.ListByDatabaseComplete(ctx, pointer.From(partnerTargetDatabaseId))
 				if err != nil {
-					return nil, fmt.Errorf("reading Replication Links for Database %q (%s): %+v", partnerDatabaseId.DatabaseName, partnerServerId, err)
+					// Not sure if this is really an error anymore given the change in the API...
+					partnerResults, err := replicationLinksClient.ListByDatabaseComplete(ctx, pointer.From(partnerTargetDatabaseId))
+					if strings.Contains(err.Error(), "ResourceNotFound") || len(partnerResults.Items) == 0 {
+						log.Printf("[INFO] %s returned no result records, skipping lookup of Partner Replication Links", partnerTargetDatabaseId)
+						continue
+					}
+					return nil, fmt.Errorf("reading Partner Replication Links for Database %s: %+v", partnerTargetDatabaseId, err)
 				}
 
-				for _, linkPossiblePartner := range linksPossiblePartnerIterator.Items {
+				for _, partnerResult := range partnerResults.Items {
+					if partnerProps := partnerResult.Properties; partnerProps != nil {
+						// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
+						if matchesRole(pointer.From(partnerProps.Role)) {
+							partnerDatabaseId := commonids.NewSqlDatabaseID(partnerTargetDatabaseId.SubscriptionId, partnerTargetDatabaseId.ResourceGroupName, partnerTargetDatabaseId.ServerName, pointer.From(partnerResult.Name))
 
-					if linkPossiblePartner.Properties == nil {
-						log.Printf("[INFO] Replication Link Properties was nil for Database %q (%s)", pointer.From(linkProps.PartnerDatabase), partnerServerId)
+							partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
+							if err != nil {
+								return nil, fmt.Errorf("retrieving Partner %s: %+v", partnerDatabaseId, err)
+							}
+
+							if model := partnerDatabase.Model; model != nil {
+								if location.Normalize(model.Location) != location.NormalizeNilable(linkProps.PartnerLocation) {
+									log.Printf("[INFO] Mismatch of possible Partner Database based on location (%q vs %q) for %s", location.Normalize(model.Location), location.NormalizeNilable(linkProps.PartnerLocation), id)
+									continue
+								}
+
+								log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
+								partnerDatabases = append(partnerDatabases, pointer.From(model))
+							} else {
+								log.Printf("[INFO] Partner Database %s: Model is nil", partnerDatabaseId)
+								continue
+							}
+						}
+					} else {
+						log.Printf("[INFO] Partner Replication Link Properties was nil for Database %s", partnerTargetDatabaseId)
 						continue
 					}
 
-					linkPropsPossiblePartner := pointer.From(linkPossiblePartner.Properties)
-
-					// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
-					if matchesRole(pointer.From(linkPropsPossiblePartner.Role)) {
-						partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroup, partnerServerId.Name, pointer.From(linkProps.PartnerDatabase))
-
-						partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
-						if err != nil {
-							return nil, fmt.Errorf("retrieving Partner %q: %+v", partnerDatabaseId, err)
-						}
-
-						if partnerDatabase.Model == nil {
-							log.Printf("[INFO] Partner Database Model is nil for %s", partnerDatabaseId)
-							continue
-						}
-
-						if location.Normalize(partnerDatabase.Model.Location) != location.NormalizeNilable(linkProps.PartnerLocation) {
-							log.Printf("[INFO] Mismatch of possible Partner Database based on location (%q vs %q) for %s", location.Normalize(partnerDatabase.Model.Location), location.NormalizeNilable(linkProps.PartnerLocation), id)
-							continue
-						}
-
-						if partnerDatabase.Model.Id != nil {
-							log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
-							partnerDatabases = append(partnerDatabases, pointer.From(partnerDatabase.Model))
-						}
-					}
 				}
-			}
+			} // end nil check
 		} else {
 			log.Printf("[INFO] Replication Link Properties was nil for %s", id)
 			continue
