@@ -249,7 +249,17 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		vault.Sku.Tier = utils.String("Standard")
 	}
 
+	requireAddtionalUpdate := false
+	updatePatch := vaults.PatchVault{
+		Properties: &vaults.VaultProperties{},
+	}
+	// The `immutability` could only be set to `Locked` from `Unlocked`
 	if immutability, ok := d.GetOk("immutability"); ok {
+		if immutability == string(vaults.ImmutabilityStateLocked) {
+			updatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
+			requireAddtionalUpdate = true
+			immutability = string(vaults.ImmutabilityStateUnlocked)
+		}
 		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
@@ -261,14 +271,16 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	// `encryption` needs to be set before `cross_region_restore_enabled` is set. Or the service will return an error. "If CRR is enabled for the Vault, the storage state will be locked and it will interfere with further operations"
 	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
 	if _, ok := d.GetOk("encryption"); ok {
-		err = client.UpdateThenPoll(ctx, id, vaults.PatchVault{
-			Properties: &vaults.VaultProperties{
-				Encryption: expandEncryption(d),
-			},
-		})
+		requireAddtionalUpdate = true
+		updatePatch.Properties.Encryption = expandEncryption(d)
+	}
+
+	if requireAddtionalUpdate {
+		err := client.UpdateThenPoll(ctx, id, updatePatch)
 		if err != nil {
-			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
+
 	}
 
 	storageType := backupresourcestorageconfigsnoncrr.StorageType(d.Get("storage_mode_type").(string))
