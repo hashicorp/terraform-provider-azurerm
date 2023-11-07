@@ -15,11 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"       // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"      // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"         // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"                          // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -27,7 +28,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -191,7 +191,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -227,7 +227,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	props := servers.Server{
 		Location: location,
-		Tags:     tags.PointerTo(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &servers.ServerProperties{
 			Version:                       pointer.To(version),
 			PublicNetworkAccess:           pointer.To(servers.ServerPublicNetworkAccessFlagEnabled),
@@ -343,7 +343,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	props := servers.Server{
 		Location: location,
-		Tags:     tags.PointerTo(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &servers.ServerProperties{
 			Version:                       pointer.To(version),
 			PublicNetworkAccess:           pointer.To(servers.ServerPublicNetworkAccessFlagEnabled),
@@ -509,11 +509,8 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	t := pointer.To(make(map[string]string))
 
 	if model := resp.Model; model != nil {
-		t = model.Tags
-
 		if location := model.Location; location != "" {
 			d.Set("location", azure.NormalizeLocation(location))
 		}
@@ -558,6 +555,10 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
 			}
 		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	connection, err := connectionClient.Get(ctx, pointer.From(id))
@@ -573,11 +574,12 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("listing SQL Server Restorable Dropped Databases %s: %v", id, err)
 	}
+
 	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage)); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, tags.ExpandFromPointer(t))
+	return nil
 }
 
 func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
