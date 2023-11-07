@@ -139,7 +139,8 @@ func validateResourceTypeName(resourceType string) error {
 }
 
 // TestTypedResourcesUsePointersForOptionalProperties checks Typed resource models against their schemas to catch when
-// of Optional properties are not Pointers and when Required properties are Pointers. This is for Null compa
+// of Optional properties are not Pointers and when Required properties are Pointers. This is for Null compatibility in
+// terraform-plugin-framework
 func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 	if r := os.Getenv("ARM_CHECK_TYPED_RESOURCES_FOR_OPTIONAL_PTR"); !strings.EqualFold(r, "true") {
 		t.Skipf("Skipping checking for Optional Properties")

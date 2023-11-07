@@ -21,8 +21,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	objType := reflect.TypeOf(input).Elem()
 	objVal := reflect.ValueOf(input).Elem()
 
-	fieldName := reflect.ValueOf(input).Elem().String()
-	serialized, err := recurse(objType, objVal, fieldName, rmd.serializationDebugLogger)
+	serialized, err := recurse(objType, objVal, rmd.serializationDebugLogger)
 	if err != nil {
 		return err
 	}
@@ -36,7 +35,8 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	return nil
 }
 
-func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debugLogger Logger) (output map[string]interface{}, errOut error) {
+func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (output map[string]interface{}, errOut error) {
+	var fieldName string
 	defer func() {
 		if r := recover(); r != nil {
 			debugLogger.Warnf("error setting value for %q: %+v", fieldName, r)
@@ -52,6 +52,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 	output = make(map[string]interface{})
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
+		fieldName = field.Name
 		fieldVal := objVal.Field(i)
 		structTags, err := parseStructTags(field.Tag)
 		if err != nil {
@@ -136,8 +137,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 						nestedType := sv.Index(i).Type()
 						nestedValue := sv.Index(i)
 
-						fieldName := field.Name
-						serialized, err := recurse(nestedType, nestedValue, fieldName, debugLogger)
+						serialized, err := recurse(nestedType, nestedValue, debugLogger)
 						if err != nil {
 							return nil, fmt.Errorf("serializing nested object %q: %+v", sv.Type(), err)
 						}
@@ -222,8 +222,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 								nestedType := sv.Index(i).Type()
 								nestedValue := sv.Index(i)
 
-								fieldName := field.Name
-								serialized, err := recurse(nestedType, nestedValue, fieldName, debugLogger)
+								serialized, err := recurse(nestedType, nestedValue, debugLogger)
 								if err != nil {
 									return nil, fmt.Errorf("serializing nested object %q: %+v", sv.Type(), err)
 								}

@@ -4,11 +4,11 @@
 package sdk
 
 import (
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 type encodeTestData struct {
@@ -853,13 +853,154 @@ func TestResourceEncode_NestedThreeLevelsDeepMultipleItems(t *testing.T) {
 	}.test(t)
 }
 
+func TestResourceEncode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T) {
+	type ThirdInner struct {
+		Value string `tfschema:"value"`
+	}
+	type SecondInner struct {
+		Value *string       `tfschema:"value"`
+		Third *[]ThirdInner `tfschema:"third"`
+	}
+	type FirstInner struct {
+		Value  *string        `tfschema:"value"`
+		Second *[]SecondInner `tfschema:"second"`
+	}
+	type Type struct {
+		First *[]FirstInner `tfschema:"first"`
+	}
+
+	encodeTestData{
+		Input: &Type{
+			First: &[]FirstInner{
+				{
+					Value: pointer.To("first - 1"),
+					Second: &[]SecondInner{
+						{
+							Value: pointer.To("second - 1"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 1",
+								},
+								{
+									Value: "third - 2",
+								},
+								{
+									Value: "third - 3",
+								},
+							},
+						},
+						{
+							Value: pointer.To("second - 2"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 4",
+								},
+								{
+									Value: "third - 5",
+								},
+								{
+									Value: "third - 6",
+								},
+							},
+						},
+					},
+				},
+				{
+					Value: pointer.To("first - 2"),
+					Second: &[]SecondInner{
+						{
+							Value: pointer.To("second - 3"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 7",
+								},
+								{
+									Value: "third - 8",
+								},
+							},
+						},
+						{
+							Value: pointer.To("second - 4"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 9",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Expected: map[string]interface{}{
+			"first": []interface{}{
+				map[string]interface{}{
+					"value": "first - 1",
+					"second": []interface{}{
+						map[string]interface{}{
+							"value": "second - 1",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 1",
+								},
+								map[string]interface{}{
+									"value": "third - 2",
+								},
+								map[string]interface{}{
+									"value": "third - 3",
+								},
+							},
+						},
+						map[string]interface{}{
+							"value": "second - 2",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 4",
+								},
+								map[string]interface{}{
+									"value": "third - 5",
+								},
+								map[string]interface{}{
+									"value": "third - 6",
+								},
+							},
+						},
+					},
+				},
+				map[string]interface{}{
+					"value": "first - 2",
+					"second": []interface{}{
+						map[string]interface{}{
+							"value": "second - 3",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 7",
+								},
+								map[string]interface{}{
+									"value": "third - 8",
+								},
+							},
+						},
+						map[string]interface{}{
+							"value": "second - 4",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 9",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}.test(t)
+}
+
 func (testData encodeTestData) test(t *testing.T) {
 	objType := reflect.TypeOf(testData.Input).Elem()
 	objVal := reflect.ValueOf(testData.Input).Elem()
-	fieldName := reflect.ValueOf(testData.Input).Elem().String()
 	debugLogger := ConsoleLogger{}
 
-	output, err := recurse(objType, objVal, fieldName, debugLogger)
+	output, err := recurse(objType, objVal, debugLogger)
 	if err != nil {
 		if testData.ExpectError {
 			// we're good
