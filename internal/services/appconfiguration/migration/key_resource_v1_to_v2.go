@@ -53,17 +53,11 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("parseing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
-		envName := meta.(*clients.Client).Account.Environment.Name
-		appConfigSuffix := ""
-		switch envName {
-		case environments.AzurePublicCloud:
-			appConfigSuffix = "azconfig.io"
-		case environments.AzureUSGovernmentCloud:
-			appConfigSuffix = "azconfig.azure.us"
-		case environments.AzureChinaCloud:
-			appConfigSuffix = "azconfig.azure.cn"
+		domainSuffix, ok := meta.(*clients.Client).Account.Environment.AppConfiguration.DomainSuffix()
+		if !ok {
+			return fmt.Errorf("App Configuration is not supported in this Environment")
 		}
-		configurationStoreEndpoint := fmt.Sprintf("https://%s.%s", configurationStoreId.ConfigurationStoreName, appConfigSuffix)
+		configurationStoreEndpoint := fmt.Sprintf("https://%s.%s", configurationStoreId.ConfigurationStoreName, domainSuffix)
 
 		nestedItemId, err := parse.NewNestedItemID(configurationStoreEndpoint, parsedOldId.Key, parsedOldId.Label)
 		if err != nil {
