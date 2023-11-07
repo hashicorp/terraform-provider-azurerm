@@ -37,7 +37,7 @@ func TestAccFlexibleServerConfiguration_backslashQuote(t *testing.T) {
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+				data.CheckWithClientForResource(r.checkWith(name, resetToDefaultCheck), "azurerm_postgresql_flexible_server.test"),
 			),
 		},
 	})
@@ -60,7 +60,7 @@ func TestAccFlexibleServerConfiguration_azureExtensions(t *testing.T) {
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+				data.CheckWithClientForResource(r.checkWith(name, resetToDefaultCheck), "azurerm_postgresql_flexible_server.test"),
 			),
 		},
 	})
@@ -83,7 +83,7 @@ func TestAccFlexibleServerConfiguration_pgbouncerEnabled(t *testing.T) {
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+				data.CheckWithClientForResource(r.checkWith(name, resetToDefaultCheck), "azurerm_postgresql_flexible_server.test"),
 			),
 		},
 	})
@@ -114,7 +114,7 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 	})
 }
 
-func checkWith(configurationName string, checker func(*configurations.ConfigurationProperties) error) acceptance.ClientCheckFunc {
+func (r PostgresqlFlexibleServerConfigurationResource) checkWith(configurationName string, checker func(*configurations.ConfigurationProperties) error) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := configurations.ParseFlexibleServerID(state.ID)
 		if err != nil {
@@ -161,38 +161,17 @@ func resetToDefaultCheck(props *configurations.ConfigurationProperties) error {
 	return nil
 }
 
-func restartPendingCheck(props *configurations.ConfigurationProperties) error {
-	if props.Value != nil && props.IsConfigPendingRestart != nil {
-		actualValue := *props.IsConfigPendingRestart
+func pendingRestartCheck(expectedValue bool) func(*configurations.ConfigurationProperties) error {
+	return func(props *configurations.ConfigurationProperties) error {
+		if props.Value != nil && props.IsConfigPendingRestart != nil {
+			actualValue := *props.IsConfigPendingRestart
 
-		if !actualValue {
-			return fmt.Errorf("Azure Postgresql Flexible Server configuration should be in 'pending restart' state, got IsConfigPendingRestart='%v'", actualValue)
+			if actualValue != expectedValue {
+				return fmt.Errorf("Azure Postgresql Flexible Server configuration IsConfigPendingRestart is expected'%v', but got ='%v'", expectedValue, actualValue)
+			}
 		}
+		return nil
 	}
-	return nil
-}
-
-func noRestartPendingCheck(props *configurations.ConfigurationProperties) error {
-	if props.Value != nil && props.IsConfigPendingRestart != nil {
-		actualValue := *props.IsConfigPendingRestart
-
-		if actualValue {
-			return fmt.Errorf("Azure Postgresql Flexible Server configuration should restart the server automatically, but got IsConfigPendingRestart='%v'", actualValue)
-		}
-	}
-	return nil
-}
-
-func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
-	return checkWith(configurationName, resetToDefaultCheck)
-}
-
-func (r PostgresqlFlexibleServerConfigurationResource) checkPendingRestart(configurationName string) acceptance.ClientCheckFunc {
-	return checkWith(configurationName, restartPendingCheck)
-}
-
-func (r PostgresqlFlexibleServerConfigurationResource) checkNoPendingRestart(configurationName string) acceptance.ClientCheckFunc {
-	return checkWith(configurationName, noRestartPendingCheck)
 }
 
 func TestAccFlexibleServerConfiguration_multiplePostgresqlFlexibleServerConfigurations(t *testing.T) {
@@ -222,14 +201,14 @@ func TestAccFlexibleServerConfiguration_restartServerForStaticParameters(t *test
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("value").HasValue("5"),
 				// by default "static" parameter change triggers server restart
-				data.CheckWithClientForResource(r.checkNoPendingRestart(name), "azurerm_postgresql_flexible_server.test"),
+				data.CheckWithClientForResource(r.checkWith(name, pendingRestartCheck(false)), "azurerm_postgresql_flexible_server.test"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+				data.CheckWithClientForResource(r.checkWith(name, resetToDefaultCheck), "azurerm_postgresql_flexible_server.test"),
 			),
 		},
 	})
@@ -247,14 +226,14 @@ func TestAccFlexibleServerConfiguration_doesNotRestartServer_whenFeatureIsDisabl
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("value").HasValue("5"),
 				// when the feature is disabled, "static" parameter change does not trigger server restart and config stays in "pending-restart" state
-				data.CheckWithClientForResource(r.checkPendingRestart(name), "azurerm_postgresql_flexible_server.test"),
+				data.CheckWithClientForResource(r.checkWith(name, pendingRestartCheck(true)), "azurerm_postgresql_flexible_server.test"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+				data.CheckWithClientForResource(r.checkWith(name, resetToDefaultCheck), "azurerm_postgresql_flexible_server.test"),
 			),
 		},
 	})
