@@ -804,11 +804,11 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       web_categories        = ["News"]
       http_headers {
         name  = "head_foo"
-        value = "value_bar"
+        value = "value_bar2"
       }
       http_headers {
-        name  = "head_bar"
-        value = "value2"
+        name  = "head_bar2"
+        value = "value_bar2"
       }
     }
     rule {
