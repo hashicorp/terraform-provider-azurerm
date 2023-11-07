@@ -196,6 +196,14 @@ func TestAccKubernetesCluster_cycleSystemNodePool(t *testing.T) {
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+	})
+}
+
+func TestAccKubernetesCluster_cycleSystemNodePoolFipsEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableFips(data),
 			Check: acceptance.ComposeTestCheckFunc(
