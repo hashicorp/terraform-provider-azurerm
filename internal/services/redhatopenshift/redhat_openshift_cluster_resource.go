@@ -23,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var randomDomainName = GenerateRandomDomainName()
-
 var _ sdk.ResourceWithUpdate = RedHatOpenShiftCluster{}
 
 type RedHatOpenShiftCluster struct{}
@@ -239,7 +237,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: openShiftValidate.DiskSizeGB,
+						ValidateFunc: validation.IntAtLeast(128),
 					},
 					"node_count": {
 						Type:         pluginsdk.TypeInt,
@@ -402,6 +400,7 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 
 func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -448,8 +447,6 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 
 			return nil
 		},
-
-		Timeout: 90 * time.Minute,
 	}
 }
 
@@ -562,11 +559,8 @@ func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServiceP
 	if sp, ok := d.GetOk("service_principal"); ok {
 		var val []interface{}
 
-		// prior to 1.34 this was a *pluginsdk.Set, now it's a List - try both
 		if v, ok := sp.([]interface{}); ok {
 			val = v
-		} else if v, ok := sp.(*pluginsdk.Set); ok {
-			val = v.List()
 		}
 
 		if len(val) > 0 && val[0] != nil {

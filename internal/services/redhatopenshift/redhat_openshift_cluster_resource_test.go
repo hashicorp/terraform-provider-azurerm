@@ -398,14 +398,8 @@ resource "azurerm_role_assignment" "role_network1" {
 resource "azurerm_role_assignment" "role_network2" {
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
-  principal_id         = azuread_service_principal.redhatopenshift.object_id
+  principal_id         = data.azuread_service_principal.redhatopenshift.object_id
 }
-
-#resource "azurerm_role_assignment" "role_contributor2" {
-#  scope                = "/subscriptions/${data.azurerm_client_config.test.subscription_id}"
-#  role_definition_name = "Contributor"
-#  principal_id         = azuread_service_principal.redhatopenshift.object_id
-#}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%[1]d"
