@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The Subnet must have a `/21` or larger address space. 
 
-* `internal_load_balancer_enabled` - (Optional) Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. Changing this forces a new resource to be created.
+* `internal_load_balancer_enabled` - (Optional) Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. Can only be set if `infrastructure_subnet_id` is specified. Changing this forces a new resource to be created.
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
 

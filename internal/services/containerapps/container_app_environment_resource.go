@@ -101,7 +101,7 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew:     true,
 			Default:      false,
 			RequiredWith: []string{"infrastructure_subnet_id"},
-			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set if `infrastructure_subnet_id` is specified.",
 		},
 
 		"zone_redundancy_enabled": {
