@@ -11,7 +11,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -161,7 +160,6 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 
 func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
-	dbClient := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -180,20 +178,6 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 	}
 
 	databaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName)
-
-	dbResp, err := dbClient.Get(ctx, databaseId, databases.DefaultGetOperationOptions())
-	if err != nil {
-		return fmt.Errorf("reading MsSql Database %s: %+v", id.ID(), err)
-	}
-
-	if dbResp.Model == nil {
-		return fmt.Errorf("retrieving MsSql Database %s: Model is nil", id.ID())
-	}
-
-	if dbResp.Model.Id == nil {
-		return fmt.Errorf("retrieving MsSql Database %s: ID is nil", id.ID())
-	}
-
 	d.Set("database_id", databaseId.ID())
 
 	if props := resp.ExtendedDatabaseBlobAuditingPolicyProperties; props != nil {

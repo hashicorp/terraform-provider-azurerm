@@ -62,13 +62,7 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -91,8 +85,8 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
 
+	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
-		d.SetId(id.ID())
 		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 
 		if props := model.Properties; props != nil {
@@ -119,8 +113,10 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return fmt.Errorf("model was `nil`")
+	return nil
 }

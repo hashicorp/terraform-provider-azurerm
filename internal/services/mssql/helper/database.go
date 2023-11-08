@@ -32,8 +32,11 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		return false
 	}
 
-	replicationSourceDatabaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.DatabaseName)
-	results, err := replicationLinksClient.ListByDatabaseComplete(ctx, replicationSourceDatabaseId)
+	// NOTE: Still in progress, will remove debugging comments when I am done here...
+	log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023/11/07 13:21:37 [INFO] ****************************************************************************************\n")
+	log.Printf("[INFO] FindDatabaseReplicationPartners lookup for %s", id)
+	log.Printf("[INFO] ****************************************************************************************\n\n\n\n\n\n\n\n\n\n\n")
+	results, err := replicationLinksClient.ListByDatabaseComplete(ctx, id)
 	if err != nil {
 		// Not sure if this is really an error anymore given the change in the API...
 		if strings.Contains(err.Error(), "ResourceNotFound") {
@@ -45,7 +48,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 	var linkProps *replicationlinks.ReplicationLinkProperties
 
-	// loop over all results that matched the replicationDatabaseId...
+	// loop over all results that matches this DatabaseId...
 	for _, v := range results.Items {
 		if linkProps = v.Properties; linkProps != nil {
 			if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil {
@@ -57,11 +60,19 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			var partnerTargetDatabaseId *commonids.SqlDatabaseId
 
 			if linkProps.PartnerDatabaseId != nil {
-				partnerTargetDatabaseId, err = commonids.ParseDatabaseID(pointer.From(linkProps.PartnerDatabaseId))
-				if err != nil {
-					return nil, fmt.Errorf("parsing Partner SQL Server ID %s: %+v", pointer.From(linkProps.PartnerDatabaseId), err)
+				// NOTE: There is no workaround for the malformed PartnerDatabaseId bug...
+				if strings.Contains(pointer.From(linkProps.PartnerDatabaseId), "//") {
+					return nil, fmt.Errorf("replication link properties 'PartnerDatabaseId' was invalid: %q", pointer.From(linkProps.PartnerDatabaseId))
+				} else {
+					partnerTargetDatabaseId, err = commonids.ParseSqlDatabaseIDInsensitively(pointer.From(linkProps.PartnerDatabaseId))
+					if err != nil {
+						return nil, fmt.Errorf("parsing Partner SQL Server ID %s: %+v", pointer.From(linkProps.PartnerDatabaseId), err)
+					}
 				}
 
+				log.Printf("[DEBUG] Partner Database ID from ReplicationLinkProperties: %q", pointer.From(partnerTargetDatabaseId))
+
+				// TODO: Need to fix it here too?
 				// Check if like-named server has a database named like the partner database, also with a replication link
 				partnerResults, err := replicationLinksClient.ListByDatabaseComplete(ctx, pointer.From(partnerTargetDatabaseId))
 				if err != nil {
@@ -76,13 +87,11 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 				for _, partnerResult := range partnerResults.Items {
 					if partnerProps := partnerResult.Properties; partnerProps != nil {
-						// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
+						// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as the expected partner
 						if matchesRole(pointer.From(partnerProps.Role)) {
-							partnerDatabaseId := commonids.NewSqlDatabaseID(partnerTargetDatabaseId.SubscriptionId, partnerTargetDatabaseId.ResourceGroupName, partnerTargetDatabaseId.ServerName, pointer.From(partnerResult.Name))
-
-							partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
+							partnerDatabase, err := databasesClient.Get(ctx, pointer.From(partnerTargetDatabaseId), databases.DefaultGetOperationOptions())
 							if err != nil {
-								return nil, fmt.Errorf("retrieving Partner %s: %+v", partnerDatabaseId, err)
+								return nil, fmt.Errorf("retrieving Partner %s: %+v", pointer.From(partnerTargetDatabaseId), err)
 							}
 
 							if model := partnerDatabase.Model; model != nil {
@@ -91,15 +100,17 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 									continue
 								}
 
-								log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
+								log.Printf("[INFO] Found Partner %s", pointer.From(partnerTargetDatabaseId))
 								partnerDatabases = append(partnerDatabases, pointer.From(model))
 							} else {
-								log.Printf("[INFO] Partner Database %s: Model is nil", partnerDatabaseId)
+								log.Printf("[INFO] Partner Database %s: Model is nil", pointer.From(partnerTargetDatabaseId))
 								continue
 							}
+						} else {
+							log.Printf("[INFO] Role Mismatch: wanted %+v, got %q", rolesToFind, pointer.From(partnerProps.Role))
 						}
 					} else {
-						log.Printf("[INFO] Partner Replication Link Properties was nil for Database %s", partnerTargetDatabaseId)
+						log.Printf("[INFO] Partner Replication Link Properties was nil for Database %s", pointer.From(partnerTargetDatabaseId))
 						continue
 					}
 

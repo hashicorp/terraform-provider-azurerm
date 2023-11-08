@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -98,12 +97,12 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	name := d.Get("name").(string)
 	mssqlServerId := d.Get("server_id").(string)
-	serverId, err := parse.ServerID(mssqlServerId)
+	serverId, err := commonids.ParseSqlServerID(mssqlServerId)
 	if err != nil {
 		return err
 	}
 
-	databaseId := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, name)
+	databaseId := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, name)
 
 	resp, err := client.Get(ctx, databaseId, databases.DefaultGetOperationOptions())
 	if err != nil {
