@@ -568,7 +568,7 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]galleryapplicationver
 		}
 
 		if item.ExcludeFromLatest != nil {
-			obj.ExcludeFromLatest = bool(*item.ExcludeFromLatest)
+			obj.ExcludeFromLatest = *item.ExcludeFromLatest
 		}
 
 		if item.RegionalReplicaCount != nil {
