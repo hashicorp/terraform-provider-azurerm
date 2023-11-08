@@ -4,13 +4,15 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.63.0` of `github.com/hashicorp/go-azure-helpers` [GH-23785]
 * dependencies: updating to `v0.20231106.1151347` of `github.com/hashicorp/go-azure-sdk` [GH-23787]
-* `azurerm_postgresql_database` - update the validation of `collation` to include support for `French_France.1252` [GH-23783]
 * `azurerm_cognitive_deployment` - support for the `version_upgrade_option` property [GH-22520]
+* `azurerm_kusto_cluster` - the cluster `name` can now include dashes [GH-23790]
+* `azurerm_postgresql_database` - update the validation of `collation` to include support for `French_France.1252` [GH-23783]
 
 BUG FIXES:
 
-* `azurerm_kusto_cluster`-  correctly validate the cluster name property [GH-23790]
-
+* Data Source: `azurerm_data_protection_backup_vault` - removing `import` support, since Data Sources don't support being imported [GH-23820]
+* Data Source: `azurerm_kusto_database` - removing `import` support, since Data Sources don't support being imported [GH-23820]
+* Data Source: `azurerm_virtual_hub_route_table` - removing `import` support, since Data Sources don't support being imported [GH-23820]
 
 ## 3.79.0 (November 02, 2023)
 
