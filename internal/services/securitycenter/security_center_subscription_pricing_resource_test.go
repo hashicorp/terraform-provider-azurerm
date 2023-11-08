@@ -212,7 +212,7 @@ func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree), nil
 }
 
 func (SecurityCenterSubscriptionPricingResource) tier(tier string, resource_type string) string {
