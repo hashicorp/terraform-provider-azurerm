@@ -100,6 +100,35 @@ func TestAccElasticSAN_update(t *testing.T) {
 	})
 }
 
+func TestAccElasticSAN_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
+	r := ElasticSANTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccElasticSAN_reduceBaseSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
 	r := ElasticSANTestResource{}
@@ -149,6 +178,29 @@ resource "azurerm_elastic_san" "test" {
   base_size_in_tib    = 1
   sku {
     name = "Premium_LRS"
+  }
+}
+`, r.template(data))
+}
+
+func (r ElasticSANTestResource) basicWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_elastic_san" "test" {
+  name                = "acctestes-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  base_size_in_tib    = 1
+  sku {
+    name = "Premium_LRS"
+  }
+  tags = {
+    foo = "bar"
   }
 }
 `, r.template(data))

@@ -41,11 +41,13 @@ The following arguments are supported:
 
 * `base_size_in_tib` - (Required) Specifies the base size of the Elastic SAN resource in TiB. Possible values are between `1` and `100`.
 
-* `extended_size_in_tib` - (Required) Specifies the extended size of the Elastic SAN resource in TiB. Possible values are between `1` and `100`.
-
--> **NOTE** `base_size_in_tib` and `extended_size_in_tib` cannot be reduced.
+-> **NOTE** When updating `base_size_in_tib`, the new value should be greater than the existing one.
 
 * `sku` - (Required) A `sku` block as defined below.
+
+* `extended_size_in_tib` - (Optional) Specifies the extended size of the Elastic SAN resource in TiB. Possible values are between `1` and `100`.
+
+-> **NOTE** `extended_size_in_tib` cannot be removed and when updating, the new value should be greater than the existing one.
 
 * `zones` - (Optional) Logical zone for the Elastic SAN resource. Changing this forces a new resource to be created.
 

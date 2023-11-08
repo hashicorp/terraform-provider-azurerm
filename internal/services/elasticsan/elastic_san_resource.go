@@ -160,11 +160,11 @@ func (k ElasticSANResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("base_size_in_tib"); newVal.(int) < oldVal.(int) {
-				return fmt.Errorf("base_size_in_tib cannot be reduced")
+				return fmt.Errorf("new base_size_in_tib should be greater than the existing one")
 			}
 
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("extended_size_in_tib"); newVal.(int) < oldVal.(int) {
-				return fmt.Errorf("extended_size_in_tib cannot be reduced")
+				return fmt.Errorf("new extended_size_in_tib should be greater than the existing one")
 			}
 
 			return nil
