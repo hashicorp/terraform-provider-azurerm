@@ -54,7 +54,7 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"securityCenterSubscriptionPricing": {
 			"basic":          testAccSecurityCenterSubscriptionPricing_cloudPostureExtension,
-			"standardToFree": testAccSecurityCenterSubscriptionPricing_cloudPostureExtensioStandardToFreeExtensions,
+			"standardToFree": testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionStandardToFreeExtensions,
 			"freeToStandard": testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandardDisabledExtensions,
 		},
 	})
@@ -64,7 +64,7 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tier("Standard", "AppServices"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -80,7 +80,7 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tier("Standard", "CosmosDbs"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -96,7 +96,7 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountSubplan(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -113,7 +113,7 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTest(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cloudPostureExtension(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -150,7 +150,7 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandar
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cloudPostureFree(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -173,11 +173,11 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandar
 	})
 }
 
-func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensioStandardToFreeExtensions(t *testing.T) {
+func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionStandardToFreeExtensions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cloudPostureExtension(),
 			Check: acceptance.ComposeTestCheckFunc(
