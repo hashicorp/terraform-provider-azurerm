@@ -329,12 +329,12 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	// NOTE: internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 
+	// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: pendingStatuses,
 		Target:  []string{string(databases.DatabaseStatusOnline)},
@@ -357,7 +357,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Timeout:                   time.Until(deadline),
 	}
 
-	// NOTE: another internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
+	// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
@@ -378,7 +378,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 		}
 
-		// NOTE: another internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
+		// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
 			if err != nil {
@@ -875,7 +875,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 
-	// NOTE: another internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
+	// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: pendingStatuses,
 		Target:  []string{string(databases.DatabaseStatusOnline)},
