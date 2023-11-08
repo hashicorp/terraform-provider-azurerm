@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -786,20 +785,18 @@ func TestAccMsSqlDatabase_bacpac(t *testing.T) {
 }
 
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatabaseID(state.ID)
+	id, err := commonids.ParseDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	databaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
-
-	resp, err := client.MSSQL.DatabasesClient.Get(ctx, databaseId, databases.DefaultGetOperationOptions())
+	resp, err := client.MSSQL.DatabasesClient.Get(ctx, pointer.From(id), databases.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("SQL Database %q (Server %q, Resource Group %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+			return nil, fmt.Errorf("SQL %s does not exist", id)
 		}
 
-		return nil, fmt.Errorf("reading SQL Database %q (Server %q, Resource Group %q): %v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading SQL %s: %v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

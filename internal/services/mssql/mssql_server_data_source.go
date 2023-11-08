@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
@@ -95,7 +96,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		}
 
-		identity, err := flattenSqlServerIdentity(model.Identity)
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}

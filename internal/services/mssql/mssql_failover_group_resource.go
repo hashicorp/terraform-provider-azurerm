@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -189,7 +188,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions()); err != nil {
+			if _, err = serversClient.Get(ctx, *serverId, servers.DefaultGetOperationOptions()); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", serverId, err)
 			}
 

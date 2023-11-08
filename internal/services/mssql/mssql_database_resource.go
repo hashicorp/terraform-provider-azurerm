@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
@@ -100,7 +101,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	if len(partnerDatabases) > 0 {
 		partnerDatabase := partnerDatabases[0]
 
-		partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.Id)
+		partnerDatabaseId, err := commonids.ParseDatabaseID(*partnerDatabase.Id)
 		if err != nil {
 			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 		}
@@ -210,11 +211,12 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName.(string), partnerDatabase.Sku.Name) {
-				err := client.UpdateThenPoll(ctx, pointer.From(partnerDatabaseId), databases.DatabaseUpdate{
+				updatePayload := databases.DatabaseUpdate{
 					Sku: pointer.To(databases.Sku{
 						Name: skuName.(string),
 					}),
-				})
+				}
+				err := client.UpdateThenPoll(ctx, pointer.From(partnerDatabaseId), updatePayload)
 
 				if err != nil {
 					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
@@ -224,7 +226,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	input := databases.Database{
-		Name:     pointer.To(name),
 		Location: location,
 		Properties: &databases.DatabaseProperties{
 			AutoPauseDelay:                   pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int))),
@@ -328,6 +329,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	// NOTE: internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -355,6 +357,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Timeout:                   time.Until(deadline),
 	}
 
+	// NOTE: another internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
@@ -375,6 +378,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 		}
 
+		// NOTE: another internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
 			if err != nil {
@@ -508,9 +512,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ledgerEnabled := false
 
 	if model := resp.Model; model != nil {
-		if model.Name != nil {
-			d.Set("name", id.DatabaseName)
-		}
+		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
 			if props.AutoPauseDelay != nil {
@@ -873,6 +875,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 
+	// NOTE: another internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: pendingStatuses,
 		Target:  []string{string(databases.DatabaseStatusOnline)},
@@ -1410,6 +1413,8 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
+					// NOTE: this is a Boolean in SDK rather than a String
+					// TODO: update this to be `email_account_admins_enabled` in 4.0
 					"email_account_admins": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -1489,12 +1494,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Default:  true,
 		},
 
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
+		"tags": commonschema.Tags(),
 	}
 }
