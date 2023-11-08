@@ -235,7 +235,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 -> **Note:** Enabling this option will allocate Workload Identity resources to the `kube-system` namespace in Kubernetes. If you wish to customize the deployment of Workload Identity, you can refer to [the documentation on Azure AD Workload Identity.](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html) The documentation provides guidance on how to install the mutating admission webhook, which allows for the customization of Workload Identity deployment.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. 
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`.
 
 !> **Note:** `public_network_access_enabled` is currently not functional and is not passed to the Azure API. For further information please see this [issue](https://github.com/Azure/AKS/issues/3690). For controlling the public and private exposure of a cluster please see the properties `private_cluster_enabled` and `api_server_access_profile`.
 
@@ -599,7 +599,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 
 * `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
 
-* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
@@ -623,7 +623,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
 
-* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
@@ -910,8 +910,6 @@ A `gmsa` block supports the following:
 A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-KedaPreview](https://docs.microsoft.com/azure/aks/keda-deploy-add-on-arm#register-the-aks-kedapreview-feature-flag) for more information.
 
 * `vertical_pod_autoscaler_enabled` - (Optional) Specifies whether Vertical Pod Autoscaler should be enabled.
 
