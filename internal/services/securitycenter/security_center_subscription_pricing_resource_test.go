@@ -154,7 +154,7 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandar
 		{
 			Config: r.cloudPostureFree(),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				// for `free` tier it can not be checked if exist
 				check.That(data.ResourceName).Key("tier").HasValue("Free"),
 				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
 			),
