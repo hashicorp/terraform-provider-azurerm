@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -77,6 +79,16 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
+			"application_performance_monitoring_resource_ids": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: appplatform2.ValidateApmID,
+				},
 			},
 
 			"arguments": {
@@ -207,6 +219,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
+				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_resource_ids").([]interface{})),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -260,6 +273,9 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			}
 			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
 				return fmt.Errorf("setting `addon_json`: %s", err)
+			}
+			if err := d.Set("application_performance_monitoring_resource_ids", flattenSpringCloudDeploymentApms(settings.Apms)); err != nil {
+				return fmt.Errorf("setting `application_performance_monitoring_resource_ids`: %+v", err)
 			}
 		}
 		if source, ok := resp.Properties.Source.AsCustomContainerUserSourceInfo(); ok && source != nil {
@@ -319,4 +335,28 @@ func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *
 	}
 
 	return &result
+}
+
+func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	result := make([]appplatform.ApmReference, 0)
+	for _, v := range input {
+		result = append(result, appplatform.ApmReference{
+			ResourceID: utils.String(v.(string)),
+		})
+	}
+	return pointer.To(result)
+}
+
+func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		result = append(result, v.ResourceID)
+	}
+	return result
 }
