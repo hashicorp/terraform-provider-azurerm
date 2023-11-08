@@ -143,7 +143,7 @@ func TestAccElasticSAN_reduceBaseSize(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.basic(data),
-			ExpectError: regexp.MustCompile("base_size_in_tib cannot be reduced"),
+			ExpectError: regexp.MustCompile("new base_size_in_tib should be greater than the existing one"),
 		},
 		data.ImportStep(),
 	})
