@@ -216,9 +216,9 @@ The `exclusion` block supports the following:
 
 The `excluded_rule_set` block supports the following:
 
-* `type` - (Optional) The rule set type. The only possible value is `OWASP` . Defaults to `OWASP`.
+* `type` - (Optional) The rule set type. The only possible value is `Microsoft_DefaultRuleSet` and `OWASP`. Defaults to `OWASP`.
 
-* `version` - (Optional) The rule set version. The only possible value is `3.2` . Defaults to `3.2`.
+* `version` - (Optional) The rule set version. The only possible value is `2.1` (for rule set type `Microsoft_DefaultRuleSet`) and `3.2` (for rule set type `OWASP`). Defaults to `3.2`.
 
 * `rule_group` - (Optional) One or more `rule_group` block defined below.
 
@@ -234,9 +234,9 @@ The `rule_group` block supports the following:
 
 The `managed_rule_set` block supports the following:
 
-* `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet` and `OWASP`. Defaults to `OWASP`.
+* `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet`, `Microsoft_DefaultRuleSet` and `OWASP`. Defaults to `OWASP`.
 
-* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
+* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 
