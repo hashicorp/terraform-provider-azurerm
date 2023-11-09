@@ -285,68 +285,6 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `VirtualWANsClient.NetworkVirtualApplianceConnectionsCreateOrUpdate`
-
-```go
-ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue", "networkVirtualApplianceConnectionValue")
-
-payload := virtualwans.NetworkVirtualApplianceConnection{
-	// ...
-}
-
-
-if err := client.NetworkVirtualApplianceConnectionsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-	// handle the error
-}
-```
-
-
-### Example Usage: `VirtualWANsClient.NetworkVirtualApplianceConnectionsDelete`
-
-```go
-ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue", "networkVirtualApplianceConnectionValue")
-
-if err := client.NetworkVirtualApplianceConnectionsDeleteThenPoll(ctx, id); err != nil {
-	// handle the error
-}
-```
-
-
-### Example Usage: `VirtualWANsClient.NetworkVirtualApplianceConnectionsGet`
-
-```go
-ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue", "networkVirtualApplianceConnectionValue")
-
-read, err := client.NetworkVirtualApplianceConnectionsGet(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
-### Example Usage: `VirtualWANsClient.NetworkVirtualApplianceConnectionsList`
-
-```go
-ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue")
-
-// alternatively `client.NetworkVirtualApplianceConnectionsList(ctx, id)` can be used to do batched pagination
-items, err := client.NetworkVirtualApplianceConnectionsListComplete(ctx, id)
-if err != nil {
-	// handle the error
-}
-for _, item := range items {
-	// do something
-}
-```
-
-
 ### Example Usage: `VirtualWANsClient.P2sVpnGatewaysCreateOrUpdate`
 
 ```go
