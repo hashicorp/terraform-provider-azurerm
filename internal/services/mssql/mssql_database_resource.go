@@ -509,6 +509,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	geoBackupPolicy := true
 	skuName := ""
+	elasticPoolId := ""
 	ledgerEnabled := false
 
 	if model := resp.Model; model != nil {
@@ -524,7 +525,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			if props.ElasticPoolId != nil {
-				d.Set("elastic_pool_id", props.ElasticPoolId)
+				elasticPoolId = pointer.From(props.ElasticPoolId)
 			}
 
 			if props.MinCapacity != nil {
@@ -575,6 +576,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				configurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
 			}
 
+			d.Set("elastic_pool_id", elasticPoolId)
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
