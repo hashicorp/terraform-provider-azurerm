@@ -719,13 +719,14 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
+func TestAccMsSqlDatabase_TransparentDataEncryptionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
+	// NOTE: You can only update TDE on DW SKU's...
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withTransitDataEncryptionOnDwSku(data, true),
+			Config: r.transparentDataEncryptionUpdate(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("true"),
@@ -733,10 +734,18 @@ func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withTransitDataEncryptionOnDwSku(data, false),
+			Config: r.transparentDataEncryptionUpdate(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.transparentDataEncryptionUpdate(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1718,7 +1727,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) withTransitDataEncryptionOnDwSku(data acceptance.TestData, state bool) string {
+func (r MsSqlDatabaseResource) transparentDataEncryptionUpdate(data acceptance.TestData, state bool) string {
 	return fmt.Sprintf(`
 %s
 

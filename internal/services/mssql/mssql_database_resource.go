@@ -364,16 +364,18 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// Cannot set transparent data encryption for secondary databases
 	if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
-		stateProperty := transparentdataencryptions.TransparentDataEncryptionStateDisabled
-		encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
-		if encryptionStatus {
-			stateProperty = transparentdataencryptions.TransparentDataEncryptionStateEnabled
+		state := transparentdataencryptions.TransparentDataEncryptionStateDisabled
+		if v := d.Get("transparent_data_encryption_enabled").(bool); v {
+			state = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 		}
-		_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id, transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+
+		input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
 			Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
-				State: stateProperty,
+				State: state,
 			},
-		})
+		}
+
+		err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
 		if err != nil {
 			return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 		}
@@ -382,7 +384,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
 			if err != nil {
-				return pluginsdk.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
+				return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err))
 			}
 			if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
 				if c.Model.Properties.Status == pointer.To(databases.DatabaseStatusScaling) {
@@ -510,6 +512,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	geoBackupPolicy := true
 	skuName := ""
 	elasticPoolId := ""
+	minCapacity := float64(0)
 	ledgerEnabled := false
 
 	if model := resp.Model; model != nil {
@@ -529,7 +532,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			if props.MinCapacity != nil {
-				d.Set("min_capacity", props.MinCapacity)
+				minCapacity = pointer.From(props.MinCapacity)
 			}
 
 			if props.HighAvailabilityReplicaCount != nil {
@@ -577,6 +580,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			d.Set("elastic_pool_id", elasticPoolId)
+			d.Set("min_capacity", minCapacity)
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
@@ -644,14 +648,17 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	tde, err := transparentEncryptionClient.Get(ctx, pointer.From(id))
 	if err != nil {
-		return fmt.Errorf("while retrieving Transparent Data Encryption status of %s: %+v", id, err)
+		return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, err)
 	}
 
-	tdeStatus := false
-	if tde.Model.Properties != nil && tde.Model.Properties.State == transparentdataencryptions.TransparentDataEncryptionStateEnabled {
-		tdeStatus = true
+	tdeState := false
+	if model := tde.Model; model != nil {
+		if props := model.Properties; props != nil {
+			tdeState = (props.State == transparentdataencryptions.TransparentDataEncryptionStateEnabled)
+		}
 	}
-	d.Set("transparent_data_encryption_enabled", tdeStatus)
+
+	d.Set("transparent_data_encryption_enabled", tdeState)
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
@@ -911,24 +918,26 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
 		state := transparentdataencryptions.TransparentDataEncryptionStateDisabled
 		if d.HasChange("transparent_data_encryption_enabled") {
-			encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
-			if encryptionStatus {
+			if v := d.Get("transparent_data_encryption_enabled").(bool); v {
 				state = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 			}
-			_, err := transparentEncryptionClient.CreateOrUpdate(ctx, id, transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+
+			input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
 				Properties: pointer.To(transparentdataencryptions.TransparentDataEncryptionProperties{
 					State: state,
 				}),
-			})
-
-			if err != nil {
-				return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 			}
 
+			err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
+			if err != nil {
+				return fmt.Errorf("while updating Transparent Data Encryption state for %s: %+v", id, err)
+			}
+
+			// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
 			if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 				c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
 				if err != nil {
-					return pluginsdk.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
+					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err))
 				}
 
 				if model := c.Model; model != nil && model.Properties != nil && model.Properties.Status != nil {
