@@ -110,24 +110,6 @@ func (p HubVirtualNetworkConnectionOperationPredicate) Matches(input HubVirtualN
 	return true
 }
 
-type NetworkVirtualApplianceConnectionOperationPredicate struct {
-	Id   *string
-	Name *string
-}
-
-func (p NetworkVirtualApplianceConnectionOperationPredicate) Matches(input NetworkVirtualApplianceConnection) bool {
-
-	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
-		return false
-	}
-
-	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
-		return false
-	}
-
-	return true
-}
-
 type P2SVpnGatewayOperationPredicate struct {
 	Etag     *string
 	Id       *string

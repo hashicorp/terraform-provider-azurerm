@@ -17,7 +17,6 @@ type NetworkVirtualAppliancePropertiesFormat struct {
 	ProvisioningState           *ProvisioningState                         `json:"provisioningState,omitempty"`
 	SshPublicKey                *string                                    `json:"sshPublicKey,omitempty"`
 	VirtualApplianceAsn         *int64                                     `json:"virtualApplianceAsn,omitempty"`
-	VirtualApplianceConnections *[]SubResource                             `json:"virtualApplianceConnections,omitempty"`
 	VirtualApplianceNics        *[]VirtualApplianceNicProperties           `json:"virtualApplianceNics,omitempty"`
 	VirtualApplianceSites       *[]SubResource                             `json:"virtualApplianceSites,omitempty"`
 	VirtualHub                  *SubResource                               `json:"virtualHub,omitempty"`
