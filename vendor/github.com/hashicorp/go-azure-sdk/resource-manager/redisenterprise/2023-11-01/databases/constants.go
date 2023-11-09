@@ -392,6 +392,8 @@ const (
 	ResourceStateEnableFailed  ResourceState = "EnableFailed"
 	ResourceStateEnabling      ResourceState = "Enabling"
 	ResourceStateRunning       ResourceState = "Running"
+	ResourceStateScaling       ResourceState = "Scaling"
+	ResourceStateScalingFailed ResourceState = "ScalingFailed"
 	ResourceStateUpdateFailed  ResourceState = "UpdateFailed"
 	ResourceStateUpdating      ResourceState = "Updating"
 )
@@ -408,6 +410,8 @@ func PossibleValuesForResourceState() []string {
 		string(ResourceStateEnableFailed),
 		string(ResourceStateEnabling),
 		string(ResourceStateRunning),
+		string(ResourceStateScaling),
+		string(ResourceStateScalingFailed),
 		string(ResourceStateUpdateFailed),
 		string(ResourceStateUpdating),
 	}
@@ -438,6 +442,8 @@ func parseResourceState(input string) (*ResourceState, error) {
 		"enablefailed":  ResourceStateEnableFailed,
 		"enabling":      ResourceStateEnabling,
 		"running":       ResourceStateRunning,
+		"scaling":       ResourceStateScaling,
+		"scalingfailed": ResourceStateScalingFailed,
 		"updatefailed":  ResourceStateUpdateFailed,
 		"updating":      ResourceStateUpdating,
 	}
