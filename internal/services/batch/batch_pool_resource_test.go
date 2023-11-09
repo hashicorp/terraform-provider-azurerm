@@ -325,8 +325,8 @@ func TestAccBatchPool_certificates(t *testing.T) {
 	r := BatchPoolResource{}
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificate0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
-	certificate1ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
+	certificate0ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
+	certificate1ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
