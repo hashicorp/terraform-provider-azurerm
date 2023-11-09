@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `internal/sdk` - Added support for pointer Types in resource models [GH-23810]
 * dependencies: updating to `v0.63.0` of `github.com/hashicorp/go-azure-helpers` [GH-23785]
 * dependencies: updating to `v0.20231106.1151347` of `github.com/hashicorp/go-azure-sdk` [GH-23787]
 * `azurerm_cognitive_deployment` - support for the `version_upgrade_option` property [GH-22520]
