@@ -159,18 +159,13 @@ func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 				for i := 0; i < modelType.NumField(); i++ {
 					field := modelType.Field(i)
 					property, ok := field.Tag.Lookup("tfschema")
-					if !ok {
-						t.Logf("property %q in model %q is missing a tfschema struct tag", field.Name, modelType.Name())
-						fails = true
-					}
-					if property == "" {
-						t.Logf("the `tfschema` struct tag for %q in model %q was defined but empty", field.Name, modelType.Name())
-						fails = true
+					if !ok || property == "" {
+						// This is tested for elsewhere, so we can ignore it here
+						continue
 					}
 
 					v, ok := schema[property]
 					if !ok {
-						// Property is computed only
 						continue
 					} else {
 						if v.Optional && field.Type.Kind() != reflect.Ptr {
@@ -183,6 +178,10 @@ func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 							t.Logf("Required field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
 							fails = true
 							continue
+						}
+
+						if v.Computed && !v.Required && !v.Optional && field.Type.Kind() == reflect.Ptr {
+							t.Logf("Computed Only field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
 						}
 
 						if field.Type.Kind() == reflect.Slice {
@@ -200,6 +199,8 @@ func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 			modelType := reflect.TypeOf(model).Elem()
 			schema := resource.Arguments()
 			walkModel(modelType, schema)
+			computedOnly := resource.Attributes()
+			walkModel(modelType, computedOnly)
 		}
 	}
 	if fails {
