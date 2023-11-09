@@ -15,9 +15,10 @@ import (
 type Client struct {
 	*network_2023_04_01.Client
 
+	// Usages of the clients below use `Azure/azure-sdk-for-go` and should be updated
+	// to use `hashicorp/go-azure-sdk` (available above).
 	ApplicationGatewaysClient              *network.ApplicationGatewaysClient
 	CustomIPPrefixesClient                 *network.CustomIPPrefixesClient
-	DDOSProtectionPlansClient              *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
 	ExpressRouteCircuitsClient             *network.ExpressRouteCircuitsClient
 	ExpressRouteCircuitConnectionClient    *network.ExpressRouteCircuitConnectionsClient
@@ -63,9 +64,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	customIpPrefixesClient := network.NewCustomIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customIpPrefixesClient.Client, o.ResourceManagerAuthorizer)
-
-	DDOSProtectionPlansClient := network.NewDdosProtectionPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&DDOSProtectionPlansClient.Client, o.ResourceManagerAuthorizer)
 
 	ExpressRouteAuthsClient := network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteAuthsClient.Client, o.ResourceManagerAuthorizer)
@@ -190,7 +188,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
 		CustomIPPrefixesClient:                 &customIpPrefixesClient,
-		DDOSProtectionPlansClient:              &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,
 		ExpressRouteCircuitsClient:             &ExpressRouteCircuitsClient,
 		ExpressRouteCircuitConnectionClient:    &ExpressRouteCircuitConnectionClient,
