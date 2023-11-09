@@ -22,6 +22,7 @@ import (
 // the other end of the link.
 func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *replicationlinks.ReplicationLinksClient, resourcesClient *resources.Client, id commonids.SqlDatabaseId, rolesToFind []replicationlinks.ReplicationRole) ([]databases.Database, error) {
 	var partnerDatabases []databases.Database
+	var linkProps *replicationlinks.ReplicationLinkProperties
 
 	matchesRole := func(role replicationlinks.ReplicationRole) bool {
 		for _, r := range rolesToFind {
@@ -32,10 +33,9 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		return false
 	}
 
-	// NOTE: Still in progress, will remove debugging comments when I am done here...
-	log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023/11/07 13:21:37 [INFO] ****************************************************************************************\n")
 	log.Printf("[INFO] FindDatabaseReplicationPartners lookup for %s", id)
-	log.Printf("[INFO] ****************************************************************************************\n\n\n\n\n\n\n\n\n\n\n")
+
+	// Bug 2805551 ReplicationLink API ListByDatabase missed subsubcriptionId in partnerDatabaseId in response body
 	results, err := replicationLinksClient.ListByDatabaseComplete(ctx, id)
 	if err != nil {
 		// Not sure if this is really an error anymore given the change in the API...
@@ -45,8 +45,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		}
 		return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
 	}
-
-	var linkProps *replicationlinks.ReplicationLinkProperties
 
 	// loop over all results that matches this DatabaseId...
 	for _, v := range results.Items {
@@ -60,24 +58,17 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			var partnerTargetDatabaseId *commonids.SqlDatabaseId
 
 			if linkProps.PartnerDatabaseId != nil {
-				// NOTE: There is no workaround for the malformed PartnerDatabaseId bug...
-				if strings.Contains(pointer.From(linkProps.PartnerDatabaseId), "//") {
-					return nil, fmt.Errorf("replication link properties 'PartnerDatabaseId' was invalid: %q", pointer.From(linkProps.PartnerDatabaseId))
-				} else {
-					partnerTargetDatabaseId, err = commonids.ParseSqlDatabaseIDInsensitively(pointer.From(linkProps.PartnerDatabaseId))
-					if err != nil {
-						return nil, fmt.Errorf("parsing Partner SQL Server ID %s: %+v", pointer.From(linkProps.PartnerDatabaseId), err)
-					}
+				partnerTargetDatabaseId, err = commonids.ParseSqlDatabaseIDInsensitively(pointer.From(linkProps.PartnerDatabaseId))
+				if err != nil {
+					return nil, fmt.Errorf("parsing Partner SQL Server ID %s: %+v", pointer.From(linkProps.PartnerDatabaseId), err)
 				}
 
-				log.Printf("[DEBUG] Partner Database ID from ReplicationLinkProperties: %q", pointer.From(partnerTargetDatabaseId))
+				log.Printf("[INFO] Partner Database ID from ReplicationLinkProperties: %q", pointer.From(partnerTargetDatabaseId))
 
-				// TODO: Need to fix it here too?
 				// Check if like-named server has a database named like the partner database, also with a replication link
 				partnerResults, err := replicationLinksClient.ListByDatabaseComplete(ctx, pointer.From(partnerTargetDatabaseId))
 				if err != nil {
 					// Not sure if this is really an error anymore given the change in the API...
-					partnerResults, err := replicationLinksClient.ListByDatabaseComplete(ctx, pointer.From(partnerTargetDatabaseId))
 					if strings.Contains(err.Error(), "ResourceNotFound") || len(partnerResults.Items) == 0 {
 						log.Printf("[INFO] %s returned no result records, skipping lookup of Partner Replication Links", partnerTargetDatabaseId)
 						continue
@@ -87,7 +78,8 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 				for _, partnerResult := range partnerResults.Items {
 					if partnerProps := partnerResult.Properties; partnerProps != nil {
-						// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as the expected partner
+						// If the database has a replication link for the specified role, we'll consider
+						// it a partner of this database if the location is the same as the expected partner
 						if matchesRole(pointer.From(partnerProps.Role)) {
 							partnerDatabase, err := databasesClient.Get(ctx, pointer.From(partnerTargetDatabaseId), databases.DefaultGetOperationOptions())
 							if err != nil {
@@ -96,7 +88,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 							if model := partnerDatabase.Model; model != nil {
 								if location.Normalize(model.Location) != location.NormalizeNilable(linkProps.PartnerLocation) {
-									log.Printf("[INFO] Mismatch of possible Partner Database based on location (%q vs %q) for %s", location.Normalize(model.Location), location.NormalizeNilable(linkProps.PartnerLocation), id)
+									log.Printf("[INFO] Mismatch of possible Partner Database based on location (%q vs %q) for %s", location.Normalize(model.Location), location.NormalizeNilable(linkProps.PartnerLocation), pointer.From(model.Id))
 									continue
 								}
 
@@ -110,19 +102,17 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 							log.Printf("[INFO] Role Mismatch: wanted %+v, got %q", rolesToFind, pointer.From(partnerProps.Role))
 						}
 					} else {
-						log.Printf("[INFO] Partner Replication Link Properties was nil for Database %s", pointer.From(partnerTargetDatabaseId))
+						log.Printf("[INFO] Partner Replication Link Properties was nil for %s", pointer.From(partnerTargetDatabaseId))
 						continue
 					}
-
 				}
-			} // end nil check
+			}
 		} else {
 			log.Printf("[INFO] Replication Link Properties was nil for %s", id)
 			continue
 		}
 	}
 
-	log.Printf("[INFO] Replication Link found for %s", id)
-
+	log.Printf("[INFO] %d Replication Link(s) found for %s", len(partnerDatabases), id)
 	return partnerDatabases, nil
 }
