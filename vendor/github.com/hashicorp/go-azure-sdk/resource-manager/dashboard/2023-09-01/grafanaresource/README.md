@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2022-08-01/grafanaresource` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource` Documentation
 
-The `grafanaresource` SDK allows for interaction with the Azure Resource Manager Service `dashboard` (API Version `2022-08-01`).
+The `grafanaresource` SDK allows for interaction with the Azure Resource Manager Service `dashboard` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2022-08-01/grafanaresource"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
 ```
 
 
@@ -17,6 +17,22 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2022-08-01/
 ```go
 client := grafanaresource.NewGrafanaResourceClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `GrafanaResourceClient.GrafanaCheckEnterpriseDetails`
+
+```go
+ctx := context.TODO()
+id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "grafanaValue")
+
+read, err := client.GrafanaCheckEnterpriseDetails(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
 ```
 
 
