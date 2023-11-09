@@ -6,6 +6,8 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.63.0` of `github.com/hashicorp/go-azure-helpers` [GH-23785]
 * dependencies: updating to `v0.20231106.1151347` of `github.com/hashicorp/go-azure-sdk` [GH-23787]
 * `azurerm_cognitive_deployment` - support for the `version_upgrade_option` property [GH-22520]
+* `azurerm_firewall_policy_rule_collection_group` - add support for the property `http_headers` [GH-23641]
+* `azurerm_kubernetes_cluster` - `fips_enabled` can be updated in the `default_node_pool` without recreating the cluster [GH-23612]
 * `azurerm_kusto_cluster` - the cluster `name` can now include dashes [GH-23790]
 * `azurerm_postgresql_database` - update the validation of `collation` to include support for `French_France.1252` [GH-23783]
 
