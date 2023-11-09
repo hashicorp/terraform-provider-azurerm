@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-11-01/redisenterprise` Documentation
 
-The `redisenterprise` SDK allows for interaction with the Azure Resource Manager Service `redisenterprise` (API Version `2023-10-01-preview`).
+The `redisenterprise` SDK allows for interaction with the Azure Resource Manager Service `redisenterprise` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-11-01/redisenterprise"
 ```
 
 
@@ -17,27 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-
 ```go
 client := redisenterprise.NewRedisEnterpriseClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-```
-
-
-### Example Usage: `RedisEnterpriseClient.CheckNameAvailability`
-
-```go
-ctx := context.TODO()
-id := redisenterprise.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
-
-payload := redisenterprise.CheckNameAvailabilityParameters{
-	// ...
-}
-
-
-read, err := client.CheckNameAvailability(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
 ```
 
 
