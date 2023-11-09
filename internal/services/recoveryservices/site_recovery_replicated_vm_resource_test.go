@@ -683,9 +683,9 @@ resource "azurerm_virtual_machine" "test" {
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    publisher = "OpenLogic"
+    offer     = "CentOS"
+    sku       = "7.5"
     version   = "latest"
   }
 
@@ -1539,9 +1539,9 @@ resource "azurerm_virtual_machine" "test" {
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    publisher = "OpenLogic"
+    offer     = "CentOS"
+    sku       = "7.5"
     version   = "latest"
   }
 
@@ -1792,10 +1792,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     storage_account_type = "Standard_LRS"
   }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+  storage_image_reference {
+    publisher = "OpenLogic"
+    offer     = "CentOS"
+    sku       = "7.5"
     version   = "latest"
   }
 
@@ -1934,7 +1934,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger)
-
 }
 
 func (r SiteRecoveryReplicatedVmResource) withAvailabilitySet(data acceptance.TestData) string {
