@@ -669,8 +669,11 @@ func containerAppsJobsScaleRulesSchema() *pluginsdk.Schema {
 				"auth": containerAppsJobsScaleRulesAuthSchema(),
 
 				"metadata": {
-					Type:     pluginsdk.TypeString,
+					Type:     pluginsdk.TypeMap,
 					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
 				},
 
 				"name": {

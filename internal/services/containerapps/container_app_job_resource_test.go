@@ -85,9 +85,11 @@ resource "azurerm_container_app_job" "test" {
 	    min_executions = 1
 		polling_interval = 10
 	    rules {
-		  metadata = "testmetadata"
-		  name = "testname"
-		  type = "testtype"
+		  metadata = {
+		    topic_name = "my-topic"
+		  }
+		  name = "servicebuscalingrule"
+		  type = "azure-servicebus"
 		}
 	  }
 	}
