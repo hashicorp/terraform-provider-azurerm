@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"reflect"
 )
 
 type TemplateModel struct {
@@ -146,10 +147,10 @@ type ScaleModel struct {
 }
 
 type ScaleRule struct {
-	Auth     []ScaleRuleAuth `tfschema:"auth"`
-	Metadata interface{}     `tfschema:"metadata"`
-	Name     string          `tfschema:"name"`
-	Type     string          `tfschema:"type"`
+	Auth     []ScaleRuleAuth        `tfschema:"auth"`
+	Metadata map[string]interface{} `tfschema:"metadata"`
+	Name     string                 `tfschema:"name"`
+	Type     string                 `tfschema:"type"`
 }
 
 type ScaleRuleAuth struct {
@@ -332,7 +333,7 @@ func containerAppsJobsVolumeMountsSchema() *pluginsdk.Schema {
 				},
 
 				"volume_name": {
-					Type:     pluginsdk.TypeBool,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 			},
@@ -449,7 +450,7 @@ func containerAppsJobsVolumesSchema() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"secret": containerAppsJobsVolumesSecretSchema(),
+				"secrets": containerAppsJobsVolumesSecretSchema(),
 
 				"storage_name": {
 					Type:     pluginsdk.TypeString,
@@ -907,8 +908,9 @@ func expandContainerAppJobScaleRules(input []ScaleRule) *[]jobs.JobScaleRule {
 			rule.Auth = auth
 		}
 
-		if v.Metadata != "" {
-			rule.Metadata = pointer.To(v.Metadata)
+		if v.Metadata != nil {
+			metadata := reflect.ValueOf(v.Metadata)
+			rule.Metadata = pointer.To(metadata.Interface())
 		}
 
 		if v.Name != "" {
@@ -1092,6 +1094,10 @@ func expandContainerAppJobTemplateContainersProbes(input []ProbeModel) *[]jobs.C
 			probe.TimeoutSeconds = pointer.To(v.TimeoutSeconds)
 		}
 
+		if v.TimeoutSeconds != 0 {
+			probe.TimeoutSeconds = pointer.To(v.TimeoutSeconds)
+		}
+
 		if v.Type != "" {
 			probe.Type = pointer.To(jobs.Type(v.Type))
 		}
@@ -1126,6 +1132,9 @@ func expandContainerAppJobTemplateContainersProbesTcpSocket(input []ProbeTcpSock
 }
 
 func expandContainerAppJobTemplateContainersProbesHttpGet(input []ProbeHttpGetModel) *jobs.ContainerAppProbeHTTPGet {
+	if len(input) == 0 {
+		return nil
+	}
 	v := input[0]
 	var httpGet jobs.ContainerAppProbeHTTPGet
 
@@ -1696,7 +1705,11 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 		}
 
 		if v.Metadata != nil {
-			rule.Metadata = *v.Metadata
+			metadata := pointer.From(v.Metadata)
+			if reflect.TypeOf(metadata).Kind() == reflect.Map {
+				value := metadata.(map[string]interface{})
+				rule.Metadata = value
+			}
 		}
 
 		if v.Name != nil {
