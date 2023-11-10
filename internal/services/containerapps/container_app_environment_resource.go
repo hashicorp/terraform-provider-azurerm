@@ -33,7 +33,7 @@ type ContainerAppEnvironmentModel struct {
 	InfrastructureSubnetId                  string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled             bool                   `tfschema:"internal_load_balancer_enabled"`
 	ZoneRedundant                           bool                   `tfschema:"zone_redundancy_enabled"`
-	WorkloadProfileEnabled 					bool				   `tfschema:"workload_profile_enabled"`
+	WorkloadProfileEnabled                  bool                   `tfschema:"workload_profile_enabled"`
 	Tags                                    map[string]interface{} `tfschema:"tags"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
@@ -114,13 +114,13 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"workload_profiles_enabled": {
-			Type: 		  pluginsdk.TypeBool,
-			Optional: 	  true,
-			ForceNew: 	  true,
-			Default: 	  false,
-			Description:  "Should the environment be Workload Profile enabled? Defaults to `false`. "
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      false,
+			Description:  "Should the environment be Workload Profile enabled? Defaults to `false`.",
 			RequiredWith: []string{"infrastructure_subnet_id"},
-		}
+		},
 
 		"tags": commonschema.Tags(),
 	}
@@ -193,7 +193,6 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
-					WorkloadProfileEnabled:	pointer.To(containerAppEnvironment.WorkloadProfileEnabled),
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
@@ -240,6 +239,15 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 			if containerAppEnvironment.InfrastructureSubnetId != "" {
 				managedEnvironment.Properties.VnetConfiguration.InfrastructureSubnetId = pointer.To(containerAppEnvironment.InfrastructureSubnetId)
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
+
+				if containerAppEnvironment.WorkloadProfileEnabled == true {
+					managedEnvironment.Properties.WorkloadProfiles = &[]managedenvironments.WorkloadProfile{
+						{
+							Name:                "Consumption",
+							WorkloadProfileType: "Consumption",
+						},
+					}
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
@@ -288,7 +296,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					}
 
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
-					state.WorkloadProfileEnabled = pointer.From(props.WorkloadProfileEnabled)
+					state.WorkloadProfileEnabled = len(*props.WorkloadProfiles) > 0
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 				}
