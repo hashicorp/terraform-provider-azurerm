@@ -39,7 +39,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 
-* `sku_name` - (Required) Specifies the name of the SKU for this Elasticsearch. Changing this forces a new Elasticsearch to be created.\
+* `sku_name` - (Required) Specifies the name of the SKU for this Elasticsearch. Changing this forces a new Elasticsearch to be created.
+
 **NOTE:** The SKU depends on the Elasticsearch Plans available for your account and is a combination of PlanID_Term.\
 Ex: If the plan ID is "planXYZ" and term is "Yearly", the SKU will be "planXYZ_Yearly".\
 You may find your eligible plans [here](https://portal.azure.com/#view/Microsoft_Azure_Marketplace/GalleryItemDetailsBladeNopdl/id/elastic.ec-azure-pp/selectionMode~/false/resourceGroupId//resourceGroupLocation//dontDiscardJourney~/false/selectedMenuId/home/launchingContext~/%7B%22galleryItemId%22%3A%22elastic.ec-azure-ppess-consumption-2024%22%2C%22source%22%3A%5B%22GalleryFeaturedMenuItemPart%22%2C%22VirtualizedTileDetails%22%5D%2C%22menuItemId%22%3A%22home%22%2C%22subMenuItemId%22%3A%22Search%20results%22%2C%22telemetryId%22%3A%2262f8ce76-e5e4-4983-9d3e-5c608a0b2bff%22%7D/searchTelemetryId/cca0a8d3-f232-4156-948f-701a5d74a729) or in the online documentation [here](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/elastic.ec-azure-pp?tab=PlansAndPrice) for more details or in case of any issues with the SKU.
