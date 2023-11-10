@@ -173,6 +173,7 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+	secondSharedKey := "5-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -182,6 +183,15 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", firstSharedKey),
 				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", firstSharedKey),
+			),
+		},
+		{
+			Config: r.vnettovnet(data1, data1.RandomInteger, data2.RandomInteger, secondSharedKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data1.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", secondSharedKey),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", secondSharedKey),
 			),
 		},
 	})
