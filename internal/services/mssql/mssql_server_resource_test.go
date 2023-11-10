@@ -228,7 +228,7 @@ func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServer_updateAzureadAuthenticationOnlyWithIdentity(t *testing.T) {
+func TestAccMsSqlServer_azureadAuthenticationOnlyWithIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
@@ -242,6 +242,13 @@ func TestAccMsSqlServer_updateAzureadAuthenticationOnlyWithIdentity(t *testing.T
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.updateAzureadAuthenticationOnlyWithIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.updateAzureadAuthenticationOnlyWithIdentity(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

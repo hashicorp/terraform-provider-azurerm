@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -265,7 +265,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-			// msSql requires the versioned key URL...
+			// NOTE: msSql requires the versioned key URL...
 			props.Properties.KeyId = pointer.To(keyId.ID())
 		} else {
 			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
@@ -273,10 +273,10 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
-		props.Properties.PrimaryUserAssignedIdentityId = utils.String(primaryUserAssignedIdentityID.(string))
+		props.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
 	}
 
-	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
+	// NOTE: If you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
 	if props.Properties.KeyId != nil && props.Properties.PrimaryUserAssignedIdentityId == nil {
 		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
 	}
@@ -291,7 +291,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// TODO 4.0: Switch this field to use None pattern...
 	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
-		props.Properties.MinimalTlsVersion = utils.String(v.(string))
+		props.Properties.MinimalTlsVersion = pointer.To(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, props)
@@ -382,8 +382,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
 		}
 
-		if v := d.Get("public_network_access_enabled"); !v.(bool) {
-			payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
+		payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
+		payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagDisabled)
+
+		if v := d.Get("public_network_access_enabled"); v.(bool) {
+			payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagEnabled)
 		}
 
 		if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
@@ -392,12 +395,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if d.HasChange("administrator_login_password") {
 			adminPassword := d.Get("administrator_login_password").(string)
-			payload.Properties.AdministratorLoginPassword = utils.String(adminPassword)
+			payload.Properties.AdministratorLoginPassword = pointer.To(adminPassword)
 		}
 
-		// TODO 4.0: Switch this field to use None pattern...
-		if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
-			payload.Properties.MinimalTlsVersion = utils.String(v.(string))
+		if d.HasChange("minimum_tls_version") {
+			payload.Properties.MinimalTlsVersion = pointer.To(d.Get("minimum_tls_version").(string))
 		}
 
 		future, err := client.CreateOrUpdate(ctx, *id, payload)
@@ -410,43 +412,107 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.ServerName)
 			}
 
-			return fmt.Errorf("waiting for update of %s: %+v", id, err)
+			return fmt.Errorf("waiting for update of %s: %+v", pointer.From(id), err)
 		}
 	}
 
 	if d.HasChange("azuread_administrator") {
-		aadOnlyDeleteFuture, err := aadOnlyAuthenticationsClient.Delete(ctx, *id)
-		if err != nil {
-			if aadOnlyDeleteFuture.HttpResponse == nil || aadOnlyDeleteFuture.HttpResponse.StatusCode != http.StatusBadRequest {
-				return fmt.Errorf("deleting Azure Active Directory Only Authentications %s: %+v", id, err)
-			}
-			log.Printf("[INFO] Azure Active Directory Only Authentication was not removed since Azure Active Directory Administrators has not set for %s: %+v", id, err)
-			return fmt.Errorf("deleting Azure Active Directory Only Authentication since `azuread_administrator` has not set for %s: %+v", id, err)
-		} else if err = aadOnlyDeleteFuture.Poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the deletion of Azure Active Directory Only Authentications %s: %+v", id, err)
-		}
+		// need to check if aadOnly is enabled or not before calling delete, else you will get the following error:
+		// InvalidServerAADOnlyAuthNoAADAdminPropertyName: AAD Admin is not configured, AAD Admin must be set
+		// before enabling/disabling AAD Only Authentication.
+		log.Printf("[INFO] Checking if Azure Active Directory Administrators exist")
+		aadOnlyAdmin := false
 
-		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
-			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminParams))
-			if err != nil {
-				return fmt.Errorf("creating Azure Active Directory Administrators %s: %+v", id, err)
+		resp, err := adminClient.Get(ctx, pointer.From(id))
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("retrieving Azure Active Directory Administrators %s: %+v", pointer.From(id), err)
 			}
 		} else {
-			err := adminClient.DeleteThenPoll(ctx, *id)
+			aadOnlyAdmin = true
+		}
+
+		if aadOnlyAdmin {
+			resp, err := aadOnlyAuthenticationsClient.Delete(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting Azure Active Directory Administrators  %s: %+v", id, err)
+				log.Printf("[INFO] Deletion of Azure Active Directory Only Authentication failed for %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("deleting Azure Active Directory Only Authentications for %s: %+v", pointer.From(id), err)
+			}
+
+			// NOTE: This call does not return a future it returns a response, but you will get a future back if the status code is 202...
+			// https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
+			if response.WasStatusCode(resp.HttpResponse, 202) {
+				// It was accepted but not completed, it is now an async operation...
+				log.Printf("[INFO] Delete Azure Active Directory Only Administrators response was a 202 WaitForStateContext...")
+
+				// NOTE: the resp.Poller.PollUntilDone(ctx) gets stuck in a loop and never returns even when the status code
+				// being retuned by the service is a 200... could not figure out how to get the resourcemanager.PollerFromResponse()
+				// to work, opted for a waitforstate instead...
+				deadline, ok := ctx.Deadline()
+				if !ok {
+					return fmt.Errorf("internal-error: context had no deadline")
+				}
+
+				// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
+				stateConf := &pluginsdk.StateChangeConf{
+					Pending: []string{"InProgress"},
+					Target:  []string{"Succeeded"},
+					Refresh: func() (interface{}, string, error) {
+						resp, err := aadOnlyAuthenticationsClient.Get(ctx, pointer.From(id))
+						if err != nil {
+							return nil, "Failed", fmt.Errorf("polling for the delete status of the Azure Active Directory Only Administrator: %+v", err)
+						}
+
+						if model := resp.Model; model != nil {
+							if model.Name != nil {
+								if props := model.Properties; props != nil {
+									if !props.AzureADOnlyAuthentication && strings.EqualFold(pointer.From(model.Name), "Default") {
+										return resp, "Succeeded", nil
+									}
+								}
+							}
+						}
+
+						return resp, "InProgress", nil
+					},
+					ContinuousTargetOccurence: 2,
+					MinTimeout:                5 * time.Second,
+					Timeout:                   time.Until(deadline),
+				}
+
+				if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
+				}
+			}
+		}
+
+		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
+		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
+			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
+			if err != nil {
+				return fmt.Errorf("creating Azure Active Directory Administrator %s: %+v", id, err)
+			}
+		} else {
+			_, err := adminClient.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
+			}
+
+			err = adminClient.DeleteThenPoll(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		}
 	}
 
 	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
-		aadOnlyAuthentictionsParams := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+		aadOnlyAuthentictionsProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
 			Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
 				AzureADOnlyAuthentication: aadOnlyAuthentictionsEnabled,
 			},
 		}
 
-		err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthentictionsParams)
+		err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthentictionsProps)
 		if err != nil {
 			return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
 		}
@@ -600,21 +666,21 @@ func expandMsSqlServerAdministrator(input []interface{}) *serverazureadadministr
 		return nil
 	}
 
-	admin := input[0].(map[string]interface{})
+	v := input[0].(map[string]interface{})
 
-	adminParams := serverazureadadministrators.ServerAzureADAdministrator{
+	adminProps := serverazureadadministrators.ServerAzureADAdministrator{
 		Properties: &serverazureadadministrators.AdministratorProperties{
 			AdministratorType: serverazureadadministrators.AdministratorType(servers.AdministratorTypeActiveDirectory),
-			Login:             admin["login_username"].(string),
-			Sid:               admin["object_id"].(string),
+			Login:             v["login_username"].(string),
+			Sid:               v["object_id"].(string),
 		},
 	}
 
-	if v, ok := admin["tenant_id"]; ok && v != "" {
-		adminParams.Properties.TenantId = pointer.To(v.(string))
+	if t, ok := v["tenant_id"]; ok && t != "" {
+		adminProps.Properties.TenantId = pointer.To(t.(string))
 	}
 
-	return pointer.To(adminParams)
+	return pointer.To(adminProps)
 }
 
 func expandMsSqlServerAdministrators(input []interface{}) *servers.ServerExternalAdministrator {
