@@ -58,6 +58,11 @@ The following arguments are supported:
 
 * `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
+
+~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
+
+* `workload_profiles_enabled` - (Optional) Should the Container App Environment be created with Workload Profles enabled? Defaults to `false`. Changing this forces a new resource to be created.
+
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
 
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
