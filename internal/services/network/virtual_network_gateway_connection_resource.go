@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -411,8 +412,21 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 		if err != nil {
 			return fmt.Errorf("updating Shared Key for %s: %+v", id, err)
 		}
+
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for updating Shared Key for %s: %+v", id, err)
+			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+		}
+
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{string(network.ProvisioningStateUpdating)},
+			Target:     []string{string(network.ProvisioningStateSucceeded)},
+			Refresh:    virtualNetworkGatewayConnectionStateRefreshFunc(ctx, client, id),
+			MinTimeout: 15 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for update of %s: %+v", id, err)
 		}
 	}
 
@@ -556,6 +570,17 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 	}
 
 	return nil
+}
+
+func virtualNetworkGatewayConnectionStateRefreshFunc(ctx context.Context, client *network.VirtualNetworkGatewayConnectionsClient, id parse.NetworkGatewayConnectionId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+		}
+
+		return res, string(res.ProvisioningState), nil
+	}
 }
 
 func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, virtualNetworkGateway network.VirtualNetworkGateway) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
