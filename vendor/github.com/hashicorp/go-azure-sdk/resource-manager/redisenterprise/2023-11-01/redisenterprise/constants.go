@@ -591,12 +591,9 @@ func parseResourceState(input string) (*ResourceState, error) {
 type SkuName string
 
 const (
-	SkuNameEnterpriseEFive                SkuName = "Enterprise_E5"
 	SkuNameEnterpriseEFiveZero            SkuName = "Enterprise_E50"
-	SkuNameEnterpriseEFourHundred         SkuName = "Enterprise_E400"
 	SkuNameEnterpriseEOneHundred          SkuName = "Enterprise_E100"
 	SkuNameEnterpriseEOneZero             SkuName = "Enterprise_E10"
-	SkuNameEnterpriseETwoHundred          SkuName = "Enterprise_E200"
 	SkuNameEnterpriseETwoZero             SkuName = "Enterprise_E20"
 	SkuNameEnterpriseFlashFOneFiveHundred SkuName = "EnterpriseFlash_F1500"
 	SkuNameEnterpriseFlashFSevenHundred   SkuName = "EnterpriseFlash_F700"
@@ -605,12 +602,9 @@ const (
 
 func PossibleValuesForSkuName() []string {
 	return []string{
-		string(SkuNameEnterpriseEFive),
 		string(SkuNameEnterpriseEFiveZero),
-		string(SkuNameEnterpriseEFourHundred),
 		string(SkuNameEnterpriseEOneHundred),
 		string(SkuNameEnterpriseEOneZero),
-		string(SkuNameEnterpriseETwoHundred),
 		string(SkuNameEnterpriseETwoZero),
 		string(SkuNameEnterpriseFlashFOneFiveHundred),
 		string(SkuNameEnterpriseFlashFSevenHundred),
@@ -633,12 +627,9 @@ func (s *SkuName) UnmarshalJSON(bytes []byte) error {
 
 func parseSkuName(input string) (*SkuName, error) {
 	vals := map[string]SkuName{
-		"enterprise_e5":         SkuNameEnterpriseEFive,
 		"enterprise_e50":        SkuNameEnterpriseEFiveZero,
-		"enterprise_e400":       SkuNameEnterpriseEFourHundred,
 		"enterprise_e100":       SkuNameEnterpriseEOneHundred,
 		"enterprise_e10":        SkuNameEnterpriseEOneZero,
-		"enterprise_e200":       SkuNameEnterpriseETwoHundred,
 		"enterprise_e20":        SkuNameEnterpriseETwoZero,
 		"enterpriseflash_f1500": SkuNameEnterpriseFlashFOneFiveHundred,
 		"enterpriseflash_f700":  SkuNameEnterpriseFlashFSevenHundred,
