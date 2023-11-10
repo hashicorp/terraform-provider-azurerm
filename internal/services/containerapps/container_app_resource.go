@@ -33,12 +33,13 @@ type ContainerAppModel struct {
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 	Location             string `tfschema:"location"`
 
-	RevisionMode string                      `tfschema:"revision_mode"`
-	Ingress      []helpers.Ingress           `tfschema:"ingress"`
-	Registries   []helpers.Registry          `tfschema:"registry"`
-	Secrets      []helpers.Secret            `tfschema:"secret"`
-	Dapr         []helpers.Dapr              `tfschema:"dapr"`
-	Template     []helpers.ContainerTemplate `tfschema:"template"`
+	RevisionMode        string                      `tfschema:"revision_mode"`
+	Ingress             []helpers.Ingress           `tfschema:"ingress"`
+	Registries          []helpers.Registry          `tfschema:"registry"`
+	Secrets             []helpers.Secret            `tfschema:"secret"`
+	Dapr                []helpers.Dapr              `tfschema:"dapr"`
+	Template            []helpers.ContainerTemplate `tfschema:"template"`
+	WorkloadProfileName string                      `tfschema:"workload_profile_name"`
 
 	Identity []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 
@@ -95,6 +96,14 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 				string(containerapps.ActiveRevisionsModeSingle),
 				string(containerapps.ActiveRevisionsModeMultiple),
 			}, false),
+		},
+
+		"workload_profile_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     false,
+			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
+			Description:  "Workload profile name to pin for container app execution.",
 		},
 
 		"ingress": helpers.ContainerAppIngressSchema(),
@@ -196,6 +205,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
+					WorkloadProfileName:  pointer.To(app.WorkloadProfileName),
 				},
 				Tags: tags.Expand(app.Tags),
 			}
@@ -259,6 +269,8 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					}
 					state.ManagedEnvironmentId = envId.ID()
 					state.Template = helpers.FlattenContainerAppTemplate(props.Template)
+					state.WorkloadProfileName = string(pointer.From(props.WorkloadProfileName))
+
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
 							state.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
