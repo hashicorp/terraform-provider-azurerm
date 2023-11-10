@@ -169,14 +169,15 @@ func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	var subResources *[]ddosprotectionplans.SubResource
-	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.VirtualNetworks != nil {
-		subResources = existing.Model.Properties.VirtualNetworks
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
-	if subResources == nil {
-		return fmt.Errorf("retrieving %s: `model.Properties.VirtualNetworks` was nil", *id)
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
 	}
-	virtualNetworksNamesToLock, err := extractVnetNames(*subResources)
+	// if there's no VirtualNetworks configured, it's possible for this to be nil
+	subResources := existing.Model.Properties.VirtualNetworks
+	virtualNetworksNamesToLock, err := extractVnetNames(subResources)
 	if err != nil {
 		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
 	}
@@ -227,20 +228,23 @@ func flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]ddosprotectionpl
 	return vnetIDs
 }
 
-func extractVnetNames(input []ddosprotectionplans.SubResource) (*[]string, error) {
+func extractVnetNames(input *[]ddosprotectionplans.SubResource) (*[]string, error) {
 	vnetNames := make([]string, 0)
-	for _, subresource := range input {
-		if subresource.Id == nil {
-			continue
-		}
 
-		id, err := commonids.ParseVirtualNetworkIDInsensitively(*subresource.Id)
-		if err != nil {
-			return nil, err
-		}
+	if input != nil {
+		for _, subresource := range *input {
+			if subresource.Id == nil {
+				continue
+			}
 
-		if !utils.SliceContainsValue(vnetNames, id.VirtualNetworkName) {
-			vnetNames = append(vnetNames, id.VirtualNetworkName)
+			id, err := commonids.ParseVirtualNetworkIDInsensitively(*subresource.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			if !utils.SliceContainsValue(vnetNames, id.VirtualNetworkName) {
+				vnetNames = append(vnetNames, id.VirtualNetworkName)
+			}
 		}
 	}
 
