@@ -338,13 +338,13 @@ func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *
 }
 
 func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmReference {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 {
 		return nil
 	}
 	result := make([]appplatform.ApmReference, 0)
 	for _, v := range input {
 		result = append(result, appplatform.ApmReference{
-			ResourceID: utils.String(v.(string)),
+			ResourceID: pointer.To(v.(string)),
 		})
 	}
 	return pointer.To(result)
@@ -356,7 +356,12 @@ func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) []inter
 	}
 	result := make([]interface{}, 0)
 	for _, v := range *input {
-		result = append(result, v.ResourceID)
+		id, err := appplatform2.ParseApmIDInsensitively(*v.ResourceID)
+		if err != nil {
+			log.Printf("[WARN] invalid APM ID %q: %+v", *v.ResourceID, err)
+			continue
+		}
+		result = append(result, id.ID())
 	}
 	return result
 }

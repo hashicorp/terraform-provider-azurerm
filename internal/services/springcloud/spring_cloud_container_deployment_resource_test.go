@@ -159,7 +159,7 @@ func (r SpringCloudContainerDeploymentResource) complete(data acceptance.TestDat
 %[1]s
 
 resource "azurerm_spring_cloud_container_deployment" "test" {
-  name                                            = "acctest-scjd%[3]s"
+  name                                            = "acctest-scjd%[2]s"
   spring_cloud_app_id                             = azurerm_spring_cloud_app.test.id
   instance_count                                  = 2
   arguments                                       = ["-cp", "/app/resources:/app/classes:/app/libs/*", "hello.Application"]
@@ -173,7 +173,7 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
   image              = "springio/gs-spring-boot-docker"
   language_framework = "springboot"
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r SpringCloudContainerDeploymentResource) addon(data acceptance.TestData, pattern string) string {
