@@ -412,11 +412,11 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 		if err != nil {
 			return fmt.Errorf("updating Shared Key for %s: %+v", id, err)
 		}
-
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+			return fmt.Errorf("waiting for updating Shared Key for %s: %+v", id, err)
 		}
 
+		// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/26660 is fixed, below this part will be removed
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:    []string{string(network.ProvisioningStateUpdating)},
 			Target:     []string{string(network.ProvisioningStateSucceeded)},
@@ -555,14 +555,9 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
-	if err != nil {
-		return err
-	}
-
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ConnectionName)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v,,%+v,,%+v,,%+v,,%+v,,%+v", id, err, resp.ProvisioningState, resp.StatusCode, resp.TunnelConnectionStatus, resp.ConnectionStatus, resp.Status)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

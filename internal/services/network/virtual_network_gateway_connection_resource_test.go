@@ -173,7 +173,7 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	secondSharedKey := "5-v3ry-53cr37-1p53c-5h4r3d-k3y"
+	secondSharedKey := "4-r33ly-53cr37-1p53c-5h4r3d-k3y"
 
 	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
