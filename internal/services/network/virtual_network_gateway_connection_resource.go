@@ -353,6 +353,9 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 
 	id := parse.NewNetworkGatewayConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
 		if err != nil {
@@ -395,9 +398,6 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 		Tags:     tags.Expand(t),
 		VirtualNetworkGatewayConnectionPropertiesFormat: properties,
 	}
-
-	locks.ByID(id.ID())
-	defer locks.UnlockByID(id.ID())
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ConnectionName, connection)
 	if err != nil {
