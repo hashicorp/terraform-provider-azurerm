@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+var virtualNetworkGatewayConnectionResourceName = "azurerm_virtual_network_gateway_connection"
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -540,6 +543,9 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.ConnectionName, virtualNetworkGatewayConnectionResourceName)
+	defer locks.UnlockByName(id.ConnectionName, virtualNetworkGatewayConnectionResourceName)
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ConnectionName)
 	if err != nil {
