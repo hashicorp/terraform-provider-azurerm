@@ -37,6 +37,7 @@ resource "azurerm_container_app" "example" {
   container_app_environment_id = azurerm_container_app_environment.example.id
   resource_group_name          = azurerm_resource_group.example.name
   revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
 
   template {
     container {
@@ -76,6 +77,8 @@ The following arguments are supported:
 * `secret` - (Optional) One or more `secret` block as detailed below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Container App.
+
+* `workload_profile_name` - (Optional) The name of the Workload Profile to bind the Container App. Defaults to `Consumption`.
 
 ---
 
