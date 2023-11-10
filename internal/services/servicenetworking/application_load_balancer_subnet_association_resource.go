@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApplicationLoadBalancerAssociationResource struct{}
+type ApplicationLoadBalancerSubnetAssociationResource struct{}
 
 type AssociationResourceModel struct {
 	Name                      string                 `tfschema:"name"`
@@ -26,41 +26,42 @@ type AssociationResourceModel struct {
 	Tags                      map[string]interface{} `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerAssociationResource{}
+var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerSubnetAssociationResource{}
 
-func (t ApplicationLoadBalancerAssociationResource) Arguments() map[string]*pluginsdk.Schema {
+func (t ApplicationLoadBalancerSubnetAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ApplicationLoadBalancerAssociationName(),
+			ValidateFunc: validate.ApplicationLoadBalancerSubnetAssociationName(),
 		},
 
 		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(associationsinterface.TrafficControllerId{}),
 
-		"subnet_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceRequired(commonids.SubnetId{}),
 
 		"tags": commonschema.Tags(),
 	}
 }
 
-func (t ApplicationLoadBalancerAssociationResource) Attributes() map[string]*pluginsdk.Schema {
+func (t ApplicationLoadBalancerSubnetAssociationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (t ApplicationLoadBalancerAssociationResource) ModelObject() interface{} {
+func (t ApplicationLoadBalancerSubnetAssociationResource) ModelObject() interface{} {
 	return &AssociationResourceModel{}
 }
 
-func (t ApplicationLoadBalancerAssociationResource) ResourceType() string {
+func (t ApplicationLoadBalancerSubnetAssociationResource) ResourceType() string {
 	return "azurerm_application_load_balancer_subnet_association"
 }
 
-func (t ApplicationLoadBalancerAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (t ApplicationLoadBalancerSubnetAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return associationsinterface.ValidateAssociationID
 }
-func (t ApplicationLoadBalancerAssociationResource) Create() sdk.ResourceFunc {
+
+func (t ApplicationLoadBalancerSubnetAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -117,7 +118,7 @@ func (t ApplicationLoadBalancerAssociationResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (t ApplicationLoadBalancerAssociationResource) Read() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerSubnetAssociationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -161,14 +162,14 @@ func (t ApplicationLoadBalancerAssociationResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (t ApplicationLoadBalancerAssociationResource) Update() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerSubnetAssociationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ServiceNetworking.AssociationsInterface
 
-			var plan AssociationResourceModel
-			if err := metadata.Decode(&plan); err != nil {
+			var config AssociationResourceModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding %v", err)
 			}
 
@@ -177,11 +178,12 @@ func (t ApplicationLoadBalancerAssociationResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			// Thought `AssociationSubnetUpdate` defined in the SDK contains the `subnetId`, while per testing it can not be updated
+			// Although `AssociationSubnetUpdate` defined in the SDK contains the `subnetId`, while per testing it can not be updated
+			// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/26657
 			associationUpdate := associationsinterface.AssociationUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
-				associationUpdate.Tags = tags.Expand(plan.Tags)
+				associationUpdate.Tags = tags.Expand(config.Tags)
 			}
 
 			if _, err = client.Update(ctx, *id, associationUpdate); err != nil {
@@ -193,7 +195,7 @@ func (t ApplicationLoadBalancerAssociationResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (t ApplicationLoadBalancerAssociationResource) Delete() sdk.ResourceFunc {
+func (t ApplicationLoadBalancerSubnetAssociationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
