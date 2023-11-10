@@ -566,6 +566,8 @@ resource "azurerm_virtual_network_gateway_connection" "test_2" {
   peer_virtual_network_gateway_id = azurerm_virtual_network_gateway.test_1.id
 
   shared_key = var.shared_key
+
+  depends_on = [azurerm_virtual_network_gateway_connection.test_1]
 }
 `, data.RandomInteger, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
 }
