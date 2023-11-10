@@ -396,6 +396,9 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 		VirtualNetworkGatewayConnectionPropertiesFormat: properties,
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ConnectionName, connection)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
