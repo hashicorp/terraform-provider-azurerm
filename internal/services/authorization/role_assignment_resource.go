@@ -419,15 +419,7 @@ func normalizeScopeValue(scope string) (result string) {
 	if rg, err := commonids.ParseResourceGroupIDInsensitively(scope); err == nil {
 		return rg.ID()
 	}
-
-	if sub, err := commonids.ParseSubscriptionIDInsensitively(scope); err == nil {
-		return sub.ID()
-	}
-
-	if group, err := commonids.ParseManagementGroupIDInsensitively(scope); err == nil {
-		return group.ID()
-	}
 	// only check part of IDs, there are may be other specific resource types, like storage account id
-	// we may need append these parse logic below when needed
+	// we may need append these parse logics below when needed
 	return scope
 }
