@@ -68,9 +68,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Type:             pluginsdk.TypeList,
+			Required:         true,
+			MinItems:         1,
 			DiffSuppressFunc: suppress.ListOrder,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
