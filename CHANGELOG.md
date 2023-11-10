@@ -1,21 +1,21 @@
-## 3.80.0 (Unreleased)
+## 3.80.0 (November 09, 2023)
 
 ENHANCEMENTS:
 
-* `internal/sdk` - Added support for pointer Types in resource models [GH-23810]
-* dependencies: updating to `v0.63.0` of `github.com/hashicorp/go-azure-helpers` [GH-23785]
-* dependencies: updating to `v0.20231106.1151347` of `github.com/hashicorp/go-azure-sdk` [GH-23787]
-* `azurerm_cognitive_deployment` - support for the `version_upgrade_option` property [GH-22520]
-* `azurerm_firewall_policy_rule_collection_group` - add support for the property `http_headers` [GH-23641]
-* `azurerm_kubernetes_cluster` - `fips_enabled` can be updated in the `default_node_pool` without recreating the cluster [GH-23612]
-* `azurerm_kusto_cluster` - the cluster `name` can now include dashes [GH-23790]
-* `azurerm_postgresql_database` - update the validation of `collation` to include support for `French_France.1252` [GH-23783]
+* `internal/sdk` - Added support for pointer Types in resource models ([#23810](https://github.com/hashicorp/terraform-provider-azurerm/issues/23810))
+* dependencies: updating to `v0.63.0` of `github.com/hashicorp/go-azure-helpers` ([#23785](https://github.com/hashicorp/terraform-provider-azurerm/issues/23785))
+* dependencies: updating to `v0.20231106.1151347` of `github.com/hashicorp/go-azure-sdk` ([#23787](https://github.com/hashicorp/terraform-provider-azurerm/issues/23787))
+* `azurerm_cognitive_deployment` - support for the `version_upgrade_option` property ([#22520](https://github.com/hashicorp/terraform-provider-azurerm/issues/22520))
+* `azurerm_firewall_policy_rule_collection_group` - add support for the property `http_headers` ([#23641](https://github.com/hashicorp/terraform-provider-azurerm/issues/23641))
+* `azurerm_kubernetes_cluster` - `fips_enabled` can be updated in the `default_node_pool` without recreating the cluster ([#23612](https://github.com/hashicorp/terraform-provider-azurerm/issues/23612))
+* `azurerm_kusto_cluster` - the cluster `name` can now include dashes ([#23790](https://github.com/hashicorp/terraform-provider-azurerm/issues/23790))
+* `azurerm_postgresql_database` - update the validation of `collation` to include support for `French_France.1252` ([#23783](https://github.com/hashicorp/terraform-provider-azurerm/issues/23783))
 
 BUG FIXES:
 
-* Data Source: `azurerm_data_protection_backup_vault` - removing `import` support, since Data Sources don't support being imported [GH-23820]
-* Data Source: `azurerm_kusto_database` - removing `import` support, since Data Sources don't support being imported [GH-23820]
-* Data Source: `azurerm_virtual_hub_route_table` - removing `import` support, since Data Sources don't support being imported [GH-23820]
+* Data Source: `azurerm_data_protection_backup_vault` - removing `import` support, since Data Sources don't support being imported ([#23820](https://github.com/hashicorp/terraform-provider-azurerm/issues/23820))
+* Data Source: `azurerm_kusto_database` - removing `import` support, since Data Sources don't support being imported ([#23820](https://github.com/hashicorp/terraform-provider-azurerm/issues/23820))
+* Data Source: `azurerm_virtual_hub_route_table` - removing `import` support, since Data Sources don't support being imported ([#23820](https://github.com/hashicorp/terraform-provider-azurerm/issues/23820))
 
 ## 3.79.0 (November 02, 2023)
 
