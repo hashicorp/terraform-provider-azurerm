@@ -23,8 +23,6 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
-var virtualNetworkGatewayConnectionResourceName = "azurerm_virtual_network_gateway_connection"
-
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayConnectionCreateUpdate,
@@ -544,8 +542,8 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	locks.ByName(id.ConnectionName, virtualNetworkGatewayConnectionResourceName)
-	defer locks.UnlockByName(id.ConnectionName, virtualNetworkGatewayConnectionResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ConnectionName)
 	if err != nil {
