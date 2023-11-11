@@ -47,7 +47,7 @@ resource "azurerm_container_app_job" "example" {
   }
 
   template {
-    containers {
+    container {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
       readiness_probe {
@@ -94,7 +94,9 @@ The following arguments are supported:
 
 * `container_app_environment_id` - (Required) The ID of the Container App Environment in which to create the Container App Job. Changing this forces a new resource to be created.
 
-* `workload_profile_name` - (Optional) The name of the workload profile to use for the Container App Job. Changing this forces a new resource to be created.
+*  `template` - (Required) A `template` block as defined below.
+
+* `workload_profile_name` - (Optional) The name of the workload profile to use for the Container App Job.
 
 * `replica_timeout_in_seconds` - (Required) The maximum number of seconds a replica is allowed to run.
 
@@ -112,8 +114,6 @@ The following arguments are supported:
 
 ~> ** NOTE **: Only one of `manual_trigger_config`, `event_trigger_config` or `schedule_trigger_config` can be specified.
 
-*  `template` - (Optional) A `template` block as defined below.
-
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -122,35 +122,73 @@ The following arguments are supported:
 
 A `template` block supports the following:
 
-* `containers` - (Optional) A `containers` block as defined below.
+* `container` - (Optional) A `container` block as defined below.
 
-* `volumes` - (Optional) A `volumes` block as defined below.
+* `init_container` - (Optional) A `init_container` block as defined below.
+
+* `volume` - (Optional) A `volume` block as defined below.
 
 ---
 
-A `containers` block supports the following:
+A `container` block supports the following:
 
-* `name` - (Required) The name of the container.
+* `args` - (Optional) A list of extra arguments to pass to the container.
 
-* `image` - (Required) The container image name and tag.
+* `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Required) The CPU requirement of the container.
+* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
 
-* `memory` - (Required) The memory requirement of the container.
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
-* `command` - (Optional) The command to execute within the container.
+* `env` - (Optional) One or more `env` blocks as detailed below.
 
-* `args` - (Optional) The arguments to the command.
+* `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
-* `env` - (Optional) A `env` block as defined below.
+~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
-* `liveness_probes` - (Optional) A `live_probes` block as defined below.
+* `image` - (Required) The image to use to create the container.
 
-* `readiness_probes` - (Optional) A `readiness_probes` block as defined below.
+* `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
-* `startup_probes` - (Optional) A `startup_probes` block as defined below.
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
 
-* `volume_mounts` - (Optional) A `volume_mounts` block as defined below.
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+
+* `name` - (Required) The name of the container
+
+* `readiness_probe` - (Optional) A `readiness_probe` block as detailed below.
+
+* `startup_probe` - (Optional) A `startup_probe` block as detailed below.
+
+* `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
+
+---
+
+An `init_container` block supports:
+
+* `args` - (Optional) A list of extra arguments to pass to the container.
+
+* `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+
+* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+
+* `env` - (Optional) One or more `env` blocks as detailed below.
+
+* `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
+
+~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+
+* `image` - (Required) The image to use to create the container.
+
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+
+* `name` - (Required) The name of the container
+
+* `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
 
 ---
 
@@ -258,13 +296,13 @@ A `header` block supports the following:
 
 A `volume_mounts` block supports the following:
 
-* `name` - (Required) The name of the volume to mount. This must match the name of a volume defined in the `volumes` block.
+* `name` - (Required) The name of the volume to mount. This must match the name of a volume defined in the `volume` block.
 
 * `path` - (Required) The path within the container at which the volume should be mounted. Must not contain `:`.
 
 ---
 
-A `volumes` block supports the following:
+A `volume` block supports the following:
 
 * `name` - (Optional) The name of the volume.
 
@@ -304,7 +342,7 @@ A `manual_trigger_config` block supports the following:
 
 A `event_trigger_config` block supports the following:
 
-* `parallelism` - (Optional) Number of parallel replicas of a job that can run at a given time. 
+* `parallelism` - (Optional) Number of parallel replicas of a job that can run at a given time.
 
 * `replica_completion_count` - (Optional) Minimum number of successful replica completions before overall job completion.
 
@@ -328,7 +366,7 @@ A `scale` block supports the following:
 
 * `min_executions` - (Optional) Minimum number of job executions that are created for a trigger.
 
-* `polling_interval` - (Optional) Interval to check each event source in seconds.
+* `polling_interval_in_seconds` - (Optional) Interval to check each event source in seconds.
 
 * `rules` - (Optional) A `rules` block as defined below.
 
@@ -338,17 +376,17 @@ A `rules` block supports the following:
 
 * `name` - (Optional) Name of the scale rule.
 
-* `type` - (Optional) Type of the scale rule.
+* `custom_rule_type` - (Optional) Type of the scale rule.
 
 * `metadata` - (Optional) Metadata properties to describe the scale rule.
 
-* `auth` - (Optional) A `auth` block as defined below.
+* `authentication` - (Optional) A `authentication` block as defined below.
 
 ---
 
-A `auth` block supports the following:
+A `authentication` block supports the following:
 
-* `secret_ref` - (Optional) Name of the secret from which to pull the auth params.
+* `secret_name` - (Optional) Name of the secret from which to pull the auth params.
 
 * `trigger_parameter` - (Optional) Trigger Parameter that uses the secret.
 
