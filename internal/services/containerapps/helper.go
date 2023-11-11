@@ -2,12 +2,13 @@ package containerapps
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"reflect"
 )
 
 type TemplateModel struct {
@@ -117,7 +118,7 @@ type SecretModel struct {
 
 type RegistryModel struct {
 	Identity                string `tfschema:"identity"`
-	UserName                string `tfschema:"user_name"`
+	Username                string `tfschema:"username"`
 	PasswordSecretReference string `tfschema:"password_secret_ref"`
 	Server                  string `tfschema:"server"`
 }
@@ -390,7 +391,7 @@ func containerAppsJobsProbesTcpSocketSchema() *pluginsdk.Schema {
 
 				"port": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Required: true,
 				},
 			},
 		},
@@ -405,12 +406,12 @@ func containerAppsJobsProbesHttpGetHttpHeadersSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Required: true,
 				},
 
 				"value": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Required: true,
 				},
 			},
 		},
@@ -511,6 +512,11 @@ func configurationSchema() *pluginsdk.Schema {
 				"trigger_type": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(jobs.TriggerTypeEvent),
+						string(jobs.TriggerTypeManual),
+						string(jobs.TriggerTypeSchedule),
+					}, false),
 				},
 
 				"secret": {
@@ -551,7 +557,7 @@ func configurationSchema() *pluginsdk.Schema {
 								Optional: true,
 							},
 
-							"user_name": {
+							"username": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
 							},
@@ -596,7 +602,7 @@ func configurationSchema() *pluginsdk.Schema {
 						Schema: map[string]*pluginsdk.Schema{
 							"cron_expression": {
 								Type:     pluginsdk.TypeString,
-								Optional: true,
+								Required: true,
 							},
 
 							"parallelism": {
@@ -837,8 +843,8 @@ func expandContainerAppJobConfigurationRegistries(input []RegistryModel) *[]jobs
 			registry.Server = pointer.To(v.Server)
 		}
 
-		if v.UserName != "" {
-			registry.Username = pointer.To(v.UserName)
+		if v.Username != "" {
+			registry.Username = pointer.To(v.Username)
 		}
 
 		registries = append(registries, registry)
@@ -1643,7 +1649,7 @@ func flattenContainerAppJobConfigurationRegistries(input []jobs.RegistryCredenti
 		}
 
 		if v.Username != nil {
-			registry.UserName = *v.Username
+			registry.Username = *v.Username
 		}
 
 		registries = append(registries, registry)
