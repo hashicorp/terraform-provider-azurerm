@@ -3,6 +3,8 @@ package containerapps_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/jobs"
@@ -11,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"testing"
 )
 
 type ContainerAppJobResource struct{}
@@ -98,67 +99,67 @@ func (r ContainerAppJobResource) eventTrigger(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
-  name                = "acctest-cajob%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
-  
+
   configuration {
-	trigger_type = "Event"
-	replica_timeout = 10
- 	replica_retry_limit = 10
-	event_trigger_config {
-	  parallelism = 4
-	  replica_completion_count = 1
-	  scale {
-	    max_executions = 10
-	    min_executions = 1
-		polling_interval = 10
-	    rules {
-		  metadata = {
-		    topic_name = "my-topic"
-		  }
-		  name = "servicebuscalingrule"
-		  type = "azure-servicebus"
-		}
-	  }
-	}
+    trigger_type        = "Event"
+    replica_timeout     = 10
+    replica_retry_limit = 10
+    event_trigger_config {
+      parallelism              = 4
+      replica_completion_count = 1
+      scale {
+        max_executions   = 10
+        min_executions   = 1
+        polling_interval = 10
+        rules {
+          metadata = {
+            topic_name = "my-topic"
+          }
+          name = "servicebuscalingrule"
+          type = "azure-servicebus"
+        }
+      }
+    }
   }
 
   template {
     containers {
-	  image = "repo/testcontainerAppsJob0:v1"
-  	  name = "testcontainerappsjob0"
-	  probes {
-	    http_get {
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+      probes {
+        http_get {
           http_headers {
-			name = "testheader"
-			value = "testvalue"
-		  }
-		  path = "/testpath"
-		  port = 8080
-		}
-		initial_delay_seconds = 10
-		period_seconds = 10
-		type = "Liveness"
+            name  = "testheader"
+            value = "testvalue"
+          }
+          path = "/testpath"
+          port = 8080
+        }
+        initial_delay_seconds = 10
+        period_seconds        = 10
+        type                  = "Liveness"
       }
-	  resources {
-	    cpu = 0.5
-		memory = "1Gi"
-	  }
-	}
+      resources {
+        cpu    = 0.5
+        memory = "1Gi"
+      }
+    }
 
-	init_containers {
-	  args = ["testarg"]
-	  command = ["testcommand"]
-	  image = "repo/testcontainerAppsJob0:v1"
-	  name = "testcontainerappsjob0"
-	  resources {
-	    cpu = 0.5
-		memory = "1Gi"
-	  }
-	}
-  }	
+    init_containers {
+      args    = ["testarg"]
+      command = ["testcommand"]
+      image   = "repo/testcontainerAppsJob0:v1"
+      name    = "testcontainerappsjob0"
+      resources {
+        cpu    = 0.5
+        memory = "1Gi"
+      }
+    }
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -169,59 +170,59 @@ func (r ContainerAppJobResource) manualTrigger(data acceptance.TestData) string 
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
-  name = "acctest-cajob%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   configuration {
-	trigger_type = "Manual"
-	replica_timeout = 10
-	replica_retry_limit = 10
-	manual_trigger_config {
-	  parallelism = 4
-	  replica_completion_count = 1
-	}
+    trigger_type        = "Manual"
+    replica_timeout     = 10
+    replica_retry_limit = 10
+    manual_trigger_config {
+      parallelism              = 4
+      replica_completion_count = 1
+    }
   }
-  
+
   template {
-	containers {
-	  image = "repo/testcontainerAppsJob0:v1"
-	  name = "testcontainerappsjob0"
-	  probes {
-	    http_get {
-		  http_headers {
-		    name = "testheader"
-			value = "testvalue"
-		  }
-		  path = "/testpath"
-		  port = 8080
-		  host = "testhost"
-		  scheme = "HTTPS"
-		}
-		initial_delay_seconds = 10
-		period_seconds = 10
-		type = "Liveness"
-		failure_threshold = 1
-		success_threshold = 1
-		timeout_seconds = 1
-	  }
-	  resources {
-		cpu = 0.5
-		memory = "1Gi"
-	  }
-	}
+    containers {
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+      probes {
+        http_get {
+          http_headers {
+            name  = "testheader"
+            value = "testvalue"
+          }
+          path   = "/testpath"
+          port   = 8080
+          host   = "testhost"
+          scheme = "HTTPS"
+        }
+        initial_delay_seconds = 10
+        period_seconds        = 10
+        type                  = "Liveness"
+        failure_threshold     = 1
+        success_threshold     = 1
+        timeout_seconds       = 1
+      }
+      resources {
+        cpu    = 0.5
+        memory = "1Gi"
+      }
+    }
 
     init_containers {
-	  args = ["testarg"]
-	  command = ["testcommand"]
-	  image = "repo/testcontainerAppsJob0:v1"
-	  name = "testcontainerappsjob0"
-	  resources {
-	    cpu = 0.5
-		memory = "1Gi"
-	  }
-	}
+      args    = ["testarg"]
+      command = ["testcommand"]
+      image   = "repo/testcontainerAppsJob0:v1"
+      name    = "testcontainerappsjob0"
+      resources {
+        cpu    = 0.5
+        memory = "1Gi"
+      }
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -233,50 +234,50 @@ func (r ContainerAppJobResource) scheduleTrigger(data acceptance.TestData) strin
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
-  name                = "acctest-cajob%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   configuration {
-	trigger_type = "Schedule"
-	replica_timeout = 1800
-	replica_retry_limit = 0
-	schedule_trigger_config {
-	  cron_expression = "*/1 * * * *"
-	  parallelism = 1
-	  replica_completion_count = 1
-	}
+    trigger_type        = "Schedule"
+    replica_timeout     = 1800
+    replica_retry_limit = 0
+    schedule_trigger_config {
+      cron_expression          = "*/1 * * * *"
+      parallelism              = 1
+      replica_completion_count = 1
+    }
   }
   template {
-	volumes {
-	  name = "appsettings-volume"
-	  storage_type = "EmptyDir"
-	}
-	containers {
-	  image = "repo/testcontainerAppsJob0:v1"
-	  name = "testcontainerappsjob0"
-	  probes {
-	    tcp_socket {
-		  host = "testhost"
-		  port = 8080
-		}
-		initial_delay_seconds = 5
-		timeout_seconds = 1
-		success_threshold = 1
-		failure_threshold = 1
-		period_seconds = 3
-		type = "Liveness"
-	  }
-	  resources {
-		cpu = 0.5
-		memory = "1Gi"
-	  }
-	  volume_mounts {
-		mount_path = "/appsettings"
-	    volume_name = "appsettings-volume"
-	  }
-	}
+    volumes {
+      name         = "appsettings-volume"
+      storage_type = "EmptyDir"
+    }
+    containers {
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+      probes {
+        tcp_socket {
+          host = "testhost"
+          port = 8080
+        }
+        initial_delay_seconds = 5
+        timeout_seconds       = 1
+        success_threshold     = 1
+        failure_threshold     = 1
+        period_seconds        = 3
+        type                  = "Liveness"
+      }
+      resources {
+        cpu    = 0.5
+        memory = "1Gi"
+      }
+      volume_mounts {
+        mount_path  = "/appsettings"
+        volume_name = "appsettings-volume"
+      }
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -288,54 +289,54 @@ func (r ContainerAppJobResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
-  name                = "acctest-cajob%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   configuration {
-	trigger_type = "Manual"
-	replica_timeout = 10
-	replica_retry_limit = 10
+    trigger_type        = "Manual"
+    replica_timeout     = 10
+    replica_retry_limit = 10
     manual_trigger_config {
-	  parallelism = 4
-	  replica_completion_count = 1
-	}
+      parallelism              = 4
+      replica_completion_count = 1
+    }
   }
-  
+
   template {
     containers {
-	  image = "repo/testcontainerAppsJob0:v1"
-  	  name = "testcontainerappsjob0"
-	  probes {
-	    http_get {
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+      probes {
+        http_get {
           http_headers {
-			name = "testheader"
-			value = "testvalue"
-		  }
-		  path = "/testpath"
-		  port = 8080
-		}
-		initial_delay_seconds = 10
-		period_seconds = 10
-		type = "Liveness"
+            name  = "testheader"
+            value = "testvalue"
+          }
+          path = "/testpath"
+          port = 8080
+        }
+        initial_delay_seconds = 10
+        period_seconds        = 10
+        type                  = "Liveness"
       }
-	  resources {
-	    cpu = 0.5
-		memory = "1Gi"
-	  }
-	}
+      resources {
+        cpu    = 0.5
+        memory = "1Gi"
+      }
+    }
 
-	init_containers {
-	  args = ["testarg"]
-	  command = ["testcommand"]
-	  image = "repo/testcontainerAppsJob0:v1"
-	  name = "testcontainerappsjob0"
-	  resources {
-	    cpu = 0.5
-		memory = "1Gi"
-	  }
-	}
+    init_containers {
+      args    = ["testarg"]
+      command = ["testcommand"]
+      image   = "repo/testcontainerAppsJob0:v1"
+      name    = "testcontainerappsjob0"
+      resources {
+        cpu    = 0.5
+        memory = "1Gi"
+      }
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -344,26 +345,26 @@ resource "azurerm_container_app_job" "test" {
 func (r ContainerAppJobResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name    = "acctest-CAJob%[1]d"
-	location = "%[2]s"
+  name     = "acctest-CAJob%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name = "acctest-LAW%[1]d"
-  location = azurerm_resource_group.test.location
+  name                = "acctest-LAW%[1]d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku = "PerGB2018"
-  retention_in_days = 30
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_container_app_environment" "test" {
-  name                = "acctest-CAEnv%[1]d"
-  location = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                       = "acctest-CAEnv%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
