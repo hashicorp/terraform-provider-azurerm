@@ -3,6 +3,8 @@ package containerapps
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"time"
 )
 
 type ContainerAppJobResource struct{}
@@ -25,11 +26,14 @@ type ContainerAppJobModel struct {
 	ResourceGroup             string                                     `tfschema:"resource_group_name"`
 	Location                  string                                     `tfschema:"location"`
 	ContainerAppEnvironmentId string                                     `tfschema:"container_app_environment_id"`
-	WorkLoadProfileName       string                                     `tfschema:"work_load_profile_name"`
+	WorkloadProfileName       string                                     `tfschema:"workload_profile_name"`
 	Template                  []TemplateModel                            `tfschema:"template"`
 	Configuration             []ConfigurationModel                       `tfschema:"configuration"`
 	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Tags                      map[string]interface{}                     `tfschema:"tags"`
+
+	OutboundIPAddresses []string `tfschema:"outbound_ip_addresses"`
+	EventStreamEndpoint string   `tfschema:"event_stream_endpoint"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppJobResource{}
@@ -47,7 +51,7 @@ func (r ContainerAppJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -66,10 +70,9 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: certificates.ValidateManagedEnvironmentID,
 		},
 
-		"work_load_profile_name": {
+		"workload_profile_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -84,7 +87,20 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 }
 
 func (r ContainerAppJobResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"event_stream_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
@@ -129,8 +145,8 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 			}
 			job.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
-			if model.WorkLoadProfileName != "" {
-				job.Properties.WorkloadProfileName = pointer.To(model.WorkLoadProfileName)
+			if model.WorkloadProfileName != "" {
+				job.Properties.WorkloadProfileName = pointer.To(model.WorkloadProfileName)
 			}
 
 			if model.Configuration != nil {
@@ -162,7 +178,7 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 
 func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.JobClient
 
@@ -202,7 +218,7 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 					state.ContainerAppEnvironmentId = envId.ID()
 					state.Template = flattenContainerAppJobTemplate(props.Template)
 					state.Configuration = flattenContainerAppJobConfiguration(props.Configuration)
-					state.WorkLoadProfileName = pointer.From(props.WorkloadProfileName)
+					state.WorkloadProfileName = pointer.From(props.WorkloadProfileName)
 				}
 			}
 
@@ -264,8 +280,8 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 			}
 
-			if d.HasChange("work_load_profile_name") {
-				model.Properties.WorkloadProfileName = pointer.To(state.WorkLoadProfileName)
+			if d.HasChange("workload_profile_name") {
+				model.Properties.WorkloadProfileName = pointer.To(state.WorkloadProfileName)
 			}
 
 			if d.HasChange("tags") {
