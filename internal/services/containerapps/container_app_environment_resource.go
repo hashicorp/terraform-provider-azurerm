@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,17 +26,17 @@ import (
 type ContainerAppEnvironmentResource struct{}
 
 type ContainerAppEnvironmentModel struct {
-	Name                                    string                                `tfschema:"name"`
-	ResourceGroup                           string                                `tfschema:"resource_group_name"`
-	Location                                string                                `tfschema:"location"`
-	DaprApplicationInsightsConnectionString string                                `tfschema:"dapr_application_insights_connection_string"`
-	LogAnalyticsWorkspaceId                 string                                `tfschema:"log_analytics_workspace_id"`
-	InfrastructureSubnetId                  string                                `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled             bool                                  `tfschema:"internal_load_balancer_enabled"`
-	ZoneRedundant                           bool                                  `tfschema:"zone_redundancy_enabled"`
-	WorkloadProfileEnabled                  bool                                  `tfschema:"workload_profile_enabled"`
-	DedicatedProfiles                       []managedenvironments.WorkloadProfile `tfschema:"dedicated_profiles"`
-	Tags                                    map[string]interface{}                `tfschema:"tags"`
+	Name                                    string                    `tfschema:"name"`
+	ResourceGroup                           string                    `tfschema:"resource_group_name"`
+	Location                                string                    `tfschema:"location"`
+	DaprApplicationInsightsConnectionString string                    `tfschema:"dapr_application_insights_connection_string"`
+	LogAnalyticsWorkspaceId                 string                    `tfschema:"log_analytics_workspace_id"`
+	InfrastructureSubnetId                  string                    `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled             bool                      `tfschema:"internal_load_balancer_enabled"`
+	ZoneRedundant                           bool                      `tfschema:"zone_redundancy_enabled"`
+	WorkloadProfileEnabled                  bool                      `tfschema:"workload_profile_enabled"`
+	WorkloadProfiles                        []helpers.WorkloadProfile `tfschema:"workload_profile"`
+	Tags                                    map[string]interface{}    `tfschema:"tags"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -119,42 +120,17 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:     true,
 			ForceNew:     true,
 			Default:      false,
-			Description:  "Should the environment be Workload Profile enabled? Defaults to `false`.",
+			Description:  "Should the environment be Workload Profile enabled? This is required for hub and spoke networks with User Defined Routing. Defaults to `false`.",
 			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
-		"dedicated_profiles": {
+		"workload_profiles": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			ForceNew:     false,
+			Description:  "A list of workload profiles that you want to create in your environment",
 			RequiredWith: []string{"workload_profiles_enabled"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"workload_profile_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"consumption", "D4", "D8", "D16", "D32", "E4", "E8", "E16", "E32",
-						}, false),
-					},
-					"maximum_count": {
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(1),
-						Optional:     true,
-						RequiredWith: []string{"minimum_count"},
-					},
-					"minimum_count": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
-			},
+			Default:      []helpers.WorkloadProfile{},
 		},
 
 		"tags": commonschema.Tags(),
@@ -276,12 +252,12 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 
 				if containerAppEnvironment.WorkloadProfileEnabled {
-					consumption := managedenvironments.WorkloadProfile{
+					consumption := helpers.WorkloadProfile{
 						Name:                "Consumption",
 						WorkloadProfileType: "consumption",
 					}
-					containerAppEnvironment.DedicatedProfiles = append(containerAppEnvironment.DedicatedProfiles, consumption)
-					managedEnvironment.Properties.WorkloadProfiles = &containerAppEnvironment.DedicatedProfiles
+					containerAppEnvironment.WorkloadProfiles = append(containerAppEnvironment.WorkloadProfiles, consumption)
+					managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 				}
 			}
 
@@ -332,6 +308,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.WorkloadProfileEnabled = len(*props.WorkloadProfiles) > 0
+					state.WorkloadProfiles = *helpers.UnpackWorkloadProfiles(*props.WorkloadProfiles)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 				}
@@ -397,6 +374,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = tags.Expand(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("workload_profile") {
+				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
 
 			// (@jackofallops) This is not updatable and needs to be removed since the read does not return the sensitive Key field.

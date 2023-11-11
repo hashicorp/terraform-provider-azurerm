@@ -116,6 +116,21 @@ func TestAccContainerAppEnvironment_workloadProfilesEnabled(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_DedicatedWorkloadProfiles(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDedicatedWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id"),
+	})
+}
+
 func TestAccContainerAppEnvironment_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -271,6 +286,38 @@ resource "azurerm_container_app_environment" "test" {
   zone_redundancy_enabled        = true
   internal_load_balancer_enabled = true
   workload_profile_enabled       = true
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) completeDedicatedWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                           = "acctest-CAEnv%[2]d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id       = azurerm_subnet.control.id
+  zone_redundancy_enabled        = true
+  internal_load_balancer_enabled = true
+  workload_profile_enabled       = true
+  workload_profiles = [
+	"test" = {
+		name                  = "TestProfile"
+		workload_profile_type = "D4"
+	}
+  ]
 
   tags = {
     Foo    = "Bar"

@@ -100,7 +100,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"workload_profile_name": {
 			Type:         pluginsdk.TypeString,
-			Required:     false,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
 			Description:  "Workload profile name to pin for container app execution.",

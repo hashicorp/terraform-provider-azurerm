@@ -48,9 +48,13 @@ The following arguments are supported:
 
 * `dapr_application_insights_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry. Changing this forces a new resource to be created.
 
+~> **Note:** can only be set if `workload_profiles_enabled` is set to `true`. 
+
+* `workload_profiles` - (Optional) A list of `workload_profile` objects to create with the container app.
+
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
-~> **NOTE:** The Subnet must have a `/21` or larger address space. 
+~> **NOTE:** The Subnet must have a `/23` or larger address space for a `Consumption` (Default) workload. If `workload_profiles_enabled` is `true`, you can use a `/27` or larger subnet. 
 
 * `internal_load_balancer_enabled` - (Optional) Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -68,6 +72,18 @@ The following arguments are supported:
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `workload_profile` object consists of the following:
+
+* `name` - (Required) The name of the profile to deploy
+
+* `workload_profile_type` - (Required) The type of profile to deploy. The default `Consumption` profile is created automatically.  The `D` profile types are `General Purpose`, while `E` profile types are `Memory Optimized`. Allowed values: `consumption`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16`, `E32`.
+
+* `maximum_count` - (Optional) The maximum number of instances to deploy.  Must be at least `1`.
+
+* `minimum_count` - (Optional) The minimum number of instances to deploy. Must be `0` or greater.
 
 ## Attributes Reference
 

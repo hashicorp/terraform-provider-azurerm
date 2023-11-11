@@ -3030,3 +3030,109 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 		c.TCPScaleRules = tcpScaleRules
 	}
 }
+
+type WorkloadProfile struct {
+	Name                string `tfschema:"name"`
+	WorkloadProfileType string `tfschema:"workload_profile_type"`
+	MaximumCount        *int64 `tfschema:"maximum_count"`
+	MinimumCount        *int64 `tfschema:"minimum_count"`
+}
+
+func WorkloadProfileSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"workload_profile_type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"consumption", "D4", "D8", "D16", "D32", "E4", "E8", "E16", "E32",
+					}, false),
+				},
+				"maximum_count": {
+					Type:         pluginsdk.TypeInt,
+					ValidateFunc: validation.IntAtLeast(1),
+					Optional:     true,
+					RequiredWith: []string{"minimum_count"},
+				},
+				"minimum_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+			},
+		},
+	}
+}
+
+func WorkloadProfileSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"workload_profile_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"maximum_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+				"minimum_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func ExpandWorkloadProfiles(input []WorkloadProfile) *[]managedenvironments.WorkloadProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]managedenvironments.WorkloadProfile, 0)
+
+	for _, v := range input {
+		result = append(result, managedenvironments.WorkloadProfile{
+			Name:                v.Name,
+			WorkloadProfileType: v.WorkloadProfileType,
+			MaximumCount:        v.MaximumCount,
+			MinimumCount:        v.MinimumCount,
+		})
+	}
+
+	return &result
+}
+
+func UnpackWorkloadProfiles(input []managedenvironments.WorkloadProfile) *[]WorkloadProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]WorkloadProfile, 0)
+
+	for _, v := range input {
+		result = append(result, WorkloadProfile{
+			Name:                v.Name,
+			WorkloadProfileType: v.WorkloadProfileType,
+			MaximumCount:        v.MaximumCount,
+			MinimumCount:        v.MinimumCount,
+		})
+	}
+
+	return &result
+}
