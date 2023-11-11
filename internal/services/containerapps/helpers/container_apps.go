@@ -187,6 +187,8 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Description: "The FQDN of the ingress.",
 				},
 
+				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
+
 				"target_port": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
@@ -452,6 +454,43 @@ type IpSecurityRestriction struct {
 	Description    string `tfschema:"description"`
 	IpAddressRange string `tfschema:"ip_address_range"`
 	Name           string `tfschema:"name"`
+}
+
+func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: false,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     false,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The action. Allow or Deny.",
+				},
+
+				"description": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "Describe the IP restriction rule that is being sent to the container-app.",
+				},
+
+				"ip_adress_range": {
+					Type:         pluginsdk.TypeString,
+					Optional:     false,
+					ValidateFunc: validation.IsCIDR,
+					Description:  "CIDR notation to match incoming IP address.",
+				},
+
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     false,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Name for the IP restriction rule.",
+				},
+			},
+		},
+	}
 }
 
 func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
