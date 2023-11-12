@@ -465,7 +465,7 @@ func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 				"action": {
 					Type:         pluginsdk.TypeString,
 					Optional:     false,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAction(), false),
 					Description:  "The action. Allow or Deny.",
 				},
 
