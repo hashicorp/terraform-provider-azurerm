@@ -10,7 +10,7 @@ description: |-
 
 Manages a Virtual Machine Gallery Application Assignment.
 
-~> **NOTE:** Gallery Application Assignment can be defined either directly on `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources, or using the `azurerm_virtual_machine_gallery_application_assignment` resource - but the two ways cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
+~> **Note:** Gallery Application Assignments can be defined either directly on `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources, or using the `azurerm_virtual_machine_gallery_application_assignment` resource - but the two approaches cannot be used together. If both are used with the same Virtual Machine, spurious changes will occur. It's recommended to use `ignore_changes` for the `gallery_application` block on the associated virtual machine resources, to avoid a persistent diff when using this resource.
 ## Example Usage
 
 ```hcl
@@ -89,15 +89,15 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "example" {
 
 The following arguments are supported:
 
-* `gallery_application_version_id` - (Required) The ID of the Gallery Application Version. Changing this forces a new resourec to be created.
+* `gallery_application_version_id` - (Required) The ID of the Gallery Application Version. Changing this forces a new resource to be created.
 
-* `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resourec to be created.
+* `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created.
 
-* `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resourec to be created.
+* `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided. Changing this forces a new resource to be created.
 
 * `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2147483647`. Defaults to `0`.
 
-* `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value. Changing this forces a new resourec to be created.
+* `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
