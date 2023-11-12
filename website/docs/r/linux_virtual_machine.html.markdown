@@ -162,6 +162,8 @@ The following arguments are supported:
 
 * `gallery_application` - (Optional) One or more `gallery_application` blocks as defined below.
 
+~> **Note** Gallery Application Assignments can be defined either directly on `azurerm_linux_virtual_machine` resource, or using the `azurerm_virtual_machine_gallery_application_assignment` resource - but the two approaches cannot be used together. If both are used with the same Virtual Machine, spurious changes will occur. If `azurerm_virtual_machine_gallery_application_assignment` is used, it's recommended to use `ignore_changes` for the `gallery_application` block on the corresponding `azurerm_linux_virtual_machine` resource, to avoid a persistent diff when using this resource.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `patch_assessment_mode` - (Optional) Specifies the mode of VM Guest Patching for the Virtual Machine. Possible values are `AutomaticByPlatform` or `ImageDefault`. Defaults to `ImageDefault`.

@@ -107,24 +107,24 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Create() sdk.Resourc
 			locks.ByID(virtualMachineID.ID())
 			defer locks.UnlockByID(virtualMachineID.ID())
 
-			virtualMachine, err := client.Get(ctx, *virtualMachineID, virtualmachines.GetOperationOptions{Expand: pointer.To(virtualmachines.InstanceViewTypesUserData)})
+			resp, err := client.Get(ctx, *virtualMachineID, virtualmachines.GetOperationOptions{Expand: pointer.To(virtualmachines.InstanceViewTypesUserData)})
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %q: %+v", *virtualMachineID, err)
 			}
 
-			payload := virtualMachine.Model
-			if payload == nil {
+			virtualMachine := resp.Model
+			if virtualMachine == nil {
 				return fmt.Errorf("retrieving model of existing %q: %+v", *virtualMachineID, err)
 			}
 
-			if payload.Properties == nil {
-				payload.Properties = pointer.To(virtualmachines.VirtualMachineProperties{})
+			if virtualMachine.Properties == nil {
+				virtualMachine.Properties = pointer.To(virtualmachines.VirtualMachineProperties{})
 			}
-			if payload.Properties.ApplicationProfile == nil {
-				payload.Properties.ApplicationProfile = pointer.To(virtualmachines.ApplicationProfile{})
+			if virtualMachine.Properties.ApplicationProfile == nil {
+				virtualMachine.Properties.ApplicationProfile = pointer.To(virtualmachines.ApplicationProfile{})
 			}
-			if payload.Properties.ApplicationProfile.GalleryApplications == nil {
-				payload.Properties.ApplicationProfile.GalleryApplications = pointer.To(make([]virtualmachines.VMGalleryApplication, 0))
+			if virtualMachine.Properties.ApplicationProfile.GalleryApplications == nil {
+				virtualMachine.Properties.ApplicationProfile.GalleryApplications = pointer.To(make([]virtualmachines.VMGalleryApplication, 0))
 			}
 
 			galleryApplicationVersionId, err := galleryapplicationversions.ParseApplicationVersionID(state.GalleryApplicationVersionId)
@@ -132,7 +132,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Create() sdk.Resourc
 				return fmt.Errorf("parsing `gallery_application_version_id`: %+v", err)
 			}
 
-			applications := payload.Properties.ApplicationProfile.GalleryApplications
+			applications := virtualMachine.Properties.ApplicationProfile.GalleryApplications
 			for _, application := range pointer.From(applications) {
 				if strings.EqualFold(galleryApplicationVersionId.ID(), application.PackageReferenceId) {
 					return tf.ImportAsExistsError(r.ResourceType(), virtualMachineID.ID())
@@ -146,7 +146,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Create() sdk.Resourc
 				Tags:                   pointer.To(state.Tag),
 			})
 
-			updatePayload := &virtualmachines.VirtualMachineUpdate{
+			virtualMachineUpdate := &virtualmachines.VirtualMachineUpdate{
 				Properties: &virtualmachines.VirtualMachineProperties{
 					ApplicationProfile: &virtualmachines.ApplicationProfile{
 						GalleryApplications: applications,
@@ -154,7 +154,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Create() sdk.Resourc
 				},
 			}
 
-			if err = client.UpdateThenPoll(ctx, *virtualMachineID, pointer.From(updatePayload)); err != nil {
+			if err = client.UpdateThenPoll(ctx, *virtualMachineID, pointer.From(virtualMachineUpdate)); err != nil {
 				return fmt.Errorf("creating Gallery Application Assignment %q: %+v", virtualMachineID, err)
 			}
 
@@ -175,24 +175,24 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Read() sdk.ResourceF
 				return err
 			}
 
-			virtualMachine, err := client.Get(ctx, id.VirtualMachineId, virtualmachines.GetOperationOptions{})
+			resp, err := client.Get(ctx, id.VirtualMachineId, virtualmachines.GetOperationOptions{})
 			if err != nil {
-				if response.WasNotFound(virtualMachine.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %q: %s", id, err)
 			}
 
-			model := virtualMachine.Model
-			if model == nil {
+			virtualMachine := resp.Model
+			if virtualMachine == nil {
 				return fmt.Errorf("retrieving model of %q: %s", id, err)
 			}
 
-			if model.Properties == nil || model.Properties.ApplicationProfile == nil || model.Properties.ApplicationProfile.GalleryApplications == nil {
+			if virtualMachine.Properties == nil || virtualMachine.Properties.ApplicationProfile == nil || virtualMachine.Properties.ApplicationProfile.GalleryApplications == nil {
 				return metadata.MarkAsGone(id)
 			}
 
-			for _, application := range pointer.From(model.Properties.ApplicationProfile.GalleryApplications) {
+			for _, application := range pointer.From(virtualMachine.Properties.ApplicationProfile.GalleryApplications) {
 				if strings.EqualFold(id.GalleryApplicationVersionId.ID(), application.PackageReferenceId) {
 					state := VirtualMachineGalleryApplicationAssignmentResourceResourceModel{
 						VirtualMachineId:            id.VirtualMachineId.ID(),
@@ -228,37 +228,37 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Update() sdk.Resourc
 			locks.ByID(id.VirtualMachineId.ID())
 			defer locks.UnlockByID(id.VirtualMachineId.ID())
 
-			virtualMachine, err := client.Get(ctx, id.VirtualMachineId, virtualmachines.GetOperationOptions{Expand: pointer.To(virtualmachines.InstanceViewTypesUserData)})
+			resp, err := client.Get(ctx, id.VirtualMachineId, virtualmachines.GetOperationOptions{Expand: pointer.To(virtualmachines.InstanceViewTypesUserData)})
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id.VirtualMachineId, err)
 			}
 
-			payload := virtualMachine.Model
-			if payload == nil {
+			virtualMachine := resp.Model
+			if virtualMachine == nil {
 				return fmt.Errorf("checking model of existing %q: %+v", id.VirtualMachineId, err)
 			}
 
-			if payload.Properties == nil || payload.Properties.ApplicationProfile == nil || payload.Properties.ApplicationProfile.GalleryApplications == nil {
+			if virtualMachine.Properties == nil || virtualMachine.Properties.ApplicationProfile == nil || virtualMachine.Properties.ApplicationProfile.GalleryApplications == nil {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 
-			for i, application := range pointer.From(payload.Properties.ApplicationProfile.GalleryApplications) {
+			for i, application := range pointer.From(virtualMachine.Properties.ApplicationProfile.GalleryApplications) {
 				if strings.EqualFold(id.GalleryApplicationVersionId.ID(), application.PackageReferenceId) {
 					updatedApplication := application
 					if metadata.ResourceData.HasChange("order") {
 						updatedApplication.Order = pointer.To(state.Order)
 					}
-					(*payload.Properties.ApplicationProfile.GalleryApplications)[i] = updatedApplication
+					(*virtualMachine.Properties.ApplicationProfile.GalleryApplications)[i] = updatedApplication
 
-					updatePayload := &virtualmachines.VirtualMachineUpdate{
+					virtualMachineUpdate := &virtualmachines.VirtualMachineUpdate{
 						Properties: &virtualmachines.VirtualMachineProperties{
 							ApplicationProfile: &virtualmachines.ApplicationProfile{
-								GalleryApplications: payload.Properties.ApplicationProfile.GalleryApplications,
+								GalleryApplications: virtualMachine.Properties.ApplicationProfile.GalleryApplications,
 							},
 						},
 					}
 
-					if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *updatePayload); err != nil {
+					if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *virtualMachineUpdate); err != nil {
 						return fmt.Errorf("updating Gallery Application Assignment %q: %+v", id, err)
 					}
 
@@ -285,21 +285,21 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Delete() sdk.Resourc
 			locks.ByID(id.VirtualMachineId.ID())
 			defer locks.UnlockByID(id.VirtualMachineId.ID())
 
-			virtualMachine, err := client.Get(ctx, id.VirtualMachineId, virtualmachines.GetOperationOptions{})
+			resp, err := client.Get(ctx, id.VirtualMachineId, virtualmachines.GetOperationOptions{})
 			if err != nil {
-				if response.WasNotFound(virtualMachine.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return nil
 				}
 				return fmt.Errorf("checking for presence of existing  %q: %+v", id, err)
 			}
 
-			payload := virtualMachine.Model
-			if payload == nil {
+			virtualMachine := resp.Model
+			if virtualMachine == nil {
 				return fmt.Errorf("retrieving model of %q: %s", id, err)
 			}
 
-			if payload.Properties != nil && payload.Properties.ApplicationProfile != nil && payload.Properties.ApplicationProfile.GalleryApplications != nil {
-				galleryApplications := payload.Properties.ApplicationProfile.GalleryApplications
+			if virtualMachine.Properties != nil && virtualMachine.Properties.ApplicationProfile != nil && virtualMachine.Properties.ApplicationProfile.GalleryApplications != nil {
+				galleryApplications := virtualMachine.Properties.ApplicationProfile.GalleryApplications
 				updatedApplications := make([]virtualmachines.VMGalleryApplication, 0)
 				for _, application := range pointer.From(galleryApplications) {
 					if !strings.EqualFold(id.GalleryApplicationVersionId.ID(), application.PackageReferenceId) {
@@ -307,7 +307,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Delete() sdk.Resourc
 					}
 				}
 
-				updatePayload := &virtualmachines.VirtualMachineUpdate{
+				virtualMachineUpdate := &virtualmachines.VirtualMachineUpdate{
 					Properties: &virtualmachines.VirtualMachineProperties{
 						ApplicationProfile: &virtualmachines.ApplicationProfile{
 							GalleryApplications: pointer.To(updatedApplications),
@@ -315,7 +315,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Delete() sdk.Resourc
 					},
 				}
 
-				if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *updatePayload); err != nil {
+				if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *virtualMachineUpdate); err != nil {
 					return fmt.Errorf("deleting Gallery Application Assignment %q: %+v", id, err)
 				}
 			}
