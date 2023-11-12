@@ -78,7 +78,7 @@ func TestAccContainerAppJob_manualTrigger(t *testing.T) {
 	})
 }
 
-func TestFAccContainerAppJob_scheduleTrigger(t *testing.T) {
+func TestAccContainerAppJob_scheduleTrigger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
 
