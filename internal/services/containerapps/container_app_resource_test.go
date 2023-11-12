@@ -1205,6 +1205,12 @@ resource "azurerm_container_app" "test" {
       latest_revision = true
       percentage      = 100
     }
+    ip_security_restriction {
+      name = "test"
+      description = "test"
+      action = "Allow"
+      ip_adress_range = "0.0.0.0/0"
+    }
   }
 
   registry {
