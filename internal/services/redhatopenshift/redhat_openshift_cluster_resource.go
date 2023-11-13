@@ -56,8 +56,10 @@ type ClusterProfile struct {
 }
 
 type NetworkProfile struct {
-	PodCidr     string `tfschema:"pod_cidr"`
-	ServiceCidr string `tfschema:"service_cidr"`
+	PreconfiguredNsgEnabled bool   `tfschema:"preconfigured_nsg_enabled"`
+	OutboundType            string `tfschema:"outbound_type"`
+	PodCidr                 string `tfschema:"pod_cidr"`
+	ServiceCidr             string `tfschema:"service_cidr"`
 }
 
 type MainProfile struct {
@@ -144,14 +146,12 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"client_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: openShiftValidate.ClientID,
 					},
 					"client_secret": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
-						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
@@ -160,24 +160,39 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 
 		"network_profile": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
+			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"preconfigured_nsg_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+					"outbound_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(openshiftclusters.OutboundTypeLoadbalancer),
+						ValidateFunc: validation.StringInSlice(
+							openshiftclusters.PossibleValuesForOutboundType(),
+							false,
+						),
+					},
 					"pod_cidr": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						Default:      "10.128.0.0/14",
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						// Default:      "10.128.0.0/14",
 						ValidateFunc: validate.CIDR,
 					},
 					"service_cidr": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						Default:      "172.30.0.0/16",
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						// Default:      "172.30.0.0/16",
 						ValidateFunc: validate.CIDR,
 					},
 				},
@@ -200,6 +215,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"vm_size": {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
+						ForceNew:         true,
 						DiffSuppressFunc: suppress.CaseDifference,
 						ValidateFunc:     validation.StringIsNotEmpty,
 					},
@@ -270,8 +286,8 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"api_server_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"visibility": {
@@ -373,7 +389,7 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 			}
 
 			parameters := openshiftclusters.OpenShiftCluster{
-				Name:     &id.OpenShiftClusterName,
+				Name:     pointer.To(id.OpenShiftClusterName),
 				Location: azure.NormalizeLocation(config.Location),
 				Properties: &openshiftclusters.OpenShiftClusterProperties{
 					ClusterProfile:          expandOpenshiftClusterProfile(config.ClusterProfile, id.SubscriptionId),
@@ -471,6 +487,11 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 			}
 
+			var config RedHatOpenShiftClusterModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
 			state := RedHatOpenShiftClusterModel{
 				Name:          id.OpenShiftClusterName,
 				ResourceGroup: id.ResourceGroupName,
@@ -482,7 +503,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.ClusterProfile = flattenOpenShiftClusterProfile(props.ClusterProfile)
-					state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, metadata.ResourceData)
+					state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
 					state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
 					state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
 					state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
@@ -504,7 +525,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -549,24 +570,15 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) [
 	}
 }
 
-func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServicePrincipalProfile, d *pluginsdk.ResourceData) []ServicePrincipal {
+func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServicePrincipalProfile, config RedHatOpenShiftClusterModel) []ServicePrincipal {
 	if profile == nil {
 		return []ServicePrincipal{}
 	}
 
 	// client secret isn't returned by the API so pass the existing value along
 	clientSecret := ""
-	if sp, ok := d.GetOk("service_principal"); ok {
-		var val []interface{}
-
-		if v, ok := sp.([]interface{}); ok {
-			val = v
-		}
-
-		if len(val) > 0 && val[0] != nil {
-			raw := val[0].(map[string]interface{})
-			clientSecret = raw["client_secret"].(string)
-		}
+	if len(config.ServicePrincipal) != 0 {
+		clientSecret = config.ServicePrincipal[0].ClientSecret
 	}
 
 	return []ServicePrincipal{
@@ -584,8 +596,10 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 
 	return []NetworkProfile{
 		{
-			PodCidr:     pointer.From(profile.PodCidr),
-			ServiceCidr: pointer.From(profile.ServiceCidr),
+			PreconfiguredNsgEnabled: profile.PreconfiguredNSG != nil && *profile.PreconfiguredNSG == openshiftclusters.PreconfiguredNSGEnabled,
+			OutboundType:            string(pointer.From(profile.OutboundType)),
+			PodCidr:                 pointer.From(profile.PodCidr),
+			ServiceCidr:             pointer.From(profile.ServiceCidr),
 		},
 	}
 }
@@ -709,15 +723,19 @@ func expandOpenshiftServicePrincipalProfile(input []ServicePrincipal) *openshift
 
 func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.NetworkProfile {
 	if len(input) == 0 {
-		return &openshiftclusters.NetworkProfile{
-			PodCidr:     pointer.To("10.128.0.0/14"),
-			ServiceCidr: pointer.To("172.30.0.0/16"),
-		}
+		return nil
+	}
+
+	preconfiguredNsg := openshiftclusters.PreconfiguredNSGDisabled
+	if input[0].PreconfiguredNsgEnabled {
+		preconfiguredNsg = openshiftclusters.PreconfiguredNSGEnabled
 	}
 
 	return &openshiftclusters.NetworkProfile{
-		PodCidr:     pointer.To(input[0].PodCidr),
-		ServiceCidr: pointer.To(input[0].ServiceCidr),
+		OutboundType:     pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
+		PreconfiguredNSG: pointer.To(preconfiguredNsg),
+		PodCidr:          pointer.To(input[0].PodCidr),
+		ServiceCidr:      pointer.To(input[0].ServiceCidr),
 	}
 }
 

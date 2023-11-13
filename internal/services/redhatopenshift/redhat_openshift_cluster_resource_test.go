@@ -24,14 +24,38 @@ func TestAccOpenShiftCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
-				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
 			),
 		},
+		data.ImportStep("service_principal.0.client_secret"),
+	})
+}
+
+func TestAccOpenShiftCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
 	})
 }
 
@@ -44,14 +68,39 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 			Config: r.private(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
-				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPrivate)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPrivate)),
 			),
 		},
+		data.ImportStep("service_principal.0.client_secret"),
+	})
+}
+
+func TestAccOpenShiftCluster_preconfiguredNSG(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.preconfiguredNSG(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+	})
+}
+
+func TestAccOpenShiftCluster_userDefinedRouting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userDefinedRouting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
 	})
 }
 
@@ -64,12 +113,9 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 			Config: r.encryptionAtHost(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("main_profile.0.encryption_at_host_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("main_profile.0.disk_encryption_set_id").IsSet(),
-				check.That(data.ResourceName).Key("worker_profile.0.encryption_at_host_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("worker_profile.0.disk_encryption_set_id").IsSet(),
 			),
 		},
+		data.ImportStep("service_principal.0.client_secret"),
 	})
 }
 
@@ -82,15 +128,9 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 			Config: r.basicWithFipsEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_profile.0.fips_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
-				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(openshiftclusters.VisibilityPublic)),
 			),
 		},
+		data.ImportStep("service_principal.0.client_secret"),
 	})
 }
 
@@ -121,6 +161,11 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     domain = "aro-%[3]s.com"
   }
 
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
   main_profile {
     vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.main_subnet.id
@@ -142,13 +187,182 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.client_id
+    client_id     = azuread_application.test.application_id
     client_secret = azuread_service_principal_password.test.value
   }
 
   depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r OpenShiftClusterResource) preconfiguredNSG(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain = "aro-%[3]s.com"
+  }
+
+  network_profile {
+    pod_cidr                  = "10.128.0.0/14"
+    service_cidr              = "172.30.0.0/16"
+    preconfigured_nsg_enabled = true
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  service_principal {
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
+  }
+
+  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+}
+  `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r OpenShiftClusterResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+
+resource "azuread_application" "test2" {
+  display_name = "acctest-aro-2-%[2]d"
+}
+
+resource "azuread_service_principal" "test2" {
+  client_id = azuread_application.test2.client_id
+}
+
+resource "azuread_service_principal_password" "test2" {
+  service_principal_id = azuread_service_principal.test2.object_id
+}
+
+resource "azurerm_role_assignment" "role_network2" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azuread_service_principal.test2.object_id
+}
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain = "aro-%[3]s.com"
+  }
+
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  service_principal {
+    client_id     = azuread_application.test2.application_id
+    client_secret = azuread_service_principal_password.test2.value
+  }
+
+  tags = {
+    foo = "bar"
+  }
+
+  depends_on = ["azurerm_role_assignment.role_network3", "azurerm_role_assignment.role_network2"]
+}
+  `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r OpenShiftClusterResource) userDefinedRouting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain = "foo.example.com"
+  }
+
+  network_profile {
+    pod_cidr      = "10.128.0.0/14"
+    service_cidr  = "172.30.0.0/16"
+    outbound_type = "UserDefinedRouting"
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Private"
+  }
+
+  ingress_profile {
+    visibility = "Private"
+  }
+
+  service_principal {
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
+  }
+
+  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+}
+  `, r.template(data), data.RandomInteger)
 }
 
 func (r OpenShiftClusterResource) private(data acceptance.TestData) string {
@@ -164,6 +378,12 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     domain = "foo.example.com"
   }
 
+  network_profile {
+    pod_cidr      = "10.128.0.0/14"
+    service_cidr  = "172.30.0.0/16"
+    outbound_type = "UserDefinedRouting"
+  }
+
   main_profile {
     vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.main_subnet.id
@@ -185,7 +405,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.client_id
+    client_id     = azuread_application.test.application_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -208,6 +428,11 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     fips_enabled = true
   }
 
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
   api_server_profile {
     visibility = "Public"
   }
@@ -229,7 +454,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.client_id
+    client_id     = azuread_application.test.application_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -319,6 +544,11 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     domain = "foo.example.com"
   }
 
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
   api_server_profile {
     visibility = "Public"
   }
@@ -344,7 +574,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.client_id
+    client_id     = azuread_application.test.application_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -356,6 +586,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 func (OpenShiftClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
+  skip_provider_registration = true
   features {
     key_vault {
       recover_soft_deleted_key_vaults    = false
@@ -376,7 +607,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  client_id = azuread_application.test.client_id
+  application_id = azuread_application.test.application_id
 }
 
 resource "azuread_service_principal_password" "test" {
@@ -384,9 +615,8 @@ resource "azuread_service_principal_password" "test" {
 }
 
 data "azuread_service_principal" "redhatopenshift" {
-	  // This is the RedHatOpenShift service principal id
-	  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
-	  use_existing   = true
+  // This is the RedHatOpenShift service principal id
+  application_id    = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
 resource "azurerm_role_assignment" "role_network1" {
@@ -414,11 +644,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "main_subnet" {
-  name                                           = "main-subnet-%[1]d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.0.0/23"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  name                 = "main-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
 resource "azurerm_subnet" "worker_subnet" {
