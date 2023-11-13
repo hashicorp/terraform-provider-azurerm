@@ -1209,7 +1209,7 @@ resource "azurerm_container_app" "test" {
       name = "test"
       description = "test"
       action = "Allow"
-      ip_adress_range = "0.0.0.0/0"
+      ip_address_range = "0.0.0.0/0"
     }
   }
 

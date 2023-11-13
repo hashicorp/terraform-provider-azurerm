@@ -475,7 +475,7 @@ func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 					Description: "Describe the IP restriction rule that is being sent to the container-app.",
 				},
 
-				"ip_adress_range": {
+				"ip_address_range": {
 					Type:         pluginsdk.TypeString,
 					Optional:     false,
 					ValidateFunc: validation.IsCIDR,
