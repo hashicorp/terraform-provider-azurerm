@@ -246,11 +246,6 @@ resource "azurerm_container_app_environment" "test" {
     workload_profile_type = "D4"
   }
 
-  workload_profile {
-    name                  = "Consumption"
-    workload_profile_type = "Consumption"
-  }
-
   zone_redundancy_enabled = true
 
   tags = {

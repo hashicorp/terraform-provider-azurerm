@@ -17,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const consumption = "Consumption"
-
 type Registry struct {
 	PasswordSecretRef string `tfschema:"password_secret_name"`
 	Server            string `tfschema:"server"`
@@ -3015,85 +3013,4 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 		c.HTTPScaleRules = httpScaleRules
 		c.TCPScaleRules = tcpScaleRules
 	}
-}
-
-type WorkloadProfileModel struct {
-	MaximumCount        int64  `tfschema:"maximum_count"`
-	MinimumCount        int64  `tfschema:"minimum_count"`
-	Name                string `tfschema:"name"`
-	WorkloadProfileType string `tfschema:"workload_profile_type"`
-}
-
-func WorkloadProfileSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"workload_profile_type": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"maximum_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-				},
-
-				"minimum_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-				},
-			},
-		},
-	}
-}
-
-func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments.WorkloadProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]managedenvironments.WorkloadProfile, 0)
-
-	for _, v := range input {
-		r := managedenvironments.WorkloadProfile{
-			Name:                v.Name,
-			WorkloadProfileType: v.WorkloadProfileType,
-		}
-
-		if v.Name != consumption {
-			r.MaximumCount = pointer.To(v.MaximumCount)
-			r.MinimumCount = pointer.To(v.MinimumCount)
-		}
-
-		result = append(result, r)
-	}
-
-	return &result
-}
-
-func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []WorkloadProfileModel {
-	if input == nil || len(*input) == 0 {
-		return []WorkloadProfileModel{}
-	}
-	result := make([]WorkloadProfileModel, 0)
-
-	for _, v := range *input {
-		result = append(result, WorkloadProfileModel{
-			Name:                v.Name,
-			MaximumCount:        pointer.From(v.MaximumCount),
-			MinimumCount:        pointer.From(v.MinimumCount),
-			WorkloadProfileType: v.WorkloadProfileType,
-		})
-	}
-
-	return result
 }
