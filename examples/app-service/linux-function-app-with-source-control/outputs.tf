@@ -10,5 +10,5 @@ output "app_url" {
 }
 
 output "scm_type" {
-	value = azurerm_app_service_source_control.example.scm_type
+  value = azurerm_app_service_source_control.example.scm_type
 }
