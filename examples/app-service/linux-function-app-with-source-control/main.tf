@@ -36,6 +36,8 @@ resource "azurerm_linux_function_app" "example" {
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
   site_config {
+    always_on = true
+
     application_stack {
       python_version = "3.11"
     }
