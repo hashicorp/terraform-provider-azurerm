@@ -464,7 +464,7 @@ func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"action": {
 					Type:         pluginsdk.TypeString,
-					Optional:     false,
+					Required:     true,
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAction(), false),
 					Description:  "The action. Allow or Deny.",
 				},
@@ -477,14 +477,14 @@ func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 
 				"ip_address_range": {
 					Type:         pluginsdk.TypeString,
-					Optional:     false,
+					Required:     true,
 					ValidateFunc: validation.IsCIDR,
 					Description:  "CIDR notation to match incoming IP address.",
 				},
 
 				"name": {
 					Type:         pluginsdk.TypeString,
-					Optional:     false,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "Name for the IP restriction rule.",
 				},
