@@ -281,7 +281,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		TargetPort:             pointer.To(int64(ingress.TargetPort)),
 		ExposedPort:            pointer.To(int64(ingress.ExposedPort)),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
-		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions, appName),
+		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
@@ -611,7 +611,7 @@ func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, app
 	return result
 }
 
-func expandIpSecurityRestrictions(input []IpSecurityRestriction, appName string) *[]containerapps.IPSecurityRestrictionRule {
+func expandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapps.IPSecurityRestrictionRule {
 	if input == nil {
 		return &[]containerapps.IPSecurityRestrictionRule{}
 	}
