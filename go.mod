@@ -17,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.1
 	github.com/hashicorp/go-azure-helpers v0.63.0
-	github.com/hashicorp/go-azure-sdk v0.20231113.1102643
+	github.com/hashicorp/go-azure-sdk v0.20231113.1151755-0.20231113194420-f9ac8974c988
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
