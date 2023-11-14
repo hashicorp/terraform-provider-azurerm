@@ -142,6 +142,13 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"virtual_network_configuration_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      true,
+				RequiredWith: []string{"virtual_network_configuration"},
+			},
+
 			"virtual_network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -347,6 +354,12 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
+		clusterProperties.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateEnabled)
+		if enabled, ok := d.GetOk("virtual_network_configuration_enabled"); ok {
+			if !enabled.(bool) {
+				clusterProperties.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("allowed_fqdns"); ok {
@@ -451,6 +464,11 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(props.OptimizedAutoscale)); err != nil {
 				return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
 			}
+
+			if props.VirtualNetworkConfiguration != nil && props.VirtualNetworkConfiguration.State != nil {
+				d.Set("virtual_network_configuration_enabled", *props.VirtualNetworkConfiguration.State == clusters.VnetStateEnabled)
+			}
+
 			d.Set("allowed_fqdns", props.AllowedFqdnList)
 			d.Set("allowed_ip_ranges", props.AllowedIPRangeList)
 			d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
