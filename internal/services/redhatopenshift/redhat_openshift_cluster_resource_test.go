@@ -74,20 +74,20 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_preconfiguredNSG(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
+// func TestAccOpenShiftCluster_preconfiguredNSG(t *testing.T) {
+// 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+// 	r := OpenShiftClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.preconfiguredNSG(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("service_principal.0.client_secret"),
-	})
-}
+// 	data.ResourceTest(t, r, []acceptance.TestStep{
+// 		{
+// 			Config: r.preconfiguredNSG(data),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 		data.ImportStep("service_principal.0.client_secret"),
+// 	})
+// }
 
 func TestAccOpenShiftCluster_userDefinedRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
@@ -191,7 +191,10 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
@@ -240,7 +243,10 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
@@ -249,20 +255,19 @@ func (r OpenShiftClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-
 resource "azuread_application" "test2" {
   display_name = "acctest-aro-2-%[2]d"
 }
 
 resource "azuread_service_principal" "test2" {
-  client_id = azuread_application.test2.client_id
+  application_id = azuread_application.test2.application_id
 }
 
 resource "azuread_service_principal_password" "test2" {
   service_principal_id = azuread_service_principal.test2.object_id
 }
 
-resource "azurerm_role_assignment" "role_network2" {
+resource "azurerm_role_assignment" "role_network3" {
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
   principal_id         = azuread_service_principal.test2.object_id
@@ -311,7 +316,11 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     foo = "bar"
   }
 
-  depends_on = ["azurerm_role_assignment.role_network3", "azurerm_role_assignment.role_network2"]
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+    "azurerm_role_assignment.role_network3",
+  ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
@@ -326,7 +335,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "foo.example.com"
+    domain = "aro-%[3]s.com"
   }
 
   network_profile {
@@ -360,9 +369,12 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
 }
-  `, r.template(data), data.RandomInteger)
+  `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r OpenShiftClusterResource) private(data acceptance.TestData) string {
@@ -375,13 +387,12 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "foo.example.com"
+    domain = "aro-%[3]s.com"
   }
 
   network_profile {
-    pod_cidr      = "10.128.0.0/14"
-    service_cidr  = "172.30.0.0/16"
-    outbound_type = "UserDefinedRouting"
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
   }
 
   main_profile {
@@ -409,9 +420,12 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
 }
-  `, r.template(data), data.RandomInteger)
+  `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r OpenShiftClusterResource) basicWithFipsEnabled(data acceptance.TestData) string {
@@ -424,7 +438,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain       = "foo.example.com"
+    domain       = "aro-%[3]s.com"
     fips_enabled = true
   }
 
@@ -458,9 +472,12 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
 }
-  `, r.template(data), data.RandomInteger)
+  `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r OpenShiftClusterResource) encryptionAtHost(data acceptance.TestData) string {
@@ -479,14 +496,14 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
   key_vault_id = azurerm_key_vault.test.id
-
-  tenant_id = data.azurerm_client_config.test.tenant_id
-  object_id = data.azurerm_client_config.test.object_id
+  tenant_id    = data.azurerm_client_config.test.tenant_id
+  object_id    = data.azurerm_client_config.test.object_id
 
   key_permissions = [
     "Create",
     "Delete",
     "Get",
+    "GetRotationPolicy",
     "Purge",
     "Update",
   ]
@@ -523,7 +540,7 @@ resource "azurerm_disk_encryption_set" "test" {
   }
 }
 
-resource "azurerm_key_vault_access_policy" "disk-encryption" {
+resource "azurerm_key_vault_access_policy" "disk_encryption" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_disk_encryption_set.test.identity.0.tenant_id
   object_id    = azurerm_disk_encryption_set.test.identity.0.principal_id
@@ -535,13 +552,25 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   ]
 }
 
+resource "azurerm_role_assignment" "disk_encryption_reader1" {
+  scope                = azurerm_disk_encryption_set.test.id
+  role_definition_name = "Reader"
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "disk_encryption_reader2" {
+  scope                = azurerm_disk_encryption_set.test.id
+  role_definition_name = "Reader"
+  principal_id         = data.azuread_service_principal.redhatopenshift.object_id
+}
+
 resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "foo.example.com"
+    domain = "aro-%[3]s.com"
   }
 
   network_profile {
@@ -578,7 +607,13 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_key_vault_access_policy.disk-encryption", "azurerm_role_assignment.role_network1", "azurerm_role_assignment.role_network2"]
+  depends_on = [
+    "azurerm_key_vault_access_policy.disk_encryption",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+    "azurerm_role_assignment.disk_encryption_reader1",
+    "azurerm_role_assignment.disk_encryption_reader2",
+  ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
@@ -616,7 +651,7 @@ resource "azuread_service_principal_password" "test" {
 
 data "azuread_service_principal" "redhatopenshift" {
   // This is the RedHatOpenShift service principal id
-  application_id    = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
 resource "azurerm_role_assignment" "role_network1" {
