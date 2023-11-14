@@ -48,12 +48,12 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 
 				"maximum_count": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Required: true,
 				},
 
 				"minimum_count": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Required: true,
 				},
 			},
 		},
