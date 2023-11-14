@@ -466,7 +466,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for LabService: %+v", err)
 	}
 	client.Legacy = legacy.NewClient(o)
-	client.Lighthouse = lighthouse.NewClient(o)
+	if client.Lighthouse, err = lighthouse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Lighthouse: %+v", err)
+	}
 	if client.LogAnalytics, err = loganalytics.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LogAnalytics: %+v", err)
 	}
