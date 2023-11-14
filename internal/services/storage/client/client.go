@@ -75,21 +75,24 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	resourceManager, err := storage_v2023_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
+	if err != nil {
+		return nil, fmt.Errorf("building ResourceManager clients: %+v", err)
+	}
 
 	syncCloudEndpointsClient, err := cloudendpointresource.NewCloudEndpointResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building clients for Cloud EndpointsClient Client: %+v", err)
+		return nil, fmt.Errorf("building CloudEndpoint client: %+v", err)
 	}
 	o.Configure(syncCloudEndpointsClient.Client, o.Authorizers.ResourceManager)
 	syncServiceClient, err := storagesyncservicesresource.NewStorageSyncServicesResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building clients for Storage Sync Service Client: %+v", err)
+		return nil, fmt.Errorf("building StorageSyncService client: %+v", err)
 	}
 	o.Configure(syncServiceClient.Client, o.Authorizers.ResourceManager)
 
 	syncGroupsClient, err := syncgroupresource.NewSyncGroupResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building clients for Storage Sync Groups Client: %+v", err)
+		return nil, fmt.Errorf("building StorageSyncGroups client: %+v", err)
 	}
 	o.Configure(syncGroupsClient.Client, o.Authorizers.ResourceManager)
 
