@@ -856,11 +856,14 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 		d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		d.Set("fips_enabled", props.EnableFIPS)
-		d.Set("gpu_instance_profile", props.GpuInstanceProfile)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
 
 		if v := props.KubeletDiskType; v != nil {
 			d.Set("kubelet_disk_type", string(*v))
+		}
+
+		if v := props.GpuInstanceProfile; v != nil {
+			d.Set("gpu_instance_profile", string(*v))
 		}
 
 		if props.CreationData != nil {
