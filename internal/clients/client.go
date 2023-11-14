@@ -580,7 +580,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ServiceBus: %+v", err)
 	}
-	client.ServiceConnector = serviceConnector.NewClient(o)
+	if client.ServiceConnector, err = serviceConnector.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
+	}
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
 	if client.ServiceNetworking, err = serviceNetworking.NewClient(o); err != nil {
