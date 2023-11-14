@@ -2,8 +2,11 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `github.com/hashicorp/go-azure-sdk` to `v0.20231113.1151754` [GH-23886]
+* dependencies: updating to `v0.20231114.1115341` of `github.com/hashicorp/go-azure-sdk` [GH-23890]
+* `managedservices`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-23890]
 * `network`: updating to API Version `2023-06-01` [GH-23875]
+* `servicelinker`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-23890]
+* `storage`: refactoring usages of `github.com/hashicorp/go-azure-sdk` to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-23890]
 * Data Source: `azurerm_network_ddos_protection_plan`: refactoring to use `hashicorp/go-azure-sdk` [GH-23849]
 * `azurerm_logic_app_integration_account_certificate` - `name` now accepts underscores [GH-23866]
 * `azurerm_logic_app_integration_account_partner` - `business_identity.value` now accepts underscores [GH-23866]
