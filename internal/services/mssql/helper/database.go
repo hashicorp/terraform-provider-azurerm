@@ -35,7 +35,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 	log.Printf("[INFO] FindDatabaseReplicationPartners lookup for %s", id)
 
-	// Bug 2805551 ReplicationLink API ListByDatabase missed subsubcriptionId in partnerDatabaseId in response body
+	// Azure Bug 2805551 ReplicationLink API ListByDatabase missed subsubcriptionId in partnerDatabaseId in response body
 	results, err := replicationLinksClient.ListByDatabaseComplete(ctx, id)
 	if err != nil {
 		// Not sure if this is really an error anymore given the change in the API...

@@ -93,7 +93,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 		return nil, err
 	}
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, pointer.From(id), []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	if len(partnerDatabases) > 0 {
 		partnerDatabase := partnerDatabases[0]
 
-		partnerDatabaseId, err := commonids.ParseDatabaseID(*partnerDatabase.Id)
+		partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 		if err != nil {
 			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 		}
@@ -204,7 +204,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Update the SKUs of any partner databases where deemed necessary
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseDatabaseID(*partnerDatabase.Id)
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
@@ -286,11 +286,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
 		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(databases.CreateModePointInTimeRestore) {
 			return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
-		}
-
-		_, err := time.Parse(time.RFC3339, v.(string))
-		if err != nil {
-			return fmt.Errorf("parsing `restore_point_in_time` value %q for %s: %+v", v, id, err)
 		}
 
 		input.Properties.RestorePointInTime = pointer.To(v.(string))
@@ -519,36 +514,26 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			if props.AutoPauseDelay != nil {
-				d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
+			minCapacity = pointer.From(props.MinCapacity)
+
+			requestedBackupStorageRedundancy := ""
+			if props.RequestedBackupStorageRedundancy != nil {
+				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
 			}
 
-			if props.Collation != nil {
-				d.Set("collation", props.Collation)
-			}
+			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
+			d.Set("collation", pointer.From(props.Collation))
+			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
+			d.Set("storage_account_type", requestedBackupStorageRedundancy)
+			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
+			d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScaleEnabled)
 
 			if props.ElasticPoolId != nil {
 				elasticPoolId = pointer.From(props.ElasticPoolId)
 			}
 
-			if props.MinCapacity != nil {
-				minCapacity = pointer.From(props.MinCapacity)
-			}
-
-			if props.HighAvailabilityReplicaCount != nil {
-				d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
-			}
-
 			if props.RequestedBackupStorageRedundancy != nil {
 				d.Set("storage_account_type", string(pointer.From(props.RequestedBackupStorageRedundancy)))
-			}
-
-			if props.ZoneRedundant != nil {
-				d.Set("zone_redundant", props.ZoneRedundant)
-			}
-
-			if props.ReadScale != nil {
-				d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScaleEnabled)
 			}
 
 			if props.LicenseType != nil {
@@ -584,6 +569,10 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
+
+			if err := tags.FlattenAndSet(d, resp.Model.Tags); err != nil {
+				return err
+			}
 		}
 
 		// DW SKU's do not currently support LRP and do not honour normal SRP operations
@@ -657,10 +646,9 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			tdeState = (props.State == transparentdataencryptions.TransparentDataEncryptionStateEnabled)
 		}
 	}
-
 	d.Set("transparent_data_encryption_enabled", tdeState)
 
-	return tags.FlattenAndSet(d, resp.Model.Tags)
+	return nil
 }
 
 func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -746,7 +734,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Update the SKUs of any partner databases where deemed necessary
 		for _, v := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseDatabaseID(pointer.From(v.Id))
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(pointer.From(v.Id))
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", id.ID(), err)
 			}

@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,17 +14,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/restorabledroppeddatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadadministrators"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serverconnectionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -294,17 +296,9 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.MinimalTlsVersion = pointer.To(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id, props)
+	err = client.CreateOrUpdateThenPoll(ctx, id, props)
 	if err != nil {
-		return fmt.Errorf("issuing create request for %s: %+v", id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		if response.WasConflict(future.HttpResponse) {
-			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.ServerName)
-		}
-
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -316,7 +310,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if err = connectionClient.CreateOrUpdateThenPoll(ctx, id, connection); err != nil {
-		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id, err)
+		return fmt.Errorf("creating Connection Policy for %s: %+v", id, err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -340,12 +334,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if model := existing.Model; model != nil {
-		if existing.Model == nil {
-			return fmt.Errorf("retrieving existing %s: %+v", *id, err)
-		}
-		payload := *existing.Model
-
+	if payload := existing.Model; payload != nil {
 		if d.HasChange("tags") {
 			payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 		}
@@ -358,7 +347,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			payload.Identity = expanded
 		}
 
-		if d.HasChange("key_vault_key_id") {
+		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
 			keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
 
 			keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
@@ -402,16 +391,12 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			payload.Properties.MinimalTlsVersion = pointer.To(d.Get("minimum_tls_version").(string))
 		}
 
-		future, err := client.CreateOrUpdate(ctx, *id, payload)
+		future, err := client.CreateOrUpdate(ctx, *id, *payload)
 		if err != nil {
-			return fmt.Errorf("issuing update request for %s: %+v", id, err)
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
 		if err = future.Poller.PollUntilDone(ctx); err != nil {
-			if response.WasConflict(future.HttpResponse) {
-				return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use", id.ServerName)
-			}
-
 			return fmt.Errorf("waiting for update of %s: %+v", pointer.From(id), err)
 		}
 	}
@@ -442,45 +427,14 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			// NOTE: This call does not return a future it returns a response, but you will get a future back if the status code is 202...
 			// https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
 			if response.WasStatusCode(resp.HttpResponse, 202) {
-				// It was accepted but not completed, it is now an async operation...
+				// NOTE: It was accepted but not completed, it is now an async operation...
+				// create a custom poller and wait for it to complete as 'Succeeded'...
 				log.Printf("[INFO] Delete Azure Active Directory Only Administrators response was a 202 WaitForStateContext...")
 
-				// NOTE: the resp.Poller.PollUntilDone(ctx) gets stuck in a loop and never returns even when the status code
-				// being retuned by the service is a 200... could not figure out how to get the resourcemanager.PollerFromResponse()
-				// to work, opted for a waitforstate instead...
-				deadline, ok := ctx.Deadline()
-				if !ok {
-					return fmt.Errorf("internal-error: context had no deadline")
-				}
-
-				// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-				stateConf := &pluginsdk.StateChangeConf{
-					Pending: []string{"InProgress"},
-					Target:  []string{"Succeeded"},
-					Refresh: func() (interface{}, string, error) {
-						resp, err := aadOnlyAuthenticationsClient.Get(ctx, pointer.From(id))
-						if err != nil {
-							return nil, "Failed", fmt.Errorf("polling for the delete status of the Azure Active Directory Only Administrator: %+v", err)
-						}
-
-						if model := resp.Model; model != nil {
-							if model.Name != nil {
-								if props := model.Properties; props != nil {
-									if !props.AzureADOnlyAuthentication && strings.EqualFold(pointer.From(model.Name), "Default") {
-										return resp, "Succeeded", nil
-									}
-								}
-							}
-						}
-
-						return resp, "InProgress", nil
-					},
-					ContinuousTargetOccurence: 2,
-					MinTimeout:                5 * time.Second,
-					Timeout:                   time.Until(deadline),
-				}
-
-				if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				initialDelayDuration := 5 * time.Second
+				pollerType := custompollers.NewMsSqlServerDeleteServerAzureADOnlyAuthenticationPoller(aadOnlyAuthenticationsClient, pointer.From(id))
+				poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
 					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
 				}
 			}
@@ -543,7 +497,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, pointer.From(id), servers.DefaultGetOperationOptions())
+	resp, err := client.Get(ctx, *id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Error retrieving SQL Server %s - removing from state", id)
@@ -558,9 +512,8 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != "" {
-			d.Set("location", azure.NormalizeLocation(location))
-		}
+		// NOTE: In the new API this just a string instead of a *string, shouldn't we just call Normalize?
+		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 		if err != nil {

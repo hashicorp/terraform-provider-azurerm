@@ -288,11 +288,7 @@ func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	if resp.Model == nil {
-		return nil, fmt.Errorf("server model was nil")
-	}
-
-	return utils.Bool(resp.Model.Id != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MsSqlServerResource) basic(data acceptance.TestData) string {
