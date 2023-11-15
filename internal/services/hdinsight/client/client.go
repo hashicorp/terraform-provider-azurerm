@@ -4,7 +4,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2021-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

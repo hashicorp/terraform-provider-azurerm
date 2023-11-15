@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2021-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -992,12 +992,12 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		if clusterIndentity == nil {
 			clusterIndentity = &hdinsight.ClusterIdentity{
 				Type:                   hdinsight.ResourceIdentityTypeUserAssigned,
-				UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
+				UserAssignedIdentities: make(map[string]*hdinsight.UserAssignedIdentity),
 			}
 		}
 
 		// ... API doesn't seem to require client_id or principal_id, so pass in an empty ClusterIdentityUserAssignedIdentitiesValue
-		clusterIndentity.UserAssignedIdentities[managedIdentityResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
+		clusterIndentity.UserAssignedIdentities[managedIdentityResourceID] = &hdinsight.UserAssignedIdentity{}
 
 		result := hdinsight.StorageAccount{
 			Name:          utils.String(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
