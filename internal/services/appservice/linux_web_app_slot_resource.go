@@ -29,38 +29,40 @@ import (
 type LinuxWebAppSlotResource struct{}
 
 type LinuxWebAppSlotModel struct {
-	Name                          string                              `tfschema:"name"`
-	AppServiceId                  string                              `tfschema:"app_service_id"`
-	ServicePlanID                 string                              `tfschema:"service_plan_id"`
-	AppSettings                   map[string]string                   `tfschema:"app_settings"`
-	AuthSettings                  []helpers.AuthSettings              `tfschema:"auth_settings"`
-	AuthV2Settings                []helpers.AuthV2Settings            `tfschema:"auth_settings_v2"`
-	Backup                        []helpers.Backup                    `tfschema:"backup"`
-	ClientAffinityEnabled         bool                                `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                                `tfschema:"client_certificate_enabled"`
-	ClientCertMode                string                              `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths      string                              `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                       bool                                `tfschema:"enabled"`
-	HttpsOnly                     bool                                `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID   string                              `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                    []helpers.LogsConfig                `tfschema:"logs"`
-	MetaData                      map[string]string                   `tfschema:"app_metadata"`
-	SiteConfig                    []helpers.SiteConfigLinuxWebAppSlot `tfschema:"site_config"`
-	StorageAccounts               []helpers.StorageAccount            `tfschema:"storage_account"`
-	ConnectionStrings             []helpers.ConnectionString          `tfschema:"connection_string"`
-	ZipDeployFile                 string                              `tfschema:"zip_deploy_file"`
-	Tags                          map[string]string                   `tfschema:"tags"`
-	CustomDomainVerificationId    string                              `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string                              `tfschema:"default_hostname"`
-	HostingEnvId                  string                              `tfschema:"hosting_environment_id"`
-	Kind                          string                              `tfschema:"kind"`
-	OutboundIPAddresses           string                              `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string                            `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string                              `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string                            `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess           bool                                `tfschema:"public_network_access_enabled"`
-	SiteCredentials               []helpers.SiteCredential            `tfschema:"site_credential"`
-	VirtualNetworkSubnetID        string                              `tfschema:"virtual_network_subnet_id"`
+	Name                             string                              `tfschema:"name"`
+	AppServiceId                     string                              `tfschema:"app_service_id"`
+	ServicePlanID                    string                              `tfschema:"service_plan_id"`
+	AppSettings                      map[string]string                   `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings              `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings            `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                    `tfschema:"backup"`
+	ClientAffinityEnabled            bool                                `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                bool                                `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                              `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                              `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                          bool                                `tfschema:"enabled"`
+	HttpsOnly                        bool                                `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                              `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                       []helpers.LogsConfig                `tfschema:"logs"`
+	MetaData                         map[string]string                   `tfschema:"app_metadata"`
+	SiteConfig                       []helpers.SiteConfigLinuxWebAppSlot `tfschema:"site_config"`
+	StorageAccounts                  []helpers.StorageAccount            `tfschema:"storage_account"`
+	ConnectionStrings                []helpers.ConnectionString          `tfschema:"connection_string"`
+	ZipDeployFile                    string                              `tfschema:"zip_deploy_file"`
+	Tags                             map[string]string                   `tfschema:"tags"`
+	CustomDomainVerificationId       string                              `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                  string                              `tfschema:"default_hostname"`
+	HostingEnvId                     string                              `tfschema:"hosting_environment_id"`
+	Kind                             string                              `tfschema:"kind"`
+	OutboundIPAddresses              string                              `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                            `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                              `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                            `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess              bool                                `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                                `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                  []helpers.SiteCredential            `tfschema:"site_credential"`
+	VirtualNetworkSubnetID           string                              `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
@@ -174,6 +176,18 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -435,6 +449,28 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if !webAppSlot.PublishingDeployBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("disabling basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if !webAppSlot.PublishingFTPBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("disabling basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
+			}
+
 			return nil
 		},
 	}
@@ -525,6 +561,20 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
 
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+				return fmt.Errorf("retreiving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthFTP = pointer.From(csmProps.Allow)
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+				return fmt.Errorf("retreiving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			}
+
 			state := LinuxWebAppSlotModel{}
 			if props := webAppSlot.SiteProperties; props != nil {
 				state = LinuxWebAppSlotModel{
@@ -568,6 +618,9 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetID = subnetId
 				}
 			}
+
+			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
+			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 			if err != nil {
@@ -862,6 +915,28 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("zip_deploy_file") {
 				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile, id.SlotName); err != nil {
 					return err
+				}
+			}
+
+			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingFTPBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("disabling basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingDeployBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("disabling basic auth for deploy publishing credentials for %s: %+v", id, err)
 				}
 			}
 
