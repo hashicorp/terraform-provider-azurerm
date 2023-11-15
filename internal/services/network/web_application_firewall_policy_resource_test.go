@@ -444,6 +444,23 @@ resource "azurerm_web_application_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
 
   managed_rules {
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+
+      excluded_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+        rule_group {
+          rule_group_name = "PROTOCOL-ENFORCEMENT"
+          excluded_rules = [
+            "920100",
+          ]
+        }
+      }
+    }
+
     managed_rule_set {
       type    = "Microsoft_DefaultRuleSet"
       version = "2.1"
