@@ -1373,6 +1373,9 @@ resource "azurerm_windows_web_app_slot" "test" {
     mount_path   = "/mounts/files"
   }
 
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
+
   tags = {
     Environment = "AccTest"
     foo         = "bar"
