@@ -1424,13 +1424,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "OWASP",
-							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetType,
+							ValidateFunc: networkValidate.ValidateWebApplicationFirewallConfigurationRuleSetType,
 						},
 
 						"rule_set_version": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
+							ValidateFunc: networkValidate.ValidateWebApplicationFirewallConfigurationRuleSetVersion,
 						},
 						"file_upload_limit_mb": {
 							Type:         pluginsdk.TypeInt,
@@ -1457,7 +1457,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"rule_group_name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+										ValidateFunc: networkValidate.ValidateWebApplicationFirewallConfigurationRuleGroupName,
 									},
 
 									"rules": {

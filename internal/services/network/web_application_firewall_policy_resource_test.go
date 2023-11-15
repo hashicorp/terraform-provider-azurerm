@@ -366,6 +366,21 @@ func TestAccWebApplicationFirewallPolicy_updateCustomRules(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_typeDRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.typeDRS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
@@ -401,6 +416,55 @@ resource "azurerm_web_application_firewall_policy" "test" {
     managed_rule_set {
       type    = "OWASP"
       version = "3.1"
+    }
+  }
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) typeDRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+
+      rule_group_override {
+        rule_group_name = "MS-ThreatIntel-WebShells"
+        rule {
+          id      = "99005002"
+          enabled = true
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "PROTOCOL-ATTACK"
+        rule {
+          id      = "921200"
+          enabled = true
+          action  = "Block"
+        }
+      }
     }
   }
 
