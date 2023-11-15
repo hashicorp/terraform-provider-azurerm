@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudDynatraceApplicationPerformanceMonitoringModel struct {
@@ -43,7 +42,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) IDValidati
 	return appplatform.ValidateApmID
 }
 
-func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments() map[string]*schema.Schema {
+func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -54,27 +53,23 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments(
 
 		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(appplatform.SpringId{}),
 
-		"globally_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
 		"connection_point": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"environment_id": {
+		"tenant": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"tenant_token": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -87,18 +82,25 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments(
 		"api_token": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"tenant": {
+		"environment_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"globally_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 }
 
-func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Attributes() map[string]*schema.Schema {
+func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
@@ -129,12 +131,12 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Create() s
 			resource := appplatform.ApmResource{
 				Properties: &appplatform.ApmProperties{
 					Type: "Dynatrace",
-					Properties: utils.ToPtr(map[string]string{
+					Properties: pointer.To(map[string]string{
 						"api-url":          model.ApiUrl,
 						"connection_point": model.ConnectionPoint,
 						"environment-id":   model.EnvironmentId,
 					}),
-					Secrets: utils.ToPtr(map[string]string{
+					Secrets: pointer.To(map[string]string{
 						"api-token":   model.ApiToken,
 						"tenanttoken": model.TenantToken,
 						"tenant":      model.Tenant,
@@ -146,6 +148,8 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Create() s
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if model.GloballyEnabled {
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
@@ -156,7 +160,6 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Create() s
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -188,10 +191,10 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Update() s
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 			if properties.Properties == nil {
-				properties.Properties = utils.ToPtr(map[string]string{})
+				properties.Properties = pointer.To(map[string]string{})
 			}
 			if properties.Secrets == nil {
-				properties.Secrets = utils.ToPtr(map[string]string{})
+				properties.Secrets = pointer.To(map[string]string{})
 			}
 
 			if metadata.ResourceData.HasChange("api_url") {

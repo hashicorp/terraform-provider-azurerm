@@ -31,16 +31,16 @@ resource "azurerm_spring_cloud_service" "example" {
   sku_name            = "E0"
 }
 
-resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "test" {
-  name                    = "acctest-apm-%[2]d"
-  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "example" {
+  name                    = "example"
+  spring_cloud_service_id = azurerm_spring_cloud_service.example.id
   globally_enabled        = true
-  api_url                 = "https://test-api-url.com"
-  api_token               = "test-api-token"
-  environment_id          = "test-environment-id"
-  tenant                  = "test-tenant"
-  tenant_token            = "test-tenant-token"
-  connection_point        = "test-connection-endpoint"
+  api_url                 = "https://example-api-url.com"
+  api_token               = "example-api-token"
+  environment_id          = "example-environment-id"
+  tenant                  = "example-tenant"
+  tenant_token            = "example-tenant-token"
+  connection_point        = "example-connection-endpoint"
 }
 ```
 
