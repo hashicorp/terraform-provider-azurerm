@@ -417,7 +417,7 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -434,25 +434,10 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 				parameter.Tags = pointer.To(state.Tags)
 			}
 
-			if metadata.ResourceData.HasChange("cluster_profile") {
-				if parameter.Properties == nil {
-					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+			if metadata.ResourceData.HasChange("service_principal") {
+				parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{
+					ServicePrincipalProfile: expandOpenshiftServicePrincipalProfile(state.ServicePrincipal),
 				}
-				parameter.Properties.ClusterProfile = expandOpenshiftClusterProfile(state.ClusterProfile, subscriptionId)
-			}
-
-			if metadata.ResourceData.HasChange("main_profile") {
-				if parameter.Properties == nil {
-					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
-				}
-				parameter.Properties.MasterProfile = expandOpenshiftMasterProfile(state.MainProfile)
-			}
-
-			if metadata.ResourceData.HasChange("worker_profile") {
-				if parameter.Properties == nil {
-					parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{}
-				}
-				parameter.Properties.WorkerProfiles = expandOpenshiftWorkerProfiles(state.WorkerProfile)
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameter); err != nil {
