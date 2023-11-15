@@ -1792,7 +1792,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     storage_account_type = "Standard_LRS"
   }
 
-  storage_image_reference {
+  source_image_reference {
     publisher = "OpenLogic"
     offer     = "CentOS"
     sku       = "7.5"
