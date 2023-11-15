@@ -2063,7 +2063,7 @@ resource "azurerm_windows_function_app" "test" {
     }
   }
 
-  ftp_publish_basic_authentication_enabled    = false
+  ftp_publish_basic_authentication_enabled       = false
   webdeploy_publish_basic_authentication_enabled = false
 
   tags = {

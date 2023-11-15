@@ -2594,7 +2594,7 @@ resource "azurerm_linux_web_app_slot" "test" {
   name           = "acctestWAS-%d"
   app_service_id = azurerm_linux_web_app.test.id
 
-  ftp_publish_basic_authentication_enabled    = false
+  ftp_publish_basic_authentication_enabled       = false
   webdeploy_publish_basic_authentication_enabled = false
 
   site_config {}

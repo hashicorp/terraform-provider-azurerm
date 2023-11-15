@@ -1538,7 +1538,7 @@ resource "azurerm_windows_function_app_slot" "test" {
     }
   }
 
-  ftp_publish_basic_authentication_enabled    = false
+  ftp_publish_basic_authentication_enabled       = false
   webdeploy_publish_basic_authentication_enabled = false
 
   tags = {

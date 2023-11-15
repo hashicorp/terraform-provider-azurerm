@@ -2318,7 +2318,7 @@ resource "azurerm_windows_web_app" "test" {
     // auto_swap_slot_name = // TODO - Not supported yet
   }
 
-  ftp_publish_basic_authentication_enabled    = false
+  ftp_publish_basic_authentication_enabled       = false
   webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
