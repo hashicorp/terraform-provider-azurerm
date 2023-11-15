@@ -472,7 +472,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					},
 				}
 				if _, err := client.UpdateScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
-					return fmt.Errorf("disabling basic auth for deploy publishing credentials for %s: %+v", id, err)
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 				}
 			}
 
@@ -483,7 +483,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					},
 				}
 				if _, err := client.UpdateFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
-					return fmt.Errorf("disabling basic auth for ftp publishing credentials for %s: %+v", id, err)
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 				}
 			}
 
@@ -586,14 +586,14 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			basicAuthFTP := true
 			if basicAuthFTPResp, err := client.GetFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
-				return fmt.Errorf("retreiving state of FTP Basic Auth for %s: %+v", id, err)
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
 				basicAuthFTP = pointer.From(csmProps.Allow)
 			}
 
 			basicAuthWebDeploy := true
 			if basicAuthWebDeployResp, err := client.GetScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
-				return fmt.Errorf("retreiving state of WebDeploy Basic Auth for %s: %+v", id, err)
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
 				basicAuthWebDeploy = pointer.From(csmProps.Allow)
 			}
@@ -965,7 +965,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 					},
 				}
 				if _, err := client.UpdateFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
-					return fmt.Errorf("disabling basic auth for deploy publishing credentials for %s: %+v", id, err)
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 				}
 			}
 
@@ -976,7 +976,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 					},
 				}
 				if _, err := client.UpdateScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
-					return fmt.Errorf("disabling basic auth for deploy publishing credentials for %s: %+v", id, err)
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 				}
 			}
 

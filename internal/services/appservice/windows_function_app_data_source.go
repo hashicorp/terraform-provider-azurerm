@@ -307,14 +307,14 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			basicAuthFTP := true
 			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
-				return fmt.Errorf("retreiving state of FTP Basic Auth for %s: %+v", id, err)
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
 				basicAuthFTP = pointer.From(csmProps.Allow)
 			}
 
 			basicAuthWebDeploy := true
 			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
-				return fmt.Errorf("retreiving state of WebDeploy Basic Auth for %s: %+v", id, err)
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
 				basicAuthWebDeploy = pointer.From(csmProps.Allow)
 			}
