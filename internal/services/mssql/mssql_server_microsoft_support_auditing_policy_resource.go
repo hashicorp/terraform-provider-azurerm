@@ -144,15 +144,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 		return fmt.Errorf("waiting for the creation of the MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 	}
 
-	read, err := client.Get(ctx, serverId.ResourceGroupName, serverId.ServerName, "default")
-	if err != nil {
-		return fmt.Errorf("retrieving MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
-	}
-
-	if read.Name == nil || *read.Name == "" {
-		return fmt.Errorf("reading MsSql Server Microsoft Support Auditing Policy %s: 'Name' is 'empty' or 'nil'", serverId)
-	}
-	id := parse.NewServerMicrosoftSupportAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, *read.Name)
+	id := parse.NewServerMicrosoftSupportAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, "default")
 
 	d.SetId(id.ID())
 

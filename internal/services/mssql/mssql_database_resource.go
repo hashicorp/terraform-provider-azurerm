@@ -193,7 +193,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.Id)
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
@@ -828,10 +828,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if v, ok := d.GetOk("restore_point_in_time"); ok {
 			if createMode != string(databases.CreateModePointInTimeRestore) {
 				return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
-			}
-			_, err := time.Parse(time.RFC3339, v.(string))
-			if err != nil {
-				return fmt.Errorf("parsing `restore_point_in_time` value %q for %s: %+v", v, id, err)
 			}
 			props.RestorePointInTime = pointer.To(v.(string))
 		}

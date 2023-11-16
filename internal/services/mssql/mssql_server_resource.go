@@ -391,13 +391,9 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			payload.Properties.MinimalTlsVersion = pointer.To(d.Get("minimum_tls_version").(string))
 		}
 
-		future, err := client.CreateOrUpdate(ctx, *id, *payload)
+		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-
-		if err = future.Poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for update of %s: %+v", pointer.From(id), err)
 		}
 	}
 

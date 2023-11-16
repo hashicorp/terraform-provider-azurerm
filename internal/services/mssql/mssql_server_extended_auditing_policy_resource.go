@@ -160,16 +160,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("waiting for creation of MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 	}
 
-	read, err := client.Get(ctx, serverId.ResourceGroupName, serverId.ServerName)
-	if err != nil {
-		return fmt.Errorf("retrieving MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
-	}
-
-	if read.Name == nil || *read.Name == "" {
-		return fmt.Errorf("reading MsSql Server Extended Auditing Policy %s 'Name' is 'empty' or 'nil'", serverId)
-	}
-
-	id := parse.NewServerExtendedAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, *read.Name)
+	id := parse.NewServerExtendedAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, "default")
 
 	d.SetId(id.ID())
 

@@ -799,7 +799,7 @@ func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.DatabasesClient.Get(ctx, pointer.From(id), databases.DefaultGetOperationOptions())
+	resp, err := client.MSSQL.DatabasesClient.Get(ctx, *id, databases.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("SQL %s does not exist", id)
