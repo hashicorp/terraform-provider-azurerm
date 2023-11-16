@@ -1024,51 +1024,51 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
-    name                        = "Client_communication_to_API_Management"
-    priority                    = 100
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "80"
-    source_address_prefix       = "VirtualNetwork"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Client_communication_to_API_Management"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
   }
 
   security_rule {
-    name                        = "Secure_Client_communication_to_API_Management"
-    priority                    = 110
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "443"
-    source_address_prefix       = "VirtualNetwork"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Secure_Client_communication_to_API_Management"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
   }
 
   security_rule {
-    name                        = "Management_endpoint_for_Azure_portal_and_Powershell"
-    priority                    = 120
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "3443"
-    source_address_prefix       = "ApiManagement"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Management_endpoint_for_Azure_portal_and_Powershell"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3443"
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
   }
 
   security_rule {
-    name                        = "Authenticate_To_Azure_Active_Directory"
-    priority                    = 200
-    direction                   = "Outbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_ranges     = ["80", "443"]
-    source_address_prefix       = "ApiManagement"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Authenticate_To_Azure_Active_Directory"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
   }
 }
 
@@ -1114,51 +1114,51 @@ resource "azurerm_network_security_group" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
 
   security_rule {
-    name                        = "Client_communication_to_API_Management"
-    priority                    = 100
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "80"
-    source_address_prefix       = "VirtualNetwork"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Client_communication_to_API_Management"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
   }
 
   security_rule {
-    name                        = "Secure_Client_communication_to_API_Management"
-    priority                    = 110
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "443"
-    source_address_prefix       = "VirtualNetwork"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Secure_Client_communication_to_API_Management"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
   }
 
   security_rule {
-    name                        = "Management_endpoint_for_Azure_portal_and_Powershell"
-    priority                    = 120
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "3443"
-    source_address_prefix       = "ApiManagement"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Management_endpoint_for_Azure_portal_and_Powershell"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3443"
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
   }
 
   security_rule {
-    name                        = "Authenticate_To_Azure_Active_Directory"
-    priority                    = 200
-    direction                   = "Outbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
-    source_port_range           = "*"
-    destination_port_ranges     = ["80", "443"]
-    source_address_prefix       = "ApiManagement"
-    destination_address_prefix  = "VirtualNetwork"
+    name                       = "Authenticate_To_Azure_Active_Directory"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
   }
 }
 
