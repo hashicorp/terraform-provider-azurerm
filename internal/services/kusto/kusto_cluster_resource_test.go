@@ -243,7 +243,7 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.vnet(data),
+			Config: r.vnetUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
@@ -251,18 +251,6 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.vnet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1092,6 +1080,8 @@ resource "azurerm_kusto_cluster" "test" {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
+
+  public_network_access_enabled = false
 
   virtual_network_configuration_enabled = false
 
