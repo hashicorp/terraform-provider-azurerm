@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `virtual_network_configuration_enabled` - (Optional) Whether the virtual network is enabled. This property could only be set when `virtual_network_configuration` is present. Possible values are: `true` and `false`. Defaults to `true`.
 
+~> **NOTE:** Currently `virtual_network_configuration_enabled` could only change from `true` to `false` and not the other way around.
+
 ~> **NOTE:** Changing `virtual_network_configuration_enabled` to `false` will cause the `public_network_access_enabled` field to be set to `false` as well.
 
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON`, `PYTHON_3.10.8` and `R`. `PYTHON` is used to specify Python 3.6.5 image and `PYTHON_3.10.8` is used to specify Python 3.10.8 image. Note that `PYTHON_3.10.8` is only available in skus which support nested virtualization.
