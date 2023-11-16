@@ -10,15 +10,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type NetAppAccountEncryptionDataSource struct{}
@@ -49,7 +46,6 @@ func (r NetAppAccountEncryptionDataSource) Arguments() map[string]*pluginsdk.Sch
 
 		"user_assigned_identity_id": {
 			Type:          pluginsdk.TypeString,
-			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
 			Optional:      true,
 			Description:   "The resource ID of the User Assigned Identity to use for encryption.",
 			ConflictsWith: []string{"system_assigned_identity_principal_id"},
@@ -57,25 +53,15 @@ func (r NetAppAccountEncryptionDataSource) Arguments() map[string]*pluginsdk.Sch
 
 		"system_assigned_identity_principal_id": {
 			Type:          pluginsdk.TypeString,
-			ValidateFunc:  validation.IsUUID,
 			Optional:      true,
 			Description:   "The Principal ID of the System Assigned Identity to use for encryption.",
 			ConflictsWith: []string{"user_assigned_identity_id"},
 		},
 
-		"encryption": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"key_vault_key_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-					},
-				},
-			},
+		"encryption_key": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "The versionless encryption key url.",
 		},
 	}
 }
@@ -119,7 +105,10 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			state.Encryption = flattenEncryption(model.Properties.Encryption)
+			state.EncryptionKey, err = flattenEncryption(model.Properties.Encryption)
+			if err != nil {
+				return err
+			}
 
 			if len(anfAccountIdentityFlattened) > 0 {
 
@@ -128,7 +117,10 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 				}
 
 				if anfAccountIdentityFlattened[0].Type == identity.TypeUserAssigned {
-					state.UserAssignedIdentityID = anfAccountIdentityFlattened[0].IdentityIds[0]
+
+					if len(anfAccountIdentityFlattened[0].IdentityIds) > 0 {
+						state.UserAssignedIdentityID = anfAccountIdentityFlattened[0].IdentityIds[0]
+					}
 				}
 			}
 

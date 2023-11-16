@@ -526,11 +526,6 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 						if err = volumeClient.UpdateThenPoll(ctx, volumeId, update); err != nil {
 							return fmt.Errorf("updating %s: %+v", volumeId, err)
 						}
-
-						// Wait for volume to complete update
-						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
-							return err
-						}
 					}
 				}
 			}

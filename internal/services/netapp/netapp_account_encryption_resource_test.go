@@ -31,7 +31,7 @@ func TestAccNetAppAccountEncryption_cmkSystemAssigned(t *testing.T) {
 			Config: r.cmkSystemAssigned(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
+				check.That(data.ResourceName).Key("encryption_key").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -49,7 +49,7 @@ func TestAccNetAppAccountEncryption_cmkUserAssigned(t *testing.T) {
 			Config: r.cmkUserAssigned(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
+				check.That(data.ResourceName).Key("encryption_key").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -70,7 +70,7 @@ func TestAccNetAppAccountEncryption_updateKey(t *testing.T) {
 			Config: r.keyUpdate1(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").MatchesRegex(regexInitialKey),
+				check.That(data.ResourceName).Key("encryption_key").MatchesRegex(regexInitialKey),
 			),
 		},
 		data.ImportStep(),
@@ -78,7 +78,7 @@ func TestAccNetAppAccountEncryption_updateKey(t *testing.T) {
 			Config: r.keyUpdate2(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").MatchesRegex(regexNewKey),
+				check.That(data.ResourceName).Key("encryption_key").MatchesRegex(regexNewKey),
 			),
 		},
 		data.ImportStep(),
@@ -117,10 +117,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                       = "%[3]s"
 
   sku_name = "standard"
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
@@ -167,10 +163,6 @@ resource "azurerm_netapp_account" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-systemassigned" {
@@ -190,9 +182,7 @@ resource "azurerm_netapp_account_encryption" "test" {
 
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
 
-  encryption {
-    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
-  }
+  encryption_key = azurerm_key_vault_key.test.versionless_id
 
   depends_on = [
     azurerm_key_vault_access_policy.test-systemassigned
@@ -209,10 +199,6 @@ resource "azurerm_user_assigned_identity" "test" {
   name                = "user-assigned-identity-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
-  }
 }
 
 data "azurerm_client_config" "current" {
@@ -255,10 +241,6 @@ resource "azurerm_key_vault" "test" {
       "Decrypt"
     ]
   }
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -288,10 +270,6 @@ resource "azurerm_netapp_account" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_netapp_account_encryption" "test" {
@@ -299,9 +277,7 @@ resource "azurerm_netapp_account_encryption" "test" {
 
   user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 
-  encryption {
-    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
-  }
+  encryption_key = azurerm_key_vault_key.test.versionless_id
 }
 `, r.template(data), data.RandomInteger, tenantID)
 }
@@ -324,10 +300,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                       = "%[3]s"
 
   sku_name = "standard"
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
@@ -395,10 +367,6 @@ resource "azurerm_netapp_account" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-systemassigned" {
@@ -418,9 +386,7 @@ resource "azurerm_netapp_account_encryption" "test" {
 
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
 
-  encryption {
-    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
-  }
+  encryption_key = azurerm_key_vault_key.test.versionless_id
 
   depends_on = [
     azurerm_key_vault_access_policy.test-systemassigned
@@ -447,10 +413,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                       = "%[3]s"
 
   sku_name = "standard"
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
@@ -518,10 +480,6 @@ resource "azurerm_netapp_account" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-systemassigned" {
@@ -541,9 +499,7 @@ resource "azurerm_netapp_account_encryption" "test" {
 
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
 
-  encryption {
-    key_vault_key_id = azurerm_key_vault_key.test-new-key.versionless_id
-  }
+  encryption_key = azurerm_key_vault_key.test-new-key.versionless_id
 
   depends_on = [
     azurerm_key_vault_access_policy.test-systemassigned
@@ -572,8 +528,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
-    "SkipNRMSNSG"   = "true"
+    "SkipNRMSNSG" = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

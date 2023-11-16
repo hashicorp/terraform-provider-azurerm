@@ -385,6 +385,10 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
+
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
 }
 
 resource "azurerm_netapp_account" "test" {

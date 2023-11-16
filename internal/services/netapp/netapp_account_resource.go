@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -120,6 +121,10 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	defer cancel()
 
 	id := netappaccounts.NewNetAppAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	if d.IsNewResource() {
 		existing, err := client.AccountsGet(ctx, id)
 		if err != nil {
@@ -180,6 +185,9 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	shouldUpdate := false
 	update := netappaccounts.NetAppAccountPatch{
@@ -270,6 +278,9 @@ func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.AccountsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -68,19 +69,11 @@ func (r NetAppAccountEncryptionResource) Arguments() map[string]*pluginsdk.Schem
 			ConflictsWith: []string{"user_assigned_identity_id"},
 		},
 
-		"encryption": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"key_vault_key_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-					},
-				},
-			},
+		"encryption_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			Description:  "The versionless encryption key url.",
 		},
 	}
 }
@@ -108,6 +101,10 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Import check for %s", accountID.ID())
+
+			locks.ByID(accountID.ID())
+			defer locks.UnlockByID(accountID.ID())
+
 			existing, err := client.AccountsGet(ctx, pointer.From(accountID))
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
@@ -126,12 +123,9 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 				Properties: &netappaccounts.AccountProperties{},
 			}
 
-			encryptionExpanded, err := expandEncryption(ctx, model.Encryption, keyVaultsClient, resourcesClient, pointer.To(model))
+			encryptionExpanded, err := expandEncryption(ctx, model.EncryptionKey, keyVaultsClient, resourcesClient, pointer.To(model))
 			if err != nil {
 				return err
-			}
-			if encryptionExpanded != nil && pointer.From(encryptionExpanded.KeySource) != netappaccounts.KeySourceMicrosoftPointKeyVault {
-				return fmt.Errorf("encryption settings should be passed only for keyvault key provider")
 			}
 
 			update.Properties.Encryption = encryptionExpanded
@@ -160,6 +154,9 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
+
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
@@ -172,8 +169,8 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 				Properties: &netappaccounts.AccountProperties{},
 			}
 
-			if metadata.ResourceData.HasChange("user_assigned_identity_id") || metadata.ResourceData.HasChange("system_assigned_identity_principal_id") || metadata.ResourceData.HasChange("encryption") {
-				encryptionExpanded, err := expandEncryption(ctx, state.Encryption, keyVaultsClient, resourcesClient, pointer.To(state))
+			if metadata.ResourceData.HasChange("user_assigned_identity_id") || metadata.ResourceData.HasChange("system_assigned_identity_principal_id") || metadata.ResourceData.HasChange("encryption_key") {
+				encryptionExpanded, err := expandEncryption(ctx, state.EncryptionKey, keyVaultsClient, resourcesClient, pointer.To(state))
 				if err != nil {
 					return err
 				}
@@ -227,9 +224,14 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			encryptionKey, err := flattenEncryption(existing.Model.Properties.Encryption)
+			if err != nil {
+				return err
+			}
+
 			model := netAppModels.NetAppAccountEncryption{
 				NetAppAccountID: id.ID(),
-				Encryption:      flattenEncryption(existing.Model.Properties.Encryption),
+				EncryptionKey:   encryptionKey,
 			}
 
 			if len(anfAccountIdentityFlattened) > 0 {
@@ -239,7 +241,9 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 				}
 
 				if anfAccountIdentityFlattened[0].Type == identity.TypeUserAssigned {
-					model.UserAssignedIdentityID = anfAccountIdentityFlattened[0].IdentityIds[0]
+					if len(anfAccountIdentityFlattened[0].IdentityIds) > 0 {
+						model.UserAssignedIdentityID = anfAccountIdentityFlattened[0].IdentityIds[0]
+					}
 				}
 			}
 
@@ -260,6 +264,9 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
@@ -284,16 +291,16 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandEncryption(ctx context.Context, input []netAppModels.NetAppAccountEncryptionModel, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, model *netAppModels.NetAppAccountEncryption) (*netappaccounts.AccountEncryption, error) {
-	defaultEnc := netappaccounts.AccountEncryption{
+func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, model *netAppModels.NetAppAccountEncryption) (*netappaccounts.AccountEncryption, error) {
+	encryptionProperty := netappaccounts.AccountEncryption{
 		KeySource: pointer.To(netappaccounts.KeySourceMicrosoftPointNetApp),
 	}
 
-	if len(input) == 0 {
-		return &defaultEnc, nil
+	if input == "" {
+		return &encryptionProperty, nil
 	}
 
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedKeyID(input[0].KeyVaultKeyID)
+	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedKeyID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 	}
@@ -310,13 +317,13 @@ func expandEncryption(ctx context.Context, input []netAppModels.NetAppAccountEnc
 
 	encryptionIdentity := &netappaccounts.EncryptionIdentity{}
 
-	if model.SystemAssignedIdentityPrincipalID == "" && model.UserAssignedIdentityID != "" {
+	if model.UserAssignedIdentityID != "" {
 		encryptionIdentity = &netappaccounts.EncryptionIdentity{
 			UserAssignedIdentity: pointer.To(model.UserAssignedIdentityID),
 		}
 	}
 
-	encryptionProperty := netappaccounts.AccountEncryption{
+	encryptionProperty = netappaccounts.AccountEncryption{
 		Identity:  encryptionIdentity,
 		KeySource: pointer.To(netappaccounts.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &netappaccounts.KeyVaultProperties{
@@ -329,14 +336,15 @@ func expandEncryption(ctx context.Context, input []netAppModels.NetAppAccountEnc
 	return &encryptionProperty, nil
 }
 
-func flattenEncryption(encryptionProperties *netappaccounts.AccountEncryption) []netAppModels.NetAppAccountEncryptionModel {
+func flattenEncryption(encryptionProperties *netappaccounts.AccountEncryption) (string, error) {
 	if encryptionProperties == nil || *encryptionProperties.KeySource == netappaccounts.KeySourceMicrosoftPointNetApp {
-		return []netAppModels.NetAppAccountEncryptionModel{}
+		return "", nil
 	}
 
-	return []netAppModels.NetAppAccountEncryptionModel{
-		{
-			KeyVaultKeyID: encryptionProperties.KeyVaultProperties.KeyVaultUri + "keys/" + encryptionProperties.KeyVaultProperties.KeyName,
-		},
+	keyVaultKeyId, err := keyVaultParse.NewNestedItemID(encryptionProperties.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProperties.KeyVaultProperties.KeyName, "")
+	if err != nil {
+		return "", fmt.Errorf("parsing key vault key id: %+v", err)
 	}
+
+	return keyVaultKeyId.VersionlessID(), nil
 }

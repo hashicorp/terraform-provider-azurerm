@@ -30,17 +30,13 @@ The following arguments are supported:
 
 ---
 
-* `encryption` - The `encryption` block as defined below.
+* `encryption_key` - The key vault encryption key.
 
 * `system_assigned_identity_principal_id` - The ID of the System Assigned Manged Identity.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Managed Identity.
 
 ---
-
-A `encryption` block supports the following:
-
-* `key_vault_key_id` - The versionless ID of the customer managed key.
 
 ## Attributes Reference
 

@@ -116,7 +116,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
 				}, false),
-				RequiredWith: []string{"encryption_key_source", "key_vault_private_endpoint_id"},
 			},
 
 			"protocols": {
@@ -290,6 +289,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 				RequiredWith: []string{"key_vault_private_endpoint_id"},
 			},

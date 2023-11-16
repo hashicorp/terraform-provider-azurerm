@@ -8,21 +8,17 @@ const (
 )
 
 type NetAppAccountEncryption struct {
-	NetAppAccountID                   string                         `tfschema:"netapp_account_id"`
-	UserAssignedIdentityID            string                         `tfschema:"user_assigned_identity_id"`
-	SystemAssignedIdentityPrincipalID string                         `tfschema:"system_assigned_identity_principal_id"`
-	Encryption                        []NetAppAccountEncryptionModel `tfschema:"encryption"`
+	NetAppAccountID                   string `tfschema:"netapp_account_id"`
+	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
+	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
+	EncryptionKey                     string `tfschema:"encryption_key"`
 }
 
 type NetAppAccountEncryptionDataSourceModel struct {
-	NetAppAccountID                   string                         `tfschema:"netapp_account_id"`
-	UserAssignedIdentityID            string                         `tfschema:"user_assigned_identity_id"`
-	SystemAssignedIdentityPrincipalID string                         `tfschema:"system_assigned_identity_principal_id"`
-	Encryption                        []NetAppAccountEncryptionModel `tfschema:"encryption"`
-}
-
-type NetAppAccountEncryptionModel struct {
-	KeyVaultKeyID string `tfschema:"key_vault_key_id"`
+	NetAppAccountID                   string `tfschema:"netapp_account_id"`
+	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
+	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
+	EncryptionKey                     string `tfschema:"encryption_key"`
 }
 
 type NetAppVolumeGroupVolume struct {

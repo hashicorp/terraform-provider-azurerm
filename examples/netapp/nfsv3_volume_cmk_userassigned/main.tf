@@ -136,9 +136,7 @@ resource "azurerm_netapp_account_encryption" "example" {
 
   user_assigned_identity_id = azurerm_user_assigned_identity.example.id
 
-  encryption {
-    key_vault_key_id = azurerm_key_vault_key.example.versionless_id
-  }
+  encryption_key = azurerm_key_vault_key.example.versionless_id
 }
 
 resource "azurerm_netapp_pool" "example" {

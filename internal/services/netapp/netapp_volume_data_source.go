@@ -119,6 +119,16 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"encryption_key_source": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"key_vault_private_endpoint_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -161,6 +171,8 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
+		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
+		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
