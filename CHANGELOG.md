@@ -2,7 +2,7 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20231114.1115341` of `github.com/hashicorp/go-azure-sdk` [GH-23890]
+* dependencies: updating to `v0.20231116.1162710` of `github.com/hashicorp/go-azure-sdk` [GH-23922]
 * `managedservices`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-23890]
 * `network`: updating to API Version `2023-06-01` [GH-23875]
 * `servicelinker`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-23890]
