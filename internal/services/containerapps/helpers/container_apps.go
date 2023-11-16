@@ -3060,7 +3060,6 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					ValidateFunc: validation.IntAtLeast(1),
 					Optional:     true,
-					RequiredWith: []string{"minimum_count"},
 				},
 				"minimum_count": {
 					Type:         pluginsdk.TypeInt,
@@ -3136,3 +3135,38 @@ func UnpackWorkloadProfiles(input []managedenvironments.WorkloadProfile) *[]Work
 
 	return &result
 }
+
+// func EnableWorkloadProfileOnSubnet(subnetID string) error {
+
+// 	resourceSlices := strings.Split(subnetID, "/")
+// 	fmt.Printf("[DEBUG] Enabling Subnet Delegation for subnet %s to Microsoft.App/environments", resourceSlices[9])
+
+// 	env := environments.Api{}
+// 	err, subnetClient := subnets.NewSubnetsClientWithBaseURI()
+// 	// subnetClient.Authorizer = authorizer
+
+// 	subnet, err := subnetClient.Get(context.Background(), resourceSlices[3], resourceSlices[7], resourceSlices[9], "")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return err
+// 	}
+
+// 	if subnet.Properties.Delegations == nil {
+// 		subnet.Properties.Delegations = &[]subnet.Delegation{}
+// 	}
+
+// 	subnet.Delegations = &append(*subnet.Delegations, subnet.Delegation{
+// 		Name: to.StringPtr("WorkloadProfileDelegation"),
+// 		Properties: &subnets.ServiceDelegationPropertiesFormat{
+// 			ServiceName: to.StringPtr("Microsoft.App/environments"),
+// 		},
+// 	})
+
+// 	_, err = subnetClient.CreateOrUpdateThenPoll(context.Background(), resourceSlices[3], resourceSlices[7], resourceSlices[9], subnet, "")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return err
+// 	}
+
+// 	return nil
+// }

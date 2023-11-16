@@ -35,7 +35,7 @@ type ContainerAppEnvironmentModel struct {
 	InternalLoadBalancerEnabled             bool                      `tfschema:"internal_load_balancer_enabled"`
 	ZoneRedundant                           bool                      `tfschema:"zone_redundancy_enabled"`
 	WorkloadProfileEnabled                  bool                      `tfschema:"workload_profile_enabled"`
-	WorkloadProfiles                        []helpers.WorkloadProfile `tfschema:"workload_profile"`
+	WorkloadProfiles                        []helpers.WorkloadProfile `tfschema:"workload_profiles"`
 	Tags                                    map[string]interface{}    `tfschema:"tags"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
@@ -115,7 +115,7 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
-		"workload_profiles_enabled": {
+		"workload_profile_enabled": {
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			ForceNew:     true,
@@ -124,14 +124,7 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
-		"workload_profiles": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ForceNew:     false,
-			Description:  "A list of workload profiles that you want to create in your environment",
-			RequiredWith: []string{"workload_profiles_enabled"},
-			Default:      []helpers.WorkloadProfile{},
-		},
+		"workload_profiles": helpers.WorkloadProfileSchema(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -251,7 +244,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.InfrastructureSubnetId = pointer.To(containerAppEnvironment.InfrastructureSubnetId)
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 
-				if containerAppEnvironment.WorkloadProfileEnabled {
+				if containerAppEnvironment.WorkloadProfileEnabled == true {
 					consumption := helpers.WorkloadProfile{
 						Name:                "Consumption",
 						WorkloadProfileType: "consumption",
@@ -307,8 +300,12 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					}
 
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
-					state.WorkloadProfileEnabled = len(*props.WorkloadProfiles) > 0
 					state.WorkloadProfiles = *helpers.UnpackWorkloadProfiles(*props.WorkloadProfiles)
+
+					if len(state.WorkloadProfiles) > 0 || state.WorkloadProfileEnabled == true {
+						state.WorkloadProfileEnabled = true
+					}
+
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 				}

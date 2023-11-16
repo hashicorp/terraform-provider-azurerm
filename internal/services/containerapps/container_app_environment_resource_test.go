@@ -101,7 +101,7 @@ func TestAccContainerAppEnvironment_daprApplicationInsightsConnectionString(t *t
 	})
 }
 
-func TestAccContainerAppEnvironment_workloadProfilesEnabled(t *testing.T) {
+func TestAccContainerAppEnvironment_workloadProfileEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
 
@@ -285,14 +285,20 @@ resource "azurerm_container_app_environment" "test" {
   infrastructure_subnet_id       = azurerm_subnet.control.id
   zone_redundancy_enabled        = true
   internal_load_balancer_enabled = true
-  workload_profile_enabled       = true
+  workload_profile_enabled      = true
+  workload_profiles {
+	minimum_count         = 0
+	maximum_count         = 0
+	name                  = "Consumption"
+	workload_profile_type = "consumption"
+  }
 
   tags = {
     Foo    = "Bar"
     secret = "sauce"
   }
 }
-`, r.templateVNet(data), data.RandomInteger)
+`, r.templateVNetDelegated(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) completeDedicatedWorkloadProfile(data acceptance.TestData) string {
@@ -312,19 +318,27 @@ resource "azurerm_container_app_environment" "test" {
   zone_redundancy_enabled        = true
   internal_load_balancer_enabled = true
   workload_profile_enabled       = true
-  workload_profiles = [
-	"test" = {
-		name                  = "TestProfile"
-		workload_profile_type = "D4"
-	}
-  ]
+
+  workload_profiles {
+	minimum_count         = 0	
+	maximum_count         = 1
+	name                  = "TestProfile"
+	workload_profile_type = "D4"
+  }
+
+  workload_profiles {
+	minimum_count         = null
+	maximum_count         = null
+	name                  = "Consumption"
+	workload_profile_type = "consumption"
+  }
 
   tags = {
     Foo    = "Bar"
     secret = "sauce"
   }
 }
-`, r.templateVNet(data), data.RandomInteger)
+`, r.templateVNetDelegated(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) daprApplicationInsightsConnectionString(data acceptance.TestData) string {
@@ -386,6 +400,37 @@ resource "azurerm_subnet" "control" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
+}
+
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) templateVNetDelegated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "control" {
+  name                 = "control-plane"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.App/environments"
+	  actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
 }
 
 `, r.template(data), data.RandomInteger)
