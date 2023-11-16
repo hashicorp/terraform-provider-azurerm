@@ -2903,6 +2903,9 @@ resource "azurerm_linux_function_app" "test" {
     }
   }
 
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
+
   tags = {
     terraform = "true"
     Env       = "AccTest"
@@ -3094,6 +3097,9 @@ resource "azurerm_linux_function_app" "test" {
     app_setting_names       = ["foo", "secret"]
     connection_string_names = ["First"]
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
     terraform = "true"
