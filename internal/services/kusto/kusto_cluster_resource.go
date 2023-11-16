@@ -355,10 +355,8 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
 		clusterProperties.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateEnabled)
-		if enabled, ok := d.GetOk("virtual_network_configuration_enabled"); ok {
-			if !enabled.(bool) {
-				clusterProperties.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
-			}
+		if !d.Get("virtual_network_configuration_enabled").(bool) {
+			clusterProperties.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
 		}
 	}
 
