@@ -142,6 +142,19 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"gpu_instance_profile": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.GPUInstanceProfileMIGOneg),
+				string(agentpools.GPUInstanceProfileMIGTwog),
+				string(agentpools.GPUInstanceProfileMIGThreeg),
+				string(agentpools.GPUInstanceProfileMIGFourg),
+				string(agentpools.GPUInstanceProfileMIGSeveng),
+			}, false),
+		},
+
 		"kubelet_config": schemaNodePoolKubeletConfigForceNew(),
 
 		"linux_os_config": schemaNodePoolLinuxOSConfigForceNew(),
@@ -455,6 +468,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		EnableEncryptionAtHost: utils.Bool(d.Get("enable_host_encryption").(bool)),
 		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		GpuInstanceProfile:     utils.ToPtr(agentpools.GPUInstanceProfile(d.Get("gpu_instance_profile").(string))),
 		KubeletDiskType:        utils.ToPtr(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string))),
 		Mode:                   utils.ToPtr(mode),
 		ScaleSetPriority:       utils.ToPtr(agentpools.ScaleSetPriority(d.Get("priority").(string))),
@@ -840,6 +854,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
+		d.Set("gpu_instance_profile", props.GpuInstanceProfile)
 
 		if v := props.KubeletDiskType; v != nil {
 			d.Set("kubelet_disk_type", string(*v))
