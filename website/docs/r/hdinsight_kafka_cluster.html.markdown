@@ -156,7 +156,7 @@ A `compute_isolation` block supports the following:
 
 A `head_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
 
 * `username` - (Required) The Username of the local administrator for the Head Nodes. Changing this forces a new resource to be created.
 
