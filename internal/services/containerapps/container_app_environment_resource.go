@@ -244,12 +244,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.InfrastructureSubnetId = pointer.To(containerAppEnvironment.InfrastructureSubnetId)
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 
-				if containerAppEnvironment.WorkloadProfileEnabled == true {
-					consumption := helpers.WorkloadProfile{
-						Name:                "Consumption",
-						WorkloadProfileType: "consumption",
-					}
-					containerAppEnvironment.WorkloadProfiles = append(containerAppEnvironment.WorkloadProfiles, consumption)
+				if containerAppEnvironment.WorkloadProfileEnabled {
 					managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 				}
 			}
@@ -373,7 +368,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = tags.Expand(state.Tags)
 			}
 
-			if metadata.ResourceData.HasChange("workload_profile") {
+			if metadata.ResourceData.HasChange("workload_profiles") {
 				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
 

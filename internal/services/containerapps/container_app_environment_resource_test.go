@@ -285,12 +285,11 @@ resource "azurerm_container_app_environment" "test" {
   infrastructure_subnet_id       = azurerm_subnet.control.id
   zone_redundancy_enabled        = true
   internal_load_balancer_enabled = true
-  workload_profile_enabled      = true
+  workload_profile_enabled       = true
+
   workload_profiles {
-	minimum_count         = 0
-	maximum_count         = 0
 	name                  = "Consumption"
-	workload_profile_type = "consumption"
+	workload_profile_type = "Consumption"
   }
 
   tags = {
@@ -320,17 +319,10 @@ resource "azurerm_container_app_environment" "test" {
   workload_profile_enabled       = true
 
   workload_profiles {
-	minimum_count         = 0	
-	maximum_count         = 1
+	minimum_count         = 1
+	maximum_count         = 4
 	name                  = "TestProfile"
 	workload_profile_type = "D4"
-  }
-
-  workload_profiles {
-	minimum_count         = null
-	maximum_count         = null
-	name                  = "Consumption"
-	workload_profile_type = "consumption"
   }
 
   tags = {
