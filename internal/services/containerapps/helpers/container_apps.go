@@ -3048,23 +3048,27 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name of the Workload to run",
 				},
 				"workload_profile_type": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"consumption", "D4", "D8", "D16", "D32", "E4", "E8", "E16", "E32",
+						"Consumption", "D4", "D8", "D16", "D32", "E4", "E8", "E16", "E32",
 					}, false),
+					Description: "The type of compute to assign to the workload.  `D` types are General Purpose, while `E` types are Memory-Optimized",
 				},
 				"maximum_count": {
 					Type:         pluginsdk.TypeInt,
 					ValidateFunc: validation.IntAtLeast(1),
 					Optional:     true,
+					Description:  "The maximum number of instances to run in this profile.",
 				},
 				"minimum_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntAtLeast(0),
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The minimum number of instances to run in this profile.",
 				},
 			},
 		},
@@ -3078,20 +3082,24 @@ func WorkloadProfileSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of the Workload to run",
 				},
 				"workload_profile_type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The type of compute to assign to the workload.  `D` types are General Purpose, while `E` types are Memory-Optimized",
 				},
 				"maximum_count": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The maximum number of instances to run in this profile.",
 				},
 				"minimum_count": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The minimum number of instances to run in this profile.",
 				},
 			},
 		},
@@ -3135,38 +3143,3 @@ func UnpackWorkloadProfiles(input []managedenvironments.WorkloadProfile) *[]Work
 
 	return &result
 }
-
-// func EnableWorkloadProfileOnSubnet(subnetID string) error {
-
-// 	resourceSlices := strings.Split(subnetID, "/")
-// 	fmt.Printf("[DEBUG] Enabling Subnet Delegation for subnet %s to Microsoft.App/environments", resourceSlices[9])
-
-// 	env := environments.Api{}
-// 	err, subnetClient := subnets.NewSubnetsClientWithBaseURI()
-// 	// subnetClient.Authorizer = authorizer
-
-// 	subnet, err := subnetClient.Get(context.Background(), resourceSlices[3], resourceSlices[7], resourceSlices[9], "")
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return err
-// 	}
-
-// 	if subnet.Properties.Delegations == nil {
-// 		subnet.Properties.Delegations = &[]subnet.Delegation{}
-// 	}
-
-// 	subnet.Delegations = &append(*subnet.Delegations, subnet.Delegation{
-// 		Name: to.StringPtr("WorkloadProfileDelegation"),
-// 		Properties: &subnets.ServiceDelegationPropertiesFormat{
-// 			ServiceName: to.StringPtr("Microsoft.App/environments"),
-// 		},
-// 	})
-
-// 	_, err = subnetClient.CreateOrUpdateThenPoll(context.Background(), resourceSlices[3], resourceSlices[7], resourceSlices[9], subnet, "")
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
