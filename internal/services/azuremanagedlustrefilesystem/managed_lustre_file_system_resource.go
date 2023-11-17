@@ -27,7 +27,7 @@ type ManagedLustreFileSystemModel struct {
 	Identity            []identity.ModelUserAssigned `tfschema:"identity"`
 	EncryptionKey       []EncryptionKey              `tfschema:"encryption_key"`
 	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
-	MgsAddress          string                       `tfschema:"msg_address"`
+	MgsAddress          string                       `tfschema:"mgs_address"`
 	SkuName             string                       `tfschema:"sku_name"`
 	StorageCapacityInTb int64                        `tfschema:"storage_capacity_in_tb"`
 	SubnetId            string                       `tfschema:"subnet_id"`
