@@ -1,3 +1,9 @@
+## 3.82.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `dashboard`: updating to API Version `2023-09-01` [GH-23929]
+
 ## 3.81.0 (November 16, 2023)
 
 ENHANCEMENTS:
