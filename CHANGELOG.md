@@ -3,10 +3,23 @@
 ENHANCEMENTS:
 
 * `dashboard`: updating to API Version `2023-09-01` [GH-23929]
+* `azurerm_hdinsight_hadoop_cluster` - `script_actions` is no longer Force New [GH-23888]
+* `azurerm_hdinsight_hbase_cluster` - `script_actions` is no longer Force New [GH-23888]
+* `azurerm_hdinsight_interactive_query_cluster` - `script_actions` is no longer Force New [GH-23888]
+* `azurerm_hdinsight_kafka_cluster` - `script_actions` is no longer Force New [GH-23888]
+* `azurerm_hdinsight_spark_cluster` - `script_actions` is no longer Force New [GH-23888]
+* `azurerm_log_analytics_workspace` - add support for the `identity` property [GH-23864]
 * `azurerm_linux_function_app` - add support for dotnet 8 [GH-23638]
 * `azurerm_linux_function_app_slot` - add support for dotnet 8 [GH-23638]
 * `azurerm_windows_function_app` - add support for dotnet 8 [GH-23638]
 * `azurerm_windows_function_app_slot` - add support for dotnet 8 [GH-23638]
+* `azurerm_private_dns_cname_record` - `ttl` can now be set to 0 [GH-23918]
+* `azurerm_shared_image` - add support for `trusted_launch_supported` [GH-23781]
+* `azurerm_spring_cloud_customized_accelerator` - add support for the `accelerator_type` and `path` properties [GH-23797]
+
+BUGS:
+
+* `azurerm_disk_encryption_set` - resource will recreate if `identity` changes from `SystemAssigned` to `UserAssigned` [GH-23904]
 
 ## 3.81.0 (November 16, 2023)
 
