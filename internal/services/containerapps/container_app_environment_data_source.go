@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -33,11 +34,13 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
 
-	DefaultDomain         string `tfschema:"default_domain"`
-	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
-	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
-	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip_address"`
-	StaticIP              string `tfschema:"static_ip_address"`
+	DefaultDomain          string                    `tfschema:"default_domain"`
+	DockerBridgeCidr       string                    `tfschema:"docker_bridge_cidr"`
+	PlatformReservedCidr   string                    `tfschema:"platform_reserved_cidr"`
+	PlatformReservedDnsIP  string                    `tfschema:"platform_reserved_dns_ip_address"`
+	StaticIP               string                    `tfschema:"static_ip_address"`
+	WorkloadProfileEnabled bool                      `tfschema:"workload_profile_enabled"`
+	WorkloadProfiles       []helpers.WorkloadProfile `tfschema:"workload_profiles"`
 }
 
 var _ sdk.DataSource = ContainerAppEnvironmentDataSource{}
@@ -116,6 +119,18 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed:    true,
 			Description: "The Static IP Address of the Environment.",
 		},
+
+		"workload_profile_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
+			Description: "Are workload profiles enabled for this environment.",
+		},
+
+		"workload_profiles": {
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
+			Description: "The workload profiles enabled for this environment",
+		},
 	}
 }
 
@@ -163,6 +178,13 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("retrieving Log Analytics Workspace: %+v", err)
 						}
 						environment.LogAnalyticsWorkspaceName = lawName
+					}
+
+					if pointer.To(environment.InfrastructureSubnetId) != nil {
+						if len(*model.Properties.WorkloadProfiles) > 0 {
+							environment.WorkloadProfileEnabled = true
+							environment.WorkloadProfiles = *helpers.UnpackWorkloadProfiles(*model.Properties.WorkloadProfiles)
+						}
 					}
 
 					environment.StaticIP = pointer.From(props.StaticIP)
