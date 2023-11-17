@@ -3,6 +3,10 @@
 ENHANCEMENTS:
 
 * `dashboard`: updating to API Version `2023-09-01` [GH-23929]
+* `azurerm_linux_function_app` - add support for dotnet 8 [GH-23638]
+* `azurerm_linux_function_app_slot` - add support for dotnet 8 [GH-23638]
+* `azurerm_windows_function_app` - add support for dotnet 8 [GH-23638]
+* `azurerm_windows_function_app_slot` - add support for dotnet 8 [GH-23638]
 
 ## 3.81.0 (November 16, 2023)
 
