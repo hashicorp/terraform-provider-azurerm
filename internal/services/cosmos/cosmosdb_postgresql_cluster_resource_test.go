@@ -106,7 +106,7 @@ func TestAccCosmosDbPostgreSQLCluster_withSourceCluster(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "source_location", "source_resource_id", "point_in_time_in_utc", "coordinator_storage_quota_in_mb", "coordinator_vcore_count"),
+		data.ImportStep("administrator_login_password", "source_location", "source_resource_id", "point_in_time_in_utc"),
 	})
 }
 
@@ -264,6 +264,10 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test2" {
   source_resource_id   = azurerm_cosmosdb_postgresql_cluster.test.id
   point_in_time_in_utc = azurerm_cosmosdb_postgresql_cluster.test.earliest_restore_time
   node_count           = 0
+
+  lifecycle {
+    ignore_changes = ["coordinator_storage_quota_in_mb", "coordinator_vcore_count"]
+  }
 }
 `, r.basic(data), data.RandomInteger)
 }
