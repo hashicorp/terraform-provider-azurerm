@@ -1034,13 +1034,13 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_gpuInstanceProfile(t *testing.T) {
+func TestAccKubernetesClusterNodePool_gpuInstance(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.gpuInstanceProfile(data),
+			Config: r.gpuInstance(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2722,7 +2722,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
  `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (KubernetesClusterNodePoolResource) gpuInstanceProfile(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) gpuInstance(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2752,7 +2752,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_ND96asr_v4"
-  gpu_instance_profile  = "MIG1g"
+  gpu_instance          = "MIG1g"
 }
  `, data.Locations.Primary, data.RandomInteger)
 }

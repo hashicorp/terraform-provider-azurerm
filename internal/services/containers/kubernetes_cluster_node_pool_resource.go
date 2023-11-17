@@ -152,7 +152,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"gpu_instance_profile": {
+		"gpu_instance": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
@@ -481,7 +481,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Count: utils.Int64(int64(count)),
 	}
 
-	if gpuInstanceProfile := d.Get("gpu_instance_profile").(string); gpuInstanceProfile != "" {
+	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
 		profile.GpuInstanceProfile = utils.ToPtr(agentpools.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
@@ -863,7 +863,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if v := props.GpuInstanceProfile; v != nil {
-			d.Set("gpu_instance_profile", string(*v))
+			d.Set("gpu_instance", string(*v))
 		}
 
 		if props.CreationData != nil {

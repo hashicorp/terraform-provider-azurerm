@@ -109,7 +109,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 					},
 
-					"gpu_instance_profile": {
+					"gpu_instance": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
@@ -1063,7 +1063,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
 	}
 
-	if gpuInstanceProfile := raw["gpu_instance_profile"].(string); gpuInstanceProfile != "" {
+	if gpuInstanceProfile := raw["gpu_instance"].(string); gpuInstanceProfile != "" {
 		profile.GpuInstanceProfile = utils.ToPtr(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
@@ -1497,7 +1497,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"enable_host_encryption":        enableHostEncryption,
 		"custom_ca_trust_enabled":       customCaTrustEnabled,
 		"fips_enabled":                  enableFIPS,
-		"gpu_instance_profile":          gpuInstanceProfile,
+		"gpu_instance":                  gpuInstanceProfile,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,
 		"max_count":                     maxCount,
