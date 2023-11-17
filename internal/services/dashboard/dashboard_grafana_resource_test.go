@@ -155,6 +155,7 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
+  grafana_major_version             = "9"
 
   identity {
     type         = "UserAssigned"
@@ -178,9 +179,10 @@ func (r DashboardGrafanaResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                = "a-dg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "10"
 
   identity {
     type = "SystemAssigned"
