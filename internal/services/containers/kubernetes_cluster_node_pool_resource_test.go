@@ -1431,7 +1431,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_NC96ads_A100_v4"
+  vm_size               = "Standard_NC24ads_A100_v4"
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test.id
   gpu_instance_profile  = "MIG7g"
