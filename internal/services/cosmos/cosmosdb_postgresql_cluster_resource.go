@@ -376,13 +376,14 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.SourceLocation = &model.SourceLocation
 			}
 
-			if v := model.SourceResourceId; v != "" {
+			switch {
+			case model.SourceResourceId != "":
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
-			} else if model.AdministratorLoginPassword == "" {
+			case model.AdministratorLoginPassword == "":
 				return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
-			} else if model.CoordinatorStorageQuotaInMb == 0 {
+			case model.CoordinatorStorageQuotaInMb == 0:
 				return fmt.Errorf("`coordinator_storage_quota_in_mb` is required when `source_resource_id` isn't set")
-			} else if model.CoordinatorVCoreCount == 0 {
+			case model.CoordinatorVCoreCount == 0:
 				return fmt.Errorf("`coordinator_vcore_count` is required when `source_resource_id` isn't set")
 			}
 
