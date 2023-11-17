@@ -64,6 +64,22 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the resource.
 
+* `workload_profile_enabled` - Whether Workload Profiles are enabled for this resource
+
+* `workload_profiles` - Zero or more Workload Profiles blocks if `workload_profile_enabled` is `true`.
+
+---
+
+`workload_profiles` consists of the following:
+
+* `name` - The name of the Workload Profile for identification
+
+* `workload_profile_type` - 
+
+* `maximum_count` - The maximum number of instances running on the profile
+
+* `minimum_count` - The minimum number of instances running on the profile
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

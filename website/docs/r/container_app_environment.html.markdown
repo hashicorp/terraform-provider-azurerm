@@ -65,9 +65,13 @@ The following arguments are supported:
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
 
-* `workload_profiles_enabled` - (Optional) Should the Container App Environment be created with Workload Profles enabled? Defaults to `false`. Changing this forces a new resource to be created.
+* `workload_profile_enabled` - (Optional) Should the Container App Environment be created with Workload Profles enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
+~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
+
+* `workload_profiles` - (Optional) Zero or more Workload Profiles blocks defining the workloads you wish to run as defined below.
+
+~> **Note:** can only be specified if `workload_profile_enabled` is specified.
 
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
@@ -75,15 +79,15 @@ The following arguments are supported:
 
 ---
 
-A `workload_profile` object consists of the following:
+A `workload_profiles` block consists of the following:
 
 * `name` - (Required) The name of the profile to deploy
 
-* `workload_profile_type` - (Required) The type of profile to deploy. The default `Consumption` profile is created automatically.  The `D` profile types are `General Purpose`, while `E` profile types are `Memory Optimized`. Allowed values: `consumption`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16`, `E32`.
+* `workload_profile_type` - (Required) The type of profile to deploy. The default `Consumption` profile is created automatically.  The `D` profile types are `General Purpose`, while `E` profile types are `Memory Optimized`. Allowed values: `Consumption`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16`, `E32`.
 
-* `maximum_count` - (Optional) The maximum number of instances to deploy.  Must be at least `1`.
+* `maximum_count` - (Optional) The maximum number of instances to deploy.  Must be at least `1`, *DO NOT* Specify for `Consumption` profiles.
 
-* `minimum_count` - (Optional) The minimum number of instances to deploy. Must be `0` or greater.
+* `minimum_count` - (Optional) The minimum number of instances to deploy. Must be `0` or greater, *DO NOT* Specify for `Consumption` profiles.
 
 ## Attributes Reference
 

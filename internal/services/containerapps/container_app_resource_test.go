@@ -1071,7 +1071,7 @@ resource "azurerm_container_app" "test" {
     accTest = "1"
   }
 }
-`, r.templateWithVnet(data), data.RandomInteger, revisionSuffix)
+`, r.templateWithVnetDelegationAndProfile(data), data.RandomInteger, revisionSuffix)
 }
 
 func (r ContainerAppResource) completeWithSidecar(data acceptance.TestData, revisionSuffix string) string {
@@ -1899,6 +1899,49 @@ resource "azurerm_container_app_environment_storage" "test" {
   access_mode                  = "ReadWrite"
 }
 `, ContainerAppEnvironmentResource{}.complete(data), data.RandomInteger, data.RandomString)
+}
+
+func (ContainerAppResource) templateWithVnetDelegationAndProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+  admin_enabled       = true
+
+  network_rule_set = []
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%[3]s"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+
+resource "azurerm_container_app_environment_storage" "test" {
+  name                         = "testacc-caes-%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  account_name                 = azurerm_storage_account.test.name
+  access_key                   = azurerm_storage_account.test.primary_access_key
+  share_name                   = azurerm_storage_share.test.name
+  access_mode                  = "ReadWrite"
+}
+`, ContainerAppEnvironmentResource{}.completeWorkloadProfile(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {
