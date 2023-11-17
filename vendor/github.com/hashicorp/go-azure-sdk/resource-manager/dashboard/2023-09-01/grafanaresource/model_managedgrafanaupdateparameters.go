@@ -10,5 +10,6 @@ import (
 type ManagedGrafanaUpdateParameters struct {
 	Identity   *identity.LegacySystemAndUserAssignedMap  `json:"identity,omitempty"`
 	Properties *ManagedGrafanaPropertiesUpdateParameters `json:"properties,omitempty"`
+	Sku        *ResourceSku                              `json:"sku,omitempty"`
 	Tags       *map[string]string                        `json:"tags,omitempty"`
 }
