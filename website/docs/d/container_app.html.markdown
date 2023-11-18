@@ -63,6 +63,8 @@ A `secret` block supports the following:
 
 A `template` block supports the following:
 
+* `init_container` - One or more `init_container` blocks as detailed below.
+
 * `container` - One or more `container` blocks as detailed below.
 
 * `max_replicas` - The maximum number of replicas for this container.
@@ -82,6 +84,28 @@ A `volume` block supports the following:
 * `storage_name` - The name of the `AzureFile` storage.
 
 * `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
+
+---
+
+A `init_container` block supports the following:
+
+* `args` - A list of extra arguments to pass to the container.
+
+* `command` - A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+
+* `cpu` - The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+
+* `env` - One or more `env` blocks as detailed below.
+
+* `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
+
+* `image` - The image to use to create the container.
+
+* `memory` - The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, and `4Gi`.
+
+* `name` - The name of the container
+
+* `volume_mounts` - A `volume_mounts` block as detailed below.
 
 ---
 
