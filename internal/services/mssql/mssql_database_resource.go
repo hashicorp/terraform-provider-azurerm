@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
@@ -84,16 +84,16 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+	legacyClient := meta.(*clients.Client).MSSQL.LegacyDatabasesClient
+	legacyreplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
-	id, err := commonids.ParseDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyreplicationLinksClient, resourcesClient, *id, []sql.ReplicationRole{sql.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -101,9 +101,9 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	if len(partnerDatabases) > 0 {
 		partnerDatabase := partnerDatabases[0]
 
-		partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
+		partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
 		if err != nil {
-			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 		}
 
 		d.Set("create_mode", string(databases.CreateModeSecondary))
@@ -119,12 +119,13 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 
 func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	legacyClient := meta.(*clients.Client).MSSQL.LegacyDatabasesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	databaseSecurityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -185,17 +186,22 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
+	legacyId, err := parse.DatabaseID(id.ID())
+	if err != nil {
+		return fmt.Errorf("parsing ID for Replication Partner Database %s: %+v", id, err)
+	}
+
 	if skuName := d.Get("sku_name"); skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
 
 		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
+			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
 			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 			}
 
 			locks.ByID(partnerDatabaseId.ID())
@@ -204,22 +210,24 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Update the SKUs of any partner databases where deemed necessary
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
+			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
 			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 			}
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName.(string), partnerDatabase.Sku.Name) {
-				updatePayload := databases.DatabaseUpdate{
-					Sku: pointer.To(databases.Sku{
-						Name: skuName.(string),
-					}),
-				}
-				err := client.UpdateThenPoll(ctx, pointer.From(partnerDatabaseId), updatePayload)
-
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName.(string), *partnerDatabase.Sku.Name) {
+				future, err := legacyClient.Update(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name, sql.DatabaseUpdate{
+					Sku: &sql.Sku{
+						Name: utils.String(skuName.(string)),
+					},
+				})
 				if err != nil {
 					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, legacyClient.Client); err != nil {
+					return fmt.Errorf("waiting for SKU update for Replication Partner %s: %+v", partnerDatabaseId, err)
 				}
 			}
 		}
@@ -653,12 +661,13 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	legacyClient := meta.(*clients.Client).MSSQL.LegacyDatabasesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
+	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -715,15 +724,20 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
+	legacyId, err := parse.DatabaseID(id.ID())
+	if err != nil {
+		return fmt.Errorf("parsing ID for Replication Partner Database %s: %+v", id, err)
+	}
+
 	if d.HasChange("sku_name") && skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
 
 		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 		for _, v := range partnerDatabases {
-			id, err := parse.DatabaseID(pointer.From(v.Id))
+			id, err := parse.DatabaseID(pointer.From(v.ID))
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", id.ID(), err)
 			}
@@ -733,23 +747,25 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		// Update the SKUs of any partner databases where deemed necessary
-		for _, v := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(pointer.From(v.Id))
+		for _, partnerDatabase := range partnerDatabases {
+			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
 			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", id.ID(), err)
-			}
-
-			input := databases.DatabaseUpdate{
-				Sku: pointer.To(databases.Sku{
-					Name: skuName,
-				}),
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 			}
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if v.Sku != nil && helper.CompareDatabaseSkuServiceTiers(skuName, v.Sku.Name) {
-				err := client.UpdateThenPoll(ctx, pointer.From(partnerDatabaseId), input)
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName, *partnerDatabase.Sku.Name) {
+				future, err := legacyClient.Update(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name, sql.DatabaseUpdate{
+					Sku: &sql.Sku{
+						Name: pointer.To(skuName),
+					},
+				})
 				if err != nil {
-					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", id.ID(), err)
+					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, legacyClient.Client); err != nil {
+					return fmt.Errorf("waiting for SKU update for Replication Partner %s: %+v", partnerDatabaseId, err)
 				}
 			}
 		}
