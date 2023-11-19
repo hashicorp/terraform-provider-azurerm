@@ -108,7 +108,7 @@ The `criteria` block supports the following:
 The `dimension` block supports the following:
 
 * `name` - (Required) Name of the dimension.
-* `operator` - (Optional) Operator for dimension values, - 'Include'.
+* `operator` - (Optional) Operator for dimension values, - 'Include'. Defaults to `Include`.
 * `values` - (Required) List of dimension values.
 
 ## Attributes Reference

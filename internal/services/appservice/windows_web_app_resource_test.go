@@ -68,6 +68,13 @@ func TestAccWindowsWebApp_completeUpdated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -76,6 +83,13 @@ func TestAccWindowsWebApp_completeUpdated(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -913,6 +927,14 @@ func TestAccWindowsWebApp_withDockerImageDockerHub(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:v3.0-windowsservercore-1809"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:v3.0-windowsservercore-1809"),
 			),
 		},
 		data.ImportStep(),
@@ -2272,8 +2294,6 @@ resource "azurerm_windows_web_app" "test" {
     minimum_tls_version         = "1.2"
     scm_minimum_tls_version     = "1.2"
     cors {
-      allowed_origins = []
-
       support_credentials = true
     }
 
@@ -2297,6 +2317,9 @@ resource "azurerm_windows_web_app" "test" {
     }
     // auto_swap_slot_name = // TODO - Not supported yet
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
     foo = "bar"

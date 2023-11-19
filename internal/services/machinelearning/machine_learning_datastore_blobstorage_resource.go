@@ -282,6 +282,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Datastore
+			storageClient := metadata.Client.Storage
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
@@ -310,8 +311,16 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataAuthIdentity = serviceDataAuth
 
-			containerId := commonids.NewStorageContainerID(subscriptionId, workspaceId.ResourceGroupName, *data.AccountName, *data.ContainerName)
+			storageAccount, err := storageClient.FindAccount(ctx, *data.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+			}
+			if storageAccount == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", *data.AccountName)
+			}
+			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, *data.AccountName, *data.ContainerName)
 			model.StorageContainerID = containerId.ID()
+
 			model.IsDefault = *data.IsDefault
 
 			if v, ok := metadata.ResourceData.GetOk("account_key"); ok {

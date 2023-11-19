@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage"
@@ -114,6 +115,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
@@ -139,6 +141,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		applicationinsights.Registration{},
 		appservice.Registration{},
 		arckubernetes.Registration{},
+		arcresourcebridge.Registration{},
 		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
@@ -155,6 +158,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		dashboard.Registration{},
 		databoxedge.Registration{},
 		databricks.Registration{},
+		datafactory.Registration{},
 		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
@@ -189,6 +193,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
+		servicenetworking.Registration{},
 		storage.Registration{},
 		storagemover.Registration{},
 		signalr.Registration{},
@@ -196,6 +201,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		streamanalytics.Registration{},
 		search.Registration{},
 		springcloud.Registration{},
+		securitycenter.Registration{},
 		vmware.Registration{},
 		voiceservices.Registration{},
 		web.Registration{},

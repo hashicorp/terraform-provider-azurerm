@@ -53,10 +53,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseKubernetesClusterID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(
+			func(id string) error {
+				_, err := commonids.ParseKubernetesClusterID(id)
+				return err
+			},
+			// TODO 4.0: we're defaulting this at import time because the property is non-functional.
+			// In the lead up to 4.0 planning if the feature still isn't functional we should look at
+			// removing this entirely.
+			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+				d.Set("public_network_access_enabled", true)
+				return []*pluginsdk.ResourceData{d}, nil
+			},
+		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
@@ -96,6 +105,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta interface{}) bool {
+				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
+			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != "" || new.(string) != string(managedclusters.NetworkPolicyCilium)
+			}),
+			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -425,12 +443,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"http_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"https_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"no_proxy": {
 							Type:     pluginsdk.TypeSet,
@@ -1037,10 +1053,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPolicyCalico),
 								string(managedclusters.NetworkPolicyAzure),
+								string(managedclusters.NetworkPolicyCilium),
 							}, false),
 						},
 
@@ -1063,7 +1079,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_plugin_mode": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginModeOverlay),
 							}, false),
@@ -1537,7 +1552,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["network_plugin_mode"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.NetworkPluginModeOverlay),
 				"Overlay",
@@ -2380,6 +2394,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.name",
 			"default_node_pool.0.enable_host_encryption",
 			"default_node_pool.0.enable_node_public_ip",
+			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
@@ -2603,7 +2618,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 			}
 
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
 			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
 
 			enablePrivateCluster := false

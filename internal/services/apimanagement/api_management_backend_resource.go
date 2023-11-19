@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/backend"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -540,17 +540,17 @@ func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsCon
 	if input.Certificate != nil {
 		result["certificate"] = *input.Certificate
 	}
-	result["header"] = flattenApiManagementBackendCredentialsObject(*input.Header)
-	result["query"] = flattenApiManagementBackendCredentialsObject(*input.Query)
+	result["header"] = flattenApiManagementBackendCredentialsObject(input.Header)
+	result["query"] = flattenApiManagementBackendCredentialsObject(input.Query)
 	return append(results, result)
 }
 
-func flattenApiManagementBackendCredentialsObject(input map[string][]string) map[string]interface{} {
+func flattenApiManagementBackendCredentialsObject(input *map[string][]string) map[string]interface{} {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results
 	}
-	for k, v := range input {
+	for k, v := range *input {
 		results[k] = strings.Join(v, ",")
 	}
 	return results

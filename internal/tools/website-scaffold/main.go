@@ -10,18 +10,14 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"reflect"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	gomonkey "github.com/agiledragon/gomonkey/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/magodo/terraform-provider-azurerm-example-gen/examplegen"
 )
 
@@ -294,12 +290,6 @@ func (gen documentationGenerator) argumentsBlock() string {
 				}
 
 				value += fmt.Sprintf("Conflicts with %s.", strings.Join(conflictingValues, ","))
-			}
-
-			if possibleValues := getSchemaPossibleValues(field); len(possibleValues) == 1 {
-				value += fmt.Sprintf(" The only possible value is `%s`.", possibleValues[0])
-			} else if size := len(possibleValues); size > 1 {
-				value += fmt.Sprintf(" Possible values are `%s` and `%s`.", strings.Join(possibleValues[:size-1], "`, `"), possibleValues[size-1])
 			}
 
 			if field.Default != nil {
@@ -964,35 +954,4 @@ func (gen documentationGenerator) uniqueBlockNamesForAttribute(fields map[string
 	sort.Strings(blockNames)
 
 	return blockNames, blocks
-}
-
-func patchPossibleValuesFn() {
-	gomonkey.ApplyFunc(validation.StringInSlice,
-		func(valid []string, ignoreCase bool) schema.SchemaValidateFunc { //nolint:staticcheck
-			return func(i interface{}, k string) (warnings []string, errors []error) {
-				var res []string // must have a copy
-				res = append(res, valid...)
-				return res, nil
-			}
-		},
-	)
-}
-
-func init() {
-	patchPossibleValuesFn()
-}
-
-func getSchemaPossibleValues(item *schema.Schema) []string {
-	if item.ValidateFunc != nil {
-		// check if it is StringsInSlice
-		pc := reflect.ValueOf(item.ValidateFunc).Pointer()
-		fn := runtime.FuncForPC(pc)
-		fnName := fn.Name()
-		// seems different go version behaviors different
-		if strings.Contains(fnName, "StringInSlice") || strings.Contains(fnName, "patchPossibleValuesFn") {
-			values, _ := item.ValidateFunc(nil, "")
-			return values
-		}
-	}
-	return nil
 }

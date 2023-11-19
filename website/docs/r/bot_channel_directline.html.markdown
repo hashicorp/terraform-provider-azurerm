@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `site` - (Required) A site represents a client application that you want to connect to your bot. Multiple `site` blocks may be defined as below
+* `site` - (Required) A site represents a client application that you want to connect to your bot. One or more `site` blocks as defined below.
 
 ---
 
@@ -58,11 +58,17 @@ A `site` block has the following properties:
 
 * `name` - (Required) The name of the site
 
-* `enabled` - (Optional) Enables/Disables this site. Enabled by default Defaults to `true`.
+* `user_upload_enabled` - (Optional) Is the user upload enabled for this site? Defaults to `true`.
 
-* `v1_allowed` - (Optional) Enables v1 of the Directline protocol for this site. Enabled by default Defaults to `true`.
+* `enabled` - (Optional) Enables/Disables this site. Defaults to `true`.
 
-* `v3_allowed` - (Optional) Enables v3 of the Directline protocol for this site. Enabled by default Defaults to `true`.
+* `endpoint_parameters_enabled` - (Optional) Is the endpoint parameters enabled for this site?
+
+* `storage_enabled` - (Optional) Is the storage site enabled for detailed logging? Defaults to `true`.
+
+* `v1_allowed` - (Optional) Enables v1 of the Directline protocol for this site. Defaults to `true`.
+
+* `v3_allowed` - (Optional) Enables v3 of the Directline protocol for this site. Defaults to `true`.
 
 * `enhanced_authentication_enabled` - (Optional) Enables additional security measures for this site, see [Enhanced Directline Authentication Features](https://blog.botframework.com/2018/09/25/enhanced-direct-line-authentication-features). Disabled by default.
 

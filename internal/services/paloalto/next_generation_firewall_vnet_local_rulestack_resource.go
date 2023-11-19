@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -74,7 +75,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) ResourceType() string 
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 			localRulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
@@ -130,6 +131,9 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 				},
 				Tags: tags.Expand(model.Tags),
 			}
+
+			locks.ByID(ruleStackID.ID())
+			defer locks.UnlockByID(ruleStackID.ID())
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -212,7 +216,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) IDValidationFunc() plu
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 
@@ -251,6 +255,8 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 				}
 
 				props.AssociatedRulestack = ruleStack
+				locks.ByID(ruleStackID.ID())
+				defer locks.UnlockByID(ruleStackID.ID())
 			}
 
 			if metadata.ResourceData.HasChange("network_profile") {

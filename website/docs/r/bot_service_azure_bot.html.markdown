@@ -74,11 +74,15 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) The Azure Bot Service endpoint.
 
+* `icon_url` - (Optional) The Icon Url of the Azure Bot Service. Defaults to `https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png`.
+
 * `microsoft_app_msi_id` - (Optional) The ID of the Microsoft App Managed Identity for this Azure Bot Service. Changing this forces a new resource to be created.
 
 * `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
 
 * `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+
+* `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
 
 * `luis_app_ids` - (Optional) A list of LUIS App IDs to associate with this Azure Bot Service.
 

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -437,9 +438,11 @@ func createCertificate(d *pluginsdk.ResourceData, meta interface{}) (keyvault.Ce
 		Tags:              tags.Expand(t),
 	}
 
-	_, err = client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters)
+	result, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters)
 	if err != nil {
-		return keyvault.CertificateBundle{}, err
+		return keyvault.CertificateBundle{
+			Response: result.Response,
+		}, err
 	}
 
 	log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
@@ -512,11 +515,11 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
-					return err
+					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
 				newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
 				if err != nil {
-					return err
+					return fmt.Errorf("update recovered certificate: %+v", err)
 				}
 			} else {
 				return err
@@ -528,12 +531,12 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
-					return err
+					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
 				// after we recovered the existing certificate we still have to apply our changes
 				newCert, err = createCertificate(d, meta)
 				if err != nil {
-					return err
+					return fmt.Errorf("update recovered certificate: %+v", err)
 				}
 			} else {
 				return err
@@ -605,9 +608,16 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			if err != nil {
 				return err
 			}
-			if resp.ID != nil {
-				d.SetId(id.ID())
+
+			if resp.ID == nil {
+				return fmt.Errorf("error: Certificate %q in Vault %q get nil ID from server", id.Name, id.KeyVaultBaseUrl)
 			}
+
+			certificateId, err := parse.ParseNestedItemID(*resp.ID)
+			if err != nil {
+				return err
+			}
+			d.SetId(certificateId.ID())
 		}
 	}
 	if d.HasChange("certificate_policy") {
@@ -646,6 +656,12 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 		}
 
 		if strings.EqualFold(*operation.Status, "inProgress") {
+			if issuer := operation.IssuerParameters; issuer != nil {
+				if strings.EqualFold(pointer.From(issuer.Name), "unknown") {
+					return operation, "Ready", nil
+				}
+			}
+
 			return operation, "Provisioning", nil
 		}
 

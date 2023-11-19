@@ -69,6 +69,8 @@ A `github_configuration` block supports the following:
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
+* `publishing_enabled` - (Optional) Is automated publishing enabled? Defaults to `true`.
+
 -> **Note:** You must log in to the Data Factory management UI to complete the authentication to the GitHub repository.
 
 ---
@@ -108,6 +110,8 @@ A `vsts_configuration` block supports the following:
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
 * `tenant_id` - (Required) Specifies the Tenant ID associated with the VSTS account.
+
+* `publishing_enabled` - (Optional) Is automated publishing enabled? Defaults to `true`.
 
 ## Attributes Reference
 

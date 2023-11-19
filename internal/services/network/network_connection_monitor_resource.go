@@ -12,14 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/connectionmonitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -172,7 +171,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						ValidateFunc: validation.Any(
-							computeValidate.VirtualMachineID,
+							commonids.ValidateVirtualMachineID,
 							workspaces.ValidateWorkspaceID,
 							commonids.ValidateSubnetID,
 							commonids.ValidateVirtualNetworkID,

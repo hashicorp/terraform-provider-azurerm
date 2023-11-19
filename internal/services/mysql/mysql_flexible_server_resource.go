@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverfailover"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -267,6 +267,11 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(20, 16384),
 						},
+						"io_scaling_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -352,6 +357,13 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
+		}
+	}
+
+	storageSettings := expandArmServerStorage(d.Get("storage").([]interface{}))
+	if storageSettings != nil {
+		if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
+			return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
 		}
 	}
 
@@ -764,8 +776,14 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoGrow = servers.EnableStatusEnumEnabled
 	}
 
+	autoIoScaling := servers.EnableStatusEnumDisabled
+	if v := input["io_scaling_enabled"].(bool); v {
+		autoIoScaling = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
-		AutoGrow: &autoGrow,
+		AutoGrow:      &autoGrow,
+		AutoIoScaling: &autoIoScaling,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -795,9 +813,10 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":           size,
-			"iops":              iops,
-			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"size_gb":            size,
+			"iops":               iops,
+			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
 		},
 	}
 }

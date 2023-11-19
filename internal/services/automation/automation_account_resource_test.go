@@ -219,7 +219,7 @@ func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (AutomationAccountResource) basic(data acceptance.TestData) string {

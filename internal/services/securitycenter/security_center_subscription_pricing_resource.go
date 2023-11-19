@@ -134,14 +134,21 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
-	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.Extensions != nil {
-		extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+	isCurrentlyInFree := false
+	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil {
+		if apiResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+		}
+
+		if apiResponse.Model.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+			isCurrentlyInFree = true
+		}
 	}
 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
 		pricing.Properties.SubPlan = utils.String(vSub.(string))
 	}
-	if d.HasChange("extension") || d.IsNewResource() {
+	if d.HasChange("extension") {
 		// can not set extensions for free tier
 		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
@@ -149,8 +156,31 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if _, err := client.Update(ctx, id, pricing); err != nil {
-		return fmt.Errorf("setting %s: %+v", id, err)
+	if len(d.Get("extension").(*pluginsdk.Set).List()) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+		return fmt.Errorf("extensions cannot be enabled when using free tier")
+	}
+
+	updateResponse, updateErr := client.Update(ctx, id, pricing)
+	if updateErr != nil {
+		return fmt.Errorf("setting %s: %+v", id, updateErr)
+	}
+
+	if updateErr == nil && updateResponse.Model != nil && updateResponse.Model.Properties != nil {
+		if updateResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
+		}
+	}
+
+	// after turning on the bundle, we have now the extensions list
+	if d.IsNewResource() || isCurrentlyInFree {
+		var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
+		pricing.Properties.Extensions = extensions
+		_, updateErr := client.Update(ctx, id, pricing)
+		if err != nil {
+			if updateErr != nil {
+				return fmt.Errorf("setting %s: %+v", id, updateErr)
+			}
+		}
 	}
 
 	d.SetId(id.ID())
@@ -218,29 +248,26 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 }
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
-	if len(inputList) == 0 {
-		return nil
-	}
 	var extensionStatuses = map[string]bool{}
 	var extensionProperties = map[string]*interface{}{}
-
 	var outputList []pricings_v2023_01_01.Extension
-	for _, v := range inputList {
-		input := v.(map[string]interface{})
-		extensionStatuses[input["name"].(string)] = true
-
-		if vAdditional, ok := input["additional_extension_properties"]; ok {
-			extensionProperties[input["name"].(string)] = &vAdditional
-		}
-	}
 
 	if extensionsStatusFromBackend != nil {
 		for _, backendExtension := range *extensionsStatusFromBackend {
-			_, ok := extensionStatuses[backendExtension.Name]
-			// set any extension that does not appear in the template to be false
-			if !ok {
-				extensionStatuses[backendExtension.Name] = false
-			}
+			// set the default value to false, then turn on the extension that appear in the template
+			extensionStatuses[backendExtension.Name] = false
+		}
+	}
+
+	// set any extension in the template to be true
+	for _, v := range inputList {
+		input := v.(map[string]interface{})
+		if input["name"] == "" {
+			continue
+		}
+		extensionStatuses[input["name"].(string)] = true
+		if vAdditional, ok := input["additional_extension_properties"]; ok {
+			extensionProperties[input["name"].(string)] = &vAdditional
 		}
 	}
 

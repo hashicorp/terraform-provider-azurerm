@@ -83,13 +83,6 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 
 		"location": commonschema.Location(),
 
-		"administrator_login_password": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringLenBetween(8, 256),
-		},
-
 		"coordinator_storage_quota_in_mb": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
@@ -123,6 +116,13 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			),
 		},
 
+		"administrator_login_password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringLenBetween(8, 256),
+		},
+
 		"citus_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -142,6 +142,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"11.1",
 				"11.2",
 				"11.3",
+				"12.1",
 			}, false),
 		},
 
@@ -289,6 +290,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"13",
 				"14",
 				"15",
+				"16",
 			}, false),
 		},
 
@@ -376,6 +378,8 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 
 			if v := model.SourceResourceId; v != "" {
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
+			} else if model.AdministratorLoginPassword == "" {
+				return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
 			}
 
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
@@ -421,6 +425,10 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
+				if model.SourceResourceId == "" && model.AdministratorLoginPassword == "" {
+					return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.AdministratorLoginPassword = &model.AdministratorLoginPassword
 			}
 

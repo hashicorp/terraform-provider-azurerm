@@ -56,7 +56,7 @@ func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.VideoAnalyzer.EdgeModuleClient.EdgeModulesGet(ctx, *id)
+	resp, err := clients.VideoAnalyzer.EdgeModuleClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

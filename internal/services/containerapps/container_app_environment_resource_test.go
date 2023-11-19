@@ -101,6 +101,21 @@ func TestAccContainerAppEnvironment_daprApplicationInsightsConnectionString(t *t
 	})
 }
 
+func TestAccContainerAppEnvironment_zoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeZoneRedundant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id"),
+	})
+}
+
 func (r ContainerAppEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedenvironments.ParseManagedEnvironmentID(state.ID)
 	if err != nil {
@@ -206,6 +221,31 @@ resource "azurerm_container_app_environment" "test" {
 
   tags = {
     Foo = "test"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) completeZoneRedundant(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                           = "acctest-CAEnv%[2]d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id       = azurerm_subnet.control.id
+  zone_redundancy_enabled        = true
+  internal_load_balancer_enabled = true
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
   }
 }
 `, r.templateVNet(data), data.RandomInteger)

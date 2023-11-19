@@ -104,7 +104,7 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` - (Required) One, two or three `ip_configuration` blocks documented below.
+* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below.
   An active-standby gateway requires exactly one `ip_configuration` block,
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
@@ -198,7 +198,7 @@ The `bgp_settings` block supports:
 
 * `asn` - (Optional) The Autonomous System Number (ASN) to use as part of the BGP.
 
-* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below. Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.
+* `peering_addresses` - (Optional) A list of `peering_addresses` blocks as defined below. Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned through BGP peering. Valid values can be between `0` and `100`.
 
@@ -206,7 +206,7 @@ The `bgp_settings` block supports:
 
 A `custom_route` block supports the following:
 
-* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation as defined below.
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation.
 
 ---
 
@@ -240,7 +240,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Virtual Network Gateway.
 
-* `bgp_settings` - (Optional) A block of `bgp_settings`.
+* `bgp_settings` - A block of `bgp_settings`.
 
 ---
 
