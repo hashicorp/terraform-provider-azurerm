@@ -102,6 +102,13 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("identity.0.type", func(ctx context.Context, old, new, meta interface{}) bool {
+				// cannot change identity type from userAssigned to systemAssigned
+				return (old.(string) == string(identity.TypeUserAssigned) || old.(string) == string(identity.TypeSystemAssignedUserAssigned)) && (new.(string) == string(identity.TypeSystemAssigned))
+			}),
+		),
 	}
 }
 
@@ -316,6 +323,16 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	update := diskencryptionsets.DiskEncryptionSetUpdate{}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := expandDiskEncryptionSetIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		update.Identity = expandedIdentity
+	}
+
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
