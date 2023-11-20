@@ -386,11 +386,11 @@ resource "azurerm_gallery_application_version" "test" {
   gallery_application_id = azurerm_gallery_application.test.id
   location               = azurerm_gallery_application.test.location
 
-  config_file_name    = "config"
+  config_file         = "config"
   enable_health_check = true
   end_of_life_date    = "%s"
   exclude_from_latest = true
-  package_file_name   = "package"
+  package_file        = "package"
 
   manage_action {
     install = "[install command]"

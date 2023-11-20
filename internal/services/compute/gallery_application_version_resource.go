@@ -33,12 +33,12 @@ type GalleryApplicationVersionModel struct {
 	Name                 string            `tfschema:"name"`
 	GalleryApplicationId string            `tfschema:"gallery_application_id"`
 	Location             string            `tfschema:"location"`
-	ConfigFileName       string            `tfschema:"config_file_name"`
+	ConfigFile           string            `tfschema:"config_file"`
 	EnableHealthCheck    bool              `tfschema:"enable_health_check"`
 	EndOfLifeDate        string            `tfschema:"end_of_life_date"`
 	ExcludeFromLatest    bool              `tfschema:"exclude_from_latest"`
 	ManageAction         []ManageAction    `tfschema:"manage_action"`
-	PackageFileName      string            `tfschema:"package_file_name"`
+	PackageFile          string            `tfschema:"package_file"`
 	Source               []Source          `tfschema:"source"`
 	TargetRegion         []TargetRegion    `tfschema:"target_region"`
 	Tags                 map[string]string `tfschema:"tags"`
@@ -80,7 +80,7 @@ func (r GalleryApplicationVersionResource) Arguments() map[string]*pluginsdk.Sch
 
 		"location": commonschema.Location(),
 
-		"config_file_name": {
+		"config_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -136,7 +136,7 @@ func (r GalleryApplicationVersionResource) Arguments() map[string]*pluginsdk.Sch
 			},
 		},
 
-		"package_file_name": {
+		"package_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -259,12 +259,12 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(state.Tags),
 			}
 
-			if state.ConfigFileName != "" {
+			if state.ConfigFile != "" {
 				if payload.Properties.PublishingProfile.Settings == nil {
 					payload.Properties.PublishingProfile.Settings = &galleryapplicationversions.UserArtifactSettings{}
 				}
 
-				payload.Properties.PublishingProfile.Settings.ConfigFileName = &state.ConfigFileName
+				payload.Properties.PublishingProfile.Settings.ConfigFileName = &state.ConfigFile
 			}
 
 			if state.EndOfLifeDate != "" {
@@ -272,12 +272,12 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 				payload.Properties.PublishingProfile.SetEndOfLifeDateAsTime(endOfLifeDate)
 			}
 
-			if state.PackageFileName != "" {
+			if state.PackageFile != "" {
 				if payload.Properties.PublishingProfile.Settings == nil {
 					payload.Properties.PublishingProfile.Settings = &galleryapplicationversions.UserArtifactSettings{}
 				}
 
-				payload.Properties.PublishingProfile.Settings.PackageFileName = &state.PackageFileName
+				payload.Properties.PublishingProfile.Settings.PackageFileName = &state.PackageFile
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -340,11 +340,11 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 					}
 					state.ExcludeFromLatest = excludeFromLatest
 
-					state.ConfigFileName = ""
-					state.PackageFileName = ""
+					state.ConfigFile = ""
+					state.PackageFile = ""
 					if props.PublishingProfile.Settings != nil {
-						state.ConfigFileName = pointer.From(props.PublishingProfile.Settings.ConfigFileName)
-						state.PackageFileName = pointer.From(props.PublishingProfile.Settings.PackageFileName)
+						state.ConfigFile = pointer.From(props.PublishingProfile.Settings.ConfigFileName)
+						state.PackageFile = pointer.From(props.PublishingProfile.Settings.PackageFileName)
 					}
 
 					state.ManageAction = flattenGalleryApplicationVersionManageAction(props.PublishingProfile.ManageActions)

@@ -92,7 +92,7 @@ The following arguments are supported:
 
 ---
 
-* `config_file_name` - (Optional) Specifies the name of the config file on the VM. Changing this forces a new resource to be created.
+* `config_file` - (Optional) Specifies the name of the config file on the VM. Changing this forces a new resource to be created.
 
 * `enable_health_check` - (Optional) Should the Gallery Application reports health. Defaults to `false`.
 
@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `exclude_from_latest` - (Optional) Should the Gallery Application Version be excluded from the `latest` filter? If set to `true` this Gallery Application Version won't be returned for the `latest` version. Defaults to `false`.
 
-* `package_file_name` - (Optional) Specifies the name of the package file on the VM. Changing this forces a new resource to be created.
+* `package_file` - (Optional) Specifies the name of the package file on the VM. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Gallery Application Version.
 
