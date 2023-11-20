@@ -238,19 +238,18 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vnetUpdate(data),
+			Config: r.vnetRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -985,7 +984,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (KustoClusterResource) vnetUpdate(data acceptance.TestData) string {
+func (KustoClusterResource) vnetRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1082,14 +1081,6 @@ resource "azurerm_kusto_cluster" "test" {
   }
 
   public_network_access_enabled = false
-
-  virtual_network_configuration_enabled = false
-
-  virtual_network_configuration {
-    subnet_id                    = azurerm_subnet.test.id
-    engine_public_ip_id          = azurerm_public_ip.engine_pip.id
-    data_management_public_ip_id = azurerm_public_ip.management_pip.id
-  }
 
   depends_on = [
     azurerm_subnet_route_table_association.test,
