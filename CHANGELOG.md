@@ -20,6 +20,7 @@ ENHANCEMENTS:
 BUGS:
 
 * `azurerm_disk_encryption_set` - resource will recreate if `identity` changes from `SystemAssigned` to `UserAssigned` [GH-23904]
+* `azurerm_security_center_subscription_pricing` - fix a bug preventing removal of `extensions` and downgrading `tier` to `Free` [GH-23821]
 
 ## 3.81.0 (November 16, 2023)
 
