@@ -40,7 +40,7 @@ output "query_endpoint" {
 
 * `query_endpoint` - The query endpoint for the Azure Monitor Workspace.
 
-* `public_network_access_enabled` - Whether network access from public internet to the Workspace are allowed. Possible values are `true` and `false`.
+* `public_network_access_enabled` - Whether network access from public internet to the Workspace are allowed.
 
 * `tags` - A mapping of tags which should be assigned to the Data Collection Endpoint.
 
