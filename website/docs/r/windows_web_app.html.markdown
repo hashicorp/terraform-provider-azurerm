@@ -788,7 +788,7 @@ A `status_code` block supports the following:
 
 ---
 
-A `sticky_settings` block exports the following:
+A `sticky_settings` block supports the following:
 
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
