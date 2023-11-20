@@ -42,7 +42,7 @@ output "query_endpoint" {
 
 * `public_network_access_enabled` - Whether network access from public internet to the Workspace are allowed.
 
-* `tags` - A mapping of tags which should be assigned to the Data Collection Endpoint.
+* `tags` - A mapping of tags that are assigned to the Workspace.
 
 ## Timeouts
 
