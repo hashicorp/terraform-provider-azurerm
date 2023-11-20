@@ -159,12 +159,12 @@ func (r SpringCloudContainerDeploymentResource) complete(data acceptance.TestDat
 %[1]s
 
 resource "azurerm_spring_cloud_container_deployment" "test" {
-  name                                            = "acctest-scjd%[2]s"
-  spring_cloud_app_id                             = azurerm_spring_cloud_app.test.id
-  instance_count                                  = 2
-  arguments                                       = ["-cp", "/app/resources:/app/classes:/app/libs/*", "hello.Application"]
-  application_performance_monitoring_resource_ids = [azurerm_spring_cloud_application_insights_application_performance_monitoring.test.id]
-  commands                                        = ["java"]
+  name                                   = "acctest-scjd%[2]s"
+  spring_cloud_app_id                    = azurerm_spring_cloud_app.test.id
+  instance_count                         = 2
+  arguments                              = ["-cp", "/app/resources:/app/classes:/app/libs/*", "hello.Application"]
+  application_performance_monitoring_ids = [azurerm_spring_cloud_application_insights_application_performance_monitoring.test.id]
+  commands                               = ["java"]
   environment_variables = {
     "Foo" : "Bar"
     "Env" : "Staging"

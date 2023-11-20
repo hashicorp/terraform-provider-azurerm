@@ -81,7 +81,7 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
-			"application_performance_monitoring_resource_ids": {
+			"application_performance_monitoring_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
@@ -219,7 +219,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
-				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_resource_ids").([]interface{})),
+				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]interface{})),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -274,9 +274,11 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
 				return fmt.Errorf("setting `addon_json`: %s", err)
 			}
-			if err := d.Set("application_performance_monitoring_resource_ids", flattenSpringCloudDeploymentApms(settings.Apms)); err != nil {
-				return fmt.Errorf("setting `application_performance_monitoring_resource_ids`: %+v", err)
+			apmIds, err := flattenSpringCloudDeploymentApms(settings.Apms)
+			if err != nil {
+				return fmt.Errorf("setting `application_performance_monitoring_ids`: %+v", err)
 			}
+			d.Set("application_performance_monitoring_ids", apmIds)
 		}
 		if source, ok := resp.Properties.Source.AsCustomContainerUserSourceInfo(); ok && source != nil {
 			if container := source.CustomContainer; container != nil {
@@ -350,18 +352,17 @@ func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmRefe
 	return pointer.To(result)
 }
 
-func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) []interface{} {
+func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) ([]interface{}, error) {
 	if input == nil {
-		return nil
+		return nil, nil
 	}
 	result := make([]interface{}, 0)
 	for _, v := range *input {
 		id, err := appplatform2.ParseApmIDInsensitively(*v.ResourceID)
 		if err != nil {
-			log.Printf("[WARN] invalid APM ID %q: %+v", *v.ResourceID, err)
-			continue
+			return nil, err
 		}
 		result = append(result, id.ID())
 	}
-	return result
+	return result, nil
 }
