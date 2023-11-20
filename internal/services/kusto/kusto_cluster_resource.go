@@ -142,33 +142,28 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"virtual_network_configuration_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				Default:      true,
-				RequiredWith: []string{"virtual_network_configuration"},
-			},
-
 			"virtual_network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: commonids.ValidateSubnetID,
 						},
 						"engine_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 					},
@@ -351,12 +346,24 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
 	}
 
-	if v, ok := d.GetOk("virtual_network_configuration"); ok {
+	oldLength, newLength := d.GetChange("virtual_network_configuration.#")
+
+	if newLength.(int) > 0 {
+		// A new virtual network configuration is being added
+		v := d.Get("virtual_network_configuration")
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
 		clusterProperties.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateEnabled)
-		if !d.Get("virtual_network_configuration_enabled").(bool) {
-			clusterProperties.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
+	} else if oldLength.(int) > 0 {
+		oldSubnetId, _ := d.GetChange("virtual_network_configuration.0.subnet_id")
+		oldEnginePublicIpId, _ := d.GetChange("virtual_network_configuration.0.engine_public_ip_id")
+		oldDataManagementPublicIpId, _ := d.GetChange("virtual_network_configuration.0.data_management_public_ip_id")
+
+		clusterProperties.VirtualNetworkConfiguration = &clusters.VirtualNetworkConfiguration{
+			SubnetId:                 oldSubnetId.(string),
+			EnginePublicIPId:         oldEnginePublicIpId.(string),
+			DataManagementPublicIPId: oldDataManagementPublicIpId.(string),
+			State:                    pointer.To(clusters.VnetStateDisabled),
 		}
 	}
 
@@ -461,10 +468,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 			if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(props.OptimizedAutoscale)); err != nil {
 				return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
-			}
-
-			if props.VirtualNetworkConfiguration != nil && props.VirtualNetworkConfiguration.State != nil {
-				d.Set("virtual_network_configuration_enabled", *props.VirtualNetworkConfiguration.State == clusters.VnetStateEnabled)
 			}
 
 			d.Set("allowed_fqdns", props.AllowedFqdnList)
