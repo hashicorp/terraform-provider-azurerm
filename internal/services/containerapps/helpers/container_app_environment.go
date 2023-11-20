@@ -4,6 +4,8 @@
 package helpers
 
 import (
+	"strings"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -96,7 +98,7 @@ func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []Wor
 	result := make([]WorkloadProfileModel, 0)
 
 	for _, v := range *input {
-		if v.Name == consumption {
+		if strings.EqualFold(v.WorkloadProfileType, consumption) {
 			continue
 		}
 		result = append(result, WorkloadProfileModel{
