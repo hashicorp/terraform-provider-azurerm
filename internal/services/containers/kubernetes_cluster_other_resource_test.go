@@ -3139,7 +3139,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name         = "default"
     node_count   = 1
-    vm_size      = "Standard_ND96asr_v4"
+    vm_size      = "Standard_NC24ads_A100_v4"
     gpu_instance = "MIG1g"
   }
 

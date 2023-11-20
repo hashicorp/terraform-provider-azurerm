@@ -2751,7 +2751,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_ND96asr_v4"
+  vm_size               = "Standard_NC24ads_A100_v4"
   gpu_instance          = "MIG1g"
 }
  `, data.Locations.Primary, data.RandomInteger)
