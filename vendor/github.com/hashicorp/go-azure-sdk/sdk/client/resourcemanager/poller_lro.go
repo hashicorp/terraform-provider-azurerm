@@ -164,6 +164,10 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			// whilst the standard set above should be sufficient, some APIs differ from the spec and should be documented below:
 			// Dashboard@2022-08-01 returns `Accepted` rather than `InProgress` during creation
 			"Accepted": pollers.PollingStatusInProgress,
+			// NetAppVolumeReplication @ 2023-05-01 returns `AuthorizeReplication` during authorizing replication
+			"AuthorizeReplication": pollers.PollingStatusInProgress,
+			// NetAppVolumeReplication @ 2023-05-01 returns `BreakReplication` during breaking replication
+			"BreakReplication": pollers.PollingStatusInProgress,
 			// CostManagement@2021-10-01 returns `Completed` rather than `Succeeded`: https://github.com/Azure/azure-sdk-for-go/issues/20342
 			"Completed": pollers.PollingStatusSucceeded,
 			// ContainerRegistry@2019-06-01-preview returns `Creating` rather than `InProgress` during creation

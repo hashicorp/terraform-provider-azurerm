@@ -27,7 +27,7 @@ type checkBase struct {
 }
 
 func (c checkBase) ShouldSkip() bool {
-	if c.MDField() == nil || c.MDField().Skip {
+	if c.line == 0 || c.MDField() == nil || c.MDField().Skip {
 		return true
 	}
 	return false

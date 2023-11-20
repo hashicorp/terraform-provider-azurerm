@@ -1,6 +1,10 @@
 package fileshares
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEnabledProtocols() []string {
 		string(EnabledProtocolsNFS),
 		string(EnabledProtocolsSMB),
 	}
+}
+
+func (s *EnabledProtocols) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnabledProtocols(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEnabledProtocols(input string) (*EnabledProtocols, error) {
@@ -45,6 +62,19 @@ func PossibleValuesForLeaseDuration() []string {
 		string(LeaseDurationFixed),
 		string(LeaseDurationInfinite),
 	}
+}
+
+func (s *LeaseDuration) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseDuration(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLeaseDuration(input string) (*LeaseDuration, error) {
@@ -79,6 +109,19 @@ func PossibleValuesForLeaseShareAction() []string {
 		string(LeaseShareActionRelease),
 		string(LeaseShareActionRenew),
 	}
+}
+
+func (s *LeaseShareAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseShareAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLeaseShareAction(input string) (*LeaseShareAction, error) {
@@ -118,6 +161,19 @@ func PossibleValuesForLeaseState() []string {
 	}
 }
 
+func (s *LeaseState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseLeaseState(input string) (*LeaseState, error) {
 	vals := map[string]LeaseState{
 		"available": LeaseStateAvailable,
@@ -149,6 +205,19 @@ func PossibleValuesForLeaseStatus() []string {
 	}
 }
 
+func (s *LeaseStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseLeaseStatus(input string) (*LeaseStatus, error) {
 	vals := map[string]LeaseStatus{
 		"locked":   LeaseStatusLocked,
@@ -177,6 +246,19 @@ func PossibleValuesForRootSquashType() []string {
 		string(RootSquashTypeNoRootSquash),
 		string(RootSquashTypeRootSquash),
 	}
+}
+
+func (s *RootSquashType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRootSquashType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRootSquashType(input string) (*RootSquashType, error) {
@@ -210,6 +292,19 @@ func PossibleValuesForShareAccessTier() []string {
 		string(ShareAccessTierPremium),
 		string(ShareAccessTierTransactionOptimized),
 	}
+}
+
+func (s *ShareAccessTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseShareAccessTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseShareAccessTier(input string) (*ShareAccessTier, error) {

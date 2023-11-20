@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicyrulecollectiongroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -519,6 +519,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar"
+      }
+      http_headers {
+        name  = "head_bar"
+        value = "value2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"
@@ -794,6 +802,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar2"
+      }
+      http_headers {
+        name  = "head_bar2"
+        value = "value_bar2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"
