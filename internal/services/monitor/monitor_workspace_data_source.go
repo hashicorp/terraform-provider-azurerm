@@ -22,6 +22,15 @@ type WorkspaceDataSource struct{}
 
 var _ sdk.DataSource = WorkspaceDataSource{}
 
+type WorkspaceDataSourceModel struct {
+	Name                       string            `tfschema:"name"`
+	ResourceGroupName          string            `tfschema:"resource_group_name"`
+	QueryEndpoint              string            `tfschema:"query_endpoint"`
+	PublicNetworkAccessEnabled bool              `tfschema:"public_network_access_enabled"`
+	Location                   string            `tfschema:"location"`
+	Tags                       map[string]string `tfschema:"tags"`
+}
+
 func (d WorkspaceDataSource) ModelObject() interface{} {
 	return &WorkspaceDataSource{}
 }
@@ -66,7 +75,7 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.WorkspacesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state WorkspaceResourceModel
+			var state WorkspaceDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -101,7 +110,7 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&WorkspaceResourceModel{
+			return metadata.Encode(&WorkspaceDataSourceModel{
 				Location:                   location,
 				Name:                       id.AccountName,
 				PublicNetworkAccessEnabled: enablePublicNetWorkAccess,
