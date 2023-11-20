@@ -27,6 +27,7 @@ type ManagedLustreFileSystemModel struct {
 	Identity            []identity.ModelUserAssigned `tfschema:"identity"`
 	EncryptionKey       []EncryptionKey              `tfschema:"encryption_key"`
 	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
+	MgsAddress          string                       `tfschema:"mgs_address"`
 	SkuName             string                       `tfschema:"sku_name"`
 	StorageCapacityInTb int64                        `tfschema:"storage_capacity_in_tb"`
 	SubnetId            string                       `tfschema:"subnet_id"`
@@ -229,7 +230,12 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 }
 
 func (r ManagedLustreFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"mgs_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
@@ -393,6 +399,9 @@ func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 					state.SubnetId = properties.FilesystemSubnet
 					state.StorageCapacityInTb = int64(properties.StorageCapacityTiB)
 					state.MaintenanceWindow = flattenManagedLustreFileSystemMaintenanceWindow(properties.MaintenanceWindow)
+					if properties.ClientInfo != nil && properties.ClientInfo.MgsAddress != nil {
+						state.MgsAddress = *properties.ClientInfo.MgsAddress
+					}
 					state.HsmSetting = flattenManagedLustreFileSystemHsmSetting(properties.Hsm)
 					state.Zones = pointer.From(model.Zones)
 					state.EncryptionKey = flattenManagedLustreFileSystemEncryptionKey(properties.EncryptionSettings)
