@@ -357,8 +357,8 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
-	if os.Getenv("ARM_OIDC_TOKEN") == "" && os.Getenv("ARM_OIDC_TOKEN_FILE_PATH") == "" {
-		t.Skip("ARM_OIDC_TOKEN or ARM_OIDC_TOKEN_FILE_PATH not set")
+	if os.Getenv("ARM_OIDC_TOKEN") == "" && os.Getenv("ARM_OIDC_TOKEN_FILE_PATH") == "" && os.Getenv("AZURE_FEDERATED_TOKEN_FILE") == "" {
+		t.Skip("ARM_OIDC_TOKEN or ARM_OIDC_TOKEN_FILE_PATH or AZURE_FEDERATED_TOKEN_FILE not set")
 	}
 
 	logging.SetOutput(t)

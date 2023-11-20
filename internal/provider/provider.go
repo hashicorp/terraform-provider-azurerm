@@ -177,7 +177,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", ""),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_CLIENT_ID", "AZURE_CLIENT_ID"}, ""),
 				Description: "The Client ID which should be used.",
 			},
 
@@ -191,7 +191,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", ""),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_TENANT_ID", "AZURE_TENANT_ID"}, ""),
 				Description: "The Tenant ID which should be used.",
 			},
 
@@ -279,7 +279,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"oidc_token_file_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN_FILE_PATH", ""),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_TOKEN_FILE_PATH", "AZURE_FEDERATED_TOKEN_FILE"}, ""),
 				Description: "The path to a file containing an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
