@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_log_analytics_workspace` - add support for the `identity` property [GH-23864]
 * `azurerm_linux_function_app` - add support for dotnet 8 [GH-23638]
 * `azurerm_linux_function_app_slot` - add support for dotnet 8 [GH-23638]
+* `azurerm_mssql_database` - support for Hyperscale SKUs [GH-23974]
 * `azurerm_shared_image` - add support for `trusted_launch_supported` [GH-23781]
 * `azurerm_spring_cloud_customized_accelerator` - add support for the `accelerator_type` and `path` properties [GH-23797]
 * `azurerm_private_dns_cname_record` - `ttl` can now be set to 0 [GH-23918]
