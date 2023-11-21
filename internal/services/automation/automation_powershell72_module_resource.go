@@ -21,9 +21,9 @@ import (
 
 func resourceAutomationPowerShell72Module() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationPowerShell72ModuleCreateUpdate,
+		Create: resourceAutomationPowerShell72ModuleCreate,
 		Read:   resourceAutomationPowerShell72ModuleRead,
-		Update: resourceAutomationPowerShell72ModuleCreateUpdate,
+		Update: resourceAutomationPowerShell72ModuleUpdate,
 		Delete: resourceAutomationPowerShell72ModuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -90,29 +90,27 @@ func resourceAutomationPowerShell72Module() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationPowerShell72ModuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationPowerShell72ModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.Module
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
 
 	id := module.NewPowerShell72ModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.PowerShell72ModuleGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
+	existing, err := client.PowerShell72ModuleGet(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
 
-		// for existing global module do update instead of raising ImportAsExistsError
-		isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
-		if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-			return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
-		}
+	// for existing global module do update instead of raising ImportAsExistsError
+	isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
+	if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
+		return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
 	}
 
 	parameters := module.ModuleCreateOrUpdateParameters{
@@ -167,17 +165,84 @@ func resourceAutomationPowerShell72ModuleCreateUpdate(d *pluginsdk.ResourceData,
 			return resp, provisioningState, nil
 		},
 	}
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
 
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationPowerShell72ModuleRead(d, meta)
+}
+
+func resourceAutomationPowerShell72ModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Module
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Module update.")
+
+	id := module.NewPowerShell72ModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+
+	parameters := module.ModuleCreateOrUpdateParameters{
+		Properties: module.ModuleCreateOrUpdateProperties{
+			ContentLink: expandPowerShell72ModuleLink(d),
+		},
+	}
+
+	if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, id, parameters); err != nil {
+		return err
+	}
+
+	// the API returns 'done' but it's not actually finished provisioning yet
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(module.ModuleProvisioningStateActivitiesStored),
+			string(module.ModuleProvisioningStateConnectionTypeImported),
+			string(module.ModuleProvisioningStateContentDownloaded),
+			string(module.ModuleProvisioningStateContentRetrieved),
+			string(module.ModuleProvisioningStateContentStored),
+			string(module.ModuleProvisioningStateContentValidated),
+			string(module.ModuleProvisioningStateCreated),
+			string(module.ModuleProvisioningStateCreating),
+			string(module.ModuleProvisioningStateModuleDataStored),
+			string(module.ModuleProvisioningStateModuleImportRunbookComplete),
+			string(module.ModuleProvisioningStateRunningImportModuleRunbook),
+			string(module.ModuleProvisioningStateStartingImportModuleRunbook),
+			string(module.ModuleProvisioningStateUpdating),
+		},
+		Target: []string{
+			string(module.ModuleProvisioningStateSucceeded),
+		},
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			resp, err2 := client.PowerShell72ModuleGet(ctx, id)
+			if err2 != nil {
+				return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
+			}
+
+			provisioningState := "Unknown"
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if props.ProvisioningState != nil {
+						provisioningState = string(*props.ProvisioningState)
+					}
+					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
+						return resp, provisioningState, fmt.Errorf(*props.Error.Message)
+					}
+					return resp, provisioningState, nil
+				}
+			}
+			return resp, provisioningState, nil
+		},
+	}
+
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
+	}
 
 	return resourceAutomationPowerShell72ModuleRead(d, meta)
 }
