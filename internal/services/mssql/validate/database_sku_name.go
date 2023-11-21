@@ -27,6 +27,7 @@ const (
 	Dc               = "((GP|BC|HS)_DC_(2|4|6|8|10|12|14|16|18|20|32|40))"
 	EightIM          = "(HS_8IM_(24|48|80))"
 	Serverless8IM    = "(HS_S_8IM_(24|80))"
+	Premium8IM       = "(HS_PRMS_(2|4|6|8|10|12|14|16|18|20|24|32|40|64|80|128))"
 )
 
 func DatabaseSkuName() pluginsdk.SchemaValidateFunc {
