@@ -2829,7 +2829,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
 
-			d.Set("support_plan", props.SupportPlan)
+			supportPlan := ""
+			if props.SupportPlan != nil {
+				supportPlan = string(*props.SupportPlan)
+			}
+			d.Set("support_plan", supportPlan)
 		}
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
