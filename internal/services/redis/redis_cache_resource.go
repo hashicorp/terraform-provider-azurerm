@@ -145,6 +145,10 @@ func resourceRedisCache() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"entra_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"maxclients": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
@@ -821,9 +825,24 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		output.MaxmemoryPolicy = utils.String(v)
 	}
 
+	// AAD/Entra support
+	// nolint : staticcheck
+	v, valExists := d.GetOkExists("redis_configuration.0.entra_enabled")
+	if valExists {
+		entraEnabled := v.(bool)
+
+		// rdb_backup_enabled is available when SKU is Premium
+		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+
+			output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
+		} else if entraEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			return nil, fmt.Errorf("The `entra_enabled` property requires a `Premium` sku to be set")
+		}
+	}
+
 	// RDB Backup
 	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
+	v, valExists = d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		rdbBackupEnabled := v.(bool)
 
@@ -938,6 +957,14 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 
 func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
 	outputs := make(map[string]interface{})
+
+	if input.AadEnabled != nil {
+		a, err := strconv.ParseBool(*input.AadEnabled)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `aad-enabled` %q: %+v", *input.AadEnabled, err)
+		}
+		outputs["rdb_backup_enabled"] = a
+	}
 
 	if input.Maxclients != nil {
 		i, err := strconv.Atoi(*input.Maxclients)
