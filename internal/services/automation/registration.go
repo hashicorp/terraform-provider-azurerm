@@ -73,6 +73,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_dsc_nodeconfiguration":          resourceAutomationDscNodeConfiguration(),
 		"azurerm_automation_job_schedule":                   resourceAutomationJobSchedule(),
 		"azurerm_automation_module":                         resourceAutomationModule(),
+		"azurerm_automation_powershell72_module":            resourceAutomationPowerShell72Module(),
 		"azurerm_automation_runbook":                        resourceAutomationRunbook(),
 		"azurerm_automation_schedule":                       resourceAutomationSchedule(),
 		"azurerm_automation_variable_bool":                  resourceAutomationVariableBool(),
