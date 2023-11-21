@@ -1312,6 +1312,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       }
     }
   }
+
+  lifecycle {
+    ignore_changes = [roles.0.edge_node.0.install_script_action]
+  }
 }
 `, r.template(data), data.RandomInteger, numEdgeNodes, instanceType)
 }
