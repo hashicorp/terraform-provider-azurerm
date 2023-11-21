@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20231117.1130141` of `github.com/hashicorp/go-azure-sdk` [GH-23945]
 * `dashboard`: updating to API Version `2023-09-01` [GH-23929]
 * `azurerm_hdinsight_hadoop_cluster` - `script_actions` is no longer Force New [GH-23888]
 * `azurerm_hdinsight_hbase_cluster` - `script_actions` is no longer Force New [GH-23888]
@@ -11,13 +12,13 @@ ENHANCEMENTS:
 * `azurerm_log_analytics_workspace` - add support for the `identity` property [GH-23864]
 * `azurerm_linux_function_app` - add support for dotnet 8 [GH-23638]
 * `azurerm_linux_function_app_slot` - add support for dotnet 8 [GH-23638]
-* `azurerm_windows_function_app` - add support for dotnet 8 [GH-23638]
-* `azurerm_windows_function_app_slot` - add support for dotnet 8 [GH-23638]
-* `azurerm_private_dns_cname_record` - `ttl` can now be set to 0 [GH-23918]
 * `azurerm_shared_image` - add support for `trusted_launch_supported` [GH-23781]
 * `azurerm_spring_cloud_customized_accelerator` - add support for the `accelerator_type` and `path` properties [GH-23797]
+* `azurerm_private_dns_cname_record` - `ttl` can now be set to 0 [GH-23918]
+* `azurerm_windows_function_app` - add support for dotnet 8 [GH-23638]
+* `azurerm_windows_function_app_slot` - add support for dotnet 8 [GH-23638]
 
-BUGS:
+BUG FIXES:
 
 * `azurerm_disk_encryption_set` - resource will recreate if `identity` changes from `SystemAssigned` to `UserAssigned` [GH-23904]
 * `azurerm_security_center_subscription_pricing` - fix a bug preventing removal of `extensions` and downgrading `tier` to `Free` [GH-23821]
