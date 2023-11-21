@@ -741,18 +741,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 3
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-
+  name                          = "acctestRedis-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  capacity                      = 3
+  family                        = "P"
+  sku_name                      = "Premium"
+  enable_non_ssl_port           = false
   public_network_access_enabled = false
 
   redis_configuration {
-    entra_enabled = true 
+    entra_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
