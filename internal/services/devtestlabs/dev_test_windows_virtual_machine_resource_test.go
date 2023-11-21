@@ -190,32 +190,6 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger%1000000)
 }
 
-func (r DevTestVirtualMachineResource) storage(data acceptance.TestData, storageType string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_dev_test_windows_virtual_machine" "test" {
-  name                   = "acctestvm%d"
-  lab_name               = azurerm_dev_test_lab.test.name
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  size                   = "Standard_B1ms"
-  username               = "acct5stU5er"
-  password               = "Pa$w0rd1234!"
-  lab_virtual_network_id = azurerm_dev_test_virtual_network.test.id
-  lab_subnet_name        = azurerm_dev_test_virtual_network.test.subnet[0].name
-  storage_type           = "%s"
-
-  gallery_image_reference {
-    offer     = "WindowsServer"
-    publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger%1000000, storageType)
-}
-
 func (DevTestVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

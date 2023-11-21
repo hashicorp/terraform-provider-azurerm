@@ -243,33 +243,6 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
 `, template, data.RandomInteger)
 }
 
-func (DevTestLinuxVirtualMachineResource) storage(data acceptance.TestData, storageType string) string {
-	template := DevTestLinuxVirtualMachineResource{}.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_dev_test_linux_virtual_machine" "test" {
-  name                   = "acctestvm-vm%d"
-  lab_name               = azurerm_dev_test_lab.test.name
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  size                   = "Standard_B1ms"
-  username               = "acct5stU5er"
-  password               = "Pa$w0rd1234!"
-  lab_virtual_network_id = azurerm_dev_test_virtual_network.test.id
-  lab_subnet_name        = azurerm_dev_test_virtual_network.test.subnet[0].name
-  storage_type           = "%s"
-
-  gallery_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, template, data.RandomInteger, storageType)
-}
-
 func (DevTestLinuxVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
