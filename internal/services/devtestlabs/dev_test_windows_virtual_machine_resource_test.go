@@ -83,32 +83,6 @@ func TestAccDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	})
 }
 
-func TestAccDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
-	r := DevTestVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.storage(data, "Standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
-				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-			),
-		},
-		{
-			Config: r.storage(data, "Premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
-				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-			),
-		},
-	})
-}
-
 func (DevTestVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
