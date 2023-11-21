@@ -619,11 +619,16 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
     syslog {
       facility_names = [
+        "alert",
+        "audit",
         "auth",
         "authpriv",
+        "clock",
         "cron",
         "daemon",
+        "ftp",
         "kern",
+        "nopri",
       ]
       log_levels = [
         "Debug",
