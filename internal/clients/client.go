@@ -17,7 +17,7 @@ import (
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01"
-	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
+	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
 	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
@@ -254,7 +254,7 @@ type Client struct {
 	PrivateDnsResolver           *dnsresolver.Client
 	Purview                      *purview.Client
 	RecoveryServices             *recoveryServices.Client
-	Redis                        *redis_v2023_04_01.Client
+	Redis                        *redis_2023_08_01.Client
 	RedisEnterprise              *redisenterprise.Client
 	Relay                        *relay.Client
 	Resource                     *resource.Client
