@@ -91,6 +91,7 @@ func TestAccVirtualMachineRunCommand_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r VirtualMachineRunCommandTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachineruncommands.ParseVirtualMachineRunCommandID(state.ID)
 	if err != nil {
@@ -165,24 +166,22 @@ resource "azurerm_storage_blob" "test1" {
   name                   = "script1"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  type                   = "Block"
+  source_content         = "echo 'hello world'"
 }
 
 resource "azurerm_storage_blob" "test2" {
   name                   = "output"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  type                   = "Append"
 }
 
 resource "azurerm_storage_blob" "test3" {
   name                   = "error"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  type                   = "Append"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -192,23 +191,22 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_virtual_machine_run_command" "test" {
-  location                                    = azurerm_resource_group.test.location
-  name                                        = "acctestvmrc-${var.random_string}"
-  virtual_machine_id                          = azurerm_linux_virtual_machine.test.id
-  async_execution_enabled                     = false
-  error_blob_uri                              = azurerm_storage_blob.test3.id
-  output_blob_uri                             = azurerm_storage_blob.test2.id
-  run_as_password                             = "val-${var.random_string}"
-  run_as_user                                 = "val-${var.random_string}"
-  timeout_in_seconds                          = 21
-  treat_failure_as_deployment_failure_enabled = false
+  location                = azurerm_resource_group.test.location
+  name                    = "acctestvmrc-${var.random_string}"
+  virtual_machine_id      = azurerm_linux_virtual_machine.test.id
+  async_execution_enabled = false
+  error_blob_uri          = azurerm_storage_blob.test3.id
+  output_blob_uri         = azurerm_storage_blob.test2.id
+  run_as_password         = "val-${var.random_string}"
+  run_as_user             = "val-${var.random_string}"
+  timeout_in_seconds      = 21
 
   error_blob_managed_identity {
     client_id = azurerm_user_assigned_identity.test.client_id
   }
 
   output_blob_managed_identity {
-    object_id = azurerm_user_assigned_identity.test.principal_id
+    client_id = azurerm_user_assigned_identity.test.client_id
   }
 
   parameter {
@@ -232,6 +230,10 @@ resource "azurerm_virtual_machine_run_command" "test" {
     environment = "terraform-acctests"
     some_key    = "some-value"
   }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
 }
 `, r.template(data))
 }

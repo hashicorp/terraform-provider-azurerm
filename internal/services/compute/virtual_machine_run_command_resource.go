@@ -28,22 +28,50 @@ func (r VirtualMachineRunCommandResource) ModelObject() interface{} {
 }
 
 type VirtualMachineRunCommandResourceSchema struct {
-	AsyncExecutionEnabled                  bool                                            `tfschema:"async_execution_enabled"`
-	ErrorBlobManagedIdentity               []VirtualMachineRunCommandManagedIdentitySchema `tfschema:"error_blob_managed_identity"`
-	ErrorBlobUri                           string                                          `tfschema:"error_blob_uri"`
-	Location                               string                                          `tfschema:"location"`
-	Name                                   string                                          `tfschema:"name"`
-	OutputBlobManagedIdentity              []VirtualMachineRunCommandManagedIdentitySchema `tfschema:"output_blob_managed_identity"`
-	OutputBlobUri                          string                                          `tfschema:"output_blob_uri"`
-	Parameter                              []VirtualMachineRunCommandInputParameterSchema  `tfschema:"parameter"`
-	ProtectedParameter                     []VirtualMachineRunCommandInputParameterSchema  `tfschema:"protected_parameter"`
-	RunAsPassword                          string                                          `tfschema:"run_as_password"`
-	RunAsUser                              string                                          `tfschema:"run_as_user"`
-	Source                                 []VirtualMachineRunCommandScriptSourceSchema    `tfschema:"source"`
-	Tags                                   map[string]interface{}                          `tfschema:"tags"`
-	TimeoutInSeconds                       int64                                           `tfschema:"timeout_in_seconds"`
-	TreatFailureAsDeploymentFailureEnabled bool                                            `tfschema:"treat_failure_as_deployment_failure_enabled"`
-	VirtualMachineId                       string                                          `tfschema:"virtual_machine_id"`
+	AsyncExecutionEnabled     bool                                            `tfschema:"async_execution_enabled"`
+	ErrorBlobManagedIdentity  []VirtualMachineRunCommandManagedIdentitySchema `tfschema:"error_blob_managed_identity"`
+	ErrorBlobUri              string                                          `tfschema:"error_blob_uri"`
+	InstanceView              []VirtualMachineRunCommandInstanceViewSchema    `tfschema:"instance_view"`
+	Location                  string                                          `tfschema:"location"`
+	Name                      string                                          `tfschema:"name"`
+	OutputBlobManagedIdentity []VirtualMachineRunCommandManagedIdentitySchema `tfschema:"output_blob_managed_identity"`
+	OutputBlobUri             string                                          `tfschema:"output_blob_uri"`
+	Parameter                 []VirtualMachineRunCommandInputParameterSchema  `tfschema:"parameter"`
+	ProtectedParameter        []VirtualMachineRunCommandInputParameterSchema  `tfschema:"protected_parameter"`
+	RunAsPassword             string                                          `tfschema:"run_as_password"`
+	RunAsUser                 string                                          `tfschema:"run_as_user"`
+	Source                    []VirtualMachineRunCommandScriptSourceSchema    `tfschema:"source"`
+	Tags                      map[string]interface{}                          `tfschema:"tags"`
+	TimeoutInSeconds          int64                                           `tfschema:"timeout_in_seconds"`
+	// TreatFailureAsDeploymentFailureEnabled bool                                            `tfschema:"treat_failure_as_deployment_failure_enabled"`
+	VirtualMachineId string `tfschema:"virtual_machine_id"`
+}
+
+type VirtualMachineRunCommandInputParameterSchema struct {
+	Name  string `tfschema:"name"`
+	Value string `tfschema:"value"`
+}
+
+type VirtualMachineRunCommandInstanceViewSchema struct {
+	ExitCode         int    `tfschema:"exit_code"`
+	executionState   string `tfschema:"execution_state"`
+	executionMessage string `tfschema:"execution_message"`
+	output           string `tfschema:"output"`
+	errorMessage     string `tfschema:"error_message"`
+	startTime        string `tfschema:"start_time"`
+	endTime          string `tfschema:"end_time"`
+}
+
+type VirtualMachineRunCommandManagedIdentitySchema struct {
+	ClientId string `tfschema:"client_id"`
+	ObjectId string `tfschema:"object_id"`
+}
+
+type VirtualMachineRunCommandScriptSourceSchema struct {
+	CommandId                string                                          `tfschema:"command_id"`
+	Script                   string                                          `tfschema:"script"`
+	ScriptUri                string                                          `tfschema:"script_uri"`
+	ScriptUriManagedIdentity []VirtualMachineRunCommandManagedIdentitySchema `tfschema:"script_uri_managed_identity"`
 }
 
 func (r VirtualMachineRunCommandResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -72,7 +100,7 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 
 		"source": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -278,12 +306,6 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
-		"treat_failure_as_deployment_failure_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
 		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
@@ -292,7 +314,44 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 }
 
 func (r VirtualMachineRunCommandResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"instance_view": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"exit_code": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+					"execution_state": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"execution_message": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"output": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"error_message": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"start_time": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"end_time": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+	}
 }
 
 func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
@@ -330,17 +389,17 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 				Tags:     tags.Expand(config.Tags),
 				Properties: &virtualmachineruncommands.VirtualMachineRunCommandProperties{
 					AsyncExecution:                  pointer.To(config.AsyncExecutionEnabled),
-					ErrorBlobManagedIdentity:        r.expandManagedIdentity(config.ErrorBlobManagedIdentity),
+					ErrorBlobManagedIdentity:        expandVirtualMachineRunCommandBlobManagedIdentity(config.ErrorBlobManagedIdentity),
 					ErrorBlobUri:                    pointer.To(config.ErrorBlobUri),
-					OutputBlobManagedIdentity:       r.expandManagedIdentity(config.OutputBlobManagedIdentity),
+					OutputBlobManagedIdentity:       expandVirtualMachineRunCommandBlobManagedIdentity(config.OutputBlobManagedIdentity),
 					OutputBlobUri:                   pointer.To(config.OutputBlobUri),
-					Parameters:                      r.expandInputParameter(config.Parameter),
-					ProtectedParameters:             r.expandInputParameter(config.ProtectedParameter),
+					Parameters:                      expandVirtualMachineRunCommandInputParameter(config.Parameter),
+					ProtectedParameters:             expandVirtualMachineRunCommandInputParameter(config.ProtectedParameter),
 					RunAsPassword:                   pointer.To(config.RunAsPassword),
 					RunAsUser:                       pointer.To(config.RunAsUser),
-					Source:                          r.expandSource(config.Source),
+					Source:                          expandVirtualMachineRunCommandSource(config.Source),
 					TimeoutInSeconds:                pointer.To(config.TimeoutInSeconds),
-					TreatFailureAsDeploymentFailure: pointer.To(config.TreatFailureAsDeploymentFailureEnabled),
+					TreatFailureAsDeploymentFailure: pointer.To(true),
 				},
 			}
 
@@ -378,7 +437,9 @@ func (r VirtualMachineRunCommandResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.GetByVirtualMachine(ctx, *id, virtualmachineruncommands.DefaultGetByVirtualMachineOperationOptions())
+			resp, err := client.GetByVirtualMachine(ctx, *id, virtualmachineruncommands.GetByVirtualMachineOperationOptions{
+				Expand: pointer.To("instanceView"),
+			})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -396,11 +457,11 @@ func (r VirtualMachineRunCommandResource) Read() sdk.ResourceFunc {
 					schema.AsyncExecutionEnabled = pointer.From(prop.AsyncExecution)
 					schema.ErrorBlobUri = pointer.From(prop.ErrorBlobUri)
 					schema.OutputBlobUri = pointer.From(prop.OutputBlobUri)
-					schema.Parameter = r.flattenInputParameter(prop.Parameters)
+					schema.Parameter = flattenVirtualMachineRunCommandInputParameter(prop.Parameters)
 					schema.RunAsUser = pointer.From(prop.RunAsUser)
-					schema.Source = r.flattenSource(prop.Source)
+					schema.Source = flattenVirtualMachineRunCommandSource(prop.Source)
 					schema.TimeoutInSeconds = pointer.From(prop.TimeoutInSeconds)
-					schema.TreatFailureAsDeploymentFailureEnabled = pointer.From(prop.TreatFailureAsDeploymentFailure)
+					schema.InstanceView = flattenVirtualMachineRunCommandInstanceView(prop.InstanceView)
 				}
 			}
 
@@ -458,7 +519,7 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("error_blob_managed_identity") {
-				payload.Properties.ErrorBlobManagedIdentity = r.expandManagedIdentity(config.ErrorBlobManagedIdentity)
+				payload.Properties.ErrorBlobManagedIdentity = expandVirtualMachineRunCommandBlobManagedIdentity(config.ErrorBlobManagedIdentity)
 			}
 
 			if metadata.ResourceData.HasChange("error_blob_uri") {
@@ -466,7 +527,7 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("output_blob_managed_identity") {
-				payload.Properties.OutputBlobManagedIdentity = r.expandManagedIdentity(config.OutputBlobManagedIdentity)
+				payload.Properties.OutputBlobManagedIdentity = expandVirtualMachineRunCommandBlobManagedIdentity(config.OutputBlobManagedIdentity)
 			}
 
 			if metadata.ResourceData.HasChange("output_blob_uri") {
@@ -474,11 +535,11 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("parameter") {
-				payload.Properties.Parameters = r.expandInputParameter(config.Parameter)
+				payload.Properties.Parameters = expandVirtualMachineRunCommandInputParameter(config.Parameter)
 			}
 
 			if metadata.ResourceData.HasChange("protected_parameter") {
-				payload.Properties.ProtectedParameters = r.expandInputParameter(config.ProtectedParameter)
+				payload.Properties.ProtectedParameters = expandVirtualMachineRunCommandInputParameter(config.ProtectedParameter)
 			}
 
 			if metadata.ResourceData.HasChange("run_as_password") {
@@ -490,15 +551,11 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("source") {
-				payload.Properties.Source = r.expandSource(config.Source)
+				payload.Properties.Source = expandVirtualMachineRunCommandSource(config.Source)
 			}
 
 			if metadata.ResourceData.HasChange("timeout_in_seconds") {
 				payload.Properties.TimeoutInSeconds = pointer.To(config.TimeoutInSeconds)
-			}
-
-			if metadata.ResourceData.HasChange("treat_failure_as_deployment_failure_enabled") {
-				payload.Properties.TreatFailureAsDeploymentFailure = pointer.To(config.TreatFailureAsDeploymentFailureEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -514,24 +571,7 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 	}
 }
 
-type VirtualMachineRunCommandInputParameterSchema struct {
-	Name  string `tfschema:"name"`
-	Value string `tfschema:"value"`
-}
-
-type VirtualMachineRunCommandManagedIdentitySchema struct {
-	ClientId string `tfschema:"client_id"`
-	ObjectId string `tfschema:"object_id"`
-}
-
-type VirtualMachineRunCommandScriptSourceSchema struct {
-	CommandId                string                                          `tfschema:"command_id"`
-	Script                   string                                          `tfschema:"script"`
-	ScriptUri                string                                          `tfschema:"script_uri"`
-	ScriptUriManagedIdentity []VirtualMachineRunCommandManagedIdentitySchema `tfschema:"script_uri_managed_identity"`
-}
-
-func (r VirtualMachineRunCommandResource) expandInputParameter(input []VirtualMachineRunCommandInputParameterSchema) *[]virtualmachineruncommands.RunCommandInputParameter {
+func expandVirtualMachineRunCommandInputParameter(input []VirtualMachineRunCommandInputParameterSchema) *[]virtualmachineruncommands.RunCommandInputParameter {
 	output := make([]virtualmachineruncommands.RunCommandInputParameter, 0)
 
 	for _, v := range input {
@@ -545,7 +585,7 @@ func (r VirtualMachineRunCommandResource) expandInputParameter(input []VirtualMa
 	return &output
 }
 
-func (r VirtualMachineRunCommandResource) flattenInputParameter(input *[]virtualmachineruncommands.RunCommandInputParameter) []VirtualMachineRunCommandInputParameterSchema {
+func flattenVirtualMachineRunCommandInputParameter(input *[]virtualmachineruncommands.RunCommandInputParameter) []VirtualMachineRunCommandInputParameterSchema {
 	if input == nil {
 		return make([]VirtualMachineRunCommandInputParameterSchema, 0)
 	}
@@ -563,7 +603,7 @@ func (r VirtualMachineRunCommandResource) flattenInputParameter(input *[]virtual
 	return output
 }
 
-func (r VirtualMachineRunCommandResource) expandManagedIdentity(input []VirtualMachineRunCommandManagedIdentitySchema) *virtualmachineruncommands.RunCommandManagedIdentity {
+func expandVirtualMachineRunCommandBlobManagedIdentity(input []VirtualMachineRunCommandManagedIdentitySchema) *virtualmachineruncommands.RunCommandManagedIdentity {
 	if len(input) == 0 {
 		return nil
 	}
@@ -580,13 +620,13 @@ func (r VirtualMachineRunCommandResource) expandManagedIdentity(input []VirtualM
 	return output
 }
 
-func (r VirtualMachineRunCommandResource) expandSource(input []VirtualMachineRunCommandScriptSourceSchema) *virtualmachineruncommands.VirtualMachineRunCommandScriptSource {
+func expandVirtualMachineRunCommandSource(input []VirtualMachineRunCommandScriptSourceSchema) *virtualmachineruncommands.VirtualMachineRunCommandScriptSource {
 	if len(input) == 0 {
 		return nil
 	}
 
 	output := &virtualmachineruncommands.VirtualMachineRunCommandScriptSource{
-		ScriptUriManagedIdentity: r.expandManagedIdentity(input[0].ScriptUriManagedIdentity),
+		ScriptUriManagedIdentity: expandVirtualMachineRunCommandBlobManagedIdentity(input[0].ScriptUriManagedIdentity),
 	}
 
 	if input[0].CommandId != "" {
@@ -602,7 +642,7 @@ func (r VirtualMachineRunCommandResource) expandSource(input []VirtualMachineRun
 	return output
 }
 
-func (r VirtualMachineRunCommandResource) flattenSource(input *virtualmachineruncommands.VirtualMachineRunCommandScriptSource) []VirtualMachineRunCommandScriptSourceSchema {
+func flattenVirtualMachineRunCommandSource(input *virtualmachineruncommands.VirtualMachineRunCommandScriptSource) []VirtualMachineRunCommandScriptSourceSchema {
 	if input == nil {
 		return []VirtualMachineRunCommandScriptSourceSchema{}
 	}
@@ -612,6 +652,24 @@ func (r VirtualMachineRunCommandResource) flattenSource(input *virtualmachinerun
 			CommandId: pointer.From(input.CommandId),
 			Script:    pointer.From(input.Script),
 			ScriptUri: pointer.From(input.ScriptUri),
+		},
+	}
+}
+
+func flattenVirtualMachineRunCommandInstanceView(input *virtualmachineruncommands.VirtualMachineRunCommandInstanceView) []VirtualMachineRunCommandInstanceViewSchema {
+	if input == nil {
+		return []VirtualMachineRunCommandInstanceViewSchema{}
+	}
+
+	return []VirtualMachineRunCommandInstanceViewSchema{
+		{
+			ExitCode:         int(pointer.From(input.ExitCode)),
+			executionState:   string(pointer.From(input.ExecutionState)),
+			executionMessage: pointer.From(input.ExecutionMessage),
+			output:           pointer.From(input.Output),
+			errorMessage:     pointer.From(input.Error),
+			startTime:        pointer.From(input.StartTime),
+			endTime:          pointer.From(input.EndTime),
 		},
 	}
 }
