@@ -55,6 +55,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ github.sha }}
+          tag: v0.0.0-${{ github.sha }}
+          commit: ${{ github.sha }}
           artifacts: bin/terraform-provider-azurerm.*.*
           makeLatest: true
