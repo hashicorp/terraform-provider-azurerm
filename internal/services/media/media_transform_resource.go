@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceMediaTransform() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMediaTransformCreateUpdate,
 		Read:   resourceMediaTransformRead,
 		Update: resourceMediaTransformCreateUpdate,
@@ -216,40 +217,6 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
-									},
-								},
-							},
-						},
-						// lintignore:XS003
-						"face_detector_preset": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"analysis_resolution": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      string(encodings.AnalysisResolutionSourceResolution),
-										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAnalysisResolution(), false),
-									},
-									"blur_type": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForBlurType(), false),
-									},
-									"experimental_options": {
-										Type:     pluginsdk.TypeMap,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-									"face_redactor_mode": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      string(encodings.FaceRedactorModeAnalyze),
-										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForFaceRedactorMode(), false),
 									},
 								},
 							},
@@ -1187,6 +1154,48 @@ func resourceMediaTransform() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOh() {
+		// NOTE: `face_detector_preset` should be removed as the Media Services Face Detector has been retired and would not have a direct replacement.
+		// Refer to https://learn.microsoft.com/en-us/azure/media-services/latest/analyze-face-retirement-migration-overview for details.
+		// TODO Remove in 4.0
+		resource.Schema["output"].Elem.(*pluginsdk.Resource).Schema["face_detector_preset"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"analysis_resolution": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(encodings.AnalysisResolutionSourceResolution),
+						ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAnalysisResolution(), false),
+					},
+					"blur_type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForBlurType(), false),
+					},
+					"experimental_options": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"face_redactor_mode": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(encodings.FaceRedactorModeAnalyze),
+						ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForFaceRedactorMode(), false),
+					},
+				},
+			},
+			Deprecated: "`face_detector_preset` will be removed in version 4.0 of the AzureRM Provider as it has been retired.",
+		}
+	}
+
+	return resource
 }
 
 func resourceMediaTransformCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1333,15 +1342,26 @@ func flattenTransformOutputs(input []encodings.TransformOutput) []interface{} {
 		}
 
 		preset := flattenPreset(transformOutput.Preset)
-		results = append(results, map[string]interface{}{
-			"audio_analyzer_preset": preset.audioAnalyzerPresets,
-			"builtin_preset":        preset.builtInPresets,
-			"custom_preset":         preset.customPresets,
-			"face_detector_preset":  preset.faceDetectorPresets,
-			"on_error_action":       onErrorAction,
-			"relative_priority":     relativePriority,
-			"video_analyzer_preset": preset.videoAnalyzerPresets,
-		})
+		if !features.FourPointOh() {
+			results = append(results, map[string]interface{}{
+				"audio_analyzer_preset": preset.audioAnalyzerPresets,
+				"builtin_preset":        preset.builtInPresets,
+				"custom_preset":         preset.customPresets,
+				"face_detector_preset":  preset.faceDetectorPresets,
+				"on_error_action":       onErrorAction,
+				"relative_priority":     relativePriority,
+				"video_analyzer_preset": preset.videoAnalyzerPresets,
+			})
+		} else {
+			results = append(results, map[string]interface{}{
+				"audio_analyzer_preset": preset.audioAnalyzerPresets,
+				"builtin_preset":        preset.builtInPresets,
+				"custom_preset":         preset.customPresets,
+				"on_error_action":       onErrorAction,
+				"relative_priority":     relativePriority,
+				"video_analyzer_preset": preset.videoAnalyzerPresets,
+			})
+		}
 	}
 
 	return results
@@ -1351,7 +1371,10 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 	audioAnalyzerPresets := transform["audio_analyzer_preset"].([]interface{})
 	builtInPresets := transform["builtin_preset"].([]interface{})
 	customPresets := transform["custom_preset"].([]interface{})
-	faceDetectorPresets := transform["face_detector_preset"].([]interface{})
+	faceDetectorPresets := make([]interface{}, 0)
+	if !features.FourPointOh() {
+		faceDetectorPresets = transform["face_detector_preset"].([]interface{})
+	}
 	videoAnalyzerPresets := transform["video_analyzer_preset"].([]interface{})
 
 	presetsCount := 0
@@ -1439,7 +1462,7 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 		return builtInPreset, nil
 	}
 
-	if len(faceDetectorPresets) > 0 {
+	if !features.FourPointOh() && len(faceDetectorPresets) > 0 {
 		preset := faceDetectorPresets[0].(map[string]interface{})
 
 		options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
