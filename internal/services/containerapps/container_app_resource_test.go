@@ -639,14 +639,20 @@ resource "azurerm_container_app" "test" {
     }
   }
   secret {
-    name          = "key-vault-secret"
-    identity      = azurerm_user_assigned_identity.test.id
-    key_vault_url = azurerm_key_vault_secret.test.versionless_id
+    name                = "key-vault-secret"
+    identity            = azurerm_user_assigned_identity.test.id
+    key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
   }
 
   depends_on = [
     azurerm_role_assignment.mi_key_vault_secrets
   ]
+
+  lifecycle {
+    ignore_changes = [
+      secret[0].value
+    ]
+  }
 }
 `, r.templateNoProvider(data), data.RandomInteger, data.RandomString)
 
