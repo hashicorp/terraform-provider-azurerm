@@ -437,9 +437,14 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 			}
 
-			if policy := props.FirewallPolicy; policy != nil {
-				d.Set("firewall_policy_id", policy.Id)
+			firewallPolicyId := ""
+			if props.FirewallPolicy != nil && props.FirewallPolicy.Id != nil {
+				firewallPolicyId = *props.FirewallPolicy.Id
+				if policyId, err := firewallpolicies.ParseFirewallPolicyIDInsensitively(firewallPolicyId); err == nil {
+					firewallPolicyId = policyId.ID()
+				}
 			}
+			d.Set("firewall_policy_id", firewallPolicyId)
 
 			if sku := props.Sku; sku != nil {
 				d.Set("sku_name", string(pointer.From(sku.Name)))
