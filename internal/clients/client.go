@@ -11,13 +11,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
-	azurestackhci_v2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01"
+	azurestackhci_v2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01"
-	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
+	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
 	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
@@ -171,7 +171,7 @@ type Client struct {
 	Automanage                   *automanage.Client
 	Automation                   *automation.Client
 	AzureManagedLustreFileSystem *storagecache_2023_05_01.Client
-	AzureStackHCI                *azurestackhci_v2023_03_01.Client
+	AzureStackHCI                *azurestackhci_v2023_08_01.Client
 	Batch                        *batch.Client
 	Blueprints                   *blueprints.Client
 	Bot                          *bot.Client
@@ -254,7 +254,7 @@ type Client struct {
 	PrivateDnsResolver           *dnsresolver.Client
 	Purview                      *purview.Client
 	RecoveryServices             *recoveryServices.Client
-	Redis                        *redis_v2023_04_01.Client
+	Redis                        *redis_2023_08_01.Client
 	RedisEnterprise              *redisenterprise.Client
 	Relay                        *relay.Client
 	Resource                     *resource.Client
@@ -466,7 +466,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for LabService: %+v", err)
 	}
 	client.Legacy = legacy.NewClient(o)
-	client.Lighthouse = lighthouse.NewClient(o)
+	if client.Lighthouse, err = lighthouse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Lighthouse: %+v", err)
+	}
 	if client.LogAnalytics, err = loganalytics.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LogAnalytics: %+v", err)
 	}
@@ -503,7 +505,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mobile Network: %+v", err)
 	}
-	client.MSSQL = mssql.NewClient(o)
+	if client.MSSQL, err = mssql.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for MSSQL: %+v", err)
+	}
 	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	if client.MySQL, err = mysql.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for MySQL: %+v", err)
@@ -576,7 +580,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ServiceBus: %+v", err)
 	}
-	client.ServiceConnector = serviceConnector.NewClient(o)
+	if client.ServiceConnector, err = serviceConnector.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
+	}
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
 	if client.ServiceNetworking, err = serviceNetworking.NewClient(o); err != nil {

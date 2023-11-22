@@ -10,6 +10,11 @@ description: |-
 
 Manages a ServiceBus Namespace Network Rule Set.
 
+
+> The `azurerm_servicebus_namespace_network_rule_set` resource is deprecated
+and will be removed in version 4.0 of the AzureRM provider. Please use
+`network_rule_set` inside the `azurerm_servicebus_namespace` resource instead.
+
 ## Example Usage
 
 ```hcl

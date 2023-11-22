@@ -136,7 +136,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "%s"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, kind)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, kind)
 }
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
@@ -198,7 +198,8 @@ resource "azurerm_cognitive_deployment" "test" {
   scale {
     type = "Standard"
   }
-  rai_policy_name = "RAI policy"
+  rai_policy_name        = "RAI policy"
+  version_upgrade_option = "OnceNewDefaultVersionAvailable"
 }
 `, template, data.RandomInteger)
 }

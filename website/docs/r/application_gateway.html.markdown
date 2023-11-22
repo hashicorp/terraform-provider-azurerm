@@ -25,8 +25,8 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.254.0.0/16"]
 }
 
-resource "azurerm_subnet" "frontend" {
-  name                 = "frontend"
+resource "azurerm_subnet" "example" {
+  name                 = "example"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.254.0.0/24"]
@@ -63,7 +63,7 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.frontend.id
+    subnet_id = azurerm_subnet.example.id
   }
 
   frontend_port {
@@ -381,7 +381,7 @@ A `path_rule` block supports the following:
 
 ---
 
-A `probe` block support the following:
+A `probe` block supports the following:
 
 * `host` - (Optional) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as `127.0.0.1`, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
 

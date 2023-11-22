@@ -2394,6 +2394,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.name",
 			"default_node_pool.0.enable_host_encryption",
 			"default_node_pool.0.enable_node_public_ip",
+			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
