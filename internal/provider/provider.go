@@ -581,7 +581,7 @@ func getClientId(d *schema.ResourceData) (*string, error) {
 		clientId = fileClientId
 	}
 
-	if d.Get("use_aks_workload_identity").(bool) {
+	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_CLIENT_ID") != "" {
 		aksClientId := os.Getenv("AZURE_CLIENT_ID")
 		if clientId != "" && clientId != aksClientId {
 			return nil, fmt.Errorf("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
@@ -617,7 +617,7 @@ func getClientSecret(d *schema.ResourceData) (*string, error) {
 func getTenantId(d *schema.ResourceData) (*string, error) {
 	tenantId := strings.TrimSpace(d.Get("tenant_id").(string))
 
-	if d.Get("use_aks_workload_identity").(bool) {
+	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_TENANT_ID") != "" {
 		aksTenantId := os.Getenv("AZURE_TENANT_ID")
 		if tenantId != "" && tenantId != aksTenantId {
 			return nil, fmt.Errorf("mismatch between supplied Tenant ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
