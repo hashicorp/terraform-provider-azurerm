@@ -1,0 +1,60 @@
+name: Build TF Provider
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.3
+      - name: Install C toolchain
+        run: |
+          sudo apt-get update
+          sudo apt install -y gcc-x86-64-linux-gnu
+          mkdir bin
+      - name: Cache Binaries
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-binaries
+        with:
+          path: bin
+          key: ${{ github.sha }}
+          restore-keys: ${{ github.sha }}
+      - name: Build Linux binary with Boringcrypto
+        run: |
+          CC=x86_64-linux-gnu-gcc CGO_ENABLED=1 GOARCH=amd64 GOOS=linux GOEXPERIMENT=boringcrypto \
+          go build -o bin/terraform-provider-azurerm.linux.amd64 .
+      - name: Verify Boringcrypto
+        run: |
+          go run rsc.io/goversion@master -crypto bin/terraform-provider-azurerm.linux.amd64 | grep -q '(boring crypto)'
+      # boringcrypto isn't available for darwin, so we can also disable CGO.
+      - name: Build Darwin binary without Boringcrypto
+        run: |
+          CGO_ENABLED=0 GOARCH=arm64 GOOS=darwin \
+          go build -o bin/terraform-provider-azurerm.darwin.arm64 .
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache Binaries
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-binaries
+        with:
+          path: bin
+          key: ${{ github.sha }}
+          restore-keys: ${{ github.sha }}
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.sha }}
+          artifacts: bin/terraform-provider-azurerm.*.*
+          makeLatest: true
