@@ -147,6 +147,22 @@ func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleTrue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_directory_visible_true")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nfsv3SnapshotDirectoryVisibleTrue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("snapshot_directory_visible").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetAppVolume_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
@@ -631,17 +647,18 @@ func (NetAppVolumeResource) crossRegionReplication(data acceptance.TestData) str
 %[1]s
 
 resource "azurerm_netapp_volume" "test_primary" {
-  name                = "acctest-NetAppVolume-primary-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-unique-file-path-primary-%[2]d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test.id
-  protocols           = ["NFSv3"]
-  storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
+  name                       = "acctest-NetAppVolume-primary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-primary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = false
+  throughput_in_mibps        = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -753,6 +770,41 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
     rule_index        = 1
     allowed_clients   = ["0.0.0.0/0"]
     protocols_enabled = ["NFSv3"]
+    unix_read_write   = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) nfsv3SnapshotDirectoryVisibleTrue(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_snapshot_directory_visible_true" {
+  name                       = "acctest-NetAppVolume-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
     unix_read_write   = true
   }
 
