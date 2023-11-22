@@ -1444,6 +1444,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"support_plan": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
 					string(managedclusters.KubernetesSupportPlanAKSLongTermSupport),
