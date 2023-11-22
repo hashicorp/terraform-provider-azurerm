@@ -169,6 +169,8 @@ When authenticating using AKS Workload Identity, the following fields can be set
 
 * `use_aks_workload_identity` - (Optional) Should AKS Workload Identity be used for Authentication? This can also be sourced from the `ARM_USE_AKS_WORKLOAD_IDENTITY` Environment Variable. Defaults to `false`. When set, `client_id`, `tenant_id` and `oidc_token_file_path` will be detected from the environment and do not need to be specified.
 
+More information on [how to configure AKS Workload Identity can be found in this guide](guides/aks_workload_identity.html).
+
 ---
 
 For Azure CLI authentication, the following fields can be set:
