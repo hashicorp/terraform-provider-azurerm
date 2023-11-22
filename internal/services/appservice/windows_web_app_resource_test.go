@@ -2645,18 +2645,17 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version         = "%s"
-      php_version            = "%s"
-      python                 = "%t"
-      java_version           = "%s"
-      java_container         = "%s"
-      java_container_version = "%s"
+      dotnet_version = "%s"
+      php_version    = "%s"
+      python         = "%t"
+      java_version   = "%s"
+      tomcat_version = "%s"
 
       current_stack = "python"
     }
   }
 }
-`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", true, "1.8", "TOMCAT", "9.0")
+`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", true, "1.8", "9.0")
 }
 
 func (r WindowsWebAppResource) withLogsHttpBlob(data acceptance.TestData) string {
