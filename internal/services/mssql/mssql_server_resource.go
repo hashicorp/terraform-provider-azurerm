@@ -508,8 +508,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		// NOTE: In the new API this just a string instead of a *string, shouldn't we just call Normalize?
-		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
+		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 		if err != nil {

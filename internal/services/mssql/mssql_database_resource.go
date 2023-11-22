@@ -540,10 +540,6 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				elasticPoolId = pointer.From(props.ElasticPoolId)
 			}
 
-			if props.RequestedBackupStorageRedundancy != nil {
-				d.Set("storage_account_type", string(pointer.From(props.RequestedBackupStorageRedundancy)))
-			}
-
 			if props.LicenseType != nil {
 				d.Set("license_type", string(pointer.From(props.LicenseType)))
 			} else {
