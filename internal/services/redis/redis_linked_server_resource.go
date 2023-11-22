@@ -76,6 +76,11 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"geo_replicated_primary_host_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -176,6 +181,7 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("linked_redis_cache_location", location.Normalize(props.LinkedRedisCacheLocation))
 			d.Set("server_role", string(props.ServerRole))
+			d.Set("geo_replicated_primary_host_name", string(*props.GeoReplicatedPrimaryHostName))
 		}
 	}
 
