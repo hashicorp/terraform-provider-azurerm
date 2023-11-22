@@ -3,6 +3,7 @@
 FEATURES:
 
 * New Data Source: `azurerm_monitor_workspace` [GH-23928]
+* New Resource: `azurerm_application_load_balancer_subnet_association` [GH-23628]
 
 ENHANCEMENTS:
 
