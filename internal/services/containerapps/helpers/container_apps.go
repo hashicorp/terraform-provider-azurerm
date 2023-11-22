@@ -8,11 +8,13 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -2545,45 +2547,46 @@ func expandContainerProbes(input Container) *[]containerapps.ContainerAppProbe {
 }
 
 type Secret struct {
-	Identity    string `tfschema:"identity"`
-	KeyVaultUrl string `tfschema:"key_vault_url"`
-	Name        string `tfschema:"name"`
-	Value       string `tfschema:"value"`
+	Identity         string `tfschema:"identity"`
+	KeyVaultSecretId string `tfschema:"key_vault_secret_id"`
+	Name             string `tfschema:"name"`
+	Value            string `tfschema:"value"`
 }
 
 func SecretsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:      pluginsdk.TypeSet,
+		Type:      pluginsdk.TypeList,
 		Optional:  true,
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"identity": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Sensitive:   false,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.Any(
+						commonids.ValidateUserAssignedIdentityID,
+						validation.StringInSlice([]string{"system"}, true),
+					),
 					Description: "The identity to use for accessing key vault reference.",
 				},
 
-				"key_vault_url": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Sensitive:   true,
-					Description: "The key vault reference URL for this secret.",
+				"key_vault_secret_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					Description:  "The id of the key vault secret.",
 				},
 
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.SecretName,
-					Sensitive:    true,
-					Description:  "The Secret name.",
+					Description:  "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2601,27 +2604,25 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"identity": {
 					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Sensitive:   false,
+					Optional:    true,
 					Description: "The identity to use for accessing key vault reference.",
 				},
 
-				"key_vault_url": {
+				"key_vault_secret_id": {
 					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Sensitive:   true,
-					Description: "The key vault reference URL for this secret.",
+					Optional:    true,
+					Description: "The id of the key vault secret.",
 				},
 
 				"name": {
 					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The Secret name.",
+					Required:    true,
+					Description: "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Computed:    true,
+					Optional:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2630,12 +2631,15 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 	}
 }
 
-func ValidateContainerSecret(s Secret) error {
-	if s.KeyVaultUrl != "" && s.Value != "" {
-		return fmt.Errorf("key vault url and value are mutually exclusive")
+func validateContainerSecret(s Secret) error {
+	if s.KeyVaultSecretId != "" && s.Value != "" {
+		return fmt.Errorf("key vault secret id and value are mutually exclusive")
 	}
-	if s.KeyVaultUrl != "" && s.Identity == "" {
-		return fmt.Errorf("must supply identity for key vault url")
+	if s.KeyVaultSecretId != "" && s.Identity == "" {
+		return fmt.Errorf("must supply identity for key vault secret id")
+	}
+	if s.KeyVaultSecretId == "" && s.Identity != "" {
+		return fmt.Errorf("must supply key vault secret id when specifying identity")
 	}
 	return nil
 }
@@ -2648,12 +2652,12 @@ func ExpandContainerSecrets(input []Secret) (*[]containerapps.Secret, error) {
 	result := make([]containerapps.Secret, 0)
 
 	for _, v := range input {
-		if err := ValidateContainerSecret(v); err != nil {
+		if err := validateContainerSecret(v); err != nil {
 			return nil, err
 		}
 		result = append(result, containerapps.Secret{
 			Identity:    pointer.To(v.Identity),
-			KeyVaultUrl: pointer.To(v.KeyVaultUrl),
+			KeyVaultUrl: pointer.To(v.KeyVaultSecretId),
 			Name:        pointer.To(v.Name),
 			Value:       pointer.To(v.Value),
 		})
@@ -2727,8 +2731,7 @@ func DaprSecretsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.SecretName,
-					Sensitive:    true,
-					Description:  "The Secret name.",
+					Description:  "The secret name.",
 				},
 
 				"value": {
@@ -2751,13 +2754,13 @@ func DaprSecretsDataSourceSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
 					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The Secret name.",
+					Required:    true,
+					Description: "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Computed:    true,
+					Required:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2811,10 +2814,10 @@ func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
 		result = append(result, Secret{
-			Identity:    pointer.From(v.Identity),
-			KeyVaultUrl: pointer.From(v.KeyVaultUrl),
-			Name:        pointer.From(v.Name),
-			Value:       pointer.From(v.Value),
+			Identity:         pointer.From(v.Identity),
+			KeyVaultSecretId: pointer.From(v.KeyVaultUrl),
+			Name:             pointer.From(v.Name),
+			Value:            pointer.From(v.Value),
 		})
 	}
 

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -475,8 +474,8 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if metadata.ResourceDiff.HasChange("secret") {
 				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secret")
-				stateSecrets := stateSecretsRaw.(*schema.Set).List()
-				configSecrets := configSecretsRaw.(*schema.Set).List()
+				stateSecrets := stateSecretsRaw.([]interface{})
+				configSecrets := configSecretsRaw.([]interface{})
 				// Check there's not less
 				if len(configSecrets) < len(stateSecrets) {
 					return fmt.Errorf("cannot remove secrets from Container Apps at this time due to a limitation in the Container Apps Service. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
