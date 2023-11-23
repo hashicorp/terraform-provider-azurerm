@@ -2604,25 +2604,25 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"identity": {
 					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Computed:    true,
 					Description: "The identity to use for accessing key vault reference.",
 				},
 
 				"key_vault_secret_id": {
 					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Computed:    true,
 					Description: "The id of the key vault secret.",
 				},
 
 				"name": {
 					Type:        pluginsdk.TypeString,
-					Required:    true,
+					Computed:    true,
 					Description: "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Computed:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2632,9 +2632,6 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 }
 
 func validateContainerSecret(s Secret) error {
-	if s.KeyVaultSecretId != "" && s.Value != "" {
-		return fmt.Errorf("key vault secret id and value are mutually exclusive")
-	}
 	if s.KeyVaultSecretId != "" && s.Identity == "" {
 		return fmt.Errorf("must supply identity for key vault secret id")
 	}
@@ -2729,14 +2726,14 @@ func DaprSecretsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Computed:     true,
 					ValidateFunc: validate.SecretName,
 					Description:  "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Required:    true,
+					Computed:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
