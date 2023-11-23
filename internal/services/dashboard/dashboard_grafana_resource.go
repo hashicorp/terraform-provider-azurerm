@@ -118,7 +118,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"grafana_major_version": {
-			Type:     pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
 			// TODO: make this field Required (with no default) in 4.0
 			Optional: true,
 			ForceNew: true,
