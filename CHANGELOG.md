@@ -37,6 +37,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_dev_test_linux_virtual_machine` - `storage_type` is now ForceNew to match the updated API behaviour [GH-23973]
+* `azurerm_dev_test_windows_virtual_machine` - `storage_type` is now ForceNew to match the updated API behaviour [GH-23973]
 * `azurerm_disk_encryption_set` - resource will recreate if `identity` changes from `SystemAssigned` to `UserAssigned` [GH-23904]
 * `azurerm_firewall` - recasing the value for `firewall_policy_id` to workaround the API returning the incorrect casing [GH-23993]
 * `azurerm_security_center_subscription_pricing` - fix a bug preventing removal of `extensions` and downgrading `tier` to `Free` [GH-23821]
