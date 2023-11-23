@@ -6,12 +6,14 @@ package hdinsight
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -331,24 +333,28 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 	// We can only add an edge node after creation
 	if v, ok := d.GetOk("roles.0.edge_node"); ok {
 		edgeNodeRaw := v.([]interface{})
-		applicationsClient := meta.(*clients.Client).HDInsight.ApplicationsClient
+		applicationsClient := meta.(*clients.Client).HDInsight.Applications
 		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
+		applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroup, id.Name, id.Name) // 2 id.Name's are intentional
 
-		err := createHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
+		err := createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig)
 		if err != nil {
 			return err
 		}
 
 		// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
 		log.Printf("[DEBUG] Waiting for Hadoop Cluster to %q (Resource Group %q) to finish applying edge node", name, resourceGroup)
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
 			Target:     []string{"Running"},
 			Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
 			MinTimeout: 15 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+			Timeout:    time.Until(deadline),
 		}
-
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 		}
@@ -453,17 +459,19 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, hadoopRoles)
 
-		applicationsClient := meta.(*clients.Client).HDInsight.ApplicationsClient
-
-		edgeNode, err := applicationsClient.Get(ctx, resourceGroup, name, name)
+		applicationsClient := meta.(*clients.Client).HDInsight.Applications
+		applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroup, id.Name, id.Name) // 2 id.Name's are intentional
+		edgeNode, err := applicationsClient.Get(ctx, applicationId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(edgeNode.Response) {
+			if !response.WasNotFound(edgeNode.HttpResponse) {
 				return fmt.Errorf("reading edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
-		if edgeNodeProps := edgeNode.Properties; edgeNodeProps != nil {
-			flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps, d)
+		if model := edgeNode.Model; model != nil {
+			if edgeNodeProps := model.Properties; edgeNodeProps != nil {
+				flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps, d)
+			}
 		}
 
 		if props.DiskEncryptionProperties != nil {
@@ -513,7 +521,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationProperties, d *pluginsdk.ResourceData) []interface{} {
+func flattenHDInsightEdgeNode(roles []interface{}, props *applications.ApplicationProperties, d *pluginsdk.ResourceData) []interface{} {
 	if len(roles) == 0 || props == nil {
 		return roles
 	}
@@ -545,7 +553,7 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 	if installScriptActions := props.InstallScriptActions; installScriptActions != nil {
 		for _, action := range *installScriptActions {
 			actions["name"] = action.Name
-			actions["uri"] = action.URI
+			actions["uri"] = action.Uri
 			actions["parameters"] = d.Get("roles.0.edge_node.0.install_script_action.0.parameters").(string)
 		}
 	}
@@ -554,7 +562,7 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 		uninstallActions := make(map[string]interface{})
 		for _, uninstallAction := range *uninstallScriptActions {
 			actions["name"] = uninstallAction.Name
-			actions["uri"] = uninstallAction.URI
+			actions["uri"] = uninstallAction.Uri
 			actions["parameters"] = uninstallAction.Parameters
 		}
 		edgeNode["uninstall_script_actions"] = []interface{}{uninstallActions}
@@ -600,8 +608,8 @@ func flattenHDInsightHadoopComponentVersion(input map[string]*string) []interfac
 	}
 }
 
-func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{}) *[]hdinsight.RuntimeScriptAction {
-	actions := make([]hdinsight.RuntimeScriptAction, 0)
+func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{}) *[]applications.RuntimeScriptAction {
+	actions := make([]applications.RuntimeScriptAction, 0)
 
 	for _, v := range input {
 		val := v.(map[string]interface{})
@@ -610,12 +618,12 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 		uri := val["uri"].(string)
 		parameters := val["parameters"].(string)
 
-		action := hdinsight.RuntimeScriptAction{
-			Name: utils.String(name),
-			URI:  utils.String(uri),
+		action := applications.RuntimeScriptAction{
+			Name: name,
+			Uri:  uri,
 			// The only role available for edge nodes is edgenode
 			Parameters: utils.String(parameters),
-			Roles:      &[]string{"edgenode"},
+			Roles:      []string{"edgenode"},
 		}
 
 		actions = append(actions, action)
@@ -624,8 +632,8 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 	return &actions
 }
 
-func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]hdinsight.ApplicationGetHTTPSEndpoint {
-	endpoints := make([]hdinsight.ApplicationGetHTTPSEndpoint, 0)
+func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]applications.ApplicationGetHTTPSEndpoint {
+	endpoints := make([]applications.ApplicationGetHTTPSEndpoint, 0)
 	if len(input) == 0 || input[0] == nil {
 		return &endpoints
 	}
@@ -634,14 +642,14 @@ func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]hd
 		val := v.(map[string]interface{})
 
 		accessModes := val["access_modes"].([]string)
-		destinationPort := val["destination_port"].(int32)
+		destinationPort := val["destination_port"].(int64)
 		disableGatewayAuth := val["disable_gateway_auth"].(bool)
 		privateIpAddress := val["private_ip_address"].(string)
 		subDomainSuffix := val["sub_domain_suffix"].(string)
 
-		endPoint := hdinsight.ApplicationGetHTTPSEndpoint{
+		endPoint := applications.ApplicationGetHTTPSEndpoint{
 			AccessModes:        &accessModes,
-			DestinationPort:    pointer.To(destinationPort),
+			DestinationPort:    pointer.To(int64(destinationPort)),
 			PrivateIPAddress:   utils.String(privateIpAddress),
 			SubDomainSuffix:    utils.String(subDomainSuffix),
 			DisableGatewayAuth: utils.Bool(disableGatewayAuth),
@@ -653,8 +661,8 @@ func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]hd
 	return &endpoints
 }
 
-func expandHDInsightApplicationEdgeNodeUninstallScriptActions(input []interface{}) *[]hdinsight.RuntimeScriptAction {
-	actions := make([]hdinsight.RuntimeScriptAction, 0)
+func expandHDInsightApplicationEdgeNodeUninstallScriptActions(input []interface{}) *[]applications.RuntimeScriptAction {
+	actions := make([]applications.RuntimeScriptAction, 0)
 	if len(input) == 0 || input[0] == nil {
 		return &actions
 	}
@@ -666,11 +674,11 @@ func expandHDInsightApplicationEdgeNodeUninstallScriptActions(input []interface{
 		uri := val["uri"].(string)
 		parameters := val["parameters"].(string)
 
-		action := hdinsight.RuntimeScriptAction{
-			Name:       utils.String(name),
-			URI:        utils.String(uri),
+		action := applications.RuntimeScriptAction{
+			Name:       name,
+			Uri:        uri,
 			Parameters: utils.String(parameters),
-			Roles:      &[]string{"edgenode"},
+			Roles:      []string{"edgenode"},
 		}
 
 		actions = append(actions, action)

@@ -5,7 +5,7 @@ package client
 
 import (
 	"fmt"
-	
+
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -15,7 +15,6 @@ import (
 type Client struct {
 	*hdinsight_v2021_06_01.Client
 
-	ApplicationsClient   *hdinsight.ApplicationsClient
 	ClustersClient       *hdinsight.ClustersClient
 	ConfigurationsClient *hdinsight.ConfigurationsClient
 	ExtensionsClient     *hdinsight.ExtensionsClient
@@ -36,9 +35,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building meta client: %+v", err)
 	}
 
-	ApplicationsClient := hdinsight.NewApplicationsClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
-	opts.ConfigureClient(&ApplicationsClient.Client, opts.ResourceManagerAuthorizer)
-
 	ClustersClient := hdinsight.NewClustersClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
 	opts.ConfigureClient(&ClustersClient.Client, opts.ResourceManagerAuthorizer)
 
@@ -51,7 +47,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		Client: client,
 
-		ApplicationsClient:   &ApplicationsClient,
 		ClustersClient:       &ClustersClient,
 		ConfigurationsClient: &ConfigurationsClient,
 		ExtensionsClient:     &ExtensionsClient,

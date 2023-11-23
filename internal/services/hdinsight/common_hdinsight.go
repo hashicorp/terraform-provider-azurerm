@@ -6,6 +6,8 @@ package hdinsight
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
 	"log"
 	"time"
 
@@ -22,6 +24,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 	return func(d *pluginsdk.ResourceData, meta interface{}) error {
 		client := meta.(*clients.Client).HDInsight.ClustersClient
 		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+		applicationsClient := meta.(*clients.Client).HDInsight.Applications
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
@@ -89,23 +92,22 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				log.Printf("[DEBUG] Detected change in edge nodes")
 				edgeNodeRaw := d.Get("roles.0.edge_node").([]interface{})
 				edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
-				applicationsClient := meta.(*clients.Client).HDInsight.ApplicationsClient
 
 				oldEdgeNodeCount, newEdgeNodeCount := d.GetChange("roles.0.edge_node.0.target_instance_count")
 				oldEdgeNodeInt := oldEdgeNodeCount.(int)
 				newEdgeNodeInt := newEdgeNodeCount.(int)
+				applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroup, id.Name, id.Name) // two `id.Name`'s is intentional
 
 				// Note: API currently doesn't support updating number of edge nodes
 				// if anything in the edge nodes changes, delete edge nodes then recreate them
 				if oldEdgeNodeInt != 0 {
-					err := deleteHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name)
-					if err != nil {
-						return err
+					if err := applicationsClient.DeleteThenPoll(ctx, applicationId); err != nil {
+						return fmt.Errorf("deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 					}
 				}
 
 				if newEdgeNodeInt != 0 {
-					err = createHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
+					err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig)
 					if err != nil {
 						return err
 					}
@@ -317,18 +319,18 @@ func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *hdinsight.ComputePr
 	}
 }
 
-func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string, input map[string]interface{}) error {
+func createHDInsightEdgeNodes(ctx context.Context, client *applications.ApplicationsClient, applicationId applications.ApplicationId, input map[string]interface{}) error {
 	installScriptActions := expandHDInsightApplicationEdgeNodeInstallScriptActions(input["install_script_action"].([]interface{}))
 
-	application := hdinsight.Application{
-		Properties: &hdinsight.ApplicationProperties{
-			ComputeProfile: &hdinsight.ComputeProfile{
-				Roles: &[]hdinsight.Role{{
+	payload := applications.Application{
+		Properties: &applications.ApplicationProperties{
+			ComputeProfile: &applications.ComputeProfile{
+				Roles: &[]applications.Role{{
 					Name: utils.String("edgenode"),
-					HardwareProfile: &hdinsight.HardwareProfile{
+					HardwareProfile: &applications.HardwareProfile{
 						VMSize: utils.String(input["vm_size"].(string)),
 					},
-					TargetInstanceCount: utils.Int32(int32(input["target_instance_count"].(int))),
+					TargetInstanceCount: pointer.To(int64(input["target_instance_count"].(int))),
 				}},
 			},
 			InstallScriptActions: installScriptActions,
@@ -338,34 +340,16 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 
 	if v, ok := input["https_endpoints"]; ok {
 		httpsEndpoints := expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
-		application.Properties.HTTPSEndpoints = httpsEndpoints
+		payload.Properties.HTTPSEndpoints = httpsEndpoints
 	}
 
 	if v, ok := input["uninstall_script_actions"]; ok {
 		uninstallScriptActions := expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
-		application.Properties.UninstallScriptActions = uninstallScriptActions
+		payload.Properties.UninstallScriptActions = uninstallScriptActions
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, name, application)
-	if err != nil {
-		return fmt.Errorf("creating edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	return nil
-}
-
-func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string) error {
-	future, err := client.Delete(ctx, resourceGroup, name, name)
-	if err != nil {
-		return fmt.Errorf("deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := client.CreateThenPoll(ctx, applicationId, payload); err != nil {
+		return fmt.Errorf("creating edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", applicationId.ClusterName, applicationId.ResourceGroupName, err)
 	}
 
 	return nil
