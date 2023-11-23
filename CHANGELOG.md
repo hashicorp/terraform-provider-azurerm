@@ -1,25 +1,42 @@
 ## 3.82.0 (Unreleased)
 
+FEATURES:
+
+* New Data Source: `azurerm_monitor_workspace` [GH-23928]
+* New Resource: `azurerm_application_load_balancer_subnet_association` [GH-23628]
+
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20231117.1130141` of `github.com/hashicorp/go-azure-sdk` [GH-23945]
+* `azurestackhci`: updating to API Version `2023-08-01` [GH-23939]
 * `dashboard`: updating to API Version `2023-09-01` [GH-23929]
+* `azurerm_gallery_application_version` - add support for the `config_file`, `package_file` and `target_region.exclude_from_latest` properties [GH-23816]
 * `azurerm_hdinsight_hadoop_cluster` - `script_actions` is no longer Force New [GH-23888]
 * `azurerm_hdinsight_hbase_cluster` - `script_actions` is no longer Force New [GH-23888]
 * `azurerm_hdinsight_interactive_query_cluster` - `script_actions` is no longer Force New [GH-23888]
 * `azurerm_hdinsight_kafka_cluster` - `script_actions` is no longer Force New [GH-23888]
 * `azurerm_hdinsight_spark_cluster` - `script_actions` is no longer Force New [GH-23888]
+* `azurerm_kubernetes_cluster` - add support for the `gpu_instance` property [GH-23887]
+* `azurerm_kubernetes_cluster_node_pool` - add support for the `gpu_instance` property [GH-23887]
 * `azurerm_log_analytics_workspace` - add support for the `identity` property [GH-23864]
 * `azurerm_linux_function_app` - add support for dotnet 8 [GH-23638]
 * `azurerm_linux_function_app_slot` - add support for dotnet 8 [GH-23638]
+* `azurerm_managed_lustre_file_system` - export attribute `mgs_address` [GH-23942]
+* `azurerm_mssql_database` - support for Hyperscale SKUs [GH-23974]
+* `azurerm_cosmosdb_postgresql_cluster` - `coordinator_storage_quota_in_mb` and `coordinator_vcore_count` are no longer required for read replicas [GH-23928]
+* `azurerm_shared_image` - add support for `trusted_launch_supported` [GH-23781]
+* `azurerm_spring_cloud_container_deployment` - add support for the `application_performance_monitoring_ids` property [GH-23862]
+* `azurerm_spring_cloud_customized_accelerator` - add support for the `accelerator_type` and `path` properties [GH-23797]
+* `azurerm_point_to_site_vpn_gateway` - allow multiple `connection_configurations` blocks [GH-23936]
+* `azurerm_private_dns_cname_record` - `ttl` can now be set to 0 [GH-23918]
 * `azurerm_windows_function_app` - add support for dotnet 8 [GH-23638]
 * `azurerm_windows_function_app_slot` - add support for dotnet 8 [GH-23638]
-* `azurerm_private_dns_cname_record` - `ttl` can now be set to 0 [GH-23918]
-* `azurerm_shared_image` - add support for `trusted_launch_supported` [GH-23781]
-* `azurerm_spring_cloud_customized_accelerator` - add support for the `accelerator_type` and `path` properties [GH-23797]
 
-BUGS:
+BUG FIXES:
 
 * `azurerm_disk_encryption_set` - resource will recreate if `identity` changes from `SystemAssigned` to `UserAssigned` [GH-23904]
+* `azurerm_security_center_subscription_pricing` - fix a bug preventing removal of `extensions` and downgrading `tier` to `Free` [GH-23821]
+* `azurerm_windows_web_app` - fix an issue of incorrect application stack settings during update [GH-23372]
 
 ## 3.81.0 (November 16, 2023)
 

@@ -153,11 +153,6 @@ resource "azurerm_application_load_balancer" "test" {
 
 func (r ApplicationLoadBalancerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-  }
-}
-
 	%s
 
 resource "azurerm_application_load_balancer" "import" {
