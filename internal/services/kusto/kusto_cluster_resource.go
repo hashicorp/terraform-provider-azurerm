@@ -151,19 +151,16 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateSubnetID,
 						},
 						"engine_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 					},
@@ -349,7 +346,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	oldLength, newLength := d.GetChange("virtual_network_configuration.#")
 
 	if newLength.(int) > 0 {
-		// A new virtual network configuration is being added
 		v := d.Get("virtual_network_configuration")
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
