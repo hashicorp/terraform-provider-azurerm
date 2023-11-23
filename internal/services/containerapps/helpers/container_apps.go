@@ -2726,14 +2726,14 @@ func DaprSecretsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
 					Type:         pluginsdk.TypeString,
-					Computed:     true,
+					Required:     true,
 					ValidateFunc: validate.SecretName,
 					Description:  "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Computed:    true,
+					Required:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2751,13 +2751,13 @@ func DaprSecretsDataSourceSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
 					Type:        pluginsdk.TypeString,
-					Required:    true,
+					Computed:    true,
 					Description: "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Required:    true,
+					Computed:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
