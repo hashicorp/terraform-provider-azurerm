@@ -70,9 +70,10 @@ The following arguments are supported:
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But any changes to `virtual_network_configuration` in `Disabled` state will require a new resource to be created.
-
 ~> **NOTE:** Removing `virtual_network_configuration` from template will set the value of `public_network_access_enabled` field to be `false`.
+
+~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But any changes to `virtual_network_configuration` in `Disabled` state forces a new resource to be created.
+
 
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON`, `PYTHON_3.10.8` and `R`. `PYTHON` is used to specify Python 3.6.5 image and `PYTHON_3.10.8` is used to specify Python 3.10.8 image. Note that `PYTHON_3.10.8` is only available in skus which support nested virtualization.
 
