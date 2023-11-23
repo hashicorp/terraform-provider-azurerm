@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package hpccache_test
+package storagecache_test
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -131,7 +131,7 @@ func (r HPCCacheAccessPolicyResource) Exists(ctx context.Context, clients *clien
 		return pointer.To(false), nil
 	}
 
-	return pointer.To(hpccache.CacheGetAccessPolicyByName(*policies, id.Name) != nil), nil
+	return pointer.To(storagecache.CacheGetAccessPolicyByName(*policies, id.Name) != nil), nil
 }
 
 func (r HPCCacheAccessPolicyResource) basic(data acceptance.TestData) string {

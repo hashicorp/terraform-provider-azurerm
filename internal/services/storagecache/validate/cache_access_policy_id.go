@@ -8,7 +8,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/parse"
 )
 
 func CacheAccessPolicyID(input interface{}, key string) (warnings []string, errors []error) {

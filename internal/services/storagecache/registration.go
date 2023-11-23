@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package hpccache
+package storagecache
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"

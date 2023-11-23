@@ -1,4 +1,4 @@
-package hpccache_test
+package storagecache_test
 
 import (
 	"context"

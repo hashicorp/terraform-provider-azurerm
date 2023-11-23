@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package hpccache
+package storagecache
 
 import (
 	"fmt"
@@ -10,22 +10,23 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
+func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHPCCacheNFSTargetCreateOrUpdate,
-		Update: resourceHPCCacheNFSTargetCreateOrUpdate,
-		Read:   resourceHPCCacheNFSTargetRead,
-		Delete: resourceHPCCacheNFSTargetDelete,
+		Create: resourceHPCCacheBlobNFSTargetCreateUpdate,
+		Read:   resourceHPCCacheBlobNFSTargetRead,
+		Update: resourceHPCCacheBlobNFSTargetCreateUpdate,
+		Delete: resourceHPCCacheBlobNFSTargetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := storagetargets.ParseStorageTargetID(id)
@@ -56,46 +57,17 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"namespace_junction": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				MinItems: 1,
-				// Confirmed with service team that they have a mac of 10 that is enforced by the backend.
-				MaxItems: 10,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"namespace_path": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.CacheNamespacePath,
-						},
-						"nfs_export": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.CacheNFSExport,
-						},
-						"target_path": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      "",
-							ValidateFunc: validate.CacheNFSTargetPath,
-						},
-
-						"access_policy_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      "default",
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+			"namespace_path": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.CacheNamespacePath,
 			},
 
-			"target_host_name": {
+			"storage_container_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: commonids.ValidateStorageContainerID,
 			},
 
 			// TODO: use SDK enums once following issue is addressed
@@ -115,18 +87,27 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 					"WRITE_WORKLOAD_CLOUDWS",
 				}, false),
 			},
+
+			"access_policy_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "default",
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
 
-func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StorageCache.StorageTargets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure HPC Cache NFS Target creation.")
-	id := storagetargets.NewStorageTargetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cache_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	cache := d.Get("cache_name").(string)
+	id := storagetargets.NewStorageTargetID(subscriptionId, resourceGroup, cache, name)
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, id)
@@ -137,17 +118,28 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_hpc_cache_nfs_target", id.ID())
+			return tf.ImportAsExistsError("azurerm_hpc_cache_blob_nfs_target", id.ID())
 		}
 	}
 
+	namespacePath := d.Get("namespace_path").(string)
+	containerId := d.Get("storage_container_id").(string)
+
 	// Construct parameters
+
 	param := storagetargets.StorageTarget{
 		Properties: &storagetargets.StorageTargetProperties{
-			Junctions:  expandNamespaceJunctions(d.Get("namespace_junction").(*pluginsdk.Set).List()),
-			TargetType: storagetargets.StorageTargetTypeNfsThree,
-			Nfs3: &storagetargets.Nfs3Target{
-				Target:     pointer.To(d.Get("target_host_name").(string)),
+			Junctions: &[]storagetargets.NamespaceJunction{
+				{
+					NamespacePath:   &namespacePath,
+					TargetPath:      pointer.To("/"),
+					NfsExport:       pointer.To("/"),
+					NfsAccessPolicy: pointer.To(d.Get("access_policy_name").(string)),
+				},
+			},
+			TargetType: storagetargets.StorageTargetTypeBlobNfs,
+			BlobNfs: &storagetargets.BlobNfsTarget{
+				Target:     pointer.To(containerId),
 				UsageModel: pointer.To(d.Get("usage_model").(string)),
 			},
 		},
@@ -159,10 +151,10 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.SetId(id.ID())
 
-	return resourceHPCCacheNFSTargetRead(d, meta)
+	return resourceHPCCacheBlobNFSTargetRead(d, meta)
 }
 
-func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StorageCache.StorageTargets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,11 +167,12 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] HPC Cache NFS Target %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving HPC Cache NFS Target %q: %+v", id, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.StorageTargetName)
@@ -188,23 +181,35 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if m := resp.Model; m != nil {
 		if props := m.Properties; props != nil {
-			if props.TargetType != storagetargets.StorageTargetTypeNfsThree {
-				return fmt.Errorf("the type of this HPC Cache Target (%q) is not a NFS Target", id)
+			if props.TargetType != storagetargets.StorageTargetTypeBlobNfs {
+				return fmt.Errorf("The type of this HPC Cache Target %s is not a Blob NFS Target", id)
 			}
-			if nfs3 := props.Nfs3; nfs3 != nil {
-				d.Set("target_host_name", nfs3.Target)
-				d.Set("usage_model", nfs3.UsageModel)
+
+			storageContainerId := ""
+			usageModel := ""
+			if b := props.BlobNfs; b != nil {
+				storageContainerId = pointer.From(b.Target)
+				usageModel = pointer.From(b.UsageModel)
 			}
-			if err := d.Set("namespace_junction", flattenNamespaceJunctions(props.Junctions)); err != nil {
-				return fmt.Errorf(`error setting "namespace_junction"(%q): %+v`, id, err)
+			d.Set("storage_container_id", storageContainerId)
+			d.Set("usage_model", usageModel)
+
+			namespacePath := ""
+			accessPolicy := ""
+			// There is only one namespace path allowed for the blob nfs target,
+			// which maps to the root path of it.
+			if props.Junctions != nil && len(*props.Junctions) == 1 && (*props.Junctions)[0].NamespacePath != nil {
+				namespacePath = *(*props.Junctions)[0].NamespacePath
+				accessPolicy = *(*props.Junctions)[0].NfsAccessPolicy
 			}
+			d.Set("namespace_path", namespacePath)
+			d.Set("access_policy_name", accessPolicy)
 		}
 	}
-
 	return nil
 }
 
-func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StorageCache.StorageTargets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,43 +220,8 @@ func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id, storagetargets.DeleteOperationOptions{}); err != nil {
-		return fmt.Errorf("deleting HPC Cache NFS Target (%q): %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func expandNamespaceJunctions(input []interface{}) *[]storagetargets.NamespaceJunction {
-	result := make([]storagetargets.NamespaceJunction, 0)
-
-	for _, v := range input {
-		b := v.(map[string]interface{})
-		result = append(result, storagetargets.NamespaceJunction{
-			NamespacePath:   pointer.To(b["namespace_path"].(string)),
-			NfsExport:       pointer.To(b["nfs_export"].(string)),
-			TargetPath:      pointer.To(b["target_path"].(string)),
-			NfsAccessPolicy: pointer.To(b["access_policy_name"].(string)),
-		})
-	}
-
-	return &result
-}
-
-func flattenNamespaceJunctions(input *[]storagetargets.NamespaceJunction) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, e := range *input {
-		output = append(output, map[string]interface{}{
-			"namespace_path":     pointer.From(e.NamespacePath),
-			"nfs_export":         pointer.From(e.NfsExport),
-			"target_path":        pointer.From(e.TargetPath),
-			"access_policy_name": pointer.From(e.NfsAccessPolicy),
-		})
-	}
-
-	return output
 }

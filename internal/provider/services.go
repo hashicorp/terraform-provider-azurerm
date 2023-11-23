@@ -58,7 +58,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
@@ -119,6 +118,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription"
@@ -163,7 +163,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventhub.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
-		hpccache.Registration{},
+		storagecache.Registration{},
 		hybridcompute.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},
@@ -254,7 +254,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			eventhub.Registration{},
 			firewall.Registration{},
 			frontdoor.Registration{},
-			hpccache.Registration{},
+			storagecache.Registration{},
 			hsm.Registration{},
 			hdinsight.Registration{},
 			healthcare.Registration{},
