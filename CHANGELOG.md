@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20231117.1130141` of `github.com/hashicorp/go-azure-sdk` [GH-23945]
 * `azurestackhci`: updating to API Version `2023-08-01` [GH-23939]
 * `dashboard`: updating to API Version `2023-09-01` [GH-23929]
+* `hpccache`: updating to API version `2023-05-01` [GH-24005]
 * `mssql`: updating resources using `hashicorp/go-azure-sdk` to API Version `2023-02-01-preview` [GH-23721]
 * `templatespecversions`: updating to API Version `2022-02-01` [GH-24007]
 *  Data Source: `azurerm_template_spec_version` - refactoring to use `hashicorp/go-azure-sdk` [GH-24007]
