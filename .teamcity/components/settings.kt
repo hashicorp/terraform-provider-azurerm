@@ -88,9 +88,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1),
 
-        // HPC Cache has a 4 instance per subscription quota as of early 2021
-        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
-
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
 
@@ -163,6 +160,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // HPC Cache has a 4 instance per subscription quota as of early 2021
+        "storagecache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         "storagemover" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus3", false)),
 
