@@ -1070,7 +1070,7 @@ resource "azurerm_container_app" "test" {
   revision_mode                = "Single"
 
   identity {
-    type         = "SystemAssigned"
+    type = "SystemAssigned"
   }
 
   template {
