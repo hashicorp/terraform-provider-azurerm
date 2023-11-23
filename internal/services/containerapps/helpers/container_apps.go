@@ -622,7 +622,7 @@ func expandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapp
 			Action:         containerapps.Action(v.Action),
 			Name:           v.Name,
 			IPAddressRange: v.IpAddressRange,
-			Description:    &v.Description,
+			Description:    pointer.To(v.Description),
 		}
 		result = append(result, ipSecurityRestrictionRule)
 	}
