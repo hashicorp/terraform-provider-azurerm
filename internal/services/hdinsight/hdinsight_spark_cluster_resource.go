@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -157,7 +158,8 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -287,16 +289,17 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	d.SetId(id.ID())
 
 	// We can only enable monitoring after creation
+	extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.Name)
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
-		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+		if err := enableHDInsightMonitoring(ctx, extensionsClient, extensionsClusterId, monitorRaw); err != nil {
 			return err
 		}
 	}
 
 	if v, ok := d.GetOk("extension"); ok {
 		extensionRaw := v.([]interface{})
-		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, extensionsClusterId, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -307,7 +310,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
-	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -416,18 +419,19 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 
-		monitor, err := extensionsClient.GetMonitoringStatus(ctx, id.ResourceGroup, id.Name)
+		extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.Name)
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, extensionsClusterId)
 		if err != nil {
 			return fmt.Errorf("retrieving Monitoring Status for Hadoop %s: %+v", id, err)
 		}
-		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+		d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
 
-		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, id.ResourceGroup, id.Name)
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, extensionsClusterId)
 		if err != nil {
 			return fmt.Errorf("retrieving Azure Monitor Status for Hadoop %s: %+v", id, err)
 		}
 
-		d.Set("extension", flattenHDInsightAzureMonitor(extension))
+		d.Set("extension", flattenHDInsightAzureMonitor(extension.Model))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)

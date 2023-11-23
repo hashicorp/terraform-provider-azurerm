@@ -10,7 +10,9 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -562,15 +564,12 @@ func ExpandHDInsightsAmbariMetastore(input []interface{}) map[string]interface{}
 	}
 }
 
-func ExpandHDInsightsMonitor(input []interface{}) hdinsight.ClusterMonitoringRequest {
+func ExpandHDInsightsMonitor(input []interface{}) extensions.ClusterMonitoringRequest {
 	vs := input[0].(map[string]interface{})
 
-	workspace := vs["log_analytics_workspace_id"].(string)
-	key := vs["primary_key"].(string)
-
-	return hdinsight.ClusterMonitoringRequest{
-		WorkspaceID: utils.String(workspace),
-		PrimaryKey:  utils.String(key),
+	return extensions.ClusterMonitoringRequest{
+		WorkspaceId: pointer.To(vs["log_analytics_workspace_id"].(string)),
+		PrimaryKey:  pointer.To(vs["primary_key"].(string)),
 	}
 }
 

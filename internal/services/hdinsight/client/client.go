@@ -15,8 +15,7 @@ import (
 type Client struct {
 	*hdinsight_v2021_06_01.Client
 
-	ClustersClient   *hdinsight.ClustersClient
-	ExtensionsClient *hdinsight.ExtensionsClient
+	ClustersClient *hdinsight.ClustersClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -37,13 +36,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ClustersClient := hdinsight.NewClustersClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
 	opts.ConfigureClient(&ClustersClient.Client, opts.ResourceManagerAuthorizer)
 
-	ExtensionsClient := hdinsight.NewExtensionsClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
-	opts.ConfigureClient(&ExtensionsClient.Client, opts.ResourceManagerAuthorizer)
-
 	return &Client{
 		Client: client,
 
-		ClustersClient:   &ClustersClient,
-		ExtensionsClient: &ExtensionsClient,
+		ClustersClient: &ClustersClient,
 	}, nil
 }
