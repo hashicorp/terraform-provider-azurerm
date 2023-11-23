@@ -123,6 +123,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  "Standard",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard",
+				"Essential",
 			}, false),
 		},
 
