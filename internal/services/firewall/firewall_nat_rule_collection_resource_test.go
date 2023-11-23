@@ -234,7 +234,7 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 
 	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-	resp, err := clients.Network.AzureFirewalls
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
