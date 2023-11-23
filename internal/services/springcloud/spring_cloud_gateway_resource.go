@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -85,7 +84,7 @@ func (s SpringCloudGatewayResource) IDValidationFunc() pluginsdk.SchemaValidateF
 	return appplatform.ValidateGatewayID
 }
 
-func (s SpringCloudGatewayResource) Arguments() map[string]*schema.Schema {
+func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -352,7 +351,7 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (s SpringCloudGatewayResource) Attributes() map[string]*schema.Schema {
+func (s SpringCloudGatewayResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"url": {
 			Type:     pluginsdk.TypeString,
@@ -388,6 +387,9 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 			service, err := client.ServicesGet(ctx, *springId)
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", springId, err)
+			}
+			if service.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", springId)
 			}
 			if service.Model.Sku == nil || service.Model.Sku.Name == nil || service.Model.Sku.Tier == nil {
 				return fmt.Errorf("invalid `sku` for %s", springId)
@@ -442,6 +444,9 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 			resp, err := client.GatewaysGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			properties := resp.Model.Properties
@@ -525,8 +530,10 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			springId := appplatform.NewSpringID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
