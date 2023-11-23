@@ -963,7 +963,7 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		if err != nil {
 			return nil, fmt.Errorf("parsing `aad-enabled` %q: %+v", *input.AadEnabled, err)
 		}
-		outputs["rdb_backup_enabled"] = a
+		outputs["active_directory_authentication_enabled"] = a
 	}
 
 	if input.Maxclients != nil {
