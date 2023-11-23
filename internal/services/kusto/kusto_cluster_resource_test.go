@@ -874,11 +874,7 @@ resource "azurerm_kusto_cluster" "test" {
 func (KustoClusterResource) vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -988,11 +984,7 @@ resource "azurerm_kusto_cluster" "test" {
 func (KustoClusterResource) vnetRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
