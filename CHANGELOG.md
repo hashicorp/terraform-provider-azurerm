@@ -38,6 +38,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_disk_encryption_set` - resource will recreate if `identity` changes from `SystemAssigned` to `UserAssigned` [GH-23904]
+* `azurerm_firewall` - recasing the value for `firewall_policy_id` to workaround the API returning the incorrect casing [GH-23993]
 * `azurerm_security_center_subscription_pricing` - fix a bug preventing removal of `extensions` and downgrading `tier` to `Free` [GH-23821]
 * `azurerm_windows_web_app` - fix an issue of incorrect application stack settings during update [GH-23372]
 
