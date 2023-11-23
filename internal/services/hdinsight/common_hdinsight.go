@@ -6,12 +6,12 @@ package hdinsight
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -384,7 +384,7 @@ func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 	return config
 }
 
-func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]*string) {
+func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]string) {
 	result := map[string]interface{}{}
 
 	hiveEnv, envExists := configurations["hive-env"]

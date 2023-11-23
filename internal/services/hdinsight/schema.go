@@ -632,7 +632,7 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 
 	privateLink := false
 	if v := input.PrivateLink; v != "" {
-		privateLink = (v == hdinsight.PrivateLinkEnabled)
+		privateLink = v == hdinsight.PrivateLinkEnabled
 	}
 
 	return []interface{}{
@@ -643,15 +643,15 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 	}
 }
 
-func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.ResourceData) []interface{} {
+func FlattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.ResourceData) []interface{} {
 	username := ""
-	if v, exists := input["restAuthCredential.username"]; exists && v != nil {
-		username = *v
+	if v, exists := input["restAuthCredential.username"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := input["restAuthCredential.password"]; exists && v != nil {
-		password = *v
+	if v, exists := input["restAuthCredential.password"]; exists {
+		password = v
 	} else {
 		password = d.Get("gateway.0.password").(string)
 	}
@@ -664,25 +664,25 @@ func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.Reso
 	return []interface{}{out}
 }
 
-func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
+func FlattenHDInsightsHiveMetastore(env map[string]string, site map[string]string) []interface{} {
 	server := ""
-	if v, exists := env["hive_hostname"]; exists && v != nil {
-		server = *v
+	if v, exists := env["hive_hostname"]; exists {
+		server = v
 	}
 
 	database := ""
-	if v, exists := env["hive_database_name"]; exists && v != nil {
-		database = *v
+	if v, exists := env["hive_database_name"]; exists {
+		database = v
 	}
 
 	username := ""
-	if v, exists := site["javax.jdo.option.ConnectionUserName"]; exists && v != nil {
-		username = *v
+	if v, exists := site["javax.jdo.option.ConnectionUserName"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := site["javax.jdo.option.ConnectionPassword"]; exists && v != nil {
-		password = *v
+	if v, exists := site["javax.jdo.option.ConnectionPassword"]; exists {
+		password = v
 	}
 
 	if server != "" && database != "" {
@@ -696,28 +696,28 @@ func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*str
 		}
 	}
 
-	return nil
+	return []interface{}{}
 }
 
-func FlattenHDInsightsOozieMetastore(env map[string]*string, site map[string]*string) []interface{} {
+func FlattenHDInsightsOozieMetastore(env map[string]string, site map[string]string) []interface{} {
 	server := ""
-	if v, exists := env["oozie_hostname"]; exists && v != nil {
-		server = *v
+	if v, exists := env["oozie_hostname"]; exists {
+		server = v
 	}
 
 	database := ""
-	if v, exists := env["oozie_database_name"]; exists && v != nil {
-		database = *v
+	if v, exists := env["oozie_database_name"]; exists {
+		database = v
 	}
 
 	username := ""
-	if v, exists := site["oozie.service.JPAService.jdbc.username"]; exists && v != nil {
-		username = *v
+	if v, exists := site["oozie.service.JPAService.jdbc.username"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := site["oozie.service.JPAService.jdbc.password"]; exists && v != nil {
-		password = *v
+	if v, exists := site["oozie.service.JPAService.jdbc.password"]; exists {
+		password = v
 	}
 
 	if server != "" && database != "" {
@@ -731,28 +731,28 @@ func FlattenHDInsightsOozieMetastore(env map[string]*string, site map[string]*st
 		}
 	}
 
-	return nil
+	return []interface{}{}
 }
 
-func FlattenHDInsightsAmbariMetastore(conf map[string]*string) []interface{} {
+func FlattenHDInsightsAmbariMetastore(conf map[string]string) []interface{} {
 	server := ""
-	if v, exists := conf["database-server"]; exists && v != nil {
-		server = *v
+	if v, exists := conf["database-server"]; exists {
+		server = v
 	}
 
 	database := ""
-	if v, exists := conf["database-name"]; exists && v != nil {
-		database = *v
+	if v, exists := conf["database-name"]; exists {
+		database = v
 	}
 
 	username := ""
-	if v, exists := conf["database-user-name"]; exists && v != nil {
-		username = *v
+	if v, exists := conf["database-user-name"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := conf["database-user-password"]; exists && v != nil {
-		password = *v
+	if v, exists := conf["database-user-password"]; exists {
+		password = v
 	}
 
 	if server != "" && database != "" {
@@ -766,7 +766,7 @@ func FlattenHDInsightsAmbariMetastore(conf map[string]*string) []interface{} {
 		}
 	}
 
-	return nil
+	return []interface{}{}
 }
 
 func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {

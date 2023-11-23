@@ -5,6 +5,8 @@ package hdinsight
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
 	"log"
 	"strings"
 	"time"
@@ -325,7 +327,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
-	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -335,41 +337,44 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clustersClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Interactive Query Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Interactive Query %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Interactive Query %s: %+v", id, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
-	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
+	configurationsClusterId := configurations.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.Name)
+	configurationsResp, err := configurationsClient.List(ctx, configurationsClusterId)
 	if err != nil {
-		return fmt.Errorf("retrieving Configuration for HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configuration for Interactive Query %s: %+v", id, err)
 	}
 
-	gateway, exists := configurations.Configurations["gateway"]
+	configurations := make(map[string]map[string]string)
+	if model := configurationsResp.Model; model != nil && model.Configurations != nil {
+		configurations = *model.Configurations
+	}
+
+	gateway, exists := configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("retrieving gateway for HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Gateway Configuration for Interactive Query %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
 		tier := ""
-		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		// the Azure API is inconsistent here, so rewrite this into the casing we
+		// TODO: this can be removed when we're on the new base layer
 		for _, v := range hdinsight.PossibleTierValues() {
 			if strings.EqualFold(string(v), string(props.Tier)) {
 				tier = string(v)
@@ -388,7 +393,7 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
-			flattenHDInsightsMetastores(d, configurations.Configurations)
+			flattenHDInsightsMetastores(d, configurations)
 
 			if props.EncryptionInTransitProperties != nil {
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
@@ -432,16 +437,16 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 
-		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Monitoring Status for Interactive Query %s: %+v", id, err)
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 
-		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Azure Monitor Status for Interactive Query %s: %+v", id, err)
 		}
 
 		d.Set("extension", flattenHDInsightAzureMonitor(extension))

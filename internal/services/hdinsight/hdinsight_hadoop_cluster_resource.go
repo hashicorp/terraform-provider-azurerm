@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
 	"log"
 	"strings"
 	"time"
@@ -380,7 +382,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
-	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -390,36 +392,37 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clustersClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Hadoop Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Hadoop %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Hadoop %s: %+v", id, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
-	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
+	configurationsClusterId := configurations.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.Name)
+	configurationsResp, err := configurationsClient.List(ctx, configurationsClusterId)
 	if err != nil {
-		return fmt.Errorf("retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configurations for HBase %s: %+v", id, err)
 	}
 
-	gateway, exists := configurations.Configurations["gateway"]
+	configurations := make(map[string]map[string]string)
+	if model := configurationsResp.Model; model != nil && model.Configurations != nil {
+		configurations = *model.Configurations
+	}
+
+	gateway, exists := configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Gateway Configuration for Hadoop %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
@@ -443,7 +446,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
-			flattenHDInsightsMetastores(d, configurations.Configurations)
+			flattenHDInsightsMetastores(d, configurations)
 
 			if props.NetworkProperties != nil {
 				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
@@ -464,7 +467,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		edgeNode, err := applicationsClient.Get(ctx, applicationId)
 		if err != nil {
 			if !response.WasNotFound(edgeNode.HttpResponse) {
-				return fmt.Errorf("reading edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("reading Edge Node for Hadoop %s: %+v", id, err)
 			}
 		}
 
@@ -499,16 +502,16 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 
-		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Monitoring Status for Hadoop %s: %+v", id, err)
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 
-		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Azure Monitor Status for Hadoop %s: %+v", id, err)
 		}
 
 		d.Set("extension", flattenHDInsightAzureMonitor(extension))

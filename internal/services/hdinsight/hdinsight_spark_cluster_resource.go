@@ -12,6 +12,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -304,7 +306,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
-	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -314,41 +316,43 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clustersClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Spark Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Spark %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Spark %s: %+v", *id, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
-	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
+	configurationsClusterId := configurations.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.Name)
+	configurationsResp, err := configurationsClient.List(ctx, configurationsClusterId)
 	if err != nil {
-		return fmt.Errorf("retrieving Configuration for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configuration for Spark %s: %+v", *id, err)
 	}
 
-	gateway, exists := configurations.Configurations["gateway"]
+	configurations := make(map[string]map[string]string)
+	if model := configurationsResp.Model; model != nil && model.Configurations != nil {
+		configurations = *model.Configurations
+	}
+	gateway, exists := configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("retrieving gateway for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Gateway Configuration for Spark %s: %+v", *id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
 		tier := ""
 		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		// TODO: this can be removed once HDInsight is on the new base layer
 		for _, v := range hdinsight.PossibleTierValues() {
 			if strings.EqualFold(string(v), string(props.Tier)) {
 				tier = string(v)
@@ -367,7 +371,7 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
-			flattenHDInsightsMetastores(d, configurations.Configurations)
+			flattenHDInsightsMetastores(d, configurations)
 		}
 
 		sparkRoles := hdInsightRoleDefinition{
@@ -412,16 +416,15 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 
-		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Monitoring Status for Hadoop %s: %+v", id, err)
 		}
-
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 
-		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Azure Monitor Status for Hadoop %s: %+v", id, err)
 		}
 
 		d.Set("extension", flattenHDInsightAzureMonitor(extension))

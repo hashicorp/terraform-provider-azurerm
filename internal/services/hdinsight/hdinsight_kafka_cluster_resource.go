@@ -5,6 +5,8 @@ package hdinsight
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
 	"log"
 	"strings"
 	"time"
@@ -390,7 +392,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
-	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -400,41 +402,42 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clustersClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Kafka Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Kafka %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("failure retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Kafka %s: %+v", id, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
-	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
+	configurationsClusterId := configurations.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.Name)
+	configurationsResp, err := configurationsClient.List(ctx, configurationsClusterId)
 	if err != nil {
-		return fmt.Errorf("failure retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configurations for Kafka %s: %+v", id, err)
 	}
 
-	gateway, exists := configurations.Configurations["gateway"]
+	configurations := make(map[string]map[string]string)
+	if model := configurationsResp.Model; model != nil && model.Configurations != nil {
+		configurations = *model.Configurations
+	}
+	gateway, exists := configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("failure retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Gateway Configuration Kafka %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 	if props := resp.Properties; props != nil {
 		tier := ""
 		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		// TODO: this can be removed when we're on the new base layer
 		for _, v := range hdinsight.PossibleTierValues() {
 			if strings.EqualFold(string(v), string(props.Tier)) {
 				tier = string(v)
@@ -453,7 +456,7 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 
-			flattenHDInsightsMetastores(d, configurations.Configurations)
+			flattenHDInsightsMetastores(d, configurations)
 		}
 
 		kafkaRoles := hdInsightRoleDefinition{
@@ -499,20 +502,20 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 
-		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Monitoring Status for Kafka %s: %+v", id, err)
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 
 		if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
-			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
+			return fmt.Errorf("setting `rest_proxy`: %+v", err)
 		}
 
-		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
+		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Azure Monitor Status for Kafka %s: %+v", id, err)
 		}
 
 		d.Set("extension", flattenHDInsightAzureMonitor(extension))

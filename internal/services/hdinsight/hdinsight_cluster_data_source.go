@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -111,7 +112,7 @@ func dataSourceHDInsightSparkCluster() *pluginsdk.Resource {
 func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -125,9 +126,15 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, id.ResourceGroup, id.Name, "gateway")
+	configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroup, id.Name, "gateway")
+	configurationResp, err := configurationsClient.Get(ctx, configurationId)
 	if err != nil {
 		return fmt.Errorf("retrieving Configuration for %s: %+v", id, err)
+	}
+
+	configuration := make(map[string]string)
+	if model := configurationResp.Model; model != nil {
+		configuration = *model
 	}
 
 	d.SetId(id.ID())
@@ -146,7 +153,7 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 			if kind := def.Kind; kind != nil {
 				d.Set("kind", strings.ToLower(*kind))
 			}
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value, d)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration, d)); err != nil {
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 		}
