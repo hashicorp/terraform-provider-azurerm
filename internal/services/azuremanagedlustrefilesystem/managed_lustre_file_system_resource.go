@@ -276,7 +276,7 @@ func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
+			client := metadata.Client.StorageCache.AmlFilesystems
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := amlfilesystems.NewAmlFilesystemID(subscriptionId, model.ResourceGroupName, model.Name)
 
@@ -325,7 +325,7 @@ func (r ManagedLustreFileSystemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
+			client := metadata.Client.StorageCache.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -366,7 +366,7 @@ func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
+			client := metadata.Client.StorageCache.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -421,7 +421,7 @@ func (r ManagedLustreFileSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
+			client := metadata.Client.StorageCache.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {

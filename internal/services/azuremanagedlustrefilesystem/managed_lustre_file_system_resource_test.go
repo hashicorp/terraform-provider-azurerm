@@ -90,7 +90,7 @@ func (r ManagedLustreFileSystemResource) Exists(ctx context.Context, clients *cl
 		return nil, err
 	}
 
-	client := clients.AzureManagedLustreFileSystem.AmlFilesystems
+	client := clients.StorageCache.AmlFilesystems
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

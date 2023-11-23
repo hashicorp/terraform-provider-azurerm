@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -420,7 +420,7 @@ func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.HPCCache.CachesClient.Get(ctx, *id)
+	resp, err := clients.StorageCache.Caches.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache (%s): %+v", id.String(), err)
 	}
