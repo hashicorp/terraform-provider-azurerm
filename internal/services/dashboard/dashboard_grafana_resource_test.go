@@ -61,6 +61,20 @@ func TestAccDashboardGrafana_complete(t *testing.T) {
 	})
 }
 
+func TestAccDashboardGrafana_nonDefaultVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nonDefaultVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDashboardGrafana_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
 	r := DashboardGrafanaResource{}
@@ -211,8 +225,8 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "10"
-
+  grafana_major_version             = "9"
+  
   identity {
     type = "SystemAssigned"
   }
