@@ -9,15 +9,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/custompollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,27 +24,23 @@ import (
 
 func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
 	return func(d *pluginsdk.ResourceData, meta interface{}) error {
-		client := meta.(*clients.Client).HDInsight.ClustersClient
+		client := meta.(*clients.Client).HDInsight.Clusters
 		extensionsClient := meta.(*clients.Client).HDInsight.Extensions
 		applicationsClient := meta.(*clients.Client).HDInsight.Applications
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := parse.ClusterID(d.Id())
+		id, err := clusters.ParseClusterID(d.Id())
 		if err != nil {
 			return err
 		}
 
-		resourceGroup := id.ResourceGroup
-		name := id.Name
-
 		if d.HasChange("tags") {
-			t := d.Get("tags").(map[string]interface{})
-			params := hdinsight.ClusterPatchParameters{
-				Tags: tags.Expand(t),
+			payload := clusters.ClusterPatchParameters{
+				Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 			}
-			if _, err := client.Update(ctx, resourceGroup, name, params); err != nil {
-				return fmt.Errorf("updating Tags for HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+			if _, err := client.Update(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating Tags for %s %s: %+v", clusterKind, id, err)
 			}
 		}
 
@@ -57,33 +52,23 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			workerNode := workerNodes[0].(map[string]interface{})
 			if d.HasChange("roles.0.worker_node.0.target_instance_count") {
 				targetInstanceCount := workerNode["target_instance_count"].(int)
-				params := hdinsight.ClusterResizeParameters{
-					TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
+				payload := clusters.ClusterResizeParameters{
+					TargetInstanceCount: pointer.To(int64(targetInstanceCount)),
 				}
 
-				future, err := client.Resize(ctx, resourceGroup, name, params)
-				if err != nil {
-					return fmt.Errorf("resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				if err := client.ResizeThenPoll(ctx, *id, payload); err != nil {
+					return fmt.Errorf("resizing %s %s: %+v", clusterKind, id, err)
 				}
 			}
 
 			if d.HasChange("roles.0.worker_node.0.autoscale") {
 				autoscale := ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]interface{}))
-				params := hdinsight.AutoscaleConfigurationUpdateParameter{
+				payload := clusters.AutoscaleConfigurationUpdateParameter{
 					Autoscale: autoscale,
 				}
 
-				future, err := client.UpdateAutoScaleConfiguration(ctx, resourceGroup, name, params)
-				if err != nil {
-					return fmt.Errorf("changing autoscale of the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for changing autoscale of the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				if err := client.UpdateAutoScaleConfigurationThenPoll(ctx, *id, payload); err != nil {
+					return fmt.Errorf("updating the AutoScale Configuration for %s %s: %+v", clusterKind, id, err)
 				}
 			}
 		}
@@ -99,13 +84,13 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				oldEdgeNodeCount, newEdgeNodeCount := d.GetChange("roles.0.edge_node.0.target_instance_count")
 				oldEdgeNodeInt := oldEdgeNodeCount.(int)
 				newEdgeNodeInt := newEdgeNodeCount.(int)
-				applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroup, id.Name, id.Name) // two `id.Name`'s is intentional
+				applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.ClusterName) // two `id.ClusterName`'s is intentional
 
 				// Note: API currently doesn't support updating number of edge nodes
 				// if anything in the edge nodes changes, delete edge nodes then recreate them
 				if oldEdgeNodeInt != 0 {
 					if err := applicationsClient.DeleteThenPoll(ctx, applicationId); err != nil {
-						return fmt.Errorf("deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+						return fmt.Errorf("deleting Edge Nodes for %s %s: %+v", clusterKind, id, err)
 					}
 				}
 
@@ -117,22 +102,16 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				}
 
 				// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
-				log.Printf("[DEBUG] Waiting for Hadoop Cluster to %q (Resource Group %q) to finish applying edge node", name, resourceGroup)
-				stateConf := &pluginsdk.StateChangeConf{
-					Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
-					Target:     []string{"Running"},
-					Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
-					MinTimeout: 15 * time.Second,
-					Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
-				}
-
-				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-					return fmt.Errorf("waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
+				log.Printf("[DEBUG] Waiting for %s %s to finish applying edge node..", clusterKind, id)
+				pollerType := custompollers.NewEdgeNodePoller(client, *id)
+				poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for %s %s to finish applying the edge nodes: %+v", clusterKind, id, err)
 				}
 			}
 		}
 
-		extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroup, id.Name)
+		extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
 		if d.HasChange("monitor") {
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			if v, ok := d.GetOk("monitor"); ok {
@@ -159,21 +138,13 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			log.Printf("[DEBUG] Updating the HDInsight %q Cluster gateway", clusterKind)
 			vs := d.Get("gateway").([]interface{})[0].(map[string]interface{})
 
-			enabled := true
-			username := vs["username"].(string)
-			password := vs["password"].(string)
-
-			future, err := client.UpdateGatewaySettings(ctx, resourceGroup, name, hdinsight.UpdateGatewaySettingsParameters{
-				IsCredentialEnabled: &enabled,
-				UserName:            utils.String(username),
-				Password:            utils.String(password),
-			})
-			if err != nil {
-				return err
+			payload := clusters.UpdateGatewaySettingsParameters{
+				RestAuthCredentialIsEnabled: pointer.To(true),
+				RestAuthCredentialUsername:  pointer.To(vs["username"].(string)),
+				RestAuthCredentialPassword:  pointer.To(vs["password"].(string)),
 			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for HDInsight Cluster %q (Resource Group %q) Gateway to be updated: %s", name, resourceGroup, err)
+			if err := client.UpdateGatewaySettingsThenPoll(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating the Gateway Settings for %s: %+v", *id, err)
 			}
 		}
 
@@ -183,25 +154,17 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 
 func hdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
 	return func(d *pluginsdk.ResourceData, meta interface{}) error {
-		client := meta.(*clients.Client).HDInsight.ClustersClient
+		client := meta.(*clients.Client).HDInsight.Clusters
 		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := parse.ClusterID(d.Id())
+		id, err := clusters.ParseClusterID(d.Id())
 		if err != nil {
 			return err
 		}
 
-		resourceGroup := id.ResourceGroup
-		name := id.Name
-
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("deleting HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+		if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("deleting %s %s: %+v", clusterKind, *id, err)
 		}
 
 		return nil
@@ -216,7 +179,7 @@ type hdInsightRoleDefinition struct {
 	EdgeNodeDef            *HDInsightNodeDefinition
 }
 
-func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinition) (*[]hdinsight.Role, error) {
+func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinition) (*[]clusters.Role, error) {
 	v := input[0].(map[string]interface{})
 
 	headNodeRaw := v["head_node"].([]interface{})
@@ -237,7 +200,7 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 		return nil, fmt.Errorf("expanding `zookeeper_node`: %+v", err)
 	}
 
-	roles := []hdinsight.Role{
+	roles := []clusters.Role{
 		*headNode,
 		*workerNode,
 		*zookeeperNode,
@@ -267,7 +230,7 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 	return &roles, nil
 }
 
-func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *hdinsight.ComputeProfile, definition hdInsightRoleDefinition) []interface{} {
+func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputeProfile, definition hdInsightRoleDefinition) []interface{} {
 	if input == nil || input.Roles == nil {
 		return []interface{}{}
 	}
