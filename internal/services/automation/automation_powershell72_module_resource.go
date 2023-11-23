@@ -110,7 +110,7 @@ func resourceAutomationPowerShell72ModuleCreate(d *pluginsdk.ResourceData, meta 
 	// for existing global module do update instead of raising ImportAsExistsError
 	isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
 	if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-		return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
+		return tf.ImportAsExistsError("azurerm_automation_powershell72_module", id.ID())
 	}
 
 	parameters := module.ModuleCreateOrUpdateParameters{
