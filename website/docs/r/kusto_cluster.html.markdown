@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But changing the sub-resources of an existing `virtual_network_configuration` or adding a new `virtual_network_configuration` after removal forces a new resource to be created.
+~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But any changes to `virtual_network_configuration` in `Disabled` state will require a new resource to be created.
 
 ~> **NOTE:** Removing `virtual_network_configuration` from template will set the value of `public_network_access_enabled` field to be `false`.
 

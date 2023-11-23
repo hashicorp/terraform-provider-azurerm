@@ -245,10 +245,7 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 			Config: r.vnetRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
-				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("0"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
@@ -877,7 +874,11 @@ resource "azurerm_kusto_cluster" "test" {
 func (KustoClusterResource) vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -987,7 +988,11 @@ resource "azurerm_kusto_cluster" "test" {
 func (KustoClusterResource) vnetRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
