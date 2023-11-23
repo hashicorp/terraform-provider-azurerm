@@ -240,10 +240,10 @@ func (r DashboardGrafanaResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                   = "a-dg-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  grafana_major_version  = "9"
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "9"
 
   identity {
     type = "SystemAssigned"
