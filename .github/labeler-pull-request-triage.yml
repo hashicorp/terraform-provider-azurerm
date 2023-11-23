@@ -342,6 +342,9 @@ service/subscription:
 service/synapse:
   - internal/services/synapse/**/*
 
+service/systemcentervirtualmachinemanager:
+  - internal/services/systemcentervirtualmachinemanager/**/*
+
 service/traffic-manager:
   - internal/services/trafficmanager/**/*
 
