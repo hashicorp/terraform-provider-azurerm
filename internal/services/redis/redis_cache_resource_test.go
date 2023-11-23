@@ -751,7 +751,7 @@ resource "azurerm_redis_cache" "test" {
   public_network_access_enabled = false
 
   redis_configuration {
-    entra_enabled = true
+    active_directory_authentication_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
