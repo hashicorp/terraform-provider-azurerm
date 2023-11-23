@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `dashboard`: updating to API Version `2023-09-01` [GH-23929]
 * `mssql`: updating resources using `hashicorp/go-azure-sdk` to API Version `2023-02-01-preview` [GH-23721]
 * `azurerm_cosmosdb_postgresql_cluster` - `coordinator_storage_quota_in_mb` and `coordinator_vcore_count` are no longer required for read replicas [GH-23928]
+* `azurerm_dashboard_grafana` - `sku` can now be set to `Essential` [GH-23934]
 * `azurerm_gallery_application_version` - add support for the `config_file`, `package_file` and `target_region.exclude_from_latest` properties [GH-23816]
 * `azurerm_hdinsight_hadoop_cluster` - `script_actions` is no longer Force New [GH-23888]
 * `azurerm_hdinsight_hbase_cluster` - `script_actions` is no longer Force New [GH-23888]
