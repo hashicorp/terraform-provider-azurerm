@@ -146,9 +146,10 @@ func (r DashboardGrafanaResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                = "a-dg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "9"
 }
 `, template, data.RandomInteger)
 }
@@ -159,11 +160,27 @@ func (r DashboardGrafanaResource) essential(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                = "a-dg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "9"
 
   sku = "Essential"
+}
+`, template, data.RandomInteger)
+}
+
+func (r DashboardGrafanaResource) nonDefaultVersion(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_dashboard_grafana" "test" {
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "10"
+
 }
 `, template, data.RandomInteger)
 }
@@ -174,9 +191,10 @@ func (r DashboardGrafanaResource) requiresImport(data acceptance.TestData) strin
 			%s
 
 resource "azurerm_dashboard_grafana" "import" {
-  name                = azurerm_dashboard_grafana.test.name
-  resource_group_name = azurerm_dashboard_grafana.test.resource_group_name
-  location            = azurerm_dashboard_grafana.test.location
+  name                  = azurerm_dashboard_grafana.test.name
+  resource_group_name   = azurerm_dashboard_grafana.test.resource_group_name
+  location              = azurerm_dashboard_grafana.test.location
+  grafana_major_version = "9"
 }
 `, config)
 }
@@ -222,11 +240,11 @@ func (r DashboardGrafanaResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                  = "a-dg-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  grafana_major_version             = "9"
-  
+  name                   = "a-dg-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  grafana_major_version  = "9"
+
   identity {
     type = "SystemAssigned"
   }
