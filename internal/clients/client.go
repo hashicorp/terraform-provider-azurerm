@@ -444,7 +444,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.HSM, err = hsm.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HSM: %+v", err)
 	}
-	client.HDInsight = hdinsight.NewClient(o)
+	if client.HDInsight, err = hdinsight.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HDInsight: %+v", err)
+	}
 	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HealthCare: %+v", err)
 	}
