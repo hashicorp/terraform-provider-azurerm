@@ -15,7 +15,6 @@ type Client struct {
 	AppPlatformClient *appplatform2.AppPlatformClient
 
 	// TODO: convert to using hashicorp/go-azure-sdk
-	APIPortalClient              *appplatform.APIPortalsClient
 	APIPortalCustomDomainClient  *appplatform.APIPortalCustomDomainsClient
 	ApplicationAcceleratorClient *appplatform.ApplicationAcceleratorsClient
 	ApplicationLiveViewsClient   *appplatform.ApplicationLiveViewsClient
@@ -47,9 +46,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building AppPlatform client: %+v", err)
 	}
 	o.Configure(appPlatformClient.Client, o.Authorizers.ResourceManager)
-
-	apiPortalClient := appplatform.NewAPIPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiPortalClient.Client, o.ResourceManagerAuthorizer)
 
 	apiPortalCustomDomainClient := appplatform.NewAPIPortalCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiPortalCustomDomainClient.Client, o.ResourceManagerAuthorizer)
@@ -124,7 +120,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AppPlatformClient: appPlatformClient,
 
 		// TODO: port to `hashicorp/go-azure-sdk`
-		APIPortalClient:              &apiPortalClient,
 		APIPortalCustomDomainClient:  &apiPortalCustomDomainClient,
 		ApplicationAcceleratorClient: &applicationAcceleratorClient,
 		ApplicationLiveViewsClient:   &applicationLiveViewsClient,
