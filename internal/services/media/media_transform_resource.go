@@ -186,41 +186,6 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								},
 							},
 						},
-						// lintignore:XS003
-						"video_analyzer_preset": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									// https://go.microsoft.com/fwlink/?linkid=2109463
-									"audio_language": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"audio_analysis_mode": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      string(encodings.AudioAnalysisModeStandard),
-										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAudioAnalysisMode(), false),
-									},
-									"insights_type": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      string(encodings.InsightsTypeAllInsights),
-										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForInsightsType(), false),
-									},
-									"experimental_options": {
-										Type:     pluginsdk.TypeMap,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-								},
-							},
-						},
 						"custom_preset": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -1193,6 +1158,44 @@ func resourceMediaTransform() *pluginsdk.Resource {
 			},
 			Deprecated: "`face_detector_preset` will be removed in version 4.0 of the AzureRM Provider as it has been retired.",
 		}
+		// NOTE: `video_analyzer_preset` should be removed as it has been retired.
+		// Refer to https://learn.microsoft.com/en-us/azure/media-services/latest/analyze-video-retirement-migration-overview for details.
+		// TODO Remove in 4.0
+		resource.Schema["output"].Elem.(*pluginsdk.Resource).Schema["video_analyzer_preset"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// https://go.microsoft.com/fwlink/?linkid=2109463
+					"audio_language": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"audio_analysis_mode": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(encodings.AudioAnalysisModeStandard),
+						ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAudioAnalysisMode(), false),
+					},
+					"insights_type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(encodings.InsightsTypeAllInsights),
+						ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForInsightsType(), false),
+					},
+					"experimental_options": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+			Deprecated: "`video_analyzer_preset` will be removed in version 4.0 of the AzureRM Provider as it has been retired.",
+		}
 	}
 
 	return resource
@@ -1359,7 +1362,6 @@ func flattenTransformOutputs(input []encodings.TransformOutput) []interface{} {
 				"custom_preset":         preset.customPresets,
 				"on_error_action":       onErrorAction,
 				"relative_priority":     relativePriority,
-				"video_analyzer_preset": preset.videoAnalyzerPresets,
 			})
 		}
 	}
@@ -1372,10 +1374,11 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 	builtInPresets := transform["builtin_preset"].([]interface{})
 	customPresets := transform["custom_preset"].([]interface{})
 	faceDetectorPresets := make([]interface{}, 0)
+	videoAnalyzerPresets := make([]interface{}, 0)
 	if !features.FourPointOh() {
 		faceDetectorPresets = transform["face_detector_preset"].([]interface{})
+		videoAnalyzerPresets = transform["video_analyzer_preset"].([]interface{})
 	}
-	videoAnalyzerPresets := transform["video_analyzer_preset"].([]interface{})
 
 	presetsCount := 0
 	if len(audioAnalyzerPresets) > 0 {
@@ -1387,14 +1390,21 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 	if len(customPresets) > 0 {
 		presetsCount++
 	}
-	if len(faceDetectorPresets) > 0 {
-		presetsCount++
+	if !features.FourPointOh() {
+		if len(faceDetectorPresets) > 0 {
+			presetsCount++
+		}
+		if len(videoAnalyzerPresets) > 0 {
+			presetsCount++
+		}
 	}
-	if len(videoAnalyzerPresets) > 0 {
-		presetsCount++
-	}
+
 	if presetsCount == 0 {
-		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset, face_detector_preset, video_analyzer_preset or audio_analyzer_preset")
+		if !features.FourPointOh() {
+			return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset, face_detector_preset, video_analyzer_preset or audio_analyzer_preset")
+		} else {
+			return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset or audio_analyzer_preset")
+		}
 	}
 	if presetsCount > 1 {
 		return nil, fmt.Errorf("more than one type of preset in the same output is not allowed")
@@ -1462,59 +1472,65 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 		return builtInPreset, nil
 	}
 
-	if !features.FourPointOh() && len(faceDetectorPresets) > 0 {
-		preset := faceDetectorPresets[0].(map[string]interface{})
+	if !features.FourPointOh() {
+		if len(faceDetectorPresets) > 0 {
+			preset := faceDetectorPresets[0].(map[string]interface{})
 
-		options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
-		if err != nil {
-			return nil, err
+			options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
+			if err != nil {
+				return nil, err
+			}
+
+			faceDetectorPreset := &encodings.FaceDetectorPreset{
+				ExperimentalOptions: options,
+			}
+
+			if v := preset["analysis_resolution"].(string); v != "" {
+				faceDetectorPreset.Resolution = pointer.To(encodings.AnalysisResolution(v))
+			}
+
+			if v := preset["blur_type"].(string); v != "" {
+				faceDetectorPreset.BlurType = pointer.To(encodings.BlurType(v))
+			}
+
+			if v := preset["face_redactor_mode"].(string); v != "" {
+				faceDetectorPreset.Mode = pointer.To(encodings.FaceRedactorMode(v))
+			}
+
+			return faceDetectorPreset, nil
 		}
 
-		faceDetectorPreset := &encodings.FaceDetectorPreset{
-			ExperimentalOptions: options,
-		}
+		if len(videoAnalyzerPresets) > 0 {
+			presets := transform["video_analyzer_preset"].([]interface{})
+			preset := presets[0].(map[string]interface{})
 
-		if v := preset["analysis_resolution"].(string); v != "" {
-			faceDetectorPreset.Resolution = pointer.To(encodings.AnalysisResolution(v))
-		}
+			options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
+			if err != nil {
+				return nil, err
+			}
 
-		if v := preset["blur_type"].(string); v != "" {
-			faceDetectorPreset.BlurType = pointer.To(encodings.BlurType(v))
-		}
+			videoAnalyzerPreset := &encodings.VideoAnalyzerPreset{
+				ExperimentalOptions: options,
+			}
 
-		if v := preset["face_redactor_mode"].(string); v != "" {
-			faceDetectorPreset.Mode = pointer.To(encodings.FaceRedactorMode(v))
+			if v := preset["audio_language"].(string); v != "" {
+				videoAnalyzerPreset.AudioLanguage = utils.String(v)
+			}
+			if v := preset["audio_analysis_mode"].(string); v != "" {
+				videoAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(v))
+			}
+			if v := preset["insights_type"].(string); v != "" {
+				videoAnalyzerPreset.InsightsToExtract = pointer.To(encodings.InsightsType(v))
+			}
+			return videoAnalyzerPreset, nil
 		}
-
-		return faceDetectorPreset, nil
 	}
 
-	if len(videoAnalyzerPresets) > 0 {
-		presets := transform["video_analyzer_preset"].([]interface{})
-		preset := presets[0].(map[string]interface{})
-
-		options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
-		if err != nil {
-			return nil, err
-		}
-
-		videoAnalyzerPreset := &encodings.VideoAnalyzerPreset{
-			ExperimentalOptions: options,
-		}
-
-		if v := preset["audio_language"].(string); v != "" {
-			videoAnalyzerPreset.AudioLanguage = utils.String(v)
-		}
-		if v := preset["audio_analysis_mode"].(string); v != "" {
-			videoAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(v))
-		}
-		if v := preset["insights_type"].(string); v != "" {
-			videoAnalyzerPreset.InsightsToExtract = pointer.To(encodings.InsightsType(v))
-		}
-		return videoAnalyzerPreset, nil
+	if !features.FourPointOh() {
+		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset, face_detector_preset, video_analyzer_preset or audio_analyzer_preset")
+	} else {
+		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset or audio_analyzer_preset")
 	}
-
-	return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset, face_detector_preset, video_analyzer_preset or audio_analyzer_preset")
 }
 
 type flattenedPresets struct {
