@@ -10,20 +10,18 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-
-func (r Registration) AssociatedGitHubLabel() string {
-	return "service/hpc-cache"
-}
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "HPC Cache"
+	return "Storage Cache"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
+		"Azure Managed Lustre File System",
 		"Storage",
 	}
 }
@@ -41,5 +39,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_hpc_cache_blob_target":     resourceHPCCacheBlobTarget(),
 		"azurerm_hpc_cache_blob_nfs_target": resourceHPCCacheBlobNFSTarget(),
 		"azurerm_hpc_cache_nfs_target":      resourceHPCCacheNFSTarget(),
+	}
+}
+
+// DataSources returns a list of Data Sources supported by this Service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+// Resources returns a list of Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ManagedLustreFileSystemResource{},
 	}
 }

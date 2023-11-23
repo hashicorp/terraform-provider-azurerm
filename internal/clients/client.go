@@ -36,7 +36,6 @@ import (
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
-	azureManagedLustreFileSystem "github.com/hashicorp/terraform-provider-azurerm/internal/services/azuremanagedlustrefilesystem/client"
 	azureStackHCI "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 	batch "github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/client"
 	blueprints "github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/client"
@@ -76,6 +75,7 @@ import (
 	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
+	storageCache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"
 	hsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/client"
 	hybridcompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
@@ -587,8 +587,8 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Storage, err = storage.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)
 	}
-	if client.StorageCache, err = azureManagedLustreFileSystem.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Azure Managed Lustre File System: %+v", err)
+	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Storage Cache: %+v", err)
 	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
 		return fmt.Errorf("building Storage for StorageMover: %+v", err)

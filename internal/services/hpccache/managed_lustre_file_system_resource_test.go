@@ -1,4 +1,4 @@
-package azuremanagedlustrefilesystem_test
+package hpccache_test
 
 import (
 	"context"
