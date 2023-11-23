@@ -11,6 +11,8 @@ ENHANCEMENTS:
 * `azurestackhci`: updating to API Version `2023-08-01` [GH-23939]
 * `dashboard`: updating to API Version `2023-09-01` [GH-23929]
 * `mssql`: updating resources using `hashicorp/go-azure-sdk` to API Version `2023-02-01-preview` [GH-23721]
+* `templatespecversions`: updating to API Version `2022-02-01` [GH-24007]
+*  Data Source: `azurerm_template_spec_version` - refactoring to use `hashicorp/go-azure-sdk` [GH-24007]
 * `azurerm_cosmosdb_postgresql_cluster` - `coordinator_storage_quota_in_mb` and `coordinator_vcore_count` are no longer required for read replicas [GH-23928]
 * `azurerm_dashboard_grafana` - `sku` can now be set to `Essential` [GH-23934]
 * `azurerm_gallery_application_version` - add support for the `config_file`, `package_file` and `target_region.exclude_from_latest` properties [GH-23816]
