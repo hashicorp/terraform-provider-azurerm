@@ -459,7 +459,7 @@ type IpSecurityRestriction struct {
 func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Required: false,
+		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"action": {
