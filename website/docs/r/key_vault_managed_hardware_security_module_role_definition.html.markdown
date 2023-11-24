@@ -33,9 +33,9 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "example" {
-  name              = "7d206142-bf01-11ed-80bc-00155d61ee9e"
-  vault_base_url    = azurerm_key_vault_managed_hardware_security_module.example.hsm_uri
-  description       = "desc foo"
+  name           = "7d206142-bf01-11ed-80bc-00155d61ee9e"
+  vault_base_url = azurerm_key_vault_managed_hardware_security_module.example.hsm_uri
+  description    = "desc foo"
   permission {
     data_actions = [
       "Microsoft.KeyVault/managedHsm/keys/read/action",
