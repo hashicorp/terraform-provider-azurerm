@@ -4,7 +4,6 @@
 package privatedns
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -64,7 +63,8 @@ func dataSourcePrivateDnsZone() *pluginsdk.Resource {
 }
 
 func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
+	client := meta.(*clients.Client).PrivateDns
+	resourceGroupsClient := meta.(*clients.Client).Resource.ResourceGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,7 +73,7 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if id.ResourceGroupName == "" {
 		// we need to discover the Private DNS Zone's resource group
 		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-		zoneId, err := findPrivateDnsZoneId(ctx, client, subscriptionResourceId, id.PrivateDnsZoneName)
+		zoneId, err := client.FindPrivateDnsZoneId(ctx, resourceGroupsClient, subscriptionResourceId, id.PrivateDnsZoneName)
 		if err != nil {
 			return err
 		}
@@ -82,10 +82,10 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("unable to determine the Resource Group for Private DNS Zone %q in Subscription %q", id.PrivateDnsZoneName, id.SubscriptionId)
 		}
 
-		id = *zoneId
+		id.ResourceGroupName = zoneId.ResourceGroupName
 	}
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.PrivateZonesClient.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -113,29 +113,4 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func findPrivateDnsZoneId(ctx context.Context, client *privatezones.PrivateZonesClient, subscriptionId commonids.SubscriptionId, name string) (*privatezones.PrivateDnsZoneId, error) {
-	opts := privatezones.DefaultListOperationOptions()
-	results, err := client.ListComplete(ctx, subscriptionId, opts)
-	if err != nil {
-		return nil, fmt.Errorf("listing the Private DNS Zones within %s: %+v", subscriptionId, err)
-	}
-
-	for _, item := range results.Items {
-		if item.Id == nil {
-			continue
-		}
-
-		itemId := *item.Id
-		parsed, err := privatezones.ParsePrivateDnsZoneIDInsensitively(itemId)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q as a Private DNS Zone ID: %+v", itemId, err)
-		}
-		if parsed.PrivateDnsZoneName == name {
-			return parsed, nil
-		}
-	}
-
-	return nil, fmt.Errorf("No Private DNS Zones found with name: %q", name)
 }
