@@ -24,7 +24,7 @@ import (
 
 func resourceArmSqlManagedDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlManagedDatabaseCreateUpdate,
+		Create: resourceArmSqlManagedDatabaseCreate,
 		Read:   resourceArmSqlManagedDatabaseRead,
 		Delete: resourceArmSqlManagedDatabaseDelete,
 
@@ -38,7 +38,6 @@ func resourceArmSqlManagedDatabase() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(24 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(24 * time.Hour),
 			Delete: schema.DefaultTimeout(24 * time.Hour),
 		},
 
@@ -62,7 +61,7 @@ func resourceArmSqlManagedDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmSqlManagedDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlManagedDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ManagedDatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
