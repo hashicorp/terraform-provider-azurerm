@@ -118,11 +118,6 @@ func (a *ManagedIdentityAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.R
 	return []*oauth2.Token{}, nil
 }
 
-// ExpireToken has no effect with uncached Authorizers
-func (a *ManagedIdentityAuthorizer) ExpireTokens() error {
-	return nil
-}
-
 // managedIdentityConfig configures an ManagedIdentityAuthorizer.
 type managedIdentityConfig struct {
 	// ClientID is optionally used to determine which application to assume when a resource has multiple managed identities

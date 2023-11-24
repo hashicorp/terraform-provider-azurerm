@@ -190,11 +190,6 @@ type gitHubOIDCConfig struct {
 	Audience string
 }
 
-// ExpireToken has no effect with uncached Authorizers
-func (a *GitHubOIDCAuthorizer) ExpireTokens() error {
-	return nil
-}
-
 func (c *gitHubOIDCConfig) TokenSource(ctx context.Context) (Authorizer, error) {
 	return NewCachedAuthorizer(&GitHubOIDCAuthorizer{
 		conf: c,

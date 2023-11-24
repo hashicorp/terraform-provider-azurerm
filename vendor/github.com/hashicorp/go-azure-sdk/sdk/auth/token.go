@@ -4,54 +4,15 @@
 package auth
 
 import (
-	"context"
-	"fmt"
-	"net/http"
-	"strings"
+	"golang.org/x/oauth2"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
-	"golang.org/x/oauth2"
 )
-
-// SetAuthHeaders decorates a *http.Request with necessary authorization headers for Azure APIs. For more information about the vendor-specific
-// `x-ms-authorization-auxiliary` header, see https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/authenticate-multi-tenant
-func SetAuthHeaders(ctx context.Context, req *http.Request, authorizer Authorizer) error {
-	if req == nil {
-		return fmt.Errorf("request was nil")
-	}
-	if authorizer == nil {
-		return fmt.Errorf("authorizer was nil")
-	}
-
-	token, err := authorizer.Token(ctx, req)
-	if err != nil {
-		return err
-	}
-
-	if req.Header == nil {
-		req.Header = make(http.Header)
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.Type(), token.AccessToken))
-
-	auxTokens, err := authorizer.AuxiliaryTokens(ctx, req)
-	if err != nil {
-		return err
-	}
-
-	auxTokenValues := make([]string, 0)
-	for _, auxToken := range auxTokens {
-		auxTokenValues = append(auxTokenValues, fmt.Sprintf("%s %s", auxToken.Type(), auxToken.AccessToken))
-	}
-	req.Header.Set("X-Ms-Authorization-Auxiliary", strings.Join(auxTokenValues, ", "))
-
-	return nil
-}
 
 const tokenExpiryDelta = 20 * time.Minute
 
-// tokenDueForRenewal returns true if the token expires within 10 minutes, or if more than 50% of its validity period has elapsed (if this can be determined), whichever is later
+// tokenExpiresSoon returns true if the token expires within 10 minutes, or if more than 50% of its validity period has elapsed (if this can be determined), whichever is later
 func tokenDueForRenewal(token *oauth2.Token) bool {
 	if token == nil {
 		return true
@@ -65,11 +26,7 @@ func tokenDueForRenewal(token *oauth2.Token) bool {
 	expiry := token.Expiry.Round(0)
 	delta := tokenExpiryDelta
 	now := time.Now()
-
-	// Always return early if the token validity doesn't extend past the expiry delta
-	if expiry.Add(-delta).Before(now) {
-		return true
-	}
+	expiresWithinTenMinutes := expiry.Add(-delta).Before(now)
 
 	// Try to parse the token claims to retrieve the issuedAt time
 	if claims, err := claims.ParseClaims(token); err == nil {
@@ -86,5 +43,5 @@ func tokenDueForRenewal(token *oauth2.Token) bool {
 		}
 	}
 
-	return false
+	return expiresWithinTenMinutes
 }

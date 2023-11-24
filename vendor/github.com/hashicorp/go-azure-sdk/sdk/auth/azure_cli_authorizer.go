@@ -143,11 +143,6 @@ func (a *AzureCliAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request)
 	return tokens, nil
 }
 
-// ExpireToken has no effect with uncached Authorizers
-func (a *AzureCliAuthorizer) ExpireTokens() error {
-	return nil
-}
-
 const (
 	AzureCliMinimumVersion   = "2.0.81"
 	AzureCliMsalVersion      = "2.30.0"

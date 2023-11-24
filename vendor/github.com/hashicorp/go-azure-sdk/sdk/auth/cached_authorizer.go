@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	"golang.org/x/oauth2"
 )
@@ -55,7 +54,7 @@ func (c *CachedAuthorizer) AuxiliaryTokens(ctx context.Context, req *http.Reques
 	}
 	c.mutex.RUnlock()
 
-	if dueForRenewal || len(c.auxTokens) == 0 {
+	if !dueForRenewal {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
 		var err error
@@ -66,15 +65,6 @@ func (c *CachedAuthorizer) AuxiliaryTokens(ctx context.Context, req *http.Reques
 	}
 
 	return c.auxTokens, nil
-}
-
-// ExpireTokens expires the currently cached token and auxTokens, forcing new tokens to be acquired when Token() or AuxiliaryTokens() are next called
-func (c *CachedAuthorizer) ExpireTokens() error {
-	c.token.Expiry = time.Now()
-	for i := range c.auxTokens {
-		c.auxTokens[i].Expiry = time.Now()
-	}
-	return nil
 }
 
 // NewCachedAuthorizer returns an Authorizer that caches an access token for the duration of its validity.

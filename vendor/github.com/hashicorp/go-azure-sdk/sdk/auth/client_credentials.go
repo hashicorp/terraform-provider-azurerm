@@ -314,11 +314,6 @@ func (a *ClientAssertionAuthorizer) AuxiliaryTokens(ctx context.Context, _ *http
 	return tokens, nil
 }
 
-// ExpireToken has no effect with uncached Authorizers
-func (a *ClientAssertionAuthorizer) ExpireTokens() error {
-	return nil
-}
-
 func clientCredentialsToken(ctx context.Context, endpoint string, params *url.Values) (*oauth2.Token, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer([]byte(params.Encode())))
 	if err != nil {
