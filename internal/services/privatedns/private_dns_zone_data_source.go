@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
@@ -70,31 +70,28 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := privatezones.NewPrivateDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	var resp *privatezones.PrivateZone
-	if id.ResourceGroupName != "" {
-		zone, err := client.Get(ctx, id)
-		if err != nil || zone.Model == nil {
-			if response.WasNotFound(zone.HttpResponse) {
-				return fmt.Errorf("%s was not found", id)
-			}
-			return fmt.Errorf("reading %s: %+v", id, err)
-		}
-		resp = zone.Model
-	} else {
-		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
-
-		zone, err := findPrivateZone(ctx, client, resourcesClient, id.PrivateDnsZoneName)
+	if id.ResourceGroupName == "" {
+		// we need to discover the Private DNS Zone's resource group
+		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+		zoneId, err := findPrivateDnsZoneId(ctx, client, subscriptionResourceId, id.PrivateDnsZoneName)
 		if err != nil {
 			return err
 		}
 
-		if zone == nil {
+		if zoneId == nil {
+			return fmt.Errorf("unable to determine the Resource Group for Private DNS Zone %q in Subscription %q", id.PrivateDnsZoneName, id.SubscriptionId)
+		}
+
+		id = *zoneId
+	}
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		resp = &zone.zone
-		id.ResourceGroupName = zone.resourceGroup
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -102,51 +99,42 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.Properties; props != nil {
-		d.Set("number_of_record_sets", props.NumberOfRecordSets)
-		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
-		d.Set("max_number_of_virtual_network_links", props.MaxNumberOfVirtualNetworkLinks)
-		d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("number_of_record_sets", props.NumberOfRecordSets)
+			d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
+			d.Set("max_number_of_virtual_network_links", props.MaxNumberOfVirtualNetworkLinks)
+			d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-type privateDnsZone struct {
-	zone          privatezones.PrivateZone
-	resourceGroup string
-}
-
-func findPrivateZone(ctx context.Context, client *privatezones.PrivateZonesClient, resourcesClient *resources.Client, name string) (*privateDnsZone, error) {
-	filter := fmt.Sprintf("resourceType eq 'Microsoft.Network/privateDnsZones' and name eq '%s'", name)
-	privateZones, err := resourcesClient.List(ctx, filter, "", nil)
+func findPrivateDnsZoneId(ctx context.Context, client *privatezones.PrivateZonesClient, subscriptionId commonids.SubscriptionId, name string) (*privatezones.PrivateDnsZoneId, error) {
+	opts := privatezones.DefaultListOperationOptions()
+	results, err := client.ListComplete(ctx, subscriptionId, opts)
 	if err != nil {
-		return nil, fmt.Errorf("listing Private DNS Zones: %+v", err)
+		return nil, fmt.Errorf("listing the Private DNS Zones within %s: %+v", subscriptionId, err)
 	}
 
-	if len(privateZones.Values()) > 1 {
-		return nil, fmt.Errorf("More than one Private DNS Zone found with name: %q", name)
-	}
-
-	for _, z := range privateZones.Values() {
-		if z.ID == nil {
+	for _, item := range results.Items {
+		if item.Id == nil {
 			continue
 		}
 
-		id, err := privatezones.ParsePrivateDnsZoneID(*z.ID)
+		itemId := *item.Id
+		parsed, err := privatezones.ParsePrivateDnsZoneIDInsensitively(itemId)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("parsing %q as a Private DNS Zone ID: %+v", itemId, err)
 		}
-
-		zone, err := client.Get(ctx, *id)
-		if err != nil || zone.Model == nil {
-			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		if parsed.PrivateDnsZoneName == name {
+			return parsed, nil
 		}
-
-		return &privateDnsZone{
-			zone:          *zone.Model,
-			resourceGroup: id.ResourceGroupName,
-		}, nil
 	}
 
 	return nil, fmt.Errorf("No Private DNS Zones found with name: %q", name)
