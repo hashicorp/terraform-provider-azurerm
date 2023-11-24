@@ -285,9 +285,6 @@ func (s SpringCloudAPIPortalResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
 
 			springId := appplatform.NewSpringID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 
@@ -301,15 +298,17 @@ func (s SpringCloudAPIPortalResource) Read() sdk.ResourceFunc {
 				SpringCloudServiceId: springId.ID(),
 			}
 
-			if props := resp.Model.Properties; props != nil {
-				state.GatewayIds = flattenSpringCloudAPIPortalGatewayIds(props.GatewayIds)
-				state.HttpsOnlyEnabled = pointer.From(props.HTTPSOnly)
-				state.PublicNetworkAccessEnabled = pointer.From(props.Public)
-				state.Sso = flattenApiPortalSsoProperties(props.SsoProperties, model.Sso)
-			}
+			if resp.Model != nil {
+				if props := resp.Model.Properties; props != nil {
+					state.GatewayIds = flattenSpringCloudAPIPortalGatewayIds(props.GatewayIds)
+					state.HttpsOnlyEnabled = pointer.From(props.HTTPSOnly)
+					state.PublicNetworkAccessEnabled = pointer.From(props.Public)
+					state.Sso = flattenApiPortalSsoProperties(props.SsoProperties, model.Sso)
+				}
 
-			if sku := resp.Model.Sku; sku != nil {
-				state.InstanceCount = int(pointer.From(sku.Capacity))
+				if sku := resp.Model.Sku; sku != nil {
+					state.InstanceCount = int(pointer.From(sku.Capacity))
+				}
 			}
 
 			return metadata.Encode(&state)
