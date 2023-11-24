@@ -432,6 +432,179 @@ func parsePasswordAuthEnum(input string) (*PasswordAuthEnum, error) {
 	return &out, nil
 }
 
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	PrivateEndpointConnectionProvisioningStateCreating  PrivateEndpointConnectionProvisioningState = "Creating"
+	PrivateEndpointConnectionProvisioningStateDeleting  PrivateEndpointConnectionProvisioningState = "Deleting"
+	PrivateEndpointConnectionProvisioningStateFailed    PrivateEndpointConnectionProvisioningState = "Failed"
+	PrivateEndpointConnectionProvisioningStateSucceeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+)
+
+func PossibleValuesForPrivateEndpointConnectionProvisioningState() []string {
+	return []string{
+		string(PrivateEndpointConnectionProvisioningStateCreating),
+		string(PrivateEndpointConnectionProvisioningStateDeleting),
+		string(PrivateEndpointConnectionProvisioningStateFailed),
+		string(PrivateEndpointConnectionProvisioningStateSucceeded),
+	}
+}
+
+func (s *PrivateEndpointConnectionProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateEndpointConnectionProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePrivateEndpointConnectionProvisioningState(input string) (*PrivateEndpointConnectionProvisioningState, error) {
+	vals := map[string]PrivateEndpointConnectionProvisioningState{
+		"creating":  PrivateEndpointConnectionProvisioningStateCreating,
+		"deleting":  PrivateEndpointConnectionProvisioningStateDeleting,
+		"failed":    PrivateEndpointConnectionProvisioningStateFailed,
+		"succeeded": PrivateEndpointConnectionProvisioningStateSucceeded,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateEndpointConnectionProvisioningState(input)
+	return &out, nil
+}
+
+type PrivateEndpointServiceConnectionStatus string
+
+const (
+	PrivateEndpointServiceConnectionStatusApproved PrivateEndpointServiceConnectionStatus = "Approved"
+	PrivateEndpointServiceConnectionStatusPending  PrivateEndpointServiceConnectionStatus = "Pending"
+	PrivateEndpointServiceConnectionStatusRejected PrivateEndpointServiceConnectionStatus = "Rejected"
+)
+
+func PossibleValuesForPrivateEndpointServiceConnectionStatus() []string {
+	return []string{
+		string(PrivateEndpointServiceConnectionStatusApproved),
+		string(PrivateEndpointServiceConnectionStatusPending),
+		string(PrivateEndpointServiceConnectionStatusRejected),
+	}
+}
+
+func (s *PrivateEndpointServiceConnectionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateEndpointServiceConnectionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePrivateEndpointServiceConnectionStatus(input string) (*PrivateEndpointServiceConnectionStatus, error) {
+	vals := map[string]PrivateEndpointServiceConnectionStatus{
+		"approved": PrivateEndpointServiceConnectionStatusApproved,
+		"pending":  PrivateEndpointServiceConnectionStatusPending,
+		"rejected": PrivateEndpointServiceConnectionStatusRejected,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateEndpointServiceConnectionStatus(input)
+	return &out, nil
+}
+
+type ReadReplicaPromoteMode string
+
+const (
+	ReadReplicaPromoteModeStandalone ReadReplicaPromoteMode = "standalone"
+	ReadReplicaPromoteModeSwitchover ReadReplicaPromoteMode = "switchover"
+)
+
+func PossibleValuesForReadReplicaPromoteMode() []string {
+	return []string{
+		string(ReadReplicaPromoteModeStandalone),
+		string(ReadReplicaPromoteModeSwitchover),
+	}
+}
+
+func (s *ReadReplicaPromoteMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReadReplicaPromoteMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseReadReplicaPromoteMode(input string) (*ReadReplicaPromoteMode, error) {
+	vals := map[string]ReadReplicaPromoteMode{
+		"standalone": ReadReplicaPromoteModeStandalone,
+		"switchover": ReadReplicaPromoteModeSwitchover,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ReadReplicaPromoteMode(input)
+	return &out, nil
+}
+
+type ReplicationPromoteOption string
+
+const (
+	ReplicationPromoteOptionForced  ReplicationPromoteOption = "forced"
+	ReplicationPromoteOptionPlanned ReplicationPromoteOption = "planned"
+)
+
+func PossibleValuesForReplicationPromoteOption() []string {
+	return []string{
+		string(ReplicationPromoteOptionForced),
+		string(ReplicationPromoteOptionPlanned),
+	}
+}
+
+func (s *ReplicationPromoteOption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReplicationPromoteOption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseReplicationPromoteOption(input string) (*ReplicationPromoteOption, error) {
+	vals := map[string]ReplicationPromoteOption{
+		"forced":  ReplicationPromoteOptionForced,
+		"planned": ReplicationPromoteOptionPlanned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ReplicationPromoteOption(input)
+	return &out, nil
+}
+
 type ReplicationRole string
 
 const (
@@ -476,6 +649,59 @@ func parseReplicationRole(input string) (*ReplicationRole, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ReplicationRole(input)
+	return &out, nil
+}
+
+type ReplicationState string
+
+const (
+	ReplicationStateActive        ReplicationState = "Active"
+	ReplicationStateBroken        ReplicationState = "Broken"
+	ReplicationStateCatchup       ReplicationState = "Catchup"
+	ReplicationStateProvisioning  ReplicationState = "Provisioning"
+	ReplicationStateReconfiguring ReplicationState = "Reconfiguring"
+	ReplicationStateUpdating      ReplicationState = "Updating"
+)
+
+func PossibleValuesForReplicationState() []string {
+	return []string{
+		string(ReplicationStateActive),
+		string(ReplicationStateBroken),
+		string(ReplicationStateCatchup),
+		string(ReplicationStateProvisioning),
+		string(ReplicationStateReconfiguring),
+		string(ReplicationStateUpdating),
+	}
+}
+
+func (s *ReplicationState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReplicationState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseReplicationState(input string) (*ReplicationState, error) {
+	vals := map[string]ReplicationState{
+		"active":        ReplicationStateActive,
+		"broken":        ReplicationStateBroken,
+		"catchup":       ReplicationStateCatchup,
+		"provisioning":  ReplicationStateProvisioning,
+		"reconfiguring": ReplicationStateReconfiguring,
+		"updating":      ReplicationStateUpdating,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ReplicationState(input)
 	return &out, nil
 }
 
@@ -635,6 +861,7 @@ const (
 	ServerVersionOneFive  ServerVersion = "15"
 	ServerVersionOneFour  ServerVersion = "14"
 	ServerVersionOneOne   ServerVersion = "11"
+	ServerVersionOneSix   ServerVersion = "16"
 	ServerVersionOneThree ServerVersion = "13"
 	ServerVersionOneTwo   ServerVersion = "12"
 )
@@ -644,6 +871,7 @@ func PossibleValuesForServerVersion() []string {
 		string(ServerVersionOneFive),
 		string(ServerVersionOneFour),
 		string(ServerVersionOneOne),
+		string(ServerVersionOneSix),
 		string(ServerVersionOneThree),
 		string(ServerVersionOneTwo),
 	}
@@ -667,6 +895,7 @@ func parseServerVersion(input string) (*ServerVersion, error) {
 		"15": ServerVersionOneFive,
 		"14": ServerVersionOneFour,
 		"11": ServerVersionOneOne,
+		"16": ServerVersionOneSix,
 		"13": ServerVersionOneThree,
 		"12": ServerVersionOneTwo,
 	}
@@ -761,5 +990,46 @@ func parseStorageAutoGrow(input string) (*StorageAutoGrow, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := StorageAutoGrow(input)
+	return &out, nil
+}
+
+type StorageType string
+
+const (
+	StorageTypePremiumLRS     StorageType = "Premium_LRS"
+	StorageTypePremiumVTwoLRS StorageType = "PremiumV2_LRS"
+)
+
+func PossibleValuesForStorageType() []string {
+	return []string{
+		string(StorageTypePremiumLRS),
+		string(StorageTypePremiumVTwoLRS),
+	}
+}
+
+func (s *StorageType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseStorageType(input string) (*StorageType, error) {
+	vals := map[string]StorageType{
+		"premium_lrs":   StorageTypePremiumLRS,
+		"premiumv2_lrs": StorageTypePremiumVTwoLRS,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := StorageType(input)
 	return &out, nil
 }

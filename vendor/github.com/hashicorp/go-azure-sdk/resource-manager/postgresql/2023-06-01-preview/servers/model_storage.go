@@ -7,5 +7,7 @@ type Storage struct {
 	AutoGrow      *StorageAutoGrow                  `json:"autoGrow,omitempty"`
 	Iops          *int64                            `json:"iops,omitempty"`
 	StorageSizeGB *int64                            `json:"storageSizeGB,omitempty"`
+	Throughput    *int64                            `json:"throughput,omitempty"`
 	Tier          *AzureManagedDiskPerformanceTiers `json:"tier,omitempty"`
+	Type          *StorageType                      `json:"type,omitempty"`
 }
