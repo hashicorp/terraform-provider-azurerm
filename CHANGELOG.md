@@ -40,7 +40,7 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app_slot` - add support for dotnet 8 [GH-23638]
 
 BUG FIXES:
-
+* `azurerm_api_management` - correct a bug with additional location zones within the `additional_location` block [GH-23943]
 * `azurerm_dev_test_linux_virtual_machine` - `storage_type` is now ForceNew to match the updated API behaviour [GH-23973]
 * `azurerm_dev_test_windows_virtual_machine` - `storage_type` is now ForceNew to match the updated API behaviour [GH-23973]
 * `azurerm_disk_encryption_set` - resource will recreate if `identity` changes from `SystemAssigned` to `UserAssigned` [GH-23904]
