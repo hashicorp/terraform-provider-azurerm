@@ -234,7 +234,7 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 
 	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-	resp, err := clients.Firewall.Client.AzureFirewalls.Get(ctx, firewallId)
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
@@ -274,7 +274,7 @@ func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, cli
 }
 
 func (t FirewallNatRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	client := clients.Firewall.Client.AzureFirewalls
+	client := clients.Network.AzureFirewalls
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
 	defer cancel()
 	id, err := parse.FirewallNatRuleCollectionID(state.ID)
