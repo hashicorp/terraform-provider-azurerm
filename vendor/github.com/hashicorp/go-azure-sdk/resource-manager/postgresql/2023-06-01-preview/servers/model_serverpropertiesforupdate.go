@@ -12,6 +12,7 @@ type ServerPropertiesForUpdate struct {
 	HighAvailability           *HighAvailability    `json:"highAvailability,omitempty"`
 	MaintenanceWindow          *MaintenanceWindow   `json:"maintenanceWindow,omitempty"`
 	Network                    *Network             `json:"network,omitempty"`
+	Replica                    *Replica             `json:"replica,omitempty"`
 	ReplicationRole            *ReplicationRole     `json:"replicationRole,omitempty"`
 	Storage                    *Storage             `json:"storage,omitempty"`
 	Version                    *ServerVersion       `json:"version,omitempty"`
