@@ -314,18 +314,18 @@ resource "azurerm_postgresql_flexible_server_configuration" "test5" {
 
 func (r PostgresqlFlexibleServerConfigurationResource) withDisabledServerRestarts(data acceptance.TestData, name, value string) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {
-			postgresql_flexible_server {
-				restart_server_on_configuration_value_change = false
-			}
+provider "azurerm" {
+	features {
+		postgresql_flexible_server {
+			restart_server_on_configuration_value_change = false
 		}
 	}
-	
-	resource "azurerm_resource_group" "test" {
-		name     = "acctestRG-postgresql-%d"
-		location = "%s"
-	}
+}
+
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-postgresql-%d"
+	location = "%s"
+}
 
 resource "azurerm_postgresql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
