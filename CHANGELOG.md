@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: update to `v0.20231122.1165504` of `github.com/hashicorp/go-azure-sdk` [GH-24013]
+* `azurerm_dashboard_grafana` - support for `grafana_major_version` [GH-24014]
 * `azurerm_postgresql_flexible_server` - udpating to API Version `2023-06-01-preview` [GH-24016]
 
 ## 3.82.0 (November 23, 2023)
