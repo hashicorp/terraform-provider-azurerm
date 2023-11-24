@@ -430,7 +430,7 @@ func flattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPS
 	result := make([]IpSecurityRestriction, 0)
 	for _, v := range *input {
 		ipSecurityRestriction := IpSecurityRestriction{
-			Description:    string(*v.Description),
+			Description:    *v.Description,
 			IpAddressRange: v.IPAddressRange,
 			Action:         string(v.Action),
 			Name:           v.Name,
