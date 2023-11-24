@@ -532,9 +532,6 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
 
 			springId := appplatform.NewSpringID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 
@@ -549,22 +546,24 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 				SensitiveEnvironmentVariables: model.SensitiveEnvironmentVariables,
 			}
 
-			if props := resp.Model.Properties; props != nil {
-				state.ApiMetadata = flattenGatewayGatewayAPIMetadataProperties(props.ApiMetadataProperties)
-				state.ApplicationPerformanceMonitoringTypes = flattenGatewayGatewayApmTypes(props.ApmTypes)
-				state.ClientAuthorization = flattenGatewayClientAuth(props.ClientAuth)
-				state.Cors = flattenGatewayGatewayCorsProperties(props.CorsProperties)
-				if props.EnvironmentVariables != nil {
-					state.EnvironmentVariables = pointer.From(props.EnvironmentVariables.Properties)
+			if resp.Model != nil {
+				if props := resp.Model.Properties; props != nil {
+					state.ApiMetadata = flattenGatewayGatewayAPIMetadataProperties(props.ApiMetadataProperties)
+					state.ApplicationPerformanceMonitoringTypes = flattenGatewayGatewayApmTypes(props.ApmTypes)
+					state.ClientAuthorization = flattenGatewayClientAuth(props.ClientAuth)
+					state.Cors = flattenGatewayGatewayCorsProperties(props.CorsProperties)
+					if props.EnvironmentVariables != nil {
+						state.EnvironmentVariables = pointer.From(props.EnvironmentVariables.Properties)
+					}
+					state.HttpsOnly = pointer.From(props.HTTPSOnly)
+					state.PublicNetworkAccessEnabled = pointer.From(props.Public)
+					state.Quota = flattenGatewayGatewayResourceRequests(props.ResourceRequests)
+					state.Sso = flattenGatewaySsoProperties(props.SsoProperties, model.Sso)
 				}
-				state.HttpsOnly = pointer.From(props.HTTPSOnly)
-				state.PublicNetworkAccessEnabled = pointer.From(props.Public)
-				state.Quota = flattenGatewayGatewayResourceRequests(props.ResourceRequests)
-				state.Sso = flattenGatewaySsoProperties(props.SsoProperties, model.Sso)
-			}
 
-			if sku := resp.Model.Sku; sku != nil {
-				state.InstanceCount = int(pointer.From(sku.Capacity))
+				if sku := resp.Model.Sku; sku != nil {
+					state.InstanceCount = int(pointer.From(sku.Capacity))
+				}
 			}
 
 			return metadata.Encode(&state)
