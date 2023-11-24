@@ -390,6 +390,42 @@ func TestAccContainerAppResource_scaleRulesUpdate(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_ipSecurityRulesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressSecurityRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressSecurityRestrictionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := containerapps.ParseContainerAppID(state.ID)
 	if err != nil {
@@ -1205,12 +1241,6 @@ resource "azurerm_container_app" "test" {
       latest_revision = true
       percentage      = 100
     }
-    ip_security_restriction {
-      name = "test"
-      description = "test"
-      action = "Allow"
-      ip_address_range = "0.0.0.0/0"
-    }
   }
 
   registry {
@@ -1667,6 +1697,80 @@ resource "azurerm_container_app" "test" {
       name                = "tcp-1"
       concurrent_requests = "1000"
     }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) ingressSecurityRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    target_port = 5000
+    ip_security_restriction = [
+      {
+        name = "test"
+        description = "test"
+        action = "Allow"
+        ip_address_range = "0.0.0.0/0"
+      }
+    ]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) ingressSecurityRestrictionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    target_port = 5000
+    ip_security_restriction = [
+      {
+        name = "test"
+        description = "test"
+        action = "Allow"
+        ip_address_range = "0.0.0.0/0"
+      },
+      {
+        name = "test2"
+        description = "test2"
+        action = "Deny"
+        ip_address_range = "10.0.0.0/8"
+      }
+    ]
   }
 }
 `, r.template(data), data.RandomInteger)
