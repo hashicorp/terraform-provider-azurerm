@@ -298,9 +298,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
 
-	var configurationsRaw interface{}
-	configurationsRaw = configurations
-
+	var configurationsRaw interface{} = configurations
 	payload := clusters.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &clusters.ClusterCreateProperties{

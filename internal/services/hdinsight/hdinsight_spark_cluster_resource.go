@@ -217,8 +217,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)
 
-	var configurationsRaw interface{}
-	configurationsRaw = configurations
+	var configurationsRaw interface{} = configurations
 	payload := clusters.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &clusters.ClusterCreateProperties{

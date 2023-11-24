@@ -265,8 +265,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 		return tf.ImportAsExistsError("azurerm_hdinsight_hadoop_cluster", id.ID())
 	}
 
-	var configurationsRaw interface{}
-	configurationsRaw = configurations
+	var configurationsRaw interface{} = configurations
 	payload := clusters.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &clusters.ClusterCreateProperties{

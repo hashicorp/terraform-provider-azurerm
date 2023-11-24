@@ -239,9 +239,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)
 
-	var configurationsRaw interface{}
-	configurationsRaw = configurations
-
+	var configurationsRaw interface{} = configurations
 	params := clusters.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &clusters.ClusterCreateProperties{
