@@ -65,7 +65,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("westeurope","eastus","canadacentral", false)),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false)),
+        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
@@ -78,6 +78,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
+
+        // Dev Center only available in some regions / has a quota of 5
+        "devcenter" to testConfiguration(parallelism = 4, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", false)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),

@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `container_registry_login_server_url` - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
 
-* `oci_artifact` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of objects describing [OCI artifacts for export](https://learn.microsoft.com/en-gb/azure/healthcare-apis/fhir/de-identified-export) as defined below.
+* `oci_artifact` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `oci_artifact` objects as defined below to describe [OCI artifacts for export](https://learn.microsoft.com/en-gb/azure/healthcare-apis/fhir/de-identified-export).
 
 * `authentication` - (Required) An `authentication` block as defined below.
 
@@ -94,9 +94,9 @@ The following arguments are supported:
 ---
 An `identity` block supports the following:
 
-* `type` - The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`
+* `type` - (Required) The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`.
 
-* `identity_ids` - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
+* `identity_ids` - (Optional) A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
 
 ---
 A `cors` block supports the following:
@@ -112,7 +112,7 @@ An `authentication` block supports the following:
 
 * `authority` - (Required) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
-* `audience` - (Required) The intended audience to receive authentication tokens for the service. The default value is `https://<name>.fhir.azurehealthcareapis.com`.
+* `audience` - (Required) The intended audience to receive authentication tokens for the service.
 * `smart_proxy_enabled` - (Optional) Whether smart proxy is enabled.
 
 ---

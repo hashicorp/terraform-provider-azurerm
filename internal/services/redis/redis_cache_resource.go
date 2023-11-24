@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -720,9 +720,8 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `redis_configuration`: %+v", err)
 		}
 
-		enableSslPort := !*props.EnableNonSslPort
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, enableSslPort))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, enableSslPort))
+		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, true))
+		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
 		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
 		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
 

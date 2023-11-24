@@ -19,15 +19,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/delegationsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/deletedservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/policy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/product"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signinsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signupsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1696,7 +1696,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressId = &publicIPAddressID
 		}
 
-		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(config["zones"].(*schema.Set).List())
 		if len(zones) > 0 {
 			additionalLocation.Zones = &zones
 		}

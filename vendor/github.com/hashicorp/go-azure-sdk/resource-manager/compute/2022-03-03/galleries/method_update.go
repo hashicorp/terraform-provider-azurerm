@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c GalleriesClient) Update(ctx context.Context, id GalleryId, input GalleryUpdate) (result UpdateOperationResponse, err error) {
+func (c GalleriesClient) Update(ctx context.Context, id commonids.SharedImageGalleryId, input GalleryUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -59,7 +60,7 @@ func (c GalleriesClient) Update(ctx context.Context, id GalleryId, input Gallery
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c GalleriesClient) UpdateThenPoll(ctx context.Context, id GalleryId, input GalleryUpdate) error {
+func (c GalleriesClient) UpdateThenPoll(ctx context.Context, id commonids.SharedImageGalleryId, input GalleryUpdate) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)

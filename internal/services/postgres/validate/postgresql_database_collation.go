@@ -276,6 +276,7 @@ var specialCases = map[string]struct{}{
 	"POSIX":                       {},
 	"English_United Kingdom.1252": {},
 	"English_United States.1252":  {},
+	"French_France.1252":          {},
 	"ucs_basic":                   {},
 	"default":                     {},
 }

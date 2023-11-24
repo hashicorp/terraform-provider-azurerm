@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether to enable traffic over the public interface. Defaults to `true`.
 
-* `sku` - (Optional) The name of the SKU used for the Grafana instance. The only possible value is `Standard`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
+* `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible value are `Standard` and `Essential`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
 
@@ -76,7 +76,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity. Possible values are `SystemAssigned`, `UserAssigned`. Changing this forces a new resource to be created.
 
-* `identity_ids` - (Optional) Specifies the list of User Assigned Managed Service Identity IDs which should be assigned to this Dashboard Grafana.
+* `identity_ids` - (Optional) Specifies the list of User Assigned Managed Service Identity IDs which should be assigned to this Dashboard Grafana. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

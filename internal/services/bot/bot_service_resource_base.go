@@ -254,7 +254,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 			}
 			metadata.ResourceData.Set("sku", sku)
 
-			metadata.ResourceData.Set("tags", tags.FlattenAndSet(metadata.ResourceData, resp.Tags))
+			metadata.ResourceData.Set("tags", tags.ToTypedObject(resp.Tags))
 
 			if props := resp.Properties; props != nil {
 				msAppId := ""

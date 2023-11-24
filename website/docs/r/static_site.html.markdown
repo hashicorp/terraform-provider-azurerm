@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `app_settings` - (Optional) A key-value pair of App Settings.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

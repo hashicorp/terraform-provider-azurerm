@@ -362,6 +362,11 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 				return true, nil
 			}
 
+			// Some APIs don't return a response in time
+			if r.StatusCode == http.StatusRequestTimeout {
+				return true, nil
+			}
+
 			// Extract OData from response, intentionally ignoring any errors as it's not crucial to extract
 			// valid OData at this point (valid json can still error here, such as any non-object literal)
 			o, _ := odata.FromResponse(r)

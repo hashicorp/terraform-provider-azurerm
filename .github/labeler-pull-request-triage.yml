@@ -49,9 +49,6 @@ service/automation:
 service/azure-stack-hci:
   - internal/services/azurestackhci/**/*
 
-service/azuremanagedlustrefilesystem:
-  - internal/services/azuremanagedlustrefilesystem/**/*
-
 service/batch:
   - internal/services/batch/**/*
 
@@ -115,6 +112,9 @@ service/databricks:
 service/datadog:
   - internal/services/datadog/**/*
 
+service/dev-center:
+  - internal/services/devcenter/**/*
+
 service/devtestlabs:
   - internal/services/devtestlabs/**/*
 
@@ -157,9 +157,6 @@ service/hdinsight:
 
 service/healthcare:
   - internal/services/healthcare/**/*
-
-service/hpc-cache:
-  - internal/services/hpccache/**/*
 
 service/hsm:
   - internal/services/hsm/**/*

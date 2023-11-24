@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/firewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -437,9 +437,14 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 			}
 
-			if policy := props.FirewallPolicy; policy != nil {
-				d.Set("firewall_policy_id", policy.Id)
+			firewallPolicyId := ""
+			if props.FirewallPolicy != nil && props.FirewallPolicy.Id != nil {
+				firewallPolicyId = *props.FirewallPolicy.Id
+				if policyId, err := firewallpolicies.ParseFirewallPolicyIDInsensitively(firewallPolicyId); err == nil {
+					firewallPolicyId = policyId.ID()
+				}
 			}
+			d.Set("firewall_policy_id", firewallPolicyId)
 
 			if sku := props.Sku; sku != nil {
 				d.Set("sku_name", string(pointer.From(sku.Name)))

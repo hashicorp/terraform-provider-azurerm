@@ -64,6 +64,16 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"inbound_route_map_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"outbound_route_map_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -86,6 +96,11 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+
+						"static_vnet_local_route_override_criteria": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 
 						//lintignore:XS003

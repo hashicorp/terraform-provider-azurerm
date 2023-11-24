@@ -31,9 +31,9 @@ resource "azurerm_virtual_machine" "vm" {
   network_interface_ids = [azurerm_network_interface.vm.id]
 
   storage_image_reference {
-    publisher = "OpenLogic"
-    offer     = "CentOS"
-    sku       = "7.5"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -248,7 +248,7 @@ The following arguments are supported:
 
 * `recovery_group` - (Optional) Three or more `recovery_group` block defined as below.
 
-**Note:** The `recovery_group` block is deprecated in favor of `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group`. It will be removed in v4.0 of the Azure Provider.
+~> **Note:** The `recovery_group` block is deprecated in favor of `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group`. It will be removed in v4.0 of the Azure Provider.
 
 * `shutdown_recovery_group` - (Optional) One `shutdown_recovery_group` block as defined below.
 
@@ -262,7 +262,7 @@ The following arguments are supported:
 
 -> **NOTE:** At least one `boot_recovery_group` block will be required in the next major version of the AzureRM Provider.
 
-* `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block defined as block.
+* `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block as defined below.
 
 ---
 

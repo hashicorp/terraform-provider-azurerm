@@ -50,9 +50,9 @@ resource "azurerm_sentinel_alert_rule_anomaly_built_in" "example" {
 
 The following arguments are supported:
 
-* `name` - (Optional) The Name of the built-in Anomaly Alert Rule. Changing this forces a new Built-in Anomaly Alert Rule to be created.
+* `name` - (Optional) The Name of the built-in Anomaly Alert Rule.
 
-* `display_name` - (Optional) The Display Name of the built-in Anomaly Alert Rule. Changing this forces a new Built-in Anomaly Alert Rule to be created.
+* `display_name` - (Optional) The Display Name of the built-in Anomaly Alert Rule.
 
 ~> **Note:** One of `name` or `display_name` block must be specified.
 

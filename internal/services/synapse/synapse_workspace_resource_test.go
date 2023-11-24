@@ -184,6 +184,38 @@ func TestAccSynapseWorkspace_customerManagedKeyActivation(t *testing.T) {
 	})
 }
 
+func TestAccSynapseWorkspace_azureAdOnlyAuthentication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureAdOnlyAuthentication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.azureAdOnlyAuthentication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+	})
+}
+
 func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
@@ -578,6 +610,36 @@ resource "azurerm_synapse_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) azureAdOnlyAuthentication(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+  azuread_authentication_only          = true
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
