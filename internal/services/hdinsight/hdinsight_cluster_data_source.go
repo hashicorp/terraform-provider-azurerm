@@ -5,7 +5,6 @@ package hdinsight
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -157,11 +156,7 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)
 
 			d.Set("component_versions", flattenHDInsightsDataSourceComponentVersions(props.ClusterDefinition.ComponentVersion))
-			kind := ""
-			if props.ClusterDefinition.Kind != nil {
-				kind = strings.ToLower(*props.ClusterDefinition.Kind) // TODO: investigate OOB why this is ToLowered, missing Constants?
-			}
-			d.Set("kind", kind)
+			d.Set("kind", pointer.From(props.ClusterDefinition.Kind))
 			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration, d)); err != nil {
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
