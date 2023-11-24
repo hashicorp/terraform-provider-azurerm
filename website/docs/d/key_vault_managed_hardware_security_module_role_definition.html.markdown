@@ -32,8 +32,6 @@ The following arguments are supported:
 
 * `vault_base_url` - (Required) Specify the base URL of the Managed HSM resource.
 
-* `scope` - (Optional) Specify the scope to retrieve the role definition. Defaults to `/`.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

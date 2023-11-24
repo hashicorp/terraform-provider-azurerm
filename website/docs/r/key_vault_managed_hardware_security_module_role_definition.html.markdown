@@ -34,10 +34,8 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "example" {
   name              = "7d206142-bf01-11ed-80bc-00155d61ee9e"
-  scope             = "/"
   vault_base_url    = azurerm_key_vault_managed_hardware_security_module.example.hsm_uri
   description       = "desc foo"
-  assignable_scopes = ["/"]
   permission {
     data_actions = [
       "Microsoft.KeyVault/managedHsm/keys/read/action",
@@ -56,15 +54,11 @@ The following arguments are supported:
 
 ---
 
-* `assignable_scopes` - (Optional) Specifies a list of scopes allowed to assign. Possible value is `/`.
-
 * `description` - (Optional) Specifies a text description about this KeyVault Role Definition.
 
 * `permission` - (Optional) One or more `permission` blocks as defined below.
 
 * `role_name` - (Optional) Specify a name for this KeyVault Role Definition.
-
-* `scope` - (Optional) Specify the scope of this role definition. Possible value is `/`. Defaults to `/`. Changing this forces a new KeyVault to be created.
 
 ---
 

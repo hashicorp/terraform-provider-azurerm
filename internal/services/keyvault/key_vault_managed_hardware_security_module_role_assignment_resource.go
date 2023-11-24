@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
@@ -20,7 +21,7 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-type ManagedHSMRoleAssignmentModel struct {
+type KeyVaultManagedHSMRoleAssignmentModel struct {
 	VaultBaseUrl     string `tfschema:"vault_base_url"`
 	Name             string `tfschema:"name"`
 	Scope            string `tfschema:"scope"`
@@ -29,11 +30,11 @@ type ManagedHSMRoleAssignmentModel struct {
 	ResourceId       string `tfschema:"resource_id"`
 }
 
-type KeyVaultRoleAssignmentResource struct{}
+type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
-var _ sdk.Resource = (*KeyVaultRoleAssignmentResource)(nil)
+var _ sdk.Resource = KeyVaultManagedHSMRoleAssignmentResource{}
 
-func (m KeyVaultRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
+func (m KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"vault_base_url": {
 			Type:         pluginsdk.TypeString,
@@ -72,7 +73,7 @@ func (m KeyVaultRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (m KeyVaultRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {
+func (m KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_id": {
 			Type:     pluginsdk.TypeString,
@@ -81,21 +82,21 @@ func (m KeyVaultRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (m KeyVaultRoleAssignmentResource) ModelObject() interface{} {
-	return &ManagedHSMRoleAssignmentModel{}
+func (m KeyVaultManagedHSMRoleAssignmentResource) ModelObject() interface{} {
+	return &KeyVaultManagedHSMRoleAssignmentModel{}
 }
 
-func (m KeyVaultRoleAssignmentResource) ResourceType() string {
+func (m KeyVaultManagedHSMRoleAssignmentResource) ResourceType() string {
 	return "azurerm_key_vault_managed_hardware_security_module_role_assignment"
 }
 
-func (m KeyVaultRoleAssignmentResource) Create() sdk.ResourceFunc {
+func (m KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
 			client := meta.Client.KeyVault.MHSMRoleAssignmentsClient
 
-			var model ManagedHSMRoleAssignmentModel
+			var model KeyVaultManagedHSMRoleAssignmentModel
 			if err := meta.Decode(&model); err != nil {
 				return err
 			}
@@ -118,11 +119,11 @@ func (m KeyVaultRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			var param keyvault.RoleAssignmentCreateParameters
 			param.Properties = &keyvault.RoleAssignmentProperties{
-				PrincipalID:      pointer.FromString(model.PrincipalId),
-				RoleDefinitionID: pointer.FromString(model.RoleDefinitionId),
+				PrincipalID: pointer.FromString(model.PrincipalId),
+				// the role definition id may has '/' prefix, but the api doesn't accept it
+				RoleDefinitionID: pointer.FromString(strings.TrimPrefix(model.RoleDefinitionId, "/")),
 			}
-			_, err = client.Create(ctx, model.VaultBaseUrl, model.Scope, model.Name, param)
-			if err != nil {
+			if _, err = client.Create(ctx, model.VaultBaseUrl, model.Scope, model.Name, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id.ID(), err)
 			}
 
@@ -132,7 +133,7 @@ func (m KeyVaultRoleAssignmentResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (m KeyVaultRoleAssignmentResource) Read() sdk.ResourceFunc {
+func (m KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
@@ -151,7 +152,7 @@ func (m KeyVaultRoleAssignmentResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var model ManagedHSMRoleAssignmentModel
+			var model KeyVaultManagedHSMRoleAssignmentModel
 			if err := meta.Decode(&model); err != nil {
 				return err
 			}
@@ -160,17 +161,20 @@ func (m KeyVaultRoleAssignmentResource) Read() sdk.ResourceFunc {
 			model.Name = pointer.From(result.Name)
 			model.VaultBaseUrl = id.VaultBaseUrl
 			model.Scope = id.Scope
-
-			model.RoleDefinitionId = pointer.ToString(prop.RoleDefinitionID)
 			model.PrincipalId = pointer.ToString(prop.PrincipalID)
 			model.ResourceId = pointer.ToString(result.ID)
+			if roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(pointer.ToString(prop.RoleDefinitionID)); err != nil {
+				return fmt.Errorf("parsing role definition id: %v", err)
+			} else {
+				model.RoleDefinitionId = roleID.ID()
+			}
 
 			return meta.Encode(&model)
 		},
 	}
 }
 
-func (m KeyVaultRoleAssignmentResource) Delete() sdk.ResourceFunc {
+func (m KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
@@ -191,6 +195,6 @@ func (m KeyVaultRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (m KeyVaultRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (m KeyVaultManagedHSMRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.MHSMNestedItemId
 }

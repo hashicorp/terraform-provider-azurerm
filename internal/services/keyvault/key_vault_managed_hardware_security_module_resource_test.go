@@ -307,6 +307,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
 }
 `, template, data.RandomInteger, certCount, activateConfig)
 }
+
 func (r KeyVaultManagedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`

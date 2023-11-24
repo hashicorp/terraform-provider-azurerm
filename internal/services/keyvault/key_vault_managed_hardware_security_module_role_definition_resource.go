@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -226,13 +225,17 @@ func (k KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			}
 			model.Name = pointer.From(result.Name)
 			model.VaultBaseUrl = id.VaultBaseUrl
-			model.ResourceManagerId = pointer.From(result.ID)
+
+			roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(pointer.From(result.ID))
+			if err != nil {
+				return fmt.Errorf("paring role definition id %s: %v", pointer.From(result.ID), err)
+			}
+			model.ResourceManagerId = roleID.ID()
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
 				model.Description = pointer.ToString(prop.Description)
 				model.RoleType = string(prop.RoleType)
 				model.RoleName = pointer.From(prop.RoleName)
-
 				model.Permission = flattenKeyVaultMHSMRolePermission(prop.Permissions)
 			}
 

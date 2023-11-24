@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -148,7 +149,12 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			model.ResourceManagerId = pointer.From(result.ID)
+			roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(pointer.From(result.ID))
+			if err != nil {
+				return fmt.Errorf("paring role definition id %s: %v", pointer.From(result.ID), err)
+			}
+			model.ResourceManagerId = roleID.ID()
+
 			if prop := result.RoleDefinitionProperties; prop != nil {
 				model.Description = pointer.ToString(prop.Description)
 				model.RoleType = string(prop.RoleType)
