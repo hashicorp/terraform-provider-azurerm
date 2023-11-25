@@ -56,6 +56,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
   instances           = 1
   admin_password      = "P@55w0rd1234!"
   admin_username      = "adminuser"
+  computer_name_prefix = "vm-" 
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
