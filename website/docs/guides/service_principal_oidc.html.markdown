@@ -145,7 +145,7 @@ For more information about OIDC in GitHub Actions, see [official documentation](
 
 Use the `TerraformTaskV4@4` task to easily connect Terraform to Azure using your workload identity. 
 
-Alternativly you can expose the OIDC token to `idToken` variable by setting `addSpnToEnvironment: true`:
+Alternatively you can expose the OIDC token to `idToken` variable by setting `addSpnToEnvironment: true`:
 ```yaml
 - task: AzureCLI@2
   name: set_variables
