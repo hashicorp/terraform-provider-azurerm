@@ -94,7 +94,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 60 minutes) Used when creating the Redis.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis.
-* `update` - (Defaults to 60 minutes) Used when updating the Redis.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Redis.
 
 ## Import

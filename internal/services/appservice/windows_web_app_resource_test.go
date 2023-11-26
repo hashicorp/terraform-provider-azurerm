@@ -1020,6 +1020,13 @@ func TestAccWindowsWebApp_updateAppStack(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.healthCheckUpdate(data, "11"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.dotNet(data, "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -2569,6 +2576,34 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, javaVersion)
 }
 
+//nolint:unparam
+func (r WindowsWebAppResource) healthCheckUpdate(data acceptance.TestData, javaVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 5
+    application_stack {
+      current_stack                = "java"
+      java_version                 = "%s"
+      java_embedded_server_enabled = "true"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, javaVersion)
+}
+
 func (r WindowsWebAppResource) javaTomcat(data acceptance.TestData, javaVersion string, tomcatVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2610,18 +2645,17 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version         = "%s"
-      php_version            = "%s"
-      python                 = "%t"
-      java_version           = "%s"
-      java_container         = "%s"
-      java_container_version = "%s"
+      dotnet_version = "%s"
+      php_version    = "%s"
+      python         = "%t"
+      java_version   = "%s"
+      tomcat_version = "%s"
 
       current_stack = "python"
     }
   }
 }
-`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", true, "1.8", "TOMCAT", "9.0")
+`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", true, "1.8", "9.0")
 }
 
 func (r WindowsWebAppResource) withLogsHttpBlob(data acceptance.TestData) string {

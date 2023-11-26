@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -28,7 +28,7 @@ type Client struct {
 	ResourceProvidersClient             *providers.ProvidersClient
 	ResourcesClient                     *resources.Client
 	TagsClient                          *resources.TagsClient
-	TemplateSpecsVersionsClient         *templatespecs.VersionsClient
+	TemplateSpecsVersionsClient         *templatespecversions.TemplateSpecVersionsClient
 
 	options *common.ClientOptions
 }
@@ -79,8 +79,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	resourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&resourcesClient.Client, o.ResourceManagerAuthorizer)
 
-	templatespecsVersionsClient := templatespecs.NewVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&templatespecsVersionsClient.Client, o.ResourceManagerAuthorizer)
+	templateSpecsVersionsClient, err := templatespecversions.NewTemplateSpecVersionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TemplateSpecVersions client: %+v", err)
+	}
+	o.Configure(templateSpecsVersionsClient.Client, o.Authorizers.ResourceManager)
 
 	tagsClient := resources.NewTagsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&tagsClient.Client, o.ResourceManagerAuthorizer)
@@ -96,7 +99,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ResourceProvidersClient:             resourceProvidersClient,
 		ResourcesClient:                     &resourcesClient,
 		TagsClient:                          &tagsClient,
-		TemplateSpecsVersionsClient:         &templatespecsVersionsClient,
+		TemplateSpecsVersionsClient:         templateSpecsVersionsClient,
 
 		options: o,
 	}, nil

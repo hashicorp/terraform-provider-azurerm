@@ -48,9 +48,6 @@ service/automation:
 service/azure-stack-hci:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_cluster((.|\n)*)###'
 
-service/azuremanagedlustrefilesystem:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_lustre_file_system((.|\n)*)###'
-
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
 
@@ -158,9 +155,6 @@ service/hdinsight:
 
 service/healthcare:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_healthcare_((.|\n)*)###'
-
-service/hpc-cache:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_hpc_cache((.|\n)*)###'
 
 service/hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
