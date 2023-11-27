@@ -183,8 +183,25 @@ func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	d.Set("firewall_ids", getIds(resp.Firewalls))
-	d.Set("firewall_policy_ids", getIds(resp.FirewallPolicies))
+	var firewallIDs []string
+	for _, idStr := range getIds(resp.Firewalls) {
+		firewallID, err := azurefirewalls.ParseAzureFirewallIDInsensitively(idStr)
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", idStr, err)
+		}
+		firewallIDs = append(firewallIDs, firewallID.ID())
+	}
+	d.Set("firewall_ids", firewallIDs)
+
+	var firewallPolicyIDs []string
+	for _, idStr := range getIds(resp.FirewallPolicies) {
+		policyID, err := firewallpolicies.ParseFirewallPolicyIDInsensitively(idStr)
+		if err != nil {
+			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", idStr, err)
+		}
+		firewallPolicyIDs = append(firewallPolicyIDs, policyID.ID())
+	}
+	d.Set("firewall_policy_ids", firewallPolicyIDs)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
