@@ -19,15 +19,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ArmRoleDefinitionResource struct{}
 
-var _ sdk.ResourceWithUpdate = ArmRoleDefinitionResource{}
-var _ sdk.ResourceWithStateMigration = ArmRoleDefinitionResource{}
+var (
+	_ sdk.ResourceWithUpdate         = ArmRoleDefinitionResource{}
+	_ sdk.ResourceWithStateMigration = ArmRoleDefinitionResource{}
+)
 
 type RoleDefinitionModel struct {
 	RoleDefinitionId         string            `tfschema:"role_definition_id"`
@@ -62,12 +62,12 @@ func (r ArmRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-			"scope": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringStartsWithOneOf("/subscriptions/", "/providers/Microsoft.Management/managementGroups/"),
-			},
+		"scope": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringStartsWithOneOf("/subscriptions/", "/providers/Microsoft.Management/managementGroups/"),
+		},
 
 		"description": {
 			Type:         pluginsdk.TypeString,
@@ -157,7 +157,6 @@ func (r ArmRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 		}
 
 		return
-
 	}
 }
 
@@ -363,6 +362,7 @@ func (r ArmRoleDefinitionResource) Update() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r ArmRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
