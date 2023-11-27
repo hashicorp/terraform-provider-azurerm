@@ -152,6 +152,19 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"gpu_instance": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.GPUInstanceProfileMIGOneg),
+				string(managedclusters.GPUInstanceProfileMIGTwog),
+				string(managedclusters.GPUInstanceProfileMIGThreeg),
+				string(managedclusters.GPUInstanceProfileMIGFourg),
+				string(managedclusters.GPUInstanceProfileMIGSeveng),
+			}, false),
+		},
+
 		"kubelet_disk_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -466,6 +479,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int64(int64(count)),
+	}
+
+	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
+		profile.GpuInstanceProfile = utils.ToPtr(agentpools.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
@@ -843,6 +860,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if v := props.KubeletDiskType; v != nil {
 			d.Set("kubelet_disk_type", string(*v))
+		}
+
+		if v := props.GpuInstanceProfile; v != nil {
+			d.Set("gpu_instance", string(*v))
 		}
 
 		if props.CreationData != nil {

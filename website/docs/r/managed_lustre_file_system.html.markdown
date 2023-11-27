@@ -85,7 +85,7 @@ A `maintenance_window` block supports the following:
 
 * `day_of_week` - (Required) The day of the week on which the maintenance window will occur. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
-* `time_of_day_utc` - (Required) The time of day (in UTC) to start the maintenance window.
+* `time_of_day_in_utc` - (Required) The time of day (in UTC) to start the maintenance window.
 
 ---
 
@@ -120,6 +120,8 @@ An `encryption_key` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Azure Managed Lustre File System.
+
+* `mgs_address` - IP Address of Managed Lustre File System Services.
 
 ## Timeouts
 

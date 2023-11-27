@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ---
 
-* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation. Default is `false`. Changing this forces a new resource to be created.
+* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation. Changing this forces a new resource to be created.
 
 * `cross_site_access_policy` - (Optional) A `cross_site_access_policy` block as defined below.
 
@@ -123,13 +123,13 @@ A `cross_site_access_policy` block supports the following:
 
 A `encoding` block supports the following:
 
-* `key_frame_interval` - (Optional) Use an `ISO 8601` time value between 0.5 to 20 seconds to specify the output fragment length for the video and audio tracks of an encoding live event. For example, use `PT2S` to indicate 2 seconds. For the video track it also defines the key frame interval, or the length of a GoP (group of pictures). If this value is not set for an encoding live event, the fragment duration defaults to 2 seconds. The value cannot be set for pass-through live events.
+* `key_frame_interval` - (Optional) Use an `ISO 8601` time value between 0.5 to 20 seconds to specify the output fragment length for the video and audio tracks of an encoding live event. For example, use `PT2S` to indicate 2 seconds. For the video track it also defines the key frame interval, or the length of a GoP (group of pictures). The value cannot be set for pass-through live events. Defaults to `PT2S`.
 
-* `preset_name` - (Optional) The optional encoding preset name, used when `type` is not `None`. If the `type` is set to `Standard`, then the default preset name is `Default720p`. Else if the `type` is set to `Premium1080p`, the default preset is `Default1080p`. Changing this forces a new resource to be created.
+* `preset_name` - (Optional) The optional encoding preset name, used when `type` is not `None`. If the `type` is set to `Standard`, then the default preset name is `Default720p`. Else if the `type` is set to `Premium1080p`, Changing this forces a new resource to be created.
 
 * `stretch_mode` - (Optional) Specifies how the input video will be resized to fit the desired output resolution(s). Allowed values are `None`, `AutoFit` or `AutoSize`. Default is `None`.
 
-* `type` - (Optional) Live event type. Allowed values are `None`, `Premium1080p` or `Standard`. When set to `None`, the service simply passes through the incoming video and audio layer(s) to the output. When `type` is set to `Standard` or `Premium1080p`, a live encoder transcodes the incoming stream into multiple bitrates or layers. Defaults to `None`. Changing this forces a new resource to be created.
+* `type` - (Optional) Live event type. Possible values are `None`, `Premium1080p`, `PassthroughBasic`, `PassthroughStandard` and `Standard`. When set to `None`, the service simply passes through the incoming video and audio layer(s) to the output. When `type` is set to `Standard` or `Premium1080p`, a live encoder transcodes the incoming stream into multiple bitrates or layers. Defaults to `None`. Changing this forces a new resource to be created.
 
 -> [More information can be found in the Microsoft Documentation](https://go.microsoft.com/fwlink/?linkid=2095101).
 

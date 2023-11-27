@@ -120,7 +120,7 @@ The following arguments are supported:
 
 ---
 
-* `antimalware` supports the following:
+The `antimalware` block supports the following:
 
 * `exclusions` - (Optional) A `exclusions` block as defined below.
 
@@ -136,7 +136,7 @@ The following arguments are supported:
 
 ---
 
-* `exclusions` supports the following:
+The `exclusions` block supports the following:
 
 * `extensions` - (Optional) The extensions to exclude from the antimalware scan, separated by `;`. For example `.ext1;.ext2`.
 
@@ -146,13 +146,13 @@ The following arguments are supported:
 
 ---
 
-* `azure_security_baseline` supports the following:
+The `azure_security_baseline` block supports the following:
 
 * `assignment_type` - (Optional) The assignment type of the azure security baseline. Possible values are `ApplyAndAutoCorrect`, `ApplyAndMonitor`, `Audit` and `DeployAndAutoCorrect`. Defaults to `ApplyAndAutoCorrect`.
 
 ---
 
-* `backup` supports the following:
+The `backup` block supports the following:
 
 * `policy_name` - (Optional) The name of the backup policy.
 
@@ -166,7 +166,7 @@ The following arguments are supported:
 
 ---
 
-* `schedule_policy` supports the following:
+The `schedule_policy` block supports the following:
 
 * `schedule_run_frequency` - (Optional) The schedule run frequency of the backup policy. Possible values are `Daily` and `Weekly`. Defaults to `Daily`.
 
@@ -174,13 +174,13 @@ The following arguments are supported:
 
 * `schedule_run_days` - (Optional) The schedule run days of the backup policy. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
-* `schedule_policy_type` - (Optional) The schedule policy type of the backup policy. Possible value is `SimpleSchedulePolicy`.
+* `schedule_policy_type` - (Optional) The schedule policy type of the backup policy. Possible value is `SimpleSchedulePolicy`. Defaults to `SimpleSchedulePolicy`.
 
 ---
 
-* `retention_policy` supports the following:
+The `retention_policy` block supports the following:
 
-* `retention_policy_type` - (Optional) The retention policy type of the backup policy. Possible value is `LongTermRetentionPolicy`.
+* `retention_policy_type` - (Optional) The retention policy type of the backup policy. Possible value is `LongTermRetentionPolicy`. Defaults to `LongTermRetentionPolicy`.
 
 * `daily_schedule` - (Optional) A `daily_schedule` block as defined below.
 
@@ -188,7 +188,7 @@ The following arguments are supported:
 
 ---
 
-* `daily_schedule` supports the following:
+The `daily_schedule` block supports the following:
 
 * `retention_times` - (Optional) The retention times of the backup policy.
 
@@ -196,7 +196,7 @@ The following arguments are supported:
 
 ---
 
-* `weekly_schedule` supports the following:
+The `weekly_schedule` block supports the following:
 
 * `retention_times` - (Optional) The retention times of the backup policy.
 
@@ -204,11 +204,11 @@ The following arguments are supported:
 
 ---
 
-* `retention_duration` supports the following:
+The `retention_duration` block supports the following:
 
 * `count` - (Optional) The count of the retention duration of the backup policy. Valid value inside `daily_schedule` is `7` to `9999` and inside `weekly_schedule` is `1` to `5163`.
 
-* `duration_type` - (Optional) The duration type of the retention duration of the backup policy. Valid value inside `daily_schedule` is `Days` and inside `weekly_schedule` is `Weeks`.
+* `duration_type` - (Optional) The duration type of the retention duration of the backup policy. Valid value inside `daily_schedule` is `Days` and inside `weekly_schedule` is `Weeks`. Defaults to `Days`.
 
 ---
 ## Attributes Reference
@@ -216,8 +216,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automanage Configuration.
-
-* `type` - The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts".
 
 ## Timeouts
 

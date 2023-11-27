@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `datadog_organization` - (Required) A `datadog_organization` block as defined below.
 
-* `monitoring_enabled` - (Optional) Is monitoring enabled? Defaults to`true`.
+* `monitoring_enabled` - (Optional) Is monitoring enabled? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Datadog Monitor.
 

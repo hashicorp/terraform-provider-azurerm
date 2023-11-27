@@ -24,7 +24,6 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerAdministratorCreate,
 		Read:   resourcePostgresqlFlexibleServerAdministratorRead,
-		Update: nil,
 		Delete: resourcePostgresqlFlexibleServerAdministratorDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := administrators.ParseAdministratorID(id)
@@ -34,7 +33,6 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 

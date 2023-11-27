@@ -1696,7 +1696,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressId = &publicIPAddressID
 		}
 
-		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(config["zones"].(*schema.Set).List())
 		if len(zones) > 0 {
 			additionalLocation.Zones = &zones
 		}

@@ -918,6 +918,22 @@ func TestAccApiManagement_additionalLocationGateway(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_additionalLocationGateway_DivergentZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.additionalLocationGateway_DivergentZones(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zones.#").HasValue("2"),
+				check.That(data.ResourceName).Key("additional_location.0.zones.#").HasValue("0"),
+			),
+		},
+	})
+}
+
 func (ApiManagementResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -952,7 +968,6 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-
 resource "azurerm_resource_group" "test2" {
   name     = "acctestRG2-%[1]d"
   location = "%[3]s"
@@ -971,6 +986,223 @@ resource "azurerm_api_management" "test" {
     location         = azurerm_resource_group.test2.location
     gateway_disabled = true
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+}
+
+func (ApiManagementResource) additionalLocationGateway_DivergentZones(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+  tags = {
+    owner = "Dom Routley"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNET-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["192.168.0.0/24"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-gateway"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = azurerm_virtual_network.test.address_space
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-NSG-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    name                       = "Client_communication_to_API_Management"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "Secure_Client_communication_to_API_Management"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "Management_endpoint_for_Azure_portal_and_Powershell"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3443"
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "Authenticate_To_Azure_Active_Directory"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestIP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-ip-%[1]d"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[1]d"
+  location = "%[3]s"
+  tags = {
+    owner = "Dom Routley"
+  }
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestVNET2-%[1]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  location            = azurerm_resource_group.test2.location
+  address_space       = ["192.168.1.0/24"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctest2-gateway"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = azurerm_virtual_network.test2.address_space
+}
+
+resource "azurerm_network_security_group" "test2" {
+  name                = "acctest-NSG2-%[1]d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+
+  security_rule {
+    name                       = "Client_communication_to_API_Management"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "Secure_Client_communication_to_API_Management"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "Management_endpoint_for_Azure_portal_and_Powershell"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3443"
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "Authenticate_To_Azure_Active_Directory"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = "VirtualNetwork"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "test2" {
+  subnet_id                 = azurerm_subnet.test2.id
+  network_security_group_id = azurerm_network_security_group.test2.id
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "acctest2IP-%[1]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  location            = azurerm_resource_group.test2.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
+  domain_name_label   = "acctest2-ip-%[1]d"
+}
+
+resource "azurerm_api_management" "test" {
+  name                 = "acctestAM-%[1]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  publisher_name       = "pub1"
+  publisher_email      = "pub1@email.com"
+  sku_name             = "Premium_2"
+  public_ip_address_id = azurerm_public_ip.test.id
+  virtual_network_type = "Internal"
+  zones                = ["1", "2"]
+
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  additional_location {
+    location             = azurerm_resource_group.test2.location
+    public_ip_address_id = azurerm_public_ip.test2.id
+    virtual_network_configuration {
+      subnet_id = azurerm_subnet.test2.id
+    }
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_network_security_group_association.test2,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

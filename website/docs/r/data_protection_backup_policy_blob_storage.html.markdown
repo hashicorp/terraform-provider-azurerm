@@ -55,7 +55,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Policy Blob Storage.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Policy Blob Storage.
-* `update` - (Defaults to 30 minutes) Used when updating the Backup Policy Blob Storage.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Backup Policy Blob Storage.
 
 ## Import
