@@ -101,7 +101,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AgentPoolsClient:                            &agentPoolsClient,
 		ContainerInstanceClient:                     &containerInstanceClient,
-		containerRegistryClient_v2023_07_01:         containerRegistryClient_v2023_07_01,
+		ContainerRegistryClient_v2023_07_01:         containerRegistryClient_v2023_07_01,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		KubernetesClustersClient:                    &kubernetesClustersClient,
