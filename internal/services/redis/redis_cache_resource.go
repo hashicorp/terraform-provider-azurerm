@@ -470,7 +470,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Scaling", "Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating", "ConfiguringAAD"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, id),
 		MinTimeout: 15 * time.Second,
@@ -574,7 +574,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for %s to become available", *id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion"},
+		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion", "ConfiguringAAD"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
@@ -831,7 +831,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	if valExists {
 		entraEnabled := v.(bool)
 
-		// rdb_backup_enabled is available when SKU is Premium
+		// active_directory_authentication_enabled is available when SKU is Premium
 		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
 
 			output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
