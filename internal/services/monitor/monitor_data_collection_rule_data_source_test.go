@@ -32,7 +32,7 @@ func TestAccMonitorDataCollectionRuleDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("data_flow.2.destinations.0").HasValue("test-destination-log"),
 				check.That(data.ResourceName).Key("data_flow.3.output_stream").HasValue("Microsoft-Syslog"),
 				check.That(data.ResourceName).Key("data_flow.3.transform_kql").Exists(),
-				check.That(data.ResourceName).Key("data_sources.0.syslog.0.facility_names.#").HasValue("5"),
+				check.That(data.ResourceName).Key("data_sources.0.syslog.0.facility_names.#").HasValue("10"),
 				check.That(data.ResourceName).Key("data_sources.0.syslog.0.streams.#").HasValue("2"),
 				check.That(data.ResourceName).Key("data_sources.0.iis_log.0.log_directories.#").HasValue("1"),
 				check.That(data.ResourceName).Key("data_sources.0.log_file.0.format").HasValue("text"),
