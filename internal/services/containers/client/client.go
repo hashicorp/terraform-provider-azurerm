@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	containerregistry_v2019_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview"
 	containerregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
@@ -23,6 +24,7 @@ import (
 
 type Client struct {
 	AgentPoolsClient                            *agentpools.AgentPoolsClient
+	CacheRulesClient                            *cacherules.CacheRulesClient
 	ContainerInstanceClient                     *containerinstance.ContainerInstanceClient
 	ContainerRegistryClient_v2021_08_01_preview *containerregistry_v2021_08_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
@@ -37,6 +39,9 @@ type Client struct {
 }
 
 func NewContainersClient(o *common.ClientOptions) (*Client, error) {
+	cacheRulesClient := cacherules.NewCacheRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&cacheRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	containerInstanceClient := containerinstance.NewContainerInstanceClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&containerInstanceClient.Client, o.ResourceManagerAuthorizer)
 
@@ -84,6 +89,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		AgentPoolsClient:                            &agentPoolsClient,
+		CacheRulesClient:                            &cacheRulesClient,
 		ContainerInstanceClient:                     &containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
