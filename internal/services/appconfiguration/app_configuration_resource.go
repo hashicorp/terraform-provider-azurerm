@@ -902,7 +902,7 @@ An existing soft-deleted App Configuration exists with the Name %q in the locati
 the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
 You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
 can be found here:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 `, name, location)
 }
 
