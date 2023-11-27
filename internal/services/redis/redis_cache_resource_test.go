@@ -141,11 +141,6 @@ func TestAccRedisCache_AadEnabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 		data.ImportStep("redis_configuration.0.rdb_storage_connection_string"),
 	})
