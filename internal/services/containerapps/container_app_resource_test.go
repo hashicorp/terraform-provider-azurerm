@@ -1725,9 +1725,9 @@ resource "azurerm_container_app" "test" {
     target_port = 5000
     ip_security_restriction = [
       {
-        name = "test"
-        description = "test"
-        action = "Allow"
+        name             = "test"
+        description      = "test"
+        action           = "Allow"
         ip_address_range = "0.0.0.0/0"
       }
     ]
@@ -1759,15 +1759,15 @@ resource "azurerm_container_app" "test" {
     target_port = 5000
     ip_security_restriction = [
       {
-        name = "test"
-        description = "test"
-        action = "Allow"
+        name             = "test"
+        description      = "test"
+        action           = "Allow"
         ip_address_range = "0.0.0.0/0"
       },
       {
-        name = "test2"
-        description = "test2"
-        action = "Deny"
+        name             = "test2"
+        description      = "test2"
+        action           = "Deny"
         ip_address_range = "10.0.0.0/8"
       }
     ]
