@@ -39,8 +39,11 @@ type Client struct {
 }
 
 func NewContainersClient(o *common.ClientOptions) (*Client, error) {
-	cacheRulesClient := cacherules.NewCacheRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&cacheRulesClient.Client, o.ResourceManagerAuthorizer)
+	cacheRulesClient, err := cacherules.NewCacheRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Cache Rules Client: %+v", err)
+	}
+	o.Configure(cacheRulesClient.Client, o.Authorizers.ResourceManager)
 
 	containerInstanceClient := containerinstance.NewContainerInstanceClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&containerInstanceClient.Client, o.ResourceManagerAuthorizer)
@@ -89,7 +92,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		AgentPoolsClient:                            &agentPoolsClient,
-		CacheRulesClient:                            &cacheRulesClient,
+		CacheRulesClient:                            cacheRulesClient,
 		ContainerInstanceClient:                     &containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
