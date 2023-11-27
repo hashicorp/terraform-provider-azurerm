@@ -10,6 +10,8 @@ description: |-
 
 Links an Automation Runbook and Schedule.
 
+~> **NOTE** AzureRM provides this stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and an inlined `job_schdule` property in [azurerm_runbook](automation_runbook.html.markdown) to manage the job schedules. At this time you should choose one of them to manage the job schedule resources.
+
 ## Example Usage
 
 This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/automation-account)
@@ -52,7 +54,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Automation Job Schedule.
 
-* `job_schedule_id` - (Optional) The UUID identifying the Automation Job Schedule.
+* `job_schedule_id` - The UUID identifying the Automation Job Schedule.
+
+* `resource_manager_id` - The Resource Manager ID of the Automation Job Schedule.
 
 ## Timeouts
 
@@ -67,5 +71,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Automation Job Schedules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_job_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/jobSchedules/10000000-1001-1001-1001-000000000001
+terraform import azurerm_automation_job_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/runBook/book1/schedule/schedule1
 ```
