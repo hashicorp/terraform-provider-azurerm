@@ -4,7 +4,10 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # we need to use the same Ubuntu version as our final Docker (base) image
+    # is using in order to match glibc versions. We need glibc because we
+    # compile a dynamically-linked binary with boringcrypto.
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
       - name: Setup Go
