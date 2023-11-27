@@ -189,8 +189,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 			prop.Permissions = expandKeyVaultMHSMRolePermissions(model.Permission)
 			prop.AssignableScopes = pointer.To([]keyvault.RoleScope{"/"})
 
-			_, err = client.CreateOrUpdate(ctx, model.VaultBaseUrl, roleDefinitionScope, model.Name, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, model.VaultBaseUrl, roleDefinitionScope, model.Name, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id.ID(), err)
 			}
 

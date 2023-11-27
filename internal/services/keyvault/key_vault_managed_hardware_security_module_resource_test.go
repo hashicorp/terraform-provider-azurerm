@@ -102,7 +102,7 @@ func testAccKeyVaultManagedHardwareSecurityModule_roleDefinition(t *testing.T) {
 
 func testAccKeyVaultManagedHardwareSecurityModule_roleAssignment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultRoleAssignmentResource{}
+	r := KeyVaultManagedHSMRoleAssignmentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{

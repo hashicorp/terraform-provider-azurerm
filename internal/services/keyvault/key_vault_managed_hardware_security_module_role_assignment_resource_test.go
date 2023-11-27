@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultRoleAssignmentResource struct{}
+type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
-func (k KeyVaultRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (k KeyVaultManagedHSMRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.MHSMNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (k KeyVaultRoleAssignmentResource) Exists(ctx context.Context, client *clie
 	return utils.Bool(resp.Properties != nil), nil
 }
 
-func (k KeyVaultRoleAssignmentResource) withRoleAssignment(data acceptance.TestData) string {
+func (k KeyVaultManagedHSMRoleAssignmentResource) withRoleAssignment(data acceptance.TestData) string {
 	roleDef := KeyVaultMHSMRoleDefinitionResource{}.withRoleDefinition(data)
 
 	return fmt.Sprintf(`
@@ -54,7 +54,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 `, roleDef)
 }
 
-func (k KeyVaultRoleAssignmentResource) withBuiltInRoleAssignment(data acceptance.TestData) string {
+func (k KeyVaultManagedHSMRoleAssignmentResource) withBuiltInRoleAssignment(data acceptance.TestData) string {
 	roleDef := k.withRoleAssignment(data)
 
 	return fmt.Sprintf(`
