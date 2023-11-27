@@ -157,7 +157,7 @@ func TestAccCosmosDBAccount_customerManagedKeyWithIdentity(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_mongoDBCapabilities(t *testing.T) {
+func TestAccCosmosDBAccount_updateMongoDBVersionCapabilities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
