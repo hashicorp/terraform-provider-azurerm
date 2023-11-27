@@ -189,7 +189,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	sId := commonids.NewSubscriptionID(subscriptionId)
 	availabilityRequest := operation.RegistryNameCheckRequest{
 		Name: id.RegistryName,
-		Type: "Microsoft.ContainerRegistry/registries",
+		Type: "Microsoft.ContainerRegistry/registries/cacheRules",
 	}
 	resp, err := operationClient.RegistriesCheckNameAvailability(ctx, sId, availabilityRequest)
 	if err != nil {
