@@ -7,6 +7,10 @@ ENHANCEMENTS:
 * `azurerm_dashboard_grafana` - support for `grafana_major_version` [GH-24014]
 * `azurerm_postgresql_flexible_server` - udpating to API Version `2023-06-01-preview` [GH-24016]
 
+BUG FIXES:
+
+* `azurerm_nginx_deployment` - add default value of `20` for `capacity` [GH-24033]
+
 ## 3.82.0 (November 23, 2023)
 
 FEATURES:
