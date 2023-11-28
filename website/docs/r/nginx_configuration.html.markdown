@@ -10,6 +10,8 @@ description: |-
 
 Manages the configuration for a Nginx Deployment.
 
+~> **Note**: The default Nginx Configuration cannot be created anymore due to an API update that automatically generates it during the Nginx Deployment. To use Terraform's proversioning, the generated configuration must first be imported. For more information, refer to [NGINXaaS for Azure Known Issues](https://docs.nginx.com/nginxaas/azure/known-issues/#i-classfa-solid-fa-bug-stylecolore4002bi-terraform-shows-an-error-while-trying-to-manage-configuration-of-a-fresh-deployment-id-891).
+
 ## Example Usage
 
 ```hcl
