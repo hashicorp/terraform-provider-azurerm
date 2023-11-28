@@ -233,6 +233,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	// NOTE: Expose PreferredEnclaveType here...
 	input := databases.Database{
 		Location: location,
 		Properties: &databases.DatabaseProperties{
