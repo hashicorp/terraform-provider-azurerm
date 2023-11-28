@@ -1760,20 +1760,24 @@ resource "azurerm_container_app" "test" {
 
   ingress {
     target_port = 5000
-    ip_security_restriction = [
-      {
-        name             = "test"
-        description      = "test"
-        action           = "Allow"
-        ip_address_range = "0.0.0.0/0"
-      },
-      {
-        name             = "test2"
-        description      = "test2"
-        action           = "Deny"
-        ip_address_range = "10.0.0.0/8"
-      }
-    ]
+    ip_security_restriction {
+      name             = "test"
+      description      = "test"
+      action           = "Allow"
+      ip_address_range = "10.1.0.0/16"
+    }
+
+    ip_security_restriction {
+      name             = "test2"
+      description      = "test2"
+      action           = "Allow"
+      ip_address_range = "10.2.0.0/16"
+    }
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
   }
 }
 `, r.template(data), data.RandomInteger)
