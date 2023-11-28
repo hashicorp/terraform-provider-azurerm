@@ -452,8 +452,8 @@ data "azurerm_storage_account_sas" "test" {
   connection_string = azurerm_storage_account.test.primary_connection_string
   https_only        = true
   signed_version    = "2019-10-10"
-  start  = "2023-04-01T00:00:00Z"
-  expiry = "2123-04-01T00:00:00Z"
+  start             = "2023-04-01T00:00:00Z"
+  expiry            = "2123-04-01T00:00:00Z"
 
   resource_types {
     service   = false
@@ -483,13 +483,13 @@ data "azurerm_storage_account_sas" "test" {
 }
 
 resource "azurerm_virtual_machine_run_command" "test" {
-  location                = azurerm_resource_group.test.location
-  name                    = "acctestvmrc-${var.random_string}"
-  virtual_machine_id      = azurerm_linux_virtual_machine.test.id
-  run_as_password         = "Pa-${var.random_string}"
-  run_as_user             = "adminuser"
-  error_blob_uri          = "${azurerm_storage_blob.test3.id}${data.azurerm_storage_account_sas.test.sas}"
-  output_blob_uri         = "${azurerm_storage_blob.test2.id}${data.azurerm_storage_account_sas.test.sas}"
+  location           = azurerm_resource_group.test.location
+  name               = "acctestvmrc-${var.random_string}"
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  run_as_password    = "Pa-${var.random_string}"
+  run_as_user        = "adminuser"
+  error_blob_uri     = "${azurerm_storage_blob.test3.id}${data.azurerm_storage_account_sas.test.sas}"
+  output_blob_uri    = "${azurerm_storage_blob.test2.id}${data.azurerm_storage_account_sas.test.sas}"
 
   source {
     script_uri = "${azurerm_storage_blob.test1.id}${data.azurerm_storage_account_sas.test.sas}"

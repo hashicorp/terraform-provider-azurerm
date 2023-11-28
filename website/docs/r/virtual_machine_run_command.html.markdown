@@ -126,8 +126,8 @@ data "azurerm_storage_account_sas" "example" {
   connection_string = azurerm_storage_account.example.primary_connection_string
   https_only        = true
   signed_version    = "2019-10-10"
-  start  = "2023-04-01T00:00:00Z"
-  expiry = "2024-04-01T00:00:00Z"
+  start             = "2023-04-01T00:00:00Z"
+  expiry            = "2024-04-01T00:00:00Z"
 
   resource_types {
     service   = false
@@ -168,15 +168,15 @@ resource "azurerm_virtual_machine_run_command" "example" {
 
 # authurize to storage blob using user assigned identity
 resource "azurerm_virtual_machine_run_command" "example2" {
-  location                                    = azurerm_resource_group.example.location
-  name                                        = "example2-vmrc"
-  virtual_machine_id                          = azurerm_linux_virtual_machine.example.id
-  async_execution_enabled                     = false
-  output_blob_uri                             = azurerm_storage_blob.example2.id
-  error_blob_uri                              = azurerm_storage_blob.example3.id
-  run_as_password                             = "P@$$w0rd1234!"
-  run_as_user                                 = "adminuser"
-  timeout_in_seconds                          = 21
+  location                = azurerm_resource_group.example.location
+  name                    = "example2-vmrc"
+  virtual_machine_id      = azurerm_linux_virtual_machine.example.id
+  async_execution_enabled = false
+  output_blob_uri         = azurerm_storage_blob.example2.id
+  error_blob_uri          = azurerm_storage_blob.example3.id
+  run_as_password         = "P@$$w0rd1234!"
+  run_as_user             = "adminuser"
+  timeout_in_seconds      = 21
 
   source {
     script_uri = azurerm_storage_blob.example1.id
@@ -215,13 +215,13 @@ resource "azurerm_virtual_machine_run_command" "example2" {
 
 # authurize to storage blob using SAS token
 resource "azurerm_virtual_machine_run_command" "example3" {
-  location                = azurerm_resource_group.example.location
-  name                    = "example3-vmrc"
-  virtual_machine_id      = azurerm_linux_virtual_machine.example.id
-  run_as_password         = "P@$$w0rd1234!"
-  run_as_user             = "adminuser"
-  error_blob_uri          = "${azurerm_storage_blob.example3.id}${data.azurerm_storage_account_sas.example.sas}"
-  output_blob_uri         = "${azurerm_storage_blob.example2.id}${data.azurerm_storage_account_sas.example.sas}"
+  location           = azurerm_resource_group.example.location
+  name               = "example3-vmrc"
+  virtual_machine_id = azurerm_linux_virtual_machine.example.id
+  run_as_password    = "P@$$w0rd1234!"
+  run_as_user        = "adminuser"
+  error_blob_uri     = "${azurerm_storage_blob.example3.id}${data.azurerm_storage_account_sas.example.sas}"
+  output_blob_uri    = "${azurerm_storage_blob.example2.id}${data.azurerm_storage_account_sas.example.sas}"
 
   source {
     script_uri = "${azurerm_storage_blob.example1.id}${data.azurerm_storage_account_sas.example.sas}"
