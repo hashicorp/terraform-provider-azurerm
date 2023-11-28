@@ -409,7 +409,32 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceDiff != nil && metadata.ResourceDiff.HasChange("secret") {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+			// This is a trick to tell whether this is for a new create apply, as for existing resource, the "name" is always not empty.
+			if old, _ := metadata.ResourceDiff.GetChange("name"); old == "" {
+				var app ContainerAppModel
+				if err := metadata.DecodeDiff(&app); err != nil {
+					return err
+				}
+				if len(app.Ingress) != 0 {
+					ingress := app.Ingress[0]
+					if len(ingress.TrafficWeights) != 0 {
+						if len(ingress.TrafficWeights) > 1 {
+							return fmt.Errorf("at most one `ingress.0.traffic_weight` can be specified during creation")
+						}
+						tw := ingress.TrafficWeights[0]
+						if !tw.LatestRevision {
+							return fmt.Errorf("`ingress.0.traffic_weight.0.latest_revision` must be set to true during creation")
+						}
+						if tw.RevisionSuffix != "" {
+							return fmt.Errorf("`ingress.0.traffic_weight.0.revision_suffix` must not be set during creation")
+						}
+					}
+				}
+			}
+			if metadata.ResourceDiff.HasChange("secret") {
 				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secret")
 				stateSecrets := stateSecretsRaw.(*schema.Set).List()
 				configSecrets := configSecretsRaw.(*schema.Set).List()
