@@ -443,10 +443,8 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 							if tw.RevisionSuffix != "" {
 								return fmt.Errorf("`ingress.%[1]d.traffic_weight.%[1]d.revision_suffix` conflicts with `ingress.%[1]d.traffic_weight.%[1]d.latest_revision`", i)
 							}
-						} else {
-							if tw.RevisionSuffix == "" {
-								return fmt.Errorf("`ingress.%[1]d.traffic_weight.%[1]d.revision_suffix` is not specified", i)
-							}
+						} else if tw.RevisionSuffix == "" {
+							return fmt.Errorf("`ingress.%[1]d.traffic_weight.%[1]d.revision_suffix` is not specified", i)
 						}
 					}
 					if latestRevCount > 1 {
