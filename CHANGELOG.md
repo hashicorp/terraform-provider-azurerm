@@ -1,9 +1,15 @@
 ## 3.83.0 (Unreleased)
 
+UPGRADE NOTES
+
+* Key Vaults are now loaded using [the `ListBySubscription` API within the Key Vault Resource Provider](https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list-by-subscription?view=rest-keyvault-keyvault-2022-07-01&tabs=HTTP) rather than [the Resources API](https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list?view=rest-keyvault-keyvault-2022-07-01&tabs=HTTP). This change means that the Provider now caches the list of Key Vaults available within a Subscription, rather than loading these piecemeal to workaround stale data returned from the Resources API [GH-24019]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20231124.1163225` of `github.com/hashicorp/go-azure-sdk` [GH-24025]
 * `automation`: updating to API Version `2023-11-01` [GH-24017]
+* `keyvault`: the cache is now populated using the `ListBySubscription` endpoint on the KeyVault Resource Provider rather than via the `Resources` API [GH-24019].
+* `keyvault`: updating the cache to populate all Key Vaults available within the Subscription to reduce the number of API calls [GH-24019]
 * Data Source `azurerm_private_dns_zone`: refactoring to use the `ListBySubscription` API rather than the Resources API when `resource_group_name` is omitted [GH-24024]
 * `azurerm_dashboard_grafana` - support for `grafana_major_version` [GH-24014]
 * `azurerm_linux_web_app` - add support for dotnet 8 [GH-23893]
