@@ -32,6 +32,7 @@ func (a ConfigurationResource) Exists(ctx context.Context, client *clients.Clien
 }
 
 func TestAccConfiguration_basic(t *testing.T) {
+	t.Skip("Skipping Nginx Configuration test due to the default configuration created automatically: https://docs.nginx.com/nginxaas/azure/known-issues/")
 	data := acceptance.BuildTestData(t, nginx.ConfigurationResource{}.ResourceType(), "test")
 	r := ConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -46,6 +47,7 @@ func TestAccConfiguration_basic(t *testing.T) {
 }
 
 func TestAccConfiguration_update(t *testing.T) {
+	t.Skip("Skipping Nginx Configuration test due to the default configuration created automatically: https://docs.nginx.com/nginxaas/azure/known-issues/")
 	data := acceptance.BuildTestData(t, nginx.ConfigurationResource{}.ResourceType(), "test")
 	r := ConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -67,6 +69,7 @@ func TestAccConfiguration_update(t *testing.T) {
 }
 
 func TestAccConfiguration_requiresImport(t *testing.T) {
+	t.Skip("Skipping Nginx Configuration test due to the default configuration created automatically: https://docs.nginx.com/nginxaas/azure/known-issues/")
 	data := acceptance.BuildTestData(t, nginx.ConfigurationResource{}.ResourceType(), "test")
 	r := ConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
