@@ -1723,14 +1723,17 @@ resource "azurerm_container_app" "test" {
 
   ingress {
     target_port = 5000
-    ip_security_restriction = [
-      {
+    ip_security_restriction {
         name             = "test"
         description      = "test"
         action           = "Allow"
         ip_address_range = "0.0.0.0/0"
       }
-    ]
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }  
   }
 }
 `, r.template(data), data.RandomInteger)
