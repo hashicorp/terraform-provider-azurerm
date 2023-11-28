@@ -51,6 +51,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_container_registry_agent_pool": resourceContainerRegistryAgentPool(),
 		"azurerm_container_registry_webhook":    resourceContainerRegistryWebhook(),
 		"azurerm_container_registry":            resourceContainerRegistry(),
+		"azurerm_container_registry_cache_rule": resourceContainerRegistryCacheRule(),
 		"azurerm_container_registry_token":      resourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map":  resourceContainerRegistryScopeMap(),
 		"azurerm_kubernetes_cluster":            resourceKubernetesCluster(),
