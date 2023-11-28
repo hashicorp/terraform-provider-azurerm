@@ -31,8 +31,8 @@ func (d StackHCIClusterDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_stack_hci_cluster" "test" {
-	  name                = azurerm_stack_hci_cluster.test.name
-	  resource_group_name = azurerm_stack_hci_cluster.test.resource_group_name
+  name                = azurerm_stack_hci_cluster.test.name
+  resource_group_name = azurerm_stack_hci_cluster.test.resource_group_name
 }
 `, StackHCIClusterResource{}.basic(data))
 }
