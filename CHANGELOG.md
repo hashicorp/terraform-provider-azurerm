@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app` - add support for dotnet 8 [GH-23893]
 * `azurerm_linux_web_app_slot` - add support for dotnet 8 [GH-23893]
 * `azurerm_postgresql_flexible_server` - udpating to API Version `2023-06-01-preview` [GH-24016]
+* `azurerm_redis_cache` - support for the `active_directory_authentication_enabled` property [GH-23976]
 * `azurerm_windows_web_app` - add support for dotnet 8 [GH-23893]
 * `azurerm_windows_web_app_slot` - add support for dotnet 8 [GH-23893]
 * `azurerm_media_transform` -  deprecate `face_detector_preset` and `video_analyzer_preset` [GH-24002]
