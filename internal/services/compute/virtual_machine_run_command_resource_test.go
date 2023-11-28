@@ -270,10 +270,8 @@ resource "azurerm_virtual_machine_run_command" "test" {
   location                = azurerm_resource_group.test.location
   name                    = "acctestvmrc-${var.random_string}"
   virtual_machine_id      = azurerm_linux_virtual_machine.test.id
-  async_execution_enabled = true
   run_as_password         = "Pa-${var.random_string}"
   run_as_user             = "adminuser"
-  timeout_in_seconds      = 210
   error_blob_uri          = azurerm_storage_blob.test3.id
   output_blob_uri         = azurerm_storage_blob.test2.id
 
@@ -368,10 +366,8 @@ resource "azurerm_virtual_machine_run_command" "test" {
   location                = azurerm_resource_group.test.location
   name                    = "acctestvmrc-${var.random_string}"
   virtual_machine_id      = azurerm_linux_virtual_machine.test.id
-  async_execution_enabled = false
   run_as_password         = "Pa-${var.random_string}"
   run_as_user             = "adminuser"
-  timeout_in_seconds      = 210
   error_blob_uri          = azurerm_storage_blob.test3.id
   output_blob_uri         = azurerm_storage_blob.test2.id
 

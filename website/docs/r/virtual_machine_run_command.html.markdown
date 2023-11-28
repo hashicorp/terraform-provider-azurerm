@@ -171,12 +171,10 @@ resource "azurerm_virtual_machine_run_command" "example2" {
   location                = azurerm_resource_group.example.location
   name                    = "example2-vmrc"
   virtual_machine_id      = azurerm_linux_virtual_machine.example.id
-  async_execution_enabled = false
   output_blob_uri         = azurerm_storage_blob.example2.id
   error_blob_uri          = azurerm_storage_blob.example3.id
   run_as_password         = "P@$$w0rd1234!"
   run_as_user             = "adminuser"
-  timeout_in_seconds      = 21
 
   source {
     script_uri = azurerm_storage_blob.example1.id
@@ -251,8 +249,6 @@ The following arguments are supported:
 
 * `source` - (Required) A `source` block as defined below. The source of the run command script.
 
-* `async_execution_enabled` - (Optional) Whether provisioning will complete as soon as the script starts and will not wait for script to complete. Possible values are `true` and `false`. Default to `false`.
-
 * `error_blob_managed_identity` - (Optional) An `error_blob_managed_identity` block as defined below. User-assigned managed Identity that has access to errorBlobUri storage blob.
 
 * `error_blob_uri` - (Optional) Specifies the Azure storage blob where script error stream will be uploaded.
@@ -268,8 +264,6 @@ The following arguments are supported:
 * `run_as_password` - (Optional) Specifies the user account password on the VM when executing the Virtual Machine Run Command.
 
 * `run_as_user` - (Optional) Specifies the user account on the VM when executing the Virtual Machine Run Command.
-
-* `timeout_in_seconds` - (Optional) The timeout in seconds to execute the Virtual Machine Run Command. Possible values are integers more than `1`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Virtual Machine Run Command.
 

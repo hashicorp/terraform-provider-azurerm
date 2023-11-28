@@ -29,7 +29,6 @@ func (r VirtualMachineRunCommandResource) ModelObject() interface{} {
 }
 
 type VirtualMachineRunCommandResourceSchema struct {
-	AsyncExecutionEnabled     bool                                            `tfschema:"async_execution_enabled"`
 	ErrorBlobManagedIdentity  []VirtualMachineRunCommandManagedIdentitySchema `tfschema:"error_blob_managed_identity"`
 	ErrorBlobUri              string                                          `tfschema:"error_blob_uri"`
 	InstanceView              []VirtualMachineRunCommandInstanceViewSchema    `tfschema:"instance_view"`
@@ -43,7 +42,6 @@ type VirtualMachineRunCommandResourceSchema struct {
 	RunAsUser                 string                                          `tfschema:"run_as_user"`
 	Source                    []VirtualMachineRunCommandScriptSourceSchema    `tfschema:"source"`
 	Tags                      map[string]interface{}                          `tfschema:"tags"`
-	TimeoutInSeconds          int64                                           `tfschema:"timeout_in_seconds"`
 	VirtualMachineId          string                                          `tfschema:"virtual_machine_id"`
 }
 
@@ -167,12 +165,6 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 					},
 				},
 			},
-		},
-
-		"async_execution_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
 		},
 
 		"error_blob_managed_identity": {
@@ -305,12 +297,6 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"timeout_in_seconds": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-		},
-
 		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
@@ -393,7 +379,6 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Tags:     tags.Expand(config.Tags),
 				Properties: &virtualmachineruncommands.VirtualMachineRunCommandProperties{
-					AsyncExecution:            pointer.To(config.AsyncExecutionEnabled),
 					ErrorBlobManagedIdentity:  expandVirtualMachineRunCommandBlobManagedIdentity(config.ErrorBlobManagedIdentity),
 					ErrorBlobUri:              pointer.To(config.ErrorBlobUri),
 					OutputBlobManagedIdentity: expandVirtualMachineRunCommandBlobManagedIdentity(config.OutputBlobManagedIdentity),
@@ -403,17 +388,25 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 					RunAsPassword:             pointer.To(config.RunAsPassword),
 					RunAsUser:                 pointer.To(config.RunAsUser),
 					Source:                    expandVirtualMachineRunCommandSource(config.Source),
-					TimeoutInSeconds:          pointer.To(config.TimeoutInSeconds),
-					// set API returning error if command run fails, otherwise it only emit the command
+
+					TimeoutInSeconds: pointer.To(int64(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate).Seconds())),
+
+					// set API returning error if command run fails
 					TreatFailureAsDeploymentFailure: pointer.To(true),
+					AsyncExecution:                  pointer.To(false),
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			result, err := client.CreateOrUpdate(ctx, id, payload)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := result.Poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
+			}
+
 			return nil
 		},
 	}
@@ -461,10 +454,8 @@ func (r VirtualMachineRunCommandResource) Read() sdk.ResourceFunc {
 				schema.Location = model.Location
 				schema.Tags = tags.Flatten(model.Tags)
 				if prop := model.Properties; prop != nil {
-					schema.AsyncExecutionEnabled = pointer.From(prop.AsyncExecution)
 					schema.Parameter = flattenVirtualMachineRunCommandInputParameter(prop.Parameters)
 					schema.RunAsUser = pointer.From(prop.RunAsUser)
-					schema.TimeoutInSeconds = pointer.From(prop.TimeoutInSeconds)
 					schema.InstanceView = flattenVirtualMachineRunCommandInstanceView(prop.InstanceView)
 					schema.Source = flattenVirtualMachineRunCommandSource(prop.Source, config)
 
@@ -527,11 +518,9 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 			payload := virtualmachineruncommands.VirtualMachineRunCommandUpdate{
 				Properties: &virtualmachineruncommands.VirtualMachineRunCommandProperties{
 					TreatFailureAsDeploymentFailure: pointer.To(true),
+					AsyncExecution:                  pointer.To(false),
+					TimeoutInSeconds:                pointer.To(int64(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate).Seconds())),
 				},
-			}
-
-			if metadata.ResourceData.HasChange("async_execution_enabled") {
-				payload.Properties.AsyncExecution = pointer.To(config.AsyncExecutionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("error_blob_managed_identity") {
@@ -568,10 +557,6 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("source") {
 				payload.Properties.Source = expandVirtualMachineRunCommandSource(config.Source)
-			}
-
-			if metadata.ResourceData.HasChange("timeout_in_seconds") {
-				payload.Properties.TimeoutInSeconds = pointer.To(config.TimeoutInSeconds)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
