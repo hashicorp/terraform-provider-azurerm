@@ -6,7 +6,12 @@ ENHANCEMENTS:
 * `automation`: updating to API Version `2023-11-01` [GH-24017]
 * Data Source `azurerm_private_dns_zone`: refactoring to use the `ListBySubscription` API rather than the Resources API when `resource_group_name` is omitted [GH-24024]
 * `azurerm_dashboard_grafana` - support for `grafana_major_version` [GH-24014]
+* `azurerm_linux_web_app` - add support for dotnet 8 [GH-23893]
+* `azurerm_linux_web_app_slot` - add support for dotnet 8 [GH-23893]
 * `azurerm_postgresql_flexible_server` - udpating to API Version `2023-06-01-preview` [GH-24016]
+* `azurerm_windows_web_app` - add support for dotnet 8 [GH-23893]
+* `azurerm_windows_web_app_slot` - add support for dotnet 8 [GH-23893]
+
 
 BUG FIXES:
 
