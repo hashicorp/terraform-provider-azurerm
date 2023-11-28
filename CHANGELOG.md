@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_ip_group`: fixing a crash when `firewall_ids` and `firewall_policy_ids` weren't parsed correctly from the API Response [GH-24031]
 * `azurerm_nginx_deployment` - add default value of `20` for `capacity` [GH-24033]
 
 ## 3.82.0 (November 23, 2023)
