@@ -345,8 +345,6 @@ An `ingress` block supports the following:
 
 * `traffic_weight` - (Required) One or more `traffic_weight` blocks as detailed below.
 
-~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
-
 * `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
 ---
