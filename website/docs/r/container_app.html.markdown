@@ -365,7 +365,9 @@ A `custom_domain` block supports the following:
 
 A `ip_security_restriction` block supports the following:
 
-* `action` - (Required) The IP-filter action. `Allow` or `Deny`
+* `action` - (Required) The IP-filter action. `Allow` or `Deny`.
+
+~> **NOTE:** The `action` types in an all `ip_security_restriction` blocks must be the same for the `ingress`, mixing `Allow` and `Deny` rules is not currently supported by the service.
 
 * `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
 
