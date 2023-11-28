@@ -38,7 +38,6 @@ import (
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1573,7 +1572,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1706,7 +1704,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
-	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, id.SubscriptionId, d, azureKeyVaultKmsRaw)
 	if err != nil {
 		return err
 	}
@@ -1876,7 +1874,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -2245,7 +2242,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChanges("key_management_service") {
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
-		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, id.SubscriptionId, d, azureKeyVaultKmsRaw)
 		if existing.Model.Properties.SecurityProfile == nil {
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 		}
@@ -3913,7 +3910,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	}
 }
 
-func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
+func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClient *keyVaultClient.Client, subscriptionId string, d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
 	if ((input == nil) || len(input) == 0) && d.HasChanges("key_management_service") {
 		return &managedclusters.AzureKeyVaultKms{
 			Enabled: utils.Bool(false),
@@ -3933,11 +3930,12 @@ func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClien
 
 	// Set Key vault Resource ID in case public access is disabled
 	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
+		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
 		keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(*azureKeyVaultKms.KeyId)
 		if err != nil {
 			return nil, err
 		}
-		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseUrl)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
 		}
