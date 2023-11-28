@@ -367,11 +367,11 @@ A `traffic_weight` block supports the following:
 
 * `label` - (Optional) The label to apply to the revision as a name prefix for routing traffic.
 
-* `latest_revision` - (Optional) This traffic Weight relates to the latest stable Container Revision.
+* `latest_revision` - (Optional) This traffic Weight applies to the latest stable Container Revision. At most only one `traffic_weight` block can have the `latest_revision` set to `true`.
 
 * `revision_suffix` - (Optional) The suffix string to which this `traffic_weight` applies.
 
-~> **Note:** During creation, the `latest_revision` must be set to `true`, and the `revision_suffix` shall not be specified.
+~> **Note:** `latest_revision` conflicts with `revision_suffix`, which means you shall either set `latest_revision` to `true` or specify `revision_suffix`. Especially for creation, there shall only be one `traffic_weight`, with the `latest_revision` set to `true`, and leave the `revision_suffix` empty.
 
 * `percentage` - (Required) The percentage of traffic which should be sent this revision.
 

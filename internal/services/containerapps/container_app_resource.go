@@ -412,12 +412,14 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 			if metadata.ResourceDiff == nil {
 				return nil
 			}
-			// This is a trick to tell whether this is for a new create apply, as for existing resource, the "name" is always not empty.
+			var app ContainerAppModel
+			if err := metadata.DecodeDiff(&app); err != nil {
+				return err
+			}
+			// Ingress traffic weight validations
+			// Validation for create time
+			// (This is a trick to tell whether this is for a new create apply, as for existing resource, the "name" is always not empty)
 			if old, _ := metadata.ResourceDiff.GetChange("name"); old == "" {
-				var app ContainerAppModel
-				if err := metadata.DecodeDiff(&app); err != nil {
-					return err
-				}
 				if len(app.Ingress) != 0 {
 					ingress := app.Ingress[0]
 					if len(ingress.TrafficWeights) != 0 {
@@ -434,6 +436,27 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
+			// Validation for update time
+			if len(app.Ingress) != 0 {
+				ingress := app.Ingress[0]
+				var latestRevCount int
+				for i, tw := range ingress.TrafficWeights {
+					if tw.LatestRevision {
+						latestRevCount++
+						if tw.RevisionSuffix != "" {
+							return fmt.Errorf("`ingress.%[1]d.traffic_weight.%[1]d.revision_suffix` conflicts with `ingress.%[1]d.traffic_weight.%[1]d.latest_revision`", i)
+						}
+					} else {
+						if tw.RevisionSuffix == "" {
+							return fmt.Errorf("`ingress.%[1]d.traffic_weight.%[1]d.revision_suffix` is not specified", i)
+						}
+					}
+				}
+				if latestRevCount > 1 {
+					return fmt.Errorf("more than one `ingress.0.traffic_weight` has `latest_revision` set to `true`")
+				}
+			}
+
 			if metadata.ResourceDiff.HasChange("secret") {
 				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secret")
 				stateSecrets := stateSecretsRaw.(*schema.Set).List()
