@@ -28,7 +28,7 @@ func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 		Read:   resourceKeyVaultCertificateIssuerRead,
 		Delete: resourceKeyVaultCertificateIssuerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ParseNestedItemID(id)
+			_, err := parse.IssuerID(id)
 			return err
 		}, nestedItemResourceImporter),
 
@@ -123,6 +123,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving base uri for %s: %+v", *keyVaultId, err)
 	}
 
+	id := parse.NewIssuerID(*keyVaultBaseUri, name)
 	if d.IsNewResource() {
 		existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
 		if err != nil {
@@ -131,8 +132,8 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", id.ID())
 		}
 	}
 
@@ -163,15 +164,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("failed to set Certificate Issuer %q (Key Vault %q): %s", name, keyVaultId, err)
 	}
 
-	resp, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
-	if err != nil {
-		return err
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("failure reading Key Vault Certificate Issuer ID for %q", name)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceKeyVaultCertificateIssuerRead(d, meta)
 }
@@ -236,9 +229,7 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
 	}
 	if resp.Credentials != nil {
-		if resp.Credentials.AccountID != nil {
-			d.Set("account_id", resp.Credentials.AccountID)
-		}
+		d.Set("account_id", resp.Credentials.AccountID)
 	}
 
 	return nil
