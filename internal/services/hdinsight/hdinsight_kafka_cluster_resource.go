@@ -308,7 +308,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			MinSupportedTlsVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
 			ClusterDefinition: &clusters.ClusterDefinition{
-				Kind:             utils.String("Kafka"),
+				Kind:             pointer.To(clusters.ClusterKindKafka),
 				ComponentVersion: pointer.To(componentVersions),
 				Configurations:   pointer.To(configurationsRaw),
 			},

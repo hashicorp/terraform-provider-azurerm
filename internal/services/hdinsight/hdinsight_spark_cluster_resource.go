@@ -230,7 +230,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			MinSupportedTlsVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
 			ClusterDefinition: &clusters.ClusterDefinition{
-				Kind:             utils.String("Spark"),
+				Kind:             pointer.To(clusters.ClusterKindSpark),
 				ComponentVersion: pointer.To(componentVersions),
 				Configurations:   pointer.To(configurationsRaw),
 			},

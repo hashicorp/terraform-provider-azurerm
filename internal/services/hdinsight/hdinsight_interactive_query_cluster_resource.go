@@ -252,7 +252,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 				IsEncryptionInTransitEnabled: &encryptionInTransit,
 			},
 			ClusterDefinition: &clusters.ClusterDefinition{
-				Kind:             utils.String("INTERACTIVEHIVE"),
+				Kind:             pointer.To(clusters.ClusterKindInteractiveHive),
 				ComponentVersion: componentVersions,
 				Configurations:   &configurationsRaw,
 			},

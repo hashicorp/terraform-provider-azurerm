@@ -275,7 +275,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 			MinSupportedTlsVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
 			ClusterDefinition: &clusters.ClusterDefinition{
-				Kind:             utils.String("Hadoop"),
+				Kind:             pointer.To(clusters.ClusterKindHadoop),
 				ComponentVersion: pointer.To(componentVersions),
 				Configurations:   pointer.To(configurationsRaw),
 			},

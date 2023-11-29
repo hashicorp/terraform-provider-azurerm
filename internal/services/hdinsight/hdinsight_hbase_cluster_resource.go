@@ -216,7 +216,7 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			MinSupportedTlsVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
 			ClusterDefinition: &clusters.ClusterDefinition{
-				Kind:             utils.String("HBase"),
+				Kind:             pointer.To(clusters.ClusterKindHBase),
 				ComponentVersion: pointer.To(componentVersions),
 				Configurations:   pointer.To(configurationsRaw),
 			},

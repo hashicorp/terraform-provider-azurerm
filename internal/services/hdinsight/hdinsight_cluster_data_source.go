@@ -156,7 +156,7 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)
 
 			d.Set("component_versions", flattenHDInsightsDataSourceComponentVersions(props.ClusterDefinition.ComponentVersion))
-			d.Set("kind", pointer.From(props.ClusterDefinition.Kind))
+			d.Set("kind", string(pointer.From(props.ClusterDefinition.Kind)))
 			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration, d)); err != nil {
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
