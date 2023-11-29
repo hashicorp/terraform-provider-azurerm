@@ -6,7 +6,7 @@ UPGRADE NOTES
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20231124.1163225` of `github.com/hashicorp/go-azure-sdk` [GH-24025]
+* dependencies: updating to `v0.20231129.1103252` of `github.com/hashicorp/go-azure-sdk` [GH-24063]
 * `automation`: updating to API Version `2023-11-01` [GH-24017]
 * `keyvault`: the cache is now populated using the `ListBySubscription` endpoint on the KeyVault Resource Provider rather than via the `Resources` API [GH-24019].
 * `keyvault`: updating the cache to populate all Key Vaults available within the Subscription to reduce the number of API calls [GH-24019]
