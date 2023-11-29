@@ -135,6 +135,8 @@ output "storage_account_tier" {
 
 * `azure_files_authentication` - A `azure_files_authentication` block as documented below.
 
+* `container` - A list of `container` blocks as documented below.
+
 ---
 
 * `custom_domain` supports the following:
@@ -176,6 +178,14 @@ output "storage_account_tier" {
 * `domain_sid` - The domain security identifier.
 
 * `storage_sid` - The security identifier for Azure Storage.
+
+---
+
+`container` supports the following:
+
+* `name` - The name of the Storage Container belongs to this Storage Account.
+
+* `resource_manager_id` - The resource manager id of the Storage Container belongs to this Storage Account.
 
 ## Timeouts
 

@@ -175,6 +175,23 @@ func TestAccDataSourceStorageAccount_azureFilesAuthentication(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageAccount_containers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountDataSource{}.containers(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("container.#").HasValue("2"),
+				check.That(data.ResourceName).Key("container.0.name").HasValue("test1"),
+				check.That(data.ResourceName).Key("container.0.resource_manager_id").HasValue(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-storage-%d/providers/Microsoft.Storage/storageAccounts/acctestsads%s/blobServices/default/containers/test1", data.Client().SubscriptionID, data.RandomInteger, data.RandomString)),
+				check.That(data.ResourceName).Key("container.1.name").HasValue("test2"),
+				check.That(data.ResourceName).Key("container.1.resource_manager_id").HasValue(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-storage-%d/providers/Microsoft.Storage/storageAccounts/acctestsads%s/blobServices/default/containers/test2", data.Client().SubscriptionID, data.RandomInteger, data.RandomString)),
+			),
+		},
+	})
+}
+
 func (d StorageAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -421,6 +438,45 @@ resource "azurerm_storage_account" "test" {
       netbios_domain_name = "adtest.com"
     }
   }
+}
+
+data "azurerm_storage_account" "test" {
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (d StorageAccountDataSource) containers(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctestsads%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test1" {
+  name                  = "test1"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "container"
+}
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "test2"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "container"
 }
 
 data "azurerm_storage_account" "test" {
