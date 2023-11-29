@@ -73,6 +73,9 @@ func resourceMsSqlJobAgentCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	databaseId := d.Get("database_id").(string)
 	dbId, err := commonids.ParseSqlDatabaseID(databaseId)
+	if err != nil {
+		return err
+	}
 	id := parse.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.ServerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
