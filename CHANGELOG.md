@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_ip_group`: fixing a crash when `firewall_ids` and `firewall_policy_ids` weren't parsed correctly from the API Response [GH-24031]
 * `azurerm_nginx_deployment` - add default value of `20` for `capacity` [GH-24033]
 * `azurerm_cosmosdb_account` - cosmosdb version and capabilities can now be updated at the same time [GH-24029]
+* `azurerm_data_factory_flowlet_data_flow` - `source` and `sink` properties are now optional [GH-23987]
 
 FEATURES:
 
