@@ -38,23 +38,9 @@ func ParseTimeSeriesDatabaseConnectionID(input string) (*TimeSeriesDatabaseConne
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TimeSeriesDatabaseConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
-	}
-
-	if id.TimeSeriesDatabaseConnectionName, ok = parsed.Parsed["timeSeriesDatabaseConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "timeSeriesDatabaseConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseTimeSeriesDatabaseConnectionIDInsensitively(input string) (*TimeSeries
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TimeSeriesDatabaseConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
-	}
-
-	if id.TimeSeriesDatabaseConnectionName, ok = parsed.Parsed["timeSeriesDatabaseConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "timeSeriesDatabaseConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TimeSeriesDatabaseConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DigitalTwinsInstanceName, ok = input.Parsed["digitalTwinsInstanceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", input)
+	}
+
+	if id.TimeSeriesDatabaseConnectionName, ok = input.Parsed["timeSeriesDatabaseConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "timeSeriesDatabaseConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateTimeSeriesDatabaseConnectionID checks that 'input' can be parsed as a Time Series Database Connection ID

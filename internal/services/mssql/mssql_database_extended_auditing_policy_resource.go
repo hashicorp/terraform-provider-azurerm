@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,7 +44,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseID,
+				ValidateFunc: commonids.ValidateSqlDatabaseID,
 			},
 
 			"enabled": {
@@ -96,13 +95,13 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 
 	log.Printf("[INFO] preparing arguments for MsSql Database Extended Auditing Policy creation.")
 
-	dbId, err := parse.DatabaseID(d.Get("database_id").(string))
+	dbId, err := commonids.ParseSqlDatabaseID(d.Get("database_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
+		existing, err := client.Get(ctx, dbId.ResourceGroupName, dbId.ServerName, dbId.DatabaseName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for the presence of existing %s: %+v", dbId, err)
@@ -134,11 +133,11 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 		params.ExtendedDatabaseBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name, params); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroupName, dbId.ServerName, dbId.DatabaseName, params); err != nil {
 		return fmt.Errorf("creating extended auditing policy for %s: %+v", dbId, err)
 	}
 
-	read, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
+	read, err := client.Get(ctx, dbId.ResourceGroupName, dbId.ServerName, dbId.DatabaseName)
 	if err != nil {
 		return fmt.Errorf("retrieving the extended auditing policy for %s: %+v", dbId, err)
 	}
