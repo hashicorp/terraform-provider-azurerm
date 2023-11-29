@@ -27,6 +27,10 @@ BUG FIXES:
 * `azurerm_nginx_deployment` - add default value of `20` for `capacity` [GH-24033]
 * `azurerm_cosmosdb_account` - cosmosdb version and capabilities can now be updated at the same time [GH-24029]
 
+FEATURES:
+
+* New Data Source: `azurerm_stack_hci_cluster` [GH-24032]
+
 ## 3.82.0 (November 23, 2023)
 
 FEATURES:
