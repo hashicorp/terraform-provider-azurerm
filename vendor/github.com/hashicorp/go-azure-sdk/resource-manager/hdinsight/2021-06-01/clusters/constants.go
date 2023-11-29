@@ -9,6 +9,56 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type ClusterKind string
+
+const (
+	ClusterKindHBase           ClusterKind = "HBASE"
+	ClusterKindHadoop          ClusterKind = "HADOOP"
+	ClusterKindInteractiveHive ClusterKind = "INTERACTIVEHIVE"
+	ClusterKindKafka           ClusterKind = "KAFKA"
+	ClusterKindSpark           ClusterKind = "SPARK"
+)
+
+func PossibleValuesForClusterKind() []string {
+	return []string{
+		string(ClusterKindHBase),
+		string(ClusterKindHadoop),
+		string(ClusterKindInteractiveHive),
+		string(ClusterKindKafka),
+		string(ClusterKindSpark),
+	}
+}
+
+func (s *ClusterKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseClusterKind(input string) (*ClusterKind, error) {
+	vals := map[string]ClusterKind{
+		"hbase":           ClusterKindHBase,
+		"hadoop":          ClusterKindHadoop,
+		"interactivehive": ClusterKindInteractiveHive,
+		"kafka":           ClusterKindKafka,
+		"spark":           ClusterKindSpark,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ClusterKind(input)
+	return &out, nil
+}
+
 type DaysOfWeek string
 
 const (

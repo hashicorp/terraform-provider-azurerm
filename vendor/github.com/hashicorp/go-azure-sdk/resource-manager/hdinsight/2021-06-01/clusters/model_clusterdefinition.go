@@ -7,5 +7,5 @@ type ClusterDefinition struct {
 	Blueprint        *string            `json:"blueprint,omitempty"`
 	ComponentVersion *map[string]string `json:"componentVersion,omitempty"`
 	Configurations   *interface{}       `json:"configurations,omitempty"`
-	Kind             *string            `json:"kind,omitempty"`
+	Kind             *ClusterKind       `json:"kind,omitempty"`
 }
