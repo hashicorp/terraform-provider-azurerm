@@ -180,10 +180,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				return old.(bool) && !new.(bool)
 			}),
 			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
-				if old.(string) != new.(string) && old.(string) == string(vaults.ImmutabilityStateLocked) {
-					return true
-				}
-				return false
+				return old.(string) == string(vaults.ImmutabilityStateLocked)
 			}),
 		),
 	}
@@ -260,7 +257,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		Properties: &vaults.VaultProperties{},
 	}
 	if immutability, ok := d.GetOk("immutability"); ok {
-		// The API doesn't allow to set the immutability to "Locked" on ceartion.
+		// The API doesn't allow to set the immutability to "Locked" on creation.
 		// Here we firstly make it "Unlocked", and once created, we will update it to "Locked".
 		// Note: The `immutability` could be transitioned only in the limited directions.
 		// Locked <- Unlocked <-> Disabled
