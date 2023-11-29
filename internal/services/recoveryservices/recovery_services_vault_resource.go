@@ -179,6 +179,12 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && !new.(bool)
 			}),
+			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
+				if old.(string) != new.(string) && old.(string) == string(vaults.ImmutabilityStateLocked) {
+					return true
+				}
+				return false
+			}),
 		),
 	}
 }
@@ -253,8 +259,11 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	updatePatch := vaults.PatchVault{
 		Properties: &vaults.VaultProperties{},
 	}
-	// The `immutability` could only be set to `Locked` from `Unlocked`
 	if immutability, ok := d.GetOk("immutability"); ok {
+		// The API doesn't allow to set the immutability to "Locked" on ceartion.
+		// Here we firstly make it "Unlocked", and once created, we will update it to "Locked".
+		// Note: The `immutability` could be transitioned only in the limited directions.
+		// Locked <- Unlocked <-> Disabled
 		if immutability == string(vaults.ImmutabilityStateLocked) {
 			updatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 			requireAddtionalUpdate = true
@@ -536,6 +545,10 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	requireAddtionalUpdate := false
+	additionalUpdatePatch := vaults.PatchVault{
+		Properties: &vaults.VaultProperties{},
+	}
 	vault := vaults.PatchVault{
 		Properties: &vaults.VaultProperties{},
 	}
@@ -561,12 +574,30 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("immutability") {
-		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(d.Get("immutability"))
+		// The API does not allow to set the immutability from `Disabled` to `Locked` directly,
+		// Hence we firstly make it `Unlocked`, and once created, we will update it to `Locked`.
+		// Note: The `immutability` could be transitioned only in the limited directions.
+		// Locked <- Unlocked <-> Disabled
+		currentImmutability := model.Properties.SecuritySettings.ImmutabilitySettings.State
+		immutability := d.Get("immutability")
+		if currentImmutability != nil && string(*currentImmutability) == string(vaults.ImmutabilityStateDisabled) && immutability == string(vaults.ImmutabilityStateLocked) {
+			additionalUpdatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
+			requireAddtionalUpdate = true
+			immutability = string(vaults.ImmutabilityStateUnlocked)
+		}
+		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
 	err = client.UpdateThenPoll(ctx, id, vault)
 	if err != nil {
 		return fmt.Errorf("updating  %s: %+v", id, err)
+	}
+
+	if requireAddtionalUpdate {
+		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch)
+		if err != nil {
+			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+		}
 	}
 
 	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
