@@ -93,7 +93,12 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 		return nil, err
 	}
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyreplicationLinksClient, resourcesClient, *id, []sql.ReplicationRole{sql.ReplicationRolePrimary})
+	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
+	if v := d.Get("enclave_type").(string); v != "" {
+		enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+	}
+
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyreplicationLinksClient, resourcesClient, *id, enclaveType, []sql.ReplicationRole{sql.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -191,8 +196,15 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("parsing ID for Replication Partner Database %s: %+v", id, err)
 	}
 
+	// NOTE: Set the default value, if the field exists in the config the only value
+	// that it could be is 'VBS'...
+	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
+	if _, ok := d.GetOk("enclave_type"); ok {
+		enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+	}
+
 	if skuName := d.Get("sku_name"); skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -233,7 +245,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	// NOTE: Expose PreferredEnclaveType here...
 	input := databases.Database{
 		Location: location,
 		Properties: &databases.DatabaseProperties{
@@ -244,6 +255,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
 			SampleName:                       pointer.To(databases.SampleName(d.Get("sample_name").(string))),
+			PreferredEnclaveType:             pointer.To(enclaveType),
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
@@ -300,11 +312,18 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.RestorePointInTime = pointer.To(v.(string))
 	}
 
-	skuName, ok := d.GetOk("sku_name")
-	if ok {
+	skuName := d.Get("sku_name").(string)
+	if skuName != "" {
 		input.Sku = pointer.To(databases.Sku{
-			Name: skuName.(string),
+			Name: skuName,
 		})
+
+		// NOTE: VBS enclaves are not supported by DW or DC skus, should prolly add a CustomizeDiff to catch this in plan...
+		if enclaveType == databases.AlwaysEncryptedEnclaveTypeVBS {
+			if strings.HasPrefix(strings.ToLower(skuName), "dw") || strings.Contains(strings.ToLower(skuName), "_dc_") {
+				return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", skuName)
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("creation_source_database_id"); ok {
@@ -415,7 +434,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	d.SetId(id.ID())
 
 	// For datawarehouse SKUs only
-	if strings.HasPrefix(skuName.(string), "DW") {
+	if strings.HasPrefix(skuName, "DW") {
 		enabled := d.Get("geo_backup_enabled").(bool)
 
 		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
@@ -453,7 +472,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		securityAlertPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
 		// DataWarehouse SKU's do not support LRP currently
-		if !strings.HasPrefix(skuName.(string), "DW") {
+		if !strings.HasPrefix(skuName, "DW") {
 			securityAlertPolicyPayload.Properties = securityAlertPolicyProps
 		}
 
@@ -467,11 +486,11 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if securityAlertPolicyProps != nil {
 		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
-		if !strings.HasPrefix(skuName.(string), "DW") {
+		if !strings.HasPrefix(skuName, "DW") {
 			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
 		}
 
-		if strings.HasPrefix(skuName.(string), "HS") {
+		if strings.HasPrefix(skuName, "HS") {
 			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
 		}
 
@@ -518,6 +537,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	elasticPoolId := ""
 	minCapacity := float64(0)
 	ledgerEnabled := false
+	enclaveType := ""
 
 	if model := resp.Model; model != nil {
 		d.Set("name", id.DatabaseName)
@@ -560,6 +580,11 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				ledgerEnabled = *props.IsLedgerOn
 			}
 
+			// NOTE: Always set the PreferredEnclaveType to an empty string unless it isn't 'Default'...
+			if v := props.PreferredEnclaveType; v != nil && pointer.From(v) != databases.AlwaysEncryptedEnclaveTypeDefault {
+				enclaveType = string(pointer.From(v))
+			}
+
 			configurationName := ""
 			if v := props.MaintenanceConfigurationId; v != nil {
 				maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(pointer.From(v))
@@ -574,6 +599,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
+			d.Set("enclave_type", enclaveType)
 
 			if err := tags.FlattenAndSet(d, resp.Model.Tags); err != nil {
 				return err
@@ -673,6 +699,9 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] preparing arguments for MsSql Database creation.")
 
+	// NOTE: Assign the PreferredEnclaveType the default value...
+	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
+
 	skuName := d.Get("sku_name").(string)
 	if strings.HasPrefix(skuName, "GP_S_") && d.Get("license_type").(string) != "" {
 		return fmt.Errorf("serverless databases do not support license type")
@@ -727,7 +756,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("sku_name") && skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -801,6 +830,23 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("zone_redundant") {
 		props.ZoneRedundant = pointer.To(d.Get("zone_redundant").(bool))
+	}
+
+	if d.HasChange("enclave_type") {
+		// NOTE: If the 'enclave_type' has changed, check to see if it was removed. If it was
+		// that means that we need to pass 'Default' as the value to the PATCH call...
+		if _, n := d.GetChange("enclave_type"); n.(string) != "" {
+			enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+		}
+
+		// NOTE: VBS enclaves are not supported by DW or DC skus...
+		if enclaveType == databases.AlwaysEncryptedEnclaveTypeVBS {
+			if strings.HasPrefix(strings.ToLower(skuName), "dw") || strings.Contains(strings.ToLower(skuName), "_dc_") {
+				return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", skuName)
+			}
+		}
+
+		props.PreferredEnclaveType = pointer.To(enclaveType)
 	}
 
 	if d.HasChange("tags") {
@@ -958,10 +1004,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			if err != nil {
 				return fmt.Errorf("while importing the BACPAC file into the new database %s: %+v", id.ID(), err)
 			}
+
+			d.SetId(id.ID())
 		}
 	}
-
-	d.SetId(id.ID())
 
 	// For datawarehouse SKUs only
 	if strings.HasPrefix(skuName, "DW") && d.HasChange("geo_backup_enabled") {
@@ -1301,6 +1347,14 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.ElasticPoolID,
+		},
+
+		"enclave_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(databases.AlwaysEncryptedEnclaveTypeVBS),
+			}, false),
 		},
 
 		"license_type": {
