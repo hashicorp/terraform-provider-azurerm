@@ -677,6 +677,15 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("kustomizations") {
+				if _, exists := metadata.ResourceData.GetOk("git_repository"); exists {
+					_, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
+					if err != nil {
+						return err
+					}
+					properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
+				} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
+					_, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
+				}
 				properties.Properties.Kustomizations = expandKustomizationDefinitionModel(model.Kustomizations)
 			}
 
