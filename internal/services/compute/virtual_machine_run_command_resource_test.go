@@ -267,13 +267,13 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_virtual_machine_run_command" "test" {
-  location                = azurerm_resource_group.test.location
-  name                    = "acctestvmrc-${var.random_string}"
-  virtual_machine_id      = azurerm_linux_virtual_machine.test.id
-  run_as_password         = "Pa-${var.random_string}"
-  run_as_user             = "adminuser"
-  error_blob_uri          = azurerm_storage_blob.test3.id
-  output_blob_uri         = azurerm_storage_blob.test2.id
+  location           = azurerm_resource_group.test.location
+  name               = "acctestvmrc-${var.random_string}"
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  run_as_password    = "Pa-${var.random_string}"
+  run_as_user        = "adminuser"
+  error_blob_uri     = azurerm_storage_blob.test3.id
+  output_blob_uri    = azurerm_storage_blob.test2.id
 
   error_blob_managed_identity {
     client_id = azurerm_user_assigned_identity.test.client_id
@@ -363,13 +363,13 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_virtual_machine_run_command" "test" {
-  location                = azurerm_resource_group.test.location
-  name                    = "acctestvmrc-${var.random_string}"
-  virtual_machine_id      = azurerm_linux_virtual_machine.test.id
-  run_as_password         = "Pa-${var.random_string}"
-  run_as_user             = "adminuser"
-  error_blob_uri          = azurerm_storage_blob.test3.id
-  output_blob_uri         = azurerm_storage_blob.test2.id
+  location           = azurerm_resource_group.test.location
+  name               = "acctestvmrc-${var.random_string}"
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  run_as_password    = "Pa-${var.random_string}"
+  run_as_user        = "adminuser"
+  error_blob_uri     = azurerm_storage_blob.test3.id
+  output_blob_uri    = azurerm_storage_blob.test2.id
 
   source {
     script_uri = azurerm_storage_blob.test1.id

@@ -168,13 +168,13 @@ resource "azurerm_virtual_machine_run_command" "example" {
 
 # authurize to storage blob using user assigned identity
 resource "azurerm_virtual_machine_run_command" "example2" {
-  location                = azurerm_resource_group.example.location
-  name                    = "example2-vmrc"
-  virtual_machine_id      = azurerm_linux_virtual_machine.example.id
-  output_blob_uri         = azurerm_storage_blob.example2.id
-  error_blob_uri          = azurerm_storage_blob.example3.id
-  run_as_password         = "P@$$w0rd1234!"
-  run_as_user             = "adminuser"
+  location           = azurerm_resource_group.example.location
+  name               = "example2-vmrc"
+  virtual_machine_id = azurerm_linux_virtual_machine.example.id
+  output_blob_uri    = azurerm_storage_blob.example2.id
+  error_blob_uri     = azurerm_storage_blob.example3.id
+  run_as_password    = "P@$$w0rd1234!"
+  run_as_user        = "adminuser"
 
   source {
     script_uri = azurerm_storage_blob.example1.id
