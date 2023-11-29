@@ -91,9 +91,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // ElasticSAN has 5 instance quota per subscription per region
         "elasticsan" to testConfiguration(parallelism = 4),
 
-        // HPC Cache has a 4 instance per subscription quota as of early 2021
-        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
-
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
 
