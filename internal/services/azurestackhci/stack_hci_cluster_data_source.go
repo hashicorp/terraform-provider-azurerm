@@ -46,7 +46,6 @@ func (r StackHCIClusterDataSource) Arguments() map[string]*schema.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.ClusterName,
 		},
 
