@@ -116,7 +116,7 @@ func (r StackHCIClusterDataSource) Read() sdk.ResourceFunc {
 					if !utils.ResponseWasNotFound(assignmentResp.Response) && assignmentResp.Properties != nil && assignmentResp.Properties.ConfigurationProfile != nil {
 						automanageConfigId, err := autoParse.AutomanageConfigurationID(*assignmentResp.Properties.ConfigurationProfile)
 						if err != nil {
-							return err
+							return fmt.Errorf("reading configuration profile assignment: %v", err)
 						}
 						configId = automanageConfigId.ID()
 					}
