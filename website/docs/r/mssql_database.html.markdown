@@ -39,8 +39,8 @@ resource "azurerm_mssql_server" "example" {
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
-resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-d"
+resource "azurerm_mssql_database" "example" {
+  name           = "example-db"
   server_id      = azurerm_mssql_server.example.id
   collation      = "SQL_Latin1_General_CP1_CI_AS"
   license_type   = "LicenseIncluded"
@@ -48,6 +48,7 @@ resource "azurerm_mssql_database" "test" {
   read_scale     = true
   sku_name       = "S0"
   zone_redundant = true
+  enclave_type   = "VBS"
 
   tags = {
     foo = "bar"
@@ -84,8 +85,6 @@ The following arguments are supported:
 ~> **NOTE:** `enclave_type` is currently not supported for DW (e.g, DataWarehouse) and DC-series SKUs.
 
 ~> **NOTE:** Geo Replicated and Failover databases must have the same `enclave_type`.
-
-~> **NOTE:** `enclave_type` is currently available in all Azure regions except `Jio India Central`.
 
 * `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. Defaults to `true`.
 

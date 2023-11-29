@@ -36,7 +36,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlDatabase() *pluginsdk.Resource {
@@ -136,7 +135,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MsSql Database creation.")
+	log.Printf("[INFO] preparing arguments for MsSql Database creation")
 
 	if strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && d.Get("license_type").(string) != "" {
 		return fmt.Errorf("serverless databases do not support license type")
@@ -197,7 +196,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
 	}
 
-	if skuName := d.Get("sku_name"); skuName != "" {
+	skuName := d.Get("sku_name").(string)
+	if skuName != "" {
 		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
@@ -222,10 +222,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName.(string), *partnerDatabase.Sku.Name) {
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName, *partnerDatabase.Sku.Name) {
 				future, err := legacyClient.Update(ctx, partnerDatabaseId.ResourceGroupName, partnerDatabaseId.ServerName, partnerDatabaseId.DatabaseName, sql.DatabaseUpdate{
 					Sku: &sql.Sku{
-						Name: utils.String(skuName.(string)),
+						Name: pointer.To(skuName),
 					},
 				})
 				if err != nil {
@@ -246,16 +246,20 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			Collation:                        pointer.To(d.Get("collation").(string)),
 			ElasticPoolId:                    pointer.To(d.Get("elastic_pool_id").(string)),
 			LicenseType:                      pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string))),
-			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
+			MinCapacity:                      pointer.To(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
 			SampleName:                       pointer.To(databases.SampleName(d.Get("sample_name").(string))),
-			PreferredEnclaveType:             pointer.To(enclaveType),
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
+	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
+		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
 	}
 
 	createMode, ok := d.GetOk("create_mode")
@@ -276,7 +280,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		if v, ok := d.GetOk("maintenance_configuration_name"); ok {
 			maintenanceConfigId = publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(serverId.SubscriptionId, v.(string))
 		}
-		input.Properties.MaintenanceConfigurationId = utils.String(maintenanceConfigId.ID())
+		input.Properties.MaintenanceConfigurationId = pointer.To(maintenanceConfigId.ID())
 	}
 
 	input.Properties.CreateMode = pointer.To(databases.CreateMode(createMode.(string)))
@@ -306,7 +310,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.RestorePointInTime = pointer.To(v.(string))
 	}
 
-	skuName := d.Get("sku_name").(string)
 	if skuName != "" {
 		input.Sku = pointer.To(databases.Sku{
 			Name: skuName,
@@ -691,10 +694,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MsSql Database creation.")
-
-	// NOTE: Assign the PreferredEnclaveType the default value...
-	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
+	log.Printf("[INFO] preparing arguments for MsSql Database update")
 
 	skuName := d.Get("sku_name").(string)
 	if strings.HasPrefix(skuName, "GP_S_") && d.Get("license_type").(string) != "" {
@@ -710,7 +710,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, name)
 
-	_, err = client.Get(ctx, id, databases.DefaultGetOperationOptions())
+	existing, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+q", id, err)
 	}
@@ -718,6 +718,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	_, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %q", serverId, err)
+	}
+
+	existingEnclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
+	if model := existing.Model; model != nil && model.Properties != nil && model.Properties.PreferredEnclaveType != nil {
+		existingEnclaveType = *model.Properties.PreferredEnclaveType
 	}
 
 	// when disassociating mssql db from elastic pool, the sku_name must be specific
@@ -745,7 +750,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	defer locks.UnlockByID(id.ID())
 
 	if d.HasChange("sku_name") && skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, id, existingEnclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -824,6 +829,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("enclave_type") {
 		// NOTE: If the 'enclave_type' has changed, check to see if it was removed. If it was
 		// that means that we need to pass 'Default' as the value to the PATCH call...
+		enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
 		if _, n := d.GetChange("enclave_type"); n.(string) != "" {
 			enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
 		}
@@ -835,7 +841,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		props.PreferredEnclaveType = pointer.To(enclaveType)
+		// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Update if the 'sku_name' is a DW or DC-series SKU...
+		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
+			props.PreferredEnclaveType = pointer.To(enclaveType)
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -856,7 +865,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
 		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
-			props.MaxSizeBytes = utils.Int64(int64(v.(int)) * 1073741824)
+			props.MaxSizeBytes = pointer.To(int64(v.(int)) * 1073741824)
 		}
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
@@ -993,8 +1002,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			if err != nil {
 				return fmt.Errorf("while importing the BACPAC file into the new database %s: %+v", id.ID(), err)
 			}
-
-			d.SetId(id.ID())
 		}
 	}
 
@@ -1003,10 +1010,9 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		isEnabled := d.Get("geo_backup_enabled").(bool)
 		var geoBackupPolicyState geobackuppolicies.GeoBackupPolicyState
 
+		geoBackupPolicyState = geobackuppolicies.GeoBackupPolicyStateDisabled
 		if isEnabled {
 			geoBackupPolicyState = geobackuppolicies.GeoBackupPolicyStateEnabled
-		} else {
-			geoBackupPolicyState = geobackuppolicies.GeoBackupPolicyStateDisabled
 		}
 
 		geoBackupPolicy := geobackuppolicies.GeoBackupPolicy{
@@ -1163,7 +1169,7 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 		securityAlert := tdl[0].(map[string]interface{})
 
 		properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
-		properties.EmailAccountAdmins = utils.Bool(securityAlert["email_account_admins"].(string) == string(EmailAccountAdminsStatusEnabled))
+		properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins"].(string) == string(EmailAccountAdminsStatusEnabled))
 
 		if v, ok := securityAlert["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
@@ -1185,10 +1191,10 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 			properties.RetentionDays = pointer.To(int64(v.(int)))
 		}
 		if v, ok := securityAlert["storage_account_access_key"]; ok && v.(string) != "" {
-			properties.StorageAccountAccessKey = utils.String(v.(string))
+			properties.StorageAccountAccessKey = pointer.To(v.(string))
 		}
 		if v, ok := securityAlert["storage_endpoint"]; ok && v.(string) != "" {
-			properties.StorageEndpoint = utils.String(v.(string))
+			properties.StorageEndpoint = pointer.To(v.(string))
 		}
 
 		return policy
