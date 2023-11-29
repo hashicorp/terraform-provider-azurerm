@@ -38,23 +38,9 @@ func ParseRouteID(input string) (*RouteId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RouteId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RouteTableName, ok = parsed.Parsed["routeTableName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeTableName", *parsed)
-	}
-
-	if id.RouteName, ok = parsed.Parsed["routeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseRouteIDInsensitively(input string) (*RouteId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RouteId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RouteTableName, ok = parsed.Parsed["routeTableName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeTableName", *parsed)
-	}
-
-	if id.RouteName, ok = parsed.Parsed["routeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RouteId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RouteTableName, ok = input.Parsed["routeTableName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "routeTableName", input)
+	}
+
+	if id.RouteName, ok = input.Parsed["routeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "routeName", input)
+	}
+
+	return nil
 }
 
 // ValidateRouteID checks that 'input' can be parsed as a Route ID

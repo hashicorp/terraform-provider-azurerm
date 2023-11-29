@@ -36,19 +36,9 @@ func ParseApplicationGatewayWebApplicationFirewallPolicyID(input string) (*Appli
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationGatewayWebApplicationFirewallPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplicationGatewayWebApplicationFirewallPolicyName, ok = parsed.Parsed["applicationGatewayWebApplicationFirewallPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGatewayWebApplicationFirewallPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(input st
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationGatewayWebApplicationFirewallPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplicationGatewayWebApplicationFirewallPolicyName, ok = parsed.Parsed["applicationGatewayWebApplicationFirewallPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGatewayWebApplicationFirewallPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApplicationGatewayWebApplicationFirewallPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ApplicationGatewayWebApplicationFirewallPolicyName, ok = input.Parsed["applicationGatewayWebApplicationFirewallPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationGatewayWebApplicationFirewallPolicyName", input)
+	}
+
+	return nil
 }
 
 // ValidateApplicationGatewayWebApplicationFirewallPolicyID checks that 'input' can be parsed as a Application Gateway Web Application Firewall Policy ID
