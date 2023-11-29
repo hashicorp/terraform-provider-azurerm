@@ -34,15 +34,9 @@ func ParsePrivateLinkAssociationID(input string) (*PrivateLinkAssociationId, err
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkAssociationId{}
-
-	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
-	}
-
-	if id.PlaId, ok = parsed.Parsed["plaId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "plaId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParsePrivateLinkAssociationIDInsensitively(input string) (*PrivateLinkAssoc
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkAssociationId{}
-
-	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
-	}
-
-	if id.PlaId, ok = parsed.Parsed["plaId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "plaId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateLinkAssociationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.GroupId, ok = input.Parsed["groupId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "groupId", input)
+	}
+
+	if id.PlaId, ok = input.Parsed["plaId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "plaId", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateLinkAssociationID checks that 'input' can be parsed as a Private Link Association ID

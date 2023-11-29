@@ -38,23 +38,9 @@ func ParsePrivateEndpointConnectionProxyID(input string) (*PrivateEndpointConnec
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointConnectionProxyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountName", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionProxyId, ok = parsed.Parsed["privateEndpointConnectionProxyId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionProxyId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParsePrivateEndpointConnectionProxyIDInsensitively(input string) (*PrivateE
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointConnectionProxyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountName", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionProxyId, ok = parsed.Parsed["privateEndpointConnectionProxyId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionProxyId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateEndpointConnectionProxyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AccountName, ok = input.Parsed["accountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "accountName", input)
+	}
+
+	if id.PrivateEndpointConnectionProxyId, ok = input.Parsed["privateEndpointConnectionProxyId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionProxyId", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateEndpointConnectionProxyID checks that 'input' can be parsed as a Private Endpoint Connection Proxy ID

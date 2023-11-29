@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"           // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -20,7 +21,7 @@ import (
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
 // reading any replication links then attempting to discover and match the corresponding server/database resources for
 // the other end of the link.
-func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id parse.DatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []sql.ReplicationRole) ([]sql.Database, error) {
+func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id commonids.SqlDatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []sql.ReplicationRole) ([]sql.Database, error) {
 	var partnerDatabases []sql.Database
 
 	matchesRole := func(role sql.ReplicationRole) bool {
@@ -33,7 +34,8 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 	}
 
 	// TODO: Add lookup to make sure the secondary and primary databases have the same enclave type...
-	for linksIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, id.ResourceGroup, id.ServerName, id.Name); linksIterator.NotDone(); err = linksIterator.NextWithContext(ctx) {
+	for linksIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, id.ResourceGroupName, id.ServerName, id.DatabaseName); linksIterator.NotDone(); err = linksIterator.NextWithContext(ctx) {
+
 		if err != nil {
 			return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
 		}
@@ -94,8 +96,8 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 
 				// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
 				if matchesRole(linkPropsPossiblePartner.Role) {
-					partnerDatabaseId := parse.NewDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroup, partnerServerId.Name, *linkProps.PartnerDatabase)
-					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name)
+					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroup, partnerServerId.Name, *linkProps.PartnerDatabase)
+					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId.ResourceGroupName, partnerDatabaseId.ServerName, partnerDatabaseId.DatabaseName)
 					if err != nil {
 						return nil, fmt.Errorf("retrieving Partner %s: %+v", partnerDatabaseId, err)
 					}

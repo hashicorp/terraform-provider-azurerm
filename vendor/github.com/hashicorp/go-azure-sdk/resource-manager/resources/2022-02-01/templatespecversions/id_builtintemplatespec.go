@@ -32,11 +32,9 @@ func ParseBuiltInTemplateSpecID(input string) (*BuiltInTemplateSpecId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BuiltInTemplateSpecId{}
-
-	if id.BuiltInTemplateSpecName, ok = parsed.Parsed["builtInTemplateSpecName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseBuiltInTemplateSpecIDInsensitively(input string) (*BuiltInTemplateSpec
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BuiltInTemplateSpecId{}
-
-	if id.BuiltInTemplateSpecName, ok = parsed.Parsed["builtInTemplateSpecName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *BuiltInTemplateSpecId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.BuiltInTemplateSpecName, ok = input.Parsed["builtInTemplateSpecName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", input)
+	}
+
+	return nil
 }
 
 // ValidateBuiltInTemplateSpecID checks that 'input' can be parsed as a Built In Template Spec ID

@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -48,7 +47,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Delete: resourceMsSqlDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DatabaseID(id)
+			_, err := commonids.ParseSqlDatabaseID(id)
 			return err
 		}, resourceMsSqlDatabaseImporter),
 
@@ -88,7 +87,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	legacyreplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
-	id, err := parse.DatabaseID(d.Id())
+	id, err := commonids.ParseSqlDatabaseID(d.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +105,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	if len(partnerDatabases) > 0 {
 		partnerDatabase := partnerDatabases[0]
 
-		partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+		partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.ID)
 		if err != nil {
 			return nil, fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 		}
@@ -191,11 +190,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	legacyId, err := parse.DatabaseID(id.ID())
-	if err != nil {
-		return fmt.Errorf("parsing ID for Replication Partner Database %s: %+v", id, err)
-	}
-
 	// NOTE: Set the default value, if the field exists in the config the only value
 	// that it could be is 'VBS'...
 	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
@@ -204,14 +198,14 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if skuName := d.Get("sku_name"); skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
 
 		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.ID)
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 			}
@@ -222,14 +216,14 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Update the SKUs of any partner databases where deemed necessary
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.ID)
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 			}
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName.(string), *partnerDatabase.Sku.Name) {
-				future, err := legacyClient.Update(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name, sql.DatabaseUpdate{
+				future, err := legacyClient.Update(ctx, partnerDatabaseId.ResourceGroupName, partnerDatabaseId.ServerName, partnerDatabaseId.DatabaseName, sql.DatabaseUpdate{
 					Sku: &sql.Sku{
 						Name: utils.String(skuName.(string)),
 					},
@@ -515,7 +509,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := commonids.ParseDatabaseID(d.Id())
+	id, err := commonids.ParseSqlDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -750,20 +744,15 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	legacyId, err := parse.DatabaseID(id.ID())
-	if err != nil {
-		return fmt.Errorf("parsing ID for Replication Partner Database %s: %+v", id, err)
-	}
-
 	if d.HasChange("sku_name") && skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, *legacyId, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, legacyClient, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
 
 		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 		for _, v := range partnerDatabases {
-			id, err := parse.DatabaseID(pointer.From(v.ID))
+			id, err := commonids.ParseSqlDatabaseIDInsensitively(pointer.From(v.ID))
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", id.ID(), err)
 			}
@@ -774,14 +763,14 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Update the SKUs of any partner databases where deemed necessary
 		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := parse.DatabaseID(*partnerDatabase.ID)
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.ID)
 			if err != nil {
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.ID, err)
 			}
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != nil && helper.CompareDatabaseSkuServiceTiers(skuName, *partnerDatabase.Sku.Name) {
-				future, err := legacyClient.Update(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name, sql.DatabaseUpdate{
+				future, err := legacyClient.Update(ctx, partnerDatabaseId.ResourceGroupName, partnerDatabaseId.ServerName, partnerDatabaseId.DatabaseName, sql.DatabaseUpdate{
 					Sku: &sql.Sku{
 						Name: pointer.To(skuName),
 					},
@@ -1094,12 +1083,12 @@ func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := commonids.ParseDatabaseID(d.Id())
+	id, err := commonids.ParseSqlDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
@@ -1437,7 +1426,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			Computed:     true,
-			ValidateFunc: validate.DatabaseID,
+			ValidateFunc: commonids.ValidateSqlDatabaseID,
 		},
 
 		"storage_account_type": {

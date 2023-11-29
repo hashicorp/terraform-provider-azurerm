@@ -34,15 +34,9 @@ func ParseExpressRouteProviderPortID(input string) (*ExpressRouteProviderPortId,
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExpressRouteProviderPortId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ExpressRouteProviderPortName, ok = parsed.Parsed["expressRouteProviderPortName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteProviderPortName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseExpressRouteProviderPortIDInsensitively(input string) (*ExpressRoutePr
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExpressRouteProviderPortId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ExpressRouteProviderPortName, ok = parsed.Parsed["expressRouteProviderPortName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteProviderPortName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ExpressRouteProviderPortId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ExpressRouteProviderPortName, ok = input.Parsed["expressRouteProviderPortName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "expressRouteProviderPortName", input)
+	}
+
+	return nil
 }
 
 // ValidateExpressRouteProviderPortID checks that 'input' can be parsed as a Express Route Provider Port ID

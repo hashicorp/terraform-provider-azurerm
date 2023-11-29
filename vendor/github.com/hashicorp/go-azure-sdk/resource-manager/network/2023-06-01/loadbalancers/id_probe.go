@@ -38,23 +38,9 @@ func ParseProbeID(input string) (*ProbeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProbeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
-	}
-
-	if id.ProbeName, ok = parsed.Parsed["probeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "probeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseProbeIDInsensitively(input string) (*ProbeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProbeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
-	}
-
-	if id.ProbeName, ok = parsed.Parsed["probeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "probeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProbeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LoadBalancerName, ok = input.Parsed["loadBalancerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", input)
+	}
+
+	if id.ProbeName, ok = input.Parsed["probeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "probeName", input)
+	}
+
+	return nil
 }
 
 // ValidateProbeID checks that 'input' can be parsed as a Probe ID

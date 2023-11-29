@@ -40,27 +40,9 @@ func ParseApiDiagnosticID(input string) (*ApiDiagnosticId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApiDiagnosticId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.ApiId, ok = parsed.Parsed["apiId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "apiId", *parsed)
-	}
-
-	if id.DiagnosticId, ok = parsed.Parsed["diagnosticId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseApiDiagnosticIDInsensitively(input string) (*ApiDiagnosticId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApiDiagnosticId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.ApiId, ok = parsed.Parsed["apiId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "apiId", *parsed)
-	}
-
-	if id.DiagnosticId, ok = parsed.Parsed["diagnosticId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApiDiagnosticId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.ApiId, ok = input.Parsed["apiId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "apiId", input)
+	}
+
+	if id.DiagnosticId, ok = input.Parsed["diagnosticId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "diagnosticId", input)
+	}
+
+	return nil
 }
 
 // ValidateApiDiagnosticID checks that 'input' can be parsed as a Api Diagnostic ID

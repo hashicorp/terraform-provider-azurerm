@@ -38,23 +38,9 @@ func ParseSecurityAdminConfigurationID(input string) (*SecurityAdminConfiguratio
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SecurityAdminConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.SecurityAdminConfigurationName, ok = parsed.Parsed["securityAdminConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "securityAdminConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseSecurityAdminConfigurationIDInsensitively(input string) (*SecurityAdmi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SecurityAdminConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.SecurityAdminConfigurationName, ok = parsed.Parsed["securityAdminConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "securityAdminConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SecurityAdminConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkManagerName, ok = input.Parsed["networkManagerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", input)
+	}
+
+	if id.SecurityAdminConfigurationName, ok = input.Parsed["securityAdminConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "securityAdminConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateSecurityAdminConfigurationID checks that 'input' can be parsed as a Security Admin Configuration ID

@@ -34,15 +34,9 @@ func ParseLogProfileID(input string) (*LogProfileId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LogProfileId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LogProfileName, ok = parsed.Parsed["logProfileName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "logProfileName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseLogProfileIDInsensitively(input string) (*LogProfileId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LogProfileId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LogProfileName, ok = parsed.Parsed["logProfileName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "logProfileName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LogProfileId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LogProfileName, ok = input.Parsed["logProfileName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "logProfileName", input)
+	}
+
+	return nil
 }
 
 // ValidateLogProfileID checks that 'input' can be parsed as a Log Profile ID
