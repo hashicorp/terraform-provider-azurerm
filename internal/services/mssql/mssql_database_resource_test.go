@@ -794,7 +794,7 @@ func TestAccMsSqlDatabase_bacpac(t *testing.T) {
 }
 
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := commonids.ParseDatabaseID(state.ID)
+	id, err := commonids.ParseSqlDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
