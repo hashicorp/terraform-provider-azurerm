@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -221,13 +222,13 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	t := d.Get("tags").(map[string]interface{})
 
 	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
-	elasticPool := sql.ElasticPool{
+	elasticPool := elasticpools.ElasticPool{
 		Name:     &id.Name,
 		Location: &location,
 		Sku:      sku,
 		Tags:     tags.Expand(t),
-		ElasticPoolProperties: &sql.ElasticPoolProperties{
-			LicenseType:                sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
+		Properties: &elasticpools.ElasticPoolProperties{
+			LicenseType:                elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string)),
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:              utils.Bool(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationID: utils.String(maintenanceConfigId.ID()),
