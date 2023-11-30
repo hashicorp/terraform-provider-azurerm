@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_account` - cosmosdb version and capabilities can now be updated at the same time [GH-24029]
 * `azurerm_data_factory_flowlet_data_flow` - `source` and `sink` properties are now optional [GH-23987]
 * `azurerm_datadog_monitor_tag_rule` - correctly handle default rule [GH-22806]
+* `azurerm_app_configuration` - normalize location in `replica` block [GH-24074]
 
 FEATURES:
 
