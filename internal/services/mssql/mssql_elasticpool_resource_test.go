@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -305,20 +306,21 @@ func TestAccMsSqlElasticPool_vCoreToStandardDTU(t *testing.T) {
 }
 
 func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ElasticPoolID(state.ID)
+	id, err := commonids.ParseSqlElasticPoolID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ElasticPoolsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.MSSQL.ElasticPoolsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("SQL Elastic Pool %q (Server %q, Resource Group %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("SQL Elastic Pool %s does not exist", id)
 		}
-		return nil, fmt.Errorf("reading SQL Elastic Pool %q (Server %q, Resource Group %q): %v", id.Name, id.ServerName, id.ResourceGroup, err)
+
+		return nil, fmt.Errorf("reading SQL Elastic Pool %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model.Id != nil), nil
 }
 
 func (r MsSqlElasticPoolResource) basicDTU(data acceptance.TestData) string {

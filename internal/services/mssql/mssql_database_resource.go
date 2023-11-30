@@ -598,7 +598,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("ledger_enabled", ledgerEnabled)
 			d.Set("enclave_type", enclaveType)
 
-			if err := tags.FlattenAndSet(d, resp.Model.Tags); err != nil {
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
 			}
 		}
