@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_windows_web_app` - add support for dotnet 8 [GH-23893]
 * `azurerm_windows_web_app_slot` - add support for dotnet 8 [GH-23893]
 * `azurerm_media_transform` -  deprecate `face_detector_preset` and `video_analyzer_preset` [GH-24002]
+* `azurerm_postgresql_database` - update the validation of `collation` to include `Norwegian_Norway.1252` [GH-24070]
 
 
 BUG FIXES:
