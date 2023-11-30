@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -329,23 +328,6 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"container": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"resource_manager_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -353,7 +335,6 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	blobClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -397,14 +378,6 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if !hasWriteLock && !doesntHavePermissions {
 			return fmt.Errorf("listing Keys for %s: %+v", id, err)
 		}
-	}
-
-	containerResult, err := blobClient.ListComplete(ctx, id, blobcontainers.DefaultListOperationOptions())
-	if err != nil {
-		return fmt.Errorf("listing containers: %v", err)
-	}
-	if err := d.Set("container", flattenStorageAccountContainers(containerResult)); err != nil {
-		return fmt.Errorf("setting `container`: %v", err)
 	}
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -511,23 +484,4 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func flattenStorageAccountContainers(containers blobcontainers.ListCompleteResult) []interface{} {
-	var output []interface{}
-	for _, item := range containers.Items {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-		var id string
-		if item.Id != nil {
-			id = *item.Id
-		}
-		output = append(output, map[string]interface{}{
-			"name":                name,
-			"resource_manager_id": id,
-		})
-	}
-	return output
 }
