@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -71,18 +70,18 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 
 	id := parse.NewWorkspaceID(subscriptionId, securityCenterWorkspaceName)
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.WorkspaceSettingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
-		}
-	}
+	// if d.IsNewResource() {
+	// 	existing, err := client.Get(ctx, id.WorkspaceSettingName)
+	// 	if err != nil {
+	// 		if !utils.ResponseWasNotFound(existing.Response) {
+	// 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	// 		}
+	// 	}
+	//
+	// 	if !utils.ResponseWasNotFound(existing.Response) {
+	// 		return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
+	// 	}
+	// }
 
 	logAnalyticsWorkspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
