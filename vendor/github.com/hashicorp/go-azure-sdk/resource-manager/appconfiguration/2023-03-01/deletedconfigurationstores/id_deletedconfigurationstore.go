@@ -36,19 +36,9 @@ func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreI
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedConfigurationStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseDeletedConfigurationStoreIDInsensitively(input string) (*DeletedConfig
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedConfigurationStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeletedConfigurationStoreId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.DeletedConfigurationStoreName, ok = input.Parsed["deletedConfigurationStoreName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeletedConfigurationStoreID checks that 'input' can be parsed as a Deleted Configuration Store ID

@@ -131,6 +131,21 @@ func TestAccRedisCache_premiumShardedScaling(t *testing.T) {
 	})
 }
 
+func TestAccRedisCache_AadEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("redis_configuration.0.rdb_storage_connection_string"),
+	})
+}
+
 func TestAccRedisCache_BackupDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
@@ -704,6 +719,34 @@ resource "azurerm_redis_cache" "test" {
     maxfragmentationmemory_reserved = 1328
     maxmemory_delta                 = 1328
     maxmemory_policy                = "allkeys-lru"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RedisCacheResource) aadEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                          = "acctestRedis-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  capacity                      = 3
+  family                        = "P"
+  sku_name                      = "Premium"
+  enable_non_ssl_port           = false
+  public_network_access_enabled = false
+
+  redis_configuration {
+    active_directory_authentication_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

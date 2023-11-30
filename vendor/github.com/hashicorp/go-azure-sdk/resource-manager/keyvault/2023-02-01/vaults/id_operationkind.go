@@ -38,31 +38,9 @@ func ParseOperationKindID(input string) (*OperationKindId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OperationKindId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if v, ok := parsed.Parsed["operationKind"]; true {
-		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationKind", *parsed)
-		}
-
-		operationKind, err := parseAccessPolicyUpdateKind(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.OperationKind = *operationKind
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -77,34 +55,42 @@ func ParseOperationKindIDInsensitively(input string) (*OperationKindId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OperationKindId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
+	return &id, nil
+}
+
+func (id *OperationKindId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
 
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
 
-	if v, ok := parsed.Parsed["operationKind"]; true {
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	if v, ok := input.Parsed["operationKind"]; true {
 		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationKind", *parsed)
+			return resourceids.NewSegmentNotSpecifiedError(id, "operationKind", input)
 		}
 
 		operationKind, err := parseAccessPolicyUpdateKind(v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+			return fmt.Errorf("parsing %q: %+v", v, err)
 		}
 		id.OperationKind = *operationKind
 	}
 
-	return &id, nil
+	return nil
 }
 
 // ValidateOperationKindID checks that 'input' can be parsed as a Operation Kind ID

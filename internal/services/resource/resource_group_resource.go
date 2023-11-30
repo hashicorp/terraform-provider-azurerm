@@ -221,7 +221,7 @@ When that feature flag is set, Terraform will skip checking for any Resources wi
 delete this using the Azure API directly (which will clear up any nested resources).
 
 More information on the 'features' block can be found in the documentation:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 `, name, strings.Join(formattedResourceUris, "\n"))
 	return fmt.Errorf(strings.ReplaceAll(message, "'", "`"))
 }

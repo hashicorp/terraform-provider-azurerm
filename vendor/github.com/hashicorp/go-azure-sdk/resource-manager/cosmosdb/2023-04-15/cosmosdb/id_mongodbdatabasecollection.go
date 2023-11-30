@@ -40,27 +40,9 @@ func ParseMongodbDatabaseCollectionID(input string) (*MongodbDatabaseCollectionI
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MongodbDatabaseCollectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.MongodbDatabaseName, ok = parsed.Parsed["mongodbDatabaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mongodbDatabaseName", *parsed)
-	}
-
-	if id.CollectionName, ok = parsed.Parsed["collectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "collectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseMongodbDatabaseCollectionIDInsensitively(input string) (*MongodbDataba
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MongodbDatabaseCollectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.MongodbDatabaseName, ok = parsed.Parsed["mongodbDatabaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mongodbDatabaseName", *parsed)
-	}
-
-	if id.CollectionName, ok = parsed.Parsed["collectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "collectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *MongodbDatabaseCollectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DatabaseAccountName, ok = input.Parsed["databaseAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", input)
+	}
+
+	if id.MongodbDatabaseName, ok = input.Parsed["mongodbDatabaseName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mongodbDatabaseName", input)
+	}
+
+	if id.CollectionName, ok = input.Parsed["collectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "collectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateMongodbDatabaseCollectionID checks that 'input' can be parsed as a Mongodb Database Collection ID

@@ -463,7 +463,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		// make sure the key vault exists
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
 		if err != nil || keyVaultIdRaw == nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 		}
@@ -488,7 +489,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		// make sure the key vault exists
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
 		if err != nil || keyVaultIdRaw == nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 		}

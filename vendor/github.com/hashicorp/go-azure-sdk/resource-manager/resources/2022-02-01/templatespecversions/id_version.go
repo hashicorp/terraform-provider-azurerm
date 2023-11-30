@@ -34,15 +34,9 @@ func ParseVersionID(input string) (*VersionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VersionId{}
-
-	if id.BuiltInTemplateSpecName, ok = parsed.Parsed["builtInTemplateSpecName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", *parsed)
-	}
-
-	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseVersionIDInsensitively(input string) (*VersionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VersionId{}
-
-	if id.BuiltInTemplateSpecName, ok = parsed.Parsed["builtInTemplateSpecName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", *parsed)
-	}
-
-	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VersionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.BuiltInTemplateSpecName, ok = input.Parsed["builtInTemplateSpecName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", input)
+	}
+
+	if id.VersionName, ok = input.Parsed["versionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "versionName", input)
+	}
+
+	return nil
 }
 
 // ValidateVersionID checks that 'input' can be parsed as a Version ID
