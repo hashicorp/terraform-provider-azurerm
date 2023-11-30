@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_redis_cache` - support for the `active_directory_authentication_enabled` property [GH-23976]
 * `azurerm_windows_web_app` - add support for dotnet 8 [GH-23893]
 * `azurerm_windows_web_app_slot` - add support for dotnet 8 [GH-23893]
+* `azurerm_storage_account` -  add `name` validation in custom diff [GH-23799]
 
 BUG FIXES:
 
