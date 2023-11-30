@@ -1078,6 +1078,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"14",
 						"16",
 						"18", // preview LTS Support
+						"20",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1330,6 +1331,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"~14",
 						"~16",
 						"~18",
+						"~20",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",

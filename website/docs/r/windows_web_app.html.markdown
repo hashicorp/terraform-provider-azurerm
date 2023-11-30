@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Windows Web App be enabled? Defaults to `true`.
 
-* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
+* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `false`.
 
 * `https_only` - (Optional) Should the Windows Web App require HTTPS connections.
 
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`false`.
 
 ~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
@@ -166,7 +166,7 @@ An `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The tag of the container to be used. This value is required with `docker_container_name`.
 
-* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0` and `v7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0`, `v7.0` and `v8.0`.
 
 ~> **NOTE:** The Portal displayed values and the actual underlying API values differ for this setting, as follows:
 Portal Value | API value
@@ -175,6 +175,7 @@ ASP.NET V3.5 | v2.0
 ASP.NET V4.8 | v4.0
 .NET 6 (LTS) | v6.0
 .NET 7 (STS) | v7.0
+.NET 8 (LTS) | v8.0
 
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
 
