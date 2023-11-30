@@ -19,6 +19,24 @@ import (
 
 type SecurityCenterWorkspaceResource struct{}
 
+func TestAccSecurityCenterWorkspace_reset(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
+	r := SecurityCenterWorkspaceResource{}
+
+	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicCfg(data, scope),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue(scope),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	r := SecurityCenterWorkspaceResource{}
