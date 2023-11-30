@@ -134,14 +134,14 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if props := model.Properties; props != nil {
 			d.Set("max_size_gb", float64(*props.MaxSizeBytes/int64(1073741824)))
-			d.Set("max_size_bytes", props.MaxSizeBytes)
+			d.Set("max_size_bytes", *props.MaxSizeBytes)
 
-			d.Set("zone_redundant", props.ZoneRedundant)
-			d.Set("license_type", props.LicenseType)
+			d.Set("zone_redundant", *props.ZoneRedundant)
+			d.Set("license_type", *props.LicenseType)
 
 			if perDbSettings := props.PerDatabaseSettings; perDbSettings != nil {
-				d.Set("per_db_min_capacity", perDbSettings.MinCapacity)
-				d.Set("per_db_max_capacity", perDbSettings.MaxCapacity)
+				d.Set("per_db_min_capacity", *perDbSettings.MinCapacity)
+				d.Set("per_db_max_capacity", *perDbSettings.MaxCapacity)
 			}
 		}
 
