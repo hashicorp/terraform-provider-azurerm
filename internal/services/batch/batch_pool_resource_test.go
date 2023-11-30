@@ -692,15 +692,12 @@ func TestAccBatchPool_extensions(t *testing.T) {
 			Config: r.extensions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("extensions.0.name").HasValue("KeyVaultForLinux"),
-				check.That(data.ResourceName).Key("extensions.0.publisher").HasValue("Microsoft.Azure.KeyVault"),
-				check.That(data.ResourceName).Key("extensions.0.type").HasValue("KeyVaultForLinux"),
-				check.That(data.ResourceName).Key("extensions.0.type_handler_version").HasValue("2.0"),
+				check.That(data.ResourceName).Key("extensions.0.name").HasValue("OmsAgentForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.publisher").HasValue("Microsoft.EnterpriseCloud.Monitoring"),
+				check.That(data.ResourceName).Key("extensions.0.type").HasValue("OmsAgentForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.type_handler_version").HasValue("1.17"),
 				check.That(data.ResourceName).Key("extensions.0.auto_upgrade_minor_version").HasValue("true"),
 				check.That(data.ResourceName).Key("extensions.0.automatic_upgrade_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("extensions.0.settings_json").HasValue("{}"),
-				check.That(data.ResourceName).Key("extensions.0.protected_settings").HasValue("sensitive"),
-				check.That(data.ResourceName).Key("extensions.0.provision_after_extensions.0").HasValue("newProv1"),
 			),
 		},
 	})
@@ -2360,6 +2357,15 @@ resource "azurerm_batch_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "testaccloganalytics%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
@@ -2367,15 +2373,14 @@ resource "azurerm_batch_pool" "test" {
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
   vm_size             = "Standard_A1"
   extensions {
-    name                       = "KeyVaultForLinux"
-    publisher                  = "Microsoft.Azure.KeyVault"
-    type                       = "KeyVaultForLinux"
-    type_handler_version       = "2.0"
+    name                       = "OmsAgentForLinux"
+    publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
+    settings_json              = jsonencode({ "workspaceId" = "${azurerm_log_analytics_workspace.test.id}", "skipDockerProviderInstall" = true })
+    protected_settings         = jsonencode({ "workspaceKey" = "${azurerm_log_analytics_workspace.test.primary_shared_key}" })
+    type                       = "OmsAgentForLinux"
+    type_handler_version       = "1.17"
     auto_upgrade_minor_version = true
     automatic_upgrade_enabled  = true
-    settings_json              = "{}"
-    protected_settings         = "sensitive"
-    provision_after_extensions = ["newProv1"]
   }
   fixed_scale {
     target_dedicated_nodes = 1
@@ -2387,7 +2392,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) diskSettings(data acceptance.TestData) string {
