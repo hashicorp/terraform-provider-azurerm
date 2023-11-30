@@ -1848,7 +1848,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_auto_upgrade"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{}), nil),
+			Properties: expandKubernetesClusterMaintenanceConfigurationForCreate(maintenanceConfigRaw.([]interface{})),
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
@@ -1859,7 +1859,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_node_os"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{}), nil),
+			Properties: expandKubernetesClusterMaintenanceConfigurationForCreate(maintenanceConfigRaw.([]interface{})),
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
@@ -2508,7 +2508,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if existing.Model != nil {
 			existingProperties = existing.Model.Properties
 		}
-		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_auto_upgrade").([]interface{}), existingProperties)
+		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfigurationForUpdate(d.Get("maintenance_window_auto_upgrade").([]interface{}), existingProperties)
 		if maintenanceWindowProperties != nil {
 			parameters := maintenanceconfigurations.MaintenanceConfiguration{
 				Properties: maintenanceWindowProperties,
@@ -2534,7 +2534,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if existing.Model != nil {
 			existingProperties = existing.Model.Properties
 		}
-		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_node_os").([]interface{}), existingProperties)
+		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfigurationForUpdate(d.Get("maintenance_window_node_os").([]interface{}), existingProperties)
 		if maintenanceWindowProperties != nil {
 			parameters := maintenanceconfigurations.MaintenanceConfiguration{
 				Properties: maintenanceWindowProperties,
@@ -3975,7 +3975,69 @@ func expandKubernetesClusterMaintenanceConfigurationDefault(input []interface{})
 	}
 }
 
-func expandKubernetesClusterMaintenanceConfiguration(input []interface{}, existing *maintenanceconfigurations.MaintenanceConfigurationProperties) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+func expandKubernetesClusterMaintenanceConfigurationForCreate(input []interface{}) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	value := input[0].(map[string]interface{})
+
+	var schedule maintenanceconfigurations.Schedule
+
+	if value["frequency"] == "Daily" {
+		schedule = maintenanceconfigurations.Schedule{
+			Daily: &maintenanceconfigurations.DailySchedule{
+				IntervalDays: int64(value["interval"].(int)),
+			},
+		}
+	}
+	if value["frequency"] == "Weekly" {
+		schedule = maintenanceconfigurations.Schedule{
+			Weekly: &maintenanceconfigurations.WeeklySchedule{
+				IntervalWeeks: int64(value["interval"].(int)),
+				DayOfWeek:     maintenanceconfigurations.WeekDay(value["day_of_week"].(string)),
+			},
+		}
+	}
+	if value["frequency"] == "AbsoluteMonthly" {
+		schedule = maintenanceconfigurations.Schedule{
+			AbsoluteMonthly: &maintenanceconfigurations.AbsoluteMonthlySchedule{
+				DayOfMonth:     int64(value["day_of_month"].(int)),
+				IntervalMonths: int64(value["interval"].(int)),
+			},
+		}
+	}
+	if value["frequency"] == "RelativeMonthly" {
+		schedule = maintenanceconfigurations.Schedule{
+			RelativeMonthly: &maintenanceconfigurations.RelativeMonthlySchedule{
+				DayOfWeek:      maintenanceconfigurations.WeekDay(value["day_of_week"].(string)),
+				WeekIndex:      maintenanceconfigurations.Type(value["week_index"].(string)),
+				IntervalMonths: int64(value["interval"].(int)),
+			},
+		}
+	}
+
+	output := &maintenanceconfigurations.MaintenanceConfigurationProperties{
+		MaintenanceWindow: &maintenanceconfigurations.MaintenanceWindow{
+			StartTime:       value["start_time"].(string),
+			UtcOffset:       utils.String(value["utc_offset"].(string)),
+			NotAllowedDates: expandKubernetesClusterMaintenanceConfigurationDateSpans(value["not_allowed"].(*pluginsdk.Set).List()),
+			Schedule:        schedule,
+		},
+	}
+
+	if startDateRaw := value["start_date"]; startDateRaw != nil && startDateRaw.(string) != "" {
+		startDate, _ := time.Parse(time.RFC3339, startDateRaw.(string))
+		output.MaintenanceWindow.StartDate = utils.String(startDate.Format("2006-01-02"))
+	}
+
+	if duration := value["duration"]; duration != nil && duration.(int) != 0 {
+		output.MaintenanceWindow.DurationHours = int64(duration.(int))
+	}
+
+	return output
+}
+
+func expandKubernetesClusterMaintenanceConfigurationForUpdate(input []interface{}, existing *maintenanceconfigurations.MaintenanceConfigurationProperties) *maintenanceconfigurations.MaintenanceConfigurationProperties {
 	if len(input) == 0 {
 		return nil
 	}
