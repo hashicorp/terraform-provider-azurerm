@@ -771,6 +771,7 @@ func TestAccLinuxFunctionAppSlot_appStackNode(t *testing.T) {
 	})
 }
 
+// nolint: unparam
 func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}

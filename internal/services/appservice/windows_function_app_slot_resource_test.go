@@ -709,6 +709,7 @@ func TestAccWindowsFunctionAppSlot_appStackNode(t *testing.T) {
 	})
 }
 
+// nolint: unparam
 func TestAccWindowsFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}

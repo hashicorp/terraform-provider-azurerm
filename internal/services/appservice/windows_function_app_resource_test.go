@@ -1037,6 +1037,7 @@ func TestAccWindowsFunctionApp_appStackNode20(t *testing.T) {
 	})
 }
 
+// nolint: unparam
 func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}

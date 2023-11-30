@@ -175,13 +175,13 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"webdeploy_publish_basic_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			Default:  false,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			Default:  false,
 		},
 
 		"site_config": helpers.SiteConfigSchemaLinux(),
