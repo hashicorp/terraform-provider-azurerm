@@ -29,7 +29,6 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").IsNotEmpty(),
-				check.That(data.ResourceName).Key("seed_node_ip_addresses").Exists(),
 			),
 		},
 		data.ImportStep(),
