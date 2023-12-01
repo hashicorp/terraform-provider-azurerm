@@ -383,6 +383,21 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			if siteConfigAppSetting := siteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+				if webAppSlot.AppSettings == nil {
+					webAppSlot.AppSettings = make(map[string]string)
+				}
+				for _, pair := range *siteConfigAppSetting {
+					if pair.Name == nil || pair.Value == nil {
+						continue
+					}
+					if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+						webAppSlot.AppSettings[*pair.Name] = *pair.Value
+					}
+				}
+			}
 			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
