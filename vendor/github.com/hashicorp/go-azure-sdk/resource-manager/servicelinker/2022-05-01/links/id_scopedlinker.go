@@ -34,15 +34,9 @@ func ParseScopedLinkerID(input string) (*ScopedLinkerId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedLinkerId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.LinkerName, ok = parsed.Parsed["linkerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "linkerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedLinkerIDInsensitively(input string) (*ScopedLinkerId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedLinkerId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.LinkerName, ok = parsed.Parsed["linkerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "linkerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedLinkerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceUri, ok = input.Parsed["resourceUri"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", input)
+	}
+
+	if id.LinkerName, ok = input.Parsed["linkerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "linkerName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedLinkerID checks that 'input' can be parsed as a Scoped Linker ID

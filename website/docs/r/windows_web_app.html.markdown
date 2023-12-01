@@ -166,7 +166,7 @@ An `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The tag of the container to be used. This value is required with `docker_container_name`.
 
-* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0` and `v7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0`, `v7.0` and `v8.0`.
 
 ~> **NOTE:** The Portal displayed values and the actual underlying API values differ for this setting, as follows:
 Portal Value | API value
@@ -175,6 +175,7 @@ ASP.NET V3.5 | v2.0
 ASP.NET V4.8 | v4.0
 .NET 6 (LTS) | v6.0
 .NET 7 (STS) | v7.0
+.NET 8 (LTS) | v8.0
 
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
 

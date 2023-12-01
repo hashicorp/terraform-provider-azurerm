@@ -38,23 +38,9 @@ func ParseAccessPolicyAssignmentID(input string) (*AccessPolicyAssignmentId, err
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccessPolicyAssignmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RedisName, ok = parsed.Parsed["redisName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "redisName", *parsed)
-	}
-
-	if id.AccessPolicyAssignmentName, ok = parsed.Parsed["accessPolicyAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessPolicyAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseAccessPolicyAssignmentIDInsensitively(input string) (*AccessPolicyAssi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccessPolicyAssignmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RedisName, ok = parsed.Parsed["redisName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "redisName", *parsed)
-	}
-
-	if id.AccessPolicyAssignmentName, ok = parsed.Parsed["accessPolicyAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessPolicyAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AccessPolicyAssignmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RedisName, ok = input.Parsed["redisName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "redisName", input)
+	}
+
+	if id.AccessPolicyAssignmentName, ok = input.Parsed["accessPolicyAssignmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "accessPolicyAssignmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateAccessPolicyAssignmentID checks that 'input' can be parsed as a Access Policy Assignment ID

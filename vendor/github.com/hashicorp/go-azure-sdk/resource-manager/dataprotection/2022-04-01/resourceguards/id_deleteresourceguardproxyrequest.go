@@ -38,23 +38,9 @@ func ParseDeleteResourceGuardProxyRequestID(input string) (*DeleteResourceGuardP
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeleteResourceGuardProxyRequestId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
-	}
-
-	if id.DeleteResourceGuardProxyRequestName, ok = parsed.Parsed["deleteResourceGuardProxyRequestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteResourceGuardProxyRequestName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseDeleteResourceGuardProxyRequestIDInsensitively(input string) (*DeleteR
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeleteResourceGuardProxyRequestId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
-	}
-
-	if id.DeleteResourceGuardProxyRequestName, ok = parsed.Parsed["deleteResourceGuardProxyRequestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteResourceGuardProxyRequestName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeleteResourceGuardProxyRequestId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ResourceGuardName, ok = input.Parsed["resourceGuardName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", input)
+	}
+
+	if id.DeleteResourceGuardProxyRequestName, ok = input.Parsed["deleteResourceGuardProxyRequestName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deleteResourceGuardProxyRequestName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeleteResourceGuardProxyRequestID checks that 'input' can be parsed as a Delete Resource Guard Proxy Request ID

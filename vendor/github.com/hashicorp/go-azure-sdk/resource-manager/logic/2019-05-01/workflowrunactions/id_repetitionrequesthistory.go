@@ -44,35 +44,9 @@ func ParseRepetitionRequestHistoryID(input string) (*RepetitionRequestHistoryId,
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RepetitionRequestHistoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.RepetitionName, ok = parsed.Parsed["repetitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "repetitionName", *parsed)
-	}
-
-	if id.RequestHistoryName, ok = parsed.Parsed["requestHistoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -87,38 +61,46 @@ func ParseRepetitionRequestHistoryIDInsensitively(input string) (*RepetitionRequ
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RepetitionRequestHistoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.RepetitionName, ok = parsed.Parsed["repetitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "repetitionName", *parsed)
-	}
-
-	if id.RequestHistoryName, ok = parsed.Parsed["requestHistoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RepetitionRequestHistoryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkflowName, ok = input.Parsed["workflowName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workflowName", input)
+	}
+
+	if id.RunName, ok = input.Parsed["runName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "runName", input)
+	}
+
+	if id.ActionName, ok = input.Parsed["actionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "actionName", input)
+	}
+
+	if id.RepetitionName, ok = input.Parsed["repetitionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "repetitionName", input)
+	}
+
+	if id.RequestHistoryName, ok = input.Parsed["requestHistoryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", input)
+	}
+
+	return nil
 }
 
 // ValidateRepetitionRequestHistoryID checks that 'input' can be parsed as a Repetition Request History ID

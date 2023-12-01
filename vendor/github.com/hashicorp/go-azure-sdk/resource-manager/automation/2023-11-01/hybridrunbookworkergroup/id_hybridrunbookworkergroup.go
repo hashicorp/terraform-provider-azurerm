@@ -38,23 +38,9 @@ func ParseHybridRunbookWorkerGroupID(input string) (*HybridRunbookWorkerGroupId,
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HybridRunbookWorkerGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.HybridRunbookWorkerGroupName, ok = parsed.Parsed["hybridRunbookWorkerGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridRunbookWorkerGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseHybridRunbookWorkerGroupIDInsensitively(input string) (*HybridRunbookW
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HybridRunbookWorkerGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.HybridRunbookWorkerGroupName, ok = parsed.Parsed["hybridRunbookWorkerGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridRunbookWorkerGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *HybridRunbookWorkerGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutomationAccountName, ok = input.Parsed["automationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", input)
+	}
+
+	if id.HybridRunbookWorkerGroupName, ok = input.Parsed["hybridRunbookWorkerGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hybridRunbookWorkerGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateHybridRunbookWorkerGroupID checks that 'input' can be parsed as a Hybrid Runbook Worker Group ID

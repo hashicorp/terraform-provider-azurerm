@@ -30,10 +30,10 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 ## Logging into the Azure CLI
 
-~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note**: If you're using the **China** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
-az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
+az cloud set --name AzureChinaCloud|AzureUSGovernment
 ```
 
 ---

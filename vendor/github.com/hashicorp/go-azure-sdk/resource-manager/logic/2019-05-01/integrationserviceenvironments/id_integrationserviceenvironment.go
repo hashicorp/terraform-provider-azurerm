@@ -36,19 +36,9 @@ func ParseIntegrationServiceEnvironmentID(input string) (*IntegrationServiceEnvi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntegrationServiceEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.IntegrationServiceEnvironmentName, ok = parsed.Parsed["integrationServiceEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationServiceEnvironmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseIntegrationServiceEnvironmentIDInsensitively(input string) (*Integrati
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntegrationServiceEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.IntegrationServiceEnvironmentName, ok = parsed.Parsed["integrationServiceEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationServiceEnvironmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *IntegrationServiceEnvironmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroup, ok = input.Parsed["resourceGroup"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", input)
+	}
+
+	if id.IntegrationServiceEnvironmentName, ok = input.Parsed["integrationServiceEnvironmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "integrationServiceEnvironmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateIntegrationServiceEnvironmentID checks that 'input' can be parsed as a Integration Service Environment ID

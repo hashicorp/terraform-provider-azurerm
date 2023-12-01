@@ -32,11 +32,9 @@ func ParseVerifiedPartnerID(input string) (*VerifiedPartnerId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VerifiedPartnerId{}
-
-	if id.VerifiedPartnerName, ok = parsed.Parsed["verifiedPartnerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "verifiedPartnerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseVerifiedPartnerIDInsensitively(input string) (*VerifiedPartnerId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VerifiedPartnerId{}
-
-	if id.VerifiedPartnerName, ok = parsed.Parsed["verifiedPartnerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "verifiedPartnerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VerifiedPartnerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.VerifiedPartnerName, ok = input.Parsed["verifiedPartnerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "verifiedPartnerName", input)
+	}
+
+	return nil
 }
 
 // ValidateVerifiedPartnerID checks that 'input' can be parsed as a Verified Partner ID
