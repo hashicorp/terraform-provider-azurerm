@@ -34,12 +34,12 @@ The (simplified) Terraform configuration below provisions a cluster with workloa
 data "azurerm_subscription" "current" {}
 
 variable "workload_sa_name" {
-  type = string
+  type        = string
   description = "Kubernetes service account to permit"
 }
 
 variable "workload_sa_namespace" {
-  type = string
+  type        = string
   description = "Kubernetes service account namespace to permit"
 }
 
@@ -50,7 +50,7 @@ resource "azurerm_kubernetes_cluster" "mycluster" {
 
 resource "azurerm_user_assigned_identity" "myworkload_identity" {
   # ...
-  name                = "myworkloadidentity"
+  name = "myworkloadidentity"
 }
 
 resource "azurerm_federated_identity_credential" "myworkload_identity" {
