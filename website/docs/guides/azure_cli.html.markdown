@@ -24,7 +24,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 * Prior to version 1.20, the AzureRM Provider used a different method of authorizing via the Azure CLI where credentials reset after an hour - as such, we'd recommend upgrading to version 1.20 or later of the AzureRM Provider.
 * Terraform only supports authenticating using the `az` CLI (and this must be available on your PATH) - authenticating using the older `azure` CLI or PowerShell Cmdlets are not supported.
-* Prior to version 3.44, authenticating via the Azure CLI was only supported when using a User Account. For example via `az login --service-principal` was not supported and you had to use either a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html). From 3.44 upwards, authenticating via the Azure CLI is supported when using a Service Principal.
+* Prior to version 3.44, authenticating via the Azure CLI was only supported when using a User Account. For example `az login --service-principal` was not supported and you had to use either a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html). From 3.44 upwards, authenticating via the Azure CLI is supported when using a Service Principal or Managed Identity.
 
 ---
 
@@ -38,7 +38,7 @@ az cloud set --name AzureChinaCloud|AzureUSGovernment
 
 ---
 
-Firstly, login to the Azure CLI using one of the following options.
+Firstly, login to the Azure CLI using a User, Service Principal or Managed Identity.
 
 User Account:
 
