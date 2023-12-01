@@ -2,7 +2,6 @@ package dynatrace
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -10,11 +9,11 @@ import (
 func SchemaPlanData() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: map[string]*schema.Schema{
+			Schema: map[string]*pluginsdk.Schema{
 				"billing_cycle": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -26,13 +25,13 @@ func SchemaPlanData() *pluginsdk.Schema {
 
 				"effective_date": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.IsRFC3339Time,
 				},
 
 				"plan": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -52,38 +51,38 @@ func SchemaPlanData() *pluginsdk.Schema {
 func SchemaUserInfo() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: map[string]*schema.Schema{
+			Schema: map[string]*pluginsdk.Schema{
 				"country": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"email": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"first_name": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"last_name": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"phone_number": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},

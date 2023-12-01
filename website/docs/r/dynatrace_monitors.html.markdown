@@ -54,17 +54,23 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Dynatrace monitor should exist. Changing this forces a new resource to be created.
 
-* `identity_type` - (Optional) The kind of managed identity assigned to this resource. Possible values are `SystemAssigned`, `UserAssigned`. Changing this forces a new resource to be created.
+* `identity` - (Required) The kind of managed identity assigned to this resource.  A `identity` block as defined below.
 
 * `monitoring_status` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values aree `Enabled`, `Disabled`.
 
-* `marketplace_subscription_status` - (Optional) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active`, `Suspended`.
+* `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active`, `Suspended`.
 
-* `plan` - (Optional) Billing plan information. A `plan` block as defined below.
+* `plan` - (Required) Billing plan information. A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `user` - (Optional) User's information. A `user` block as defined below.
+* `user` - (Required) User's information. A `user` block as defined below. Chainging this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) The type of identity used for the resource. Only possible value is `SystemAssigned`.
 
 ---
 
@@ -72,9 +78,9 @@ A `plan` block supports the following:
 
 * `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY`, `WEEKLY`.
 
-* `effective_date` - (Optional) Date when plan was applied.
+* `effective_date` - (Required) Date when plan was applied.
 
-* `plan` - (Optional) Plan id as published by Dynatrace.
+* `plan` - (Required) Plan id as published by Dynatrace.
 
 * `usage_type` - (Optional) Different usage type. Possible values are `PAYG`, `COMMITTED`.
 
@@ -82,15 +88,15 @@ A `plan` block supports the following:
 
 A `user` block supports the following:
 
-* `country` - (Optional) Country of the user.
+* `country` - (Required) Country of the user.
 
-* `email` - (Optional) Email of the user used by Dynatrace for contacting them if needed.
+* `email` - (Required) Email of the user used by Dynatrace for contacting them if needed.
 
-* `first_name` - (Optional) First name of the user.
+* `first_name` - (Required) First name of the user.
 
-* `last_name` - (Optional) Last name of the user.
+* `last_name` - (Required) Last name of the user.
 
-* `phone_number` - (Optional) phone number of the user by Dynatrace for contacting them if needed.
+* `phone_number` - (Required) phone number of the user by Dynatrace for contacting them if needed.
 
 ## Attributes Reference
 

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorsResource struct{}
@@ -43,8 +43,16 @@ func TestAccDynatraceMonitors_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("user"),
 		{
 			Config: r.updated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user"),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -74,14 +82,14 @@ func (r MonitorsResource) Exists(ctx context.Context, client *clients.Client, st
 		return nil, err
 	}
 
-	resp, err := client.Dynatrace.MonitorClient.Get(ctx, *id)
+	resp, err := client.Dynatrace.MonitorsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r MonitorsResource) basic(data acceptance.TestData) string {
@@ -93,9 +101,9 @@ resource "azurerm_dynatrace_monitors" "test" {
   name                     = "acctestacc%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  identity_type            = "SystemAssigned"
-  monitoring_enabled       = true
   marketplace_subscription = "Active"
+
+
 
   user {
     first_name   = "Alice"
@@ -128,10 +136,12 @@ resource "azurerm_dynatrace_monitors" "test" {
   name                     = "acctestacc%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  identity_type            = "SystemAssigned"
-  monitoring_enabled       = true
+  monitoring_enabled       = false
   marketplace_subscription = "Active"
 
+  identity {
+    type = "SystemAssigned"
+  }
   user {
     first_name   = "Alice"
     last_name    = "Bobab"
