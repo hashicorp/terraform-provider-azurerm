@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,15 +21,15 @@ type MonitorsResource struct{}
 var _ sdk.ResourceWithUpdate = MonitorsResource{}
 
 type MonitorsResourceModel struct {
-	Name                          string            `tfschema:"name"`
-	ResourceGroup                 string            `tfschema:"resource_group_name"`
-	Location                      string            `tfschema:"location"`
-	MonitoringStatus              bool              `tfschema:"monitoring_enabled"`
-	MarketplaceSubscriptionStatus string            `tfschema:"marketplace_subscription"`
-	IdentityType                  string            `tfschema:"identity_type"`
-	PlanData                      []PlanData        `tfschema:"plan"`
-	UserInfo                      []UserInfo        `tfschema:"user"`
-	Tags                          map[string]string `tfschema:"tags"`
+	Name                          string                                     `tfschema:"name"`
+	ResourceGroup                 string                                     `tfschema:"resource_group_name"`
+	Location                      string                                     `tfschema:"location"`
+	MonitoringStatus              bool                                       `tfschema:"monitoring_enabled"`
+	MarketplaceSubscriptionStatus string                                     `tfschema:"marketplace_subscription"`
+	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PlanData                      []PlanData                                 `tfschema:"plan"`
+	UserInfo                      []UserInfo                                 `tfschema:"user"`
+	Tags                          map[string]string                          `tfschema:"tags"`
 }
 
 type PlanData struct {
@@ -47,8 +47,8 @@ type UserInfo struct {
 	PhoneNumber  string `tfschema:"phone_number"`
 }
 
-func (r MonitorsResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -60,17 +60,6 @@ func (r MonitorsResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"identity_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(identity.TypeSystemAssigned),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(identity.TypeSystemAssigned),
-				string(identity.TypeUserAssigned),
-			}, false),
-		},
-
 		"monitoring_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -80,13 +69,15 @@ func (r MonitorsResource) Arguments() map[string]*schema.Schema {
 
 		"marketplace_subscription": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Active",
 				"Suspended",
 			}, false),
 		},
+
+		"identity": commonschema.SystemAssignedIdentityRequired(),
 
 		"plan": SchemaPlanData(),
 
@@ -96,8 +87,8 @@ func (r MonitorsResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r MonitorsResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+func (r MonitorsResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r MonitorsResource) ModelObject() interface{} {
@@ -117,7 +108,7 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Dynatrace.MonitorClient
+			client := metadata.Client.Dynatrace.MonitorsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroup, model.Name)
 
@@ -141,12 +132,10 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				UserInfo:                      ExpandDynatraceUserInfo(model.UserInfo),
 			}
 
-			identity := monitors.IdentityProperties{
-				Type: monitors.ManagedIdentityType(model.IdentityType),
-			}
+			dynatraceIdentity, err := expandDynatraceIdentity(model.Identity)
 
 			monitor := monitors.MonitorResource{
-				Identity:   &identity,
+				Identity:   dynatraceIdentity,
 				Location:   model.Location,
 				Name:       &model.Name,
 				Properties: monitorsProps,
@@ -168,7 +157,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Dynatrace.MonitorClient
+			client := metadata.Client.Dynatrace.MonitorsClient
 			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -183,7 +172,10 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 			}
 			if model := resp.Model; model != nil {
 				props := model.Properties
-				identityProps := model.Identity
+				identityProps, err := flattenDynatraceIdentity(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening identity: %+v", err)
+				}
 				userInfo := metadata.ResourceData.Get("user").([]interface{})
 				monitoringStatus := true
 				if *props.MonitoringStatus == monitors.MonitoringStatusDisabled {
@@ -196,7 +188,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					Location:                      model.Location,
 					MonitoringStatus:              monitoringStatus,
 					MarketplaceSubscriptionStatus: string(*props.MarketplaceSubscriptionStatus),
-					IdentityType:                  string(identityProps.Type),
+					Identity:                      identityProps,
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),
 					UserInfo:                      FlattenDynatraceUserInfo(userInfo),
 				}
@@ -216,7 +208,7 @@ func (r MonitorsResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Dynatrace.MonitorClient
+			client := metadata.Client.Dynatrace.MonitorsClient
 			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -242,7 +234,7 @@ func (r MonitorsResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Dynatrace.MonitorClient
+			client := metadata.Client.Dynatrace.MonitorsClient
 			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -266,4 +258,45 @@ func (r MonitorsResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandDynatraceIdentity(input []identity.ModelSystemAssignedUserAssigned) (*monitors.IdentityProperties, error) {
+	config, err := identity.ExpandSystemAndUserAssignedMapFromModel(input)
+	if err != nil {
+		return nil, err
+	}
+
+	dynatraceIdentity := monitors.IdentityProperties{
+		Type: monitors.ManagedIdentityType(config.Type),
+	}
+
+	if string(config.Type) == string(monitors.ManagedIdentityTypeUserAssigned) || string(config.Type) == string(monitors.ManagedIdentityTypeSystemAndUserAssigned) {
+		userAssignedIdentities := make(map[string]monitors.UserAssignedIdentity)
+		for k := range config.IdentityIds {
+			userAssignedIdentities[k] = monitors.UserAssignedIdentity{
+				ClientId:    pointer.From(config.IdentityIds[k].ClientId),
+				PrincipalId: pointer.From(config.IdentityIds[k].PrincipalId),
+			}
+		}
+		dynatraceIdentity.UserAssignedIdentities = pointer.To(userAssignedIdentities)
+	}
+	return &dynatraceIdentity, nil
+}
+
+func flattenDynatraceIdentity(input *monitors.IdentityProperties) ([]identity.ModelSystemAssignedUserAssigned, error) {
+	if input == nil {
+		return nil, fmt.Errorf("flattening Dynatrace identity: input is nil")
+	}
+
+	var ids []string
+	for v := range pointer.From(input.UserAssignedIdentities) {
+		ids = append(ids, v)
+	}
+
+	return []identity.ModelSystemAssignedUserAssigned{
+		{
+			Type:        identity.Type(input.Type),
+			IdentityIds: ids,
+		},
+	}, nil
 }

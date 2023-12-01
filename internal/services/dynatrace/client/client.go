@@ -8,7 +8,7 @@ import (
 )
 
 type Client struct {
-	MonitorClient *monitors.MonitorsClient
+	*monitors.MonitorsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -19,6 +19,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(monitorClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		MonitorClient: monitorClient,
+		MonitorsClient: monitorClient,
 	}, nil
 }
