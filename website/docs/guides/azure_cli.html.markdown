@@ -24,7 +24,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 * Prior to version 1.20, the AzureRM Provider used a different method of authorizing via the Azure CLI where credentials reset after an hour - as such, we'd recommend upgrading to version 1.20 or later of the AzureRM Provider.
 * Terraform only supports authenticating using the `az` CLI (and this must be available on your PATH) - authenticating using the older `azure` CLI or PowerShell Cmdlets are not supported.
-* Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (for example via `az login --service-principal`) you should instead authenticate via the Service Principal directly (either using a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html)).
+* Prior to version 3.44, authenticating via the Azure CLI was only supported when using a User Account. For example via `az login --service-principal` was not supported and you had to use either a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html). From 3.44 upwards, authenticating via the Azure CLI is supported when using a Service Principal.
 
 ---
 
@@ -38,11 +38,43 @@ az cloud set --name AzureChinaCloud|AzureUSGovernment
 
 ---
 
-Firstly, login to the Azure CLI using:
+Firstly, login to the Azure CLI using one of the following options.
+
+User Account:
 
 ```shell
 az login
 ```
+
+Service Principal with a Secret:
+
+```shell
+az login --service-principal -u "CLIENT_ID" -p "CLIENT_SECRET" --tenant TENANT_ID
+```
+
+Service Principal with a Certificate:
+
+```shell
+az login --service-principal -u "CLIENT_ID" -p "CERTIFICATE_PEM" --tenant TENANT_ID
+```
+
+Service Principal with Open ID Connect (for use in CI / CD):
+
+```shell
+az login --service-principal -u "CLIENT_ID" --tenant TENANT_ID
+```
+
+Managed Identity:
+
+```shell
+az login --identity
+
+or
+
+az login --identity --username "CLIENT_ID"
+```
+
+---
 
 Once logged in - it's possible to list the Subscriptions associated with the account via:
 
