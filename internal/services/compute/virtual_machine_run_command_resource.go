@@ -402,6 +402,7 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// the resource still exists if polling fails
 			metadata.SetID(id)
 
 			if err := result.Poller.PollUntilDone(ctx); err != nil {
