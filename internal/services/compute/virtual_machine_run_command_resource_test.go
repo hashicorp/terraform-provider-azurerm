@@ -6,6 +6,7 @@ package compute_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
@@ -45,6 +46,25 @@ func TestAccVirtualMachineRunCommand_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
+	r := VirtualMachineRunCommandTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.basicWithScriptError(data),
+			ExpectError: regexp.MustCompile("running the command"),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -183,6 +203,25 @@ resource "azurerm_virtual_machine_run_command" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r VirtualMachineRunCommandTestResource) basicWithScriptError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_machine_run_command" "test" {
+  name               = "acctestvmrc-${var.random_string}"
+  location           = azurerm_resource_group.test.location
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  source {
+    script = "echo1 'hello world'"
+  }
+}
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) sourceCommandId(data acceptance.TestData) string {

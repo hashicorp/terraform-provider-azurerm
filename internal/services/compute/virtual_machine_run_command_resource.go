@@ -403,8 +403,9 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
 			if err := result.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
+				return fmt.Errorf("running the command: %+v", err)
 			}
 
 			return nil
