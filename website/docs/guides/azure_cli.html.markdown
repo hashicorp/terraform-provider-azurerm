@@ -49,19 +49,19 @@ az login
 Service Principal with a Secret:
 
 ```shell
-az login --service-principal -u "CLIENT_ID" -p "CLIENT_SECRET" --tenant TENANT_ID
+az login --service-principal -u "CLIENT_ID" -p "CLIENT_SECRET" --tenant "TENANT_ID"
 ```
 
 Service Principal with a Certificate:
 
 ```shell
-az login --service-principal -u "CLIENT_ID" -p "CERTIFICATE_PEM" --tenant TENANT_ID
+az login --service-principal -u "CLIENT_ID" -p "CERTIFICATE_PEM" --tenant "TENANT_ID"
 ```
 
 Service Principal with Open ID Connect (for use in CI / CD):
 
 ```shell
-az login --service-principal -u "CLIENT_ID" --tenant TENANT_ID
+az login --service-principal -u "CLIENT_ID" --tenant "TENANT_ID"
 ```
 
 Managed Identity:
