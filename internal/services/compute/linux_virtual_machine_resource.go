@@ -407,6 +407,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 	}
 
 	if features.FourPointOhBeta() {
+		// disk_controller_type is optional+computed, which may cause a diff after upgrading the provider. Make it take effect in next major version.
 		resource.Schema["disk_controller_type"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
