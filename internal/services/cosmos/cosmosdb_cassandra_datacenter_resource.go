@@ -114,8 +114,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.IsIPv4Address,
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
