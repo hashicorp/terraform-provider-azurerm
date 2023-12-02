@@ -382,7 +382,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 		},
 		data.ImportStep("max_size_gb"),
 		{
-			Config: r.basicDTU(data, `encalve_type = "VBS"`),
+			Config: r.basicDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
@@ -542,6 +542,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   max_size_gb                    = %.7[6]f
   zone_redundant                 = %[9]t
   maintenance_configuration_name = "%[10]s"
+  %[11]s
 
   sku {
     name     = "%[3]s"
@@ -554,7 +555,7 @@ resource "azurerm_mssql_elasticpool" "test" {
     max_capacity = %[8]d
   }
 }
-`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant, configName)
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant, configName, enclaveType)
 }
 
 func (MsSqlElasticPoolResource) templateUpdateToDTU(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool, enclaveType string) string {
@@ -596,7 +597,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   server_name         = azurerm_mssql_server.test.name
   max_size_gb         = %.7[6]f
   zone_redundant      = %[9]t
-  %[10]s
+  %[11]s
 
   maintenance_configuration_name = "%[10]s"
 
