@@ -33,7 +33,6 @@ type Client struct {
 	DatabaseSecurityAlertPoliciesClient                *databasesecurityalertpolicies.DatabaseSecurityAlertPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 	DatabasesClient                                    *databases.DatabasesClient
-	LegacyDatabasesClient                              *sql.DatabasesClient
 	ElasticPoolsClient                                 *elasticpools.ElasticPoolsClient
 	EncryptionProtectorClient                          *sql.EncryptionProtectorsClient
 	FailoverGroupsClient                               *sql.FailoverGroupsClient
@@ -88,10 +87,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Databases Client: %+v", err)
 	}
 	o.Configure(databasesClient.Client, o.Authorizers.ResourceManager)
-
-	// NOTE: Remove once Azure Bug 2805551 ReplicationLink API ListByDatabase missed subsubcriptionId in partnerDatabaseId in response body has been released
-	legacyDatabasesClient := sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&legacyDatabasesClient.Client, o.ResourceManagerAuthorizer)
 
 	elasticPoolsClient, err := elasticpools.NewElasticPoolsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -232,7 +227,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualNetworkRulesClient:                          &virtualNetworkRulesClient,
 
 		// Legacy Clients
-		LegacyDatabasesClient:                   &legacyDatabasesClient,
 		LegacyServerSecurityAlertPoliciesClient: &legacyServerSecurityAlertPoliciesClient,
 		LegacyReplicationLinksClient:            &legacyReplicationLinksClient,
 

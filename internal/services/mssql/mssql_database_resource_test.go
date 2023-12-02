@@ -278,15 +278,28 @@ func TestAccMsSqlDatabase_createCopyMode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.createCopyMode(data),
+			Config: r.createCopyMode(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
 		data.ImportStep("create_mode", "creation_source_database_id"),
+	})
+}
+
+func TestAccMsSqlDatabase_createCopyModeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "copy")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.createCopyMode(data, ""),
+			ExpectError: regexp.MustCompile("specifying different 'enclave_type' properties for 'create_mode'"),
+		},
 	})
 }
 
@@ -1257,7 +1270,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) createCopyMode(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) createCopyMode(data acceptance.TestData, enclaveType string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1266,8 +1279,9 @@ resource "azurerm_mssql_database" "copy" {
   server_id                   = azurerm_mssql_server.test.id
   create_mode                 = "Copy"
   creation_source_database_id = azurerm_mssql_database.test.id
+  %[3]s
 }
-`, r.complete(data), data.RandomInteger)
+`, r.complete(data), data.RandomInteger, enclaveType)
 }
 
 func (r MsSqlDatabaseResource) createPITRMode(data acceptance.TestData, restorePointInTime string) string {
@@ -1308,6 +1322,7 @@ resource "azurerm_mssql_database" "secondary" {
   server_id                   = azurerm_mssql_server.second.id
   create_mode                 = "Secondary"
   creation_source_database_id = azurerm_mssql_database.test.id
+  enclave_type                = "VBS"
 
   tags = {
     tag = "%[4]s"
@@ -1339,6 +1354,7 @@ resource "azurerm_mssql_database" "secondary" {
   server_id                   = azurerm_mssql_server.second.id
   create_mode                 = "OnlineSecondary"
   creation_source_database_id = azurerm_mssql_database.test.id
+  enclave_type                = "VBS"
 
   tags = {
     tag = "%[4]s"
