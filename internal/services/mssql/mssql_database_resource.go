@@ -124,6 +124,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	legacyClient := meta.(*clients.Client).MSSQL.LegacyDatabasesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
+	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	databaseSecurityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
@@ -239,12 +240,36 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	// NOTE: If the database is being added to an elastic pool, we need to GET the elastic pool and check
+	// if the 'enclave_type' match. If they don't we need to raise an error stating that they must match.
+	elasticPoolId := d.Get("elastic_pool_id").(string)
+	if elasticPoolId != "" {
+		elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
+		if err != nil {
+			return err
+		}
+
+		elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %s", elasticId, err)
+		}
+
+		if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
+			elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+			databaseEnclaveType := string(enclaveType)
+
+			if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
+				return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+			}
+		}
+	}
+
 	input := databases.Database{
 		Location: location,
 		Properties: &databases.DatabaseProperties{
 			AutoPauseDelay:                   pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int))),
 			Collation:                        pointer.To(d.Get("collation").(string)),
-			ElasticPoolId:                    pointer.To(d.Get("elastic_pool_id").(string)),
+			ElasticPoolId:                    pointer.To(elasticPoolId),
 			LicenseType:                      pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string))),
 			MinCapacity:                      pointer.To(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
@@ -686,6 +711,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
 	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
@@ -844,6 +870,30 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Update if the 'sku_name' is a DW or DC-series SKU...
 		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
 			props.PreferredEnclaveType = pointer.To(enclaveType)
+		}
+
+		// NOTE: If the database belongs to an elastic pool, we need to GET the elastic pool and check
+		// if the updated 'enclave_type' matches the existing elastic pools 'enclave_type'. If they don't we need to raise an error stating that they must match.
+		elasticPoolId := d.Get("elastic_pool_id").(string)
+		if elasticPoolId != "" {
+			elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
+			if err != nil {
+				return err
+			}
+
+			elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %s", elasticId, err)
+			}
+
+			if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
+				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				databaseEnclaveType := string(enclaveType)
+
+				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
+					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+				}
+			}
 		}
 	}
 

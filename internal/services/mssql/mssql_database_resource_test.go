@@ -844,6 +844,36 @@ func TestAccMsSqlDatabase_enclaveTypeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_elasticPoolEnclaveTypeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.elasticPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("elastic_pool_id").Exists(),
+				check.That(data.ResourceName).Key("sku_name").HasValue("ElasticPool"),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.elasticPoolEnclaveTypeError(data),
+			ExpectError: regexp.MustCompile("Before updating a database that belongs to an elastic pool please ensure"),
+		},
+	})
+}
+
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlDatabaseID(state.ID)
 	if err != nil {
@@ -990,6 +1020,40 @@ resource "azurerm_mssql_database" "test" {
   server_id       = azurerm_mssql_server.test.id
   elastic_pool_id = azurerm_mssql_elasticpool.test.id
   sku_name        = "ElasticPool"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) elasticPoolEnclaveTypeError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+  max_size_gb         = 5
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%[2]d"
+  server_id       = azurerm_mssql_server.test.id
+  elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
+  enclave_type    = "VBS"
 }
 `, r.template(data), data.RandomInteger)
 }

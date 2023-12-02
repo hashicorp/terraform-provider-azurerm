@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -174,6 +175,18 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			// NOTE: The implementation of 'enclave_type' in the API differs slightly between database
+			// and elasticpools. Database does not allow the 'Default' value to be passed for DW or
+			// DC skus, where elasticpools allows 'Default' but will error if you try to set the
+			// 'enclave_type' to 'VBS' for DC skus...
+			"enclave_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(databases.AlwaysEncryptedEnclaveTypeVBS),
+				}, false),
+			},
+
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -223,6 +236,13 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := expandMsSqlElasticPoolSku(d)
 
+	// NOTE: Set the default value, if the field exists in the config the only value
+	// that it could be is 'VBS'...
+	enclaveType := elasticpools.AlwaysEncryptedEnclaveTypeDefault
+	if _, ok := d.GetOk("enclave_type"); ok {
+		enclaveType = elasticpools.AlwaysEncryptedEnclaveTypeVBS
+	}
+
 	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
 	elasticPool := elasticpools.ElasticPool{
 		Name:     pointer.To(id.ElasticPoolName),
@@ -232,6 +252,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Properties: &elasticpools.ElasticPoolProperties{
 			LicenseType:                pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
+			PreferredEnclaveType:       pointer.To(enclaveType),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
 		},
@@ -286,6 +307,14 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if props := model.Properties; props != nil {
+			enclaveType := ""
+
+			// NOTE: Always set the PreferredEnclaveType to an empty string unless it isn't 'Default'...
+			if v := props.PreferredEnclaveType; v != nil && pointer.From(v) != elasticpools.AlwaysEncryptedEnclaveTypeDefault {
+				enclaveType = string(pointer.From(v))
+			}
+			d.Set("enclave_type", enclaveType)
+
 			// Basic tier does not return max_size_bytes, so we need to skip setting this
 			// value if the pricing tier is equal to Basic
 			if tier, ok := d.GetOk("sku.0.tier"); ok {

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -88,8 +89,6 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": commonschema.TagsDataSource(),
-
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -99,6 +98,13 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"enclave_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -143,6 +149,12 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("per_db_min_capacity", *perDbSettings.MinCapacity)
 				d.Set("per_db_max_capacity", *perDbSettings.MaxCapacity)
 			}
+
+			enclaveType := ""
+			if props.PreferredEnclaveType != nil && *props.PreferredEnclaveType != elasticpools.AlwaysEncryptedEnclaveTypeDefault {
+				enclaveType = string(elasticpools.AlwaysEncryptedEnclaveTypeVBS)
+			}
+			d.Set("enclave_type", enclaveType)
 		}
 
 		tags.FlattenAndSet(d, model.Tags)
