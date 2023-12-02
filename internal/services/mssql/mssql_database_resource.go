@@ -71,9 +71,17 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
-				sku := d.Get("sku_name").(string)
-				if !strings.HasPrefix(sku, "DW") && !transparentDataEncryption {
+				skuName := d.Get("sku_name").(string)
+
+				if !strings.HasPrefix(skuName, "DW") && !transparentDataEncryption {
 					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
+				}
+
+				// NOTE: VBS enclaves are not supported by DW or DC skus...
+				if d.Get("enclave_type").(string) == string(databases.AlwaysEncryptedEnclaveTypeVBS) {
+					if strings.HasPrefix(strings.ToLower(skuName), "dw") || strings.Contains(strings.ToLower(skuName), "_dc_") {
+						return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", skuName)
+					}
 				}
 
 				return nil
@@ -339,13 +347,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Sku = pointer.To(databases.Sku{
 			Name: skuName,
 		})
-
-		// NOTE: VBS enclaves are not supported by DW or DC skus, should prolly add a CustomizeDiff to catch this in plan...
-		if enclaveType == databases.AlwaysEncryptedEnclaveTypeVBS {
-			if strings.HasPrefix(strings.ToLower(skuName), "dw") || strings.Contains(strings.ToLower(skuName), "_dc_") {
-				return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", skuName)
-			}
-		}
 	}
 
 	if v, ok := d.GetOk("creation_source_database_id"); ok {
@@ -858,13 +859,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
 		if _, n := d.GetChange("enclave_type"); n.(string) != "" {
 			enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
-		}
-
-		// NOTE: VBS enclaves are not supported by DW or DC skus...
-		if enclaveType == databases.AlwaysEncryptedEnclaveTypeVBS {
-			if strings.HasPrefix(strings.ToLower(skuName), "dw") || strings.Contains(strings.ToLower(skuName), "_dc_") {
-				return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", skuName)
-			}
 		}
 
 		// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Update if the 'sku_name' is a DW or DC-series SKU...

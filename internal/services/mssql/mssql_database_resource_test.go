@@ -959,7 +959,7 @@ resource "azurerm_mssql_database" "test" {
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
   enclave_type = "VBS"
- 
+
   maintenance_configuration_name = "%[3]s"
   storage_account_type           = "Local"
 
