@@ -295,7 +295,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	switch databases.CreateMode(createMode) {
 	case databases.CreateModeCopy, databases.CreateModePointInTimeRestore, databases.CreateModeSecondary, databases.CreateModeOnlineSecondary:
 		if creationSourceDatabaseId, dbok := d.GetOk("creation_source_database_id"); !dbok {
-			return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode)
+			return fmt.Errorf("'creation_source_database_id' is required for 'create_mode' %q", createMode)
 		} else {
 			// We need to make sure the enclave types match...
 			primaryDatabaseId, err := commonids.ParseSqlDatabaseID(creationSourceDatabaseId.(string))
@@ -353,7 +353,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
 		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(databases.CreateModePointInTimeRestore) {
-			return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
+			return fmt.Errorf("'restore_point_in_time' is supported only for 'create_mode' %q", string(databases.CreateModePointInTimeRestore))
 		}
 
 		input.Properties.RestorePointInTime = pointer.To(v.(string))

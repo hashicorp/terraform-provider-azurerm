@@ -342,7 +342,9 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		// SQL changes 'create_mode' to Default after creating the secondary and
+		// clears the 'creation_source_database_id' which will cause a diff...
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 		{
 			Config: r.createSecondaryMode(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -352,7 +354,7 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 	})
 }
 
@@ -370,7 +372,7 @@ func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name", "create_mode"),
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 		{
 			Config: r.createOnlineSecondaryMode(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -380,7 +382,7 @@ func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name", "create_mode"),
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 	})
 }
 
