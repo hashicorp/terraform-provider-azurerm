@@ -103,6 +103,10 @@ resource "azurerm_dynatrace_monitor" "test" {
   location                 = azurerm_resource_group.test.location
   marketplace_subscription = "Active"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   user {
     first_name   = "Alice"
     last_name    = "Bobab"
@@ -134,7 +138,6 @@ resource "azurerm_dynatrace_monitor" "test" {
   name                     = "acctestacc%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  monitoring_enabled       = false
   marketplace_subscription = "Active"
 
   identity {
