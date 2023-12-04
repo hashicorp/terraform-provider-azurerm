@@ -86,6 +86,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `name` - The name of the linked server.
 
+* `geo_replicated_primary_host_name` - The geo-replicated primary hostname for this linked server.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
