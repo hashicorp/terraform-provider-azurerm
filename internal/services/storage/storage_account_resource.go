@@ -3903,7 +3903,7 @@ func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceD
 		return err
 	}
 
-	if routingInputs != nil && *routingInputs.PublishInternetEndpoints {
+	if v := routingInputs; v != nil && v.PublishInternetEndpoints != nil && *v.PublishInternetEndpoints {
 		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Blob, "blob_internet"); err != nil {
 			return err
 		}
