@@ -2480,7 +2480,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     day_of_month = 5
     start_time   = "07:00"
     utc_offset   = "+01:00"
-    start_date  = "%[3]s"
+    start_date   = "%[3]s"
 
     not_allowed {
       end   = "%[4]s"
