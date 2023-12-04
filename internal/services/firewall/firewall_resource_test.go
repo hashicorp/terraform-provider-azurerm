@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -381,7 +381,7 @@ func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.Client.AzureFirewalls.Get(ctx, *id)
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Azure Firewall %s : %v", *id, err)
 	}
@@ -395,7 +395,7 @@ func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, st
 		return nil, err
 	}
 
-	if err = clients.Firewall.Client.AzureFirewalls.DeleteThenPoll(ctx, *id); err != nil {
+	if err = clients.Network.AzureFirewalls.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Azure Firewall %q: %+v", id.AzureFirewallName, err)
 	}
 

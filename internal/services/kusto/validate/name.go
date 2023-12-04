@@ -47,7 +47,7 @@ func EntityName(v interface{}, k string) (warnings []string, errors []error) {
 func ClusterName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 
-	if !regexp.MustCompile(`^[a-z][a-z0-9]+$`).MatchString(name) {
+	if !regexp.MustCompile(`^[a-z][a-z0-9\-]+$`).MatchString(name) {
 		errors = append(errors, fmt.Errorf("%q must begin with a letter and may only contain alphanumeric characters: %q", k, name))
 	}
 

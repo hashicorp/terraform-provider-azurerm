@@ -82,10 +82,11 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("rai_policy_name").HasValue("RAI policy"),
 			),
 		},
 		data.ImportStep(),
@@ -94,6 +95,7 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("rai_policy_name").HasValue("Microsoft.Default"),
 			),
 		},
 		data.ImportStep(),
@@ -134,7 +136,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "%s"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, kind)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, kind)
 }
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
@@ -196,7 +198,8 @@ resource "azurerm_cognitive_deployment" "test" {
   scale {
     type = "Standard"
   }
-  rai_policy_name = "RAI policy"
+  rai_policy_name        = "RAI policy"
+  version_upgrade_option = "OnceNewDefaultVersionAvailable"
 }
 `, template, data.RandomInteger)
 }
@@ -213,6 +216,7 @@ func (r CognitiveDeploymentTestResource) update(data acceptance.TestData) string
 resource "azurerm_cognitive_deployment" "test" {
   name                 = "acctest-cd-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
+  rai_policy_name      = "Microsoft.Default"
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"

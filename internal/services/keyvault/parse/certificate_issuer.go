@@ -7,11 +7,30 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
+
+var _ resourceids.Id = IssuerId{}
+
+func NewIssuerID(keyVaultBaseUrl, name string) IssuerId {
+	return IssuerId{
+		KeyVaultBaseUrl: keyVaultBaseUrl,
+		Name:            name,
+	}
+}
 
 type IssuerId struct {
 	KeyVaultBaseUrl string
 	Name            string
+}
+
+func (i IssuerId) ID() string {
+	return fmt.Sprintf("%s/certificates/issuers/%s", strings.TrimSuffix(i.KeyVaultBaseUrl, "/"), i.Name)
+}
+
+func (i IssuerId) String() string {
+	return fmt.Sprintf("Issuer %q (Key Vault Base URI %q)", i.Name, i.KeyVaultBaseUrl)
 }
 
 func IssuerID(id string) (*IssuerId, error) {

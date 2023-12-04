@@ -40,27 +40,9 @@ func ParseCloudEndpointID(input string) (*CloudEndpointId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CloudEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageSyncServiceName, ok = parsed.Parsed["storageSyncServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageSyncServiceName", *parsed)
-	}
-
-	if id.SyncGroupName, ok = parsed.Parsed["syncGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "syncGroupName", *parsed)
-	}
-
-	if id.CloudEndpointName, ok = parsed.Parsed["cloudEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudEndpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseCloudEndpointIDInsensitively(input string) (*CloudEndpointId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CloudEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageSyncServiceName, ok = parsed.Parsed["storageSyncServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageSyncServiceName", *parsed)
-	}
-
-	if id.SyncGroupName, ok = parsed.Parsed["syncGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "syncGroupName", *parsed)
-	}
-
-	if id.CloudEndpointName, ok = parsed.Parsed["cloudEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudEndpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CloudEndpointId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StorageSyncServiceName, ok = input.Parsed["storageSyncServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageSyncServiceName", input)
+	}
+
+	if id.SyncGroupName, ok = input.Parsed["syncGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "syncGroupName", input)
+	}
+
+	if id.CloudEndpointName, ok = input.Parsed["cloudEndpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "cloudEndpointName", input)
+	}
+
+	return nil
 }
 
 // ValidateCloudEndpointID checks that 'input' can be parsed as a Cloud Endpoint ID

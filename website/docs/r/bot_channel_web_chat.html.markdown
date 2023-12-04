@@ -53,7 +53,7 @@ The following arguments are supported:
 
 ~> **NOTE:** `site_names` is deprecated and will be removed in favour of the property `site` in version 4.0 of the AzureRM Provider.
 
-* `site` - (Optional) A site represents a client application that you want to connect to your bot. Multiple `site` blocks may be defined as below
+* `site` - (Optional) A site represents a client application that you want to connect to your bot. One or more `site` blocks as defined below.
 
 ---
 

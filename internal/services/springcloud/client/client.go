@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-07-01-preview/appplatform"
+	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
@@ -30,7 +30,6 @@ type Client struct {
 	ConfigurationServiceClient   *appplatform.ConfigurationServicesClient
 	ContainerRegistryClient      *appplatform.ContainerRegistriesClient
 	CustomDomainsClient          *appplatform.CustomDomainsClient
-	CustomizedAcceleratorClient  *appplatform.CustomizedAcceleratorsClient
 	DevToolPortalClient          *appplatform.DevToolPortalsClient
 	GatewayClient                *appplatform.GatewaysClient
 	GatewayCustomDomainClient    *appplatform.GatewayCustomDomainsClient
@@ -94,9 +93,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	customDomainsClient := appplatform.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	customizedAcceleratorClient := appplatform.NewCustomizedAcceleratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&customizedAcceleratorClient.Client, o.ResourceManagerAuthorizer)
-
 	deploymentsClient := appplatform.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -143,7 +139,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ConfigurationServiceClient:   &configurationServiceClient,
 		ContainerRegistryClient:      &containerRegistryClient,
 		CustomDomainsClient:          &customDomainsClient,
-		CustomizedAcceleratorClient:  &customizedAcceleratorClient,
 		DeploymentsClient:            &deploymentsClient,
 		DevToolPortalClient:          &devToolPortalClient,
 		GatewayClient:                &gatewayClient,

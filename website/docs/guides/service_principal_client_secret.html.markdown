@@ -111,7 +111,7 @@ Once logged in as the Service Principal - we should be able to list the VM sizes
 az vm list-sizes --location westus
 ```
 
-~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
+~> **Note**: If you're using the **China** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
 
 ```shell
 az account list-locations

@@ -68,9 +68,9 @@ func resourceDataFactoryFlowletDataFlow() *pluginsdk.Resource {
 				},
 			},
 
-			"source": SchemaForDataFlowSourceAndSink(),
+			"source": SchemaForDataFlowletSourceAndSink(),
 
-			"sink": SchemaForDataFlowSourceAndSink(),
+			"sink": SchemaForDataFlowletSourceAndSink(),
 
 			"transformation": SchemaForDataFlowSourceTransformation(),
 

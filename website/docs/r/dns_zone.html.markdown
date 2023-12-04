@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `soa_record` - (Optional) An `soa_record` block as defined below. Changing this forces a new resource to be created.
+* `soa_record` - (Optional) An `soa_record` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

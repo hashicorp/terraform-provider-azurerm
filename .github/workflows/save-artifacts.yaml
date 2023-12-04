@@ -18,3 +18,4 @@ jobs:
         with:
           name: artifact
           path: wr_actions
+          retention-days: 1
