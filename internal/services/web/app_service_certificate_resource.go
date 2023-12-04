@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -61,13 +62,8 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
-	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	t := d.Get("tags").(map[string]interface{})
-
-	if pfxBlob == "" && keyVaultSecretId == "" {
-		return fmt.Errorf("Either `pfx_blob` or `key_vault_secret_id` must be set")
-	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -102,25 +98,35 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 		certificate.CertificateProperties.PfxBlob = &decodedPfxBlob
 	}
 
-	if keyVaultSecretId != "" {
-		parsedSecretId, err := keyVaultParse.ParseNestedItemID(keyVaultSecretId)
-		if err != nil {
-			return err
-		}
+	if !features.FourPointOhBeta() {
+		keyVaultSecretId := d.Get("key_vault_secret_id").(string)
+		if keyVaultSecretId != "" {
+			parsedSecretId, err := keyVaultParse.ParseNestedItemID(keyVaultSecretId)
+			if err != nil {
+				return err
+			}
 
-		keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
+			keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
 
-		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-		keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultBaseUrl)
-		if err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
-		}
-		if keyVaultId == nil {
-			return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
-		}
+			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+			keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultBaseUrl)
+			if err != nil {
+				return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
+			}
+			if keyVaultId == nil {
+				return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+			}
 
-		certificate.CertificateProperties.KeyVaultID = keyVaultId
-		certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
+			certificate.CertificateProperties.KeyVaultID = keyVaultId
+			certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
+		}
+	}
+
+	keyVaultId := d.Get("key_vault_id").(string)
+	keyVaultSecretName := d.Get("key_vault_secret_name").(string)
+	if keyVaultId != "" && keyVaultSecretName != "" {
+		certificate.CertificateProperties.KeyVaultID = utils.String(keyVaultId)
+		certificate.CertificateProperties.KeyVaultSecretName = utils.String(keyVaultSecretName)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificate); err != nil {
@@ -210,7 +216,7 @@ func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -236,15 +242,6 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			Sensitive:    true,
 			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
-		},
-
-		"key_vault_secret_id": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-			ValidateFunc:     keyVaultValidate.NestedItemId,
-			ConflictsWith:    []string{"pfx_blob", "password"},
 		},
 
 		"app_service_plan_id": {
@@ -298,4 +295,56 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
+
+	if !features.FourPointOhBeta() {
+		schema["key_vault_secret_id"] = &pluginsdk.Schema{
+			Deprecated:       "This property has been in favour of `key_vault_id` and `key_vault_secret_name` and will be removed in v4.0 of the provider",
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
+			ValidateFunc:     keyVaultValidate.NestedItemId,
+			ExactlyOneOf:     []string{"key_vault_id", "key_vault_secret_id", "pfx_blob"},
+			ConflictsWith:    []string{"password"},
+		}
+
+		schema["key_vault_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  commonids.ValidateKeyVaultID,
+			ExactlyOneOf:  []string{"key_vault_id", "key_vault_secret_id", "pfx_blob"},
+			ConflictsWith: []string{"password"},
+			RequiredWith:  []string{"key_vault_secret_name"},
+		}
+
+		schema["key_vault_secret_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyVaultValidate.NestedItemName,
+			RequiredWith: []string{"key_vault_id"},
+		}
+
+		schema["pfx_blob"].ExactlyOneOf = []string{"key_vault_secret_name", "key_vault_secret_id", "pfx_blob"}
+	} else {
+		schema["key_vault_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  commonids.ValidateKeyVaultID,
+			ExactlyOneOf:  []string{"key_vault_id", "pfx_blob"},
+			ConflictsWith: []string{"password"},
+			RequiredWith:  []string{"key_vault_secret_name"},
+		}
+
+		schema["key_vault_secret_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: keyVaultValidate.NestedItemName,
+			RequiredWith: []string{"key_vault_id"},
+		}
+
+		schema["pfx_blob"].ExactlyOneOf = []string{"key_vault_id", "pfx_blob"}
+	}
+
+	return schema
 }
