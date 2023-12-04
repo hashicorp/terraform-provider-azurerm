@@ -132,6 +132,9 @@ service/domain-services:
 service/elastic:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_cloud_elasticsearch((.|\n)*)###'
 
+service/elasticsan:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_san((.|\n)*)###'
+
 service/event-grid:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventgrid_((.|\n)*)###'
 

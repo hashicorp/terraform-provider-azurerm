@@ -67,6 +67,7 @@ import (
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	elastic "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
+	elasticsan "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
@@ -199,6 +200,7 @@ type Client struct {
 	Dns                   *dns_v2018_05_01.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
+	ElasticSan            *elasticsan.Client
 	EventGrid             *eventgrid_v2022_06_15.Client
 	Eventhub              *eventhub.Client
 	FluidRelay            *fluidrelay_2022_05_26.Client
@@ -416,6 +418,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Elastic, err = elastic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Elastic: %+v", err)
+	}
+	if client.ElasticSan, err = elasticsan.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ElasticSan: %+v", err)
 	}
 	if client.EventGrid, err = eventgrid.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for EventGrid: %+v", err)
