@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`. Changing this forces a new resource to be created.
 
+* `sku_tier` - (Optional) Specifies the SKU Tier for this Spring Cloud Service. Possible values are `Basic`, `Enterprise`, `Standard` and `StandardGen2`. Defaults to `Standard`. Changing this forces a new resource to be created.
+
 * `marketplace` - (Optional) A `marketplace` block as defined below. Can only be specified when `sku` is set to `E0`.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.

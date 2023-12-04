@@ -78,6 +78,19 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "Standard",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Basic",
+					"Enterprise",
+					"Standard",
+					"StandardGen2",
+				}, false),
+			},
+
 			"build_agent_pool_size": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -442,6 +455,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
+			Tier: utils.String(d.Get("sku_tier").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -751,6 +765,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
+		d.Set("sku_tier", resp.Sku.Tier)
 	}
 
 	d.Set("service_registry_enabled", serviceRegistryEnabled)
