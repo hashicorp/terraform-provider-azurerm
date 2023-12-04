@@ -324,7 +324,7 @@ func (r AutomationPowerShell72ModuleResource) Read() sdk.ResourceFunc {
 			output.AutomationAccountName = id.AutomationAccountName
 			output.ResourceGroupName = id.ResourceGroupName
 
-			return nil
+			return metadata.Encode(&output)
 		},
 	}
 }
