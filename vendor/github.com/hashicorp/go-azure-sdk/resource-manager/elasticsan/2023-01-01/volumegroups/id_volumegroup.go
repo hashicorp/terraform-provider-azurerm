@@ -38,23 +38,9 @@ func ParseVolumeGroupID(input string) (*VolumeGroupId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VolumeGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ElasticSanName, ok = parsed.Parsed["elasticSanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "elasticSanName", *parsed)
-	}
-
-	if id.VolumeGroupName, ok = parsed.Parsed["volumeGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseVolumeGroupIDInsensitively(input string) (*VolumeGroupId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VolumeGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ElasticSanName, ok = parsed.Parsed["elasticSanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "elasticSanName", *parsed)
-	}
-
-	if id.VolumeGroupName, ok = parsed.Parsed["volumeGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VolumeGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ElasticSanName, ok = input.Parsed["elasticSanName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "elasticSanName", input)
+	}
+
+	if id.VolumeGroupName, ok = input.Parsed["volumeGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "volumeGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateVolumeGroupID checks that 'input' can be parsed as a Volume Group ID
