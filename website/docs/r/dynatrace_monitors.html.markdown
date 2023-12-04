@@ -1,7 +1,7 @@
 ---
 subcategory: "Dynatrace"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dynatrace_monitors"
+page_title: "Azure Resource Manager: azurerm_dynatrace_monitor"
 description: |-
   Manages Dynatrace monitors.
 ---
@@ -19,13 +19,16 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_dynatrace_monitors" "example" {
+resource "azurerm_dynatrace_monitor" "example" {
   name                            = "exmpledynatracemonitor"
   resource_group_name             = azurerm_resource_group.example.name
   location                        = azurerm_resource_group.test.location
-  identity_type                   = "SystemAssigned"
   monitoring_status               = "Enabled"
   marketplace_subscription_status = "Active"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   user {
     first_name   = "Alice"
@@ -56,13 +59,13 @@ The following arguments are supported:
 
 * `identity` - (Required) The kind of managed identity assigned to this resource.  A `identity` block as defined below.
 
-* `monitoring_status` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values aree `Enabled`, `Disabled`.
-
 * `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active`, `Suspended`.
 
 * `plan` - (Required) Billing plan information. A `plan` block as defined below. Changing this forces a new resource to be created.
 
 * `user` - (Required) User's information. A `user` block as defined below. Chainging this forces a new resource to be created.
+
+* `monitoring_status` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are `Enabled`, `Disabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -118,5 +121,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Dynatrace monitor can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dynatrace_monitors.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Dynatrace.Observability/monitors/monitor1
+terraform import azurerm_dynatrace_monitor.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Dynatrace.Observability/monitors/monitor1
 ```

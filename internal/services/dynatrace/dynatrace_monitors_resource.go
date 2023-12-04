@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -21,15 +20,15 @@ type MonitorsResource struct{}
 var _ sdk.ResourceWithUpdate = MonitorsResource{}
 
 type MonitorsResourceModel struct {
-	Name                          string                                     `tfschema:"name"`
-	ResourceGroup                 string                                     `tfschema:"resource_group_name"`
-	Location                      string                                     `tfschema:"location"`
-	MonitoringStatus              bool                                       `tfschema:"monitoring_enabled"`
-	MarketplaceSubscriptionStatus string                                     `tfschema:"marketplace_subscription"`
-	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	PlanData                      []PlanData                                 `tfschema:"plan"`
-	UserInfo                      []UserInfo                                 `tfschema:"user"`
-	Tags                          map[string]string                          `tfschema:"tags"`
+	Name                          string                         `tfschema:"name"`
+	ResourceGroup                 string                         `tfschema:"resource_group_name"`
+	Location                      string                         `tfschema:"location"`
+	MonitoringStatus              bool                           `tfschema:"monitoring_enabled"`
+	MarketplaceSubscriptionStatus string                         `tfschema:"marketplace_subscription"`
+	Identity                      []identity.ModelSystemAssigned `tfschema:"identity"`
+	PlanData                      []PlanData                     `tfschema:"plan"`
+	UserInfo                      []UserInfo                     `tfschema:"user"`
+	Tags                          map[string]string              `tfschema:"tags"`
 }
 
 type PlanData struct {
@@ -96,7 +95,7 @@ func (r MonitorsResource) ModelObject() interface{} {
 }
 
 func (r MonitorsResource) ResourceType() string {
-	return "azurerm_dynatrace_monitors"
+	return "azurerm_dynatrace_monitor"
 }
 
 func (r MonitorsResource) Create() sdk.ResourceFunc {
@@ -133,6 +132,9 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 			}
 
 			dynatraceIdentity, err := expandDynatraceIdentity(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding identity: %+v", err)
+			}
 
 			monitor := monitors.MonitorResource{
 				Identity:   dynatraceIdentity,
@@ -260,8 +262,8 @@ func (r MonitorsResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func expandDynatraceIdentity(input []identity.ModelSystemAssignedUserAssigned) (*monitors.IdentityProperties, error) {
-	config, err := identity.ExpandSystemAndUserAssignedMapFromModel(input)
+func expandDynatraceIdentity(input []identity.ModelSystemAssigned) (*monitors.IdentityProperties, error) {
+	config, err := identity.ExpandSystemAssignedFromModel(input)
 	if err != nil {
 		return nil, err
 	}
@@ -270,33 +272,17 @@ func expandDynatraceIdentity(input []identity.ModelSystemAssignedUserAssigned) (
 		Type: monitors.ManagedIdentityType(config.Type),
 	}
 
-	if string(config.Type) == string(monitors.ManagedIdentityTypeUserAssigned) || string(config.Type) == string(monitors.ManagedIdentityTypeSystemAndUserAssigned) {
-		userAssignedIdentities := make(map[string]monitors.UserAssignedIdentity)
-		for k := range config.IdentityIds {
-			userAssignedIdentities[k] = monitors.UserAssignedIdentity{
-				ClientId:    pointer.From(config.IdentityIds[k].ClientId),
-				PrincipalId: pointer.From(config.IdentityIds[k].PrincipalId),
-			}
-		}
-		dynatraceIdentity.UserAssignedIdentities = pointer.To(userAssignedIdentities)
-	}
 	return &dynatraceIdentity, nil
 }
 
-func flattenDynatraceIdentity(input *monitors.IdentityProperties) ([]identity.ModelSystemAssignedUserAssigned, error) {
+func flattenDynatraceIdentity(input *monitors.IdentityProperties) ([]identity.ModelSystemAssigned, error) {
 	if input == nil {
 		return nil, fmt.Errorf("flattening Dynatrace identity: input is nil")
 	}
 
-	var ids []string
-	for v := range pointer.From(input.UserAssignedIdentities) {
-		ids = append(ids, v)
-	}
-
-	return []identity.ModelSystemAssignedUserAssigned{
+	return []identity.ModelSystemAssigned{
 		{
-			Type:        identity.Type(input.Type),
-			IdentityIds: ids,
+			Type: identity.Type(input.Type),
 		},
 	}, nil
 }
