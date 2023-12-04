@@ -268,6 +268,10 @@ func expandDynatraceIdentity(input []identity.ModelSystemAssigned) (*monitors.Id
 		return nil, err
 	}
 
+	if config.Type == identity.TypeNone {
+		return &monitors.IdentityProperties{}, nil
+	}
+
 	dynatraceIdentity := monitors.IdentityProperties{
 		Type: monitors.ManagedIdentityType(config.Type),
 	}
@@ -279,10 +283,19 @@ func flattenDynatraceIdentity(input *monitors.IdentityProperties) ([]identity.Mo
 	if input == nil {
 		return nil, fmt.Errorf("flattening Dynatrace identity: input is nil")
 	}
+	var identityProp identity.ModelSystemAssigned
+
+	identityProp.Type = identity.Type(input.Type)
+
+	if input.PrincipalId != nil {
+		identityProp.PrincipalId = *input.PrincipalId
+	}
+
+	if input.TenantId != nil {
+		identityProp.TenantId = *input.TenantId
+	}
 
 	return []identity.ModelSystemAssigned{
-		{
-			Type: identity.Type(input.Type),
-		},
+		identityProp,
 	}, nil
 }
