@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_storage_containers
 
-Use this data source to access information about an existing Storage Containers.
+Use this data source to access information about the existing Storage Containers within a Storage Account.
 
 ## Example Usage
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 ---
 
-* `name_prefix` - (Optional) A prefix match used for the Storage Container `name` field, case sensitive.
+* `name_prefix` - (Optional) A prefix match used for the Storage Container `name` field.
 
 ## Attributes Reference
 

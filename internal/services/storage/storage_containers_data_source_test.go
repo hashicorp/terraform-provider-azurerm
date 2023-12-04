@@ -11,7 +11,7 @@ import (
 
 type storageContainersDataSource struct{}
 
-func TestAccDataSourcestorageContainers_basic(t *testing.T) {
+func TestAccDataSourceStorageContainers_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_containers", "test")
 	d := storageContainersDataSource{}
 
@@ -41,7 +41,7 @@ func TestAccDataSourcestorageContainers_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourcestorageContainers_prefix(t *testing.T) {
+func TestAccDataSourceStorageContainers_prefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_containers", "test")
 	d := storageContainersDataSource{}
 

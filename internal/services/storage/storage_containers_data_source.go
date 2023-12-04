@@ -90,8 +90,10 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			// Ignore the error as is guaranteed by the schema
-			id, _ := commonids.ParseStorageAccountID(plan.StorageAccountId)
+			id, err := commonids.ParseStorageAccountID(plan.StorageAccountId)
+			if err != nil {
+				return err
+			}
 
 			resp, err := client.ListCompleteMatchingPredicate(ctx, *id, blobcontainers.DefaultListOperationOptions(), blobcontainers.ListContainerItemOperationPredicate{})
 			if err != nil {
