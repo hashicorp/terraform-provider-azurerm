@@ -557,6 +557,9 @@ func (r PacketCoreControlPlaneResource) Delete() sdk.ResourceFunc {
 				Refresh: func() (result interface{}, state string, err error) {
 					resp, err := client.Delete(ctx, *id)
 					if err != nil {
+						if resp.HttpResponse == nil {
+							return nil, "", fmt.Errorf("HTTP response was nil")
+						}
 						if resp.HttpResponse.StatusCode == http.StatusConflict {
 							return nil, "409", nil
 						}
