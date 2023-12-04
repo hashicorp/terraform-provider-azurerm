@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 # NOTE: this file is generated via 'make generate'
 bug:
   - 'panic:'

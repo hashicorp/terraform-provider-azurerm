@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 import jetbrains.buildServer.configs.kotlin.*
 
 version = "2023.05"

@@ -1,4 +1,7 @@
 #!/bin/bash -e
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 cd "$(dirname $0)"
 PATH=$HOME/go/bin:$PATH
 

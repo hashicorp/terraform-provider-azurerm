@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package autorest implements an HTTP request pipeline suitable for use across multiple go-routines
 and provides the shared routines relied on by AutoRest (see https://github.com/Azure/autorest/)

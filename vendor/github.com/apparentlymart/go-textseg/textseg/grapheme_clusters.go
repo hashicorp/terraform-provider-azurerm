@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 
 // line 1 "grapheme_clusters.rl"
 package textseg

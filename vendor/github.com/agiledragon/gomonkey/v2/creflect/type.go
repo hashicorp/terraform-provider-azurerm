@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Customized reflect package for gomonkey，copy most code from go/src/reflect/type.go
 
 package creflect
