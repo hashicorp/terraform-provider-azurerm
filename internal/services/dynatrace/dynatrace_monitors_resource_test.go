@@ -16,8 +16,8 @@ import (
 
 type MonitorsResource struct{}
 
-func TestAccDynatraceMonitors_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitors", "test")
+func TestAccDynatraceMonitor_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -32,8 +32,8 @@ func TestAccDynatraceMonitors_basic(t *testing.T) {
 	})
 }
 
-func TestAccDynatraceMonitors_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitors", "test")
+func TestAccDynatraceMonitor_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,8 +61,8 @@ func TestAccDynatraceMonitors_update(t *testing.T) {
 	})
 }
 
-func TestAccDynatraceMonitors_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitors", "test")
+func TestAccDynatraceMonitor_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -97,13 +97,11 @@ func (r MonitorsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_dynatrace_monitors" "test" {
+resource "azurerm_dynatrace_monitor" "test" {
   name                     = "acctestacc%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   marketplace_subscription = "Active"
-
-
 
   user {
     first_name   = "Alice"
@@ -132,7 +130,7 @@ func (r MonitorsResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_dynatrace_monitors" "test" {
+resource "azurerm_dynatrace_monitor" "test" {
   name                     = "acctestacc%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
@@ -170,13 +168,13 @@ func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dynatrace_monitors" "import" {
-  name                     = azurerm_dynatrace_monitors.test.name
+resource "azurerm_dynatrace_monitor" "import" {
+  name                     = azurerm_dynatrace_monitor.test.name
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  identity_type            = azurerm_dynatrace_monitors.test.identity_type
-  monitoring_enabled       = azurerm_dynatrace_monitors.test.monitoring_enabled
-  marketplace_subscription = azurerm_dynatrace_monitors.test.marketplace_subscription
+  identity_type            = azurerm_dynatrace_monitor.test.identity_type
+  monitoring_enabled       = azurerm_dynatrace_monitor.test.monitoring_enabled
+  marketplace_subscription = azurerm_dynatrace_monitor.test.marketplace_subscription
 }
 `, template)
 }
