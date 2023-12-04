@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -263,6 +264,20 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("dns_prefix").HasValue(dnsPrefix),
+			),
+		},
+	})
+}
+
+func TestAccKubernetesCluster_upgradeControlePlaneSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeSettings(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -740,4 +755,44 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) upgradeSettings(data acceptance.TestData, controlPlaneVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kubernetes_version  = %q
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  upgrade_settings {
+    controle_plane_upgrade_overrides = ["IgnoreKubernetesDeprecations"]
+    until                            = "%s" 
+  }
+}
+  `,
+		data.RandomInteger,
+		data.Locations.Primary,
+		data.RandomInteger,
+		controlPlaneVersion,
+		time.Now().UTC().Add(5*24*time.Hour).Format("2006-01-02T15:04:05Z")) // Until cannot be more than 30 days in the future
 }
