@@ -164,7 +164,6 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 												"parameters": {
 													Type:         pluginsdk.TypeString,
 													Optional:     true,
-													Sensitive:    true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
