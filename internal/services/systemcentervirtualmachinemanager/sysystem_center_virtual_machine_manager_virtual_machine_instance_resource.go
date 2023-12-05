@@ -3,6 +3,7 @@ package systemcentervirtualmachinemanager
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,10 +18,31 @@ import (
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceModel struct {
-	ScopeId                                             string      `tfschema:"scope_id"`
-	CustomLocationId                                    string      `tfschema:"custom_location_id"`
-	SystemCenterVirtualMachineManagerAvailabilitySetIds []string    `tfschema:"system_center_virtual_machine_manager_availability_set_id"`
-	OSProfile                                           []OSProfile `tfschema:"os_profile"`
+	ScopeId                                             string             `tfschema:"scope_id"`
+	CustomLocationId                                    string             `tfschema:"custom_location_id"`
+	SystemCenterVirtualMachineManagerAvailabilitySetIds []string           `tfschema:"system_center_virtual_machine_manager_availability_set_id"`
+	HardwareProfile                                     []HardwareProfile  `tfschema:"hardware_profile"`
+	NetworkInterfaces                                   []NetworkInterface `tfschema:"network_interface"`
+	OSProfile                                           []OSProfile        `tfschema:"os_profile"`
+}
+
+type HardwareProfile struct {
+	CpuCount                    int  `tfschema:"cpu_count"`
+	DynamicMemoryEnabled        bool `tfschema:"dynamic_memory_enabled"`
+	DynamicMemoryMaxInMb        int  `tfschema:"dynamic_memory_max_in_mb"`
+	DynamicMemoryMinInMb        int  `tfschema:"dynamic_memory_min_in_mb"`
+	LimitCpuForMigrationEnabled bool `tfschema:"limit_cpu_for_migration_enabled"`
+	MemoryInMb                  int  `tfschema:"memory_in_mb"`
+}
+
+type NetworkInterface struct {
+	id               string `tfschema:"id"`
+	name             string `tfschema:"name"`
+	VirtualNetworkId string `tfschema:"virtual_network_id"`
+	Ipv4AddressType  string `tfschema:"ipv4_address_type"`
+	Ipv6AddressType  string `tfschema:"ipv6_address_type"`
+	MacAddress       string `tfschema:"mac_address"`
+	MacAddressType   string `tfschema:"mac_address_type"`
 }
 
 type OSProfile struct {
@@ -59,6 +81,88 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"hardware_profile ": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cpu_count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"dynamic_memory_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"dynamic_memory_max_in_mb": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"dynamic_memory_min_in_mb": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"limit_cpu_for_migration_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"memory_in_mb": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
+
+		"network_interface": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"virtual_network_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"ipv4_address_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"ipv6_address_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"mac_address": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"mac_address_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
 		},
 
 		"os_profile": {
@@ -127,7 +231,11 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 				},
 				Properties: virtualmachineinstances.VirtualMachineInstanceProperties{
 					AvailabilitySets: expandVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds),
-					OsProfile:        expandVirtualMachineInstanceOSProfile(model.OSProfile),
+					HardwareProfile:  expandVirtualMachineInstanceHardwareProfileForCreate(model.HardwareProfile),
+					NetworkProfile: &virtualmachineinstances.NetworkProfile{
+						NetworkInterfaces: expandVirtualMachineInstanceNetworkInterfacesForCreate(model.NetworkInterfaces),
+					},
+					OsProfile: expandVirtualMachineInstanceOSProfile(model.OSProfile),
 				},
 			}
 
@@ -164,8 +272,13 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 			if model := resp.Model; model != nil {
 				state.ScopeId = id.ScopeId.Scope
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
+				state.HardwareProfile = flattenVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
 				state.OSProfile = flattenVirtualMachineInstanceOSProfile(model.Properties.OsProfile)
 				state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenVirtualMachineInstanceAvailabilitySets(model.Properties.AvailabilitySets)
+
+				if v := model.Properties.NetworkProfile; v != nil {
+					state.NetworkInterfaces = flattenVirtualMachineInstanceNetworkInterfaces(v.NetworkInterfaces)
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -195,6 +308,16 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 
 			if metadata.ResourceData.HasChange("system_center_virtual_machine_manager_availability_set_ids") {
 				parameters.Properties.AvailabilitySets = expandVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds)
+			}
+
+			if metadata.ResourceData.HasChange("hardware_profile") {
+				parameters.Properties.HardwareProfile = expandVirtualMachineInstanceHardwareProfileForUpdate(model.HardwareProfile)
+			}
+
+			if metadata.ResourceData.HasChange("network_interface") {
+				parameters.Properties.NetworkProfile = &virtualmachineinstances.NetworkProfileUpdate{
+					NetworkInterfaces: expandVirtualMachineInstanceNetworkInterfacesForUpdate(model.NetworkInterfaces),
+				}
 			}
 
 			if err := client.UpdateThenPoll(ctx, id.ScopeId, *parameters); err != nil {
@@ -227,6 +350,157 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete(
 			return nil
 		},
 	}
+}
+
+func expandVirtualMachineInstanceHardwareProfileForCreate(input []HardwareProfile) *virtualmachineinstances.HardwareProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	hardwareProfile := &input[0]
+
+	result := &virtualmachineinstances.HardwareProfile{
+		CpuCount:             pointer.To(int64(hardwareProfile.CpuCount)),
+		DynamicMemoryEnabled: pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(hardwareProfile.DynamicMemoryEnabled))),
+		DynamicMemoryMaxMB:   pointer.To(int64(hardwareProfile.DynamicMemoryMaxInMb)),
+		DynamicMemoryMinMB:   pointer.To(int64(hardwareProfile.DynamicMemoryMinInMb)),
+		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
+		MemoryMB:             pointer.To(int64(hardwareProfile.MemoryInMb)),
+	}
+
+	return result
+}
+
+func expandVirtualMachineInstanceHardwareProfileForUpdate(input []HardwareProfile) *virtualmachineinstances.HardwareProfileUpdate {
+	if len(input) == 0 {
+		return nil
+	}
+
+	hardwareProfile := &input[0]
+
+	result := &virtualmachineinstances.HardwareProfileUpdate{
+		CpuCount:             pointer.To(int64(hardwareProfile.CpuCount)),
+		DynamicMemoryEnabled: pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(hardwareProfile.DynamicMemoryEnabled))),
+		DynamicMemoryMaxMB:   pointer.To(int64(hardwareProfile.DynamicMemoryMaxInMb)),
+		DynamicMemoryMinMB:   pointer.To(int64(hardwareProfile.DynamicMemoryMinInMb)),
+		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
+		MemoryMB:             pointer.To(int64(hardwareProfile.MemoryInMb)),
+	}
+
+	return result
+}
+
+func flattenVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []HardwareProfile {
+	result := make([]HardwareProfile, 0)
+	if input == nil {
+		return result
+	}
+
+	hardwareProfile := HardwareProfile{}
+
+	if v := input.CpuCount; v != nil {
+		hardwareProfile.CpuCount = int(*v)
+	}
+
+	if v := input.DynamicMemoryEnabled; v != nil {
+		hardwareProfile.DynamicMemoryEnabled = *v == virtualmachineinstances.DynamicMemoryEnabledTrue
+	}
+
+	if v := input.DynamicMemoryMaxMB; v != nil {
+		hardwareProfile.DynamicMemoryMaxInMb = int(*v)
+	}
+
+	if v := input.DynamicMemoryMinMB; v != nil {
+		hardwareProfile.DynamicMemoryMinInMb = int(*v)
+	}
+
+	if v := input.LimitCPUForMigration; v != nil {
+		hardwareProfile.LimitCpuForMigrationEnabled = *v == virtualmachineinstances.LimitCPUForMigrationTrue
+	}
+
+	if v := input.MemoryMB; v != nil {
+		hardwareProfile.MemoryInMb = int(*v)
+	}
+
+	return append(result, hardwareProfile)
+}
+
+func expandVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
+	result := make([]virtualmachineinstances.NetworkInterface, 0)
+	if len(input) == 0 {
+		return &result
+	}
+
+	for _, v := range input {
+		networkInterface := virtualmachineinstances.NetworkInterface{
+			NicId:            pointer.To(v.id),
+			Name:             pointer.To(v.name),
+			VirtualNetworkId: pointer.To(v.VirtualNetworkId),
+			IPv4AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
+			IPv6AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
+			MacAddress:       pointer.To(v.MacAddress),
+			MacAddressType:   pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
+		}
+
+		result = append(result, networkInterface)
+	}
+
+	return &result
+}
+
+func expandVirtualMachineInstanceNetworkInterfacesForUpdate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterfaceUpdate {
+	result := make([]virtualmachineinstances.NetworkInterfaceUpdate, 0)
+	if len(input) == 0 {
+		return &result
+	}
+
+	for _, v := range input {
+		networkInterface := virtualmachineinstances.NetworkInterfaceUpdate{
+			NicId:            pointer.To(v.id),
+			Name:             pointer.To(v.name),
+			VirtualNetworkId: pointer.To(v.VirtualNetworkId),
+			IPv4AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
+			IPv6AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
+			MacAddress:       pointer.To(v.MacAddress),
+			MacAddressType:   pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
+		}
+
+		result = append(result, networkInterface)
+	}
+
+	return &result
+}
+
+func flattenVirtualMachineInstanceNetworkInterfaces(input *[]virtualmachineinstances.NetworkInterface) []NetworkInterface {
+	result := make([]NetworkInterface, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, item := range *input {
+		networkInterface := NetworkInterface{
+			id:               pointer.From(item.NicId),
+			name:             pointer.From(item.Name),
+			VirtualNetworkId: pointer.From(item.VirtualNetworkId),
+			MacAddress:       pointer.From(item.MacAddress),
+		}
+
+		if v := item.IPv4AddressType; v != nil {
+			networkInterface.Ipv4AddressType = string(*v)
+		}
+
+		if v := item.IPv6AddressType; v != nil {
+			networkInterface.Ipv6AddressType = string(*v)
+		}
+
+		if v := item.MacAddressType; v != nil {
+			networkInterface.MacAddressType = string(*v)
+		}
+
+		result = append(result, networkInterface)
+	}
+
+	return result
 }
 
 func expandVirtualMachineInstanceOSProfile(input []OSProfile) *virtualmachineinstances.OsProfileForVMInstance {
