@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -22,9 +23,9 @@ import (
 
 func resourceSpringCloudGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSpringCloudGatewayCreateUpdate,
+		Create: resourceSpringCloudGatewayCreate,
 		Read:   resourceSpringCloudGatewayRead,
-		Update: resourceSpringCloudGatewayCreateUpdate,
+		Update: resourceSpringCloudGatewayUpdate,
 		Delete: resourceSpringCloudGatewayDelete,
 
 		SchemaVersion: 1,
@@ -315,7 +316,8 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 		},
 	}
 }
-func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+
+func resourceSpringCloudGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.GatewayClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
@@ -328,16 +330,14 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 	id := parse.NewSpringCloudGatewayID(subscriptionId, springId.ResourceGroup, springId.SpringName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_gateway", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_gateway", id.ID())
 	}
 
 	service, err := servicesClient.Get(ctx, springId.ResourceGroup, springId.SpringName)
@@ -355,8 +355,8 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{})),
 			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{})),
 			EnvironmentVariables:  expandGatewayGatewayEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}), d.Get("sensitive_environment_variables").(map[string]interface{})),
-			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
-			Public:                utils.Bool(d.Get("public_network_access_enabled").(bool)),
+			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
+			Public:                pointer.To(d.Get("public_network_access_enabled").(bool)),
 			ResourceRequests:      expandGatewayGatewayResourceRequests(d.Get("quota").([]interface{})),
 			SsoProperties:         expandGatewaySsoProperties(d.Get("sso").([]interface{})),
 		},
@@ -365,6 +365,96 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			Tier:     service.Sku.Tier,
 			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
 		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, gatewayResource)
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceSpringCloudGatewayRead(d, meta)
+}
+
+func resourceSpringCloudGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).AppPlatform.GatewayClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	springId, err := parse.SpringCloudServiceID(d.Get("spring_cloud_service_id").(string))
+	if err != nil {
+		return err
+	}
+	id := parse.NewSpringCloudGatewayID(subscriptionId, springId.ResourceGroup, springId.SpringName, d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
+		}
+	}
+	if utils.ResponseWasNotFound(existing.Response) {
+		return fmt.Errorf("retreiving %s: resource was not found", id)
+	}
+
+	if existing.Properties == nil {
+		return fmt.Errorf("retreiving %s: properties was nil", id)
+	}
+	properties := existing.Properties
+
+	if existing.Sku == nil {
+		return fmt.Errorf("retreiving %s: sku was nil", id)
+	}
+	sku := existing.Sku
+
+	if d.HasChange("client_authorization") {
+		properties.ClientAuth = expandGatewayClientAuth(d.Get("client_authorization").([]interface{}))
+	}
+
+	if d.HasChange("api_metadata") {
+		properties.APIMetadataProperties = expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{}))
+	}
+
+	if d.HasChange("application_performance_monitoring_types") {
+		properties.ApmTypes = expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{}))
+	}
+
+	if d.HasChange("cors") {
+		properties.CorsProperties = expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{}))
+	}
+
+	if d.HasChange("environment_variables") || d.HasChange("sensitive_environment_variables") {
+		properties.EnvironmentVariables = expandGatewayGatewayEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}), d.Get("sensitive_environment_variables").(map[string]interface{}))
+	}
+
+	if d.HasChange("https_only") {
+		properties.HTTPSOnly = pointer.To(d.Get("https_only").(bool))
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		properties.Public = pointer.To(d.Get("public_network_access_enabled").(bool))
+	}
+
+	if d.HasChange("quota") {
+		properties.ResourceRequests = expandGatewayGatewayResourceRequests(d.Get("quota").([]interface{}))
+	}
+
+	if d.HasChange("sso") {
+		properties.SsoProperties = expandGatewaySsoProperties(d.Get("sso").([]interface{}))
+	}
+
+	if d.HasChange("instance_count") {
+		sku.Capacity = pointer.To(int32(d.Get("instance_count").(int)))
+	}
+
+	gatewayResource := appplatform.GatewayResource{
+		Properties: properties,
+		Sku:        sku,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, gatewayResource)
