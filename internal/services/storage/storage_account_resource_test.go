@@ -959,6 +959,7 @@ func TestAccAzureRMStorageAccount_routing(t *testing.T) {
 			Config: r.routing(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_blob_microsoft_endpoint").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -966,6 +967,7 @@ func TestAccAzureRMStorageAccount_routing(t *testing.T) {
 			Config: r.routingUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_blob_internet_endpoint").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
