@@ -145,7 +145,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 			enclaveType := ""
 			if props.PreferredEnclaveType != nil && *props.PreferredEnclaveType != databases.AlwaysEncryptedEnclaveTypeDefault {
-				enclaveType = string(databases.AlwaysEncryptedEnclaveTypeVBS)
+				enclaveType = string(*props.PreferredEnclaveType)
 			}
 			d.Set("enclave_type", enclaveType)
 

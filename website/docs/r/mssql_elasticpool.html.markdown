@@ -34,7 +34,6 @@ resource "azurerm_mssql_elasticpool" "example" {
   server_name         = azurerm_mssql_server.example.name
   license_type        = "LicenseIncluded"
   max_size_gb         = 756
-  enclave_type        = "VBS"
 
   sku {
     name     = "BasicPool"

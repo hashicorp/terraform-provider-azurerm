@@ -239,8 +239,8 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	// NOTE: Set the default value, if the field exists in the config the only value
 	// that it could be is 'VBS'...
 	enclaveType := elasticpools.AlwaysEncryptedEnclaveTypeDefault
-	if _, ok := d.GetOk("enclave_type"); ok {
-		enclaveType = elasticpools.AlwaysEncryptedEnclaveTypeVBS
+	if v, ok := d.GetOk("enclave_type"); ok {
+		enclaveType = elasticpools.AlwaysEncryptedEnclaveType(v.(string))
 	}
 
 	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
