@@ -190,7 +190,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To32(int32(analyticalStorageTTL.(int)))
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -259,7 +259,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To32(int32(analyticalStorageTTL.(int)))
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -443,7 +443,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 				Keys: &[]string{"_ts"},
 			},
 			Options: &documentdb.MongoIndexOptions{
-				ExpireAfterSeconds: pointer.To32(int32(*defaultTtl)),
+				ExpireAfterSeconds: pointer.To(int32(*defaultTtl)),
 			},
 		})
 	}
