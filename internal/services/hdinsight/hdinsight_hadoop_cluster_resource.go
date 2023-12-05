@@ -164,6 +164,7 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 												"parameters": {
 													Type:         pluginsdk.TypeString,
 													Optional:     true,
+													Sensitive:    true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
@@ -462,7 +463,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if edgeNodeProps := edgeNode.Properties; edgeNodeProps != nil {
-			flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps)
+			flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps, d)
 		}
 
 		if props.DiskEncryptionProperties != nil {
@@ -512,7 +513,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationProperties) []interface{} {
+func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationProperties, d *pluginsdk.ResourceData) []interface{} {
 	if len(roles) == 0 || props == nil {
 		return roles
 	}
@@ -545,7 +546,7 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 		for _, action := range *installScriptActions {
 			actions["name"] = action.Name
 			actions["uri"] = action.URI
-			actions["parameters"] = action.Parameters
+			actions["parameters"] = d.Get("roles.0.edge_node.0.install_script_action.0.parameters").(string)
 		}
 	}
 
