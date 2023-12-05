@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ArmRoleDefinitionDataSource struct{}
+type RoleDefinitionDataSource struct{}
 
-var _ sdk.DataSource = ArmRoleDefinitionDataSource{}
+var _ sdk.DataSource = RoleDefinitionDataSource{}
 
-type ArmRoleDefinitionDataSourceModel struct {
+type RoleDefinitionDataSourceModel struct {
 	Name             string                      `tfschema:"name"`
 	RoleDefinitionId string                      `tfschema:"role_definition_id"`
 	Scope            string                      `tfschema:"scope"`
@@ -38,7 +38,7 @@ type PermissionDataSourceModel struct {
 	NotDataActions []string `tfschema:"not_data_actions"`
 }
 
-func (a ArmRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -70,7 +70,7 @@ func (a ArmRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (a ArmRoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -134,21 +134,21 @@ func (a ArmRoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (a ArmRoleDefinitionDataSource) ModelObject() interface{} {
-	return &ArmRoleDefinitionDataSourceModel{}
+func (a RoleDefinitionDataSource) ModelObject() interface{} {
+	return &RoleDefinitionDataSourceModel{}
 }
 
-func (a ArmRoleDefinitionDataSource) ResourceType() string {
+func (a RoleDefinitionDataSource) ResourceType() string {
 	return "azurerm_role_definition"
 }
 
-func (a ArmRoleDefinitionDataSource) Read() sdk.ResourceFunc {
+func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Authorization.RoleDefinitionsClient
 
-			var config ArmRoleDefinitionDataSourceModel
+			var config RoleDefinitionDataSourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
@@ -194,7 +194,7 @@ func (a ArmRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			state := ArmRoleDefinitionDataSourceModel{
+			state := RoleDefinitionDataSourceModel{
 				Scope:            id.Scope,
 				RoleDefinitionId: id.RoleID,
 			}
