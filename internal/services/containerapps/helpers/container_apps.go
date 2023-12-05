@@ -331,8 +331,9 @@ func ContainerAppIngressCustomDomainSchema() *pluginsdk.Schema {
 
 				"certificate_id": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: managedenvironments.ValidateCertificateID,
+					Description:  "The ID of the Certificate. Only to be passed when `certificate_binding_type` is set to `SniEnabled`",
 				},
 
 				"name": {
@@ -382,11 +383,16 @@ func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapp
 	result := make([]containerapps.CustomDomain, 0)
 	for _, v := range input {
 		customDomain := containerapps.CustomDomain{
-			Name:          v.Name,
-			CertificateId: pointer.To(v.CertificateId),
+			Name: v.Name,
 		}
 		bindingType := containerapps.BindingType(v.CertBinding)
 		customDomain.BindingType = &bindingType
+
+		// certificate_id is only need for sni domains according to
+		// https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+		if bindingType == containerapps.BindingTypeSniEnabled {
+			customDomain.CertificateId = pointer.To(v.CertificateId)
+		}
 
 		result = append(result, customDomain)
 	}

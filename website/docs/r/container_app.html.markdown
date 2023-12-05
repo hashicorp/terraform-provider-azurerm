@@ -355,7 +355,7 @@ A `custom_domain` block supports the following:
 
 * `certificate_binding_type` - (Optional) The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`.
 
-* `certificate_id` - (Required) The ID of the Container App Environment Certificate.
+* `certificate_id` - (Optional) The ID of the Container App Environment Certificate. Only to be passed when `certificate_binding_type` is set to `SniEnabled`.
 
 * `name` - (Required) The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
 
