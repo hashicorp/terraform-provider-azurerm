@@ -1396,6 +1396,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
 					string(managedclusters.ManagedClusterSKUTierStandard),
+					string(managedclusters.ManagedClusterSKUTierPremium),
 				}, false),
 			},
 
@@ -1437,6 +1438,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"support_plan": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
+					string(managedclusters.KubernetesSupportPlanAKSLongTermSupport),
+				}, false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -1813,6 +1824,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("disk_encryption_set_id"); ok && v.(string) != "" {
 		parameters.Properties.DiskEncryptionSetID = utils.String(v.(string))
+	}
+
+	if v := d.Get("support_plan").(string); v != "" {
+		parameters.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(v))
 	}
 
 	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
@@ -2312,6 +2327,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
+	}
+
+	if d.HasChange("support_plan") {
+		updateCluster = true
+		existing.Model.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(d.Get("support_plan").(string)))
 	}
 
 	if updateCluster {
@@ -2822,6 +2842,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
+
+			d.Set("support_plan", pointer.From(props.SupportPlan))
 		}
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
