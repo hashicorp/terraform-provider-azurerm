@@ -144,7 +144,7 @@ func resourceSpringCloudAPIPortalCreate(d *pluginsdk.ResourceData, meta interfac
 	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
@@ -153,10 +153,10 @@ func resourceSpringCloudAPIPortalCreate(d *pluginsdk.ResourceData, meta interfac
 
 	service, err := servicesClient.Get(ctx, springId.ResourceGroup, springId.SpringName)
 	if err != nil {
-		return fmt.Errorf("checking for presence of existing Spring Cloud Service %q (Resource Group %q): %+v", springId.SpringName, springId.ResourceGroup, err)
+		return fmt.Errorf("checking for presence of existing %s: %+v", springId, err)
 	}
 	if service.Sku == nil || service.Sku.Name == nil || service.Sku.Tier == nil {
-		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", springId.SpringName, springId.ResourceGroup)
+		return fmt.Errorf("invalid `sku` for %s", springId)
 	}
 
 	apiPortalResource := appplatform.APIPortalResource{
@@ -174,11 +174,11 @@ func resourceSpringCloudAPIPortalCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, apiPortalResource)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -200,20 +200,20 @@ func resourceSpringCloudAPIPortalUpdate(d *pluginsdk.ResourceData, meta interfac
 	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("retreiving %s: %+v", id, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 	}
 	if utils.ResponseWasNotFound(existing.Response) {
-		return fmt.Errorf("retreiving %s: resource was not found", id)
+		return fmt.Errorf("retrieving %s: resource was not found", id)
 	}
 
 	if existing.Properties == nil {
-		return fmt.Errorf("retreiving %s: properties are nil", id)
+		return fmt.Errorf("retrieving %s: properties are nil", id)
 	}
 	properties := existing.Properties
 
 	if existing.Sku == nil {
-		return fmt.Errorf("retreiving %s: sku is nil", id)
+		return fmt.Errorf("retrieving %s: sku is nil", id)
 	}
 	sku := existing.Sku
 
@@ -243,11 +243,11 @@ func resourceSpringCloudAPIPortalUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, apiPortalResource)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
