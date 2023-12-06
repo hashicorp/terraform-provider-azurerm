@@ -1,3 +1,9 @@
+## 3.84.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_virtual_network_gateway` - support for the `bgp_route_translation_for_nat_enabled`, `dns_forwarding_enabled`, `ip_sec_replay_protection_enabled`, `remote_vnet_traffic_enabled`, `virtual_wan_traffic_enabled`, `radius_server`, `virtual_network_gateway_client_connection`, `policy_group`, and `ipsec_policy` property [GH-23220]
+
 ## 3.83.0 (November 30, 2023)
 
 UPGRADE NOTES
