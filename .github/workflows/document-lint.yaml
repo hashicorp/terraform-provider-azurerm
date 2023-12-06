@@ -1,0 +1,31 @@
+---
+name: Resource Document Linting
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    types: ["opened", "synchronize"]
+    paths:
+      - ".github/workflows/document-lint.yaml"
+      - "internal/services/**"
+      - "website/**"
+    branches: ["main"]
+
+jobs:
+  document-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        with:
+          go-version-file: ./.go-version
+      - run: bash scripts/gogetcookie.sh
+      - run: make document-lint
+        continue-on-error: true
+      - name: check lint result
+        if: failure()
+        run: |
+            echo "::warning::Document linting failed. Please fix the issues."

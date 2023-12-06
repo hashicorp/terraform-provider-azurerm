@@ -34,15 +34,9 @@ func ParseLockID(input string) (*LockId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LockId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseLockIDInsensitively(input string) (*LockId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LockId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LockId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LockName, ok = input.Parsed["lockName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "lockName", input)
+	}
+
+	return nil
 }
 
 // ValidateLockID checks that 'input' can be parsed as a Lock ID

@@ -88,6 +88,8 @@ A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Healthcare Med Tech Service. Possible values are `SystemAssigned`.
 
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Healthcare Med Tech Service.
+
 ## Attributes Reference
 
 The following arguments are supported:

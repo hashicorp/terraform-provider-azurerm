@@ -38,23 +38,9 @@ func ParseTransformationID(input string) (*TransformationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TransformationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", *parsed)
-	}
-
-	if id.TransformationName, ok = parsed.Parsed["transformationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "transformationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseTransformationIDInsensitively(input string) (*TransformationId, error)
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TransformationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", *parsed)
-	}
-
-	if id.TransformationName, ok = parsed.Parsed["transformationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "transformationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TransformationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StreamingJobName, ok = input.Parsed["streamingJobName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", input)
+	}
+
+	if id.TransformationName, ok = input.Parsed["transformationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "transformationName", input)
+	}
+
+	return nil
 }
 
 // ValidateTransformationID checks that 'input' can be parsed as a Transformation ID

@@ -38,23 +38,9 @@ func ParseDataCenterID(input string) (*DataCenterId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataCenterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CassandraClusterName, ok = parsed.Parsed["cassandraClusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cassandraClusterName", *parsed)
-	}
-
-	if id.DataCenterName, ok = parsed.Parsed["dataCenterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCenterName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseDataCenterIDInsensitively(input string) (*DataCenterId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataCenterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CassandraClusterName, ok = parsed.Parsed["cassandraClusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cassandraClusterName", *parsed)
-	}
-
-	if id.DataCenterName, ok = parsed.Parsed["dataCenterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCenterName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DataCenterId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.CassandraClusterName, ok = input.Parsed["cassandraClusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "cassandraClusterName", input)
+	}
+
+	if id.DataCenterName, ok = input.Parsed["dataCenterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataCenterName", input)
+	}
+
+	return nil
 }
 
 // ValidateDataCenterID checks that 'input' can be parsed as a Data Center ID

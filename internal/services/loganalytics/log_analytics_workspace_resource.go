@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
@@ -85,6 +86,8 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
+
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"internet_ingestion_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -313,6 +316,14 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	if v, ok := d.GetOk("identity"); ok {
+		expanded, err := identity.ExpandSystemOrUserAssignedMap(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding identity: %+v", err)
+		}
+		parameters.Identity = expanded
+	}
+
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return err
@@ -381,6 +392,14 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
+		if model.Identity != nil {
+			flattenIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening identity: %+v", err)
+			}
+			d.Set("identity", flattenIdentity)
+		}
+
 		if props := model.Properties; props != nil {
 			internetIngestionEnabled := true
 			if props.PublicNetworkAccessForIngestion != nil {

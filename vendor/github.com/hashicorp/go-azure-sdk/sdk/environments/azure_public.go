@@ -21,6 +21,7 @@ func AzurePublic() *Environment {
 	env.MicrosoftGraph = MicrosoftGraphAPI("https://graph.microsoft.com")
 
 	env.ApiManagement = ApiManagementAPI("azure-api.net")
+	env.AppConfiguration = AppConfigurationAPI("azconfig.io")
 	env.Attestation = AttestationAPI("https://attest.azure.net")
 	env.Batch = BatchAPI("https://batch.core.windows.net")
 	env.CDNFrontDoor = CDNFrontDoorAPI("azurefd.net")

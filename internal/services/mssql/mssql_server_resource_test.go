@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -225,7 +228,7 @@ func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServer_updateAzureadAuthenticationOnlyWithIdentity(t *testing.T) {
+func TestAccMsSqlServer_azureadAuthenticationOnlyWithIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
@@ -239,6 +242,13 @@ func TestAccMsSqlServer_updateAzureadAuthenticationOnlyWithIdentity(t *testing.T
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.updateAzureadAuthenticationOnlyWithIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.updateAzureadAuthenticationOnlyWithIdentity(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -262,21 +272,52 @@ func TestAccMsSqlServer_TDECMKServerDeployment(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServer_CMKServerTagsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.CMKServerTags(data, "Sandbox"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.CMKServerTags(data, "Production"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.CMKServerNoTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.Name)
+
+	resp, err := client.MSSQL.ServersClient.Get(ctx, serverId, servers.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 		}
 		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MsSqlServerResource) basic(data acceptance.TestData) string {
@@ -768,6 +809,172 @@ resource "azurerm_mssql_server" "test" {
 }
 
 func (MsSqlServerResource) tdeCMKServerDeployment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity_2112"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "DaveLister"
+  administrator_login_password = "7h1515K4711"
+  minimum_tls_version          = "1.2"
+
+  azuread_administrator {
+    login_username = azurerm_user_assigned_identity.test.name
+    object_id      = azurerm_user_assigned_identity.test.principal_id
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  primary_user_assigned_identity_id            = azurerm_user_assigned_identity.test.id
+  transparent_data_encryption_key_vault_key_id = azurerm_key_vault_key.test.id
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "vault%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = true
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.test.tenant_id
+    object_id = data.azurerm_client_config.test.object_id
+
+    key_permissions = ["Get", "List", "Create", "Delete", "Update", "Recover", "Purge", "GetRotationPolicy"]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = ["Get", "WrapKey", "UnwrapKey"]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  depends_on = [azurerm_key_vault.test]
+
+  name         = "key-%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = ["unwrapKey", "wrapKey"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlServerResource) CMKServerTags(data acceptance.TestData, tag string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity_2112"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "DaveLister"
+  administrator_login_password = "7h1515K4711"
+  minimum_tls_version          = "1.2"
+
+  azuread_administrator {
+    login_username = azurerm_user_assigned_identity.test.name
+    object_id      = azurerm_user_assigned_identity.test.principal_id
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  primary_user_assigned_identity_id            = azurerm_user_assigned_identity.test.id
+  transparent_data_encryption_key_vault_key_id = azurerm_key_vault_key.test.id
+
+  tags = {
+    DB = "%[4]s"
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "vault%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = true
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.test.tenant_id
+    object_id = data.azurerm_client_config.test.object_id
+
+    key_permissions = ["Get", "List", "Create", "Delete", "Update", "Recover", "Purge", "GetRotationPolicy"]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = ["Get", "WrapKey", "UnwrapKey"]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  depends_on = [azurerm_key_vault.test]
+
+  name         = "key-%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = ["unwrapKey", "wrapKey"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tag)
+}
+
+func (MsSqlServerResource) CMKServerNoTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -38,23 +38,9 @@ func ParseLiveOutputOperationID(input string) (*LiveOutputOperationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LiveOutputOperationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.OperationId, ok = parsed.Parsed["operationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseLiveOutputOperationIDInsensitively(input string) (*LiveOutputOperation
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LiveOutputOperationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.OperationId, ok = parsed.Parsed["operationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LiveOutputOperationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MediaServiceName, ok = input.Parsed["mediaServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", input)
+	}
+
+	if id.OperationId, ok = input.Parsed["operationId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "operationId", input)
+	}
+
+	return nil
 }
 
 // ValidateLiveOutputOperationID checks that 'input' can be parsed as a Live Output Operation ID

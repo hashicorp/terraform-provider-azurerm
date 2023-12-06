@@ -129,7 +129,7 @@ A `custom_scale_rule` block supports the following:
 
 * `custom_rule_type` - (Required) The Custom rule type. Possible values include: `activemq`, `artemis-queue`, `kafka`, `pulsar`, `aws-cloudwatch`, `aws-dynamodb`, `aws-dynamodb-streams`, `aws-kinesis-stream`, `aws-sqs-queue`, `azure-app-insights`, `azure-blob`, `azure-data-explorer`, `azure-eventhub`, `azure-log-analytics`, `azure-monitor`, `azure-pipelines`, `azure-servicebus`, `azure-queue`, `cassandra`, `cpu`, `cron`, `datadog`, `elasticsearch`, `external`, `external-push`, `gcp-stackdriver`, `gcp-storage`, `gcp-pubsub`, `graphite`, `http`, `huawei-cloudeye`, `ibmmq`, `influxdb`, `kubernetes-workload`, `liiklus`, `memory`, `metrics-api`, `mongodb`, `mssql`, `mysql`, `nats-jetstream`, `stan`, `tcp`, `new-relic`, `openstack-metric`, `openstack-swift`, `postgresql`, `predictkube`, `prometheus`, `rabbitmq`, `redis`, `redis-cluster`, `redis-sentinel`, `redis-streams`, `redis-cluster-streams`, `redis-sentinel-streams`, `selenium-grid`,`solace-event-queue`, and `github-runner`.
 
-* `metadata`- (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
+* `metadata` - (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
@@ -139,7 +139,7 @@ A `http_scale_rule` block supports the following:
 
 * `name` - (Required) The name of the Scaling Rule
 
-* `concurrent_requests`- (Required) - The number of concurrent requests to trigger scaling.
+* `concurrent_requests` - (Required) - The number of concurrent requests to trigger scaling.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
@@ -149,7 +149,7 @@ A `tcp_scale_rule` block supports the following:
 
 * `name` - (Required) The name of the Scaling Rule
 
-* `concurrent_requests`- (Required) - The number of concurrent requests to trigger scaling.
+* `concurrent_requests` - (Required) - The number of concurrent requests to trigger scaling.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
@@ -169,7 +169,7 @@ A `volume` block supports the following:
 
 * `storage_name` - (Optional) The name of the `AzureFile` storage.
 
-* `storage_type` - (Optional) The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
+* `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
 
 ---
 
@@ -193,7 +193,7 @@ A `container` block supports the following:
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. 
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. 
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
@@ -223,7 +223,7 @@ A `liveness_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -295,7 +295,7 @@ A `startup_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -331,19 +331,23 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
-* `custom_domain` -  (Optional) One or more `custom_domain` block as detailed below.
+* `custom_domain` - (Optional) One or more `custom_domain` block as detailed below.
 
-* `fqdn` -  The FQDN of the ingress.
+* `fqdn` - The FQDN of the ingress.
 
 * `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
+ 
+* `exposed_port` - (Optional) The exposed port on the container for the Ingress traffic.
+
+~> **Note:** `exposed_port` can only be specified when `transport` is set to `tcp`.
 
 * `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
 
 ~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
 
-* `transport` - (Optional) The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
+* `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
 ---
 

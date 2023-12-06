@@ -12,8 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 )
 
 var (
@@ -111,7 +110,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (b
 	return true, nil
 }
 
-func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resourcesClient.Client, keyVaultBaseUrl string) (*string, error) {
+func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commonids.SubscriptionId, keyVaultBaseUrl string) (*string, error) {
 	keyVaultName, err := c.parseNameFromBaseUrl(keyVaultBaseUrl)
 	if err != nil {
 		return nil, err
@@ -126,53 +125,62 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
+	// Check the cache to determine if we have an entry for this key vault
 	if v, ok := keyVaultsCache[cacheKey]; ok {
 		return &v.keyVaultId, nil
 	}
 
-	filter := fmt.Sprintf("resourceType eq 'Microsoft.KeyVault/vaults' and name eq '%s'", *keyVaultName)
-	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", utils.Int32(5))
+	// Pull out the list of Key Vaults available within the Subscription to re-populate the cache
+	//
+	// Whilst we've historically used the Resources API to query the single Key Vault in question
+	// this endpoint has caching related issues - and whilst the ResourceGraph API has been suggested
+	// as an alternative that fixes this, we've seen similar caching issues there.
+	// Therefore, we're falling back on querying all the Key Vaults within the specified Subscription, which
+	// comes from the `KeyVault` Resource Provider rather than the `Resources` Resource Provider - which
+	// is an approach we've used previously, but now with better caching.
+	//
+	// Whilst querying ALL Key Vaults within a Subscription IS excessive where only a single Key Vault
+	// is used - having the cache populated (one-time, per Provider launch) should alleviate problems
+	// in Terraform Configurations defining a large number of Key Vault items.
+	//
+	// @tombuildsstuff: I vaguely recall the `ListBySubscription` API having a low rate limit (5x/second?)
+	// however the rate-limits defined here seem to apply only to Managed HSMs and not Key Vaults?
+	// https://learn.microsoft.com/en-us/azure/key-vault/general/service-limits
+	//
+	// Finally, it's worth noting that we intentionally List ALL the Key Vaults within a Subscription
+	// to be able to cache ALL of them - prior to looking up the specific Key Vault we're interested
+	// in from the freshly populated cache.
+	// This fixes an issue in the previous implementation where the Cache was being repeatedly semi-populated
+	// until the specified Key Vault was found, at which point we skipped populating the cache, which
+	// affected both the `Resources` API implementation:
+	// https://github.com/hashicorp/terraform-provider-azurerm/blob/3e88e5e74e12577d785f10298281b1b3c172254f/internal/services/keyvault/client/helpers.go#L133-L173
+	// and the `ListBySubscription` endpoint:
+	// https://github.com/hashicorp/terraform-provider-azurerm/blob/a5e728dc62e832e74d7bb0f40a79af0ae5a79e1e/azurerm/helpers/azure/key_vault.go#L42-L89
+	opts := vaults.DefaultListBySubscriptionOperationOptions()
+	results, err := c.VaultsClient.ListBySubscriptionComplete(ctx, subscriptionId, opts)
 	if err != nil {
-		return nil, fmt.Errorf("listing resources matching %q: %+v", filter, err)
+		return nil, fmt.Errorf("listing the Key Vaults within %s: %+v", subscriptionId, err)
 	}
-
-	for result.NotDone() {
-		for _, v := range result.Values() {
-			if v.ID == nil {
-				continue
-			}
-
-			id, err := commonids.ParseKeyVaultID(*v.ID)
-			if err != nil {
-				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
-			}
-			if !strings.EqualFold(id.VaultName, *keyVaultName) {
-				continue
-			}
-
-			resp, err := c.VaultsClient.Get(ctx, *id)
-			if err != nil {
-				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			vaultUri := ""
-			if model := resp.Model; model != nil {
-				if model.Properties.VaultUri != nil {
-					vaultUri = *model.Properties.VaultUri
-				}
-			}
-			if vaultUri == "" {
-				return nil, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", id)
-			}
-			c.AddToCache(*id, vaultUri)
-			return utils.String(id.ID()), nil
+	for _, item := range results.Items {
+		if item.Id == nil || item.Properties.VaultUri == nil {
+			continue
 		}
 
-		if err := result.NextWithContext(ctx); err != nil {
-			return nil, fmt.Errorf("iterating over results: %+v", err)
+		// Populate the key vault into the cache
+		keyVaultId, err := commonids.ParseKeyVaultIDInsensitively(*item.Id)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q as a Key Vault ID: %+v", *item.Id, err)
 		}
+		vaultUri := *item.Properties.VaultUri
+		c.AddToCache(*keyVaultId, vaultUri)
 	}
 
-	// we haven't found it, but Data Sources and Resources need to handle this error separately
+	// Now that the cache has been repopulated, check if we have the key vault or not
+	if v, ok := keyVaultsCache[cacheKey]; ok {
+		return &v.keyVaultId, nil
+	}
+
+	// We haven't found it, but Data Sources and Resources need to handle this error separately
 	return nil, nil
 }
 

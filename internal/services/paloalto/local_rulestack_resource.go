@@ -185,7 +185,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 			}
 
 			localRuleStack := localrulestacks.LocalRulestackResource{
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Properties: localrulestacks.RulestackProperties{
 					DefaultMode:      pointer.To(localrulestacks.DefaultModeNONE),
 					Description:      pointer.To(model.Description),

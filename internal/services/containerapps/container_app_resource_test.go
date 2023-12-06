@@ -264,6 +264,21 @@ func TestAccContainerAppResource_completeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_completeTcpExposedPort(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeTcpExposedPort(data, "rev1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -1559,6 +1574,40 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
+}
+
+func (r ContainerAppResource) completeTcpExposedPort(data acceptance.TestData, revisionSuffix string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    external_enabled = true
+    target_port      = 5000
+    exposed_port     = 5555
+    transport        = "tcp"
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.templateWithVnet(data), data.RandomInteger, revisionSuffix)
 }
 
 func (r ContainerAppResource) scaleRules(data acceptance.TestData) string {

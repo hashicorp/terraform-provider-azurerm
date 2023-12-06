@@ -11,10 +11,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	mssqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -123,7 +123,7 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(
 					validate.SqlPoolID,
 					validate.SqlPoolRecoverableDatabaseID,
-					mssqlValidate.DatabaseID,
+					commonids.ValidateSqlDatabaseID,
 					mssqlValidate.RecoverableDatabaseID,
 				),
 			},
@@ -149,7 +149,7 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.Any(
 								validate.SqlPoolID,
-								mssqlValidate.DatabaseID,
+								commonids.ValidateSqlDatabaseID,
 							),
 						},
 					},
@@ -524,5 +524,5 @@ func constructSourceDatabaseId(id string) string {
 		return id
 	}
 
-	return mssqlParse.NewDatabaseID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name).ID()
+	return commonids.NewSqlDatabaseID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name).ID()
 }

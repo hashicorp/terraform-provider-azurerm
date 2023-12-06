@@ -38,23 +38,9 @@ func ParsePrivateLinkResourceID(input string) (*PrivateLinkResourceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkResourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProvisioningServiceName, ok = parsed.Parsed["provisioningServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", *parsed)
-	}
-
-	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParsePrivateLinkResourceIDInsensitively(input string) (*PrivateLinkResource
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkResourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProvisioningServiceName, ok = parsed.Parsed["provisioningServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", *parsed)
-	}
-
-	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateLinkResourceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ProvisioningServiceName, ok = input.Parsed["provisioningServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", input)
+	}
+
+	if id.GroupId, ok = input.Parsed["groupId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "groupId", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateLinkResourceID checks that 'input' can be parsed as a Private Link Resource ID

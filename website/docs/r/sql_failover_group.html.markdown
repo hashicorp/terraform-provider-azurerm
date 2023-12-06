@@ -75,11 +75,11 @@ The following arguments are supported:
 
 -> **NOTE:** The failover group will create a secondary database for each database listed in `databases`. If the secondary databases need to be managed through Terraform, they should be defined as resources and a dependency added to the failover group to ensure the secondary databases are created first. Please refer to the detailed example which can be found in [the `./examples/sql-azure/failover_group` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/failover_group)
 
-* `partner_servers` - (Required) A list of secondary servers as documented below
+* `partner_servers` - (Required) A list of `partner_servers` blocks as documented below.
 
-* `read_write_endpoint_failover_policy` - (Required) A read/write policy as documented below
+* `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as documented below.
 
-* `readonly_endpoint_failover_policy` - (Optional) a read-only policy as documented below
+* `readonly_endpoint_failover_policy` - (Optional) A `readonly_endpoint_failover_policy` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

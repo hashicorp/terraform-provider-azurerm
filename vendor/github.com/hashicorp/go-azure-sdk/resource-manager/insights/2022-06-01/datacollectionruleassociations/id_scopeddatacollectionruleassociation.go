@@ -34,15 +34,9 @@ func ParseScopedDataCollectionRuleAssociationID(input string) (*ScopedDataCollec
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedDataCollectionRuleAssociationId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.DataCollectionRuleAssociationName, ok = parsed.Parsed["dataCollectionRuleAssociationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleAssociationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedDataCollectionRuleAssociationIDInsensitively(input string) (*Sco
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedDataCollectionRuleAssociationId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.DataCollectionRuleAssociationName, ok = parsed.Parsed["dataCollectionRuleAssociationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleAssociationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedDataCollectionRuleAssociationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceUri, ok = input.Parsed["resourceUri"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", input)
+	}
+
+	if id.DataCollectionRuleAssociationName, ok = input.Parsed["dataCollectionRuleAssociationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleAssociationName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedDataCollectionRuleAssociationID checks that 'input' can be parsed as a Scoped Data Collection Rule Association ID

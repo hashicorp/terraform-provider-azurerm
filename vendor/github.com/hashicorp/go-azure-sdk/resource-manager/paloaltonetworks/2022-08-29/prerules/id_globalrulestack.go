@@ -32,11 +32,9 @@ func ParseGlobalRulestackID(input string) (*GlobalRulestackId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := GlobalRulestackId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseGlobalRulestackIDInsensitively(input string) (*GlobalRulestackId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := GlobalRulestackId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *GlobalRulestackId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.GlobalRulestackName, ok = input.Parsed["globalRulestackName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", input)
+	}
+
+	return nil
 }
 
 // ValidateGlobalRulestackID checks that 'input' can be parsed as a Global Rulestack ID

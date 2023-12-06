@@ -74,13 +74,15 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`. Defaults to `Required`.
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `enabled` - (Optional) Should the Linux Web App be enabled? Defaults to `true`.
+
+* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
 * `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
 
@@ -101,6 +103,10 @@ The following arguments are supported:
 ~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the web app slot configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+
+* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+
+~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
 
@@ -152,7 +158,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0` and `8.0`.
 
 * `go_version` - (Optional) The version of Go to use. Possible values include `1.18`, and `1.19`.
 
@@ -170,7 +176,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values are `8.0`, `8.1` and `8.2`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1` and `8.2`.
 
 ~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
@@ -226,7 +232,7 @@ An `auth_settings_v2` block supports the following:
 
 * `config_file_path` - (Optional) The path to the App Auth settings.
 
-* ~> **Note:** Relative Paths are evaluated from the Site Root directory.
+~> **Note:** Relative Paths are evaluated from the Site Root directory.
 
 * `require_authentication` - (Optional) Should the authentication flow be used for all requests.
 
@@ -244,7 +250,7 @@ An `auth_settings_v2` block supports the following:
 
 * `http_route_api_prefix` - (Optional) The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`.
 
-* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`.
+* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `NoProxy`, `Standard`, `Custom`. Defaults to `NoProxy`.
 
 * `forward_proxy_custom_host_header_name` - (Optional) The name of the custom header containing the host of the request.
 
@@ -268,7 +274,7 @@ An `auth_settings_v2` block supports the following:
 
 * `twitter_v2` - (Optional) A `twitter_v2` block as defined below.
 
-* `login` - (Optional) A `login` block as defined below.
+* `login` - (Required) A `login` block as defined below.
 
 ---
 
@@ -304,7 +310,7 @@ An `active_directory_v2` block supports the following:
 
 * `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
 
-* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`
+* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`.
 
 * `allowed_groups` - (Optional) The list of allowed Group Names for the Default Authorisation Policy.
 
@@ -488,7 +494,7 @@ A `connection_string` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) Specifies a list of origins that should be allowed to make cross-origin calls.
+* `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Whether CORS requests with credentials are allowed. Defaults to `false`
 
@@ -580,7 +586,7 @@ An `identity` block supports the following:
 
 An `ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 
@@ -648,7 +654,7 @@ A `schedule` block supports the following:
 
 A `scm_ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 
@@ -694,7 +700,7 @@ A `site_config` block supports the following:
 
 * `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
 
-* `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include `AllAllowed`, `FtpsOnly`, and `Disabled`.
+* `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include `AllAllowed`, `FtpsOnly`, and `Disabled`. Defaults to `Disabled`.
 
 ~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it.
 
@@ -710,7 +716,7 @@ A `site_config` block supports the following:
 
 * `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
 
-* `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`.
+* `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
@@ -802,7 +808,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Linux Web App.
 
-* `app_metadata` - A `app_metadata` block as defined below.
+* `app_metadata` - A `app_metadata`.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
@@ -816,7 +822,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `outbound_ip_addresses` - A comma-separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`.
 
-* `possible_outbound_ip_address_list` - A `possible_outbound_ip_address_list` block as defined below.
+* `possible_outbound_ip_address_list` - A `possible_outbound_ip_address_list`.
 
 * `possible_outbound_ip_addresses` - A comma-separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 

@@ -138,19 +138,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Palo Alto Next Generation Firewall VHub Local Rulestack.
 
-* `pan_etag` - The Etag value of the configuration.
-
-* `panorama_config` - A `panorama_config` block as defined below.
-
----
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Palo Alto Next Generation Firewall VHub Local Rulestack.
+* `create` - (Defaults to 3 hours) Used when creating the Palo Alto Next Generation Firewall VHub Local Rulestack.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall VHub Local Rulestack.
-* `update` - (Defaults to 2 hours) Used when updating the Palo Alto Next Generation Firewall VHub Local Rulestack.
+* `update` - (Defaults to 3 hours) Used when updating the Palo Alto Next Generation Firewall VHub Local Rulestack.
 * `delete` - (Defaults to 2 hours) Used when deleting the Palo Alto Next Generation Firewall VHub Local Rulestack.
 
 ## Import

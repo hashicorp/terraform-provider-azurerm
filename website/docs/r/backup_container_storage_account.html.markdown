@@ -63,7 +63,6 @@ In addition to the arguments above, the following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Storage Account Container.
-* `update` - (Defaults to 30 minutes) Used when updating the Backup Storage Account Container.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Storage Account Container.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Backup Storage Account Container.
 

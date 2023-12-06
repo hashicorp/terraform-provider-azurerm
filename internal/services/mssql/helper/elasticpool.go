@@ -269,14 +269,14 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 
 	// Universal check for both DTU and vCore based SKUs
 	if !nameTierIsValid(s) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
+		return fmt.Errorf("mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
 	}
 
 	// Verify that Family is valid
 	if s.SkuType == DTU && s.Family != "" {
-		return fmt.Errorf("Invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
+		return fmt.Errorf("invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
 	} else if s.SkuType == VCore && !nameContainsFamily(s) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
+		return fmt.Errorf("mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
 
 	// get max GB and do validation based on SKU type

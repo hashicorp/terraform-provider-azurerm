@@ -139,6 +139,10 @@ func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
+						"io_scaling_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -252,9 +256,10 @@ func flattenDataSourceArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":           size,
-			"iops":              iops,
-			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"size_gb":            size,
+			"iops":               iops,
+			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
 		},
 	}
 }

@@ -38,23 +38,9 @@ func ParseAgentPoolID(input string) (*AgentPoolId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AgentPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.AgentPoolName, ok = parsed.Parsed["agentPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseAgentPoolIDInsensitively(input string) (*AgentPoolId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AgentPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.AgentPoolName, ok = parsed.Parsed["agentPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AgentPoolId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RegistryName, ok = input.Parsed["registryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "registryName", input)
+	}
+
+	if id.AgentPoolName, ok = input.Parsed["agentPoolName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", input)
+	}
+
+	return nil
 }
 
 // ValidateAgentPoolID checks that 'input' can be parsed as a Agent Pool ID

@@ -42,31 +42,9 @@ func ParseScopeRepetitionID(input string) (*ScopeRepetitionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeRepetitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.ScopeRepetitionName, ok = parsed.Parsed["scopeRepetitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeRepetitionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -81,34 +59,42 @@ func ParseScopeRepetitionIDInsensitively(input string) (*ScopeRepetitionId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeRepetitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.ScopeRepetitionName, ok = parsed.Parsed["scopeRepetitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeRepetitionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopeRepetitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkflowName, ok = input.Parsed["workflowName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workflowName", input)
+	}
+
+	if id.RunName, ok = input.Parsed["runName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "runName", input)
+	}
+
+	if id.ActionName, ok = input.Parsed["actionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "actionName", input)
+	}
+
+	if id.ScopeRepetitionName, ok = input.Parsed["scopeRepetitionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scopeRepetitionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopeRepetitionID checks that 'input' can be parsed as a Scope Repetition ID

@@ -38,23 +38,9 @@ func ParseForwardingRuleID(input string) (*ForwardingRuleId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ForwardingRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsForwardingRulesetName, ok = parsed.Parsed["dnsForwardingRulesetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", *parsed)
-	}
-
-	if id.ForwardingRuleName, ok = parsed.Parsed["forwardingRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "forwardingRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseForwardingRuleIDInsensitively(input string) (*ForwardingRuleId, error)
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ForwardingRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsForwardingRulesetName, ok = parsed.Parsed["dnsForwardingRulesetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", *parsed)
-	}
-
-	if id.ForwardingRuleName, ok = parsed.Parsed["forwardingRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "forwardingRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ForwardingRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DnsForwardingRulesetName, ok = input.Parsed["dnsForwardingRulesetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", input)
+	}
+
+	if id.ForwardingRuleName, ok = input.Parsed["forwardingRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "forwardingRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateForwardingRuleID checks that 'input' can be parsed as a Forwarding Rule ID

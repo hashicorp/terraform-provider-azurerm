@@ -41,28 +41,30 @@ type WindowsFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                 map[string]string                      `tfschema:"app_settings"`
-	StickySettings              []helpers.StickySettings               `tfschema:"sticky_settings"`
-	AuthSettings                []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	AuthV2Settings              []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
-	Backup                      []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode              string                                 `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths    string                                 `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings           []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota        int                                    `tfschema:"daily_memory_time_quota"`
-	Enabled                     bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion   string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare    bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                   bool                                   `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID string                                 `tfschema:"key_vault_reference_identity_id"`
-	PublicNetworkAccess         bool                                   `tfschema:"public_network_access_enabled"`
-	SiteConfig                  []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	StorageAccounts             []helpers.StorageAccount               `tfschema:"storage_account"`
-	Tags                        map[string]string                      `tfschema:"tags"`
-	VirtualNetworkSubnetID      string                                 `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile               string                                 `tfschema:"zip_deploy_file"`
+	AppSettings                      map[string]string                      `tfschema:"app_settings"`
+	StickySettings                   []helpers.StickySettings               `tfschema:"sticky_settings"`
+	AuthSettings                     []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                   bool                                   `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                bool                                   `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                 `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                []helpers.ConnectionString             `tfschema:"connection_string"`
+	DailyMemoryTimeQuota             int                                    `tfschema:"daily_memory_time_quota"`
+	Enabled                          bool                                   `tfschema:"enabled"`
+	FunctionExtensionsVersion        string                                 `tfschema:"functions_extension_version"`
+	ForceDisableContentShare         bool                                   `tfschema:"content_share_force_disabled"`
+	HttpsOnly                        bool                                   `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                                 `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess              bool                                   `tfschema:"public_network_access_enabled"`
+	SiteConfig                       []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StorageAccounts                  []helpers.StorageAccount               `tfschema:"storage_account"`
+	Tags                             map[string]string                      `tfschema:"tags"`
+	VirtualNetworkSubnetID           string                                 `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                    string                                 `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -257,6 +259,18 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -528,6 +542,28 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 			}
 
+			if !functionApp.PublishingDeployBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if !functionApp.PublishingFTPBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
+			}
+
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
@@ -686,6 +722,20 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
 			}
 
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthFTP = pointer.From(csmProps.Allow)
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			}
+
 			state := WindowsFunctionAppModel{
 				Name:                        id.SiteName,
 				ResourceGroup:               id.ResourceGroup,
@@ -703,6 +753,9 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
+
+			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
+			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 				hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.ID)
@@ -1002,6 +1055,28 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingFTPBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingDeployBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
 			}
 
 			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: existing.SiteConfig}); err != nil {

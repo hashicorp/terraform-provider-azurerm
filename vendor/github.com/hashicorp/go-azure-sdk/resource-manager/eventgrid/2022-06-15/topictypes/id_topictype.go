@@ -32,11 +32,9 @@ func ParseTopicTypeID(input string) (*TopicTypeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TopicTypeId{}
-
-	if id.TopicTypeName, ok = parsed.Parsed["topicTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "topicTypeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseTopicTypeIDInsensitively(input string) (*TopicTypeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TopicTypeId{}
-
-	if id.TopicTypeName, ok = parsed.Parsed["topicTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "topicTypeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TopicTypeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.TopicTypeName, ok = input.Parsed["topicTypeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "topicTypeName", input)
+	}
+
+	return nil
 }
 
 // ValidateTopicTypeID checks that 'input' can be parsed as a Topic Type ID

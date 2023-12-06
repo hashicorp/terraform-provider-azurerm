@@ -115,7 +115,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := d.Get("backup.0.time").(string)
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("2018-07-30T%s:00Z", timeOfDay))
+	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s:00Z", time.Now().Format("2006-01-02"), timeOfDay))
 	if err != nil {
 		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
 	}

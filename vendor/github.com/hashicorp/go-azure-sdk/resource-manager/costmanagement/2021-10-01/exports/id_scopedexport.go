@@ -34,15 +34,9 @@ func ParseScopedExportID(input string) (*ScopedExportId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedExportId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ExportName, ok = parsed.Parsed["exportName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "exportName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedExportIDInsensitively(input string) (*ScopedExportId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedExportId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ExportName, ok = parsed.Parsed["exportName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "exportName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedExportId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.ExportName, ok = input.Parsed["exportName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "exportName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedExportID checks that 'input' can be parsed as a Scoped Export ID

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -167,8 +168,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	if features.EnhancedValidationEnabled() {
 		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
-		location.CacheSupportedLocations(ctx, *resourceManagerEndpoint)
-		if err := resourceproviders.CacheSupportedProviders(ctx, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+
+		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
+		if err := resourceproviders.CacheSupportedProviders(ctx2, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
 			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
 		}
 	}

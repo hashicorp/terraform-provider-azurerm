@@ -401,6 +401,9 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	}
 
 	autoHeal := autoHealSettings[0]
+	if len(autoHeal.Triggers) == 0 {
+		return result
+	}
 
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
@@ -463,17 +466,18 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 		result.Triggers.StatusCodesRange = &statusCodeRangeTriggers
 	}
 
-	action := autoHeal.Actions[0]
-	result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
-	result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
-	if len(action.CustomAction) != 0 {
-		customAction := action.CustomAction[0]
-		result.Actions.CustomAction = &web.AutoHealCustomAction{
-			Exe:        pointer.To(customAction.Executable),
-			Parameters: pointer.To(customAction.Parameters),
+	if len(autoHeal.Actions) > 0 {
+		action := autoHeal.Actions[0]
+		result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
+		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
+		if len(action.CustomAction) != 0 {
+			customAction := action.CustomAction[0]
+			result.Actions.CustomAction = &web.AutoHealCustomAction{
+				Exe:        pointer.To(customAction.Executable),
+				Parameters: pointer.To(customAction.Parameters),
+			}
 		}
 	}
-
 	return result
 }
 

@@ -38,23 +38,9 @@ func ParseDeleteProtectedItemRequestID(input string) (*DeleteProtectedItemReques
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeleteProtectedItemRequestId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
-	}
-
-	if id.DeleteProtectedItemRequestName, ok = parsed.Parsed["deleteProtectedItemRequestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteProtectedItemRequestName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseDeleteProtectedItemRequestIDInsensitively(input string) (*DeleteProtec
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeleteProtectedItemRequestId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
-	}
-
-	if id.DeleteProtectedItemRequestName, ok = parsed.Parsed["deleteProtectedItemRequestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteProtectedItemRequestName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeleteProtectedItemRequestId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ResourceGuardName, ok = input.Parsed["resourceGuardName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", input)
+	}
+
+	if id.DeleteProtectedItemRequestName, ok = input.Parsed["deleteProtectedItemRequestName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deleteProtectedItemRequestName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeleteProtectedItemRequestID checks that 'input' can be parsed as a Delete Protected Item Request ID

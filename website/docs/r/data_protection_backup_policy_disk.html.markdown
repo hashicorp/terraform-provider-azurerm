@@ -99,7 +99,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Policy Disk.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Policy Disk.
-* `update` - (Defaults to 30 minutes) Used when updating the Backup Policy Disk.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Backup Policy Disk.
 
 ## Import

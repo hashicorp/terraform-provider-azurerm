@@ -31,9 +31,9 @@ resource "azurerm_virtual_machine" "vm" {
   network_interface_ids = [azurerm_network_interface.vm.id]
 
   storage_image_reference {
-    publisher = "OpenLogic"
-    offer     = "CentOS"
-    sku       = "7.5"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -248,7 +248,7 @@ The following arguments are supported:
 
 * `managed_disk` - (Optional) One or more `managed_disk` block as defined below. Changing this forces a new resource to be created.
 
-* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block. Changing this forces a new resource to be created.
+* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block as defined below. Changing this forces a new resource to be created.
  
 * `target_edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
@@ -265,7 +265,7 @@ The following arguments are supported:
 * `test_network_id` - (Optional) Network to use when a test failover is done.
 
 * `network_interface` - (Optional) One or more `network_interface` block as defined below.
-* 
+
 * `multi_vm_group_name` - (Optional) Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over.
 
 ---
@@ -292,11 +292,11 @@ A `managed_disk` block supports the following:
 
 A `unmanaged_disk` block supports the following:
 
-* `disk_uri` - (Required) Id of disk that should be replicated.
+* `disk_uri` - (Required) Id of disk that should be replicated. Changing this forces a new resource to be created.
 
-* `staging_storage_account_id` - (Required) Storage account that should be used for caching.
+* `staging_storage_account_id` - (Required) Storage account that should be used for caching. Changing this forces a new resource to be created.
 
-* `target_storage_account_id` - (Required) Storage account disk should belong to when a failover is done.
+* `target_storage_account_id` - (Required) Storage account disk should belong to when a failover is done. Changing this forces a new resource to be created.
 
 ---
 

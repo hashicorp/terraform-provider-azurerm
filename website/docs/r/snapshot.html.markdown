@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
 
-* `incremental_enabled` - (Optional) Specifies if the Snapshot is incremental.
+* `incremental_enabled` - (Optional) Specifies if the Snapshot is incremental. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -97,7 +97,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Snapshot ID.
 
-* `disk_size_gb` - (Optional) The Size of the Snapshotted Disk in GB.
+* `disk_size_gb` - The Size of the Snapshotted Disk in GB.
 
 * `trusted_launch_enabled` - Whether Trusted Launch is enabled for the Snapshot.
 

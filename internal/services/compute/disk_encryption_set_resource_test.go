@@ -196,6 +196,28 @@ func TestAccDiskEncryptionSet_systemAssignedUserAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccDiskEncryptionSet_updateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDiskEncryptionSet_withFederatedClientId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
 	r := DiskEncryptionSetResource{}
@@ -506,6 +528,46 @@ resource "azurerm_disk_encryption_set" "test" {
   }
 }
 `, r.systemAssignedDependencies(data), data.RandomInteger)
+}
+
+func (r DiskEncryptionSetResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault_access_policy" "user-assigned" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_user_assigned_identity.test.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  key_permissions = [
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
+    "GetRotationPolicy",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
+}
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  depends_on = [azurerm_key_vault_access_policy.user-assigned]
+}
+	`, r.dependencies(data, true), data.RandomInteger)
 }
 
 func (r DiskEncryptionSetResource) userAssignedIdentity(data acceptance.TestData) string {

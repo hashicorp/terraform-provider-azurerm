@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The ID of the Databricks Workspace that this Databricks Virtual Network Peering is bound. Changing this forces a new resource to be created.
 
-* `address_space_prefixes` - (Required) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
+* `address_space_prefixes` - (Required) A list of address blocks reserved for this virtual network in CIDR notation.
 
 * `remote_address_space_prefixes` - (Required) A list of address blocks reserved for the remote virtual network in CIDR notation. Changing this forces a new resource to be created.
 

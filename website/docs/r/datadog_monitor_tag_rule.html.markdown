@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ---
 
-* `name` - (Optional) The name of the Tag Rules configuration. The allowed value is `default`. It defaults to `default`.
+* `name` - (Optional) The name of the Tag Rules configuration. The allowed value is `default`. Defaults to `default`.
 
 * `log` - (Optional) A `log` block as defined below.
 

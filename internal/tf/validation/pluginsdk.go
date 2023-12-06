@@ -292,3 +292,20 @@ func StringMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]
 func StringNotInSlice(invalid []string, ignoreCase bool) func(interface{}, string) ([]string, []error) {
 	return validation.StringNotInSlice(invalid, ignoreCase)
 }
+
+func StringStartsWithOneOf(prefixs ...string) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+			return warnings, errors
+		}
+		for _, val := range prefixs {
+			if strings.HasPrefix(v, val) {
+				return warnings, errors
+			}
+		}
+		errors = append(errors, fmt.Errorf("expect %s to start with one of %s, got %q", k, strings.Join(prefixs, ", "), v))
+		return warnings, errors
+	}
+}

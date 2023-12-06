@@ -36,19 +36,9 @@ func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DedicatedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseDedicatedHSMIDInsensitively(input string) (*DedicatedHSMId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DedicatedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DedicatedHSMId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DedicatedHSMName, ok = input.Parsed["dedicatedHSMName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", input)
+	}
+
+	return nil
 }
 
 // ValidateDedicatedHSMID checks that 'input' can be parsed as a Dedicated H S M ID

@@ -29,11 +29,6 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := backupvaults.ParseBackupVaultID(id)
-			return err
-		}),
-
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,

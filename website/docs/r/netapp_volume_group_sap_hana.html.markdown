@@ -110,8 +110,8 @@ resource "azurerm_linux_virtual_machine" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -268,9 +268,9 @@ A `volume` block supports the following:
 
 * `protocols` - (Required) The target volume protocol expressed as a list. Changing this forces a new Application Volume Group to be created and data will be lost. Supported values for Application Volume Group include `NFSv3` or `NFSv4.1`, multi-protocol is not supported and there are certain rules on which protocol is supporteed per volume spec, please check [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) document for details.
 
-* `proximity_placement_group_id` - (Required) The ID of the proximity placement group. Changing this forces a new Application Volume Group to be created and data will be lost. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.
+* `proximity_placement_group_id` - (Optional) The ID of the proximity placement group. Changing this forces a new Application Volume Group to be created and data will be lost. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.
 
-* `security_style` - (Required) Volume security style. Possible value is `unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `security_style` - (Required) Volume security style. Possible values are `ntfs` and `unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard` and `Ultra`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -300,7 +300,7 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 
 This block supports the following:
 
-* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `remote_volume_location` - (Required) Location of the primary volume.
 
 * `remote_volume_resource_id` - (Required) Resource ID of the primary volume.
 
@@ -344,7 +344,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Application Volume Group.
+* `create` - (Defaults to 90 minutes) Used when creating the Application Volume Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Volume Group.
 * `update` - (Defaults to 2 hours) Used when updating the Application Volume Group.
 * `delete` - (Defaults to 2 hours) Used when deleting the Application Volume Group.

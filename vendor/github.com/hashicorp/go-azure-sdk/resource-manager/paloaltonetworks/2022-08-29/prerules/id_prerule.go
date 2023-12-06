@@ -34,15 +34,9 @@ func ParsePreRuleID(input string) (*PreRuleId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PreRuleId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
-	}
-
-	if id.PreRuleName, ok = parsed.Parsed["preRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "preRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParsePreRuleIDInsensitively(input string) (*PreRuleId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PreRuleId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
-	}
-
-	if id.PreRuleName, ok = parsed.Parsed["preRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "preRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PreRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.GlobalRulestackName, ok = input.Parsed["globalRulestackName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", input)
+	}
+
+	if id.PreRuleName, ok = input.Parsed["preRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "preRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidatePreRuleID checks that 'input' can be parsed as a Pre Rule ID

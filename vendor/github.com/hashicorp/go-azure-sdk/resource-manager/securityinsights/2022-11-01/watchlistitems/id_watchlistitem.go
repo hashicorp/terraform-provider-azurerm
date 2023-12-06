@@ -40,27 +40,9 @@ func ParseWatchlistItemID(input string) (*WatchlistItemId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := WatchlistItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.WatchlistAlias, ok = parsed.Parsed["watchlistAlias"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "watchlistAlias", *parsed)
-	}
-
-	if id.WatchlistItemId, ok = parsed.Parsed["watchlistItemId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "watchlistItemId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseWatchlistItemIDInsensitively(input string) (*WatchlistItemId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := WatchlistItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.WatchlistAlias, ok = parsed.Parsed["watchlistAlias"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "watchlistAlias", *parsed)
-	}
-
-	if id.WatchlistItemId, ok = parsed.Parsed["watchlistItemId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "watchlistItemId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *WatchlistItemId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkspaceName, ok = input.Parsed["workspaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", input)
+	}
+
+	if id.WatchlistAlias, ok = input.Parsed["watchlistAlias"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "watchlistAlias", input)
+	}
+
+	if id.WatchlistItemId, ok = input.Parsed["watchlistItemId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "watchlistItemId", input)
+	}
+
+	return nil
 }
 
 // ValidateWatchlistItemID checks that 'input' can be parsed as a Watchlist Item ID

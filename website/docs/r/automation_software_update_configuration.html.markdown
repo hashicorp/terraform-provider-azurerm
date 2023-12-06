@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `pre_task` - (Optional) A `pre_task` blocks as defined below.
 
-* `schedule` - (Optional) A `schedule` blocks as defined below.
+* `schedule` - (Required) A `schedule` blocks as defined below.
 
 ---
 
@@ -144,7 +144,7 @@ A `azure_query` block supports the following:
 
 * `tag_filter` - (Optional) Specifies how the specified tags to filter VMs. Possible values are `Any` and `All`.
 
-* `tags` - (Optional) A mapping of tags used for query filter as defined below.
+* `tags` - (Optional) A mapping of tags used for query filter. One or more `tags` block as defined below.
 
 ---
 
@@ -184,7 +184,7 @@ A `schedule` block supports the following:
 
 * `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
-* `is_enabled` - (Optional) Whether the schedule is enabled.
+* `is_enabled` - (Optional) Whether the schedule is enabled. Defaults to `true`.
 
 * `description` - (Optional) A description for this Schedule.
 
@@ -226,7 +226,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation.
-* `update` - (Defaults to 10 minutes) Used when updating the Automation.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Automation.
 
 ## Import

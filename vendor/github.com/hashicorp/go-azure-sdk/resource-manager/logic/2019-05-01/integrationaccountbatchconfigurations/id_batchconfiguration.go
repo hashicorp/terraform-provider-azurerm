@@ -38,23 +38,9 @@ func ParseBatchConfigurationID(input string) (*BatchConfigurationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BatchConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IntegrationAccountName, ok = parsed.Parsed["integrationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", *parsed)
-	}
-
-	if id.BatchConfigurationName, ok = parsed.Parsed["batchConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "batchConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseBatchConfigurationIDInsensitively(input string) (*BatchConfigurationId
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BatchConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IntegrationAccountName, ok = parsed.Parsed["integrationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", *parsed)
-	}
-
-	if id.BatchConfigurationName, ok = parsed.Parsed["batchConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "batchConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *BatchConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.IntegrationAccountName, ok = input.Parsed["integrationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", input)
+	}
+
+	if id.BatchConfigurationName, ok = input.Parsed["batchConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "batchConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateBatchConfigurationID checks that 'input' can be parsed as a Batch Configuration ID

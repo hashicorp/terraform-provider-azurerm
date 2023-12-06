@@ -98,22 +98,6 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `StreamingEndpointsClient.OperationLocation`
-
-```go
-ctx := context.TODO()
-id := streamingendpoints.NewStreamingEndpointOperationLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "streamingEndpointValue", "operationIdValue")
-
-read, err := client.OperationLocation(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
 ### Example Usage: `StreamingEndpointsClient.Scale`
 
 ```go

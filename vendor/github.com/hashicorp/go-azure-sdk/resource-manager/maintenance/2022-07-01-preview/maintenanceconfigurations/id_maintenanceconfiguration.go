@@ -36,19 +36,9 @@ func ParseMaintenanceConfigurationID(input string) (*MaintenanceConfigurationId,
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MaintenanceConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MaintenanceConfigurationName, ok = parsed.Parsed["maintenanceConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "maintenanceConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseMaintenanceConfigurationIDInsensitively(input string) (*MaintenanceCon
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MaintenanceConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MaintenanceConfigurationName, ok = parsed.Parsed["maintenanceConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "maintenanceConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *MaintenanceConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MaintenanceConfigurationName, ok = input.Parsed["maintenanceConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "maintenanceConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateMaintenanceConfigurationID checks that 'input' can be parsed as a Maintenance Configuration ID

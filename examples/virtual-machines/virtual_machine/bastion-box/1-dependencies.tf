@@ -3,20 +3,20 @@
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-network"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_network_security_group" "bastion" {
   name                = "${azurerm_resource_group.example.name}-mgmt-nsg"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   security_rule {
     name                       = "allow-ssh"
@@ -33,10 +33,10 @@ resource "azurerm_network_security_group" "bastion" {
 }
 
 resource "azurerm_subnet" "bastion" {
-  name                      = "${azurerm_resource_group.example.name}-bastion"
-  virtual_network_name      = "${azurerm_virtual_network.example.name}"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
-  address_prefixes          = ["10.0.0.128/25"]
+  name                 = "${azurerm_resource_group.example.name}-bastion"
+  virtual_network_name = azurerm_virtual_network.example.name
+  resource_group_name  = azurerm_resource_group.example.name
+  address_prefixes     = ["10.0.0.128/25"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "bastion" {
@@ -46,8 +46,8 @@ resource "azurerm_subnet_network_security_group_association" "bastion" {
 
 resource "azurerm_network_security_group" "web" {
   name                = "${azurerm_resource_group.example.name}-web"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   security_rule {
     name                       = "allow-www"
@@ -77,10 +77,10 @@ resource "azurerm_network_security_group" "web" {
 }
 
 resource "azurerm_subnet" "web" {
-  name                      = "${azurerm_resource_group.example.name}-web"
-  virtual_network_name      = "${azurerm_virtual_network.example.name}"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
-  address_prefixes          = ["10.0.1.0/24"]
+  name                 = "${azurerm_resource_group.example.name}-web"
+  virtual_network_name = azurerm_virtual_network.example.name
+  resource_group_name  = azurerm_resource_group.example.name
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "web" {

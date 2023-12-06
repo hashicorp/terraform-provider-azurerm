@@ -54,9 +54,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the IP group.
 
-* `firewall_ids` - A `firewall_ids` block as defined below.
+* `firewall_ids` - A list of ID of Firewall.
 
-* `firewall_policy_ids` - A `firewall_policy_ids` block as defined below.
+* `firewall_policy_ids` - A list of ID of Firewall Policy`.
 
 ## Timeouts
 

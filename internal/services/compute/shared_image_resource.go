@@ -223,25 +223,32 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"trusted_launch_supported": {
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"trusted_launch_enabled", "confidential_vm_supported", "confidential_vm_enabled"},
+			},
+
 			"trusted_launch_enabled": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"confidential_vm_supported", "confidential_vm_enabled"},
+				ConflictsWith: []string{"trusted_launch_supported", "confidential_vm_supported", "confidential_vm_enabled"},
 			},
 
 			"confidential_vm_supported": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"trusted_launch_enabled", "confidential_vm_enabled"},
+				ConflictsWith: []string{"trusted_launch_supported", "trusted_launch_enabled", "confidential_vm_enabled"},
 			},
 
 			"confidential_vm_enabled": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"trusted_launch_enabled", "confidential_vm_supported"},
+				ConflictsWith: []string{"trusted_launch_supported", "trusted_launch_enabled", "confidential_vm_supported"},
 			},
 
 			"accelerated_network_support_enabled": {
@@ -430,6 +437,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 
+		trustedLaunchSupported := false
 		trustedLaunchEnabled := false
 		cvmEnabled := false
 		cvmSupported := false
@@ -441,6 +449,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				}
 
 				if strings.EqualFold(*feature.Name, "SecurityType") {
+					trustedLaunchSupported = strings.EqualFold(*feature.Value, "TrustedLaunchSupported")
 					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
 					cvmSupported = strings.EqualFold(*feature.Value, "ConfidentialVmSupported")
 					cvmEnabled = strings.EqualFold(*feature.Value, "ConfidentialVm")
@@ -453,6 +462,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 		d.Set("confidential_vm_supported", cvmSupported)
 		d.Set("confidential_vm_enabled", cvmEnabled)
+		d.Set("trusted_launch_supported", trustedLaunchSupported)
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
 	}
@@ -661,6 +671,13 @@ func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]compute.GalleryImag
 		features = append(features, compute.GalleryImageFeature{
 			Name:  utils.String("IsAcceleratedNetworkSupported"),
 			Value: utils.String("true"),
+		})
+	}
+
+	if tvmSupported := d.Get("trusted_launch_supported").(bool); tvmSupported {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("TrustedLaunchSupported"),
 		})
 	}
 

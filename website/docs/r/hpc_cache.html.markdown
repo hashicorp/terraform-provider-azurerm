@@ -124,7 +124,7 @@ A `bind` block contains the following:
 
 A `default_access_policy` block contains the following:
 
-* `access_rule` - (Required) One to three `access_rule` blocks as defined above.
+* `access_rule` - (Required) One or more `access_rule` blocks (up to three) as defined above.
 
 ---
 

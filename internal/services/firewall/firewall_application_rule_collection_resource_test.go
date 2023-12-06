@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -394,7 +394,7 @@ func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, cli
 
 	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-	resp, err := clients.Firewall.Client.AzureFirewalls.Get(ctx, firewallId)
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): %v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
@@ -434,7 +434,7 @@ func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Cont
 }
 
 func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	client := clients.Firewall.Client.AzureFirewalls
+	client := clients.Network.AzureFirewalls
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
 	defer cancel()
 	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)

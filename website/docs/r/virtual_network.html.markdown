@@ -131,7 +131,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `guid` - The GUID of the virtual network.
 
-* `subnet` - (Optional) One or more `subnet` blocks as defined below.
+* `subnet` - One or more `subnet` blocks as defined below.
 
 ---
 

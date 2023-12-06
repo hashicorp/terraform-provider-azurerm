@@ -45,6 +45,8 @@ output "database_id" {
 
 ## Attributes Reference
 
+* `id` - The ID of the database.
+
 * `collation` - The collation of the database.
 
 * `elastic_pool_id` - The id of the elastic pool containing this database.

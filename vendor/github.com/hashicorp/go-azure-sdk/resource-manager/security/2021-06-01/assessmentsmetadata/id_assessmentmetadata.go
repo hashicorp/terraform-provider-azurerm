@@ -32,11 +32,9 @@ func ParseAssessmentMetadataID(input string) (*AssessmentMetadataId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AssessmentMetadataId{}
-
-	if id.AssessmentMetadataName, ok = parsed.Parsed["assessmentMetadataName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseAssessmentMetadataIDInsensitively(input string) (*AssessmentMetadataId
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AssessmentMetadataId{}
-
-	if id.AssessmentMetadataName, ok = parsed.Parsed["assessmentMetadataName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AssessmentMetadataId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.AssessmentMetadataName, ok = input.Parsed["assessmentMetadataName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", input)
+	}
+
+	return nil
 }
 
 // ValidateAssessmentMetadataID checks that 'input' can be parsed as a Assessment Metadata ID

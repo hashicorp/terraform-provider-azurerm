@@ -34,15 +34,9 @@ func ParseScopedScheduledActionID(input string) (*ScopedScheduledActionId, error
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedScheduledActionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedScheduledActionIDInsensitively(input string) (*ScopedScheduledAc
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedScheduledActionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedScheduledActionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.ScheduledActionName, ok = input.Parsed["scheduledActionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedScheduledActionID checks that 'input' can be parsed as a Scoped Scheduled Action ID

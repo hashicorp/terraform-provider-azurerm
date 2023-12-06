@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ListByGalleryCompleteResult struct {
 }
 
 // ListByGallery ...
-func (c GalleryApplicationsClient) ListByGallery(ctx context.Context, id GalleryId) (result ListByGalleryOperationResponse, err error) {
+func (c GalleryApplicationsClient) ListByGallery(ctx context.Context, id commonids.SharedImageGalleryId) (result ListByGalleryOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c GalleryApplicationsClient) ListByGallery(ctx context.Context, id Gallery
 }
 
 // ListByGalleryComplete retrieves all the results into a single object
-func (c GalleryApplicationsClient) ListByGalleryComplete(ctx context.Context, id GalleryId) (ListByGalleryCompleteResult, error) {
+func (c GalleryApplicationsClient) ListByGalleryComplete(ctx context.Context, id commonids.SharedImageGalleryId) (ListByGalleryCompleteResult, error) {
 	return c.ListByGalleryCompleteMatchingPredicate(ctx, id, GalleryApplicationOperationPredicate{})
 }
 
 // ListByGalleryCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c GalleryApplicationsClient) ListByGalleryCompleteMatchingPredicate(ctx context.Context, id GalleryId, predicate GalleryApplicationOperationPredicate) (result ListByGalleryCompleteResult, err error) {
+func (c GalleryApplicationsClient) ListByGalleryCompleteMatchingPredicate(ctx context.Context, id commonids.SharedImageGalleryId, predicate GalleryApplicationOperationPredicate) (result ListByGalleryCompleteResult, err error) {
 	items := make([]GalleryApplication, 0)
 
 	resp, err := c.ListByGallery(ctx, id)

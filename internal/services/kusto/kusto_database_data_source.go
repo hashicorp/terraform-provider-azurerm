@@ -10,9 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,11 +20,6 @@ import (
 func dataSourceKustoDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceKustoDatabaseRead,
-
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DatabaseID(id)
-			return err
-		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),

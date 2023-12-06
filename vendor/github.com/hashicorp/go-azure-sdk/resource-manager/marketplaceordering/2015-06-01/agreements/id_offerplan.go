@@ -38,23 +38,9 @@ func ParseOfferPlanID(input string) (*OfferPlanId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OfferPlanId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.PublisherId, ok = parsed.Parsed["publisherId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publisherId", *parsed)
-	}
-
-	if id.OfferId, ok = parsed.Parsed["offerId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "offerId", *parsed)
-	}
-
-	if id.PlanId, ok = parsed.Parsed["planId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "planId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseOfferPlanIDInsensitively(input string) (*OfferPlanId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OfferPlanId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.PublisherId, ok = parsed.Parsed["publisherId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publisherId", *parsed)
-	}
-
-	if id.OfferId, ok = parsed.Parsed["offerId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "offerId", *parsed)
-	}
-
-	if id.PlanId, ok = parsed.Parsed["planId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "planId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *OfferPlanId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.PublisherId, ok = input.Parsed["publisherId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "publisherId", input)
+	}
+
+	if id.OfferId, ok = input.Parsed["offerId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "offerId", input)
+	}
+
+	if id.PlanId, ok = input.Parsed["planId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "planId", input)
+	}
+
+	return nil
 }
 
 // ValidateOfferPlanID checks that 'input' can be parsed as a Offer Plan ID

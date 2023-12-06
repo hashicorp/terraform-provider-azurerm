@@ -83,7 +83,7 @@ The following arguments are supported:
 
 ---
 
-* `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of up to 1024 objects describing access policies, as described below.
+* `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `access_policy` objects (up to 1024) describing access policies, as described below.
 
 -> **NOTE** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 

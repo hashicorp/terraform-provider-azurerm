@@ -36,19 +36,9 @@ func ParseManagedClusterSnapshotID(input string) (*ManagedClusterSnapshotId, err
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedClusterSnapshotId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedClusterSnapshotName, ok = parsed.Parsed["managedClusterSnapshotName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterSnapshotName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseManagedClusterSnapshotIDInsensitively(input string) (*ManagedClusterSn
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedClusterSnapshotId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedClusterSnapshotName, ok = parsed.Parsed["managedClusterSnapshotName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterSnapshotName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ManagedClusterSnapshotId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ManagedClusterSnapshotName, ok = input.Parsed["managedClusterSnapshotName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedClusterSnapshotName", input)
+	}
+
+	return nil
 }
 
 // ValidateManagedClusterSnapshotID checks that 'input' can be parsed as a Managed Cluster Snapshot ID

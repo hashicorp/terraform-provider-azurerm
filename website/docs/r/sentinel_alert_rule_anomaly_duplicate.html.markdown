@@ -52,7 +52,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "example" {
 
 The following arguments are supported:
 
-* `display_name` - (Required) The Display Name of the built-in Anomaly Alert Rule. Changing this forces a new Duplicated Anomaly Alert Rule to be created.
+* `display_name` - (Required) The Display Name of the built-in Anomaly Alert Rule.
 
 * `built_in_rule_id` - (Required) The ID of the built-in Anomaly Alert Rule. Changing this forces a new Duplicated Anomaly Alert Rule to be created.
 

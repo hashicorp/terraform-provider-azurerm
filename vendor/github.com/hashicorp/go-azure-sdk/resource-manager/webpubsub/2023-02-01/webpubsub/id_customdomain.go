@@ -38,23 +38,9 @@ func ParseCustomDomainID(input string) (*CustomDomainId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CustomDomainId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
-	}
-
-	if id.CustomDomainName, ok = parsed.Parsed["customDomainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "customDomainName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseCustomDomainIDInsensitively(input string) (*CustomDomainId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CustomDomainId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
-	}
-
-	if id.CustomDomainName, ok = parsed.Parsed["customDomainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "customDomainName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CustomDomainId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WebPubSubName, ok = input.Parsed["webPubSubName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", input)
+	}
+
+	if id.CustomDomainName, ok = input.Parsed["customDomainName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "customDomainName", input)
+	}
+
+	return nil
 }
 
 // ValidateCustomDomainID checks that 'input' can be parsed as a Custom Domain ID

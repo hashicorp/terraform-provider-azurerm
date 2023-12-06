@@ -123,7 +123,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, managedInstanceName, *alertPolicy)
 	if err != nil {
-		return fmt.Errorf("updataing managed instance security alert policy: %v", err)
+		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -218,7 +218,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, instanceName, existing)
 	if err != nil {
-		return fmt.Errorf("updataing managed instance security alert policy: %v", err)
+		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -319,7 +319,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.Resource
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, disabledPolicy)
 	if err != nil {
-		return fmt.Errorf("updataing managed instance security alert policy: %v", err)
+		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

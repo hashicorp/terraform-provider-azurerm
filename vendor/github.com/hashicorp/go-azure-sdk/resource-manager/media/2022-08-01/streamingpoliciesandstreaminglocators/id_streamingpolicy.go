@@ -38,23 +38,9 @@ func ParseStreamingPolicyID(input string) (*StreamingPolicyId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StreamingPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.StreamingPolicyName, ok = parsed.Parsed["streamingPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseStreamingPolicyIDInsensitively(input string) (*StreamingPolicyId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StreamingPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.StreamingPolicyName, ok = parsed.Parsed["streamingPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *StreamingPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MediaServiceName, ok = input.Parsed["mediaServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", input)
+	}
+
+	if id.StreamingPolicyName, ok = input.Parsed["streamingPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "streamingPolicyName", input)
+	}
+
+	return nil
 }
 
 // ValidateStreamingPolicyID checks that 'input' can be parsed as a Streaming Policy ID

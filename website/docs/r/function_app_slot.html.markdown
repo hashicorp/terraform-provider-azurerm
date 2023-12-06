@@ -146,7 +146,7 @@ The `site_config` block supports the following:
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
 
-* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+* `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
@@ -166,7 +166,7 @@ The `site_config` block supports the following:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+* `ip_restriction` - (Optional) A list of `ip_restriction` objects representing IP restrictions as defined below.
 
 * `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
@@ -288,7 +288,7 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
 
-* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+* `headers` - (Optional) The `headers` block for this specific `ip_restriction` as defined below.
 
 ---
 
@@ -308,7 +308,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `action` - (Optional) Allow or Deny access for this IP range. Defaults to `Allow`.
 
-* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
+* `headers` - (Optional) The `headers` block for this specific `scm_ip_restriction` as defined below.
 
 ---
 

@@ -34,15 +34,9 @@ func ParseScopedFluxConfigurationID(input string) (*ScopedFluxConfigurationId, e
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedFluxConfigurationId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.FluxConfigurationName, ok = parsed.Parsed["fluxConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedFluxConfigurationIDInsensitively(input string) (*ScopedFluxConfi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedFluxConfigurationId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.FluxConfigurationName, ok = parsed.Parsed["fluxConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedFluxConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.FluxConfigurationName, ok = input.Parsed["fluxConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedFluxConfigurationID checks that 'input' can be parsed as a Scoped Flux Configuration ID

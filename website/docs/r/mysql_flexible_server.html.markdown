@@ -189,6 +189,8 @@ A `storage` block supports the following:
 
 * `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`.
 
+* `io_scaling_enabled` - (Optional) Should IOPS be scaled automatically? If `true`, `iops` can not be set. Defaults to `false`.
+
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are between `360` and `20000`.
 
 * `size_gb` - (Optional) The max storage allowed for the MySQL Flexible Server. Possible values are between `20` and `16384`.

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusterprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
@@ -22,7 +22,7 @@ import (
 
 func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKustoClusterPrincipalAssignmentCreateUpdate,
+		Create: resourceKustoClusterPrincipalAssignmentCreate,
 		Read:   resourceKustoClusterPrincipalAssignmentRead,
 		Delete: resourceKustoClusterPrincipalAssignmentDelete,
 
@@ -39,7 +39,6 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
@@ -101,7 +100,7 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

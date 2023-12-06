@@ -2209,7 +2209,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsDesktop"
     offer     = "Windows-10"
-    sku       = "20h2-pro-g2"
+    sku       = "win10-21h2-ent"
     version   = "latest"
   }
 }
@@ -2271,7 +2271,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsDesktop"
     offer     = "Windows-10"
-    sku       = "20h2-pro-g2"
+    sku       = "win10-21h2-ent"
     version   = "latest"
   }
 }

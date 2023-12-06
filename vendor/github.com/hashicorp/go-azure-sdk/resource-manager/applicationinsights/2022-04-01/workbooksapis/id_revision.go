@@ -38,23 +38,9 @@ func ParseRevisionID(input string) (*RevisionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RevisionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkbookName, ok = parsed.Parsed["workbookName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workbookName", *parsed)
-	}
-
-	if id.RevisionId, ok = parsed.Parsed["revisionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "revisionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseRevisionIDInsensitively(input string) (*RevisionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RevisionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkbookName, ok = parsed.Parsed["workbookName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workbookName", *parsed)
-	}
-
-	if id.RevisionId, ok = parsed.Parsed["revisionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "revisionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RevisionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkbookName, ok = input.Parsed["workbookName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workbookName", input)
+	}
+
+	if id.RevisionId, ok = input.Parsed["revisionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "revisionId", input)
+	}
+
+	return nil
 }
 
 // ValidateRevisionID checks that 'input' can be parsed as a Revision ID

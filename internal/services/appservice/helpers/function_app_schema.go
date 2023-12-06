@@ -978,7 +978,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
-	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0` and `7.0`.
+	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0` and `8.0`.
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS`
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
@@ -989,7 +989,7 @@ type ApplicationStackLinuxFunctionApp struct {
 }
 
 type ApplicationStackWindowsFunctionApp struct {
-	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `3.1`, `6` and `7`
+	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `v3.0`, `v4.0`, `v6.0`, `v7.0` and `v8.0`
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17`
@@ -1019,6 +1019,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"3.1",
 						"6.0",
 						"7.0",
+						"8.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1296,6 +1297,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"v4.0",
 						"v6.0",
 						"v7.0",
+						"v8.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",

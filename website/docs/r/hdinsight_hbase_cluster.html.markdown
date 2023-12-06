@@ -159,7 +159,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
 
 ---
 
@@ -189,7 +189,7 @@ A `network` block supports the following:
 
 -> **NOTE:** To enable the private link the `connection_direction` must be set to `Outbound`.
 
-* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `True` or `False`. Defaults to `False`. Changing this forces a new resource to be created.
+* `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -235,7 +235,7 @@ A `storage_account_gen2` block supports the following:
 
 A `worker_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
 
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -255,6 +255,8 @@ A `worker_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `autoscale` - (Optional) A `autoscale` block as defined below.
+
 ---
 
 A `disk_encryption` block supports the following:
@@ -271,7 +273,7 @@ A `disk_encryption` block supports the following:
 
 A `zookeeper_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
 
 * `username` - (Required) The Username of the local administrator for the Zookeeper Nodes. Changing this forces a new resource to be created.
 
@@ -350,6 +352,40 @@ A `extension` block supports the following:
 * `log_analytics_workspace_id` - (Required) The workspace ID of the log analytics extension.
 
 * `primary_key` - (Required) The workspace key of the log analytics extension.
+
+---
+
+An `autoscale` block supports the following:
+
+* `recurrence` - (Optional) A `recurrence` block as defined below.
+
+-> **NOTE:** Either a `capacity` or `recurrence` block must be specified - but not both.
+
+---
+
+A `capacity` block supports the following:
+
+* `max_instance_count` - (Required) The maximum number of worker nodes to autoscale to based on the cluster's activity.
+
+* `min_instance_count` - (Required) The minimum number of worker nodes to autoscale to based on the cluster's activity.
+
+---
+
+A `recurrence` block supports the following:
+
+* `schedule` - (Required) A list of `schedule` blocks as defined below.
+
+* `timezone` - (Required) The time zone for the autoscale schedule times.
+
+---
+
+A `schedule` block supports the following:
+
+* `days` - (Required) The days of the week to perform autoscale. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
+
+* `target_instance_count` - (Required) The number of worker nodes to autoscale at the specified time.
+
+* `time` - (Required) The time of day to perform the autoscale in 24hour format.
 
 ---
 

@@ -64,8 +64,6 @@ func (s *SharedKeyAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request
 	return []*oauth2.Token{}, nil
 }
 
-// ---
-
 const (
 	storageEmulatorAccountName string = "devstoreaccount1"
 

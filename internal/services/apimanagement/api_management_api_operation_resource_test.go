@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -116,6 +116,21 @@ func TestAccApiManagementApiOperation_representations(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.representationUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApiOperation_templateParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
+	r := ApiManagementApiOperationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.templateParameter(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -546,6 +561,33 @@ SAMPLE
 
       }
     }
+  }
+}
+`, r.template(data))
+}
+
+func (r ApiManagementApiOperationResource) templateParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation" "test" {
+  operation_id        = "acctest-operation"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "Acceptance Test Operation"
+  method              = "DELETE"
+  url_template        = "/users/{id}/delete"
+  description         = "This can only be done by the logged in user."
+
+  template_parameter {
+    name     = "id"
+    type     = "number"
+    required = true
+  }
+
+  response {
+    status_code = 200
   }
 }
 `, r.template(data))

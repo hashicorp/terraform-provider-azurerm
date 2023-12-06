@@ -380,11 +380,14 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 				prefixes = append(prefixes, strings.TrimPrefix(prefix.CommonPrefix, azurerm))
 			}
 		}
+
 		if len(prefixes) > 1 {
 			out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)azurerm_(%s)((.|\\n)*)###'", strings.Join(prefixes, "|")))
-		} else {
+		}
+		if len(prefixes) == 1 {
 			out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)azurerm_%s((.|\\n)*)###'", prefixes[0]))
 		}
+		// NOTE: it's possible for a Service to contain 0 Data Sources/Resources (during initial generation)
 
 		out = append(out, "")
 		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))

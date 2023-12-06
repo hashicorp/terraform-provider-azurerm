@@ -38,23 +38,9 @@ func ParseNodeConfigurationID(input string) (*NodeConfigurationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NodeConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServerGroupsv2Name, ok = parsed.Parsed["serverGroupsv2Name"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverGroupsv2Name", *parsed)
-	}
-
-	if id.NodeConfigurationName, ok = parsed.Parsed["nodeConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "nodeConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseNodeConfigurationIDInsensitively(input string) (*NodeConfigurationId, 
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NodeConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServerGroupsv2Name, ok = parsed.Parsed["serverGroupsv2Name"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverGroupsv2Name", *parsed)
-	}
-
-	if id.NodeConfigurationName, ok = parsed.Parsed["nodeConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "nodeConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *NodeConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServerGroupsv2Name, ok = input.Parsed["serverGroupsv2Name"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serverGroupsv2Name", input)
+	}
+
+	if id.NodeConfigurationName, ok = input.Parsed["nodeConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "nodeConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateNodeConfigurationID checks that 'input' can be parsed as a Node Configuration ID

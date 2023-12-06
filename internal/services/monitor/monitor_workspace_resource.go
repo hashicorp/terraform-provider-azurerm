@@ -21,6 +21,7 @@ import (
 type WorkspaceResourceModel struct {
 	Name                       string            `tfschema:"name"`
 	ResourceGroupName          string            `tfschema:"resource_group_name"`
+	QueryEndpoint              string            `tfschema:"query_endpoint"`
 	PublicNetworkAccessEnabled bool              `tfschema:"public_network_access_enabled"`
 	Location                   string            `tfschema:"location"`
 	Tags                       map[string]string `tfschema:"tags"`
@@ -66,7 +67,12 @@ func (r WorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r WorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"query_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r WorkspaceResource) Create() sdk.ResourceFunc {
@@ -200,6 +206,10 @@ func (r WorkspaceResource) Read() sdk.ResourceFunc {
 						publicNetworkAccess = azuremonitorworkspaces.PublicNetworkAccessEnabled == *properties.PublicNetworkAccess
 					}
 					state.PublicNetworkAccessEnabled = publicNetworkAccess
+
+					if properties.Metrics != nil && properties.Metrics.PrometheusQueryEndpoint != nil {
+						state.QueryEndpoint = *properties.Metrics.PrometheusQueryEndpoint
+					}
 				}
 			}
 

@@ -34,15 +34,9 @@ func ParseScopedRegistrationAssignmentID(input string) (*ScopedRegistrationAssig
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRegistrationAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RegistrationAssignmentId, ok = parsed.Parsed["registrationAssignmentId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationAssignmentId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedRegistrationAssignmentIDInsensitively(input string) (*ScopedRegi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRegistrationAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RegistrationAssignmentId, ok = parsed.Parsed["registrationAssignmentId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationAssignmentId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRegistrationAssignmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.RegistrationAssignmentId, ok = input.Parsed["registrationAssignmentId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "registrationAssignmentId", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRegistrationAssignmentID checks that 'input' can be parsed as a Scoped Registration Assignment ID

@@ -83,7 +83,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity. Possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Required) A list of IDs for User Assigned Managed Identity resources to be assigned.
 
 
 ## Attributes Reference

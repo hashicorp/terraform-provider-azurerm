@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `eventgridschema`. Changing this forces a new resource to be created.
+* `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
 * `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below. Changing this forces a new resource to be created.
 
@@ -104,7 +104,7 @@ A `inbound_ip_rule` block supports the following:
 
 * `ip_mask` - (Required) The IP mask (CIDR) to match on.
 
-* `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`.
+* `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`. Defaults to `Allow`.
 
 ## Attributes Reference
 

@@ -32,11 +32,9 @@ func ParseAliasID(input string) (*AliasId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AliasId{}
-
-	if id.AliasName, ok = parsed.Parsed["aliasName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "aliasName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseAliasIDInsensitively(input string) (*AliasId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AliasId{}
-
-	if id.AliasName, ok = parsed.Parsed["aliasName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "aliasName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AliasId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.AliasName, ok = input.Parsed["aliasName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "aliasName", input)
+	}
+
+	return nil
 }
 
 // ValidateAliasID checks that 'input' can be parsed as a Alias ID

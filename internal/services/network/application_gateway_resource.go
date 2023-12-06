@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1987,8 +1987,12 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("firewall_policy_id") {
-		applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
-			ID: utils.String(d.Get("firewall_policy_id").(string)),
+		if d.Get("firewall_policy_id").(string) != "" {
+			applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+				ID: utils.String(d.Get("firewall_policy_id").(string)),
+			}
+		} else {
+			applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = nil
 		}
 	}
 

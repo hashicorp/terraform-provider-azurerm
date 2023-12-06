@@ -29,7 +29,7 @@ type SiteRecoveryReplicationRecoveryPlanModel struct {
 	ShutdownRecoveryGroup  []GenericRecoveryGroupModel                    `tfschema:"shutdown_recovery_group"`
 	FailoverRecoveryGroup  []GenericRecoveryGroupModel                    `tfschema:"failover_recovery_group"`
 	BootRecoveryGroup      []BootRecoveryGroupModel                       `tfschema:"boot_recovery_group"`
-	RecoveryGroup          []RecoveryGroupModel                           `tfschema:"recovery_group"`
+	RecoveryGroup          []RecoveryGroupModel                           `tfschema:"recovery_group,removedInNextMajorVersion"`
 	RecoveryVaultId        string                                         `tfschema:"recovery_vault_id"`
 	SourceRecoveryFabricId string                                         `tfschema:"source_recovery_fabric_id"`
 	TargetRecoveryFabricId string                                         `tfschema:"target_recovery_fabric_id"`

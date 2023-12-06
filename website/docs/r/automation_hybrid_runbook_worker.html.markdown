@@ -68,9 +68,9 @@ resource "azurerm_linux_virtual_machine" "example" {
   disable_password_authentication = false
 
   source_image_reference {
-    publisher = "OpenLogic"
-    offer     = "CentOS"
-    sku       = "7.5"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

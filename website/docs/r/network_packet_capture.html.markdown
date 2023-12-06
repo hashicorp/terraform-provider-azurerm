@@ -62,8 +62,8 @@ resource "azurerm_virtual_machine" "example" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -185,7 +185,6 @@ A `storage_location` block contains:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Packet Capture.
-* `update` - (Defaults to 30 minutes) Used when updating the Packet Capture.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Packet Capture.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Packet Capture.
 

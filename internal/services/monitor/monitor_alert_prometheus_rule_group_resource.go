@@ -43,7 +43,7 @@ type PrometheusRuleModel struct {
 	Labels          map[string]string                    `tfschema:"labels"`
 	Record          string                               `tfschema:"record"`
 	AlertResolution []PrometheusRuleAlertResolutionModel `tfschema:"alert_resolution"`
-	Severity        int64                                `tfschema:"severity"`
+	Severity        int                                  `tfschema:"severity"`
 }
 
 type PrometheusRuleGroupActionModel struct {
@@ -293,7 +293,7 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			if _, ok := metadata.ResourceData.GetOk("interval"); ok {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
-			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
+			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
 
 			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -344,7 +344,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
 			if metadata.ResourceData.HasChange("rule") {
-				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
+				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
 			}
 			if metadata.ResourceData.HasChange("scopes") {
 				properties.Properties.Scopes = model.Scopes
@@ -422,10 +422,10 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.ResourceData) []prometheusrulegroups.PrometheusRule {
+func expandPrometheusRuleModel(inputList []PrometheusRuleModel) []prometheusrulegroups.PrometheusRule {
 	outputList := make([]prometheusrulegroups.PrometheusRule, 0)
 
-	for i, v := range inputList {
+	for _, v := range inputList {
 		output := prometheusrulegroups.PrometheusRule{
 			Enabled:    pointer.To(v.Enabled),
 			Expression: v.Expression,
@@ -435,8 +435,8 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			if _, ok := d.GetOk("rule." + strconv.Itoa(i) + ".severity"); ok {
-				output.Severity = pointer.To(v.Severity)
+			if v.Severity != 0 {
+				output.Severity = pointer.To(int64(v.Severity))
 			}
 			output.Annotations = pointer.To(v.Annotations)
 			output.For = pointer.To(v.For)
@@ -499,7 +499,7 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 		output.Record = pointer.From(input.Record)
 		resolveConfigurationValue := flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
 		output.AlertResolution = resolveConfigurationValue
-		output.Severity = pointer.From(input.Severity)
+		output.Severity = int(pointer.From(input.Severity))
 		outputList = append(outputList, output)
 	}
 

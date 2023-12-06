@@ -32,11 +32,9 @@ func ParseDiagnosticSettingID(input string) (*DiagnosticSettingId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DiagnosticSettingId{}
-
-	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseDiagnosticSettingIDInsensitively(input string) (*DiagnosticSettingId, 
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DiagnosticSettingId{}
-
-	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DiagnosticSettingId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.DiagnosticSettingName, ok = input.Parsed["diagnosticSettingName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", input)
+	}
+
+	return nil
 }
 
 // ValidateDiagnosticSettingID checks that 'input' can be parsed as a Diagnostic Setting ID

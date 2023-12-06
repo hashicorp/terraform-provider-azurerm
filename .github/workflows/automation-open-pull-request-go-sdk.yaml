@@ -1,0 +1,31 @@
+---
+name: Open Pull Request when an `auto-pr` is pushed for go-azure-sdk
+
+on:
+  push:
+    branches:
+      - 'auto-deps-pr/updating-go-azure-sdk-to-**'
+
+jobs:
+  open-pull-request:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: "open a pull request"
+        id: open-pr
+        run: |
+          version="$(echo $GH_REF | sed "s/auto-deps-pr\/updating-go-azure-sdk-to-//")"
+          title="dependencies: updating \`hashicorp/go-azure-sdk\` to \`${version}\`"
+          body="This PR updates \`hashicorp/go-azure-sdk\` to \`${version}\` - further details can be found in a comment."
+          
+          # this runs everytime the PR gets pushed too, whilst you can only create a PR a single time
+          # so we should be smarter, but piping this to /dev/null is a fine workaround for MVP
+          gh pr create --title "$title" --body "$body" -B "$PR_TARGET" > /dev/null
+
+        env:
+          PR_TARGET: "main"
+          GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}
+          GH_REF: ${{ github.ref_name }}

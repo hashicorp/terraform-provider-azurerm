@@ -6,7 +6,7 @@ package automation
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

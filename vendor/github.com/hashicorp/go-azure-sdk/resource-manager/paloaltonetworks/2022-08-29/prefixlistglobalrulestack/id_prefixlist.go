@@ -34,15 +34,9 @@ func ParsePrefixListID(input string) (*PrefixListId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrefixListId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
-	}
-
-	if id.PrefixListName, ok = parsed.Parsed["prefixListName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "prefixListName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParsePrefixListIDInsensitively(input string) (*PrefixListId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrefixListId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
-	}
-
-	if id.PrefixListName, ok = parsed.Parsed["prefixListName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "prefixListName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrefixListId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.GlobalRulestackName, ok = input.Parsed["globalRulestackName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", input)
+	}
+
+	if id.PrefixListName, ok = input.Parsed["prefixListName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "prefixListName", input)
+	}
+
+	return nil
 }
 
 // ValidatePrefixListID checks that 'input' can be parsed as a Prefix List ID

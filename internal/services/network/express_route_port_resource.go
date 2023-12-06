@@ -67,6 +67,11 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+			"macsec_sci_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -412,13 +417,19 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *network.ExpressRo
 		adminState = network.ExpressRouteLinkAdminStateEnabled
 	}
 
+	sciState := network.ExpressRouteLinkMacSecSciStateDisabled
+	if b["macsec_sci_enabled"].(bool) {
+		sciState = network.ExpressRouteLinkMacSecSciStateEnabled
+	}
+
 	link := network.ExpressRouteLink{
 		// The link name is fixed
 		Name: utils.String(fmt.Sprintf("link%d", idx)),
 		ExpressRouteLinkPropertiesFormat: &network.ExpressRouteLinkPropertiesFormat{
 			AdminState: adminState,
 			MacSecConfig: &network.ExpressRouteLinkMacSecConfig{
-				Cipher: network.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string)),
+				Cipher:   network.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string)),
+				SciState: sciState,
 			},
 		},
 	}
@@ -460,6 +471,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 		cknSecretId   string
 		cakSecretId   string
 		cipher        string
+		sciState      bool
 	)
 
 	if prop := link.ExpressRouteLinkPropertiesFormat; prop != nil {
@@ -477,6 +489,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 		}
 		connectorType = string(prop.ConnectorType)
 		adminState = prop.AdminState == network.ExpressRouteLinkAdminStateEnabled
+		sciState = prop.MacSecConfig.SciState == network.ExpressRouteLinkMacSecSciStateEnabled
 		if cfg := prop.MacSecConfig; cfg != nil {
 			if cfg.CknSecretIdentifier != nil {
 				cknSecretId = *cfg.CknSecretIdentifier
@@ -500,6 +513,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 			"macsec_ckn_keyvault_secret_id": cknSecretId,
 			"macsec_cak_keyvault_secret_id": cakSecretId,
 			"macsec_cipher":                 cipher,
+			"macsec_sci_enabled":            sciState,
 		},
 	}
 }

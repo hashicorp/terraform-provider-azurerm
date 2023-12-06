@@ -121,6 +121,21 @@ func TestAccSourceControlResource_linuxExternalGit(t *testing.T) {
 	})
 }
 
+func TestAccSourceControlResource_linuxFunctionAppExternalGit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
+	r := AppServiceSourceControlResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxFunctionAppExternalGit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSourceControlResource_linuxLocalGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
 	r := AppServiceSourceControlResource{}
@@ -242,6 +257,19 @@ resource "azurerm_app_service_source_control" "test" {
   use_manual_integration = true
 }
 `, r.baseLinuxAppTemplate(data))
+}
+
+func (r AppServiceSourceControlResource) linuxFunctionAppExternalGit(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_source_control" "test" {
+  app_id                 = azurerm_linux_function_app.test.id
+  repo_url               = "https://github.com/Azure-Samples/flask-app-on-azure-functions.git"
+  branch                 = "main"
+  use_manual_integration = true
+}
+`, LinuxFunctionAppResource{}.appStackPython(data, SkuBasicPlan, "3.11"))
 }
 
 func (r AppServiceSourceControlResource) windowsLocalGit(data acceptance.TestData) string {

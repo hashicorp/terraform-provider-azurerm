@@ -68,7 +68,7 @@ The following arguments are supported:
 
 -> **Note** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
 
-* `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4. Changing this forces a new resource to be created.
+* `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4. Changing this forces a new resource to be created. Defaults to `IPv4`.
 
 -> **Note** Only `static` IP address allocation is supported for IPv6.
 

@@ -629,6 +629,21 @@ func TestAccWindowsWebAppSlot_withDotNet7(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withDotNet8(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -1372,6 +1387,9 @@ resource "azurerm_windows_web_app_slot" "test" {
     access_key   = azurerm_storage_account.test.primary_access_key
     mount_path   = "/mounts/files"
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
     Environment = "AccTest"

@@ -583,8 +583,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -664,8 +664,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%[2]s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "18_04-LTS-gen2"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts-gen2"
 }
 
 resource "azurerm_resource_group" "test" {

@@ -34,15 +34,9 @@ func ParseScopedEventSubscriptionID(input string) (*ScopedEventSubscriptionId, e
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedEventSubscriptionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedEventSubscriptionIDInsensitively(input string) (*ScopedEventSubs
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedEventSubscriptionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedEventSubscriptionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.EventSubscriptionName, ok = input.Parsed["eventSubscriptionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedEventSubscriptionID checks that 'input' can be parsed as a Scoped Event Subscription ID

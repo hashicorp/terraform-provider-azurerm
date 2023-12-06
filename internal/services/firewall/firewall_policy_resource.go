@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -54,7 +54,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 }
 
 func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicies
+	client := meta.(*clients.Client).Network.FirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +142,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicies
+	client := meta.(*clients.Client).Network.FirewallPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -254,7 +254,7 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicies
+	client := meta.(*clients.Client).Network.FirewallPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

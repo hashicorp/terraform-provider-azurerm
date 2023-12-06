@@ -22,6 +22,7 @@ func AzureChina() *Environment {
 
 	// DataLake, ManagedHSM and OperationalInsights are not available
 	env.ApiManagement = ApiManagementAPI("azure-api.cn")
+	env.AppConfiguration = AppConfigurationAPI("azconfig.azure.cn")
 	env.Batch = BatchAPI("https://batch.chinacloudapi.cn").withResourceIdentifier("https://batch.chinacloudapi.cn")
 	env.ContainerRegistry = ContainerRegistryAPI("azurecr.cn")
 	env.CosmosDB = CosmosDBAPI("documents.azure.cn")

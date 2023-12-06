@@ -23,7 +23,7 @@ import (
 
 func resourceMariaDbDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMariaDbDatabaseCreateUpdate,
+		Create: resourceMariaDbDatabaseCreate,
 		Read:   resourceMariaDbDatabaseRead,
 		Delete: resourceMariaDbDatabaseDelete,
 
@@ -35,7 +35,6 @@ func resourceMariaDbDatabase() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
@@ -82,7 +81,7 @@ func resourceMariaDbDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceMariaDbDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMariaDbDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.DatabasesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

@@ -373,7 +373,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, diag.Errorf("the provider only supports 3 auxiliary tenant IDs")
+			return nil, diag.Errorf("the provider only supports up to 3 auxiliary tenant IDs")
 		}
 
 		var clientCertificateData []byte

@@ -228,7 +228,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					},
 					"roll_instances_when_required": {
 						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Optional: true,
+						Default:  true,
 					},
 					"scale_to_zero_before_deletion": {
 						Type:     pluginsdk.TypeBool,

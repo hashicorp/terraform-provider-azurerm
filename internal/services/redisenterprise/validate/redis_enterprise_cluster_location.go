@@ -52,6 +52,7 @@ func friendlyValidRedisEnterpriseClusterLocations() []string {
 		"Central US EUAP",
 		"East Asia",
 		"East US",
+		"Japan East",
 		"North Central US",
 		"North Europe",
 		"South Central US",

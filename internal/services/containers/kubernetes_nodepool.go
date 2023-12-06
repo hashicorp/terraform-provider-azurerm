@@ -109,6 +109,19 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 					},
 
+					"gpu_instance": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.GPUInstanceProfileMIGOneg),
+							string(managedclusters.GPUInstanceProfileMIGTwog),
+							string(managedclusters.GPUInstanceProfileMIGThreeg),
+							string(managedclusters.GPUInstanceProfileMIGFourg),
+							string(managedclusters.GPUInstanceProfileMIGSeveng),
+						}, false),
+					},
+
 					"kubelet_disk_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -916,6 +929,10 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		}
 	}
 
+	if defaultCluster.GpuInstanceProfile != nil {
+		agentpool.Properties.GpuInstanceProfile = utils.ToPtr(agentpools.GPUInstanceProfile(*defaultCluster.GpuInstanceProfile))
+	}
+
 	return agentpool
 }
 
@@ -1044,6 +1061,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
 		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
+	}
+
+	if gpuInstanceProfile := raw["gpu_instance"].(string); gpuInstanceProfile != "" {
+		profile.GpuInstanceProfile = utils.ToPtr(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
 	count := raw["node_count"].(int)
@@ -1325,6 +1346,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		enableHostEncryption = *agentPool.EnableEncryptionAtHost
 	}
 
+	gpuInstanceProfile := ""
+	if agentPool.GpuInstanceProfile != nil {
+		gpuInstanceProfile = string(*agentPool.GpuInstanceProfile)
+	}
+
 	maxCount := 0
 	if agentPool.MaxCount != nil {
 		maxCount = int(*agentPool.MaxCount)
@@ -1471,6 +1497,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"enable_host_encryption":        enableHostEncryption,
 		"custom_ca_trust_enabled":       customCaTrustEnabled,
 		"fips_enabled":                  enableFIPS,
+		"gpu_instance":                  gpuInstanceProfile,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,
 		"max_count":                     maxCount,

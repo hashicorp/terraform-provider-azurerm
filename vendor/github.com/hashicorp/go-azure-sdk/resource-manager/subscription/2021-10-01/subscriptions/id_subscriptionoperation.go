@@ -32,11 +32,9 @@ func ParseSubscriptionOperationID(input string) (*SubscriptionOperationId, error
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SubscriptionOperationId{}
-
-	if id.OperationId, ok = parsed.Parsed["operationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseSubscriptionOperationIDInsensitively(input string) (*SubscriptionOpera
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SubscriptionOperationId{}
-
-	if id.OperationId, ok = parsed.Parsed["operationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SubscriptionOperationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.OperationId, ok = input.Parsed["operationId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "operationId", input)
+	}
+
+	return nil
 }
 
 // ValidateSubscriptionOperationID checks that 'input' can be parsed as a Subscription Operation ID

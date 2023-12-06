@@ -40,27 +40,9 @@ func ParseApplicationVersionID(input string) (*ApplicationVersionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationVersionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
-	}
-
-	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
-	}
-
-	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseApplicationVersionIDInsensitively(input string) (*ApplicationVersionId
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationVersionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
-	}
-
-	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
-	}
-
-	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApplicationVersionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.GalleryName, ok = input.Parsed["galleryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "galleryName", input)
+	}
+
+	if id.ApplicationName, ok = input.Parsed["applicationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationName", input)
+	}
+
+	if id.VersionName, ok = input.Parsed["versionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "versionName", input)
+	}
+
+	return nil
 }
 
 // ValidateApplicationVersionID checks that 'input' can be parsed as a Application Version ID

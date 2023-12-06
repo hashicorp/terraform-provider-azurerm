@@ -34,15 +34,9 @@ func ParseScopedExtensionID(input string) (*ScopedExtensionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedExtensionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ExtensionName, ok = parsed.Parsed["extensionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "extensionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedExtensionIDInsensitively(input string) (*ScopedExtensionId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedExtensionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ExtensionName, ok = parsed.Parsed["extensionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "extensionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedExtensionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.ExtensionName, ok = input.Parsed["extensionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "extensionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedExtensionID checks that 'input' can be parsed as a Scoped Extension ID

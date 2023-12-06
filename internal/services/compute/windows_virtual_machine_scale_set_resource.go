@@ -689,6 +689,11 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = utils.Bool(v)
 	}
 
+	if d.HasChange("overprovision") {
+		v := d.Get("overprovision").(bool)
+		updateProps.Overprovision = utils.Bool(v)
+	}
+
 	if d.HasChange("scale_in") {
 		if updateScaleInPolicy := ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]interface{})); updateScaleInPolicy != nil {
 			updateProps.ScaleInPolicy = updateScaleInPolicy

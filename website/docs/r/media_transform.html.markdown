@@ -420,7 +420,7 @@ A `builtin_preset` block supports the following:
 
 * `preset_name` - (Required) The built-in preset to be used for encoding videos. The Possible values are `AACGoodQualityAudio`, `AdaptiveStreaming`, `ContentAwareEncoding`, `ContentAwareEncodingExperimental`, `CopyAllBitrateNonInterleaved`, `DDGoodQualityAudio`, `H265AdaptiveStreaming`, `H265ContentAwareEncoding`, `H265SingleBitrate4K`, `H265SingleBitrate1080p`, `H265SingleBitrate720p`, `H264MultipleBitrate1080p`, `H264MultipleBitrateSD`, `H264MultipleBitrate720p`, `H264SingleBitrate1080p`, `H264SingleBitrateSD` and `H264SingleBitrate720p`.
 
-* `preset_configuration` - (Optional) A `present_configuration` block as defined below.
+* `preset_configuration` - (Optional) A `preset_configuration` block as defined below.
 
 ---
 
@@ -455,7 +455,6 @@ A `copy_audio` block supports the following:
 A `copy_video` block supports the following:
 
 * `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior. 
- 
 ---
 
 A `crop_rectangle` block supports the following:
@@ -464,8 +463,7 @@ A `crop_rectangle` block supports the following:
 
 * `left` - (Optional) The number of pixels from the left-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
 
-* `top` - (Optional) 	
-  The number of pixels from the top-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+* `top` - (Optional) The number of pixels from the top-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
 
 * `width` - (Optional) The width of the rectangular region in pixels. This can be absolute pixel value (e.g` 100`), or relative to the size of the video (For example, `50%`).
 
@@ -519,8 +517,7 @@ A `fade_in` block supports the following:
 
 * `duration` - (Required) The duration of the fade effect in the video. The value can be in ISO 8601 format (For example, PT05S to fade In/Out a color during 5 seconds), or a frame count (For example, 10 to fade 10 frames from the start time), or a relative value to stream duration (For example, 10% to fade 10% of stream duration).
 
-* `fade_color` - (Required) 	
-  The color for the fade in/out. It can be on the [CSS Level1 colors](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color_keywords) or an RGB/hex value: e.g: `rgb(255,0,0)`, `0xFF0000` or `#FF0000`.
+* `fade_color` - (Required) The color for the fade in/out. It can be on the [CSS Level1 colors](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color_keywords) or an RGB/hex value: e.g: `rgb(255,0,0)`, `0xFF0000` or `#FF0000`.
 
 * `start` - (Optional) The position in the input video from where to start fade. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Default to `0`.
 
@@ -530,8 +527,7 @@ A `fade_out` block supports the following:
 
 * `duration` - (Required) The duration of the fade effect in the video. The value can be in ISO 8601 format (For example, PT05S to fade In/Out a color during 5 seconds), or a frame count (For example, 10 to fade 10 frames from the start time), or a relative value to stream duration (For example, 10% to fade 10% of stream duration).
 
-* `fade_color` - (Required) 	
-  The color for the fade in/out. It can be on the [CSS Level1 colors](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color_keywords) or an RGB/hex value: e.g: `rgb(255,0,0)`, `0xFF0000` or `#FF0000`.
+* `fade_color` - (Required) The color for the fade in/out. It can be on the [CSS Level1 colors](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color_keywords) or an RGB/hex value: e.g: `rgb(255,0,0)`, `0xFF0000` or `#FF0000`.
 
 * `start` - (Optional) The position in the input video from where to start fade. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Default to `0`.
 
@@ -571,7 +567,7 @@ A `h264_video` block supports the following:
 
 * `complexity` - (Optional) The complexity of the encoding. Possible values are `Balanced`, `Speed` or `Quality`. Default to `Balanced`.
 
-* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
+* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting. Defaults to `PT2S`.
 
 * `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
 
@@ -591,7 +587,7 @@ A `h265_video` block supports the following:
 
 * `complexity` - (Optional) The complexity of the encoding. Possible values are `Balanced`, `Speed` or `Quality`. Default to `Balanced`.
 
-* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
+* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting. Defaults to `PT2S`.
 
 * `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
 
@@ -615,13 +611,13 @@ A `jpg_image` block supports the following:
 
 * `start` - (Required) The position in the input video from where to start generating thumbnails. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Also supports a macro `{Best}`, which tells the encoder to select the best thumbnail from the first few seconds of the video and will only produce one thumbnail, no matter what other settings are for `step` and `range`.
 
-* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
+* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting. Defaults to `PT2S`.
 
 * `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
 
 * `layer` - (Optional) One or more `layer` blocks as defined below.
 
-* `range` - (Optional) The position relative to transform preset start time in the input video at which to stop generating thumbnails. The value can be in ISO 8601 format (For example, `PT5M30S` to stop at 5 minutes and 30 seconds from start time), or a frame count (For example, `300` to stop at the 300th frame from the frame at start time. If this value is `1`, it means only producing one thumbnail at start time), or a relative value to the stream duration (For example, `50%` to stop at half of stream duration from start time). The default value is `100%`, which means to stop at the end of the stream. 
+* `range` - (Optional) The position relative to transform preset start time in the input video at which to stop generating thumbnails. The value can be in ISO 8601 format (For example, `PT5M30S` to stop at 5 minutes and 30 seconds from start time), or a frame count (For example, `300` to stop at the 300th frame from the frame at start time. If this value is `1`, it means only producing one thumbnail at start time), or a relative value to the stream duration (For example, `50%` to stop at half of stream duration from start time). The default value is `100%`, which means to stop at the end of the stream.
 
 * `sprite_column` - (Optional) Sets the number of columns used in thumbnail sprite image. The number of rows are automatically calculated and a VTT file is generated with the coordinate mappings for each thumbnail in the sprite. Note: this value should be a positive integer and a proper value is recommended so that the output image resolution will not go beyond JPEG maximum pixel resolution limit `65535x65535`.
 
@@ -641,7 +637,7 @@ A `layer` block within `h264_video` block supports the following:
 
 * `b_frames` - (Optional) The number of B-frames to use when encoding this layer. If not specified, the encoder chooses an appropriate number based on the video profile and level.
 
-* `buffer_window` - (Optional) Specifies the maximum amount of time that the encoder should buffer frames before encoding. The value should be in ISO 8601 format. The value should be in the range `0.1` to `100` seconds. The default is `5` seconds (`PT5S`).
+* `buffer_window` - (Optional) Specifies the maximum amount of time that the encoder should buffer frames before encoding. The value should be in ISO 8601 format. The value should be in the range `0.1` to `100` seconds. Defaults to `PT5S`.
 
 * `crf` - (Optional) The value of CRF to be used when encoding this layer. This setting takes effect when `rate_control_mode` is set `CRF`. The range of CRF value is between `0` and `51`, where lower values would result in better quality, at the expense of higher file sizes. Higher values mean more compression, but at some point quality degradation will be noticed. Default to `23`.
 
@@ -675,14 +671,11 @@ A `layer` block within `h265_video` block supports the following:
 
 * `b_frames` - (Optional) The number of B-frames to use when encoding this layer. If not specified, the encoder chooses an appropriate number based on the video profile and level.
 
-* `buffer_window` - (Optional) Specifies the maximum amount of time that the encoder should buffer frames before encoding. The value should be in ISO 8601 format. The value should be in the range `0.1` to `100` seconds. The default is `5` seconds (`PT5S`).
+* `buffer_window` - (Optional) Specifies the maximum amount of time that the encoder should buffer frames before encoding. The value should be in ISO 8601 format. The value should be in the range `0.1` to `100` seconds. Defaults to `PT5S`.
 
 * `crf` - (Optional) The value of CRF to be used when encoding this layer. This setting takes effect when `rate_control_mode` is set `CRF`. The range of CRF value is between `0` and `51`, where lower values would result in better quality, at the expense of higher file sizes. Higher values mean more compression, but at some point quality degradation will be noticed. Default to `28`.
 
-* `entropy_mode` - (Optional) The entropy mode to be used for this layer. Possible values are `Cabac` or `Cavlc`. If not specified, the encoder chooses the mode that is appropriate for the profile and level.
-
-* `frame_rate` - (Optional) 	
-  The frame rate (in frames per second) at which to encode this layer. The value can be in the form of `M/N` where `M` and `N` are integers (For example, `30000/1001`), or in the form of a number (For example, `30`, or `29.97`). The encoder enforces constraints on allowed frame rates based on the profile and level. If it is not specified, the encoder will use the same frame rate as the input video.
+* `frame_rate` - (Optional) The frame rate (in frames per second) at which to encode this layer. The value can be in the form of `M/N` where `M` and `N` are integers (For example, `30000/1001`), or in the form of a number (For example, `30`, or `29.97`). The encoder enforces constraints on allowed frame rates based on the profile and level. If it is not specified, the encoder will use the same frame rate as the input video.
 
 * `height` - (Optional) The height of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in height as the input.
 
@@ -692,7 +685,7 @@ A `layer` block within `h265_video` block supports the following:
 
 * `max_bitrate` - (Optional) The maximum bitrate (in bits per second), at which the VBV buffer should be assumed to refill. If not specified, defaults to the same value as bitrate.
 
-* `profile` - (Optional) The H.264 profile. Possible values are `Auto`, `Baseline`, `High`, `High422`, `High444`,or `Main`. Default to `Auto`.
+* `profile` - (Optional) The H.264 profile. Possible values are `Auto`, `Main` and `Main10`. Default to `Auto`.
 
 * `reference_frames` - (Optional) The number of reference frames to be used when encoding this layer. If not specified, the encoder determines an appropriate number based on the encoder complexity setting.
 
@@ -742,7 +735,7 @@ An `output` block supports the following:
 
 * `face_detector_preset` - (Optional) A `face_detector_preset` block as defined above.
 
-* `on_error_action` - (Optional) A Transform can define more than one outputs. This property defines what the service should do when one output fails - either continue to produce other outputs, or, stop the other outputs. The overall Job state will not reflect failures of outputs that are specified with `ContinueJob`. Possible values are `StopProcessingJob` or `ContinueJob`. The default is `StopProcessingJob`.
+* `on_error_action` - (Optional) A Transform can define more than one outputs. This property defines what the service should do when one output fails - either continue to produce other outputs, or, stop the other outputs. The overall Job state will not reflect failures of outputs that are specified with `ContinueJob`. Possible values are `StopProcessingJob` or `ContinueJob`. Defaults to `StopProcessingJob`.
 
 * `relative_priority` - (Optional) Sets the relative priority of the TransformOutputs within a Transform. This sets the priority that the service uses for processing Transform Outputs. Possible values are `High`, `Normal` or `Low`. Defaults to `Normal`.
 
@@ -778,7 +771,7 @@ A `png_image` block supports the following:
 
 * `start` - (Required) The position in the input video from where to start generating thumbnails. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Also supports a macro `{Best}`, which tells the encoder to select the best thumbnail from the first few seconds of the video and will only produce one thumbnail, no matter what other settings are for `step` and `range`.
 
-* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
+* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting. Defaults to `PT2S`.
 
 * `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
 
@@ -800,8 +793,7 @@ A `position` block supports the following:
 
 * `left` - (Optional) The number of pixels from the left-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
 
-* `top` - (Optional) 	
-  The number of pixels from the top-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+* `top` - (Optional) The number of pixels from the top-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
 
 * `width` - (Optional) The width of the rectangular region in pixels. This can be absolute pixel value (e.g` 100`), or relative to the size of the video (For example, `50%`).
 

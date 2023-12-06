@@ -241,13 +241,13 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created. Possible values are `GRS`, `LRS` and `ZRS`. The default value is `GRS`.
+* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created. Possible values are `GRS`, `LRS` and `ZRS`. Defaults to `GRS`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
- An `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. The only possible value is `SystemAssigned`.
 
@@ -263,7 +263,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
- The `identity` block exports the following:
+The `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 

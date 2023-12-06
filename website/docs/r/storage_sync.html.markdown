@@ -41,7 +41,7 @@ The following arguments are supported:
 
 ---
 
-* `incoming_traffic_policy` - (Optional) Incoming traffic policy. Possible values are `AllowAllTraffic` and `AllowVirtualNetworksOnly`.
+* `incoming_traffic_policy` - (Optional) Incoming traffic policy. Possible values are `AllowAllTraffic` and `AllowVirtualNetworksOnly`. Defaults to `AllowAllTraffic`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Storage Sync.
 

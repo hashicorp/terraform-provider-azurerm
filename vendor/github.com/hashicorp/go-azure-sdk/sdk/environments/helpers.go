@@ -25,6 +25,16 @@ func ApiManagementAPI(domainSuffix string) Api {
 	}
 }
 
+func AppConfigurationAPI(domainSuffix string) Api {
+	return &ApiEndpoint{
+		domainSuffix:       pointer.To(domainSuffix),
+		endpoint:           nil,
+		appId:              pointer.To(appConfigurationAppId),
+		name:               "AppConfiguration",
+		resourceIdentifier: nil,
+	}
+}
+
 func AttestationAPI(endpoint string) Api {
 	return &ApiEndpoint{
 		domainSuffix:       nil,

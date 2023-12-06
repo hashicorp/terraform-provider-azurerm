@@ -186,7 +186,7 @@ A `content_key_to_track_mapping` block supports the following:
 
 * `policy_name` - (Optional) The policy used by the default key. Changing this forces a new Streaming Policy to be created.
 
-* `track` - (Optional) One or more `track` blocks as defined below. Changing this forces a new Streaming Policy to be created.
+* `track` - (Required) One or more `track` blocks as defined below. Changing this forces a new Streaming Policy to be created.
 
 ---
 

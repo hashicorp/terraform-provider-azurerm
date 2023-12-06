@@ -38,23 +38,9 @@ func ParseKeyID(input string) (*KeyId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := KeyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProvisioningServiceName, ok = parsed.Parsed["provisioningServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", *parsed)
-	}
-
-	if id.KeyName, ok = parsed.Parsed["keyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "keyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseKeyIDInsensitively(input string) (*KeyId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := KeyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProvisioningServiceName, ok = parsed.Parsed["provisioningServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", *parsed)
-	}
-
-	if id.KeyName, ok = parsed.Parsed["keyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "keyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *KeyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ProvisioningServiceName, ok = input.Parsed["provisioningServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", input)
+	}
+
+	if id.KeyName, ok = input.Parsed["keyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "keyName", input)
+	}
+
+	return nil
 }
 
 // ValidateKeyID checks that 'input' can be parsed as a Key ID

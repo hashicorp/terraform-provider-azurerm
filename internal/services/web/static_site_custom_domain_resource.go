@@ -27,7 +27,7 @@ const (
 
 func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStaticSiteCustomDomainCreateOrUpdate,
+		Create: resourceStaticSiteCustomDomainCreate,
 		Read:   resourceStaticSiteCustomDomainRead,
 		Delete: resourceStaticSiteCustomDomainDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -38,7 +38,6 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -76,7 +75,7 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

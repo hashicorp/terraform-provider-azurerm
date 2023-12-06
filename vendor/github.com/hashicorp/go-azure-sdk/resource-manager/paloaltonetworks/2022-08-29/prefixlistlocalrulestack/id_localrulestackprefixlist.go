@@ -38,23 +38,9 @@ func ParseLocalRulestackPrefixListID(input string) (*LocalRulestackPrefixListId,
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LocalRulestackPrefixListId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LocalRulestackName, ok = parsed.Parsed["localRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRulestackName", *parsed)
-	}
-
-	if id.PrefixListName, ok = parsed.Parsed["prefixListName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "prefixListName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseLocalRulestackPrefixListIDInsensitively(input string) (*LocalRulestack
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LocalRulestackPrefixListId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LocalRulestackName, ok = parsed.Parsed["localRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRulestackName", *parsed)
-	}
-
-	if id.PrefixListName, ok = parsed.Parsed["prefixListName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "prefixListName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LocalRulestackPrefixListId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LocalRulestackName, ok = input.Parsed["localRulestackName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "localRulestackName", input)
+	}
+
+	if id.PrefixListName, ok = input.Parsed["prefixListName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "prefixListName", input)
+	}
+
+	return nil
 }
 
 // ValidateLocalRulestackPrefixListID checks that 'input' can be parsed as a Local Rulestack Prefix List ID

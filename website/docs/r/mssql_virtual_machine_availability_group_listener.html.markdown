@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `port` - (Optional) The port of the listener. Changing this forces a new resource to be created.
 
-* `replica` - (Optional) One or more `replica` blocks as defined below. Changing this forces a new resource to be created.
+* `replica` - (Required) One or more `replica` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 

@@ -38,31 +38,9 @@ func ParseZoneID(input string) (*ZoneId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ZoneId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsZoneName, ok = parsed.Parsed["dnsZoneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsZoneName", *parsed)
-	}
-
-	if v, ok := parsed.Parsed["recordType"]; true {
-		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "recordType", *parsed)
-		}
-
-		recordType, err := parseRecordType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.RecordType = *recordType
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -77,34 +55,42 @@ func ParseZoneIDInsensitively(input string) (*ZoneId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ZoneId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
+	return &id, nil
+}
+
+func (id *ZoneId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
 
-	if id.DnsZoneName, ok = parsed.Parsed["dnsZoneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsZoneName", *parsed)
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
 
-	if v, ok := parsed.Parsed["recordType"]; true {
+	if id.DnsZoneName, ok = input.Parsed["dnsZoneName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dnsZoneName", input)
+	}
+
+	if v, ok := input.Parsed["recordType"]; true {
 		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "recordType", *parsed)
+			return resourceids.NewSegmentNotSpecifiedError(id, "recordType", input)
 		}
 
 		recordType, err := parseRecordType(v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+			return fmt.Errorf("parsing %q: %+v", v, err)
 		}
 		id.RecordType = *recordType
 	}
 
-	return &id, nil
+	return nil
 }
 
 // ValidateZoneID checks that 'input' can be parsed as a Zone ID
