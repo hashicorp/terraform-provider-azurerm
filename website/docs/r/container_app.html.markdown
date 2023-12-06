@@ -93,6 +93,8 @@ A `template` block supports the following:
 
 * `container` - (Required) One or more `container` blocks as detailed below.
 
+* `init_container` - (Optional) One or more `init_container` blocks as detailed below.
+
 * `max_replicas` - (Optional) The maximum number of replicas for this container.
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
@@ -202,6 +204,34 @@ A `container` block supports the following:
 * `readiness_probe` - (Optional) A `readiness_probe` block as detailed below.
 
 * `startup_probe` - (Optional) A `startup_probe` block as detailed below.
+
+* `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
+
+---
+
+A `init_container` block supports the following:
+
+* `args` - (Optional) A list of extra arguments to pass to the init container.
+
+* `command` - (Optional) A command to pass to the init container to override the default. This is provided as a list of command line elements without spaces.
+
+* `cpu` - (Required) The amount of vCPU to allocate to the init container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+
+* `env` - (Optional) One or more `env` blocks as detailed below.
+
+* `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
+
+~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+
+* `image` - (Required) The image to use to create the init container.
+
+* `memory` - (Required) The amount of memory to allocate to the init container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+
+* `name` - (Required) The name of the init container
 
 * `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
 
