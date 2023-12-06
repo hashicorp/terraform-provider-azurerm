@@ -158,6 +158,10 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
+						"storage_account_subscription_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
