@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -25,6 +26,7 @@ type Client struct {
 	RoleEligibilityScheduleInstancesClient *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient
 	ScopedRoleAssignmentsClient            *roleassignments.RoleAssignmentsClient
 	ScopedRoleDefinitionsClient            *roledefinitions.RoleDefinitionsClient
+	RoleManagementPoliciesClient           *rolemanagementpolicies.RoleManagementPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -71,9 +73,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(scopedRoleDefinitionsClient.Client, o.Authorizers.ResourceManager)
 
+	roleManagementPoliciesClient, _ := rolemanagementpolicies.NewRoleManagementPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Role Managemetn Policies Client:  %+v", err)
+	}
+	o.Configure(roleManagementPoliciesClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		RoleAssignmentsClient:                  &roleAssignmentsClient,
 		RoleDefinitionsClient:                  &roleDefinitionsClient,
+		RoleManagementPoliciesClient:           roleManagementPoliciesClient,
 		RoleAssignmentScheduleRequestClient:    roleAssignmentScheduleRequestsClient,
 		RoleAssignmentScheduleInstancesClient:  roleAssignmentScheduleInstancesClient,
 		RoleEligibilityScheduleRequestClient:   roleEligibilityScheduleRequestClient,

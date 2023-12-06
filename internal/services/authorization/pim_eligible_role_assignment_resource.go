@@ -74,6 +74,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "The schedule details of this eligible role assignment.",
 			Elem: &pluginsdk.Resource{
@@ -587,6 +588,9 @@ func (r PimEligibleRoleAssignmentResource) mapRoleEligibilityScheduleRequestProp
 			}
 			output.DurationDays = days
 		}
+	} else {
+		output.DurationDays = 0
+		output.DurationHours = 0
 	}
 
 	output.EndDateTime = pointer.From(input.EndDateTime)

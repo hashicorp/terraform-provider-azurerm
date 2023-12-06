@@ -17,23 +17,21 @@ import (
 
 type PimEligibleRoleAssignmentResource struct{}
 
-// TODO: update the management policy configuration so that it can have no expiration
-// Depends on new resource - azurerm_role_management_policy - https://github.com/hashicorp/terraform-provider-azurerm/pull/20496
-// func TestAccPimEligibleRoleAssignment_noExpiration(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
-// 	r := PimEligibleRoleAssignmentResource{}
+func TestAccPimEligibleRoleAssignment_noExpiration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
 
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.noExpirationConfig(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("scope").Exists(),
-// 			),
-// 		},
-// 		data.ImportStep("schedule.0.start_date_time"),
-// 	})
-// }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noExpirationConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").Exists(),
+			),
+		},
+		data.ImportStep("schedule.0.start_date_time"),
+	})
+}
 
 func TestAccPimEligibleRoleAssignment_expirationByDurationHoursConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
@@ -192,32 +190,50 @@ resource "azuread_group" "test" {
 `, data.RandomInteger, data.RandomString)
 }
 
-// func (PimEligibleRoleAssignmentResource) noExpirationConfig(data acceptance.TestData) string {
-// 	return fmt.Sprintf(`
-// data "azurerm_subscription" "primary" {}
+func (PimEligibleRoleAssignmentResource) noExpirationConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
 
-// data "azurerm_client_config" "test" {}
+data "azurerm_client_config" "test" {}
 
-// data "azurerm_role_definition" "test" {
-//   name = "Disk Backup Reader"
-// }
+data "azurerm_role_definition" "test" {
+  name = "Load Test Reader"
+}
 
-// %s
+resource "azurerm_role_management_policy" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
 
-// resource "azurerm_pim_eligible_role_assignment" "test" {
-//   scope              = data.azurerm_subscription.primary.id
-//   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-//   principal_id       = azuread_user.test.object_id
+  assignment {
+    eligible {
+      allow_permanent = true
+    }
+    active {
+      allow_permanent = true
+    }
+  }
+}
 
-//   justification = "No Expiration"
+%s
 
-//   ticket {
-//     number = "1"
-//     system = "example ticket system"
-//   }
-// }
-// `, aadUser(data))
-// }
+resource "azurerm_pim_eligible_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = azuread_user.test.object_id
+
+  justification = "No Expiration"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+
+  depends_on = [ # Wait for policy to be defined for no expiration
+    azurerm_role_management_policy.test
+  ]
+}
+`, aadUser(data))
+}
 
 func (PimEligibleRoleAssignmentResource) expirationByDurationHoursConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
