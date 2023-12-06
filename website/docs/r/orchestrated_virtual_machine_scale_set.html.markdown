@@ -115,7 +115,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Orchestrated Virtual Machine should be located. Changing this forces a new Orchestrated Virtual Machine to be created.
 
--> **NOTE:** Due to a limitation of the Azure API at this time only one Availability Zone can be defined.
+-> **NOTE:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
 
