@@ -399,11 +399,11 @@ func resourceSpringCloudGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 	if utils.ResponseWasNotFound(existing.Response) {
-		return fmt.Errorf("retreiving %s: resource was not found", id)
+		return fmt.Errorf("retrieving %s: resource was not found", id)
 	}
 
 	if existing.Properties == nil {
-		return fmt.Errorf("retreiving %s: properties was nil", id)
+		return fmt.Errorf("retrieving %s: properties was nil", id)
 	}
 	properties := existing.Properties
 
