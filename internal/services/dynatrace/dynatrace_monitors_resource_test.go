@@ -3,6 +3,7 @@ package dynatrace_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +15,29 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MonitorsResource struct{}
+type dynatraceInfo struct {
+	UserCountry     string
+	UserEmail       string
+	UserFirstName   string
+	UserLastName    string
+	UserPhoneNumber string
+}
+
+type MonitorsResource struct {
+	dynatraceInfo dynatraceInfo
+}
+
+func NewDynatraceMonitorResource() MonitorsResource {
+	return MonitorsResource{
+		dynatraceInfo: dynatraceInfo{
+			UserCountry:     os.Getenv("DYNATRACE_USER_COUNTRY"),
+			UserEmail:       os.Getenv("DYNATRACE_USER_EMAIL"),
+			UserFirstName:   os.Getenv("DYNATRACE_USER_FIRST_NAME"),
+			UserLastName:    os.Getenv("DYNATRACE_USER_LAST_NAME"),
+			UserPhoneNumber: os.Getenv("DYNATRACE_USER_PHONE_NUMBER"),
+		},
+	}
+}
 
 func TestAccDynatraceMonitor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
@@ -76,6 +99,24 @@ func TestAccDynatraceMonitor_requiresImport(t *testing.T) {
 	})
 }
 
+func (r MonitorsResource) preCheck(t *testing.T) {
+	if r.dynatraceInfo.UserCountry == "" {
+		t.Fatal("DYNATRACE_USER_COUNTRY must be set for acceptance tests")
+	}
+	if r.dynatraceInfo.UserEmail == "" {
+		t.Fatal("DYNATRACE_USER_EMAIL must be set for acceptance tests")
+	}
+	if r.dynatraceInfo.UserFirstName == "" {
+		t.Fatal("DYNATRACE_USER_FIRST_NAME must be set for acceptance tests")
+	}
+	if r.dynatraceInfo.UserLastName == "" {
+		t.Fatal("DYNATRACE_USER_LAST_NAME must be set for acceptance tests")
+	}
+	if r.dynatraceInfo.UserPhoneNumber == "" {
+		t.Fatal("DYNATRACE_USER_PHONE_NUMBER must be set for acceptance tests")
+	}
+}
+
 func (r MonitorsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitors.ParseMonitorID(state.ID)
 	if err != nil {
@@ -108,11 +149,11 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 
   user {
-    first_name   = "Alice"
-    last_name    = "Bobab"
-    email        = "alice@microsoft.com"
-    phone_number = "123456"
-    country      = "westus"
+    first_name   = "%s"
+    last_name    = "%s"
+    email        = "%s"
+    phone_number = ""%s"
+    country      = "%s"
   }
 
   plan {
@@ -126,7 +167,7 @@ resource "azurerm_dynatrace_monitor" "test" {
     environment = "Dev"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
 func (r MonitorsResource) updated(data acceptance.TestData) string {
@@ -144,11 +185,11 @@ resource "azurerm_dynatrace_monitor" "test" {
     type = "SystemAssigned"
   }
   user {
-    first_name   = "Alice"
-    last_name    = "Bobab"
-    email        = "alice@microsoft.com"
-    phone_number = "123456"
-    country      = "westus"
+    first_name   = "%s"
+    last_name    = "%s"
+    email        = "%s"
+    phone_number = ""%s"
+    country      = "%s"
   }
 
   plan {
@@ -163,7 +204,7 @@ resource "azurerm_dynatrace_monitor" "test" {
     test        = "Patch"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
 func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
