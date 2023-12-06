@@ -55,6 +55,11 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	// NOTE: we're using a Terraform-internal Resource ID here since the Go SDK no longer exposes one
 	// since this is an operation on a Tenant (which doesn't expose any configurable values).
 	id := parse.NewPortalTenantConfigurationID("default")
+
+	if _, err := client.Delete(ctx); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx)
 		if err != nil {

@@ -62,6 +62,8 @@ The following arguments are supported:
 
 - `sku` - (Optional) The name of the SKU used for the Grafana instance. The only possible value is `Standard`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
 
+~> **Note** `Essential` isn't supported anymore by service API.
+
 - `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
 
 - `zone_redundancy_enabled` - (Optional) Whether to enable the zone redundancy setting of the Grafana instance. Defaults to `false`. Changing this forces a new Dashboard Grafana to be created.

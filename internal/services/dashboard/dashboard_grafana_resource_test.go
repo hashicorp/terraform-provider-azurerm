@@ -101,7 +101,7 @@ func TestAccDashboardGrafana_withSku(t *testing.T) {
 	r := DashboardGrafanaResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.essential(data),
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -154,7 +154,7 @@ resource "azurerm_dashboard_grafana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DashboardGrafanaResource) essential(data acceptance.TestData) string {
+func (r DashboardGrafanaResource) standard(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -165,7 +165,7 @@ resource "azurerm_dashboard_grafana" "test" {
   location              = azurerm_resource_group.test.location
   grafana_major_version = "9"
 
-  sku = "Essential"
+  sku = "Standard"
 }
 `, template, data.RandomInteger)
 }
