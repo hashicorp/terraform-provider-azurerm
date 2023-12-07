@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_virtual_network_gateway` - support for the `bgp_route_translation_for_nat_enabled`, `dns_forwarding_enabled`, `ip_sec_replay_protection_enabled`, `remote_vnet_traffic_enabled`, `virtual_wan_traffic_enabled`, `radius_server`, `virtual_network_gateway_client_connection`, `policy_group`, and `ipsec_policy` property [GH-23220]
 
 BUG FIXES:
+
 * `azurerm_application_insights_api_key` - fix bug where multiple keys couldn't be created for an Application Insights instance [GH-23463]
 * `azurerm_hdinsight_hadoop_cluster` - set `roles.edge_node.install_script_action.parameters` into state by retrieving the value provided in the user config since this property isn't returned by the API [GH-23971]
 * `azurerm_kubernetes_cluster` - fix bug where maintenance window start date was always recalculated and sent to the API [GH-23985]
@@ -29,6 +30,7 @@ BUG FIXES:
 * `azurerm_mssql_managed_database` - will no longer send all long retention values in payload unless set [GH-24124]
 * `azurerm_mssql_server_microsoft_support_auditing_policy` - only include storage endpoint in payload if set [GH-24122]
 * `azurerm_mobile_network_packet_core_control_plane` - prevent a panic if the HTTP Response is nil [GH-24083]
+* `azurerm_storage_account` - revert plan time name validation `(#23799)` [GH-24142]
 * `azurerm_web_application_firewall_policy` - split create and update function to fix lifecycle - ignore changes [GH-23412]
 
 ## 3.83.0 (November 30, 2023)
