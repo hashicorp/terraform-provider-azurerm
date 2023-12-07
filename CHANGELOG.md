@@ -19,6 +19,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * `azurerm_mssql_database` - will no longer send all long retention values in payload unless set [GH-24124]
 * `azurerm_mssql_managed_database` - will no longer send all long retention values in payload unless set [GH-24124]
+* `azurerm_mssql_server_microsoft_support_auditing_policy` - only include storage endpoint in payload if set [GH-24122]
 * `azurerm_application_insights_api_key` - fix bug where multiple keys couldn't be created for an Application Insights instance [GH-23463]
 * `azurerm_hdinsight_hadoop_cluster` - set `roles.edge_node.install_script_action.parameters` into state by retrieving the value provided in the user config since this property isn't returned by the API [GH-23971]
 * `azurerm_kubernetes_cluster` - fix bug where maintenance window start date was always recalculated and sent to the API [GH-23985]
