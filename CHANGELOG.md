@@ -4,6 +4,8 @@ FEATURES:
 
 * New Data Source: `azurerm_storage_containers` [GH-24061]
 * New Resource: `azurerm_elastic_san` [GH-23619]
+* New Resource: `azurerm_key_vault_managed_hardware_security_module_role_definition` [GH-22332]
+* New Resource: `azurerm_key_vault_managed_hardware_security_module_role_assignment` [GH-22332]
 
 ENHANCEMENTS:
 
