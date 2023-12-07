@@ -71,7 +71,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 
         // Dashboard is only available in certain locations
-        "dashboard" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+        "dashboard" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "eastus2", false)),
 
         // Datadog is available only in WestUS2 region
         "datadog" to testConfiguration(locationOverride = LocationConfiguration("westus2", "westus2", "centraluseuap", false)),

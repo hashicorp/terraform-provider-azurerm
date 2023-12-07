@@ -60,9 +60,7 @@ The following arguments are supported:
 
 - `public_network_access_enabled` - (Optional) Whether to enable traffic over the public interface. Defaults to `true`.
 
-- `sku` - (Optional) The name of the SKU used for the Grafana instance. The only possible value is `Standard`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
-
-~> **Note** `Essential` isn't supported anymore by service API.
+- `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible value are `Standard` and `Essential`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
 
 - `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
 
