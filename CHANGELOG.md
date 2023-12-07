@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20231207.1122031` of `github.com/hashicorp/go-azure-sdk` [GH-24149]
 * dependencies: updating mssql elasticpools from `v5.0` to `2023-05-01-preview`
 * Data Source: `azurerm_storage_account` - export the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * Data Source: `azurerm_cosmosdb_account` - now exports the `connection_strings`, `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, `secondary_readonly_sql_connection_string`, `primary_mongodb_connection_string`, `secondary_mongodb_connection_string`, `primary_readonly_mongodb_connection_string`, and `secondary_readonly_mongodb_connection_string` attributes [GH-24129]
