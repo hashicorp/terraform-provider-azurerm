@@ -7,7 +7,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_storage_account` - expose the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
+* Data Source: `azurerm_storage_account` - export the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
+* Data Source: `azurerm_cosmosdb_account` - now exports the `connection_strings`, `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, `secondary_readonly_sql_connection_string`, `primary_mongodb_connection_string`, `secondary_mongodb_connection_string`, `primary_readonly_mongodb_connection_string`, and `secondary_readonly_mongodb_connection_string` attributes [GH-24129]
+
 * `azurerm_cosmosdb_cassandra_datacenter` - add support for the property `seed_node_ip_addresses` [GH-24076]
 * `azurerm_kubernetes_cluster` - add support for the property `support_plan` as well as the `sku_tier` `Premium` [GH-23970]
 * `azurerm_mssql_managed_instance` - add support for more `vcores`: `6`, `10`, `12`, `20`, `48`, `56`, `96`, `128` [GH-24085]
