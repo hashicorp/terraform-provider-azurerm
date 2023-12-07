@@ -91,7 +91,7 @@ A `secret` block supports the following:
 
 A `template` block supports the following:
 
-* `init_container` - (Optional) The definition of an init container that is part of the group as documented in the `init_container` block below. Changing this forces a new resource to be created.
+* `init_container` - (Optional) The definition of an init container that is part of the group as documented in the `init_container` block below.
 
 * `container` - (Required) One or more `container` blocks as detailed below.
 
