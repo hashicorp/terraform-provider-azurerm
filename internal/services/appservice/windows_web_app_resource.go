@@ -788,6 +788,13 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
+			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
+			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
+			}
+			existing.SiteConfig = webAppSiteConfig.SiteConfig
+
 			var serviceFarmId string
 			servicePlanChange := false
 			if existing.SiteProperties.ServerFarmID != nil {

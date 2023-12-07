@@ -171,30 +171,29 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := clusters.ParseClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	cluster, err := clusterClient.Get(ctx, *clusterID)
+	cluster, err := clusterClient.Get(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(cluster.HttpResponse) {
-			log.Printf("[DEBUG] Kusto Cluster %q could not be found in Resource Group %q - removing from state!", clusterID.ClusterName, clusterID.ResourceGroupName)
+			log.Printf("[DEBUG] Kusto Cluster %q could not be found in Resource Group %q - removing from state!", id.ClusterName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroupName, err)
 	}
 	if cluster.Model == nil || cluster.Model.Properties == nil {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.ClusterName, clusterID.ResourceGroupName)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", id.ClusterName, id.ResourceGroupName)
 	}
 	if cluster.Model.Properties.KeyVaultProperties == nil {
-		log.Printf("[DEBUG] Customer Managed Key was not defined for Kusto Cluster %q (Resource Group %q) - removing from state!", clusterID.ClusterName, clusterID.ResourceGroupName)
+		log.Printf("[DEBUG] Customer Managed Key was not defined for Kusto Cluster %q (Resource Group %q) - removing from state!", id.ClusterName, id.ResourceGroupName)
 		d.SetId("")
 		return nil
 	}
@@ -221,11 +220,12 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	if keyVaultURI == "" {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `properties.keyVaultProperties.keyVaultUri` was nil", clusterID.ClusterName, clusterID.ResourceGroupName)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `properties.keyVaultProperties.keyVaultUri` was nil", id.ClusterName, id.ResourceGroupName)
 	}
 
 	// now we have the key vault uri we can look up the ID
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultURI)
+	subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
 	if err != nil {
 		return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
 	}

@@ -10,12 +10,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlDatabaseResource struct{}
@@ -717,13 +719,14 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
+func TestAccMsSqlDatabase_TransparentDataEncryptionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
+	// NOTE: You can only update TDE on DW SKU's...
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withTransitDataEncryptionOnDwSku(data, true),
+			Config: r.transparentDataEncryptionUpdate(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("true"),
@@ -731,10 +734,18 @@ func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withTransitDataEncryptionOnDwSku(data, false),
+			Config: r.transparentDataEncryptionUpdate(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.transparentDataEncryptionUpdate(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("transparent_data_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -783,21 +794,21 @@ func TestAccMsSqlDatabase_bacpac(t *testing.T) {
 }
 
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatabaseID(state.ID)
+	id, err := commonids.ParseSqlDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.DatabasesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.MSSQL.DatabasesClient.Get(ctx, *id, databases.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("SQL Database %q (Server %q, Resource Group %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("SQL %s does not exist", id)
 		}
 
-		return nil, fmt.Errorf("reading SQL Database %q (Server %q, Resource Group %q): %v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading SQL %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (MsSqlDatabaseResource) template(data acceptance.TestData) string {
@@ -1716,7 +1727,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) withTransitDataEncryptionOnDwSku(data acceptance.TestData, state bool) string {
+func (r MsSqlDatabaseResource) transparentDataEncryptionUpdate(data acceptance.TestData, state bool) string {
 	return fmt.Sprintf(`
 %s
 

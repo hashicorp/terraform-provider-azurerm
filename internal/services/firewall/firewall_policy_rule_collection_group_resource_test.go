@@ -142,7 +142,7 @@ func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.Client.FirewallPolicyRuleCollectionGroups.Get(ctx, *id)
+	resp, err := clients.Network.FirewallPolicyRuleCollectionGroups.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
