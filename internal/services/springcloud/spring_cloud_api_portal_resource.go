@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -22,9 +23,9 @@ import (
 
 func resourceSpringCloudAPIPortal() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSpringCloudAPIPortalCreateUpdate,
+		Create: resourceSpringCloudAPIPortalCreate,
 		Read:   resourceSpringCloudAPIPortalRead,
-		Update: resourceSpringCloudAPIPortalCreateUpdate,
+		Update: resourceSpringCloudAPIPortalUpdate,
 		Delete: resourceSpringCloudAPIPortalDelete,
 
 		SchemaVersion: 1,
@@ -126,7 +127,8 @@ func resourceSpringCloudAPIPortal() *pluginsdk.Resource {
 		},
 	}
 }
-func resourceSpringCloudAPIPortalCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+
+func resourceSpringCloudAPIPortalCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.APIPortalClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
@@ -139,24 +141,22 @@ func resourceSpringCloudAPIPortalCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 	id := parse.NewSpringCloudAPIPortalID(subscriptionId, springId.ResourceGroup, springId.SpringName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_api_portal", id.ID())
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_api_portal", id.ID())
 	}
 
 	service, err := servicesClient.Get(ctx, springId.ResourceGroup, springId.SpringName)
 	if err != nil {
-		return fmt.Errorf("checking for presence of existing Spring Cloud Service %q (Resource Group %q): %+v", springId.SpringName, springId.ResourceGroup, err)
+		return fmt.Errorf("checking for presence of existing %s: %+v", springId, err)
 	}
 	if service.Sku == nil || service.Sku.Name == nil || service.Sku.Tier == nil {
-		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", springId.SpringName, springId.ResourceGroup)
+		return fmt.Errorf("invalid `sku` for %s", springId)
 	}
 
 	apiPortalResource := appplatform.APIPortalResource{
@@ -174,11 +174,80 @@ func resourceSpringCloudAPIPortalCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, apiPortalResource)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceSpringCloudAPIPortalRead(d, meta)
+}
+
+func resourceSpringCloudAPIPortalUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).AppPlatform.APIPortalClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	springId, err := parse.SpringCloudServiceID(d.Get("spring_cloud_service_id").(string))
+	if err != nil {
+		return err
+	}
+	id := parse.NewSpringCloudAPIPortalID(subscriptionId, springId.ResourceGroup, springId.SpringName, d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+	}
+	if utils.ResponseWasNotFound(existing.Response) {
+		return fmt.Errorf("retrieving %s: resource was not found", id)
+	}
+
+	if existing.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties are nil", id)
+	}
+	properties := existing.Properties
+
+	if existing.Sku == nil {
+		return fmt.Errorf("retrieving %s: sku is nil", id)
+	}
+	sku := existing.Sku
+
+	if d.HasChange("gateway_ids") {
+		properties.GatewayIds = utils.ExpandStringSlice(d.Get("gateway_ids").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("https_only_enabled") {
+		properties.HTTPSOnly = pointer.To(d.Get("https_only_enabled").(bool))
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		properties.Public = pointer.To(d.Get("public_network_access_enabled").(bool))
+	}
+
+	if d.HasChange("sso") {
+		properties.SsoProperties = expandAPIPortalSsoProperties(d.Get("sso").([]interface{}))
+	}
+
+	if d.HasChange("instance_count") {
+		sku.Capacity = pointer.To(int32(d.Get("instance_count").(int)))
+	}
+
+	apiPortalResource := appplatform.APIPortalResource{
+		Properties: properties,
+		Sku:        sku,
+	}
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, apiPortalResource)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

@@ -200,7 +200,7 @@ func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.Client.FirewallPolicies.Get(ctx, *id, firewallpolicies.DefaultGetOperationOptions())
+	resp, err := clients.Network.FirewallPolicies.Get(ctx, *id, firewallpolicies.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

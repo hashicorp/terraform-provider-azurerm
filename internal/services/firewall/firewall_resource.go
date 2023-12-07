@@ -225,7 +225,7 @@ func resourceFirewall() *pluginsdk.Resource {
 }
 
 func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.AzureFirewalls
+	client := meta.(*clients.Client).Network.AzureFirewalls
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -386,7 +386,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.AzureFirewalls
+	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -437,9 +437,14 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 			}
 
-			if policy := props.FirewallPolicy; policy != nil {
-				d.Set("firewall_policy_id", policy.Id)
+			firewallPolicyId := ""
+			if props.FirewallPolicy != nil && props.FirewallPolicy.Id != nil {
+				firewallPolicyId = *props.FirewallPolicy.Id
+				if policyId, err := firewallpolicies.ParseFirewallPolicyIDInsensitively(firewallPolicyId); err == nil {
+					firewallPolicyId = policyId.ID()
+				}
 			}
+			d.Set("firewall_policy_id", firewallPolicyId)
 
 			if sku := props.Sku; sku != nil {
 				d.Set("sku_name", string(pointer.From(sku.Name)))
@@ -458,7 +463,7 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.AzureFirewalls
+	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

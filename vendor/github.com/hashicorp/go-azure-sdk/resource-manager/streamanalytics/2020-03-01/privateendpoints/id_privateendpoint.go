@@ -38,23 +38,9 @@ func ParsePrivateEndpointID(input string) (*PrivateEndpointId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.PrivateEndpointName, ok = parsed.Parsed["privateEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParsePrivateEndpointIDInsensitively(input string) (*PrivateEndpointId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.PrivateEndpointName, ok = parsed.Parsed["privateEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateEndpointId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ClusterName, ok = input.Parsed["clusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "clusterName", input)
+	}
+
+	if id.PrivateEndpointName, ok = input.Parsed["privateEndpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointName", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateEndpointID checks that 'input' can be parsed as a Private Endpoint ID

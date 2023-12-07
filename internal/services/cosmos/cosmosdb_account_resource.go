@@ -927,30 +927,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	var capabilities *[]documentdb.Capability
 	if existing.DatabaseAccountGetProperties.Capabilities != nil {
 		capabilities = existing.DatabaseAccountGetProperties.Capabilities
-		if d.HasChange("capabilities") {
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Capabilities'")
-
-			newCapabilities := expandAzureRmCosmosDBAccountCapabilities(d)
-			updateParameters := documentdb.DatabaseAccountUpdateParameters{
-				DatabaseAccountUpdateProperties: &documentdb.DatabaseAccountUpdateProperties{
-					Capabilities: newCapabilities,
-				},
-			}
-
-			// Update Database 'capabilities'...
-			future, err := client.Update(ctx, id.ResourceGroup, id.Name, updateParameters)
-			if err != nil {
-				return fmt.Errorf("updating CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
-			}
-
-			capabilities = newCapabilities
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Capabilities' [NO CHANGE]")
-		}
 	}
 
 	// backup must be updated independently
@@ -1280,6 +1256,31 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		} else {
 			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'DefaultIdentity' [NO CHANGE]")
+		}
+	}
+
+	if existing.DatabaseAccountGetProperties.Capabilities != nil {
+		if d.HasChange("capabilities") {
+			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Capabilities'")
+
+			newCapabilities := expandAzureRmCosmosDBAccountCapabilities(d)
+			updateParameters := documentdb.DatabaseAccountUpdateParameters{
+				DatabaseAccountUpdateProperties: &documentdb.DatabaseAccountUpdateProperties{
+					Capabilities: newCapabilities,
+				},
+			}
+
+			// Update Database 'capabilities'...
+			future, err := client.Update(ctx, id.ResourceGroup, id.Name, updateParameters)
+			if err != nil {
+				return fmt.Errorf("updating CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
+			}
+		} else {
+			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Capabilities' [NO CHANGE]")
 		}
 	}
 

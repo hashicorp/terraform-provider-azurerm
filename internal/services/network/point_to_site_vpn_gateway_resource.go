@@ -71,9 +71,6 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 			"connection_configuration": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				// Code="P2SVpnGatewayCanHaveOnlyOneP2SConnectionConfiguration"
-				// Message="Currently, P2SVpnGateway [ID] can have only one P2SConnectionConfiguration. Specified number of P2SConnectionConfiguration are 2.
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {

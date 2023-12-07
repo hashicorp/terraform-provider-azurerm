@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ---
 
-* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment.
+* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment. Defaults to `20`.
 
 -> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
