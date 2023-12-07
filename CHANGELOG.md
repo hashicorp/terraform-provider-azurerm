@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating mssql elasticpools from `v5.0` to `2023-05-01-preview`
 * Data Source: `azurerm_storage_account` - export the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * Data Source: `azurerm_cosmosdb_account` - now exports the `connection_strings`, `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, `secondary_readonly_sql_connection_string`, `primary_mongodb_connection_string`, `secondary_mongodb_connection_string`, `primary_readonly_mongodb_connection_string`, and `secondary_readonly_mongodb_connection_string` attributes [GH-24129]
 * `azurerm_cosmosdb_cassandra_datacenter` - add support for the property `seed_node_ip_addresses` [GH-24076]
@@ -27,6 +28,8 @@ BUG FIXES:
 * `azurerm_hdinsight_hadoop_cluster` - set `roles.edge_node.install_script_action.parameters` into state by retrieving the value provided in the user config since this property isn't returned by the API [GH-23971]
 * `azurerm_kubernetes_cluster` - fix bug where maintenance window start date was always recalculated and sent to the API [GH-23985]
 * `azurerm_mssql_database` - will no longer send all long retention values in payload unless set [GH-24124]
+* `azurerm_mssql_database` - add support for `enclave_type` field [GH-24054]
+* `azurerm_mssql_elasticpool` - add support for `enclave_type` field [GH-24054]
 * `azurerm_mssql_managed_database` - will no longer send all long retention values in payload unless set [GH-24124]
 * `azurerm_mssql_server_microsoft_support_auditing_policy` - only include storage endpoint in payload if set [GH-24122]
 * `azurerm_mobile_network_packet_core_control_plane` - prevent a panic if the HTTP Response is nil [GH-24083]
