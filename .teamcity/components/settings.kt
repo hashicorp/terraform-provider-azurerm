@@ -88,6 +88,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1),
 
+        // ElasticSAN has 5 instance quota per subscription per region
+        "elasticsan" to testConfiguration(parallelism = 4),
+
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
 

@@ -134,6 +134,9 @@ service/domain-services:
 service/elastic:
   - internal/services/elastic/**/*
 
+service/elasticsan:
+  - internal/services/elasticsan/**/*
+
 service/event-grid:
   - internal/services/eventgrid/**/*
 
