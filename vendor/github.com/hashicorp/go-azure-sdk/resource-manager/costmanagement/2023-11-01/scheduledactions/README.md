@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-11-01/scheduledactions` Documentation
 
-The `scheduledactions` SDK allows for interaction with the Azure Resource Manager Service `costmanagement` (API Version `2022-10-01`).
+The `scheduledactions` SDK allows for interaction with the Azure Resource Manager Service `costmanagement` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-11-01/scheduledactions"
 ```
 
 

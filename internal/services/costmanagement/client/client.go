@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions"
-	scheduledactions_v2022_10_01 "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-11-01/exports"
+	scheduledactions_v2022_10_01 "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-11-01/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-11-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
