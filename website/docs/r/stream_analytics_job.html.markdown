@@ -87,11 +87,15 @@ The following arguments are supported:
 
 A `job_storage_account` block supports the following:
 
-* `authentication_mode` - (Optional) The authentication mode of the storage account. The only supported value is `ConnectionString`. Defaults to `ConnectionString`.
+* `authentication_mode` - (Optional) The authentication mode of the storage account. Possibles values are `ConnectionString`, `Msi`. Defaults to `ConnectionString`.
+
+-> **NOTE:** `authentication_mode` must be set to `ConnectionString` when creating a new job and can only be changed afterwards to `Msi`. This is because the job has to exists in order to authenticate against the storage account.
 
 * `account_name` - (Required) The name of the Azure storage account.
 
-* `account_key` - (Required) The account key for the Azure storage account.
+* `account_key` - (Optional) The account key for the Azure storage account.
+
+-> **NOTE:** `account_key` must be set when `authentication_mode` is `ConnectionString`.
 
 ---
 
