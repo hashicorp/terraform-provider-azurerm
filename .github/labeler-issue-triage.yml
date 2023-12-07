@@ -331,7 +331,7 @@ service/stream-analytics:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stream_analytics_((.|\n)*)###'
 
 service/subscription:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_locations|subscription\W+|subscriptions)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_locations|location|subscription\W+|subscriptions)((.|\n)*)###'
 
 service/synapse:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_synapse_((.|\n)*)###'
