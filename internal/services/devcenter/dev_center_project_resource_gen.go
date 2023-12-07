@@ -10,12 +10,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = DevCenterProjectResource{}
@@ -198,22 +202,6 @@ func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProperties(input DevCenterProjectResourceSchema, output *projects.ProjectProperties) error {
-	output.Description = &input.Description
-	output.DevCenterId = input.DevCenterId
-
-	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
-	return nil
-}
-
-func (r DevCenterProjectResource) mapProjectPropertiesToDevCenterProjectResourceSchema(input projects.ProjectProperties, output *DevCenterProjectResourceSchema) error {
-	output.Description = pointer.From(input.Description)
-	output.DevCenterId = input.DevCenterId
-	output.DevCenterUri = pointer.From(input.DevCenterUri)
-	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
-	return nil
-}
-
 func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProject(input DevCenterProjectResourceSchema, output *projects.Project) error {
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Expand(input.Tags)
@@ -242,12 +230,18 @@ func (r DevCenterProjectResource) mapProjectToDevCenterProjectResourceSchema(inp
 	return nil
 }
 
-func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input DevCenterProjectResourceSchema, output *projects.ProjectUpdateProperties) error {
+func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProperties(input DevCenterProjectResourceSchema, output *projects.ProjectProperties) error {
+	output.Description = &input.Description
+	output.DevCenterId = input.DevCenterId
+
 	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
 	return nil
 }
 
-func (r DevCenterProjectResource) mapProjectUpdatePropertiesToDevCenterProjectResourceSchema(input projects.ProjectUpdateProperties, output *DevCenterProjectResourceSchema) error {
+func (r DevCenterProjectResource) mapProjectPropertiesToDevCenterProjectResourceSchema(input projects.ProjectProperties, output *DevCenterProjectResourceSchema) error {
+	output.Description = pointer.From(input.Description)
+	output.DevCenterId = input.DevCenterId
+	output.DevCenterUri = pointer.From(input.DevCenterUri)
 	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
 	return nil
 }
@@ -275,5 +269,15 @@ func (r DevCenterProjectResource) mapProjectUpdateToDevCenterProjectResourceSche
 		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "ProjectUpdateProperties", "Properties", err)
 	}
 
+	return nil
+}
+
+func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input DevCenterProjectResourceSchema, output *projects.ProjectUpdateProperties) error {
+	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
+	return nil
+}
+
+func (r DevCenterProjectResource) mapProjectUpdatePropertiesToDevCenterProjectResourceSchema(input projects.ProjectUpdateProperties, output *DevCenterProjectResourceSchema) error {
+	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
 	return nil
 }

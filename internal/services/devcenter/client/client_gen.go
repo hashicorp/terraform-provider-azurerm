@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	devcenterV20230401 "github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"

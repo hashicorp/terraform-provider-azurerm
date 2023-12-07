@@ -10,13 +10,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devcenters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = DevCenterResource{}
@@ -192,16 +195,6 @@ func (r DevCenterResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
-
-	return nil
-}
-
-func (r DevCenterResource) mapDevCenterPropertiesToDevCenterResourceSchema(input devcenters.DevCenterProperties, output *DevCenterResourceSchema) error {
-	output.DevCenterUri = pointer.From(input.DevCenterUri)
-	return nil
-}
-
 func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenterResourceSchema, output *devcenters.DevCenter) error {
 
 	identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(input.Identity)
@@ -241,5 +234,15 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "DevCenterProperties", "Properties", err)
 	}
 
+	return nil
+}
+
+func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
+
+	return nil
+}
+
+func (r DevCenterResource) mapDevCenterPropertiesToDevCenterResourceSchema(input devcenters.DevCenterProperties, output *DevCenterResourceSchema) error {
+	output.DevCenterUri = pointer.From(input.DevCenterUri)
 	return nil
 }

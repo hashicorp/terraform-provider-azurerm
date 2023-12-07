@@ -3,7 +3,7 @@ package clients
 // NOTE: this file is generated - manual changes will be overwritten.
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	containers "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
