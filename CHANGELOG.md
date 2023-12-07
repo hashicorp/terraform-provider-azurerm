@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: updating mssql elasticpools from `v5.0` to `2023-05-01-preview`
 * Data Source: `azurerm_storage_account` - export the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * Data Source: `azurerm_cosmosdb_account` - now exports the `connection_strings`, `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, `secondary_readonly_sql_connection_string`, `primary_mongodb_connection_string`, `secondary_mongodb_connection_string`, `primary_readonly_mongodb_connection_string`, and `secondary_readonly_mongodb_connection_string` attributes [GH-24129]
+* `azurerm_container_app_environment`: Add support for `workload_profile` [GH-23478]
 * `azurerm_cosmosdb_cassandra_datacenter` - add support for the property `seed_node_ip_addresses` [GH-24076]
 * `azurerm_firewall` - support for the `dns_proxy_enabled` property [GH-20519]
 * `azurerm_kubernetes_cluster` - add support for the property `support_plan` as well as the `sku_tier` `Premium` [GH-23970]
