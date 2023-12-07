@@ -9,18 +9,16 @@ ENHANCEMENTS:
 
 * Data Source: `azurerm_storage_account` - export the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * Data Source: `azurerm_cosmosdb_account` - now exports the `connection_strings`, `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, `secondary_readonly_sql_connection_string`, `primary_mongodb_connection_string`, `secondary_mongodb_connection_string`, `primary_readonly_mongodb_connection_string`, and `secondary_readonly_mongodb_connection_string` attributes [GH-24129]
-
 * `azurerm_cosmosdb_cassandra_datacenter` - add support for the property `seed_node_ip_addresses` [GH-24076]
 * `azurerm_kubernetes_cluster` - add support for the property `support_plan` as well as the `sku_tier` `Premium` [GH-23970]
 * `azurerm_mssql_managed_instance` - add support for more `vcores`: `6`, `10`, `12`, `20`, `48`, `56`, `96`, `128` [GH-24085]
 * `azurerm_redis_linked_server` - add support for the property `geo_replicated_primary_host_name` [GH-23984]
-* `azurerm_role_definition` - updated to use TypedSDK [GH-23679]
-* DATA Source: `azurerm_role_definition` - updated to use TypedSDK [GH-23679]
 * `azurerm_storage_account` - expose the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * `azurerm_virtual_network_gateway` - support for the `bgp_route_translation_for_nat_enabled`, `dns_forwarding_enabled`, `ip_sec_replay_protection_enabled`, `remote_vnet_traffic_enabled`, `virtual_wan_traffic_enabled`, `radius_server`, `virtual_network_gateway_client_connection`, `policy_group`, and `ipsec_policy` property [GH-23220]
 
 BUG FIXES:
-
+* `azurerm_mssql_database` - will no longer send all long retention values in payload unless set [GH-24124]
+* `azurerm_mssql_managed_database` - will no longer send all long retention values in payload unless set [GH-24124]
 * `azurerm_application_insights_api_key` - fix bug where multiple keys couldn't be created for an Application Insights instance [GH-23463]
 * `azurerm_hdinsight_hadoop_cluster` - set `roles.edge_node.install_script_action.parameters` into state by retrieving the value provided in the user config since this property isn't returned by the API [GH-23971]
 * `azurerm_kubernetes_cluster` - fix bug where maintenance window start date was always recalculated and sent to the API [GH-23985]
