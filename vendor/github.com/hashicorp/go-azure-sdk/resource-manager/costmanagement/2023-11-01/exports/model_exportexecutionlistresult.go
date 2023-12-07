@@ -4,5 +4,5 @@ package exports
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ExportExecutionListResult struct {
-	Value *[]ExportExecution `json:"value,omitempty"`
+	Value *[]ExportRun `json:"value,omitempty"`
 }
