@@ -2,15 +2,15 @@
 
 FEATURES:
 
-* New Data Source: `azurerm_storage_containers` [GH-24061]
-* New Resource: `azurerm_elastic_san` [GH-23619]
-* New Resource: `azurerm_key_vault_managed_hardware_security_module_role_definition` [GH-22332]
-* New Resource: `azurerm_key_vault_managed_hardware_security_module_role_assignment` [GH-22332]
+* New Data Source:** `azurerm_storage_containers` [GH-24061]
+* New Resource:** `azurerm_elastic_san` [GH-23619]
+* New Resource:** `azurerm_key_vault_managed_hardware_security_module_role_assignment` [GH-22332]
+* New Resource:** `azurerm_key_vault_managed_hardware_security_module_role_definition` [GH-22332]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20231207.1122031` of `github.com/hashicorp/go-azure-sdk` [GH-24149]
 * dependencies: updating mssql elasticpools from `v5.0` to `2023-05-01-preview`
+* dependencies: updating to `v0.20231207.1122031` of `github.com/hashicorp/go-azure-sdk` [GH-24149]
 * Data Source: `azurerm_storage_account` - export the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * Data Source: `azurerm_cosmosdb_account` - now exports the `connection_strings`, `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, `secondary_readonly_sql_connection_string`, `primary_mongodb_connection_string`, `secondary_mongodb_connection_string`, `primary_readonly_mongodb_connection_string`, and `secondary_readonly_mongodb_connection_string` attributes [GH-24129]
 * `azurerm_container_app_environment`: Add support for `workload_profile` [GH-23478]
