@@ -6,6 +6,7 @@ package subscription
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -123,7 +124,7 @@ func (r LocationDataSource) Read() sdk.ResourceFunc {
 
 func getLocation(location string, input *[]resourcesSubscription.Location) (*resourcesSubscription.Location, error) {
 	for _, item := range *input {
-		if pointer.From(item.Name) == location && strings.EqualsFold(pointer.From(item.Metadata.RegionType), "Physical") {
+		if pointer.From(item.Name) == location && strings.EqualFold(string(pointer.From(item.Metadata.RegionType)), "Physical") {
 			return &item, nil
 		}
 	}
