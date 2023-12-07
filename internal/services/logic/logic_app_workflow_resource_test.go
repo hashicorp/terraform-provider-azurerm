@@ -422,7 +422,7 @@ resource "azurerm_logic_app_workflow" "test" {
     secobj = jsonencode({
       type = "SecureObject"
     })
-    $connections = jsonencode({
+    "$connections" = jsonencode({
       type = "Object"
     })
   }
@@ -446,11 +446,11 @@ resource "azurerm_logic_app_workflow" "test" {
     secobj = jsonencode({
       foo = "foo"
     })
-    "$connections": jsonencode({
-      "smtp": {
-        "connectionId": "/subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/connections/zzz",
-        "connectionName": "smtp",
-        "id": "/subscriptions/xxx/providers/Microsoft.Web/locations/yyy/managedApis/smtp"
+    "$connections" : jsonencode({
+      "smtp" : {
+        "connectionId" : "/subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/connections/zzz",
+        "connectionName" : "smtp",
+        "id" : "/subscriptions/xxx/providers/Microsoft.Web/locations/yyy/managedApis/smtp"
       }
     })
   }
