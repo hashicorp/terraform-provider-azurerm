@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_redis_linked_server` - add support for the property `geo_replicated_primary_host_name` [GH-23984]
 * `azurerm_storage_account` - expose the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * `azurerm_synapse_role_assignment` - support for the `principal_type` property [GH-24089]
+* `azurerm_spring_cloud_build_deployment` - support for the `application_performance_monitoring_ids` property [GH-23969]
 * `azurerm_virtual_network_gateway` - support for the `bgp_route_translation_for_nat_enabled`, `dns_forwarding_enabled`, `ip_sec_replay_protection_enabled`, `remote_vnet_traffic_enabled`, `virtual_wan_traffic_enabled`, `radius_server`, `virtual_network_gateway_client_connection`, `policy_group`, and `ipsec_policy` property [GH-23220]
 
 BUG FIXES:
