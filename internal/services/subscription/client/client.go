@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                                // nolint: staticcheck
-	resourceManager "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"             // nolint: staticcheck
+	resourceManager "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	subscriptionAliasPandora "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
