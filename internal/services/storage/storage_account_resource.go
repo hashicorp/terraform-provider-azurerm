@@ -14,7 +14,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -1230,25 +1229,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		},
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				client := v.(*clients.Client).Storage.AccountsClient
-				// The `name` only changes for the new resource creation scenario, in which case we will further check the name availability.
-				if d.HasChange("name") {
-					_, name := d.GetChange("name")
-					resp, err := client.CheckNameAvailability(ctx, storage.AccountCheckNameAvailabilityParameters{
-						Name: pointer.To(name.(string)),
-						Type: pointer.To("Microsoft.Storage/storageAccounts"),
-					})
-					if err != nil {
-						return err
-					}
-					if ok := resp.NameAvailable; ok != nil && !(*ok) {
-						errmsg := fmt.Sprintf("`name` is not available: [%s]", resp.Reason)
-						if msg := resp.Message; msg != nil {
-							errmsg += " " + *msg
-						}
-						return fmt.Errorf(errmsg)
-					}
-				}
 				if d.HasChange("account_kind") {
 					accountKind, changedKind := d.GetChange("account_kind")
 
