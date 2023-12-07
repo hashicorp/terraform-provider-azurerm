@@ -1550,10 +1550,25 @@ func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 }
 
 func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.EnvironmentVar {
-	container := Container{
-		Env: input.Env,
+	envs := make([]containerapps.EnvironmentVar, 0)
+	if input.Env == nil || len(input.Env) == 0 {
+		return &envs
 	}
-	return expandContainerEnvVar(container)
+
+	for _, v := range input.Env {
+		env := containerapps.EnvironmentVar{
+			Name: pointer.To(v.Name),
+		}
+		if v.SecretReference != "" {
+			env.SecretRef = pointer.To(v.SecretReference)
+		} else {
+			env.Value = pointer.To(v.Value)
+		}
+
+		envs = append(envs, env)
+	}
+	
+	return &envs
 }
 
 func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
