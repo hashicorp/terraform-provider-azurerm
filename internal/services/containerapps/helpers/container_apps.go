@@ -1567,7 +1567,7 @@ func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.Environment
 
 		envs = append(envs, env)
 	}
-	
+
 	return &envs
 }
 
