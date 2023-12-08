@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,18 +8,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementLogger() *pluginsdk.Resource {
@@ -26,7 +29,7 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 		Update: resourceApiManagementLoggerUpdate,
 		Delete: resourceApiManagementLoggerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LoggerID(id)
+			_, err := logger.ParseLoggerID(id)
 			return err
 		}),
 
@@ -67,9 +70,37 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 
 						"connection_string": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"eventhub.0.connection_string",
+								"eventhub.0.endpoint_uri",
+							},
+							ConflictsWith: []string{
+								"eventhub.0.endpoint_uri",
+								"eventhub.0.user_assigned_identity_client_id",
+							},
+						},
+						"endpoint_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"eventhub.0.connection_string",
+								"eventhub.0.endpoint_uri",
+							},
+							ConflictsWith: []string{
+								"eventhub.0.connection_string",
+							},
+						},
+						"user_assigned_identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							ConflictsWith: []string{
+								"eventhub.0.connection_string",
+							},
 						},
 					},
 				},
@@ -113,7 +144,7 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewLoggerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	id := logger.NewLoggerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	eventHubRaw := d.Get("eventhub").([]interface{})
 	appInsightsRaw := d.Get("application_insights").([]interface{})
@@ -123,38 +154,39 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_logger", id.ID())
 		}
 	}
 
-	parameters := apimanagement.LoggerContract{
-		LoggerContractProperties: &apimanagement.LoggerContractProperties{
-			IsBuffered:  utils.Bool(d.Get("buffered").(bool)),
-			Description: utils.String(d.Get("description").(string)),
+	parameters := logger.LoggerContract{
+		Properties: &logger.LoggerContractProperties{
+			IsBuffered:  pointer.To(d.Get("buffered").(bool)),
+			Description: pointer.To(d.Get("description").(string)),
 		},
 	}
 
 	if len(eventHubRaw) > 0 {
-		parameters.LoggerType = apimanagement.LoggerTypeAzureEventHub
-		parameters.Credentials = expandApiManagementLoggerEventHub(eventHubRaw)
+		parameters.Properties.LoggerType = logger.LoggerTypeAzureEventHub
+		credentials := expandApiManagementLoggerEventHub(eventHubRaw)
+		parameters.Properties.Credentials = credentials
 	} else if len(appInsightsRaw) > 0 {
-		parameters.LoggerType = apimanagement.LoggerTypeApplicationInsights
-		parameters.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
+		parameters.Properties.LoggerType = logger.LoggerTypeApplicationInsights
+		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
 	}
 
 	if resourceId := d.Get("resource_id").(string); resourceId != "" {
-		parameters.ResourceID = utils.String(resourceId)
+		parameters.Properties.ResourceId = pointer.To(resourceId)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, logger.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -168,31 +200,33 @@ func resourceApiManagementLoggerRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoggerID(d.Id())
+	id, err := logger.ParseLoggerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("resource_id", resp.ResourceID)
 
-	if properties := resp.LoggerContractProperties; properties != nil {
-		d.Set("buffered", properties.IsBuffered)
-		d.Set("description", properties.Description)
-		if err := d.Set("eventhub", flattenApiManagementLoggerEventHub(d, properties)); err != nil {
-			return fmt.Errorf("setting `eventhub`: %s", err)
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if props := model.Properties; props != nil {
+			d.Set("resource_id", pointer.From(props.ResourceId))
+			d.Set("buffered", pointer.From(props.IsBuffered))
+			d.Set("description", pointer.From(props.Description))
+			if err := d.Set("eventhub", flattenApiManagementLoggerEventHub(d, props)); err != nil {
+				return fmt.Errorf("setting `eventhub`: %s", err)
+			}
 		}
 	}
 
@@ -205,27 +239,28 @@ func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewLoggerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	id := logger.NewLoggerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	eventHubRaw, hasEventHub := d.GetOk("eventhub")
 	appInsightsRaw, hasAppInsights := d.GetOk("application_insights")
 
-	parameters := apimanagement.LoggerUpdateContract{
-		LoggerUpdateParameters: &apimanagement.LoggerUpdateParameters{
-			IsBuffered:  utils.Bool(d.Get("buffered").(bool)),
-			Description: utils.String(d.Get("description").(string)),
+	parameters := logger.LoggerUpdateContract{
+		Properties: &logger.LoggerUpdateParameters{
+			IsBuffered:  pointer.To(d.Get("buffered").(bool)),
+			Description: pointer.To(d.Get("description").(string)),
 		},
 	}
 
 	if hasEventHub {
-		parameters.LoggerType = apimanagement.LoggerTypeAzureEventHub
-		parameters.Credentials = expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
+		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeAzureEventHub)
+		credentials := expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
+		parameters.Properties.Credentials = credentials
 	} else if hasAppInsights {
-		parameters.LoggerType = apimanagement.LoggerTypeApplicationInsights
-		parameters.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
+		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeApplicationInsights)
+		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+	if _, err := client.Update(ctx, id, parameters, logger.UpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -237,13 +272,13 @@ func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoggerID(d.Id())
+	id, err := logger.ParseLoggerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, logger.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
@@ -251,30 +286,54 @@ func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandApiManagementLoggerEventHub(input []interface{}) map[string]*string {
-	credentials := make(map[string]*string)
+func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
+	credentials := make(map[string]string)
 	eventHub := input[0].(map[string]interface{})
-	credentials["name"] = utils.String(eventHub["name"].(string))
-	credentials["connectionString"] = utils.String(eventHub["connection_string"].(string))
-	return credentials
+
+	connectionString := eventHub["connection_string"].(string)
+	endpointAddress := eventHub["endpoint_uri"].(string)
+	clientId := eventHub["user_assigned_identity_client_id"].(string)
+
+	credentials["name"] = eventHub["name"].(string)
+	if len(connectionString) > 0 {
+		credentials["connectionString"] = connectionString
+	} else if len(endpointAddress) > 0 {
+		credentials["endpointAddress"] = endpointAddress
+		// This field is required by the API and only accepts either a valid UUID or `SystemAssigned` as a value, so we default this to `SystemAssigned` in the create if the field is omitted
+		credentials["identityClientId"] = "SystemAssigned"
+		if clientId != "" {
+			credentials["identityClientId"] = clientId
+		}
+
+	}
+
+	return &credentials
 }
 
-func expandApiManagementLoggerApplicationInsights(input []interface{}) map[string]*string {
-	credentials := make(map[string]*string)
+func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[string]string {
+	credentials := make(map[string]string)
 	ai := input[0].(map[string]interface{})
-	credentials["instrumentationKey"] = utils.String(ai["instrumentation_key"].(string))
-	return credentials
+	credentials["instrumentationKey"] = ai["instrumentation_key"].(string)
+	return &credentials
 }
 
-func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *apimanagement.LoggerContractProperties) []interface{} {
+func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *logger.LoggerContractProperties) []interface{} {
 	result := make([]interface{}, 0)
-	if name := properties.Credentials["name"]; name != nil {
+	if c := properties.Credentials; c != nil && (*c)["name"] != "" {
 		eventHub := make(map[string]interface{})
-		eventHub["name"] = *name
+		eventHub["name"] = (*c)["name"]
 		if existing := d.Get("eventhub").([]interface{}); len(existing) > 0 {
 			existingEventHub := existing[0].(map[string]interface{})
 			if conn, ok := existingEventHub["connection_string"]; ok {
 				eventHub["connection_string"] = conn.(string)
+			}
+			if endpoint, ok := existingEventHub["endpoint_uri"]; ok {
+				eventHub["endpoint_uri"] = endpoint
+			}
+			if clientId, ok := existingEventHub["user_assigned_identity_client_id"]; ok {
+				if clientId != "SystemAssigned" {
+					eventHub["user_assigned_identity_client_id"] = clientId
+				}
 			}
 		}
 		result = append(result, eventHub)

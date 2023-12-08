@@ -1,10 +1,13 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-anw-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_route_table" "example" {
@@ -41,15 +44,15 @@ resource "azurerm_subnet_route_table_association" "example" {
 
 resource "azurerm_kubernetes_cluster" "example" {
   name                = "${var.prefix}-anw"
-  location            = "${azurerm_resource_group.example.location}"
+  location            = azurerm_resource_group.example.location
   dns_prefix          = "${var.prefix}-anw"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   linux_profile {
     admin_username = "acctestuser1"
 
     ssh_key {
-      key_data = "${file(var.public_ssh_key_path)}"
+      key_data = file(var.public_ssh_key_path)
     }
   }
 
@@ -61,12 +64,12 @@ resource "azurerm_kubernetes_cluster" "example" {
     os_disk_size_gb = 30
 
     # Required for advanced networking
-    vnet_subnet_id = "${azurerm_subnet.example.id}"
+    vnet_subnet_id = azurerm_subnet.example.id
   }
 
   service_principal {
-    client_id     = "${var.kubernetes_client_id}"
-    client_secret = "${var.kubernetes_client_secret}"
+    client_id     = var.kubernetes_client_id
+    client_secret = var.kubernetes_client_secret
   }
 
   network_profile {

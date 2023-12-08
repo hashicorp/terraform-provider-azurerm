@@ -1,14 +1,17 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/attacheddatabaseconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusterprincipalassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/databaseprincipalassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/dataconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/managedprivateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/scripts" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databaseprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/scripts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

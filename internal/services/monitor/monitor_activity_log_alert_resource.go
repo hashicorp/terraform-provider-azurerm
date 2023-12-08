@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -219,6 +222,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 								"Reliability",
 								"OperationalExcellence",
 								"Performance",
+								"HighAvailability",
 							},
 								false,
 							),

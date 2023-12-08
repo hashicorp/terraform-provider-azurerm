@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -6,12 +9,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -59,7 +63,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryID,
+				ValidateFunc: factories.ValidateFactoryID,
 			},
 
 			"location": commonschema.Location(),
@@ -122,7 +126,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.SubnetID,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 					},
 				},
@@ -154,7 +158,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
-							ValidateFunc: networkValidate.SubnetID,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 						"subnet_name": {
 							Type:         pluginsdk.TypeString,
@@ -449,12 +453,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewIntegrationRuntimeID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := parse.NewIntegrationRuntimeID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
@@ -506,7 +510,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {

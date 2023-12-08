@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -112,7 +115,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 }
 
 func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MSSQL.LegacyServerSecurityAlertPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +129,7 @@ func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceDat
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, serverName, *alertPolicy)
 	if err != nil {
-		return fmt.Errorf("updataing mssql server security alert policy: %v", err)
+		return fmt.Errorf("updating mssql server security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -148,7 +151,7 @@ func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceDat
 }
 
 func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MSSQL.LegacyServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -219,7 +222,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MSSQL.LegacyServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -238,7 +241,7 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, disabledPolicy)
 	if err != nil {
-		return fmt.Errorf("updataing mssql server security alert policy: %v", err)
+		return fmt.Errorf("updating mssql server security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

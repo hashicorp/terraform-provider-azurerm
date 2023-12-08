@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance_test
 
 import (
@@ -9,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -47,19 +49,17 @@ func TestAccMaintenanceAssignmentDedicatedHost_requiresImport(t *testing.T) {
 }
 
 func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MaintenanceAssignmentDedicatedHostID(state.ID)
+	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	rgProviderId := configurationassignments.NewResourceGroupProviderID(id.DedicatedHostId.SubscriptionId, id.DedicatedHostId.ResourceGroupName, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName)
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.ListParent(ctx, rgProviderId)
-
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", id.DedicatedHostIdRaw, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MaintenanceAssignmentDedicatedHostResource) basic(data acceptance.TestData) string {

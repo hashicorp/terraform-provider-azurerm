@@ -105,7 +105,7 @@ The `condition` block supports the following:
 
 * `monitor` - (Optional) A `monitor` block as defined below.
 
-* `monitor_service` - (Optional) A `monitor_service` as block defined below.
+* `monitor_service` - (Optional) A `monitor_service` block as defined below.
 
 * `severity` - (Optional) A `severity` block as defined below.
 

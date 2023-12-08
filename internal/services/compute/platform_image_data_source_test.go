@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -20,8 +23,8 @@ func TestAccDataSourcePlatformImage_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("offer").HasValue("UbuntuServer"),
-				check.That(data.ResourceName).Key("sku").HasValue("16.04-LTS"),
+				check.That(data.ResourceName).Key("offer").HasValue("0001-com-ubuntu-server-jammy"),
+				check.That(data.ResourceName).Key("sku").HasValue("22_04-lts"),
 			),
 		},
 	})
@@ -37,9 +40,9 @@ func TestAccDataSourcePlatformImage_withVersion(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("publisher").HasValue("Canonical"),
-				check.That(data.ResourceName).Key("offer").HasValue("UbuntuServer"),
-				check.That(data.ResourceName).Key("sku").HasValue("16.04-LTS"),
-				check.That(data.ResourceName).Key("version").HasValue("16.04.201811010"),
+				check.That(data.ResourceName).Key("offer").HasValue("0001-com-ubuntu-server-jammy"),
+				check.That(data.ResourceName).Key("sku").HasValue("22_04-lts"),
+				check.That(data.ResourceName).Key("version").HasValue("22.04.202310040"),
 			),
 		},
 	})
@@ -54,8 +57,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "16.04-LTS"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
 }
 `, data.Locations.Primary)
 }
@@ -69,9 +72,9 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "16.04-LTS"
-  version   = "16.04.201811010"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
+  version   = "22.04.202310040"
 }
 `, data.Locations.Primary)
 }

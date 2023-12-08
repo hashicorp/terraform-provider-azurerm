@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -23,10 +26,7 @@ func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 		Read:   resourceSentinelDataConnectorThreatIntelligenceRead,
 		Delete: resourceSentinelDataConnectorThreatIntelligenceDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
-			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindThreatIntelligence)),
+		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindThreatIntelligence),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

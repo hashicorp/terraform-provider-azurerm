@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/producttag"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementProductTagResource struct{}
@@ -50,17 +53,17 @@ func TestAccApiManagementProductTag_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementProductTagResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProductTagID(state.ID)
+	id, err := producttag.ParseProductTagID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.TagClient.GetByProduct(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.TagName)
+	resp, err := clients.ApiManagement.ProductTagClient.TagGetByProduct(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (ApiManagementProductTagResource) basic(data acceptance.TestData) string {

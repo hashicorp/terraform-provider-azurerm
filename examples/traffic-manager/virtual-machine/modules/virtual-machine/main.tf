@@ -1,31 +1,34 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 data "azurerm_resource_group" "example" {
-  name = "${var.resource_group_name}"
+  name = var.resource_group_name
 }
 
 resource "azurerm_network_interface" "example" {
   name                = "${var.prefix}-nic"
-  location            = "${data.azurerm_resource_group.example.location}"
-  resource_group_name = "${data.azurerm_resource_group.example.name}"
+  location            = data.azurerm_resource_group.example.location
+  resource_group_name = data.azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "example"
-    subnet_id                     = "${var.subnet_id}"
+    subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "example" {
   name                          = "${var.prefix}-vm"
-  location                      = "${data.azurerm_resource_group.example.location}"
-  resource_group_name           = "${data.azurerm_resource_group.example.name}"
+  location                      = data.azurerm_resource_group.example.location
+  resource_group_name           = data.azurerm_resource_group.example.name
   network_interface_ids         = ["${azurerm_network_interface.example.id}"]
   vm_size                       = "Standard_DS1_v2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -49,7 +52,7 @@ resource "azurerm_virtual_machine" "example" {
 
 resource "azurerm_virtual_machine_extension" "example" {
   name                       = "CustomScript"
-  virtual_machine_id       = azurerm_virtual_machine.example.id
+  virtual_machine_id         = azurerm_virtual_machine.example.id
   publisher                  = "Microsoft.Azure.Extensions"
   type                       = "CustomScript"
   type_handler_version       = "2.0"

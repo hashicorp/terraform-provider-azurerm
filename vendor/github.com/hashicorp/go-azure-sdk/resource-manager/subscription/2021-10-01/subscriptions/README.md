@@ -166,6 +166,22 @@ if model := read.Model; model != nil {
 ```
 
 
+### Example Usage: `SubscriptionsClient.SubscriptionOperationGet`
+
+```go
+ctx := context.TODO()
+id := subscriptions.NewSubscriptionOperationID("operationIdValue")
+
+read, err := client.SubscriptionOperationGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `SubscriptionsClient.SubscriptionPolicyAddUpdatePolicyForTenant`
 
 ```go

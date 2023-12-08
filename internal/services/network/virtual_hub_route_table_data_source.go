@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -20,11 +23,6 @@ func dataSourceVirtualHubRouteTable() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
-
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.HubRouteTableID(id)
-			return err
-		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

@@ -56,7 +56,7 @@ func (o ListByNamespaceOperationOptions) ToQuery() *client.QueryParams {
 // ListByNamespace ...
 func (c SchemaRegistryClient) ListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (result ListByNamespaceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

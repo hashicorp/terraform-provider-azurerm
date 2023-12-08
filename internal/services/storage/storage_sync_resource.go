@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -5,18 +8,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStorageSync() *pluginsdk.Resource {
@@ -27,7 +30,7 @@ func resourceStorageSync() *pluginsdk.Resource {
 		Delete: resourceStorageSyncDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StorageSyncServiceID(id)
+			_, err := storagesyncservicesresource.ParseStorageSyncServiceID(id)
 			return err
 		}),
 
@@ -53,14 +56,14 @@ func resourceStorageSync() *pluginsdk.Resource {
 			"incoming_traffic_policy": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(storagesync.AllowAllTraffic),
+				Default:  string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storagesync.AllowAllTraffic),
-					string(storagesync.AllowVirtualNetworksOnly),
+					string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
+					string(storagesyncservicesresource.IncomingTrafficPolicyAllowVirtualNetworksOnly),
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -71,32 +74,27 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewStorageSyncServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := storagesyncservicesresource.NewStorageSyncServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.StorageSyncServicesGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_storage_sync", id.ID())
 	}
 
-	parameters := storagesync.ServiceCreateParameters{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		ServiceCreateParametersProperties: &storagesync.ServiceCreateParametersProperties{
-			IncomingTrafficPolicy: storagesync.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string)),
+	parameters := storagesyncservicesresource.StorageSyncServiceCreateParameters{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &storagesyncservicesresource.StorageSyncServiceCreateParametersProperties{
+			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.Name, parameters)
-	if err != nil {
+	if err = client.StorageSyncServicesCreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -108,27 +106,35 @@ func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageSyncServiceID(d.Id())
+	id, err := storagesyncservicesresource.ParseStorageSyncServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.StorageSyncServicesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if props := resp.ServiceProperties; props != nil {
-		d.Set("incoming_traffic_policy", props.IncomingTrafficPolicy)
+	d.Set("name", id.StorageSyncServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("incoming_traffic_policy", string(pointer.From(props.IncomingTrafficPolicy)))
+		}
+
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+
+	return nil
 }
 
 func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -136,30 +142,25 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageSyncServiceID(d.Id())
+	id, err := storagesyncservicesresource.ParseStorageSyncServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	update := storagesync.ServiceUpdateParameters{}
+	update := storagesyncservicesresource.StorageSyncServiceUpdateParameters{}
 
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if d.HasChange("incoming_traffic_policy") {
-		update.ServiceUpdateProperties = &storagesync.ServiceUpdateProperties{
-			IncomingTrafficPolicy: storagesync.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string)),
+		update.Properties = &storagesyncservicesresource.StorageSyncServiceUpdateProperties{
+			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
 		}
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, &update)
-	if err != nil {
+	if err = client.StorageSyncServicesUpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceStorageSyncRead(d, meta)
@@ -170,18 +171,13 @@ func resourceStorageSyncDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageSyncServiceID(d.Id())
+	id, err := storagesyncservicesresource.ParseStorageSyncServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err = client.StorageSyncServicesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

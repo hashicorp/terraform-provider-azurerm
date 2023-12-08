@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package desktopvirtualization_test
 
 import (
@@ -137,11 +140,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_workspace" "test" {
-  name                = "acctestWS%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  friendly_name       = "Acceptance Test!"
-  description         = "Acceptance Test by creating acctws%d"
+  name                          = "acctestWS%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  friendly_name                 = "Acceptance Test!"
+  description                   = "Acceptance Test by creating acctws%d"
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomInteger)
 }

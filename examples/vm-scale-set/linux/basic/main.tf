@@ -1,10 +1,13 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "main" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "main" {
@@ -33,8 +36,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "main" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

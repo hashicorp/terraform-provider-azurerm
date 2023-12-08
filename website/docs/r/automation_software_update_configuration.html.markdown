@@ -80,45 +80,43 @@ The following arguments are supported:
 
 * `automation_account_id` - (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
-* `operating_system` - (Required) The Operating system of target machines. Possible values are `Windows` and `Linux`.
-
 ---
 
-* `duration` - (Optional) Maximum time allowed for the software update configuration run. using format `PT[n]H[n]M[n]S` as per ISO8601.
+* `duration` - (Optional) Maximum time allowed for the software update configuration run. using format `PT[n]H[n]M[n]S` as per ISO8601. Defaults to `PT2H`.
 
-* `linux` - (Optional) One or more `linux` blocks as defined below.
+* `linux` - (Optional) A `linux` block as defined below.
 
-* `windows` - (Optional) One or more `windows` blocks as defined below.
+* `windows` - (Optional) A `windows` block as defined below.
 
-* `virtual_machine_ids` - (Optional) Specifies a list of azure resource Ids of azure virtual machines.
+~> **NOTE:** One of `linux` or `windows` must be specified.
 
-* `non_azure_computer_names` - (Optional) Specifies a list of names of non-azure machines for the software update configuration.
+* `virtual_machine_ids` - (Optional) Specifies a list of Azure Resource IDs of azure virtual machines.
 
-* `target` - (Optional) One or more `target` blocks as defined below.
+* `non_azure_computer_names` - (Optional) Specifies a list of names of non-Azure machines for the software update configuration.
 
-* `post_task` - (Optional) One or more `post_task` blocks as defined below.
+* `target` - (Optional) A `target` blocks as defined below.
 
-* `pre_task` - (Optional) One or more `pre_task` blocks as defined below.
+* `post_task` - (Optional) A `post_task` blocks as defined below.
 
-* `schedule` - (Optional) One or more `schedule` blocks as defined below.
+* `pre_task` - (Optional) A `pre_task` blocks as defined below.
+
+* `schedule` - (Required) A `schedule` blocks as defined below.
 
 ---
 
 A `linux` block supports the following:
 
-* `classification_included` - (Optional) Specifies the update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
+* `classifications_included` - (Optional) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
 
 * `excluded_packages` - (Optional) Specifies a list of packages to excluded from the Software Update Configuration.
 
 * `included_packages` - (Optional) Specifies a list of packages to included from the Software Update Configuration.
 
-* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`. Defaults to `IfRequired`.
 
 ---
 
 A `windows` block supports the following:
-
-* `classification_included` - (Optional) (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
@@ -126,7 +124,7 @@ A `windows` block supports the following:
 
 * `included_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers included.
 
-* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`. Defaults to `IfRequired`.
 
 ---
 
@@ -146,7 +144,7 @@ A `azure_query` block supports the following:
 
 * `tag_filter` - (Optional) Specifies how the specified tags to filter VMs. Possible values are `Any` and `All`.
 
-* `tags` - (Optional) A mapping of tags used for query filter as defined below.
+* `tags` - (Optional) A mapping of tags used for query filter. One or more `tags` block as defined below.
 
 ---
 
@@ -184,9 +182,9 @@ A `post_task` block supports the following:
 
 A `schedule` block supports the following:
 
-* `is_enabled` - (Optional) Whether the schedule is enabled.
+* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
-* `frequency` - (Optional) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+* `is_enabled` - (Optional) Whether the schedule is enabled. Defaults to `true`.
 
 * `description` - (Optional) A description for this Schedule.
 
@@ -198,7 +196,7 @@ A `schedule` block supports the following:
 
 * `time_zone` - (Optional) The timezone of the start time. Defaults to `Etc/UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
-* `advanced_week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
+* `advanced_week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`.
 
 * `advanced_month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 
@@ -228,7 +226,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation.
-* `update` - (Defaults to 10 minutes) Used when updating the Automation.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Automation.
 
 ## Import

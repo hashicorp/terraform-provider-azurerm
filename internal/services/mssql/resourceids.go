@@ -1,6 +1,8 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Database -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/databases/database1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DatabaseExtendedAuditingPolicy -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/databases/database1/extendedAuditingSettings/default
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DatabaseVulnerabilityAssessmentRuleBaseline -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/databases/database1/vulnerabilityAssessments/default/rules/rule1/baselines/baseline1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ElasticPool -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/elasticPools/pool1

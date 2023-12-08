@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -153,7 +156,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 		if err != nil {
 			if response.WasNotFound(throughputFuture.HttpResponse) {
 				return fmt.Errorf("setting Throughput for Cosmos Gremlin Database %q (Account: %q): %+v - "+
-					"If the collection has not been created with and initial throughput, you cannot configure it later.", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+					"If the collection has not been created with and initial throughput, you cannot configure it later", id.GremlinDatabaseName, id.DatabaseAccountName, err)
 			}
 		}
 

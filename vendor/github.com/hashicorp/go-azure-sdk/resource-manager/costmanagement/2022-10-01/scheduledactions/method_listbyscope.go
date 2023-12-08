@@ -53,7 +53,7 @@ func (o ListByScopeOperationOptions) ToQuery() *client.QueryParams {
 // ListByScope ...
 func (c ScheduledActionsClient) ListByScope(ctx context.Context, id commonids.ScopeId, options ListByScopeOperationOptions) (result ListByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

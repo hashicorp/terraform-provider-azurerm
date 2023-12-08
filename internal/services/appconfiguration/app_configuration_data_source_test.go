@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration_test
 
 import (
@@ -46,6 +49,10 @@ func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_write_key.0.secret").Exists(),
 				check.That(data.ResourceName).Key("sku").Exists(),
 				check.That(data.ResourceName).Key("soft_delete_retention_days").Exists(),
+				check.That(data.ResourceName).Key("replica.#").HasValue("2"),
+				check.That(data.ResourceName).Key("replica.0.name").Exists(),
+				check.That(data.ResourceName).Key("replica.1.id").Exists(),
+				check.That(data.ResourceName).Key("replica.1.endpoint").Exists(),
 			),
 		},
 	})

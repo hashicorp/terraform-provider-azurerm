@@ -1,7 +1,10 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "${var.prefix}-vmss"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -26,7 +29,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
     ip_configuration {
       name                                   = "internal"
-      subnet_id                              = "${azurerm_subnet.example.id}"
+      subnet_id                              = azurerm_subnet.example.id
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.example.id}"]
       primary                                = true
     }
@@ -41,8 +44,8 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package bot
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -104,6 +108,12 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			}, false),
 		},
 
+		"local_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"luis_app_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -124,6 +134,13 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+
+		"icon_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png",
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"tags": tags.Schema(),
@@ -177,9 +194,11 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightKey:            utils.String(metadata.ResourceData.Get("developer_app_insights_key").(string)),
 					DeveloperAppInsightsAPIKey:        utils.String(metadata.ResourceData.Get("developer_app_insights_api_key").(string)),
 					DeveloperAppInsightsApplicationID: utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
+					DisableLocalAuth:                  utils.Bool(!metadata.ResourceData.Get("local_authentication_enabled").(bool)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           utils.String(metadata.ResourceData.Get("luis_key").(string)),
 					IsStreamingSupported:              utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
+					IconURL:                           utils.String(metadata.ResourceData.Get("icon_url").(string)),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
@@ -235,7 +254,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 			}
 			metadata.ResourceData.Set("sku", sku)
 
-			metadata.ResourceData.Set("tags", tags.FlattenAndSet(metadata.ResourceData, resp.Tags))
+			metadata.ResourceData.Set("tags", tags.ToTypedObject(resp.Tags))
 
 			if props := resp.Properties; props != nil {
 				msAppId := ""
@@ -292,6 +311,12 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				}
 				metadata.ResourceData.Set("microsoft_app_msi_id", msaAppMSIId)
 
+				localAuthEnabled := true
+				if v := props.DisableLocalAuth; v != nil {
+					localAuthEnabled = !*v
+				}
+				metadata.ResourceData.Set("local_authentication_enabled", localAuthEnabled)
+
 				var luisAppIds []string
 				if v := props.LuisAppIds; v != nil {
 					luisAppIds = *v
@@ -303,6 +328,8 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 					streamingEndpointEnabled = *v
 				}
 				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
+
+				metadata.ResourceData.Set("icon_url", pointer.From(props.IconURL))
 			}
 
 			return nil
@@ -364,6 +391,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 				existing.Properties.DeveloperAppInsightsApplicationID = utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string))
 			}
 
+			if metadata.ResourceData.HasChange("local_authentication_enabled") {
+				existing.Properties.DisableLocalAuth = utils.Bool(!metadata.ResourceData.Get("local_authentication_enabled").(bool))
+			}
+
 			if metadata.ResourceData.HasChange("luis_app_ids") {
 				existing.Properties.LuisAppIds = utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{}))
 			}
@@ -374,6 +405,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
 				existing.Properties.IsStreamingSupported = utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool))
+			}
+
+			if metadata.ResourceData.HasChange("icon_url") {
+				existing.Properties.IconURL = utils.String(metadata.ResourceData.Get("icon_url").(string))
 			}
 
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {

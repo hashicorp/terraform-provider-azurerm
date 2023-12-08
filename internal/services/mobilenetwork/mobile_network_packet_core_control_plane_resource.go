@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork
 
 import (
@@ -9,10 +12,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site"
@@ -184,7 +187,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 					"arc_kubernetes_cluster_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: managedclusters.ValidateManagedClusterID,
+						ValidateFunc: commonids.ValidateKubernetesClusterID,
 						AtLeastOneOf: []string{
 							"platform.0.edge_device_id",
 							"platform.0.stack_hci_cluster_id",
@@ -540,15 +543,41 @@ func (r PacketCoreControlPlaneResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			// a workaround for that some child resources may still exist for seconds before it fully deleted.
+			// tracked on https://github.com/Azure/azure-rest-api-specs/issues/22691
+			// it will cause the error "Can not delete resource before nested resources are deleted."
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Delay:   5 * time.Minute,
+				Pending: []string{"409"},
+				Target:  []string{"200", "202"},
+				Refresh: func() (result interface{}, state string, err error) {
+					resp, err := client.Delete(ctx, *id)
+					if err != nil {
+						if resp.HttpResponse == nil {
+							return nil, "", fmt.Errorf("HTTP response was nil")
+						}
+						if resp.HttpResponse.StatusCode == http.StatusConflict {
+							return nil, "409", nil
+						}
+						return nil, "", err
+					}
+					return resp, "200", nil
+				},
+				MinTimeout: 15 * time.Second,
+				Timeout:    time.Until(deadline),
 			}
 
-			if err := resourceMobileNetworkChildWaitForDeletion(ctx, id.ID(), func() (*http.Response, error) {
-				resp, err := client.Get(ctx, *id)
-				return resp.HttpResponse, err
-			}); err != nil {
-				return err
+			if future, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for deleting of %s: %+v", id, err)
+			} else {
+				poller := future.(packetcorecontrolplane.DeleteOperationResponse).Poller
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("deleting %s: %+v", id, err)
+				}
 			}
 
 			return nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres
 
 import (
@@ -73,7 +76,10 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			timeout, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
+			defer cancel()
+
+			resp, err := client.Get(timeout, *id)
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("reading %s: %+v", id, err)
 			}
@@ -506,7 +512,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
 			if err = securityClient.CreateOrUpdateThenPoll(ctx, securityAlertId, *alert); err != nil {
-				return fmt.Errorf("updataing security alert policy for %s: %v", id, err)
+				return fmt.Errorf("updating security alert policy for %s: %v", id, err)
 			}
 		}
 	}

@@ -23,7 +23,7 @@ type CreateOrUpdateSecuritySettingsOperationResponse struct {
 // CreateOrUpdateSecuritySettings ...
 func (c DevicesClient) CreateOrUpdateSecuritySettings(ctx context.Context, id DataBoxEdgeDeviceId, input SecuritySettings) (result CreateOrUpdateSecuritySettingsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

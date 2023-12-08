@@ -1,8 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validation
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -26,16 +31,37 @@ func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //
 	return validation.Any(validators...)
 }
 
+// FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
+// is of type float and is at least min (inclusive)
+func FloatAtLeast(min float64) func(interface{}, string) ([]string, []error) {
+	return validation.FloatAtLeast(min)
+}
+
 // FloatBetween returns a SchemaValidateFunc which tests if the provided value
 // is of type float64 and is between min and max (inclusive).
 func FloatBetween(min, max float64) func(interface{}, string) ([]string, []error) {
 	return validation.FloatBetween(min, max)
 }
 
-// FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
-// is of type float and is at least min (inclusive)
-func FloatAtLeast(min float64) func(interface{}, string) ([]string, []error) {
-	return validation.FloatAtLeast(min)
+// FloatInSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type float64 and matches the value of an element in the valid slice
+func FloatInSlice(valid []float64) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(float64)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %s to be float", i))
+			return warnings, errors
+		}
+
+		for _, validFloat := range valid {
+			if v == validFloat {
+				return warnings, errors
+			}
+		}
+
+		errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
+		return warnings, errors
+	}
 }
 
 // IntNotInSlice returns a SchemaValidateFunc which tests if the provided value
@@ -72,6 +98,19 @@ func IntDivisibleBy(divisor int) func(interface{}, string) ([]string, []error) {
 // is of type int and matches the value of an element in the valid slice
 func IntInSlice(valid []int) func(interface{}, string) ([]string, []error) {
 	return validation.IntInSlice(valid)
+}
+
+func IntPositive(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be int", i))
+		return
+	}
+	if v <= 0 {
+		errors = append(errors, fmt.Errorf("expected %s to be positive, got %d", k, v))
+		return
+	}
+	return
 }
 
 // IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid CIDR
@@ -132,6 +171,33 @@ func IsURLWithHTTPS(i interface{}, k string) ([]string, []error) {
 // IsURLWithScheme is a SchemaValidateFunc which tests if the provided value is of type string and a valid URL with the provided schemas
 func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string, []error) {
 	return validation.IsURLWithScheme(validSchemes)
+}
+
+// IsURLWithPath is a SchemaValidateFunc that tests if the provided value is of type string and a valid URL with a path
+func IsURLWithPath(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if v == "" {
+		errors = append(errors, fmt.Errorf("expected %q url to not be empty, got %v", k, i))
+		return
+	}
+
+	u, err := url.Parse(v)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %q to be a valid url, got %v: %+v", k, v, err))
+		return
+	}
+
+	if strings.TrimPrefix(u.Path, "/") == "" {
+		errors = append(errors, fmt.Errorf("expected %q to have a non empty path got %v", k, v))
+		return
+	}
+
+	return
 }
 
 // IsUUID is a ValidateFunc that ensures a string can be parsed as UUID
@@ -225,4 +291,21 @@ func StringMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]
 // will test with in lower case if ignoreCase is true
 func StringNotInSlice(invalid []string, ignoreCase bool) func(interface{}, string) ([]string, []error) {
 	return validation.StringNotInSlice(invalid, ignoreCase)
+}
+
+func StringStartsWithOneOf(prefixs ...string) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+			return warnings, errors
+		}
+		for _, val := range prefixs {
+			if strings.HasPrefix(v, val) {
+				return warnings, errors
+			}
+		}
+		errors = append(errors, fmt.Errorf("expect %s to start with one of %s, got %q", k, strings.Join(prefixs, ", "), v))
+		return warnings, errors
+	}
 }

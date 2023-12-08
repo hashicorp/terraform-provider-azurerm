@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -22,6 +25,35 @@ func TestAccPointToSiteVPNGateway_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPointToSiteVPNGateway_connectionConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleConnectionConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleConnectionConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.singleConnectionConfiguration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -146,6 +178,57 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     name = "first"
     vpn_client_address_pool {
       address_prefixes = ["172.100.0.0/14"]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PointToSiteVPNGatewayResource) singleConnectionConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_point_to_site_vpn_gateway" "test" {
+  name                        = "acctestp2sVPNG-%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  virtual_hub_id              = azurerm_virtual_hub.test.id
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  scale_unit                  = 1
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = ["172.100.0.0/25"]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PointToSiteVPNGatewayResource) multipleConnectionConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_point_to_site_vpn_gateway" "test" {
+  name                        = "acctestp2sVPNG-%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  virtual_hub_id              = azurerm_virtual_hub.test.id
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  scale_unit                  = 1
+
+  connection_configuration {
+    name = "second"
+    vpn_client_address_pool {
+      address_prefixes = ["172.100.128.0/25"]
+    }
+  }
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = ["172.100.0.0/25"]
     }
   }
 }

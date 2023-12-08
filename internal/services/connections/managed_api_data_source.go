@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package connections
 
 import (
@@ -46,7 +49,7 @@ func dataSourceManagedApiRead(d *schema.ResourceData, meta interface{}) error {
 
 	location := location.Normalize(d.Get("location").(string))
 	id := managedapis.NewManagedApiID(subscriptionId, location, d.Get("name").(string))
-	resp, err := client.ManagedApisGet(ctx, id)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", err)

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -68,10 +71,7 @@ func (r DataConnectorOfficeIRMResource) IDValidationFunc() pluginsdk.SchemaValid
 }
 
 func (r DataConnectorOfficeIRMResource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindOfficeIRM)(ctx, metadata.ResourceData, metadata.Client)
-		return err
-	}
+	return importDataConnectorTyped(securityinsight.DataConnectorKindOfficeIRM)
 }
 
 func (r DataConnectorOfficeIRMResource) Create() sdk.ResourceFunc {

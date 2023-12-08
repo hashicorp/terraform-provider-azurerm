@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules"
@@ -17,27 +22,42 @@ type Client struct {
 	VirtualNetworkRulesClient *virtualnetworkrules.VirtualNetworkRulesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	configurationsClient := configurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	configurationsClient, err := configurations.NewConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Configurations Client: %+v", err)
+	}
+	o.Configure(configurationsClient.Client, o.Authorizers.ResourceManager)
 
-	DatabasesClient := databases.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
+	databasesClient, err := databases.NewDatabasesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Databases Client: %+v", err)
+	}
+	o.Configure(databasesClient.Client, o.Authorizers.ResourceManager)
 
-	FirewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
+	firewallRulesClient, err := firewallrules.NewFirewallRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Firewall Rules Client: %+v", err)
+	}
+	o.Configure(firewallRulesClient.Client, o.Authorizers.ResourceManager)
 
-	ServersClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
+	serversClient, err := servers.NewServersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Servers Client: %+v", err)
+	}
+	o.Configure(serversClient.Client, o.Authorizers.ResourceManager)
 
-	VirtualNetworkRulesClient := virtualnetworkrules.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
+	virtualNetworkRulesClient, err := virtualnetworkrules.NewVirtualNetworkRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Network Rules Client: %+v", err)
+	}
+	o.Configure(virtualNetworkRulesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ConfigurationsClient:      &configurationsClient,
-		DatabasesClient:           &DatabasesClient,
-		FirewallRulesClient:       &FirewallRulesClient,
-		ServersClient:             &ServersClient,
-		VirtualNetworkRulesClient: &VirtualNetworkRulesClient,
-	}
+		ConfigurationsClient:      configurationsClient,
+		DatabasesClient:           databasesClient,
+		FirewallRulesClient:       firewallRulesClient,
+		ServersClient:             serversClient,
+		VirtualNetworkRulesClient: virtualNetworkRulesClient,
+	}, nil
 }

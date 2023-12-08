@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 // the `exit_code_hack` is to keep the VM Extension resource happy
 locals {
   import_command       = "Import-Module ADDSDeployment"
@@ -13,9 +16,9 @@ locals {
 // this provisions a single node configuration with no redundancy.
 resource "azurerm_virtual_machine_extension" "create-active-directory-forest" {
   name                 = "create-active-directory-forest"
-  location             = "${azurerm_virtual_machine.domain-controller.location}"
-  resource_group_name  = "${var.resource_group_name}"
-  virtual_machine_name = "${azurerm_virtual_machine.domain-controller.name}"
+  location             = azurerm_virtual_machine.domain-controller.location
+  resource_group_name  = var.resource_group_name
+  virtual_machine_name = azurerm_virtual_machine.domain-controller.name
   publisher            = "Microsoft.Compute"
   type                 = "CustomScriptExtension"
   type_handler_version = "1.9"

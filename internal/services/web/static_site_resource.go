@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package web
 
 import (
@@ -69,6 +72,14 @@ func resourceStaticSite() *pluginsdk.Resource {
 					string(web.SkuNameStandard),
 					string(web.SkuNameFree),
 				}, false),
+			},
+
+			"app_settings": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"default_host_name": {
@@ -147,6 +158,16 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	d.SetId(id.ID())
 
+	if d.HasChange("app_settings") {
+		settings := web.StringDictionary{
+			Properties: expandStaticSiteAppSettings(d),
+		}
+
+		if _, err := client.CreateOrUpdateStaticSiteAppSettings(ctx, id.ResourceGroup, id.Name, settings); err != nil {
+			return fmt.Errorf("updating Application Settings for %s: %+v", id, err)
+		}
+	}
+
 	return resourceStaticSiteRead(d, meta)
 }
 
@@ -212,6 +233,15 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		apiKey = *pkey
 	}
 	d.Set("api_key", apiKey)
+
+	appSettingsResp, err := client.ListStaticSiteAppSettings(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("making Read request for app settings on %s: %+v", id, err)
+	}
+
+	if err := d.Set("app_settings", appSettingsResp.Properties); err != nil {
+		return fmt.Errorf("setting `app_settings`: %s", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -286,4 +316,15 @@ func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{
 	}
 
 	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
+
+func expandStaticSiteAppSettings(d *pluginsdk.ResourceData) map[string]*string {
+	input := d.Get("app_settings").(map[string]interface{})
+	output := make(map[string]*string, len(input))
+
+	for k, v := range input {
+		output[k] = utils.String(v.(string))
+	}
+
+	return output
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn_test
 
 import (
@@ -22,6 +25,36 @@ func TestAccCdnFrontDoorRule_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_cacheDuration(t *testing.T) {
+	// NOTE: Regression test case for issue #22668
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cacheDuration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_cacheDurationZero(t *testing.T) {
+	// NOTE: Regression test case for issue #23376
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cacheDurationZero(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -345,6 +378,49 @@ func TestAccCdnFrontDoorRule_allowEmptyQueryString(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowForwardSlashUrlConditionMatchValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorAny(t *testing.T) {
+	// NOTE: Regression test case for issue #23504
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlFilenameConditionOperator(data, "Any"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("conditions.0.url_filename_condition.0.operator").HasValue("Any"),
+				check.That(data.ResourceName).Key("conditions.0.url_filename_condition.0.match_values").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorError(t *testing.T) {
+	// NOTE: Regression test case for issue #23504
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.urlFilenameConditionOperator(data, "Contains"),
+			ExpectError: regexp.MustCompile(`the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'`),
+		},
+	})
+}
+
 func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorRuleID(state.ID)
 	if err != nil {
@@ -433,6 +509,70 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
       compression_enabled           = true
       cache_behavior                = "OverrideIfOriginMissing"
       cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) cacheDuration(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  actions {
+    route_configuration_override_action {
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+      forwarding_protocol           = "HttpsOnly"
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "167.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) cacheDurationZero(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  actions {
+    route_configuration_override_action {
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+      forwarding_protocol           = "HttpsOnly"
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "00:00:00"
     }
   }
 }
@@ -1171,4 +1311,74 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) allowForwardSlashUrlConditionMatchValue(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  actions {
+    route_configuration_override_action {
+      cache_behavior                = "HonorOrigin"
+      compression_enabled           = true
+      query_string_caching_behavior = "IgnoreQueryString"
+    }
+  }
+
+  conditions {
+    url_path_condition {
+      match_values     = ["/"]
+      negate_condition = false
+      operator         = "EndsWith"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) urlFilenameConditionOperator(data acceptance.TestData, operator string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  order                     = 1
+  behavior_on_match         = "Stop"
+
+  actions {
+    url_rewrite_action {
+      source_pattern          = "/"
+      destination             = "/index.html"
+      preserve_unmatched_path = false
+    }
+  }
+
+  conditions {
+    url_filename_condition {
+      operator = "%s"
+    }
+  }
+}
+`, template, data.RandomInteger, operator)
 }

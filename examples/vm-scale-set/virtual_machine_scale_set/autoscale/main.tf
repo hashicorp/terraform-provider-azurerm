@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -8,33 +11,33 @@ locals {
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "internal"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = azurerm_virtual_network.example.name
+  resource_group_name  = azurerm_resource_group.example.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "${var.prefix}-vmss"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   upgrade_policy_mode = "Manual"
 
   sku {
     name     = "Standard_D1_v2"
     tier     = "Standard"
-    capacity = "${local.instance_count}"
+    capacity = local.instance_count
   }
 
   os_profile {
@@ -53,7 +56,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
     ip_configuration {
       name      = "internal"
-      subnet_id = "${azurerm_subnet.example.id}"
+      subnet_id = azurerm_subnet.example.id
       primary   = true
     }
   }
@@ -67,23 +70,23 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
 
 resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "autoscale-cpu"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   profile {
     name = "autoscale-cpu"
 
     capacity {
-      default = "${local.instance_count}"
+      default = local.instance_count
       minimum = 0
       maximum = 1000
     }
@@ -91,7 +94,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -111,7 +114,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
@@ -7,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -856,6 +859,10 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 		result.AutoUpgradeMinorVersion = utils.Bool(autoUpgradeMinorVersion.(bool))
 	}
 
+	if autoUpgradeEnabled, ok := ref["automatic_upgrade_enabled"]; ok {
+		result.EnableAutomaticUpgrade = utils.Bool(autoUpgradeEnabled.(bool))
+	}
+
 	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
 		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
 	}
@@ -1107,6 +1114,10 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 		networkConfiguration.DynamicVnetAssignmentScope = pointer.To(pool.DynamicVNetAssignmentScope(v.(string)))
 	}
 
+	if v, ok := networkConfigValue["accelerated_networking_enabled"]; ok {
+		networkConfiguration.EnableAcceleratedNetworking = pointer.FromBool(v.(bool))
+	}
+
 	if v, ok := networkConfigValue["subnet_id"]; ok {
 		if value := v.(string); value != "" {
 			networkConfiguration.SubnetId = &value
@@ -1304,6 +1315,7 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 	return []interface{}{
 		map[string]interface{}{
 			"dynamic_vnet_assignment_scope":    dynamicVNetAssignmentScope,
+			"accelerated_networking_enabled":   pointer.From(input.EnableAcceleratedNetworking),
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
 			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),

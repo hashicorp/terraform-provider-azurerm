@@ -1,6 +1,10 @@
 package skus
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -15,6 +19,19 @@ func PossibleValuesForExtendedLocationType() []string {
 	return []string{
 		string(ExtendedLocationTypeEdgeZone),
 	}
+}
+
+func (s *ExtendedLocationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseExtendedLocationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseExtendedLocationType(input string) (*ExtendedLocationType, error) {
@@ -46,6 +63,19 @@ func PossibleValuesForResourceSkuCapacityScaleType() []string {
 	}
 }
 
+func (s *ResourceSkuCapacityScaleType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResourceSkuCapacityScaleType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseResourceSkuCapacityScaleType(input string) (*ResourceSkuCapacityScaleType, error) {
 	vals := map[string]ResourceSkuCapacityScaleType{
 		"automatic": ResourceSkuCapacityScaleTypeAutomatic,
@@ -75,6 +105,19 @@ func PossibleValuesForResourceSkuRestrictionsReasonCode() []string {
 	}
 }
 
+func (s *ResourceSkuRestrictionsReasonCode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResourceSkuRestrictionsReasonCode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseResourceSkuRestrictionsReasonCode(input string) (*ResourceSkuRestrictionsReasonCode, error) {
 	vals := map[string]ResourceSkuRestrictionsReasonCode{
 		"notavailableforsubscription": ResourceSkuRestrictionsReasonCodeNotAvailableForSubscription,
@@ -101,6 +144,19 @@ func PossibleValuesForResourceSkuRestrictionsType() []string {
 		string(ResourceSkuRestrictionsTypeLocation),
 		string(ResourceSkuRestrictionsTypeZone),
 	}
+}
+
+func (s *ResourceSkuRestrictionsType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResourceSkuRestrictionsType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseResourceSkuRestrictionsType(input string) (*ResourceSkuRestrictionsType, error) {

@@ -36,19 +36,9 @@ func ParseAutoScaleSettingID(input string) (*AutoScaleSettingId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutoScaleSettingId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutoScaleSettingName, ok = parsed.Parsed["autoScaleSettingName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "autoScaleSettingName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseAutoScaleSettingIDInsensitively(input string) (*AutoScaleSettingId, er
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutoScaleSettingId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutoScaleSettingName, ok = parsed.Parsed["autoScaleSettingName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "autoScaleSettingName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AutoScaleSettingId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutoScaleSettingName, ok = input.Parsed["autoScaleSettingName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "autoScaleSettingName", input)
+	}
+
+	return nil
 }
 
 // ValidateAutoScaleSettingID checks that 'input' can be parsed as a Auto Scale Setting ID

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datadog
 
 import (
@@ -148,7 +151,7 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("checking for an existing %s: %+v", id, err)
 		}
 	}
-	if !response.WasNotFound(existing.HttpResponse) {
+	if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
 		return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
 	}
 
@@ -239,8 +242,15 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	// Tag Rules can't be removed on their own, they can only be nil'd out
 	payload := rules.MonitoringTagRules{
 		Properties: &rules.MonitoringTagRulesProperties{
-			LogRules:    expandLogRules(d.Get("log").([]interface{})),
-			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
+			LogRules: &rules.LogRules{
+				SendAadLogs:          utils.Bool(false),
+				SendSubscriptionLogs: utils.Bool(false),
+				SendResourceLogs:     utils.Bool(false),
+				FilteringTags:        &[]rules.FilteringTag{},
+			},
+			MetricRules: &rules.MetricRules{
+				FilteringTags: &[]rules.FilteringTag{},
+			},
 		},
 	}
 	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
@@ -359,4 +369,24 @@ func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 		}
 	}
 	return results
+}
+
+func isDefaultSettings(input *rules.MonitoringTagRules) bool {
+	if input == nil {
+		return false
+	}
+
+	if input.Properties == nil || input.Properties.LogRules == nil || input.Properties.MetricRules == nil {
+		return false
+	}
+
+	logRules := input.Properties.LogRules
+	metricRules := input.Properties.MetricRules
+	result := (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
+		(logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) &&
+		(logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) &&
+		(logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) &&
+		(metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0)
+
+	return result
 }

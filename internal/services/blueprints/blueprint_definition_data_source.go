@@ -1,9 +1,16 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package blueprints
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/validate"
@@ -11,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceBlueprintDefinition() *pluginsdk.Resource {
@@ -81,52 +87,45 @@ func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	scope := d.Get("scope_id").(string)
+	id := blueprint.NewScopedBlueprintID(d.Get("scope_id").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, scope, name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Blueprint Definition %q not found in Scope (%q): %+v", name, scope, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("the Blueprint Definition %q not found in Scope (%q): %+v", id.BlueprintName, id.ResourceScope, err)
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Definition (%q) in Sccope (%q): %+v", name, scope, err)
+		return fmt.Errorf("read failed for Blueprint Definition (%q) in Sccope (%q): %+v", id.BlueprintName, id.ResourceScope, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Failed to retrieve ID for Blueprint %q", name)
-	} else {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(id.ID())
 
-	if resp.Description != nil {
-		d.Set("description", resp.Description)
-	}
+	if m := resp.Model; m != nil {
+		p := m.Properties
 
-	if resp.DisplayName != nil {
-		d.Set("display_name", resp.DisplayName)
-	}
+		d.Set("description", pointer.From(p.Description))
+		d.Set("display_name", pointer.From(p.DisplayName))
+		d.Set("last_modified", p.Status.LastModified)
+		d.Set("time_created", p.Status.TimeCreated)
+		d.Set("target_scope", p.TargetScope)
 
-	d.Set("last_modified", resp.Status.LastModified.String())
+		publishedId := publishedblueprint.NewScopedBlueprintID(id.ResourceScope, id.BlueprintName)
 
-	d.Set("time_created", resp.Status.TimeCreated.String())
-
-	d.Set("target_scope", resp.TargetScope)
-
-	versionList := make([]string, 0)
-	versions, err := publishedClient.List(ctx, scope, name)
-	if err != nil {
-		return fmt.Errorf("listing blue print versions for %s error: %+v", *resp.ID, err)
-	}
-
-	for _, version := range versions.Values() {
-		if version.PublishedBlueprintProperties == nil || version.Name == nil {
-			continue
+		versionList := make([]string, 0)
+		resp, err := publishedClient.List(ctx, publishedId)
+		if err != nil {
+			return fmt.Errorf("listing blue print versions for %s error: %+v", publishedId.String(), err)
 		}
-		versionList = append(versionList, *version.Name)
+
+		if m := resp.Model; m != nil {
+			for _, v := range *resp.Model {
+				if v.Properties.BlueprintName != nil {
+					versionList = append(versionList, *v.Properties.BlueprintName)
+				}
+			}
+		}
+
+		d.Set("versions", versionList)
 	}
-
-	d.Set("versions", versionList)
-
 	return nil
 }

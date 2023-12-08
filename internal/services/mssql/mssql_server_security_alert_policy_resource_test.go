@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql_test
 
 import (
@@ -58,7 +61,7 @@ func (MsSqlServerSecurityAlertPolicyResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ServerSecurityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	resp, err := client.MSSQL.LegacyServerSecurityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, fmt.Errorf("SQL Security Alert Policy for server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroup)

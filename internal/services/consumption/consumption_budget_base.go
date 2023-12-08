@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package consumption
 
 import (
@@ -71,7 +74,7 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 					"dimension": {
 						Type:         pluginsdk.TypeSet,
 						Optional:     true,
-						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -102,7 +105,7 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 					"tag": {
 						Type:         pluginsdk.TypeSet,
 						Optional:     true,
-						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -18,7 +21,14 @@ func TestAccDataSourceRouteTable_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("bgp_route_propagation_enabled").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("route.#").Exists(),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
+				check.That(data.ResourceName).Key("subnets.#").Exists(),
+				check.That(data.ResourceName).Key("tags.%").Exists(),
 			),
 		},
 	})

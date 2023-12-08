@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -33,6 +36,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerNetworkGroup_complete,
 			"update":         testAccNetworkManagerNetworkGroup_update,
 			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
+			"dataSource":     testAccNetworkManagerNetworkGroupDataSource_complete,
 		},
 		"SubscriptionConnection": {
 			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,
@@ -183,7 +187,7 @@ func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, st
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Network.ManagersClient.Get(ctx, *id)
+	resp, err := clients.Network.NetworkManagers.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

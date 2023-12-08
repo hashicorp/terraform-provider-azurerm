@@ -75,6 +75,8 @@ The following arguments are supported:
 
 * `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
 
+* `encryption` - (Optional) A `encryption` block as defined below.
+
 * `dns_servers` - (Optional) List of IP addresses of DNS servers
 
 -> **NOTE** Since `dns_servers` can be configured both inline and via the separate `azurerm_virtual_network_dns_servers` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
@@ -96,6 +98,12 @@ A `ddos_protection_plan` block supports the following:
 * `id` - (Required) The ID of DDoS Protection Plan.
 
 * `enable` - (Required) Enable/disable DDoS Protection Plan on Virtual Network.
+
+---
+
+A `encryption` block supports the following:
+
+* `enforcement` - (Required) Specifies if the encrypted Virtual Network allows VM that does not support encryption. Possible values are `DropUnencrypted` and `AllowUnencrypted`.
 
 ---
 
@@ -123,7 +131,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `guid` - The GUID of the virtual network.
 
-* `subnet` - (Optional) One or more `subnet` blocks as defined below.
+* `subnet` - One or more `subnet` blocks as defined below.
 
 ---
 

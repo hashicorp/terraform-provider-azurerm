@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -22,10 +25,7 @@ func resourceSentinelDataConnectorAzureActiveDirectory() *pluginsdk.Resource {
 		Read:   resourceSentinelDataConnectorAzureActiveDirectoryRead,
 		Delete: resourceSentinelDataConnectorAzureActiveDirectoryDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
-			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindAzureActiveDirectory)),
+		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindAzureActiveDirectory),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

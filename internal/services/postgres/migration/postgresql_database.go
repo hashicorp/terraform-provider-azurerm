@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -44,7 +47,7 @@ func (PostgresqlDatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DatabaseCollation,
+			ValidateFunc: validate.PostgresqlDatabaseCollation,
 		},
 	}
 }

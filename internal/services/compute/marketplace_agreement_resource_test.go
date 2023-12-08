@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -8,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -68,12 +71,13 @@ func TestAccMarketplaceAgreement_requiresImport(t *testing.T) {
 }
 
 func (t MarketplaceAgreementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := agreements.ParseOfferPlanID(state.ID)
+	id, err := agreements.ParsePlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.MarketplaceAgreementsClient.MarketplaceAgreementsGet(ctx, *id)
+	agreementId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
+	resp, err := clients.Compute.MarketplaceAgreementsClient.MarketplaceAgreementsGet(ctx, agreementId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Marketplace Agreement %q", id)
 	}
@@ -136,7 +140,6 @@ func (r MarketplaceAgreementResource) cancelExistingAgreement(offer string) acce
 
 		idGet := agreements.NewOfferPlanID(subscriptionId, "barracudanetworks", offer, "hourly")
 		idCancel := agreements.NewPlanID(subscriptionId, "barracudanetworks", offer, "hourly")
-
 		existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
 		if err != nil {
 			return err

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,14 +8,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productapi"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementProductApi() *pluginsdk.Resource {
@@ -21,14 +24,13 @@ func resourceApiManagementProductApi() *pluginsdk.Resource {
 		Read:   resourceApiManagementProductApiRead,
 		Delete: resourceApiManagementProductApiDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProductApiID(id)
+			_, err := productapi.ParseProductApiID(id)
 			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -50,21 +52,21 @@ func resourceApiManagementProductApiCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProductApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), d.Get("api_name").(string))
+	id := productapi.NewProductApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), d.Get("api_name").(string))
 
-	exists, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName)
+	exists, err := client.CheckEntityExists(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(exists) {
+		if !response.WasNotFound(exists.HttpResponse) {
 			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(exists) {
+	if !response.WasNotFound(exists.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_api_management_product_api", id.ID())
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName); err != nil {
-		return fmt.Errorf("adding API %q to Product %q (API Management Service %q / Resource Group %q): %+v", id.ApiName, id.ProductName, id.ServiceName, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -77,15 +79,15 @@ func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProductApiID(d.Id())
+	id, err := productapi.ParseProductApiID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName)
+	resp, err := client.CheckEntityExists(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			log.Printf("[DEBUG] API %q was not found in Product  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", id.ApiName, id.ProductName, id.ServiceName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
@@ -93,9 +95,9 @@ func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("api_name", id.ApiName)
-	d.Set("product_id", id.ProductName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("api_name", getApiName(id.ApiId))
+	d.Set("product_id", id.ProductId)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
 	return nil
@@ -106,14 +108,14 @@ func resourceApiManagementProductApiDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProductApiID(d.Id())
+	id, err := productapi.ParseProductApiID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing API %q from Product %q (API Management Service %q / Resource Group %q): %+v", id.ApiName, id.ProductName, id.ServiceName, id.ResourceGroup, err)
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

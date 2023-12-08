@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/hybridrunbookworker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,7 +25,7 @@ func (a HybridRunbookWorkerResource) Exists(ctx context.Context, client *clients
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.RunbookWorkerClient.Get(ctx, *id)
+	resp, err := client.Automation.HybridRunbookWorker.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HybridRunbookWorker %s: %+v", id, err)
 	}
@@ -109,8 +112,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

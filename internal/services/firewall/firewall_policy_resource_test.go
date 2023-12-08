@@ -1,14 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/firewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -191,17 +195,17 @@ func TestAccFirewallPolicy_insights(t *testing.T) {
 }
 
 func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallPolicyID(state.ID)
+	id, err := firewallpolicies.ParseFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.FirewallPolicyClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.FirewallPolicies.Get(ctx, *id, firewallpolicies.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.FirewallPolicyPropertiesFormat != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (FirewallPolicyResource) basic(data acceptance.TestData) string {
@@ -234,11 +238,81 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger)
 }
 
+func (FirewallPolicyResource) pacFile(data acceptance.TestData) string {
+	utcNow := time.Now().UTC()
+	startDate := utcNow.Format(time.RFC3339)
+	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
+
+	return fmt.Sprintf(`
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestacc%[1]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.pac"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "function FindProxyForURL(url, host) { return \"DIRECT\"; }"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  signed_version    = "2019-10-10"
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "%[2]s"
+  expiry = "%[3]s"
+
+  permissions {
+    read    = true
+    write   = false
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+`, data.RandomString, startDate, endDate)
+}
+
 func (FirewallPolicyResource) complete(data acceptance.TestData) string {
 	r := FirewallPolicyResource{}
 	template := r.template(data)
 	return fmt.Sprintf(`
+
 %s
+
+%s
+
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -254,7 +328,7 @@ resource "azurerm_firewall_policy" "test" {
     https_port      = 8088
     enable_pac_file = true
     pac_file_port   = 8089
-    pac_file        = "https://tinawstorage.file.core.windows.net/?sv=2020-02-10&ss=bfqt&srt=sco&sp=rwdlacuptfx&se=2021-06-04T07:01:12Z&st=2021-06-03T23:01:12Z&sip=68.65.171.11&spr=https&sig=Plsa0RRVpGbY0IETZZOT6znOHcSro71LLTTbzquYPgs%%3D"
+    pac_file        = "${azurerm_storage_blob.test.id}${data.azurerm_storage_account_sas.test.sas}&sr=b"
   }
   auto_learn_private_ranges_enabled = true
   dns {
@@ -265,14 +339,19 @@ resource "azurerm_firewall_policy" "test" {
     env = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, FirewallPolicyResource{}.pacFile(data), data.RandomInteger)
 }
 
 func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
 	r := FirewallPolicyResource{}
 	template := r.templatePremium(data)
 	return fmt.Sprintf(`
+
+
 %s
+
+%s
+
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -289,7 +368,7 @@ resource "azurerm_firewall_policy" "test" {
     https_port      = 8088
     enable_pac_file = true
     pac_file_port   = 8089
-    pac_file        = "https://tinawstorage.file.core.windows.net/?sv=2020-02-10&ss=bfqt&srt=sco&sp=rwdlacuptfx&se=2021-06-04T07:01:12Z&st=2021-06-03T23:01:12Z&sip=68.65.171.11&spr=https&sig=Plsa0RRVpGbY0IETZZOT6znOHcSro71LLTTbzquYPgs%%3D"
+    pac_file        = "${azurerm_storage_blob.test.id}${data.azurerm_storage_account_sas.test.sas}&sr=b"
   }
   auto_learn_private_ranges_enabled = true
   dns {
@@ -334,7 +413,7 @@ resource "azurerm_firewall_policy" "test" {
     env = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, FirewallPolicyResource{}.pacFile(data), data.RandomInteger)
 }
 
 func (FirewallPolicyResource) requiresImport(data acceptance.TestData) string {

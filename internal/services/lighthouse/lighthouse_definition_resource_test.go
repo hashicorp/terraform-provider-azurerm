@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package lighthouse_test
 
 import (
@@ -195,9 +198,9 @@ func TestAccLighthouseDefinition_plan(t *testing.T) {
 
 func TestAccLighthouseDefinition_eligibleAuthorization(t *testing.T) {
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
-	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
+	principalID := os.Getenv("ARM_USER_GROUP_ID_ALT_TENANT")
 	if secondTenantID == "" || principalID == "" {
-		t.Skip("Skipping as ARM_TENANT_ID_ALT and/or ARM_PRINCIPAL_ID_ALT_TENANT are not specified")
+		t.Skip("Skipping as ARM_TENANT_ID_ALT and/or ARM_USER_GROUP_ID_ALT_TENANT are not specified")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")

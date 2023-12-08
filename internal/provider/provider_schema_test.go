@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
@@ -95,6 +98,24 @@ func schemaContainsSensitiveFieldsNotMarkedAsSensitive(input map[string]*plugins
 	}
 
 	return nil
+}
+
+func TestDataSourcesShouldNotSupportImport(t *testing.T) {
+	provider := TestAzureProvider()
+
+	// intentionally sorting these so the output is consistent
+	dataSourceNames := make([]string, 0)
+	for dataSourceName := range provider.DataSourcesMap {
+		dataSourceNames = append(dataSourceNames, dataSourceName)
+	}
+	sort.Strings(dataSourceNames)
+
+	for _, dataSourceName := range dataSourceNames {
+		dataSource := provider.DataSourcesMap[dataSourceName]
+		if dataSource.Importer != nil {
+			t.Fatalf("the Data Source %q supports Import but Terraform does not support this - please remove the `Importer` from this Data Source", dataSourceName)
+		}
+	}
 }
 
 func TestDataSourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {

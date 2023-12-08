@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package nginx
 
 import (
@@ -7,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxcertificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01/nginxcertificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

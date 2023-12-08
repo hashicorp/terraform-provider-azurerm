@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_service_fabric_cluster" "main" {
   name                = "${var.prefix}-servicefabric"
   resource_group_name = azurerm_resource_group.main.name
@@ -6,7 +9,7 @@ resource "azurerm_service_fabric_cluster" "main" {
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "https://${azurerm_public_ip.main.fqdn}:19080"
-  add_on_features = ["DnsService"]
+  add_on_features     = ["DnsService"]
 
   node_type {
     name                 = "primary"

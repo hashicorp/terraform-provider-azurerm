@@ -101,6 +101,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
 
+* `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
+
+-> **Note:** Removing `custom_ca_trust_certificates_base64` after it has been set forces a new resource to be created.
+
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
@@ -123,6 +127,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
+-> **Note:** Since the Application Gateway is deployed inside a Virtual Network, users (and Service Principals) that are operating the Application Gateway must have the `Microsoft.Network/virtualNetworks/subnets/join/action` permission on the Virtual Network or Subnet. For more details, please visit [Virtual Network Permission](https://learn.microsoft.com/en-us/azure/application-gateway/configuration-infrastructure#virtual-network-permission).
+
 * `key_management_service` - (Optional) A `key_management_service` block as defined below. For more details, please visit [Key Management Service (KMS) etcd encryption to an AKS cluster](https://learn.microsoft.com/en-us/azure/aks/use-kms-etcd-encryption).
 
 * `key_vault_secrets_provider` - (Optional) A `key_vault_secrets_provider` block as defined below. For more details, please visit [Azure Keyvault Secrets Provider for AKS](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver).
@@ -140,6 +146,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 -> **Note:** If `local_account_disabled` is set to `true`, it is required to enable Kubernetes RBAC and AKS-managed Azure AD integration. See [the documentation](https://docs.microsoft.com/azure/aks/managed-aad#azure-ad-authentication-overview) for more information.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
+
+* `maintenance_window_auto_upgrade` - (Optional) A `maintenance_window_auto_upgrade` block as defined below.
+
+* `maintenance_window_node_os` - (Optional) A `maintenance_window_node_os` block as defined below.
 
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
@@ -225,9 +235,9 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 -> **Note:** Enabling this option will allocate Workload Identity resources to the `kube-system` namespace in Kubernetes. If you wish to customize the deployment of Workload Identity, you can refer to [the documentation on Azure AD Workload Identity.](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html) The documentation provides guidance on how to install the mutating admission webhook, which allows for the customization of Workload Identity deployment.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`.
 
--> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `authorized_ip_ranges` in the `api_server_access_profile` block.
+!> **Note:** `public_network_access_enabled` is currently not functional and is not passed to the Azure API. For further information please see this [issue](https://github.com/Azure/AKS/issues/3690). For controlling the public and private exposure of a cluster please see the properties `private_cluster_enabled` and `api_server_access_profile`.
 
 * `role_based_access_control_enabled` - (Optional) Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
@@ -237,11 +247,13 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
 
-* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free`, and `Standard` (which includes the Uptime SLA). Defaults to `Free`.
+* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free`, `Standard` (which includes the Uptime SLA) and `Premium`. Defaults to `Free`.
 
 -> **Note:** Whilst the AKS API previously supported the `Paid` SKU - the AKS API introduced a breaking change in API Version `2023-02-01` (used in v3.51.0 and later) where the value `Paid` must now be set to `Standard`.
 
 * `storage_profile` - (Optional) A `storage_profile` block as defined below.
+
+* `support_plan` - (Optional) Specifies the support plan which should be used for this Kubernetes Cluster. Possible values are `KubernetesOfficial` and `AKSLongTermSupport`. Defaults to `KubernetesOfficial`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -364,9 +376,9 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. `temporary_name_for_rotation` must be specified when changing any of the following properties: `enable_host_encryption`, `enable_node_public_ip`, `kubelet_config`, `linux_os_config`, `max_pods`, `node_taints`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `enable_host_encryption`, `enable_node_public_ip`, `fips_enabled`, `kubelet_config`, `linux_os_config`, `max_pods`, `node_taints`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
-* `name` - (Required) The name which should be used for the default Kubernetes Node Pool. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
 
@@ -388,17 +400,19 @@ A `default_node_pool` block supports the following:
 
 * `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.
 
+* `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
+
 * `host_group_id` - (Optional) Specifies the ID of the Host Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
 * `kubelet_config` - (Optional) A `kubelet_config` block as defined below. `temporary_name_for_rotation` must be specified when changing this block.
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below. `temporary_name_for_rotation` must be specified when changing this block.
 
-* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
+* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block.
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
 
-* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created. `temporary_name_for_rotation` must be specified when changing this property.
+* `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
 * `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
 
@@ -418,15 +432,17 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_size_gb` - (Optional) The size of the OS Disk which should be used for each agent in the Node Pool. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`.  `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `AzureLinux`, `Ubuntu`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `CBLMariner`, `Mariner`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
+* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
 * `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+* `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this default Node Pool. `temporary_name_for_rotation` must be specified when changing this property.
 
 * `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the default node pool for VM resizing.
 
@@ -438,11 +454,11 @@ A `default_node_pool` block supports the following:
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
 
-* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this forces a new resource to be created.
+* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
-* `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created.
+* `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist.
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
@@ -464,10 +480,6 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 
 -> **Note:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
-If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
-
-* `node_count` - (Optional) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
-
 -> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
 ---
@@ -486,7 +498,7 @@ A `key_management_service` block supports the following:
 
 * `key_vault_key_id` - (Required) Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. When Azure Key Vault key management service is enabled, this field is required and must be a valid key identifier. When `enabled` is `false`, leave the field empty.
 
-* `key_vault_network_access` - (Optional) Network access of the key vault Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. The default value is `Public`.
+* `key_vault_network_access` - (Optional) Network access of the key vault Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. Defaults to `Public`.
 
 ---
 
@@ -494,7 +506,7 @@ A `key_vault_secrets_provider` block supports the following:
 
 * `secret_rotation_enabled` - (Optional) Should the secret store CSI driver on the AKS cluster be enabled?
 
-* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
+* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true. Defaults to `2m`.
 
 -> **Note:** To enable`key_vault_secrets_provider` either `secret_rotation_enabled` or `secret_rotation_interval` must be specified.
 
@@ -502,25 +514,25 @@ A `key_vault_secrets_provider` block supports the following:
 
 A `kubelet_config` block supports the following:
 
-* `allowed_unsafe_sysctls` - (Optional) Specifies the allow list of unsafe sysctls command or patterns (ending in `*`). Changing this forces a new resource to be created.
+* `allowed_unsafe_sysctls` - (Optional) Specifies the allow list of unsafe sysctls command or patterns (ending in `*`).
 
-* `container_log_max_line` - (Optional) Specifies the maximum number of container log files that can be present for a container. must be at least 2. Changing this forces a new resource to be created.
+* `container_log_max_line` - (Optional) Specifies the maximum number of container log files that can be present for a container. must be at least 2.
 
-* `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated. Changing this forces a new resource to be created.
+* `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated.
 
-* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled? Changing this forces a new resource to be created.
+* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled?
 
-* `cpu_cfs_quota_period` - (Optional) Specifies the CPU CFS quota period value. Changing this forces a new resource to be created.
+* `cpu_cfs_quota_period` - (Optional) Specifies the CPU CFS quota period value.
 
-* `cpu_manager_policy` - (Optional) Specifies the CPU Manager policy to use. Possible values are `none` and `static`, Changing this forces a new resource to be created.
+* `cpu_manager_policy` - (Optional) Specifies the CPU Manager policy to use. Possible values are `none` and `static`,.
 
-* `image_gc_high_threshold` - (Optional) Specifies the percent of disk usage above which image garbage collection is always run. Must be between `0` and `100`. Changing this forces a new resource to be created.
+* `image_gc_high_threshold` - (Optional) Specifies the percent of disk usage above which image garbage collection is always run. Must be between `0` and `100`.
 
-* `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage lower than which image garbage collection is never run. Must be between `0` and `100`. Changing this forces a new resource to be created.
+* `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage lower than which image garbage collection is never run. Must be between `0` and `100`.
 
-* `pod_max_pid` - (Optional) Specifies the maximum number of processes per pod. Changing this forces a new resource to be created.
+* `pod_max_pid` - (Optional) Specifies the maximum number of processes per pod.
 
-* `topology_manager_policy` - (Optional) Specifies the Topology Manager policy to use. Possible values are `none`, `best-effort`, `restricted` or `single-numa-node`. Changing this forces a new resource to be created.
+* `topology_manager_policy` - (Optional) Specifies the Topology Manager policy to use. Possible values are `none`, `best-effort`, `restricted` or `single-numa-node`.
 
 ---
 
@@ -538,13 +550,13 @@ The `kubelet_identity` block supports the following:
 
 A `linux_os_config` block supports the following:
 
-* `swap_file_size_mb` - (Optional) Specifies the size of the swap file on each node in MB. Changing this forces a new resource to be created.
+* `swap_file_size_mb` - (Optional) Specifies the size of the swap file on each node in MB.
 
 * `sysctl_config` - (Optional) A `sysctl_config` block as defined below. Changing this forces a new resource to be created.
 
-* `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`. Changing this forces a new resource to be created.
+* `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`.
 
-* `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`. Changing this forces a new resource to be created.
+* `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`.
 
 ---
 
@@ -560,7 +572,7 @@ A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this will update the key on all node pools. More information can be found in [the documentation](https://learn.microsoft.com/en-us/azure/aks/node-access#update-ssh-key-on-an-existing-aks-cluster-preview).
+* `ssh_key` - (Required) An `ssh_key` block as defined below. Only one is currently allowed. Changing this will update the key on all node pools. More information can be found in [the documentation](https://learn.microsoft.com/en-us/azure/aks/node-access#update-ssh-key-on-an-existing-aks-cluster-preview).
 
 ---
 
@@ -572,7 +584,56 @@ A `maintenance_window` block supports the following:
 
 ---
 
-An `allowed` block exports the following:
+A `maintenance_window_auto_upgrade` block supports the following:
+
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+
+* `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
+
+* `duration` - (Required) The duration of the window for maintenance to run in hours.
+
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
+
+* `day_of_month` - (Optional) The day of the month for the maintenance run. Required in combination with RelativeMonthly frequency. Value between 0 and 31 (inclusive).
+
+* `week_index` - (Optional) Specifies on which instance of the allowed days specified in `day_of_week` the maintenance occurs. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
+ Required in combination with relative monthly frequency.
+
+* `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
+
+* `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
+
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+A `maintenance_window_node_os` block supports the following:
+
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Daily`, `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+
+* `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
+
+* `duration` - (Required) The duration of the window for maintenance to run in hours.
+
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
+
+* `day_of_month` - (Optional) The day of the month for the maintenance run. Required in combination with RelativeMonthly frequency. Value between 0 and 31 (inclusive).
+
+* `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
+
+* `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
+
+* `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
+
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect.
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+An `allowed` block supports the following:
 
 * `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
@@ -580,7 +641,7 @@ An `allowed` block exports the following:
 
 ---
 
-A `not_allowed` block exports the following:
+A `not_allowed` block supports the following:
 
 * `end` - (Required) The end of a time span, formatted as an RFC3339 string.
 
@@ -606,9 +667,11 @@ A `network_profile` block supports the following:
 
 ~> **Note:** This property can only be set when `network_plugin` is set to `azure`.
 
-* `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created.
+* `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/azure/aks/use-network-policies). Currently supported values are `calico`, `azure` and `cilium`.
 
 ~> **Note:** When `network_policy` is set to `azure`, the `network_plugin` field can only be set to `azure`.
+
+~> **Note:** When `network_policy` is set to `cilium`, the `ebpf_data_plane` field must be set to `cilium`.
 
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
@@ -616,17 +679,17 @@ A `network_profile` block supports the following:
 
 -> **Note:** `docker_bridge_cidr` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
 
-* `ebpf_data_plane` - (Optional) Specifies the eBPF data plane used for building the Kubernetes network. Possible value is `cilium`. Changing this forces a new resource to be created.
+* `ebpf_data_plane` - (Optional) Specifies the eBPF data plane used for building the Kubernetes network. Possible value is `cilium`. Disabling this forces a new resource to be created.
 
 ~> **Note:** When `ebpf_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
 
-~> **Note:** When `ebpf_data_plane` is set to `cilium`, one of either `network_plugin_mode = "Overlay"` or `pod_subnet_id` must be specified.
+~> **Note:** When `ebpf_data_plane` is set to `cilium`, one of either `network_plugin_mode = "overlay"` or `pod_subnet_id` must be specified.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CiliumDataplanePreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-powered-by-cilium) for more information.
 
-* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `Overlay`. Changing this forces a new resource to be created.
+* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`.
 
-~> **Note:** When `network_plugin_mode` is set to `Overlay`, the `network_plugin` field can only be set to `azure`.
+~> **Note:** When `network_plugin_mode` is set to `overlay`, the `network_plugin` field can only be set to `azure`. When upgrading from Azure CNI without overlay, `pod_subnet_id` must be specified.
 
 * `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. Changing this forces a new resource to be created.
 
@@ -692,7 +755,7 @@ An `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
 
-* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
+* `msi_auth_for_monitoring_enabled` - (Optional) Is managed identity authentication for monitoring enabled?
 
 ---
 
@@ -706,6 +769,8 @@ An `ingress_application_gateway` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
+-> **Note:** Exactly one of `gateway_id`, `subnet_id` or `subnet_cidr` must be specified.
+
 -> **Note:** If specifying `ingress_application_gateway` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
 
 ---
@@ -713,6 +778,14 @@ An `ingress_application_gateway` block supports the following:
 A `service_mesh_profile` block supports the following:
 
 * `mode` - (Required) The mode of the service mesh. Possible value is `Istio`.
+
+* `internal_ingress_gateway_enabled` - (Optional) Is Istio Internal Ingress Gateway enabled?
+
+* `external_ingress_gateway_enabled` - (Optional) Is Istio External Ingress Gateway enabled?
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
+
+-> **NOTE:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
 
 ---
 
@@ -774,7 +847,7 @@ A `sysctl_config` block supports the following:
 
 * `net_core_wmem_max` - (Optional) The sysctl setting net.core.wmem_max. Must be between `212992` and `134217728`. Changing this forces a new resource to be created.
 
-* `net_ipv4_ip_local_port_range_max` - (Optional) The sysctl setting net.ipv4.ip_local_port_range max value. Must be between `1024` and `60999`. Changing this forces a new resource to be created.
+* `net_ipv4_ip_local_port_range_max` - (Optional) The sysctl setting net.ipv4.ip_local_port_range max value. Must be between `32768` and `65535`. Changing this forces a new resource to be created.
 
 * `net_ipv4_ip_local_port_range_min` - (Optional) The sysctl setting net.ipv4.ip_local_port_range min value. Must be between `1024` and `60999`. Changing this forces a new resource to be created.
 
@@ -786,7 +859,7 @@ A `sysctl_config` block supports the following:
 
 * `net_ipv4_tcp_fin_timeout` - (Optional) The sysctl setting net.ipv4.tcp_fin_timeout. Must be between `5` and `120`. Changing this forces a new resource to be created.
 
-* `net_ipv4_tcp_keepalive_intvl` - (Optional) The sysctl setting net.ipv4.tcp_keepalive_intvl. Must be between `10` and `75`. Changing this forces a new resource to be created.
+* `net_ipv4_tcp_keepalive_intvl` - (Optional) The sysctl setting net.ipv4.tcp_keepalive_intvl. Must be between `10` and `90`. Changing this forces a new resource to be created.
 
 * `net_ipv4_tcp_keepalive_probes` - (Optional) The sysctl setting net.ipv4.tcp_keepalive_probes. Must be between `1` and `15`. Changing this forces a new resource to be created.
 
@@ -798,9 +871,9 @@ A `sysctl_config` block supports the following:
 
 * `net_ipv4_tcp_tw_reuse` - (Optional) The sysctl setting net.ipv4.tcp_tw_reuse. Changing this forces a new resource to be created.
 
-* `net_netfilter_nf_conntrack_buckets` - (Optional) The sysctl setting net.netfilter.nf_conntrack_buckets. Must be between `65536` and `147456`. Changing this forces a new resource to be created.
+* `net_netfilter_nf_conntrack_buckets` - (Optional) The sysctl setting net.netfilter.nf_conntrack_buckets. Must be between `65536` and `524288`. Changing this forces a new resource to be created.
 
-* `net_netfilter_nf_conntrack_max` - (Optional) The sysctl setting net.netfilter.nf_conntrack_max. Must be between `131072` and `1048576`. Changing this forces a new resource to be created.
+* `net_netfilter_nf_conntrack_max` - (Optional) The sysctl setting net.netfilter.nf_conntrack_max. Must be between `131072` and `2097152`. Changing this forces a new resource to be created.
 
 * `vm_max_map_count` - (Optional) The sysctl setting vm.max_map_count. Must be between `65530` and `262144`. Changing this forces a new resource to be created.
 
@@ -842,8 +915,6 @@ A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-KedaPreview](https://docs.microsoft.com/azure/aks/keda-deploy-add-on-arm#register-the-aks-kedapreview-feature-flag) for more information.
-
 * `vertical_pod_autoscaler_enabled` - (Optional) Specifies whether Vertical Pod Autoscaler should be enabled.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-VPAPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-VPAPreview](https://learn.microsoft.com/en-us/azure/aks/vertical-pod-autoscaler#register-the-aks-vpapreview-feature-flag) for more information.
@@ -852,9 +923,9 @@ A `workload_autoscaler_profile` block supports the following:
 
 A `http_proxy_config` block supports the following:
 
-* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP. Changing this forces a new resource to be created.
+* `http_proxy` - (Optional) The proxy address to be used when communicating over HTTP.
 
-* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS. Changing this forces a new resource to be created.
+* `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS.
 
 * `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
@@ -1028,6 +1099,22 @@ The `secret_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
+
+A `web_app_routing` block exports the following:
+
+* `web_app_routing_identity` - A `web_app_routing_identity` block is exported. The exported attributes are defined below.
+
+---
+
+The `web_app_routing_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used for Web App Routing.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used for Web App Routing
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used for Web App Routing.
 
 ---
 

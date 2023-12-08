@@ -25,7 +25,7 @@ type CustomDomainsListCompleteResult struct {
 // CustomDomainsList ...
 func (c SignalRClient) CustomDomainsList(ctx context.Context, id SignalRId) (result CustomDomainsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

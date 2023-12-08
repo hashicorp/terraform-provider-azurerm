@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
@@ -56,9 +59,13 @@ func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal 
 			}
 		}
 
-		if _, exists := field.Tag.Lookup("tfschema"); !exists {
-			fieldName := strings.TrimPrefix(fmt.Sprintf("%s.%s", prefix, field.Name), ".")
-			return fmt.Errorf("field %q is missing an `tfschema` label", fieldName)
+		fieldName := strings.TrimPrefix(fmt.Sprintf("%s.%s", prefix, field.Name), ".")
+		structTags, err := parseStructTags(field.Tag)
+		if err != nil {
+			return fmt.Errorf("parsing struct tags for %q", fieldName)
+		}
+		if structTags == nil {
+			return fmt.Errorf("field %q is missing a struct tag for `tfschema`", fieldName)
 		}
 	}
 

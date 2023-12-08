@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementApiOperationResource struct{}
@@ -121,6 +124,21 @@ func TestAccApiManagementApiOperation_representations(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApiOperation_templateParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
+	r := ApiManagementApiOperationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.templateParameter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagementApiOperation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 	r := ApiManagementApiOperationResource{}
@@ -137,17 +155,17 @@ func TestAccApiManagementApiOperation_complete(t *testing.T) {
 }
 
 func (ApiManagementApiOperationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApiOperationID(state.ID)
+	id, err := apioperation.ParseOperationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.ApiOperationsClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
+	resp, err := clients.ApiManagement.ApiOperationsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (r ApiManagementApiOperationResource) basic(data acceptance.TestData) string {
@@ -543,6 +561,33 @@ SAMPLE
 
       }
     }
+  }
+}
+`, r.template(data))
+}
+
+func (r ApiManagementApiOperationResource) templateParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation" "test" {
+  operation_id        = "acctest-operation"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "Acceptance Test Operation"
+  method              = "DELETE"
+  url_template        = "/users/{id}/delete"
+  description         = "This can only be done by the logged in user."
+
+  template_parameter {
+    name     = "id"
+    type     = "number"
+    required = true
+  }
+
+  response {
+    status_code = 200
   }
 }
 `, r.template(data))

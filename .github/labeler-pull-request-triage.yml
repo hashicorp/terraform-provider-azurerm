@@ -7,6 +7,8 @@ documentation:
   - website/**/*
 tooling:
   - internal/tools/**/*
+state-migration:
+  - internal/services/**/migration/**/*
 service/aadb2c:
   - internal/services/aadb2c/**/*
 
@@ -27,6 +29,9 @@ service/app-service:
 
 service/application-insights:
   - internal/services/applicationinsights/**/*
+
+service/arc-resource-bridge:
+  - internal/services/arcresourcebridge/**/*
 
 service/attestation:
   - internal/services/attestation/**/*
@@ -65,8 +70,14 @@ service/cognitive-services:
 service/communication:
   - internal/services/communication/**/*
 
+service/connections:
+  - internal/services/connections/**/*
+
 service/consumption:
   - internal/services/consumption/**/*
+
+service/container-apps:
+  - internal/services/containerapps/**/*
 
 service/cosmosdb:
   - internal/services/cosmos/**/*
@@ -98,6 +109,12 @@ service/databox-edge:
 service/databricks:
   - internal/services/databricks/**/*
 
+service/datadog:
+  - internal/services/datadog/**/*
+
+service/dev-center:
+  - internal/services/devcenter/**/*
+
 service/devtestlabs:
   - internal/services/devtestlabs/**/*
 
@@ -117,6 +134,9 @@ service/domain-services:
 service/elastic:
   - internal/services/elastic/**/*
 
+service/elasticsan:
+  - internal/services/elasticsan/**/*
+
 service/event-grid:
   - internal/services/eventgrid/**/*
 
@@ -126,17 +146,20 @@ service/event-hubs:
 service/firewall:
   - internal/services/firewall/**/*
 
+service/fluid-relay:
+  - internal/services/fluidrelay/**/*
+
 service/frontdoor:
   - internal/services/frontdoor/**/*
+
+service/graph:
+  - internal/services/graphservices/**/*
 
 service/hdinsight:
   - internal/services/hdinsight/**/*
 
 service/healthcare:
   - internal/services/healthcare/**/*
-
-service/hpc-cache:
-  - internal/services/hpccache/**/*
 
 service/hsm:
   - internal/services/hsm/**/*
@@ -225,11 +248,20 @@ service/netapp:
 service/network:
   - internal/services/network/**/*
 
+service/network-function:
+  - internal/services/networkfunction/**/*
+
 service/nginx:
   - internal/services/nginx/**/*
 
 service/notifications:
   - internal/services/notificationhub/**/*
+
+service/orbital:
+  - internal/services/orbital/**/*
+
+service/paloalto:
+  - internal/services/paloalto/**/*
 
 service/policy:
   - internal/services/policy/**/*
@@ -271,11 +303,17 @@ service/sentinel:
 service/service-bus:
   - internal/services/servicebus/**/*
 
+service/service-connector:
+  - internal/services/serviceconnector/**/*
+
 service/service-fabric:
   - internal/services/servicefabric/**/*
 
 service/service-fabric-managed-cluster:
   - internal/services/servicefabricmanaged/**/*
+
+service/service-networking:
+  - internal/services/servicenetworking/**/*
 
 service/signalr:
   - internal/services/signalr/**/*
@@ -288,6 +326,9 @@ service/sql:
 
 service/storage:
   - internal/services/storage/**/*
+
+service/storagemover:
+  - internal/services/storagemover/**/*
 
 service/stream-analytics:
   - internal/services/streamanalytics/**/*

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -9,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +101,7 @@ func resourceRouteFilter() *pluginsdk.Resource {
 }
 
 func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteFiltersClient
+	client := meta.(*clients.Client).Network.RouteFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +144,7 @@ func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteFiltersClient
+	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -178,7 +181,7 @@ func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error 
 }
 
 func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteFiltersClient
+	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

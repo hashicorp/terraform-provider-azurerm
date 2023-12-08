@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -8,8 +11,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -33,7 +39,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 		Update: resourceVirtualNetworkCreateUpdate,
 		Delete: resourceVirtualNetworkDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualNetworkID(id)
+			_, err := commonids.ParseVirtualNetworkID(id)
 			return err
 		}),
 
@@ -87,12 +93,30 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					"id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.DdosProtectionPlanID,
+						ValidateFunc: ddosprotectionplans.ValidateDdosProtectionPlanID,
 					},
 
 					"enable": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
+					},
+				},
+			},
+		},
+
+		"encryption": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enforcement": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string((network.VirtualNetworkEncryptionEnforcementDropUnencrypted)),
+							string(network.VirtualNetworkEncryptionEnforcementAllowUnencrypted),
+						}, false),
 					},
 				},
 			},
@@ -164,9 +188,9 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -187,7 +211,7 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	vnet := network.VirtualNetwork{
-		Name:                           utils.String(id.Name),
+		Name:                           utils.String(id.VirtualNetworkName),
 		ExtendedLocation:               expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                       utils.String(location),
 		VirtualNetworkPropertiesFormat: vnetProperties,
@@ -216,7 +240,7 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	locks.MultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vnet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, vnet)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -246,12 +270,12 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkID(d.Id())
+	id, err := commonids.ParseVirtualNetworkID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -260,8 +284,8 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VirtualNetworkName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
@@ -276,6 +300,10 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
 			return fmt.Errorf("setting `ddos_protection_plan`: %+v", err)
+		}
+
+		if err := d.Set("encryption", flattenVirtualNetworkEncryption(props.Encryption)); err != nil {
+			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
 
 		if err := d.Set("subnet", flattenVirtualNetworkSubnets(props.Subnets)); err != nil {
@@ -305,7 +333,7 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkID(d.Id())
+	id, err := commonids.ParseVirtualNetworkID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -318,7 +346,7 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.MultipleByName(&nsgNames, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&nsgNames, VirtualNetworkResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.VirtualNetworkName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -402,6 +430,16 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 		}
 	}
 
+	if v, ok := d.GetOk("encryption"); ok {
+		if vList := v.([]interface{}); len(vList) > 0 && vList[0] != nil {
+			encryptionConf := vList[0].(map[string]interface{})
+			properties.Encryption = &network.VirtualNetworkEncryption{
+				Enabled:     pointer.To(true),
+				Enforcement: network.VirtualNetworkEncryptionEnforcement(encryptionConf["enforcement"].(string)),
+			}
+		}
+	}
+
 	if v, ok := d.GetOk("bgp_community"); ok {
 		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(v.(string))}
 	}
@@ -422,6 +460,18 @@ func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkProper
 		map[string]interface{}{
 			"id":     *input.DdosProtectionPlan.ID,
 			"enable": *input.EnableDdosProtection,
+		},
+	}
+}
+
+func flattenVirtualNetworkEncryption(encryption *network.VirtualNetworkEncryption) interface{} {
+	if encryption == nil || encryption.Enabled == nil || !*encryption.Enabled {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enforcement": encryption.Enforcement,
 		},
 	}
 }
@@ -534,9 +584,9 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.Re
 	return nsgNames, nil
 }
 
-func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *network.VirtualNetworksClient, id parse.VirtualNetworkId) pluginsdk.StateRefreshFunc {
+func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *network.VirtualNetworksClient, id commonids.VirtualNetworkId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		res, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
 		}

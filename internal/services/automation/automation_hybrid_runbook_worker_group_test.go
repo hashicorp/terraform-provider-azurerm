@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/hybridrunbookworkergroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +24,7 @@ func (a HybridRunbookWorkerGroupResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.RunBookWgClient.Get(ctx, *id)
+	resp, err := client.Automation.HybridRunbookWorkerGroup.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HybridRunbookWorkerGroup %s: %+v", id, err)
 	}

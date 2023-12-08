@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,16 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/openidconnectprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementOpenIDConnectProvider() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementOpenIDConnectProvider() *pluginsdk.Resource {
 		Update: resourceApiManagementOpenIDConnectProviderCreateUpdate,
 		Delete: resourceApiManagementOpenIDConnectProviderDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OpenIDConnectProviderID(id)
+			_, err := openidconnectprovider.ParseOpenidConnectProviderID(id)
 			return err
 		}),
 
@@ -82,32 +85,32 @@ func resourceApiManagementOpenIDConnectProviderCreateUpdate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewOpenIDConnectProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	id := openidconnectprovider.NewOpenidConnectProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_openid_connect_provider", id.ID())
 		}
 	}
 
-	parameters := apimanagement.OpenidConnectProviderContract{
-		OpenidConnectProviderContractProperties: &apimanagement.OpenidConnectProviderContractProperties{
-			ClientID:         utils.String(d.Get("client_id").(string)),
-			ClientSecret:     utils.String(d.Get("client_secret").(string)),
-			Description:      utils.String(d.Get("description").(string)),
-			DisplayName:      utils.String(d.Get("display_name").(string)),
-			MetadataEndpoint: utils.String(d.Get("metadata_endpoint").(string)),
+	parameters := openidconnectprovider.OpenidConnectProviderContract{
+		Properties: &openidconnectprovider.OpenidConnectProviderContractProperties{
+			ClientId:         d.Get("client_id").(string),
+			ClientSecret:     pointer.To(d.Get("client_secret").(string)),
+			Description:      pointer.To(d.Get("description").(string)),
+			DisplayName:      d.Get("display_name").(string),
+			MetadataEndpoint: d.Get("metadata_endpoint").(string),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, openidconnectprovider.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -121,30 +124,32 @@ func resourceApiManagementOpenIDConnectProviderRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OpenIDConnectProviderID(d.Id())
+	id, err := openidconnectprovider.ParseOpenidConnectProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if props := resp.OpenidConnectProviderContractProperties; props != nil {
-		d.Set("client_id", props.ClientID)
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("metadata_endpoint", props.MetadataEndpoint)
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if props := model.Properties; props != nil {
+			d.Set("client_id", props.ClientId)
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("metadata_endpoint", props.MetadataEndpoint)
+		}
 	}
 
 	return nil
@@ -155,13 +160,13 @@ func resourceApiManagementOpenIDConnectProviderDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OpenIDConnectProviderID(d.Id())
+	id, err := openidconnectprovider.ParseOpenidConnectProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, openidconnectprovider.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

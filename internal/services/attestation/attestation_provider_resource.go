@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package attestation
 
 import (
@@ -58,6 +61,10 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				return fmt.Errorf("`tpm_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
 
+			if o, n := diff.GetChange("sev_snp_policy_base64"); o.(string) != "" && n.(string) == "" {
+				return fmt.Errorf("`sev_snp_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+			}
+
 			return nil
 		},
 
@@ -110,13 +117,19 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
+
+				"sev_snp_policy_base64": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
+				},
 			}
 
 			if !features.FourPointOhBeta() {
 				s["policy"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeList,
 					Optional:   true,
-					Deprecated: "This field is no longer used and will be removed in v4.0 of the Azure Provider - use `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` instead.",
+					Deprecated: "This field is no longer used and will be removed in v4.0 of the Azure Provider - use `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, `tpm_policy_base64` and `sev_snp_policy_base64` instead.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"environment_type": {
@@ -205,6 +218,11 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("updating value for `tpm_policy_base64`: %+v", err)
 		}
 	}
+	if v := d.Get("sev_snp_policy_base64"); v != "" {
+		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeSevSnpVM, d.Get("sev_snp_policy_base64").(string)); err != nil {
+			return fmt.Errorf("updating value for `sev_snp_policy_base64`: %+v", err)
+		}
+	}
 
 	return resourceAttestationProviderRead(d, meta)
 }
@@ -251,6 +269,10 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil && !utils.ResponseWasBadRequest(tpmPolicy.Response) {
 		return fmt.Errorf("retrieving Tpm Policy for %s: %+v", *id, err)
 	}
+	sevSnpPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSevSnpVM)
+	if err != nil && !utils.ResponseWasBadRequest(sevSnpPolicy.Response) {
+		return fmt.Errorf("retrieving SEV-SNP Policy for %s: %+v", *id, err)
+	}
 
 	d.Set("name", id.AttestationProviderName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -286,6 +308,12 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("tpm_policy_base64", utils.NormalizeNilableString(tpmPolicyData))
 
+	sevSnpPolicyData, err := base64DataFromAttestationJWT(sevSnpPolicy.Token)
+	if err != nil {
+		return fmt.Errorf("parsing SEV-SNP policy for %s: %+v", *id, err)
+	}
+	d.Set("sev_snp_policy_base64", utils.NormalizeNilableString(sevSnpPolicyData))
+
 	if !features.FourPointOhBeta() {
 		if err := d.Set("policy", []interface{}{}); err != nil {
 			return fmt.Errorf("setting `policy`: %+v", err)
@@ -314,7 +342,7 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChanges("open_enclave_policy_base64", "sgx_enclave_policy_base64", "tpm_policy_base64") {
+	if d.HasChanges("open_enclave_policy_base64", "sgx_enclave_policy_base64", "tpm_policy_base64", "sev_snp_policy_base64") {
 		dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("determining Data Plane URI for %s: %+v", *id, err)
@@ -337,6 +365,11 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		if d.HasChange("tpm_policy_base64") {
 			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeTpm, d.Get("tpm_policy_base64").(string)); err != nil {
 				return fmt.Errorf("updating value for `tpm_policy_base64`: %+v", err)
+			}
+		}
+		if d.HasChange("sev_snp_policy_base64") {
+			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeSevSnpVM, d.Get("sev_snp_policy_base64").(string)); err != nil {
+				return fmt.Errorf("updating value for `sev_snp_policy_base64`: %+v", err)
 			}
 		}
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package nginx_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -36,6 +39,8 @@ func TestAccNginxDeployment_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capacity").HasValue("10"),
+				check.That(data.ResourceName).Key("email").HasValue("test@test.com"),
 			),
 		},
 		data.ImportStep(),
@@ -81,6 +86,8 @@ func (a DeploymentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_nginx_deployment" "test" {
@@ -97,6 +104,11 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
+  capacity = 10
+
+  email = "test@test.com"
+
   tags = {
     foo = "bar"
   }
@@ -124,6 +136,10 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
+  capacity = 20
+
+  email = "testing@test.com"
 
   tags = {
     foo = "bar2"
@@ -162,6 +178,10 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
+  capacity = 10
+
+  email = "test@test.com"
 }
 `, a.template(data), data.RandomInteger)
 }

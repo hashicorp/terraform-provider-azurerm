@@ -132,6 +132,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
       facility_names = ["*"]
       log_levels     = ["*"]
       name           = "example-datasource-syslog"
+      streams        = ["Microsoft-Syslog"]
     }
 
     iis_log {
@@ -232,7 +233,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore` and `WorkspaceTransforms`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+
+~> **NOTE** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
 * `stream_declaration` - (Optional) A `stream_declaration` block as defined below.
 
@@ -264,7 +267,7 @@ A `data_flow` block supports the following:
 
 * `destinations` - (Required) Specifies a list of destination names. A `azure_monitor_metrics` data source only allows for stream of kind `Microsoft-InsightsMetrics`.
 
-* `streams` - (Required) Specifies a list of streams. Possible values include but not limited to `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`,and `Microsoft-WindowsEvent`.
+* `streams` - (Required) Specifies a list of streams. Possible values include but not limited to `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`, `Microsoft-WindowsEvent`, and `Microsoft-PrometheusMetrics`.
 
 * `built_in_transform` - (Optional) The built-in transform to transform stream data.
 
@@ -476,6 +479,8 @@ A `storage_blob_direct` block supports the following:
 
 ---
 
+
+---
 
 A `storage_table_direct` block supports the following:
 

@@ -97,9 +97,69 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
+* `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
+
+* `custom_scale_rule` - (Optional) One or more `custom_scale_rule` blocks as defined below.
+
+* `http_scale_rule` - (Optional) One or more `http_scale_rule` blocks as defined below.
+
+* `tcp_scale_rule` - (Optional) One or more `tcp_scale_rule` blocks as defined below.
+
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
 * `volume` - (Optional) A `volume` block as detailed below.
+
+---
+
+An `azure_queue_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `queue_name` - (Required) The name of the Azure Queue
+
+* `queue_length` - (Required) The value of the length of the queue to trigger scaling actions.
+
+* `authentication` - (Required) One or more `authentication` blocks as defined below.
+
+---
+
+A `custom_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `custom_rule_type` - (Required) The Custom rule type. Possible values include: `activemq`, `artemis-queue`, `kafka`, `pulsar`, `aws-cloudwatch`, `aws-dynamodb`, `aws-dynamodb-streams`, `aws-kinesis-stream`, `aws-sqs-queue`, `azure-app-insights`, `azure-blob`, `azure-data-explorer`, `azure-eventhub`, `azure-log-analytics`, `azure-monitor`, `azure-pipelines`, `azure-servicebus`, `azure-queue`, `cassandra`, `cpu`, `cron`, `datadog`, `elasticsearch`, `external`, `external-push`, `gcp-stackdriver`, `gcp-storage`, `gcp-pubsub`, `graphite`, `http`, `huawei-cloudeye`, `ibmmq`, `influxdb`, `kubernetes-workload`, `liiklus`, `memory`, `metrics-api`, `mongodb`, `mssql`, `mysql`, `nats-jetstream`, `stan`, `tcp`, `new-relic`, `openstack-metric`, `openstack-swift`, `postgresql`, `predictkube`, `prometheus`, `rabbitmq`, `redis`, `redis-cluster`, `redis-sentinel`, `redis-streams`, `redis-cluster-streams`, `redis-sentinel-streams`, `selenium-grid`,`solace-event-queue`, and `github-runner`.
+
+* `metadata` - (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
+
+* `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+---
+
+A `http_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `concurrent_requests` - (Required) - The number of concurrent requests to trigger scaling.
+
+* `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+---
+
+A `tcp_scale_rule` block supports the following:
+
+* `name` - (Required) The name of the Scaling Rule
+
+* `concurrent_requests` - (Required) - The number of concurrent requests to trigger scaling.
+
+* `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+---
+
+An `authentication` block supports the following:
+
+* `secret_name` - (Required) The name of the Container App Secret to use for this Scale Rule Authentication.
+
+* `trigger_parameter` - (Required) The Trigger Parameter name to use the supply the value retrieved from the `secret_name`.
 
 ---
 
@@ -109,7 +169,7 @@ A `volume` block supports the following:
 
 * `storage_name` - (Optional) The name of the `AzureFile` storage.
 
-* `storage_type` - (Optional) The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
+* `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
 
 ---
 
@@ -133,7 +193,7 @@ A `container` block supports the following:
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. 
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. 
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
@@ -163,7 +223,7 @@ A `liveness_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -235,7 +295,7 @@ A `startup_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -261,9 +321,9 @@ A `volume_mounts` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`
+* `type` - (Required) The type of managed identity to assign. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -271,19 +331,23 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
-* `custom_domain` -  (Optional) One or more `custom_domain` block as detailed below.
+* `custom_domain` - (Optional) One or more `custom_domain` block as detailed below.
 
-* `fqdn` -  The FQDN of the ingress.
+* `fqdn` - The FQDN of the ingress.
 
-* `external_enabled` - (Optional) Is this an external Ingress.
+* `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
+ 
+* `exposed_port` - (Optional) The exposed port on the container for the Ingress traffic.
+
+~> **Note:** `exposed_port` can only be specified when `transport` is set to `tcp`.
 
 * `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
 
 ~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
 
-* `transport` - (Optional) The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
+* `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
 ---
 

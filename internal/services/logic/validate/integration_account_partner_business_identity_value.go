@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -20,8 +23,8 @@ func IntegrationAccountPartnerBusinessIdentityValue() pluginsdk.SchemaValidateFu
 			return
 		}
 
-		if !regexp.MustCompile(`^[A-Za-z0-9-() .]+$`).MatchString(v) {
-			errors = append(errors, fmt.Errorf("%q contains only letters, numbers, dots, parentheses and hyphens", k))
+		if !regexp.MustCompile(`^[A-Za-z0-9-() ._]+$`).MatchString(v) {
+			errors = append(errors, fmt.Errorf("%q contains only letters, numbers, dots, parentheses, hyphens and underscores", k))
 			return
 		}
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization_test
 
 import (
@@ -238,6 +241,20 @@ func TestAccRoleAssignment_subscriptionScoped(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subscriptionScoped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
+func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupScoped(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -588,4 +605,25 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = azuread_service_principal.test.object_id
 }
 `, data.RandomInteger)
+}
+
+func (RoleAssignmentResource) resourceGroupScoped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fwpolicy-RCG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "Reader"
+  principal_id         = data.azurerm_client_config.test.object_id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

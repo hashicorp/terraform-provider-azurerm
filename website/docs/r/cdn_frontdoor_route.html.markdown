@@ -26,11 +26,18 @@ resource "azurerm_dns_zone" "example" {
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                     = "example-originGroup"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
@@ -50,6 +57,11 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 
 resource "azurerm_cdn_frontdoor_endpoint" "example" {
   name                     = "example-endpoint"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "example" {
+  name                     = "ExampleRuleSet"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 
@@ -124,7 +136,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_ids` - (Required) One or more Front Door Origin resource IDs that this Front Door Route will link to.
 
-* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
+* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
 * `patterns_to_match` - (Required) The route patterns of the rule.
 
@@ -154,7 +166,7 @@ The following arguments are supported:
 
 A `cache` block supports the following:
 
-* `query_string_caching_behavior` - (Optional) Defines how the Front Door Route will cache requests that include query strings. Possible values include `IgnoreQueryString`, `IgnoreSpecifiedQueryStrings`, `IncludeSpecifiedQueryStrings` or `UseQueryString`. Defaults it `IgnoreQueryString`.
+* `query_string_caching_behavior` - (Optional) Defines how the Front Door Route will cache requests that include query strings. Possible values include `IgnoreQueryString`, `IgnoreSpecifiedQueryStrings`, `IncludeSpecifiedQueryStrings` or `UseQueryString`. Defaults to `IgnoreQueryString`.
 
 ~> **NOTE:** The value of the `query_string_caching_behavior` determines if the `query_strings` field will be used as an include list or an ignore list.
 

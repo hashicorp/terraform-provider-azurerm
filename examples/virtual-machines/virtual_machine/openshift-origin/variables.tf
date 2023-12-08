@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 variable "resource_group_name" {
   description = "Name of the azure resource group in which you will deploy this template."
 }
@@ -56,7 +59,7 @@ variable "storage_account_replication_type" {
 
 variable "os_image_map" {
   description = "os image map"
-  type        = "map"
+  type        = map(string)
 
   default = {
     centos_publisher = "Openlogic"

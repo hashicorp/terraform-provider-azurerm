@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package orbital
 
 import (
@@ -6,11 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -53,7 +56,7 @@ func (r ContactProfileResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"minimum_variable_contact_duration": {
@@ -112,7 +115,7 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := contactprofile.NewContactProfileID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.ContactProfilesGet(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -149,7 +152,7 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -169,7 +172,7 @@ func (r ContactProfileResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.ContactProfilesGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -217,7 +220,7 @@ func (r ContactProfileResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if err := client.ContactProfilesDeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -270,7 +273,7 @@ func (r ContactProfileResource) Update() sdk.ResourceFunc {
 					Tags: &state.Tags,
 				}
 
-				if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

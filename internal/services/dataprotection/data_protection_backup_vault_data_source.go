@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dataprotection
 
 import (
@@ -25,11 +28,6 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
-
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := backupvaults.ParseBackupVaultID(id)
-			return err
-		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

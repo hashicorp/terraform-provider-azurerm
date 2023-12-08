@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices
 
 import (
@@ -255,6 +258,19 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("creating %s: %+v", id.String(), err)
 	}
 
+	// `encryption` needs to be set before `cross_region_restore_enabled` is set. Or the service will return an error. "If CRR is enabled for the Vault, the storage state will be locked and it will interfere with further operations"
+	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
+	if _, ok := d.GetOk("encryption"); ok {
+		err = client.UpdateThenPoll(ctx, id, vaults.PatchVault{
+			Properties: &vaults.VaultProperties{
+				Encryption: expandEncryption(d),
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+		}
+	}
+
 	storageType := backupresourcestorageconfigsnoncrr.StorageType(d.Get("storage_mode_type").(string))
 	storageCfg := backupresourcestorageconfigsnoncrr.BackupResourceConfigResource{
 		Properties: &backupresourcestorageconfigsnoncrr.BackupResourceConfig{
@@ -300,18 +316,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
-	if _, ok := d.GetOk("encryption"); ok {
-		err = client.UpdateThenPoll(ctx, id, vaults.PatchVault{
-			Properties: &vaults.VaultProperties{
-				Encryption: expandEncryption(d),
-			},
-		})
-		if err != nil {
-			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
-		}
 	}
 
 	// an update on the vault will reset the vault config to default, so we handle it at last.

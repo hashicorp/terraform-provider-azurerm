@@ -25,6 +25,16 @@ func ApiManagementAPI(domainSuffix string) Api {
 	}
 }
 
+func AppConfigurationAPI(domainSuffix string) Api {
+	return &ApiEndpoint{
+		domainSuffix:       pointer.To(domainSuffix),
+		endpoint:           nil,
+		appId:              pointer.To(appConfigurationAppId),
+		name:               "AppConfiguration",
+		resourceIdentifier: nil,
+	}
+}
+
 func AttestationAPI(endpoint string) Api {
 	return &ApiEndpoint{
 		domainSuffix:       nil,
@@ -82,6 +92,16 @@ func DataLakeAPI(domainSuffix string) Api {
 		appId:              pointer.To(dataLakeAppId),
 		name:               "DataLake",
 		resourceIdentifier: pointer.To("https://datalake.azure.net"),
+	}
+}
+
+func IoTCentral(domainSuffix string) Api {
+	return &ApiEndpoint{
+		domainSuffix:       pointer.To(domainSuffix),
+		endpoint:           nil,
+		appId:              pointer.To(iotCentralAppId),
+		name:               "IoTCentral",
+		resourceIdentifier: pointer.To("https://apps.azureiotcentral.com"),
 	}
 }
 

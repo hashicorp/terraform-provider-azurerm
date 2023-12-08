@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/groupuser"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementGroupUserResource struct{}
@@ -46,21 +50,21 @@ func TestAccAzureRMApiManagementGroupUser_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementGroupUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.GroupUserID(state.ID)
+	id, err := groupuser.ParseGroupUserID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName)
+	resp, err := clients.ApiManagement.GroupUsersClient.CheckEntityExists(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	// the HEAD API not found returns resp 404, but no err
-	if utils.ResponseWasNotFound(resp) {
-		return utils.Bool(false), nil
+	if response.WasNotFound(resp.HttpResponse) {
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (ApiManagementGroupUserResource) basic(data acceptance.TestData) string {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,18 +8,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementCertificate() *pluginsdk.Resource {
@@ -26,7 +29,7 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 		Update: resourceApiManagementCertificateCreateUpdate,
 		Delete: resourceApiManagementCertificateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CertificateID(id)
+			_, err := certificate.ParseCertificateID(id)
 			return err
 		}),
 
@@ -99,7 +102,7 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	id := certificate.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	data := d.Get("data").(string)
 	password := d.Get("password").(string)
@@ -107,20 +110,20 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 	keyVaultIdentity := d.Get("key_vault_identity_client_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_certificate", id.ID())
 		}
 	}
 
-	parameters := apimanagement.CertificateCreateOrUpdateParameters{
-		CertificateCreateOrUpdateProperties: &apimanagement.CertificateCreateOrUpdateProperties{},
+	parameters := certificate.CertificateCreateOrUpdateParameters{
+		Properties: &certificate.CertificateCreateOrUpdateProperties{},
 	}
 
 	if keyVaultSecretId != "" {
@@ -129,21 +132,21 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 			return err
 		}
 
-		parameters.KeyVault = &apimanagement.KeyVaultContractCreateProperties{
-			SecretIdentifier: utils.String(parsedSecretId.ID()),
+		parameters.Properties.KeyVault = &certificate.KeyVaultContractCreateProperties{
+			SecretIdentifier: pointer.To(parsedSecretId.ID()),
 		}
 
 		if keyVaultIdentity != "" {
-			parameters.KeyVault.IdentityClientID = utils.String(keyVaultIdentity)
+			parameters.Properties.KeyVault.IdentityClientId = pointer.To(keyVaultIdentity)
 		}
 	}
 
 	if data != "" {
-		parameters.Data = utils.String(data)
-		parameters.Password = utils.String(password)
+		parameters.Properties.Data = pointer.To(data)
+		parameters.Properties.Password = pointer.To(password)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, certificate.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
@@ -157,14 +160,14 @@ func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateID(d.Id())
+	id, err := certificate.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -173,21 +176,20 @@ func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if props := resp.CertificateContractProperties; props != nil {
-		if expiration := props.ExpirationDate; expiration != nil {
-			formatted := expiration.Format(time.RFC3339)
-			d.Set("expiration", formatted)
-		}
-		d.Set("subject", props.Subject)
-		d.Set("thumbprint", props.Thumbprint)
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if props := model.Properties; props != nil {
+			d.Set("expiration", props.ExpirationDate)
+			d.Set("subject", props.Subject)
+			d.Set("thumbprint", props.Thumbprint)
 
-		if keyvault := props.KeyVault; keyvault != nil {
-			d.Set("key_vault_secret_id", keyvault.SecretIdentifier)
-			d.Set("key_vault_identity_client_id", keyvault.IdentityClientID)
+			if keyvault := props.KeyVault; keyvault != nil {
+				d.Set("key_vault_secret_id", pointer.From(keyvault.SecretIdentifier))
+				d.Set("key_vault_identity_client_id", pointer.From(keyvault.IdentityClientId))
+			}
 		}
 	}
 
@@ -199,13 +201,13 @@ func resourceApiManagementCertificateDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateID(d.Id())
+	id, err := certificate.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, certificate.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

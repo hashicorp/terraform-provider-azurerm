@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iothub_test
 
 import (
@@ -132,11 +135,11 @@ func TestAccIotHubDPS_ipFilterRules(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_filter_rule.0.name").HasValue("test"),
 				check.That(data.ResourceName).Key("ip_filter_rule.0.ip_mask").HasValue("10.0.0.0/31"),
 				check.That(data.ResourceName).Key("ip_filter_rule.0.action").HasValue("Accept"),
-				check.That(data.ResourceName).Key("ip_filter_rule.0.target").HasValue("All"),
+				check.That(data.ResourceName).Key("ip_filter_rule.0.target").HasValue("all"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.name").HasValue("test2"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.ip_mask").HasValue("10.0.2.0/31"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.action").HasValue("Accept"),
-				check.That(data.ResourceName).Key("ip_filter_rule.1.target").HasValue("ServiceApi"),
+				check.That(data.ResourceName).Key("ip_filter_rule.1.target").HasValue("serviceApi"),
 			),
 		},
 		{
@@ -146,11 +149,11 @@ func TestAccIotHubDPS_ipFilterRules(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_filter_rule.0.name").HasValue("test"),
 				check.That(data.ResourceName).Key("ip_filter_rule.0.ip_mask").HasValue("10.0.0.0/31"),
 				check.That(data.ResourceName).Key("ip_filter_rule.0.action").HasValue("Reject"),
-				check.That(data.ResourceName).Key("ip_filter_rule.0.target").HasValue("All"),
+				check.That(data.ResourceName).Key("ip_filter_rule.0.target").HasValue("all"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.name").HasValue("test2"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.ip_mask").HasValue("10.0.2.0/31"),
 				check.That(data.ResourceName).Key("ip_filter_rule.1.action").HasValue("Reject"),
-				check.That(data.ResourceName).Key("ip_filter_rule.1.target").HasValue("DeviceApi"),
+				check.That(data.ResourceName).Key("ip_filter_rule.1.target").HasValue("deviceApi"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
@@ -411,14 +414,14 @@ resource "azurerm_iothub_dps" "test" {
     name    = "test"
     ip_mask = "10.0.0.0/31"
     action  = "Accept"
-    target  = "All"
+    target  = "all"
   }
 
   ip_filter_rule {
     name    = "test2"
     ip_mask = "10.0.2.0/31"
     action  = "Accept"
-    target  = "ServiceApi"
+    target  = "serviceApi"
   }
 
   ip_filter_rule {
@@ -456,14 +459,14 @@ resource "azurerm_iothub_dps" "test" {
     name    = "test"
     ip_mask = "10.0.0.0/31"
     action  = "Reject"
-    target  = "All"
+    target  = "all"
   }
 
   ip_filter_rule {
     name    = "test2"
     ip_mask = "10.0.2.0/31"
     action  = "Reject"
-    target  = "DeviceApi"
+    target  = "deviceApi"
   }
 
   ip_filter_rule {

@@ -236,7 +236,7 @@ The following arguments are supported:
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
 
-* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` (Border Gateway Protocol custom IP Addresses) block which is documented below.
+* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` block which is documented below.
     The block can only be used on `IPSec` / `activeactive` connections,
     For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
 
@@ -263,7 +263,7 @@ The following arguments are supported:
 The `custom_bgp_addresses` block supports:
 
 * `primary` - (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
-* `secondary` - (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
+* `secondary` - (Optional) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
 
 ---
 

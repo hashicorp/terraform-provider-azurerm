@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `network_profile` - (Optional) A `network_profile` block as defined below.
+
 * `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
@@ -77,7 +79,7 @@ The following arguments are supported:
 
 * `allowed_authentication_modes` - (Optional) Specifies the allowed authentication mode for the Batch account. Possible values include `AAD`, `SharedKey` or `TaskAuthenticationToken`.
 
-* `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data.
+* `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data. One `encryption` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -90,6 +92,39 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+A `network_profile` block supports the following:
+
+* `account_access` - (Optional) An `account_access` block as defined below.
+
+* `node_management_access` - (Optional) A `node_management_access` block as defined below.
+
+~> **NOTE:** At least one of `account_access` or `node_management_access` must be specified.
+
+---
+
+An `account_access` block supports the following:
+
+* `default_action` - (Optional) Specifies the default action for the account access. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+---
+
+A `node_management_access` block supports the following:
+
+* `default_action` - (Optional) Specifies the default action for the node management access. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+---
+
+An `ip_rule` block supports the following:
+
+* `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+* `action` - (Optional) Specifies the action of the ip rule. The only possible value is `Allow`. Defaults to `Allow`.
 
 ---
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package web
 
 import (
@@ -7,11 +10,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -78,7 +80,7 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"allow_new_private_endpoint_connections": {
@@ -248,19 +250,19 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			subnet, err := networkParse.SubnetID(model.SubnetId)
+			subnet, err := commonids.ParseSubnetID(model.SubnetId)
 			if err != nil {
 				return err
 			}
 
-			vnet, err := networksClient.Get(ctx, subnet.ResourceGroup, subnet.VirtualNetworkName, "")
+			vnet, err := networksClient.Get(ctx, subnet.ResourceGroupName, subnet.VirtualNetworkName, "")
 			if err != nil {
-				return fmt.Errorf("retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, subnet.ResourceGroup, err)
+				return fmt.Errorf("retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, subnet.ResourceGroupName, err)
 			}
 
 			vnetLoc := location.NormalizeNilable(vnet.Location)
 			if vnetLoc == "" {
-				return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was missing", subnet.VirtualNetworkName, subnet.ResourceGroup)
+				return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was missing", subnet.VirtualNetworkName, subnet.ResourceGroupName)
 			}
 
 			id := parse.NewAppServiceEnvironmentID(subscriptionId, model.ResourceGroup, model.Name)

@@ -23,7 +23,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 
 	"github.com/hashicorp/terraform-plugin-testing/internal/addrs"
 	"github.com/hashicorp/terraform-plugin-testing/internal/logging"
@@ -31,7 +34,7 @@ import (
 )
 
 // flagSweep is a flag available when running tests on the command line. It
-// contains a comma seperated list of regions to for the sweeper functions to
+// contains a comma separated list of regions to for the sweeper functions to
 // run in.  This flag bypasses the normal Test path and instead runs functions designed to
 // clean up any leaked resources a testing environment could have created. It is
 // a best effort attempt, and relies on Provider authors to implement "Sweeper"
@@ -52,7 +55,7 @@ import (
 
 var flagSweep = flag.String("sweep", "", "List of Regions to run available Sweepers")
 var flagSweepAllowFailures = flag.Bool("sweep-allow-failures", false, "Enable to allow Sweeper Tests to continue after failures")
-var flagSweepRun = flag.String("sweep-run", "", "Comma seperated list of Sweeper Tests to run")
+var flagSweepRun = flag.String("sweep-run", "", "Comma separated list of Sweeper Tests to run")
 var sweeperFuncs map[string]*Sweeper
 
 // SweeperFunc is a signature for a function that acts as a sweeper. It
@@ -160,7 +163,7 @@ func runSweepers(regions []string, sweepers map[string]*Sweeper, allowFailures b
 		log.Printf("Sweeper Tests for region (%s) ran successfully:\n", region)
 		for sweeper, sweeperErr := range regionSweeperRunList {
 			if sweeperErr == nil {
-				fmt.Printf("\t- %s\n", sweeper)
+				log.Printf("\t- %s\n", sweeper)
 			} else {
 				regionSweeperErrorFound = true
 			}
@@ -171,7 +174,7 @@ func runSweepers(regions []string, sweepers map[string]*Sweeper, allowFailures b
 			log.Printf("Sweeper Tests for region (%s) ran unsuccessfully:\n", region)
 			for sweeper, sweeperErr := range regionSweeperRunList {
 				if sweeperErr != nil {
-					fmt.Printf("\t- %s: %s\n", sweeper, sweeperErr)
+					log.Printf("\t- %s: %s\n", sweeper, sweeperErr)
 				}
 			}
 		}
@@ -186,7 +189,7 @@ func runSweepers(regions []string, sweepers map[string]*Sweeper, allowFailures b
 	return sweeperRunList, nil
 }
 
-// filterSweepers takes a comma seperated string listing the names of sweepers
+// filterSweepers takes a comma separated string listing the names of sweepers
 // to be ran, and returns a filtered set from the list of all of sweepers to
 // run based on the names given.
 func filterSweepers(f string, source map[string]*Sweeper) map[string]*Sweeper {
@@ -233,7 +236,7 @@ func filterSweeperWithDependencies(name string, source map[string]*Sweeper) map[
 	return result
 }
 
-// runSweeperWithRegion recieves a sweeper and a region, and recursively calls
+// runSweeperWithRegion receives a sweeper and a region, and recursively calls
 // itself with that region for every dependency found for that sweeper. If there
 // are no dependencies, invoke the contained sweeper fun with the region, and
 // add the success/fail status to the sweeperRunList.
@@ -321,6 +324,12 @@ type TestCase struct {
 	// would run, so it can be used for some validation before running
 	// acceptance tests, such as verifying that keys are setup.
 	PreCheck func()
+
+	// TerraformVersionChecks is a list of checks to run against
+	// the Terraform CLI version which is running the testing.
+	// Each check is executed in order, respecting the first skip
+	// or fail response, unless the Any() meta check is also used.
+	TerraformVersionChecks []tfversion.TerraformVersionCheck
 
 	// ProviderFactories can be specified for the providers that are valid.
 	//
@@ -418,6 +427,15 @@ type TestCase struct {
 	// IDRefreshIgnore is a list of configuration keys that will be ignored
 	// during ID-only refresh testing.
 	IDRefreshIgnore []string
+
+	// WorkingDir sets the base directory where testing files used by the testing
+	// module are generated. If WorkingDir is unset, a randomized, temporary
+	// directory is used.
+	//
+	// Use the TF_ACC_PERSIST_WORKING_DIR environment variable, conventionally
+	// set to "1", to persist any working directory files. Otherwise, this directory is
+	// automatically cleaned up at the end of the TestCase.
+	WorkingDir string
 }
 
 // ExternalProvider holds information about third-party providers that should
@@ -473,11 +491,59 @@ type TestStep struct {
 
 	// Config a string of the configuration to give to Terraform. If this
 	// is set, then the TestCase will execute this step with the same logic
-	// as a `terraform apply`.
+	// as a `terraform apply`. If both Config and ConfigDirectory are set
+	// an error will be returned.
 	//
 	// JSON Configuration Syntax can be used and is assumed whenever Config
 	// contains valid JSON.
+	//
+	// Only one of Config, ConfigDirectory or ConfigFile can be set
+	// otherwise an error will be returned.
 	Config string
+
+	// ConfigDirectory is a function which returns a function that
+	// accepts config.TestStepProviderConfig and returns a string
+	// representing a directory that contains Terraform
+	// configuration files.
+	//
+	// There are helper functions in the [config] package that can be used,
+	// such as:
+	//
+	//   - [config.StaticDirectory]
+	//   - [config.TestNameDirectory]
+	//   - [config.TestStepDirectory]
+	//
+	// When running Terraform operations for the test, Terraform will
+	// be executed with copies of the files of this directory as its
+	// working directory. Only one of Config, ConfigDirectory or
+	// ConfigFile can be set otherwise an error will be returned.
+	ConfigDirectory config.TestStepConfigFunc
+
+	// ConfigFile is a function which returns a function that
+	// accepts config.TestStepProviderConfig and returns a string
+	// representing a file that contains Terraform configuration.
+	//
+	// There are helper functions in the [config] package that can be used,
+	// such as:
+	//
+	//   - [config.StaticFile]
+	//   - [config.TestNameFile]
+	//   - [config.TestStepFile]
+	//
+	// When running Terraform operations for the test, Terraform will
+	// be executed with a copy of the file as its working directory.
+	// Only one of Config, ConfigDirectory or ConfigFile can be set
+	// otherwise an error will be returned.
+	ConfigFile config.TestStepConfigFunc
+
+	// ConfigVariables is a map defining variables for use in conjunction
+	// with Terraform configuration. If this map is populated then it
+	// will be used to assemble an *.auto.tfvars.json which will be
+	// written into the working directory. Any variables that are
+	// defined within the Terraform configuration that have a matching
+	// variable definition in *.auto.tfvars.json will have their value
+	// substituted when the acceptance test is executed.
+	ConfigVariables config.Variables
 
 	// Check is called after the Config is applied. Use this step to
 	// make your own API calls to check the status of things, and to
@@ -500,6 +566,20 @@ type TestStep struct {
 	// with an error. The specified regexp must match against the error for the
 	// test to pass.
 	ExpectError *regexp.Regexp
+
+	// ConfigPlanChecks allows assertions to be made against the plan file at different points of a Config (apply) test using a plan check.
+	// Custom plan checks can be created by implementing the [PlanCheck] interface, or by using a PlanCheck implementation from the provided [plancheck] package
+	//
+	// [PlanCheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck#PlanCheck
+	// [plancheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck
+	ConfigPlanChecks ConfigPlanChecks
+
+	// RefreshPlanChecks allows assertions to be made against the plan file at different points of a Refresh test using a plan check.
+	// Custom plan checks can be created by implementing the [PlanCheck] interface, or by using a PlanCheck implementation from the provided [plancheck] package
+	//
+	// [PlanCheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck#PlanCheck
+	// [plancheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck
+	RefreshPlanChecks RefreshPlanChecks
 
 	// PlanOnly can be set to only run `plan` with this configuration, and not
 	// actually apply it. This is useful for ensuring config changes result in
@@ -573,10 +653,24 @@ type TestStep struct {
 	// IDs returned by the Import.  Note that this checks for strict equality
 	// and does not respect DiffSuppressFunc or CustomizeDiff.
 	//
+	// By default, the prior resource state and import resource state are
+	// matched by the "id" attribute. If the "id" attribute is not implemented
+	// or another attribute more uniquely identifies the resource, set the
+	// ImportStateVerifyIdentifierAttribute field to adjust the attribute for
+	// matching.
+	//
+	// If certain attributes cannot be correctly imported, set the
+	// ImportStateVerifyIgnore field.
+	ImportStateVerify bool
+
+	// ImportStateVerifyIdentifierAttribute is the resource attribute for
+	// matching the prior resource state and import resource state during import
+	// verification. By default, the "id" attribute is used.
+	ImportStateVerifyIdentifierAttribute string
+
 	// ImportStateVerifyIgnore is a list of prefixes of fields that should
 	// not be verified to be equal. These can be set to ephemeral fields or
 	// fields that can't be refreshed and don't matter.
-	ImportStateVerify       bool
 	ImportStateVerifyIgnore []string
 
 	// ImportStatePersist, if true, will update the persisted state with the
@@ -670,6 +764,28 @@ type TestStep struct {
 	ExternalProviders map[string]ExternalProvider
 }
 
+// ConfigPlanChecks defines the different points in a Config TestStep when plan checks can be run.
+type ConfigPlanChecks struct {
+	// PreApply runs all plan checks in the slice. This occurs before the apply of a Config test is run. This slice cannot be populated
+	// with TestStep.PlanOnly, as there is no PreApply plan run with that flag set. All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
+	PreApply []plancheck.PlanCheck
+
+	// PostApplyPreRefresh runs all plan checks in the slice. This occurs after the apply and before the refresh of a Config test is run.
+	// All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
+	PostApplyPreRefresh []plancheck.PlanCheck
+
+	// PostApplyPostRefresh runs all plan checks in the slice. This occurs after the apply and refresh of a Config test are run.
+	// All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
+	PostApplyPostRefresh []plancheck.PlanCheck
+}
+
+// RefreshPlanChecks defines the different points in a Refresh TestStep when plan checks can be run.
+type RefreshPlanChecks struct {
+	// PostRefresh runs all plan checks in the slice. This occurs after the refresh of the Refresh test is run.
+	// All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
+	PostRefresh []plancheck.PlanCheck
+}
+
 // ParallelTest performs an acceptance test on a resource, allowing concurrency
 // with other ParallelTest. The number of concurrent tests is controlled by the
 // "go test" command -parallel flag.
@@ -721,7 +837,7 @@ func Test(t testing.T, c TestCase) {
 	ctx := context.Background()
 	ctx = logging.InitTestContext(ctx, t)
 
-	err := c.validate(ctx)
+	err := c.validate(ctx, t)
 
 	if err != nil {
 		logging.HelperResourceError(ctx,
@@ -777,6 +893,17 @@ func Test(t testing.T, c TestCase) {
 			logging.HelperResourceError(ctx, "Unable to clean up temporary test files", map[string]interface{}{logging.KeyError: err})
 		}
 	}(helper)
+
+	// Run the TerraformVersionChecks if we have it.
+	// This is done after creating the helper because a working directory is required
+	// to retrieve the Terraform version.
+	if c.TerraformVersionChecks != nil {
+		logging.HelperResourceDebug(ctx, "Calling TestCase Terraform version checks")
+
+		runTFVersionChecks(ctx, t, helper.TerraformVersion(), c.TerraformVersionChecks)
+
+		logging.HelperResourceDebug(ctx, "Called TestCase Terraform version checks")
+	}
 
 	runNewTest(ctx, t, c, helper)
 
@@ -905,6 +1032,14 @@ func TestCheckResourceAttrSet(name, key string) TestCheckFunc {
 
 // TestCheckModuleResourceAttrSet - as per TestCheckResourceAttrSet but with
 // support for non-root modules
+//
+// Deprecated: This functionality is deprecated without replacement. The
+// terraform-plugin-testing Go module is intended for provider testing, which
+// should always be possible within the root module of a configuration. This
+// functionality is a carryover of when this code was used within Terraform
+// core to test both providers and modules. Modern testing implementations to
+// verify interactions between modules should be tested in Terraform core or
+// using tooling outside this Go module.
 func TestCheckModuleResourceAttrSet(mp []string, name string, key string) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
@@ -996,6 +1131,14 @@ func TestCheckResourceAttr(name, key, value string) TestCheckFunc {
 
 // TestCheckModuleResourceAttr - as per TestCheckResourceAttr but with
 // support for non-root modules
+//
+// Deprecated: This functionality is deprecated without replacement. The
+// terraform-plugin-testing Go module is intended for provider testing, which
+// should always be possible within the root module of a configuration. This
+// functionality is a carryover of when this code was used within Terraform
+// core to test both providers and modules. Modern testing implementations to
+// verify interactions between modules should be tested in Terraform core or
+// using tooling outside this Go module.
 func TestCheckModuleResourceAttr(mp []string, name string, key string, value string) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
@@ -1160,6 +1303,14 @@ func TestCheckNoResourceAttr(name, key string) TestCheckFunc {
 
 // TestCheckModuleNoResourceAttr - as per TestCheckNoResourceAttr but with
 // support for non-root modules
+//
+// Deprecated: This functionality is deprecated without replacement. The
+// terraform-plugin-testing Go module is intended for provider testing, which
+// should always be possible within the root module of a configuration. This
+// functionality is a carryover of when this code was used within Terraform
+// core to test both providers and modules. Modern testing implementations to
+// verify interactions between modules should be tested in Terraform core or
+// using tooling outside this Go module.
 func TestCheckModuleNoResourceAttr(mp []string, name string, key string) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
@@ -1256,6 +1407,14 @@ func TestMatchResourceAttr(name, key string, r *regexp.Regexp) TestCheckFunc {
 
 // TestModuleMatchResourceAttr - as per TestMatchResourceAttr but with
 // support for non-root modules
+//
+// Deprecated: This functionality is deprecated without replacement. The
+// terraform-plugin-testing Go module is intended for provider testing, which
+// should always be possible within the root module of a configuration. This
+// functionality is a carryover of when this code was used within Terraform
+// core to test both providers and modules. Modern testing implementations to
+// verify interactions between modules should be tested in Terraform core or
+// using tooling outside this Go module.
 func TestModuleMatchResourceAttr(mp []string, name string, key string, r *regexp.Regexp) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
@@ -1295,6 +1454,14 @@ func TestCheckResourceAttrPtr(name string, key string, value *string) TestCheckF
 
 // TestCheckModuleResourceAttrPtr - as per TestCheckResourceAttrPtr but with
 // support for non-root modules
+//
+// Deprecated: This functionality is deprecated without replacement. The
+// terraform-plugin-testing Go module is intended for provider testing, which
+// should always be possible within the root module of a configuration. This
+// functionality is a carryover of when this code was used within Terraform
+// core to test both providers and modules. Modern testing implementations to
+// verify interactions between modules should be tested in Terraform core or
+// using tooling outside this Go module.
 func TestCheckModuleResourceAttrPtr(mp []string, name string, key string, value *string) TestCheckFunc {
 	return func(s *terraform.State) error {
 		return TestCheckModuleResourceAttr(mp, name, key, *value)(s)
@@ -1352,6 +1519,14 @@ func TestCheckResourceAttrPair(nameFirst, keyFirst, nameSecond, keySecond string
 
 // TestCheckModuleResourceAttrPair - as per TestCheckResourceAttrPair but with
 // support for non-root modules
+//
+// Deprecated: This functionality is deprecated without replacement. The
+// terraform-plugin-testing Go module is intended for provider testing, which
+// should always be possible within the root module of a configuration. This
+// functionality is a carryover of when this code was used within Terraform
+// core to test both providers and modules. Modern testing implementations to
+// verify interactions between modules should be tested in Terraform core or
+// using tooling outside this Go module.
 func TestCheckModuleResourceAttrPair(mpFirst []string, nameFirst string, keyFirst string, mpSecond []string, nameSecond string, keySecond string) TestCheckFunc {
 	mptFirst := addrs.Module(mpFirst).UnkeyedInstanceShim()
 	mptSecond := addrs.Module(mpSecond).UnkeyedInstanceShim()
@@ -1448,7 +1623,12 @@ func TestMatchOutput(name string, r *regexp.Regexp) TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		if !r.MatchString(rs.Value.(string)) {
+		valStr, ok := rs.Value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for resource value", rs.Value)
+		}
+
+		if !r.MatchString(valStr) {
 			return fmt.Errorf(
 				"Output '%s': %#v didn't match %q",
 				name,
@@ -1479,7 +1659,7 @@ func modulePrimaryInstanceState(ms *terraform.ModuleState, name string) (*terraf
 // modulePathPrimaryInstanceState returns the primary instance state for the
 // given resource name in a given module path.
 func modulePathPrimaryInstanceState(s *terraform.State, mp addrs.ModuleInstance, name string) (*terraform.InstanceState, error) {
-	ms := s.ModuleByPath(mp)
+	ms := s.ModuleByPath(mp) //nolint:staticcheck // legacy usage
 	if ms == nil {
 		return nil, fmt.Errorf("No module found at: %s", mp)
 	}
@@ -1490,7 +1670,7 @@ func modulePathPrimaryInstanceState(s *terraform.State, mp addrs.ModuleInstance,
 // primaryInstanceState returns the primary instance state for the given
 // resource name in the root module.
 func primaryInstanceState(s *terraform.State, name string) (*terraform.InstanceState, error) {
-	ms := s.RootModule()
+	ms := s.RootModule() //nolint:staticcheck // legacy usage
 	return modulePrimaryInstanceState(ms, name)
 }
 
@@ -1509,7 +1689,7 @@ func indexesIntoTypeSet(key string) bool {
 func checkIfIndexesIntoTypeSet(key string, f TestCheckFunc) TestCheckFunc {
 	return func(s *terraform.State) error {
 		err := f(s)
-		if err != nil && s.IsBinaryDrivenTest && indexesIntoTypeSet(key) {
+		if err != nil && indexesIntoTypeSet(key) {
 			return fmt.Errorf("Error in test check: %s\nTest check address %q likely indexes into TypeSet\nThis is currently not possible in the SDK", err, key)
 		}
 		return err
@@ -1519,7 +1699,7 @@ func checkIfIndexesIntoTypeSet(key string, f TestCheckFunc) TestCheckFunc {
 func checkIfIndexesIntoTypeSetPair(keyFirst, keySecond string, f TestCheckFunc) TestCheckFunc {
 	return func(s *terraform.State) error {
 		err := f(s)
-		if err != nil && s.IsBinaryDrivenTest && (indexesIntoTypeSet(keyFirst) || indexesIntoTypeSet(keySecond)) {
+		if err != nil && (indexesIntoTypeSet(keyFirst) || indexesIntoTypeSet(keySecond)) {
 			return fmt.Errorf("Error in test check: %s\nTest check address %q or %q likely indexes into TypeSet\nThis is currently not possible in the SDK", err, keyFirst, keySecond)
 		}
 		return err

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package main
 
 import (
@@ -78,10 +81,6 @@ func SchemaValue(sch *pluginsdk.Schema) Dict {
 
 	if sch.Computed {
 		out[Id("Computed")] = True()
-	}
-
-	if sch.ForceNew {
-		out[Id("ForceNew")] = True()
 	}
 
 	switch sch.ConfigMode {

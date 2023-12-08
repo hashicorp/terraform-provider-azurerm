@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package bot
 
 import (
@@ -60,6 +63,16 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},
 
+			"deployment_environment": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "CommercialDeployment",
+				ValidateFunc: validation.StringInSlice([]string{
+					"CommercialDeployment",
+					"GCCModerateDeployment",
+				}, false),
+			},
+
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_calling": {
 				Type:     pluginsdk.TypeBool,
@@ -92,8 +105,10 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
-				EnableCalling: utils.Bool(d.Get("enable_calling").(bool)),
-				IsEnabled:     utils.Bool(true),
+				AcceptedTerms:         utils.Bool(true),
+				DeploymentEnvironment: utils.String(d.Get("deployment_environment").(string)),
+				EnableCalling:         utils.Bool(d.Get("enable_calling").(bool)),
+				IsEnabled:             utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameMsTeamsChannel,
 		},
@@ -143,6 +158,7 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if channel, ok := props.AsMsTeamsChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("calling_web_hook", channelProps.CallingWebhook)
+				d.Set("deployment_environment", channelProps.DeploymentEnvironment)
 				d.Set("enable_calling", channelProps.EnableCalling)
 			}
 		}
@@ -164,9 +180,11 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
-				EnableCalling:  utils.Bool(d.Get("enable_calling").(bool)),
-				CallingWebhook: utils.String(d.Get("calling_web_hook").(string)),
-				IsEnabled:      utils.Bool(true),
+				AcceptedTerms:         utils.Bool(true),
+				DeploymentEnvironment: utils.String(d.Get("deployment_environment").(string)),
+				EnableCalling:         utils.Bool(d.Get("enable_calling").(bool)),
+				CallingWebhook:        utils.String(d.Get("calling_web_hook").(string)),
+				IsEnabled:             utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameMsTeamsChannel,
 		},

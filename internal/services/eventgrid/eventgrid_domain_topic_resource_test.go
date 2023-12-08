@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventgrid_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domaintopics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -49,17 +52,17 @@ func TestAccEventGridDomainTopic_requiresImport(t *testing.T) {
 }
 
 func (EventGridDomainTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DomainTopicID(state.ID)
+	id, err := domaintopics.ParseDomainTopicID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.EventGrid.DomainTopicsClient.Get(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
+	resp, err := clients.EventGrid.DomainTopics.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving EventGrid Domain Topic %q (resource group: %q): %+v", id.TopicName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DomainTopicProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventGridDomainTopicResource) basic(data acceptance.TestData) string {

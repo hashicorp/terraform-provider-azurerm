@@ -1,13 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -102,42 +103,40 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("error retrieving Disk %s: %+v", *diskId, err)
 	}
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			// checking whether disk export SAS URL is active already before creating. If yes, we raise an error
-			if string(*props.DiskState) == "ActiveSAS" {
-				return fmt.Errorf("active SAS Token for Disk Export already exists, cannot create another one %s: %+v", *diskId, err)
-			}
-
-			future, err := client.GrantAccess(ctx, *diskId, grantAccessData)
-			if err != nil {
-				return fmt.Errorf("granting access to %s: %+v", *diskId, err)
-			}
-
-			if err := future.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for access to be granted to %s: %+v", *diskId, err)
-			}
-
-			buf := new(bytes.Buffer)
-			_, err = buf.ReadFrom(future.Poller.HttpResponse.Body)
-			if err != nil {
-				return err
-			}
-
-			var result Result
-			err = json.Unmarshal(buf.Bytes(), &result)
-			if err != nil {
-				return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
-			}
-			if result.Properties.Output.AccessSAS == "" {
-				return fmt.Errorf("retrieving SAS Token for Disk Access %s: SAS was nil", *diskId)
-			}
-
-			d.SetId(diskId.ID())
-			sasToken := result.Properties.Output.AccessSAS
-			d.Set("sas_url", sasToken)
-		}
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *diskId)
 	}
+	if resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *diskId)
+	}
+	props := *resp.Model.Properties
+
+	// checking whether disk export SAS URL is active already before creating. If yes, we raise an error
+	if *props.DiskState == disks.DiskStateActiveSAS {
+		return fmt.Errorf("active SAS Token for Disk Export already exists, cannot create another one %s: %+v", *diskId, err)
+	}
+
+	future, err := client.GrantAccess(ctx, *diskId, grantAccessData)
+	if err != nil {
+		return fmt.Errorf("granting access to %s: %+v", *diskId, err)
+	}
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for access to be granted to %s: %+v", *diskId, err)
+	}
+
+	lastResponse := future.Poller.LatestResponse()
+	if lastResponse == nil {
+		return fmt.Errorf("waiting for access to be granted to %s: last response was nil", *diskId)
+	}
+
+	var result Result
+	if err := lastResponse.Unmarshal(&result); err != nil {
+		return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
+	}
+
+	d.SetId(diskId.ID())
+	sasToken := result.Properties.Output.AccessSAS
+	d.Set("sas_url", sasToken)
 
 	return resourceManagedDiskSasTokenRead(d, meta)
 }

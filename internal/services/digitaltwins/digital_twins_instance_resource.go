@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package digitaltwins
 
 import (
@@ -10,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/digitaltwinsinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/digitaltwinsinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/validate"
@@ -54,7 +57,7 @@ func resourceDigitalTwinsInstance() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -78,7 +81,7 @@ func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_digital_twins_instance", id.ID())
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -127,7 +130,11 @@ func resourceDigitalTwinsInstanceRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("host_name", props.HostName)
 		}
 
-		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -152,7 +159,7 @@ func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interfac
 	props := digitaltwinsinstance.DigitalTwinsPatchDescription{}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}

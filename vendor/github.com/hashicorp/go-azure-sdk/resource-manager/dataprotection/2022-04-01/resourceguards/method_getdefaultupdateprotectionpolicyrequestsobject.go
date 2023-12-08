@@ -20,7 +20,7 @@ type GetDefaultUpdateProtectionPolicyRequestsObjectOperationResponse struct {
 // GetDefaultUpdateProtectionPolicyRequestsObject ...
 func (c ResourceGuardsClient) GetDefaultUpdateProtectionPolicyRequestsObject(ctx context.Context, id UpdateProtectionPolicyRequestId) (result GetDefaultUpdateProtectionPolicyRequestsObjectOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

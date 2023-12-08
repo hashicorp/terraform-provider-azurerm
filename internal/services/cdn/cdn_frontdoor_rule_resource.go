@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn
 
 import (
@@ -484,8 +487,9 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"operator":         schemaCdnFrontDoorOperator(),
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValuesRequired(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
+									// making optional for issue #23504
+									"match_values": schemaCdnFrontDoorMatchValues(),
+									"transforms":   schemaCdnFrontDoorRuleTransforms(),
 								},
 							},
 						},

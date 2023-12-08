@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package vmware
 
 import (
@@ -67,7 +70,10 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 					"av36",
 					"av36t",
 					"av36p",
+					"av36pt",
 					"av52",
+					"av52t",
+					"av64",
 				}, false),
 			},
 

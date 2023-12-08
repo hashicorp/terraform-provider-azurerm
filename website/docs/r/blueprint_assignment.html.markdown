@@ -124,7 +124,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
-* `lock_mode` - (Optional) The locking mode of the Blueprint Assignment. One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`. Defaults to `none`.
+* `lock_mode` - (Optional) The locking mode of the Blueprint Assignment. One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`. Defaults to `None`.
 
 * `lock_exclude_principals` - (Optional) a list of up to 5 Principal IDs that are permitted to bypass the locks applied by the Blueprint.
 
@@ -134,9 +134,9 @@ resource "azurerm_blueprint_assignment" "example" {
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Blueprint. Only possible value is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Blueprint. Possible values are `SystemAssigned` and `UserAssigned`.
 
-* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Blueprint.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Blueprint.
 
 ## Attributes Reference
 

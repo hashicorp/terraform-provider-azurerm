@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -8,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -1031,6 +1034,21 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_gpuInstance(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gpuInstance(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := agentpools.ParseAgentPoolID(state.ID)
 	if err != nil {
@@ -1049,7 +1067,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		nodePoolName := state.Attributes["name"]
 		kubernetesClusterId := state.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := managedclusters.ParseManagedClusterID(kubernetesClusterId)
+		parsedK8sId, err := commonids.ParseKubernetesClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("parsing kubernetes cluster id: %+v", err)
 		}
@@ -2702,4 +2720,39 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   ]
 }
  `, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (KubernetesClusterNodePoolResource) gpuInstance(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_NC24ads_A100_v4"
+  gpu_instance          = "MIG1g"
+}
+ `, data.Locations.Primary, data.RandomInteger)
 }

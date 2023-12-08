@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse
 
 import (
@@ -55,6 +58,8 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					string(synapse.NodeSizeFamilyHardwareAcceleratedFPGA),
+					string(synapse.NodeSizeFamilyHardwareAcceleratedGPU),
 					string(synapse.NodeSizeFamilyMemoryOptimized),
 					string(synapse.NodeSizeFamilyNone),
 				}, false),

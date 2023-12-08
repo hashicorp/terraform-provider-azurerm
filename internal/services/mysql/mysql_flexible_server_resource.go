@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
@@ -14,14 +17,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverfailover"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -140,7 +142,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"geo_redundant_backup_enabled": {
@@ -236,7 +238,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
 
 			"storage": {
@@ -264,6 +266,11 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(20, 16384),
+						},
+						"io_scaling_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -304,7 +311,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -350,6 +357,13 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
+		}
+	}
+
+	storageSettings := expandArmServerStorage(d.Get("storage").([]interface{}))
+	if storageSettings != nil {
+		if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
+			return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
 		}
 	}
 
@@ -457,7 +471,7 @@ func mySqlFlexibleServerCreationRefreshFunc(ctx context.Context, client *servers
 }
 
 func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -541,7 +555,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -614,7 +628,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if requireFailover {
-		failoverClient := meta.(*clients.Client).MySQL.FlexibleServerFailoverClient
+		failoverClient := meta.(*clients.Client).MySQL.FlexibleServers.ServerFailover
 		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
 		if err := failoverClient.ServersFailoverThenPoll(ctx, failoverID); err != nil {
@@ -703,7 +717,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceMysqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -762,8 +776,14 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoGrow = servers.EnableStatusEnumEnabled
 	}
 
+	autoIoScaling := servers.EnableStatusEnumDisabled
+	if v := input["io_scaling_enabled"].(bool); v {
+		autoIoScaling = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
-		AutoGrow: &autoGrow,
+		AutoGrow:      &autoGrow,
+		AutoIoScaling: &autoIoScaling,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -793,9 +813,10 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":           size,
-			"iops":              iops,
-			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"size_gb":            size,
+			"iops":               iops,
+			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
 		},
 	}
 }

@@ -1,16 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayhostnameconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
@@ -30,7 +34,7 @@ func dataSourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 			"api_management_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementID,
+				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
 			"gateway_name": schemaz.SchemaApiManagementChildDataSourceName(),
@@ -73,41 +77,41 @@ func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apimId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
+	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
 
-	id := parse.NewGatewayHostNameConfigurationID(apimId.SubscriptionId, apimId.ResourceGroup, apimId.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string))
+	id := gatewayhostnameconfiguration.NewHostnameConfigurationID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.HostnameConfigurationName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("making read request %s: %+v", id, err)
 	}
 
-	_, err = parse.GatewayHostNameConfigurationID(*resp.ID)
-	if err != nil {
-		return fmt.Errorf("parsing GatewayHostnameConfiguration ID %q", *resp.ID)
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		_, err = gatewayhostnameconfiguration.ParseHostnameConfigurationID(*model.Id)
+		if err != nil {
+			return fmt.Errorf("parsing GatewayHostnameConfiguration ID %q", *model.Id)
+		}
+		if props := model.Properties; props != nil {
+			d.Set("host_name", props.Hostname)
+			d.Set("certificate_id", props.CertificateId)
+			d.Set("request_client_certificate_enabled", props.NegotiateClientCertificate)
+			d.Set("tls10_enabled", props.Tls10Enabled)
+			d.Set("tls11_enabled", props.Tls11Enabled)
+			d.Set("http2_enabled", props.HTTP2Enabled)
+		}
 	}
 
 	d.SetId(id.ID())
-
-	d.Set("name", resp.Name)
 	d.Set("api_management_id", apimId.ID())
-	d.Set("gateway_name", id.GatewayName)
-
-	if properties := resp.GatewayHostnameConfigurationContractProperties; properties != nil {
-		d.Set("host_name", properties.Hostname)
-		d.Set("certificate_id", properties.CertificateID)
-		d.Set("request_client_certificate_enabled", properties.NegotiateClientCertificate)
-		d.Set("tls10_enabled", properties.TLS10Enabled)
-		d.Set("tls11_enabled", properties.TLS11Enabled)
-		d.Set("http2_enabled", properties.HTTP2Enabled)
-	}
+	d.Set("gateway_name", id.GatewayId)
 
 	return nil
 }

@@ -1,8 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 type decodeTestData struct {
@@ -200,6 +205,186 @@ func TestDecode_TopLevelFieldsOptional(t *testing.T) {
 			MapOfBools:   map[string]bool{},
 			MapOfNumbers: map[string]int{},
 			MapOfStrings: map[string]string{},
+		},
+		ExpectError: false,
+	}.test(t)
+}
+
+func TestDecode_TopLevelFieldsOptionalNullValues(t *testing.T) {
+	type SimpleType struct {
+		Required      string             `tfschema:"required"`
+		String        *string            `tfschema:"string"`
+		Number        *int               `tfschema:"number"`
+		Price         *float64           `tfschema:"price"`
+		Enabled       *bool              `tfschema:"enabled"`
+		EmptyBool     bool               `tfschema:"empty_bool"`
+		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
+		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
+		ListOfStrings *[]string          `tfschema:"list_of_strings"`
+		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
+	}
+	decodeTestData{
+		State: map[string]interface{}{
+			"required":        "name",
+			"number":          nil,
+			"price":           nil,
+			"string":          nil,
+			"enabled":         nil,
+			"empty_bool":      nil,
+			"list_of_floats":  nil,
+			"list_of_numbers": nil,
+			"list_of_strings": nil,
+			"map_of_bools":    nil,
+			"map_of_numbers":  nil,
+			"map_of_strings":  nil,
+		},
+		Input: &SimpleType{},
+		Expected: &SimpleType{
+			Required:  "name",
+			EmptyBool: false,
+		},
+		ExpectError: false,
+	}.test(t)
+}
+
+func TestDecode_TopLevelFieldsOptionalMixedValues(t *testing.T) {
+	type SimpleType struct {
+		Required      string             `tfschema:"required"`
+		String        *string            `tfschema:"string"`
+		Number        *int               `tfschema:"number"`
+		Price         *float64           `tfschema:"price"`
+		Enabled       *bool              `tfschema:"enabled"`
+		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
+		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
+		ListOfStrings *[]string          `tfschema:"list_of_strings"`
+		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
+	}
+	decodeTestData{
+		State: map[string]interface{}{
+			"required":        "name",
+			"number":          nil,
+			"price":           3.5,
+			"string":          nil,
+			"enabled":         false,
+			"list_of_floats":  nil,
+			"list_of_numbers": nil,
+			"list_of_strings": []interface{}{
+				"have",
+				"you",
+				"heard",
+			},
+			"map_of_bools": nil,
+			"map_of_numbers": &map[string]interface{}{
+				"ten":       10,
+				"twentyone": 21,
+			},
+			"map_of_strings": nil,
+		},
+		Input: &SimpleType{},
+		Expected: &SimpleType{
+			Required: "name",
+			Price:    pointer.To(3.5),
+			Enabled:  pointer.To(false),
+			ListOfStrings: pointer.To([]string{
+				"have",
+				"you",
+				"heard",
+			}),
+			MapOfNumbers: pointer.To(map[string]int{
+				"ten":       10,
+				"twentyone": 21,
+			}),
+		},
+		ExpectError: false,
+	}.test(t)
+}
+
+func TestDecode_TopLevelFieldsOptionalComplete(t *testing.T) {
+	type SimpleType struct {
+		Required      string             `tfschema:"required"`
+		String        *string            `tfschema:"string"`
+		Number        *int               `tfschema:"number"`
+		Price         *float64           `tfschema:"price"`
+		Enabled       *bool              `tfschema:"enabled"`
+		EmptyBool     bool               `tfschema:"empty_bool"`
+		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
+		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
+		ListOfStrings *[]string          `tfschema:"list_of_strings"`
+		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
+	}
+	decodeTestData{
+		State: map[string]interface{}{
+			"required":   "name",
+			"number":     1984,
+			"price":      3.5,
+			"string":     "do you know where your towel is",
+			"enabled":    true,
+			"empty_bool": nil,
+			"list_of_floats": []interface{}{
+				1.2,
+				3.142,
+			},
+			"list_of_numbers": []interface{}{
+				20,
+				30,
+			},
+			"list_of_strings": []interface{}{
+				"have",
+				"you",
+				"heard",
+			},
+			"map_of_bools": map[string]interface{}{
+				"first":  true,
+				"second": false,
+			},
+			"map_of_numbers": map[string]interface{}{
+				"ten":       10,
+				"twentyone": 21,
+			},
+			"map_of_strings": map[string]interface{}{
+				"foo":  "bar",
+				"ford": "prefect",
+			},
+		},
+		Input: &SimpleType{},
+		Expected: &SimpleType{
+			Required:  "name",
+			String:    pointer.To("do you know where your towel is"),
+			Price:     pointer.To(3.5),
+			Number:    pointer.To(1984),
+			Enabled:   pointer.To(true),
+			EmptyBool: false,
+			ListOfFloats: pointer.To([]float64{
+				1.2,
+				3.142,
+			}),
+			ListOfNumbers: pointer.To([]int{
+				20,
+				30,
+			}),
+			ListOfStrings: pointer.To([]string{
+				"have",
+				"you",
+				"heard",
+			}),
+			MapOfNumbers: pointer.To(map[string]int{
+				"ten":       10,
+				"twentyone": 21,
+			}),
+			MapOfBools: pointer.To(map[string]bool{
+				"first":  true,
+				"second": false,
+			}),
+			MapOfStrings: pointer.To(map[string]string{
+				"foo":  "bar",
+				"ford": "prefect",
+			}),
 		},
 		ExpectError: false,
 	}.test(t)
@@ -686,6 +871,149 @@ func TestResourceDecode_NestedThreeLevelsDeepMultipleItems(t *testing.T) {
 						{
 							Value: "second - 4",
 							Third: []ThirdInner{
+								{
+									Value: "third - 9",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}.test(t)
+}
+
+func TestResourceDecode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T) {
+	type ThirdInner struct {
+		Value string `tfschema:"value"`
+	}
+	type SecondInner struct {
+		Value *string       `tfschema:"value"`
+		Third *[]ThirdInner `tfschema:"third"`
+	}
+	type FirstInner struct {
+		Value  *string        `tfschema:"value"`
+		Second *[]SecondInner `tfschema:"second"`
+	}
+	type Type struct {
+		First *[]FirstInner `tfschema:"first"`
+	}
+
+	decodeTestData{
+		State: map[string]interface{}{
+			"first": []interface{}{
+				map[string]interface{}{
+					"value": "first - 1",
+					"second": []interface{}{
+						map[string]interface{}{
+							"value": "second - 1",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 1",
+								},
+								map[string]interface{}{
+									"value": "third - 2",
+								},
+								map[string]interface{}{
+									"value": "third - 3",
+								},
+							},
+						},
+						map[string]interface{}{
+							"value": "second - 2",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 4",
+								},
+								map[string]interface{}{
+									"value": "third - 5",
+								},
+								map[string]interface{}{
+									"value": "third - 6",
+								},
+							},
+						},
+					},
+				},
+				map[string]interface{}{
+					"value": "first - 2",
+					"second": []interface{}{
+						map[string]interface{}{
+							"value": "second - 3",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 7",
+								},
+								map[string]interface{}{
+									"value": "third - 8",
+								},
+							},
+						},
+						map[string]interface{}{
+							"value": "second - 4",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 9",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Input: &Type{},
+		Expected: &Type{
+			First: &[]FirstInner{
+				{
+					Value: pointer.To("first - 1"),
+					Second: &[]SecondInner{
+						{
+							Value: pointer.To("second - 1"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 1",
+								},
+								{
+									Value: "third - 2",
+								},
+								{
+									Value: "third - 3",
+								},
+							},
+						},
+						{
+							Value: pointer.To("second - 2"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 4",
+								},
+								{
+									Value: "third - 5",
+								},
+								{
+									Value: "third - 6",
+								},
+							},
+						},
+					},
+				},
+				{
+					Value: pointer.To("first - 2"),
+					Second: &[]SecondInner{
+						{
+							Value: pointer.To("second - 3"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 7",
+								},
+								{
+									Value: "third - 8",
+								},
+							},
+						},
+						{
+							Value: pointer.To("second - 4"),
+							Third: &[]ThirdInner{
 								{
 									Value: "third - 9",
 								},

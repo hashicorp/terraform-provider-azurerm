@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -17,6 +20,25 @@ func TestAccDataSourceAzureRMServiceTags_basic(t *testing.T) {
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
+				check.That(data.ResourceName).Key("ipv4_cidrs.#").Exists(),
+				check.That(data.ResourceName).Key("ipv6_cidrs.#").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMServiceTags_tagName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_network_service_tags", "test")
+	r := NetworkServiceTagsDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.tagName(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("westus2-Storage"),
+				check.That(data.ResourceName).Key("name").HasValue("Storage.WestUS2"),
 				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
 				check.That(data.ResourceName).Key("ipv4_cidrs.#").Exists(),
 				check.That(data.ResourceName).Key("ipv6_cidrs.#").Exists(),
@@ -33,6 +55,7 @@ func TestAccDataSourceAzureRMServiceTags_region(t *testing.T) {
 		{
 			Config: r.region(),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
 				check.That(data.ResourceName).Key("ipv4_cidrs.#").Exists(),
 				check.That(data.ResourceName).Key("ipv6_cidrs.#").Exists(),
@@ -53,5 +76,13 @@ func (NetworkServiceTagsDataSource) region() string {
   location        = "westcentralus"
   service         = "AzureKeyVault"
   location_filter = "australiacentral"
+}`
+}
+
+func (NetworkServiceTagsDataSource) tagName() string {
+	return `data "azurerm_network_service_tags" "test" {
+  location        = "westus2"
+  service         = "Storage"
+  location_filter = "westus2"
 }`
 }

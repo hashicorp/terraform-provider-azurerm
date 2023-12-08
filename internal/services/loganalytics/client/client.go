@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
@@ -31,55 +36,91 @@ type Client struct {
 	WorkspaceClient            *featureWorkspaces.WorkspacesClient // 2022-10-01 API version does not contain sharedkeys related API, so we keep two versions SDK of this API
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	ClusterClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ClusterClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	clusterClient, err := clusters.NewClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Clusters client: %+v", err)
+	}
+	o.Configure(clusterClient.Client, o.Authorizers.ResourceManager)
 
-	DataExportClient := dataexport.NewDataExportClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DataExportClient.Client, o.ResourceManagerAuthorizer)
+	dataExportClient, err := dataexport.NewDataExportClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DataExport client: %+v", err)
+	}
+	o.Configure(dataExportClient.Client, o.Authorizers.ResourceManager)
 
-	DataSourcesClient := datasources.NewDataSourcesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DataSourcesClient.Client, o.ResourceManagerAuthorizer)
+	dataSourcesClient, err := datasources.NewDataSourcesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DataSources client: %+v", err)
+	}
+	o.Configure(dataSourcesClient.Client, o.Authorizers.ResourceManager)
 
-	WorkspacesClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspaces client: %+v", err)
+	}
+	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
 
-	featureWorkspaceClient := featureWorkspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&featureWorkspaceClient.Client, o.ResourceManagerAuthorizer)
+	featureWorkspaceClient, err := featureWorkspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building FeatureWorkspaces client: %+v", err)
+	}
+	o.Configure(featureWorkspaceClient.Client, o.Authorizers.ResourceManager)
 
-	SavedSearchesClient := savedsearches.NewSavedSearchesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&SavedSearchesClient.Client, o.ResourceManagerAuthorizer)
+	savedSearchesClient, err := savedsearches.NewSavedSearchesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SavedSearches client: %+v", err)
+	}
+	o.Configure(savedSearchesClient.Client, o.Authorizers.ResourceManager)
 
-	SolutionsClient := solution.NewSolutionClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&SolutionsClient.Client, o.ResourceManagerAuthorizer)
+	solutionsClient, err := solution.NewSolutionClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Solutions client: %+v", err)
+	}
+	o.Configure(solutionsClient.Client, o.Authorizers.ResourceManager)
 
-	StorageInsightsClient := storageinsights.NewStorageInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&StorageInsightsClient.Client, o.ResourceManagerAuthorizer)
+	storageInsightsClient, err := storageinsights.NewStorageInsightsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building StorageInsights client: %+v", err)
+	}
+	o.Configure(storageInsightsClient.Client, o.Authorizers.ResourceManager)
 
-	LinkedServicesClient := linkedservices.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&LinkedServicesClient.Client, o.ResourceManagerAuthorizer)
+	linkedServicesClient, err := linkedservices.NewLinkedServicesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building LinkedServices client: %+v", err)
+	}
+	o.Configure(linkedServicesClient.Client, o.Authorizers.ResourceManager)
 
-	LinkedStorageAccountClient := linkedstorageaccounts.NewLinkedStorageAccountsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
+	linkedStorageAccountClient, err := linkedstorageaccounts.NewLinkedStorageAccountsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building LinkedStorageAccounts client: %+v", err)
+	}
+	o.Configure(linkedStorageAccountClient.Client, o.Authorizers.ResourceManager)
 
-	QueryPacksClient := querypacks.NewQueryPacksClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&QueryPacksClient.Client, o.ResourceManagerAuthorizer)
+	queryPacksClient, err := querypacks.NewQueryPacksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building QueryPacks client: %+v", err)
+	}
+	o.Configure(queryPacksClient.Client, o.Authorizers.ResourceManager)
 
-	QueryPackQueriesClient := querypackqueries.NewQueryPackQueriesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&QueryPackQueriesClient.Client, o.ResourceManagerAuthorizer)
+	queryPackQueriesClient, err := querypackqueries.NewQueryPackQueriesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building QueryPackQueries client: %+v", err)
+	}
+	o.Configure(queryPackQueriesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ClusterClient:              &ClusterClient,
-		DataExportClient:           &DataExportClient,
-		DataSourcesClient:          &DataSourcesClient,
-		LinkedServicesClient:       &LinkedServicesClient,
-		LinkedStorageAccountClient: &LinkedStorageAccountClient,
-		QueryPacksClient:           &QueryPacksClient,
-		QueryPackQueriesClient:     &QueryPackQueriesClient,
-		SavedSearchesClient:        &SavedSearchesClient,
-		SolutionsClient:            &SolutionsClient,
-		StorageInsightsClient:      &StorageInsightsClient,
-		SharedKeyWorkspacesClient:  &WorkspacesClient,
-		WorkspaceClient:            &featureWorkspaceClient,
-	}
+		ClusterClient:              clusterClient,
+		DataExportClient:           dataExportClient,
+		DataSourcesClient:          dataSourcesClient,
+		LinkedServicesClient:       linkedServicesClient,
+		LinkedStorageAccountClient: linkedStorageAccountClient,
+		QueryPacksClient:           queryPacksClient,
+		QueryPackQueriesClient:     queryPackQueriesClient,
+		SavedSearchesClient:        savedSearchesClient,
+		SolutionsClient:            solutionsClient,
+		StorageInsightsClient:      storageInsightsClient,
+		SharedKeyWorkspacesClient:  workspacesClient,
+		WorkspaceClient:            featureWorkspaceClient,
+	}, nil
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package videoanalyzer
 
 import (
@@ -66,7 +69,7 @@ func resourceVideoAnalyzerEdgeModuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 	id := edgemodules.NewEdgeModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("video_analyzer_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.EdgeModulesGet(ctx, id)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -78,7 +81,7 @@ func resourceVideoAnalyzerEdgeModuleCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if _, err := client.EdgeModulesCreateOrUpdate(ctx, id, edgemodules.EdgeModuleEntity{}); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, edgemodules.EdgeModuleEntity{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -96,7 +99,7 @@ func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	resp, err := client.EdgeModulesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
@@ -124,7 +127,7 @@ func resourceVideoAnalyzerEdgeModuleDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if _, err = client.EdgeModulesDelete(ctx, *id); err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

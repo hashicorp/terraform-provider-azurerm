@@ -1,16 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apiversionset"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementApiVersionSet() *pluginsdk.Resource {
@@ -59,41 +63,42 @@ func dataSourceApiManagementApiVersionSet() *pluginsdk.Resource {
 func dataSourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
+	newId := apiversionset.NewApiVersionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, newId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf(": API Version Set %q (API Management Service %q / Resource Group %q) does not exist!", name, serviceName, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of an existing %s: %+v", newId, err)
 		}
 
-		return fmt.Errorf("reading API Version Set %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving API Version Set %q (API Management Service %q /Resource Group %q): ID was nil or empty", name, serviceName, resourceGroup)
+	if resp.Model != nil && (resp.Model.Id == nil || *resp.Model.Id == "") {
+		return fmt.Errorf("retrieving API Version Set %q (API Management Service %q /Resource Group %q): ID was nil or empty", newId.VersionSetId, newId.ServiceName, newId.ResourceGroupName)
 	}
 
-	id, err := parse.ApiVersionSetID(*resp.ID)
+	id, err := apiversionset.ParseApiVersionSetID(*resp.Model.Id)
 	if err != nil {
-		return fmt.Errorf("parsing API Version Set ID: %q", *resp.ID)
+		return fmt.Errorf("parsing API Version Set ID: %q", *id)
 	}
 
+	d.Set("name", id.VersionSetId)
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
-	if props := resp.APIVersionSetContractProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("versioning_scheme", string(props.VersioningScheme))
-		d.Set("version_header_name", props.VersionHeaderName)
-		d.Set("version_query_name", props.VersionQueryName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("versioning_scheme", string(props.VersioningScheme))
+			d.Set("version_header_name", pointer.From(props.VersionHeaderName))
+			d.Set("version_query_name", pointer.From(props.VersionQueryName))
+		}
 	}
 
 	return nil

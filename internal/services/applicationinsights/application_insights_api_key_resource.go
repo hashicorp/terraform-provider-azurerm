@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights
 
 import (
@@ -37,7 +40,6 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -103,7 +105,6 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 
 	var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
 	var existingAPIKeyId *parse.ApiKeyId
-	var keyId string
 	existingAPIKeyList, err = client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existingAPIKeyList.Response) {
@@ -111,29 +112,17 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
-		if err != nil {
-			return err
-		}
+	if existingAPIKeyList.Value != nil {
+		for _, existingAPIKey := range *existingAPIKeyList.Value {
+			existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
+			if err != nil {
+				return err
+			}
 
-		existingAppInsightsName := existingAPIKeyId.ComponentName
-		if appInsightsId.Name == existingAppInsightsName {
-			keyId = existingAPIKeyId.Name
-			break
+			if name == *existingAPIKey.Name {
+				return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
+			}
 		}
-	}
-
-	var existing insights.ApplicationInsightsComponentAPIKey
-	existing, err = client.Get(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, keyId)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key %q (%s): %s", name, appInsightsId, err)
-		}
-	}
-
-	if !utils.ResponseWasNotFound(existing.Response) && existingAPIKeyId != nil {
-		return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
 	}
 
 	linkedReadProperties := expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsId.ID())

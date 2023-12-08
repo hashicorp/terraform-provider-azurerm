@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -333,7 +336,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		if err != nil {
 			if response.WasNotFound(throughputFuture.HttpResponse) {
 				return fmt.Errorf("setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
-					"If the graph has not been created with an initial throughput, you cannot configure it later.", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+					"If the graph has not been created with an initial throughput, you cannot configure it later", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 			}
 		}
 

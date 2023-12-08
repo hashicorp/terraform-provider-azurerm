@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -25,10 +28,10 @@ resource "azurerm_subnet" "public" {
 
     service_delegation {
       actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-          "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-          "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-        ]
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
       name = "Microsoft.Databricks/workspaces"
     }
   }
@@ -45,10 +48,10 @@ resource "azurerm_subnet" "private" {
 
     service_delegation {
       actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-          "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-          "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-        ]
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
       name = "Microsoft.Databricks/workspaces"
     }
   }
@@ -120,8 +123,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_outbound_rule" "example" {
-  name                     = "Databricks-LB-Outbound-Rules"
-  resource_group_name      = azurerm_resource_group.example.name
+  name                = "Databricks-LB-Outbound-Rules"
+  resource_group_name = azurerm_resource_group.example.name
 
   loadbalancer_id          = azurerm_lb.example.id
   protocol                 = "All"
@@ -137,6 +140,6 @@ resource "azurerm_lb_outbound_rule" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "Databricks-BE"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "Databricks-BE"
 }

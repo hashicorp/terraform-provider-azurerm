@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -9,10 +12,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -83,7 +86,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: storageaccounts.ValidateStorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
@@ -106,27 +109,29 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"enabled_log": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      !features.FourPointOhBeta(),
-				ConflictsWith: []string{"log"},
-				AtLeastOneOf:  []string{"enabled_log", "log", "metric"},
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				Computed:     !features.FourPointOhBeta(),
+				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"category_group": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more https://aka.ms/diagnostic_settings_log_retention",
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
@@ -150,12 +155,13 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"metric": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				AtLeastOneOf: []string{"enabled_log", "log", "metric"},
+				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"enabled": {
@@ -165,9 +171,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						},
 
 						"retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more https://aka.ms/diagnostic_settings_log_retention",
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
@@ -199,13 +206,15 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"category": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"category_group": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"enabled": {
@@ -215,9 +224,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 					},
 
 					"retention_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						MaxItems:   1,
+						Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more https://aka.ms/diagnostic_settings_log_retention",
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
@@ -237,6 +247,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 			Set: resourceMonitorDiagnosticLogSettingHash,
 		}
+
+		resource.Schema["metric"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
+		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
+		resource.Schema["enabled_log"].ConflictsWith = []string{"log"}
 	}
 
 	return resource
@@ -270,7 +284,11 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	if !features.FourPointOhBeta() {
 		logsRaw, ok := d.GetOk("log")
 		if ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
-			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw.(*pluginsdk.Set).List())
+			expendLogs, err := expandMonitorDiagnosticsSettingsLogs(logsRaw.(*pluginsdk.Set).List())
+			if err != nil {
+				return fmt.Errorf("expanding log: %+v", err)
+			}
+			logs = *expendLogs
 			for _, v := range logs {
 				if v.Enabled {
 					hasEnabledLogs = true
@@ -283,7 +301,11 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	if enabledLogs, ok := d.GetOk("enabled_log"); ok {
 		enabledLogsList := enabledLogs.(*pluginsdk.Set).List()
 		if len(enabledLogsList) > 0 {
-			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogsList)
+			expandEnabledLogs, err := expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogsList)
+			if err != nil {
+				return fmt.Errorf("expanding enabled_log: %+v", err)
+			}
+			logs = *expandEnabledLogs
 			hasEnabledLogs = true
 		}
 	}
@@ -374,7 +396,11 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		if d.HasChange("log") {
 			logChanged = true
 			logsRaw := d.Get("log").(*pluginsdk.Set).List()
-			logs = expandMonitorDiagnosticsSettingsLogs(logsRaw)
+			expandLogs, err := expandMonitorDiagnosticsSettingsLogs(logsRaw)
+			if err != nil {
+				return fmt.Errorf("expanding log: %+v", err)
+			}
+			logs = *expandLogs
 			for _, v := range logs {
 				if v.Enabled {
 					hasEnabledLogs = true
@@ -387,7 +413,11 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("enabled_log") {
 		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
 		if len(enabledLogs) > 0 {
-			logs = expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+			expandEnabledLogs, err := expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
+			if err != nil {
+				return fmt.Errorf("expanding enabled_log: %+v", err)
+			}
+			logs = *expandEnabledLogs
 			hasEnabledLogs = true
 		}
 	} else if !logChanged && existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
@@ -508,7 +538,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 			storageAccountId := ""
 			if props.StorageAccountId != nil && *props.StorageAccountId != "" {
-				parsedId, err := storageaccounts.ParseStorageAccountIDInsensitively(*props.StorageAccountId)
+				parsedId, err := commonids.ParseStorageAccountIDInsensitively(*props.StorageAccountId)
 				if err != nil {
 					return err
 				}
@@ -598,7 +628,7 @@ func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *dia
 	}
 }
 
-func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []diagnosticsettings.LogSettings {
+func expandMonitorDiagnosticsSettingsLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
 	for _, raw := range input {
@@ -623,19 +653,22 @@ func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []diagnosticsetti
 			Enabled:         enabled,
 			RetentionPolicy: retentionPolicy,
 		}
-		if category != "" {
+		switch {
+		case category != "":
 			output.Category = utils.String(category)
-		} else {
+		case categoryGroup != "":
 			output.CategoryGroup = utils.String(categoryGroup)
+		default:
+			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}
 
 		results = append(results, output)
 	}
 
-	return results
+	return &results, nil
 }
 
-func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnosticsettings.LogSettings {
+func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
 	for _, raw := range input {
@@ -659,16 +692,20 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnost
 			Enabled:         true,
 			RetentionPolicy: retentionPolicy,
 		}
-		if category != "" {
+
+		switch {
+		case category != "":
 			output.Category = utils.String(category)
-		} else {
+		case categoryGroup != "":
 			output.CategoryGroup = utils.String(categoryGroup)
+		default:
+			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}
 
 		results = append(results, output)
 	}
 
-	return results
+	return &results, nil
 }
 
 func flattenMonitorDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {

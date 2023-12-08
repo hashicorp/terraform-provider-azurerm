@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package clients
 
 import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -66,7 +70,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to build authorizer for Key Vault API: %+v", err)
 	}
 
-	if _, ok := builder.AuthConfig.Environment.Synapse.ResourceIdentifier(); ok {
+	if builder.AuthConfig.Environment.Synapse.Available() {
 		synapseAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Synapse)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build authorizer for Synapse API: %+v", err)
@@ -75,7 +79,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
 	}
 
-	if _, ok := builder.AuthConfig.Environment.Batch.ResourceIdentifier(); ok {
+	if builder.AuthConfig.Environment.Batch.Available() {
 		batchManagementAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Batch)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build authorizer for Batch Management API: %+v", err)
@@ -106,6 +110,16 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
 
+	var managedHSMAuth auth.Authorizer
+	if builder.AuthConfig.Environment.ManagedHSM.Available() {
+		managedHSMAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ManagedHSM)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build authorizer for Managed HSM API: %+v", err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Managed HSM Authorizer since this is not supported in the current Azure Environment")
+	}
+
 	client := Client{
 		Account: account,
 	}
@@ -114,6 +128,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		Authorizers: &common.Authorizers{
 			BatchManagement: batchManagementAuth,
 			KeyVault:        keyVaultAuth,
+			ManagedHSM:      managedHSMAuth,
 			ResourceManager: resourceManagerAuth,
 			Storage:         storageAuth,
 			Synapse:         synapseAuth,
@@ -130,6 +145,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 		BatchManagementAuthorizer: authWrapper.AutorestAuthorizer(batchManagementAuth),
 		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
+		ManagedHSMAuthorizer:      authWrapper.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
 		StorageAuthorizer:         authWrapper.AutorestAuthorizer(storageAuth),
 		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
@@ -152,8 +168,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	if features.EnhancedValidationEnabled() {
 		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
-		location.CacheSupportedLocations(ctx, *resourceManagerEndpoint)
-		if err := resourceproviders.CacheSupportedProviders(ctx, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+
+		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
+		if err := resourceproviders.CacheSupportedProviders(ctx2, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
 			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
 		}
 	}

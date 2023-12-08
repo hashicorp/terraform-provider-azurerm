@@ -1,7 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
@@ -26,12 +30,24 @@ func CdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []er
 		return nil, []error{fmt.Errorf(`%q must not begin with %q if the duration is less than 1 day. If the %q is less than 1 day it should be in the HH:MM:SS format, got %q`, k, "0.", k, v)}
 	}
 
-	if m, _ := validate.RegExHelper(i, k, `^([1-9]|([1-9][0-9])|([1-3][0-6][0-5])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$|^((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
-		return nil, []error{fmt.Errorf(`%q must be between in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
+	// fix for issue #22668
+	durationParts := strings.Split(v, ".")
+
+	if len(durationParts) > 1 {
+		days, err := strconv.Atoi(durationParts[0])
+		if err != nil {
+			return nil, []error{fmt.Errorf(`%q 'days' segment is invalid, the 'days' segment must be a valid number and have a value that is between 1 and 365, got %q`, k, v)}
+		}
+
+		if days > 365 {
+			return nil, []error{fmt.Errorf(`%q must be in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
+		}
 	}
 
-	if v == "00:00:00" {
-		return nil, []error{fmt.Errorf(`%q must be longer than zero seconds, got %q`, k, v)}
+	// the old regular expersion was broken because it wouldn't allow the value in the tens
+	// position to be greater than 6 and the ones position greater than 5
+	if m, _ := validate.RegExHelper(i, k, `^([1-9]|([1-9][0-9])|([1-3][0-9][0-9])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$|^((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
+		return nil, []error{fmt.Errorf(`%q must be in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
 	}
 
 	return nil, nil
@@ -43,7 +59,7 @@ func CdnFrontDoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if strings.HasPrefix(v, "/") {
+	if strings.HasPrefix(v, "/") && len(v) != 1 {
 		return nil, []error{fmt.Errorf(`%q must not begin with the URLs leading slash(e.g. /), got %q`, k, v)}
 	}
 

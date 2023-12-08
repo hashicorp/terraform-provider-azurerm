@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mariadb_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
@@ -105,7 +109,10 @@ func checkValueIs(value string) acceptance.ClientCheckFunc {
 			return err
 		}
 
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, *id)
+		timeout, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(timeout, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %v", *id, err)
 		}
@@ -135,7 +142,10 @@ func checkValueIsReset(configurationName string) acceptance.ClientCheckFunc {
 
 		id := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, configurationName)
 
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id)
+		timeout, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(timeout, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %v", id, err)
 		}

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_network_interface" "dc_nic" {
   name                = join("-", [var.prefix, "dc-primary"])
   location            = var.location
@@ -52,7 +55,7 @@ resource "azurerm_virtual_machine_extension" "create-ad-forest" {
   publisher            = "Microsoft.Compute"
   type                 = "CustomScriptExtension"
   type_handler_version = "1.9"
-  settings = <<SETTINGS
+  settings             = <<SETTINGS
   {
     "commandToExecute": "powershell.exe -Command \"${local.powershell_command}\""
   }

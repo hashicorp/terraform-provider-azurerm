@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package acceptance
 
 import (
@@ -133,8 +136,12 @@ func (td TestData) providers() map[string]func() (*schema.Provider, error) {
 func (td TestData) externalProviders() map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"azuread": {
-			VersionConstraint: "=2.8.0",
+			VersionConstraint: "=2.38.0",
 			Source:            "registry.terraform.io/hashicorp/azuread",
+		},
+		"time": {
+			VersionConstraint: "=0.9.1",
+			Source:            "registry.terraform.io/hashicorp/time",
 		},
 	}
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics
 
 import (
@@ -74,7 +77,7 @@ func (r LogAnalyticsQueryPackResource) Create() sdk.ResourceFunc {
 
 			id := querypacks.NewQueryPackID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.QueryPacksGet(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
@@ -89,7 +92,7 @@ func (r LogAnalyticsQueryPackResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			if resp, err := client.QueryPacksCreateOrUpdate(ctx, id, *properties); err != nil {
+			if resp, err := client.CreateOrUpdate(ctx, id, *properties); err != nil {
 				// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/19603 is fixed
 				if !response.WasStatusCode(resp.HttpResponse, http.StatusCreated) {
 					return fmt.Errorf("creating %s: %+v", id, err)
@@ -118,7 +121,7 @@ func (r LogAnalyticsQueryPackResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.QueryPacksGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -132,7 +135,7 @@ func (r LogAnalyticsQueryPackResource) Update() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
-			if resp, err := client.QueryPacksCreateOrUpdate(ctx, *id, *properties); err != nil {
+			if resp, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
 				// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/19603 is fixed
 				if !response.WasStatusCode(resp.HttpResponse, http.StatusCreated) {
 					return fmt.Errorf("updating %s: %+v", *id, err)
@@ -155,7 +158,7 @@ func (r LogAnalyticsQueryPackResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.QueryPacksGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -195,7 +198,7 @@ func (r LogAnalyticsQueryPackResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.QueryPacksDelete(ctx, *id); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

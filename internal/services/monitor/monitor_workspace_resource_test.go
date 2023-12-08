@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor_test
 
 import (
@@ -24,6 +27,7 @@ func TestMonitorWorkspace_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("query_endpoint").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),

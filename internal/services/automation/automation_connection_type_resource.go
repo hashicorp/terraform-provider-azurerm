@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -7,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connectiontype"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,8 +105,8 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.ConnectionTypeClient
-			connClient := meta.Client.Automation.AccountClient
+			client := meta.Client.Automation.ConnectionType
+			connClient := meta.Client.Automation.AutomationAccount
 
 			var model AutomationConnectionTypeModel
 			if err := meta.Decode(&model); err != nil {
@@ -162,7 +165,7 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.ConnectionTypeClient
+			client := meta.Client.Automation.ConnectionType
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -205,7 +208,7 @@ func (m AutomationConnectionTypeResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.ConnectionTypeClient
+			client := meta.Client.Automation.ConnectionType
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)
 			}

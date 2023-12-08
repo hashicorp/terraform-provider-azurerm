@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -124,8 +127,8 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
       username = "accexampleusrvm"
       password = "AccTestvdSC4daf986!"
 
-     subnet_id          = azurerm_subnet.example.id
-     virtual_network_id = azurerm_virtual_network.example.id
+      subnet_id          = azurerm_subnet.example.id
+      virtual_network_id = azurerm_virtual_network.example.id
     }
 
     worker_node {
@@ -134,8 +137,8 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
 
-     subnet_id          = azurerm_subnet.example.id
-     virtual_network_id = azurerm_virtual_network.example.id
+      subnet_id          = azurerm_subnet.example.id
+      virtual_network_id = azurerm_virtual_network.example.id
     }
 
     zookeeper_node {
@@ -143,8 +146,8 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
       username = "accexampleusrvm"
       password = "AccTestvdSC4daf986!"
 
-     subnet_id          = azurerm_subnet.example.id
-     virtual_network_id = azurerm_virtual_network.example.id
+      subnet_id          = azurerm_subnet.example.id
+      virtual_network_id = azurerm_virtual_network.example.id
     }
   }
 }

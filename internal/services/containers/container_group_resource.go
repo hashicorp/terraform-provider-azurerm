@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -15,15 +18,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -138,7 +139,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: networkValidate.SubnetID,
+					ValidateFunc: commonids.ValidateSubnetID,
 				},
 				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"dns_name_label"},
@@ -147,6 +148,14 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": commonschema.Tags(),
+
+			"sku": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(containerinstance.ContainerGroupSkuStandard),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupSku(), false),
+			},
 
 			"restart_policy": {
 				Type:     pluginsdk.TypeString,
@@ -260,6 +269,8 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 
 						"volume": containerVolumeSchema(),
+
+						"security": containerSecurityContextSchema(),
 					},
 				},
 			},
@@ -426,6 +437,8 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 						"volume": containerVolumeSchema(),
 
+						"security": containerSecurityContextSchema(),
+
 						"liveness_probe": SchemaContainerGroupProbe(),
 
 						"readiness_probe": SchemaContainerGroupProbe(),
@@ -540,6 +553,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+
+			"key_vault_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
 		},
 	}
 }
@@ -643,6 +662,23 @@ func containerVolumeSchema() *pluginsdk.Schema {
 	}
 }
 
+func containerSecurityContextSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"privilege_enabled": {
+					Type:     pluginsdk.TypeBool,
+					ForceNew: true,
+					Required: true,
+				},
+			},
+		},
+	}
+}
+
 func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ContainerInstanceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -699,6 +735,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: containerinstance.ContainerGroupPropertiesProperties{
+			Sku:                      pointer.To(containerinstance.ContainerGroupSku(d.Get("sku").(string))),
 			InitContainers:           initContainers,
 			Containers:               containers,
 			Diagnostics:              diagnostics,
@@ -746,12 +783,16 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			KeyName:      keyId.Name,
 			KeyVersion:   keyId.Version,
 		}
+
+		if keyVaultUAI := d.Get("key_vault_user_assigned_identity_id").(string); keyVaultUAI != "" {
+			containerGroup.Properties.EncryptionProperties.Identity = &keyVaultUAI
+		}
 	}
 
 	// Avoid parallel provisioning if "subnet_ids" are given.
 	if subnets != nil && len(*subnets) != 0 {
 		for _, item := range *subnets {
-			subnet, err := networkParse.SubnetID(item.Id)
+			subnet, err := commonids.ParseSubnetID(item.Id)
 			if err != nil {
 				return fmt.Errorf(`parsing subnet id %q: %v`, item.Id, err)
 			}
@@ -832,6 +873,13 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		props := model.Properties
+
+		var sku string
+		if v := props.Sku; v != nil {
+			sku = string(*v)
+		}
+		d.Set("sku", sku)
+
 		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
@@ -899,11 +947,12 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("empty value returned for Key Vault Key Name")
 			}
 			keyVersion = kvProps.KeyVersion
-			keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+			keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 			if err != nil {
 				return err
 			}
 			d.Set("key_vault_key_id", keyId.ID())
+			d.Set("key_vault_user_assigned_identity_id", pointer.From(kvProps.Identity))
 		}
 	}
 
@@ -963,7 +1012,7 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		if subnetIDs := props.SubnetIds; subnetIDs != nil && len(*subnetIDs) != 0 {
 			// Avoid parallel deletion if "subnet_ids" are given.
 			for _, item := range *subnetIDs {
-				subnet, err := networkParse.SubnetID(item.Id)
+				subnet, err := commonids.ParseSubnetID(item.Id)
 				if err != nil {
 					return fmt.Errorf(`parsing subnet id %q: %v`, item.Id, err)
 				}
@@ -994,7 +1043,8 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 		container := containerinstance.InitContainerDefinition{
 			Name: name,
 			Properties: containerinstance.InitContainerPropertiesDefinition{
-				Image: pointer.FromString(image),
+				Image:           pointer.FromString(image),
+				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
 			},
 		}
 
@@ -1048,6 +1098,37 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 	return &containers, containerGroupVolumes, nil
 }
 
+func expandContainerSecurityContext(input []interface{}) *containerinstance.SecurityContextDefinition {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	output := &containerinstance.SecurityContextDefinition{
+		Privileged: pointer.To(raw["privilege_enabled"].(bool)),
+	}
+
+	return output
+}
+
+func flattenContainerSecurityContext(input *containerinstance.SecurityContextDefinition) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var privileged bool
+	if v := input.Privileged; v != nil {
+		privileged = *v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"privilege_enabled": privileged,
+		},
+	}
+}
+
 func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs map[string]bool) ([]containerinstance.Container, []containerinstance.Port, []containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
@@ -1073,6 +1154,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 						Cpu:        cpu,
 					},
 				},
+				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
 			},
 		}
 
@@ -1578,8 +1660,8 @@ func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContaine
 
 		if container.Properties.EnvironmentVariables != nil {
 			if len(*container.Properties.EnvironmentVariables) > 0 {
-				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, false, d, index)
-				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, true, d, index)
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables)
+				containerConfig["secure_environment_variables"] = flattenContainerSecureEnvironmentVariables(container.Properties.EnvironmentVariables, d, index, "init_container")
 			}
 		}
 
@@ -1593,6 +1675,9 @@ func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContaine
 			containersConfigRaw := d.Get("container").([]interface{})
 			flattenContainerVolume(containerConfig, containersConfigRaw, container.Name, container.Properties.VolumeMounts, containerGroupVolumes)
 		}
+
+		containerConfig["security"] = flattenContainerSecurityContext(container.Properties.SecurityContext)
+
 		containerCfg = append(containerCfg, containerConfig)
 	}
 
@@ -1661,8 +1746,8 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 
 		if container.Properties.EnvironmentVariables != nil {
 			if len(*container.Properties.EnvironmentVariables) > 0 {
-				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, false, d, index)
-				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables, true, d, index)
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.Properties.EnvironmentVariables)
+				containerConfig["secure_environment_variables"] = flattenContainerSecureEnvironmentVariables(container.Properties.EnvironmentVariables, d, index, "container")
 			}
 		}
 
@@ -1679,6 +1764,7 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 
 		containerConfig["liveness_probe"] = flattenContainerProbes(container.Properties.LivenessProbe)
 		containerConfig["readiness_probe"] = flattenContainerProbes(container.Properties.ReadinessProbe)
+		containerConfig["security"] = flattenContainerSecurityContext(container.Properties.SecurityContext)
 
 		containerCfg = append(containerCfg, containerConfig)
 	}
@@ -1756,26 +1842,33 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 	containerConfig["volume"] = volumeConfigs
 }
 
-func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *pluginsdk.ResourceData, oldContainerIndex int) map[string]interface{} {
+func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, d *pluginsdk.ResourceData, oldContainerIndex int, rootPropName string) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	if input == nil {
 		return output
 	}
 
-	if isSecure {
-		for _, envVar := range *input {
-			if envVar.Value == nil {
-				envVarValue := d.Get(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, envVar.Name))
-				output[envVar.Name] = envVarValue
-			}
+	for _, envVar := range *input {
+		if envVar.Value == nil {
+			envVarValue := d.Get(fmt.Sprintf("%s.%d.secure_environment_variables.%s", rootPropName, oldContainerIndex, envVar.Name))
+			output[envVar.Name] = envVarValue
 		}
-	} else {
-		for _, envVar := range *input {
-			if envVar.Value != nil {
-				log.Printf("[DEBUG] NOT SECURE: Name: %s - Value: %s", envVar.Name, *envVar.Value)
-				output[envVar.Name] = *envVar.Value
-			}
+	}
+
+	return output
+}
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	if input == nil {
+		return output
+	}
+
+	for _, envVar := range *input {
+		if envVar.Value != nil {
+			log.Printf("[DEBUG] NOT SECURE: Name: %s - Value: %s", envVar.Name, *envVar.Value)
+			output[envVar.Name] = *envVar.Value
 		}
 	}
 
@@ -2010,7 +2103,7 @@ func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubne
 			continue
 		}
 
-		id, err := networkParse.SubnetIDInsensitively(resourceRef.Id)
+		id, err := commonids.ParseSubnetIDInsensitively(resourceRef.Id)
 		if err != nil {
 			return nil, fmt.Errorf(`parsing subnet id %q: %v`, resourceRef.Id, err)
 		}
@@ -2028,7 +2121,7 @@ func expandContainerGroupSubnets(input []interface{}) (*[]containerinstance.Cont
 
 	results := make([]containerinstance.ContainerGroupSubnetId, 0)
 	for _, item := range input {
-		id, err := networkParse.SubnetID(item.(string))
+		id, err := commonids.ParseSubnetID(item.(string))
 		if err != nil {
 			return nil, fmt.Errorf(`parsing subnet id %q: %v`, item, err)
 		}

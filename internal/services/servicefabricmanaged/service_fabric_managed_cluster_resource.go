@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicefabricmanaged
 
 import (
@@ -17,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -243,8 +245,6 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
-			defer cancel()
 
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
@@ -434,8 +434,6 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
-			defer cancel()
 
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient

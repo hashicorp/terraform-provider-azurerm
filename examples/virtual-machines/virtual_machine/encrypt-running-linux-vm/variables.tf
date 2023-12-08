@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 variable "resource_group" {
   description = "Resource group name into which your new virtual machine will go."
 }
@@ -43,12 +46,12 @@ variable "image_publisher" {
 
 variable "image_offer" {
   description = "the name of the offer (az vm image list)"
-  default     = "UbuntuServer"
+  default     = "0001-com-ubuntu-server-jammy"
 }
 
 variable "image_sku" {
   description = "image sku to apply (az vm image list)"
-  default     = "16.04-LTS"
+  default     = "22_04-lts"
 }
 
 variable "image_version" {
@@ -84,7 +87,7 @@ variable "encryption_operation" {
 }
 
 variable "volume_type" {
-  description = "Defines which drives should be encrypted. OS encryption is supported on RHEL 7.2, CentOS 7.2 & Ubuntu 16.04. Allowed values: OS, Data, All"
+  description = "Defines which drives should be encrypted. Allowed values: OS, Data, All"
   default     = "All"
 }
 

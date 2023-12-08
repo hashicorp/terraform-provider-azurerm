@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ScalingPlanClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewScalingPlanClientWithBaseURI(api environments.Api) (*ScalingPlanClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "scalingplan", defaultApiVersion)
+func NewScalingPlanClientWithBaseURI(sdkApi sdkEnv.Api) (*ScalingPlanClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scalingplan", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScalingPlanClient: %+v", err)
 	}

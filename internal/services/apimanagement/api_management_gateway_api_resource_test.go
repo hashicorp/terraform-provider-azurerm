@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -6,12 +9,13 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayapi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementGatewayAPIResource struct{}
@@ -47,21 +51,21 @@ func TestAccApiManagementGatewayApi_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementGatewayAPIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.GatewayApiID(state.ID)
+	id, err := gatewayapi.ParseGatewayApiID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	if resp, err := clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.ApiName); err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil, fmt.Errorf("reading ApiManagement Gateway (%s): %+v", id, err)
+	if resp, err := clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if !utils.ResponseWasStatusCode(resp, http.StatusNoContent) {
-			return nil, fmt.Errorf("reading ApiManagement Gateway (%s): %+v", id, err)
+		if !response.WasStatusCode(resp.HttpResponse, http.StatusNoContent) {
+			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (ApiManagementGatewayAPIResource) basic(data acceptance.TestData) string {

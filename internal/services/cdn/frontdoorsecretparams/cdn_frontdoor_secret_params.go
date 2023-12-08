@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package CdnFrontDoorsecretparams
 
 import (
@@ -64,7 +67,8 @@ func ExpandCdnFrontDoorCustomerCertificateParameters(ctx context.Context, input 
 		useLatest = true
 	}
 
-	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, clients.Resource, certificateId.KeyVaultBaseUrl)
+	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
+	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, certificateId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL %q: %s", certificateId.KeyVaultBaseUrl, err)
 	}

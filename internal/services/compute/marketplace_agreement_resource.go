@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -6,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,18 +20,17 @@ import (
 
 func resourceMarketplaceAgreement() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMarketplaceAgreementCreateUpdate,
+		Create: resourceMarketplaceAgreementCreate,
 		Read:   resourceMarketplaceAgreementRead,
 		Delete: resourceMarketplaceAgreementDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := agreements.ParseOfferPlanID(id)
+			_, err := agreements.ParsePlanID(id)
 			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -67,17 +69,18 @@ func resourceMarketplaceAgreement() *pluginsdk.Resource {
 	}
 }
 
-func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	id := agreements.NewOfferPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
+	id := agreements.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
 	log.Printf("[DEBUG] retrieving %s", id)
 
-	term, err := client.MarketplaceAgreementsGet(ctx, id)
+	agreementId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
+	term, err := client.MarketplaceAgreementsGet(ctx, agreementId)
 	if err != nil {
 		if !response.WasNotFound(term.HttpResponse) {
 			return fmt.Errorf("retrieving %s: %s", id, err)
@@ -93,16 +96,10 @@ func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 	if accepted {
-		agreement, err := client.MarketplaceAgreementsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(agreement.HttpResponse) {
-				return fmt.Errorf("retrieving %s: %s", id, err)
-			}
-		}
 		return tf.ImportAsExistsError("azurerm_marketplace_agreement", id.ID())
 	}
 
-	resp, err := client.MarketplaceAgreementsGet(ctx, id)
+	resp, err := client.MarketplaceAgreementsGet(ctx, agreementId)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
@@ -119,7 +116,7 @@ func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta in
 	terms.Properties.Accepted = utils.Bool(true)
 
 	log.Printf("[DEBUG] Accepting the Marketplace Terms for %s", id)
-	if _, err := client.MarketplaceAgreementsCreate(ctx, id, *terms); err != nil {
+	if _, err := client.MarketplaceAgreementsCreate(ctx, agreementId, *terms); err != nil {
 		return fmt.Errorf("accepting Terms for %s: %s", id, err)
 	}
 	log.Printf("[DEBUG] Accepted the Marketplace Terms for %s", id)
@@ -134,12 +131,13 @@ func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := agreements.ParseOfferPlanID(d.Id())
+	id, err := agreements.ParsePlanID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	term, err := client.MarketplaceAgreementsGet(ctx, *id)
+	agreementId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
+	term, err := client.MarketplaceAgreementsGet(ctx, agreementId)
 	if err != nil {
 		if response.WasNotFound(term.HttpResponse) {
 			log.Printf("[DEBUG] The Marketplace Terms was not found for %s", id)
@@ -172,13 +170,12 @@ func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := agreements.ParseOfferPlanID(d.Id())
+	id, err := agreements.ParsePlanID(d.Id())
 	if err != nil {
 		return err
 	}
-	idCancel := agreements.NewPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
 
-	if _, err = client.MarketplaceAgreementsCancel(ctx, idCancel); err != nil {
+	if _, err = client.MarketplaceAgreementsCancel(ctx, *id); err != nil {
 		return fmt.Errorf("cancelling agreement for %s: %s", *id, err)
 	}
 
