@@ -75,7 +75,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		},
 	}
 
-	// Confirm with the service team that `SnapshotStore` has been replaced with `OperationalStore`.
+	// Confirmed with the service team that `SnapshotStore` has been replaced with `OperationalStore`.
 	if !features.FourPointOhBeta() {
 		resource.Schema["datastore_type"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
@@ -84,6 +84,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(backupvaults.StorageSettingStoreTypesArchiveStore),
 				"SnapshotStore",
+				string(backupvaults.StorageSettingStoreTypesOperationalStore),
 				string(backupvaults.StorageSettingStoreTypesVaultStore),
 			}, false),
 		}
