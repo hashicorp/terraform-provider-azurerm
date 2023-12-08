@@ -1134,7 +1134,7 @@ resource "azurerm_storage_blob" "test" {
   storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source_content         = "Wubba Lubba Dub Dub"
-  access_tier 			 = "Archive"
+  access_tier            = "Archive"
 }
 `, template)
 }
