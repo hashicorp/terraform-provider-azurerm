@@ -21,6 +21,7 @@ func (Registration) DataSources() []sdk.DataSource {
 func (Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ElasticSANResource{},
+		ElasticSANVolumeGroupResource{},
 	}
 }
 
