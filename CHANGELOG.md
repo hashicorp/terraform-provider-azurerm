@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20231207.1122031` of `github.com/hashicorp/go-azure-sdk` [GH-24149]
 * Data Source: `azurerm_storage_account` - export the primary and secondary internet and microsoft hostnames for blobs, dfs, files, queues, tables and web [GH-23517]
 * Data Source: `azurerm_cosmosdb_account` - now exports the `connection_strings`, `primary_sql_connection_string`, `secondary_sql_connection_string`, `primary_readonly_sql_connection_string`, `secondary_readonly_sql_connection_string`, `primary_mongodb_connection_string`, `secondary_mongodb_connection_string`, `primary_readonly_mongodb_connection_string`, and `secondary_readonly_mongodb_connection_string` attributes [GH-24129]
+* `azurerm_bot_service_azure_bot` - support for the `public_network_access_enabled` property [GH-24125]
 * `azurerm_container_app_environment`: Add support for `workload_profile` [GH-23478]
 * `azurerm_cosmosdb_cassandra_datacenter` - add support for the property `seed_node_ip_addresses` [GH-24076]
 * `azurerm_firewall` - support for the `dns_proxy_enabled` property [GH-20519]
