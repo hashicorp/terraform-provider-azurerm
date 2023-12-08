@@ -192,9 +192,9 @@ func (br costManagementViewBaseResource) createFunc(resourceName, scopeFieldName
 
 			props := views.View{
 				Properties: &views.ViewProperties{
-					Accumulated: utils.ToPtr(accumulated),
+					Accumulated: pointer.To(accumulated),
 					DisplayName: utils.String(metadata.ResourceData.Get("display_name").(string)),
-					Chart:       utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
+					Chart:       pointer.To(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
 					Query: &views.ReportConfigDefinition{
 						DataSet:   expandDataset(metadata.ResourceData.Get("dataset").([]interface{})),
 						Timeframe: views.ReportTimeframeType(metadata.ResourceData.Get("timeframe").(string)),
@@ -236,7 +236,7 @@ func (br costManagementViewBaseResource) readFunc(scopeFieldName string) sdk.Res
 			}
 
 			metadata.ResourceData.Set("name", id.ViewName)
-			//lintignore:R001
+			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if model := resp.Model; model != nil {
@@ -321,7 +321,7 @@ func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("chart_type") {
-				model.Properties.Chart = utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string)))
+				model.Properties.Chart = pointer.To(views.ChartType(metadata.ResourceData.Get("chart_type").(string)))
 			}
 
 			if metadata.ResourceData.HasChange("dataset") {
@@ -356,7 +356,7 @@ func expandDataset(input []interface{}) *views.ReportConfigDataset {
 
 	attrs := input[0].(map[string]interface{})
 	dataset := &views.ReportConfigDataset{
-		Granularity: utils.ToPtr(views.ReportGranularityType(attrs["granularity"].(string))),
+		Granularity: pointer.To(views.ReportGranularityType(attrs["granularity"].(string))),
 	}
 
 	if aggregation := attrs["aggregation"].(*pluginsdk.Set).List(); len(aggregation) > 0 {
@@ -418,7 +418,7 @@ func expandSorting(input []interface{}) *[]views.ReportConfigSorting {
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		outputSorting = append(outputSorting, views.ReportConfigSorting{
-			Direction: utils.ToPtr(views.ReportConfigSortingType(v["direction"].(string))),
+			Direction: pointer.To(views.ReportConfigSortingType(v["direction"].(string))),
 			Name:      v["name"].(string),
 		})
 	}
@@ -435,7 +435,7 @@ func expandKpis(input []interface{}) *[]views.KpiProperties {
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		outputKpis = append(outputKpis, views.KpiProperties{
-			Type:    utils.ToPtr(views.KpiTypeType(v["type"].(string))),
+			Type:    pointer.To(views.KpiTypeType(v["type"].(string))),
 			Enabled: utils.Bool(true),
 		})
 	}
@@ -452,7 +452,7 @@ func expandPivots(input []interface{}) *[]views.PivotProperties {
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		outputPivots = append(outputPivots, views.PivotProperties{
-			Type: utils.ToPtr(views.PivotTypeType(v["type"].(string))),
+			Type: pointer.To(views.PivotTypeType(v["type"].(string))),
 			Name: utils.String((v["name"].(string))),
 		})
 	}

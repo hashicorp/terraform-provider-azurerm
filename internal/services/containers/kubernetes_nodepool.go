@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -871,7 +872,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			TransparentHugePageEnabled: linuxOsConfigRaw.TransparentHugePageEnabled,
 		}
 		if sysctlsRaw := linuxOsConfigRaw.Sysctls; sysctlsRaw != nil {
-			linuxOsConfig.Sysctls = utils.ToPtr(agentpools.SysctlConfig(*sysctlsRaw))
+			linuxOsConfig.Sysctls = pointer.To(agentpools.SysctlConfig(*sysctlsRaw))
 		}
 		agentpool.Properties.LinuxOSConfig = &linuxOsConfig
 	}
@@ -890,35 +891,35 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		agentpool.Properties.NetworkProfile = &networkProfile
 	}
 	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
-		agentpool.Properties.OsType = utils.ToPtr(agentpools.OSType(string(*osTypeNodePool)))
+		agentpool.Properties.OsType = pointer.To(agentpools.OSType(string(*osTypeNodePool)))
 	}
 	if osSku := defaultCluster.OsSKU; osSku != nil {
-		agentpool.Properties.OsSKU = utils.ToPtr(agentpools.OSSKU(*osSku))
+		agentpool.Properties.OsSKU = pointer.To(agentpools.OSSKU(*osSku))
 	}
 	if kubeletDiskTypeNodePool := defaultCluster.KubeletDiskType; kubeletDiskTypeNodePool != nil {
-		agentpool.Properties.KubeletDiskType = utils.ToPtr(agentpools.KubeletDiskType(string(*kubeletDiskTypeNodePool)))
+		agentpool.Properties.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(string(*kubeletDiskTypeNodePool)))
 	}
 	if agentPoolTypeNodePool := defaultCluster.Type; agentPoolTypeNodePool != nil {
-		agentpool.Properties.Type = utils.ToPtr(agentpools.AgentPoolType(string(*agentPoolTypeNodePool)))
+		agentpool.Properties.Type = pointer.To(agentpools.AgentPoolType(string(*agentPoolTypeNodePool)))
 	}
 	if scaleSetPriorityNodePool := defaultCluster.ScaleSetPriority; scaleSetPriorityNodePool != nil {
-		agentpool.Properties.ScaleSetPriority = utils.ToPtr(agentpools.ScaleSetPriority(string(*scaleSetPriorityNodePool)))
+		agentpool.Properties.ScaleSetPriority = pointer.To(agentpools.ScaleSetPriority(string(*scaleSetPriorityNodePool)))
 	}
 	if scaleSetEvictionPolicyNodePool := defaultCluster.ScaleSetEvictionPolicy; scaleSetEvictionPolicyNodePool != nil {
-		agentpool.Properties.ScaleSetEvictionPolicy = utils.ToPtr(agentpools.ScaleSetEvictionPolicy(string(*scaleSetEvictionPolicyNodePool)))
+		agentpool.Properties.ScaleSetEvictionPolicy = pointer.To(agentpools.ScaleSetEvictionPolicy(string(*scaleSetEvictionPolicyNodePool)))
 	}
 	if modeNodePool := defaultCluster.Mode; modeNodePool != nil {
-		agentpool.Properties.Mode = utils.ToPtr(agentpools.AgentPoolMode(string(*modeNodePool)))
+		agentpool.Properties.Mode = pointer.To(agentpools.AgentPoolMode(string(*modeNodePool)))
 	}
 	if scaleDownModeNodePool := defaultCluster.ScaleDownMode; scaleDownModeNodePool != nil {
-		agentpool.Properties.ScaleDownMode = utils.ToPtr(agentpools.ScaleDownMode(string(*scaleDownModeNodePool)))
+		agentpool.Properties.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(string(*scaleDownModeNodePool)))
 	}
 	agentpool.Properties.UpgradeSettings = &agentpools.AgentPoolUpgradeSettings{}
 	if upgradeSettingsNodePool := defaultCluster.UpgradeSettings; upgradeSettingsNodePool != nil && upgradeSettingsNodePool.MaxSurge != nil && *upgradeSettingsNodePool.MaxSurge != "" {
 		agentpool.Properties.UpgradeSettings.MaxSurge = upgradeSettingsNodePool.MaxSurge
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
-		agentpool.Properties.WorkloadRuntime = utils.ToPtr(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
+		agentpool.Properties.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
 	}
 
 	if creationData := defaultCluster.CreationData; creationData != nil {
@@ -930,7 +931,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 
 	if defaultCluster.GpuInstanceProfile != nil {
-		agentpool.Properties.GpuInstanceProfile = utils.ToPtr(agentpools.GPUInstanceProfile(*defaultCluster.GpuInstanceProfile))
+		agentpool.Properties.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(*defaultCluster.GpuInstanceProfile))
 	}
 
 	return agentpool
@@ -963,23 +964,23 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		EnableFIPS:             utils.Bool(raw["fips_enabled"].(bool)),
 		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
 		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
-		KubeletDiskType:        utils.ToPtr(managedclusters.KubeletDiskType(raw["kubelet_disk_type"].(string))),
+		KubeletDiskType:        pointer.To(managedclusters.KubeletDiskType(raw["kubelet_disk_type"].(string))),
 		Name:                   raw["name"].(string),
 		NodeLabels:             nodeLabels,
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
-		Type:                   utils.ToPtr(managedclusters.AgentPoolType(raw["type"].(string))),
+		Type:                   pointer.To(managedclusters.AgentPoolType(raw["type"].(string))),
 		VMSize:                 utils.String(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
 		// Windows agents can be configured via the separate node pool resource
-		OsType: utils.ToPtr(managedclusters.OSTypeLinux),
+		OsType: pointer.To(managedclusters.OSTypeLinux),
 
 		// without this set the API returns:
 		// Code="MustDefineAtLeastOneSystemPool" Message="Must define at least one system pool."
 		// since this is the "default" node pool we can assume this is a system node pool
-		Mode: utils.ToPtr(managedclusters.AgentPoolModeSystem),
+		Mode: pointer.To(managedclusters.AgentPoolModeSystem),
 
 		UpgradeSettings: expandClusterNodePoolUpgradeSettings(raw["upgrade_settings"].([]interface{})),
 
@@ -1010,13 +1011,13 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.OsDiskSizeGB = utils.Int64(osDiskSizeGB)
 	}
 
-	profile.OsDiskType = utils.ToPtr(managedclusters.OSDiskTypeManaged)
+	profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeManaged)
 	if osDiskType := raw["os_disk_type"].(string); osDiskType != "" {
-		profile.OsDiskType = utils.ToPtr(managedclusters.OSDiskType(osDiskType))
+		profile.OsDiskType = pointer.To(managedclusters.OSDiskType(osDiskType))
 	}
 
 	if osSku := raw["os_sku"].(string); osSku != "" {
-		profile.OsSKU = utils.ToPtr(managedclusters.OSSKU(osSku))
+		profile.OsSKU = pointer.To(managedclusters.OSSKU(osSku))
 	}
 
 	if podSubnetID := raw["pod_subnet_id"].(string); podSubnetID != "" {
@@ -1026,7 +1027,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
 	profile.ScaleDownMode = &scaleDownModeDelete
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
-		profile.ScaleDownMode = utils.ToPtr(managedclusters.ScaleDownMode(scaleDownMode))
+		profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownMode(scaleDownMode))
 	}
 
 	if snapshotId := raw["snapshot_id"].(string); snapshotId != "" {
@@ -1056,7 +1057,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}
 
 	if workloadRunTime := raw["workload_runtime"].(string); workloadRunTime != "" {
-		profile.WorkloadRuntime = utils.ToPtr(managedclusters.WorkloadRuntime(workloadRunTime))
+		profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntime(workloadRunTime))
 	}
 
 	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
@@ -1064,7 +1065,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}
 
 	if gpuInstanceProfile := raw["gpu_instance"].(string); gpuInstanceProfile != "" {
-		profile.GpuInstanceProfile = utils.ToPtr(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
+		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
 	count := raw["node_count"].(int)
