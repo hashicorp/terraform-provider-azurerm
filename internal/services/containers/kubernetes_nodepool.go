@@ -307,6 +307,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					}, false)
 				}
 
+				if !features.FourPointOhBeta() {
+					s["node_taints"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Deprecated: "This field will be removed in v4.0 of the Azure Provider since the AKS API doesn't allow arbitrary node taints on the default node pool field",
+					}
+				}
+
 				return s
 			}(),
 		},
@@ -944,10 +955,13 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
 	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
 	nodeLabels := expandNodeLabels(nodeLabelsRaw)
-	nodeTaintsRaw := raw["node_taints"].([]interface{})
-	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
+	var nodeTaints *[]string
+	if !features.FourPointOhBeta() {
+		nodeTaintsRaw := raw["node_taints"].([]interface{})
+		nodeTaints = utils.ExpandStringSlice(nodeTaintsRaw)
+	}
 
-	if len(*nodeTaints) != 0 {
+	if !features.FourPointOhBeta() && len(*nodeTaints) != 0 {
 		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one.")
 	}
 
