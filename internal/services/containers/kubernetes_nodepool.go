@@ -82,24 +82,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 					},
 
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_auto_scaling": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_node_public_ip": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_host_encryption": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
 					"kubelet_config": schemaNodePoolKubeletConfig(),
 
 					"linux_os_config": schemaNodePoolLinuxOSConfig(),
@@ -305,16 +287,47 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						string(agentpools.OSSKUWindowsTwoZeroOneNine),
 						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 					}, false)
-				}
 
-				if !features.FourPointOhBeta() {
 					s["node_taints"] = &pluginsdk.Schema{
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
-						Deprecated: "This field will be removed in v4.0 of the Azure Provider since the AKS API doesn't allow arbitrary node taints on the default node pool field",
+						Deprecated: "This field will be removed in v4.0 of the Azure Provider since the AKS API doesn't allow arbitrary node taints on the default node pool",
+					}
+
+					s["enable_auto_scaling"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					}
+
+					s["enable_node_public_ip"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					}
+
+					s["enable_host_encryption"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					}
+
+				}
+
+				if features.FourPointOhBeta() {
+					s["auto_scaling_enabled"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					}
+
+					s["node_public_ip_enabled"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					}
+
+					s["host_encryption_enabled"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
 					}
 				}
 
@@ -953,6 +966,9 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	raw := input[0].(map[string]interface{})
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
+	if features.FourPointOhBeta() {
+		enableAutoScaling = raw["auto_scaling_enabled"].(bool)
+	}
 	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
 	nodeLabels := expandNodeLabels(nodeLabelsRaw)
 	var nodeTaints *[]string
@@ -972,12 +988,22 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	t := raw["tags"].(map[string]interface{})
 
+	nodePublicIp := raw["enable_node_public_ip"].(bool)
+	if features.FourPointOhBeta() {
+		nodePublicIp = raw["node_public_ip_enabled"].(bool)
+	}
+
+	hostEncryption := raw["enable_host_encryption"].(bool)
+	if features.FourPointOhBeta() {
+		nodePublicIp = raw["host_encryption_enabled"].(bool)
+	}
+
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
 		EnableCustomCATrust:    utils.Bool(raw["custom_ca_trust_enabled"].(bool)),
 		EnableFIPS:             utils.Bool(raw["fips_enabled"].(bool)),
-		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
-		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
+		EnableNodePublicIP:     utils.Bool(nodePublicIp),
+		EnableEncryptionAtHost: utils.Bool(hostEncryption),
 		KubeletDiskType:        pointer.To(managedclusters.KubeletDiskType(raw["kubelet_disk_type"].(string))),
 		Name:                   raw["name"].(string),
 		NodeLabels:             nodeLabels,
@@ -1507,9 +1533,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
 
 	out := map[string]interface{}{
-		"enable_auto_scaling":           enableAutoScaling,
-		"enable_node_public_ip":         enableNodePublicIP,
-		"enable_host_encryption":        enableHostEncryption,
 		"custom_ca_trust_enabled":       customCaTrustEnabled,
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,
@@ -1546,6 +1569,18 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
+	}
+
+	if features.FourPointOhBeta() {
+		out["auto_scaling_enabled"] = enableAutoScaling
+		out["node_public_ip_enabled"] = enableNodePublicIP
+		out["host_encryption_enabled"] = enableHostEncryption
+	}
+
+	if !features.FourPointOhBeta() {
+		out["enable_auto_scaling"] = enableAutoScaling
+		out["enable_node_public_ip"] = enableNodePublicIP
+		out["enable_host_encryption"] = enableHostEncryption
 	}
 
 	return &[]interface{}{

@@ -5,6 +5,7 @@ package containers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -22,7 +23,7 @@ import (
 )
 
 func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	dataSource := &pluginsdk.Resource{
 		Read: dataSourceKubernetesClusterNodePoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -43,18 +44,6 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_auto_scaling": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_node_public_ip": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
 
 			"eviction_policy": {
 				Type:     pluginsdk.TypeString,
@@ -159,6 +148,28 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"zones": commonschema.ZonesMultipleComputed(),
 		},
 	}
+
+	if features.FourPointOhBeta() {
+		dataSource.Schema["auto_scaling_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+		dataSource.Schema["node_public_ip_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	} else {
+		dataSource.Schema["enable_auto_scaling"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+		dataSource.Schema["enable_node_public_ip"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return dataSource
 }
 
 func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -199,8 +210,13 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 
-		d.Set("enable_auto_scaling", props.EnableAutoScaling)
-		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+		if features.FourPointOhBeta() {
+			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
+			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
+		} else {
+			d.Set("enable_auto_scaling", props.EnableAutoScaling)
+			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+		}
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != nil && *props.ScaleSetEvictionPolicy != "" {
