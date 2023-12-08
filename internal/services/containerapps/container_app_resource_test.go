@@ -390,6 +390,26 @@ func TestAccContainerAppResource_scaleRulesUpdate(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_ingressTrafficValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.ingressTrafficValidation(data, r.trafficBlockMoreThanOne()),
+			ExpectError: regexp.MustCompile(fmt.Sprintf(`at most one %s can be specified during creation`, "`ingress.0.traffic_weight`")),
+		},
+		{
+			Config:      r.ingressTrafficValidation(data, r.trafficBlockLatestRevisionNotSet()),
+			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must be set to true during creation`, "`ingress.0.traffic_weight.0.latest_revision`")),
+		},
+		{
+			Config:      r.ingressTrafficValidation(data, r.trafficBlockRevisionSuffixSet()),
+			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must not be set during creation`, "`ingress.0.traffic_weight.0.revision_suffix`")),
+		},
+	})
+}
+
 func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := containerapps.ParseContainerAppID(state.ID)
 	if err != nil {
@@ -1825,4 +1845,63 @@ resource "azurerm_container_app_environment_storage" "test" {
   access_mode                  = "ReadWrite"
 }
 `, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
+}
+
+func (r ContainerAppResource) ingressTrafficValidation(data acceptance.TestData, trafficBlock string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    target_port                = 5000
+    transport                  = "http"
+	%s
+  }
+}
+`, r.template(data), data.RandomInteger, trafficBlock)
+}
+
+func (r ContainerAppResource) trafficBlockMoreThanOne() string {
+	return `
+    traffic_weight {
+      percentage      = 50
+    }
+    traffic_weight {
+      percentage      = 50
+    }
+`
+}
+
+func (r ContainerAppResource) trafficBlockLatestRevisionNotSet() string {
+	return `
+    traffic_weight {
+      percentage      = 100
+    }
+`
+}
+
+func (r ContainerAppResource) trafficBlockRevisionSuffixSet() string {
+	return `
+    traffic_weight {
+      percentage      = 100
+	  latest_revision = true
+	  revision_suffix = "foo"
+    }
+`
 }
