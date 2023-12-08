@@ -40,6 +40,9 @@ func Default() UserFeatures {
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,
 		},
+		RecoveryServicesVault: RecoveryServicesVault{
+			RecoverSoftDeletedBackupProtected: true,
+		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,
 		},

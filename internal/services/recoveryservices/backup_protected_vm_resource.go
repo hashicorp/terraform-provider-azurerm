@@ -96,15 +96,24 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	log.Printf("[DEBUG] Creating/updating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
 	id := protecteditems.NewProtectedItemID(subscriptionId, resourceGroup, vaultName, "Azure", containerName, protectedItemName)
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, protecteditems.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	existing, err := client.Get(ctx, id, protecteditems.GetOperationOptions{})
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		isSoftDeleted := false
+		if meta.(*clients.Client).Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtected {
+			isSoftDeleted, err = resourceRecoveryServicesVaultBackupProtectedVMrecoverSoftDeleted(ctx, client, opClient, id, existing.Model)
+			if err != nil {
+				return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !isSoftDeleted && d.IsNewResource() {
 			return tf.ImportAsExistsError("azurerm_backup_protected_vm", id.ID())
 		}
 	}
@@ -415,6 +424,43 @@ func expandDiskLunList(input []interface{}) []interface{} {
 		result = append(result, v.(int))
 	}
 	return result
+}
+
+func resourceRecoveryServicesVaultBackupProtectedVMrecoverSoftDeleted(ctx context.Context, client *protecteditems.ProtectedItemsClient, opClient *backup.ProtectedItemOperationResultsClient, id protecteditems.ProtectedItemId, model *protecteditems.ProtectedItemResource) (isSoftDeleted bool, err error) {
+	isSoftDeleted = false
+	if model == nil {
+		return isSoftDeleted, fmt.Errorf("model was nil")
+	}
+
+	if model.Properties == nil {
+		return isSoftDeleted, fmt.Errorf("properties was nil")
+	}
+
+	if prop, ok := model.Properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
+		if prop.IsScheduledForDeferredDelete != nil && *prop.IsScheduledForDeferredDelete {
+			isSoftDeleted = true
+			resp, err := client.CreateOrUpdate(ctx, id, protecteditems.ProtectedItemResource{
+				Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
+					IsRehydrate: pointer.To(true),
+				},
+			})
+			if err != nil {
+				return isSoftDeleted, fmt.Errorf("issuing request for %s: %+v", id, err)
+			}
+
+			operationId, err := parseBackupOperationId(resp.HttpResponse)
+			if err != nil {
+				return isSoftDeleted, err
+			}
+
+			if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
+				return isSoftDeleted, err
+			}
+
+		}
+	}
+
+	return isSoftDeleted, nil
 }
 
 func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Schema {

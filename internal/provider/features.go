@@ -255,6 +255,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"recovery_services_vault": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"recover_soft_deleted_backup_protected_vm": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+
 		"managed_disk": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -457,6 +472,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			resourceGroupRaw := items[0].(map[string]interface{})
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["recovery_services_vault"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			appConfRaw := items[0].(map[string]interface{})
+			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm"]; ok {
+				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtected = v.(bool)
 			}
 		}
 	}

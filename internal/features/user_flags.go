@@ -14,6 +14,7 @@ type UserFeatures struct {
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
+	RecoveryServicesVault  RecoveryServicesVault
 	ManagedDisk            ManagedDiskFeatures
 	Subscription           SubscriptionFeatures
 }
@@ -78,4 +79,8 @@ type AppConfigurationFeatures struct {
 
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
+}
+
+type RecoveryServicesVault struct {
+	RecoverSoftDeletedBackupProtected bool
 }
