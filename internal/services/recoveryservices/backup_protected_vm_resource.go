@@ -107,10 +107,20 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 
 		if !response.WasNotFound(existing.HttpResponse) {
 			isSoftDeleted := false
-			if meta.(*clients.Client).Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM {
-				isSoftDeleted, err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, opClient, id, existing.Model)
-				if err != nil {
-					return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
+			if existing.Model != nil && existing.Model.Properties != nil {
+				if prop, ok := existing.Model.Properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
+					isSoftDeleted = pointer.From(prop.IsScheduledForDeferredDelete)
+				}
+			}
+
+			if isSoftDeleted {
+				if meta.(*clients.Client).Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM {
+					err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, opClient, id)
+					if err != nil {
+						return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
+					}
+				} else {
+					return fmt.Errorf(optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(parsedVmId.ID(), vaultName))
 				}
 			}
 
@@ -206,15 +216,12 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.VaultName)
-
 	if model := resp.Model; model != nil {
 		if properties := model.Properties; properties != nil {
 			if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
-
 				if vm.IsScheduledForDeferredDelete != nil && *vm.IsScheduledForDeferredDelete {
-					return fmt.Errorf("reading %s: the VM has been soft deleted, to recover it, specify the `recover_soft_deleted_backup_protected_vm` feature.", id)
+					d.SetId("")
+					return nil
 				}
 
 				d.Set("source_vm_id", vm.SourceResourceId)
@@ -244,6 +251,9 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 			}
 		}
 	}
+
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("recovery_vault_name", id.VaultName)
 
 	return nil
 }
@@ -434,41 +444,44 @@ func expandDiskLunList(input []interface{}) []interface{} {
 	return result
 }
 
-func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx context.Context, client *protecteditems.ProtectedItemsClient, opClient *backup.ProtectedItemOperationResultsClient, id protecteditems.ProtectedItemId, model *protecteditems.ProtectedItemResource) (isSoftDeleted bool, err error) {
-	isSoftDeleted = false
-	if model == nil {
-		return isSoftDeleted, fmt.Errorf("model was nil")
+func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx context.Context, client *protecteditems.ProtectedItemsClient, opClient *backup.ProtectedItemOperationResultsClient, id protecteditems.ProtectedItemId) (err error) {
+	resp, err := client.CreateOrUpdate(ctx, id, protecteditems.ProtectedItemResource{
+		Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
+			IsRehydrate: pointer.To(true),
+		},
+	},
+	)
+	if err != nil {
+		return fmt.Errorf("issuing request for %s: %+v", id, err)
 	}
 
-	if model.Properties == nil {
-		return isSoftDeleted, fmt.Errorf("properties was nil")
+	operationId, err := parseBackupOperationId(resp.HttpResponse)
+	if err != nil {
+		return err
 	}
 
-	if prop, ok := model.Properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
-		if prop.IsScheduledForDeferredDelete != nil && *prop.IsScheduledForDeferredDelete {
-			isSoftDeleted = true
-			resp, err := client.CreateOrUpdate(ctx, id, protecteditems.ProtectedItemResource{
-				Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-					IsRehydrate: pointer.To(true),
-				},
-			})
-			if err != nil {
-				return isSoftDeleted, fmt.Errorf("issuing request for %s: %+v", id, err)
-			}
-
-			operationId, err := parseBackupOperationId(resp.HttpResponse)
-			if err != nil {
-				return isSoftDeleted, err
-			}
-
-			if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
-				return isSoftDeleted, err
-			}
-
-		}
+	if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
+		return err
 	}
 
-	return isSoftDeleted, nil
+	return nil
+}
+
+func optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(vmId string, vaultName string) string {
+	return fmt.Sprintf(`
+An existing soft-deleted Backup Protected VM exists with the source VM %q in the recovery services
+vault %q, however automatically recovering this Backup Protected VM has been disabled via the 
+"features" block.
+
+Terraform can automatically recover the soft-deleted Backup Protected VM when this behaviour is
+enabled within the "features" block (located within the "provider" block) - more
+information can be found here:
+
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
+
+Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
+this into Terraform via "terraform import".
+`, vmId, vaultName)
 }
 
 func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Schema {
