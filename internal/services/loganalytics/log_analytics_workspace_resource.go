@@ -154,7 +154,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
 			},
 
-			"immediate_purge_data_on_30_days_enabled": {
+			"immediate_data_purge_on_30_days_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -308,7 +308,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	// The `ImmediatePurgeDataOn30Days` are not returned before it has been set
 	// nolint : staticcheck
-	if v, ok := d.GetOkExists("immediate_purge_data_on_30_days_enabled"); ok {
+	if v, ok := d.GetOkExists("immediate_data_purge_on_30_days_enabled"); ok {
 		parameters.Properties.Features.ImmediatePurgeDataOn30Days = utils.Bool(v.(bool))
 	}
 
@@ -476,7 +476,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 			d.Set("local_authentication_disabled", disableLocalAuth)
-			d.Set("immediate_purge_data_on_30_days_enabled", purgeDataOnThirtyDays)
+			d.Set("immediate_data_purge_on_30_days_enabled", purgeDataOnThirtyDays)
 
 			defaultDataCollectionRuleResourceId := ""
 			if props.DefaultDataCollectionRuleResourceId != nil {

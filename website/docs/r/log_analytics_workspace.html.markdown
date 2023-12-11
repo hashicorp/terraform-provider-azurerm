@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to use for this workspace.
 
-* `immediate_purge_data_on_30_days_enabled` - (Optional) Whether to remove the data in the Log Analytics Workspace immediately after 30 days.
+* `immediate_data_purge_on_30_days_enabled` - (Optional) Whether to remove the data in the Log Analytics Workspace immediately after 30 days.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

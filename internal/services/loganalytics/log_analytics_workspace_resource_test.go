@@ -983,7 +983,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name                     = azurerm_resource_group.test.name
   sku                                     = "PerGB2018"
   retention_in_days                       = 30
-  immediate_purge_data_on_30_days_enabled = %[4]t
+  immediate_data_purge_on_30_days_enabled = %[4]t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
 }
