@@ -82,5 +82,5 @@ type SubscriptionFeatures struct {
 }
 
 type RecoveryServicesVault struct {
-	RecoverSoftDeletedBackupProtected bool
+	RecoverSoftDeletedBackupProtectedVM bool
 }

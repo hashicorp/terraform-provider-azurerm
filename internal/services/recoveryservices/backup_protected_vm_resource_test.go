@@ -238,7 +238,7 @@ func TestAccBackupProtectedVm_recoverSoftDeletedVM(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithSoftDelete(data),
+			Config: r.basicWithSoftDelete(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -246,10 +246,10 @@ func TestAccBackupProtectedVm_recoverSoftDeletedVM(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithSoftDeleted(data),
+			Config: r.basicWithSoftDelete(data, true),
 		},
 		{
-			Config: r.basicWithSoftDelete(data),
+			Config: r.basicWithSoftDelete(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -932,18 +932,8 @@ resource "azurerm_backup_protected_vm" "test" {
 `, r.base(data))
 }
 
-func (r BackupProtectedVmResource) basicWithSoftDelete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    recovery_services_vault {
-      recover_soft_deleted_backup_protected_vm = true
-    }
-  }
-}
-
-%s
-
+func (r BackupProtectedVmResource) basicWithSoftDelete(data acceptance.TestData, deleted bool) string {
+	protectedVMBlock := `
 resource "azurerm_backup_protected_vm" "test" {
   resource_group_name = azurerm_resource_group.test.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
@@ -952,10 +942,11 @@ resource "azurerm_backup_protected_vm" "test" {
 
   include_disk_luns = [0]
 }
-`, r.baseWithSoftDelete(data))
-}
+`
+	if deleted {
+		protectedVMBlock = ""
+	}
 
-func (r BackupProtectedVmResource) basicWithSoftDeleted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -967,5 +958,6 @@ provider "azurerm" {
 
 %s
 
-`, r.baseWithSoftDelete(data))
+%s
+`, r.baseWithSoftDelete(data), protectedVMBlock)
 }

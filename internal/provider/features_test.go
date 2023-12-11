@@ -69,7 +69,7 @@ func TestExpandFeatures(t *testing.T) {
 					PreventDeletionIfContainsResources: true,
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtected: true,
+					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -197,7 +197,7 @@ func TestExpandFeatures(t *testing.T) {
 					PreventDeletionIfContainsResources: true,
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtected: true,
+					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -338,7 +338,7 @@ func TestExpandFeatures(t *testing.T) {
 					PreventDeletionIfContainsResources: false,
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtected: false,
+					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -1186,12 +1186,12 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtected: true,
+					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 			},
 		},
 		{
-			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Protected VM Enabled",
+			Name: "Recover Soft Deleted Protected VM Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"recovery_services_vault": []interface{}{
@@ -1203,12 +1203,12 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtected: true,
+					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 			},
 		},
 		{
-			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Protected VM Disabled",
+			Name: "Recover Soft Deleted Protected VM Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"recovery_services_vault": []interface{}{
@@ -1220,7 +1220,7 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				RecoveryServicesVault: features.RecoveryServicesVault{
-					RecoverSoftDeletedBackupProtected: false,
+					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 			},
 		},
