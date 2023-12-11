@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package jwt
 
 // SigningMethodNone implements the none signing method.  This is required by the spec

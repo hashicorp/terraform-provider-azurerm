@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package datetime provides a ParseTime function for turning commonly-used ISO 8601 date/time
 // formats into Golang time.Time variables.
 //

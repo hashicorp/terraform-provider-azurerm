@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package jen
 
 // Do calls the provided function with the statement as a parameter. Use for

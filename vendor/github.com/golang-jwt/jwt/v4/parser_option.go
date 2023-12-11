@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package jwt
 
 // ParserOption is used to implement functional-style options that modify the behavior of the parser. To add
