@@ -109,6 +109,14 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"seed_node_ip_addresses": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 
@@ -226,6 +234,10 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("disk_sku", props.DiskSku)
 			d.Set("sku_name", props.Sku)
 			d.Set("availability_zones_enabled", props.AvailabilityZone)
+
+			if err := d.Set("seed_node_ip_addresses", flattenCassandraDatacenterSeedNodes(props.SeedNodes)); err != nil {
+				return fmt.Errorf("setting `seed_node_ip_addresses`: %+v", err)
+			}
 		}
 	}
 	return nil
@@ -318,4 +330,19 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcas
 		}
 		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
+}
+
+func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if item.IPAddress != nil {
+			results = append(results, item.IPAddress)
+		}
+	}
+
+	return results
 }

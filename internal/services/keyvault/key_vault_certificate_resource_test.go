@@ -403,15 +403,16 @@ func TestAccKeyVaultCertificate_updatedImportedCertificate(t *testing.T) {
 }
 
 func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	keyVaultsClient := clients.KeyVault
-	client := clients.KeyVault.ManagementClient
+	client := clients.KeyVault
+	subscriptionId := clients.Account.SubscriptionId
 
 	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -419,12 +420,12 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	if err != nil {
 		return nil, err
 	}
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	ok, err := client.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	cert, err := client.ManagementClient.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}

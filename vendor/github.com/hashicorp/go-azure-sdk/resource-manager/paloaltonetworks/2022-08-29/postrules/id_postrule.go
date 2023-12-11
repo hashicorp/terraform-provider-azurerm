@@ -34,15 +34,9 @@ func ParsePostRuleID(input string) (*PostRuleId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PostRuleId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
-	}
-
-	if id.PostRuleName, ok = parsed.Parsed["postRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "postRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParsePostRuleIDInsensitively(input string) (*PostRuleId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PostRuleId{}
-
-	if id.GlobalRulestackName, ok = parsed.Parsed["globalRulestackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", *parsed)
-	}
-
-	if id.PostRuleName, ok = parsed.Parsed["postRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "postRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PostRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.GlobalRulestackName, ok = input.Parsed["globalRulestackName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "globalRulestackName", input)
+	}
+
+	if id.PostRuleName, ok = input.Parsed["postRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "postRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidatePostRuleID checks that 'input' can be parsed as a Post Rule ID

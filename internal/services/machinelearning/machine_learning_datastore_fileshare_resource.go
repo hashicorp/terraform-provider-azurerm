@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
@@ -19,7 +20,6 @@ import (
 	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreFileShare struct{}
@@ -155,16 +155,16 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(model.Name),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureFile)),
+				Name: pointer.To(model.Name),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureFile)),
 			}
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   fileShareId.StorageAccountName,
 				FileShareName:                 fileShareId.FileshareName,
-				Description:                   utils.String(model.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
-				Tags:                          utils.ToPtr(model.Tags),
+				Description:                   pointer.To(model.Description),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
+				Tags:                          pointer.To(model.Tags),
 			}
 
 			accountKey := model.AccountKey
@@ -223,16 +223,16 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(id.DataStoreName),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureFile)),
+				Name: pointer.To(id.DataStoreName),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureFile)),
 			}
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   fileShareId.StorageAccountName,
 				FileShareName:                 fileShareId.FileshareName,
-				Description:                   utils.String(state.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
-				Tags:                          utils.ToPtr(state.Tags),
+				Description:                   pointer.To(state.Description),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
+				Tags:                          pointer.To(state.Tags),
 			}
 
 			accountKey := state.AccountKey

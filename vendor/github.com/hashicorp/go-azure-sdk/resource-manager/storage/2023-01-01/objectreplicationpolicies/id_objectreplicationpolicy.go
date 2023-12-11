@@ -38,23 +38,9 @@ func ParseObjectReplicationPolicyID(input string) (*ObjectReplicationPolicyId, e
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ObjectReplicationPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.ObjectReplicationPolicyId, ok = parsed.Parsed["objectReplicationPolicyId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "objectReplicationPolicyId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseObjectReplicationPolicyIDInsensitively(input string) (*ObjectReplicati
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ObjectReplicationPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.ObjectReplicationPolicyId, ok = parsed.Parsed["objectReplicationPolicyId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "objectReplicationPolicyId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ObjectReplicationPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StorageAccountName, ok = input.Parsed["storageAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", input)
+	}
+
+	if id.ObjectReplicationPolicyId, ok = input.Parsed["objectReplicationPolicyId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "objectReplicationPolicyId", input)
+	}
+
+	return nil
 }
 
 // ValidateObjectReplicationPolicyID checks that 'input' can be parsed as a Object Replication Policy ID

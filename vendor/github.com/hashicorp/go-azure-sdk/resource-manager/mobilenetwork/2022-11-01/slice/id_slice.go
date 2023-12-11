@@ -38,23 +38,9 @@ func ParseSliceID(input string) (*SliceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SliceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.SliceName, ok = parsed.Parsed["sliceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sliceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseSliceIDInsensitively(input string) (*SliceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SliceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.SliceName, ok = parsed.Parsed["sliceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sliceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SliceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MobileNetworkName, ok = input.Parsed["mobileNetworkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", input)
+	}
+
+	if id.SliceName, ok = input.Parsed["sliceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "sliceName", input)
+	}
+
+	return nil
 }
 
 // ValidateSliceID checks that 'input' can be parsed as a Slice ID

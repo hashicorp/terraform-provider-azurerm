@@ -38,23 +38,9 @@ func ParseCreateQueryKeyID(input string) (*CreateQueryKeyId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CreateQueryKeyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
-	}
-
-	if id.CreateQueryKeyName, ok = parsed.Parsed["createQueryKeyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "createQueryKeyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseCreateQueryKeyIDInsensitively(input string) (*CreateQueryKeyId, error)
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CreateQueryKeyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
-	}
-
-	if id.CreateQueryKeyName, ok = parsed.Parsed["createQueryKeyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "createQueryKeyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CreateQueryKeyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SearchServiceName, ok = input.Parsed["searchServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", input)
+	}
+
+	if id.CreateQueryKeyName, ok = input.Parsed["createQueryKeyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "createQueryKeyName", input)
+	}
+
+	return nil
 }
 
 // ValidateCreateQueryKeyID checks that 'input' can be parsed as a Create Query Key ID

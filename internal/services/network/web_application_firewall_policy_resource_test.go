@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -336,6 +336,21 @@ func TestAccWebApplicationFirewallPolicy_LogScrubbing(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withLogScrubbing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_ManagedRuleSetDRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withManagedRuleSetDRS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1346,6 +1361,64 @@ resource "azurerm_web_application_firewall_policy" "test" {
           id      = "920440"
           enabled = true
           action  = "Block"
+        }
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (WebApplicationFirewallResource) withManagedRuleSetDRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+  }
+
+  managed_rules {
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+
+      excluded_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+        rule_group {
+          rule_group_name = "PROTOCOL-ENFORCEMENT"
+          excluded_rules = [
+            "920100",
+            "920120",
+          ]
+        }
+      }
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+
+      rule_group_override {
+        rule_group_name = "METHOD-ENFORCEMENT"
+        rule {
+          id      = "911100"
+          enabled = true
+          action  = "Log"
         }
       }
     }

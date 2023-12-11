@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Build Deployment.
 
+* `application_performance_monitoring_ids` - (Optional) Specifies a list of Spring Cloud Application Performance Monitoring IDs.
+
 * `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Deployment as a map of key-value pairs.
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.

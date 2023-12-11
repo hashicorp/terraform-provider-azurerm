@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -170,7 +171,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 
 	var ttl *int
 	if v, ok := d.GetOk("default_ttl_seconds"); ok {
-		ttl = utils.Int(v.(int))
+		ttl = pointer.To(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
@@ -189,7 +190,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -239,7 +240,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 
 	var ttl *int
 	if v, ok := d.GetOk("default_ttl_seconds"); ok {
-		ttl = utils.Int(v.(int))
+		ttl = pointer.To(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
@@ -258,7 +259,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -442,7 +443,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 				Keys: &[]string{"_ts"},
 			},
 			Options: &documentdb.MongoIndexOptions{
-				ExpireAfterSeconds: utils.Int32(int32(*defaultTtl)),
+				ExpireAfterSeconds: pointer.To(int32(*defaultTtl)),
 			},
 		})
 	}

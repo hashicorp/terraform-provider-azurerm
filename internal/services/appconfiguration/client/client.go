@@ -27,7 +27,7 @@ type Client struct {
 	configureClientFunc              func(c *autorest.Client, authorizer autorest.Authorizer)
 }
 
-func (c Client) DataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*appconfiguration.BaseClient, error) {
+func (c *Client) DataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*appconfiguration.BaseClient, error) {
 	api := environments.NewApiEndpoint("AppConfiguration", configurationStoreEndpoint, nil)
 	appConfigAuth, err := c.authorizerFunc(api)
 	if err != nil {
@@ -40,7 +40,7 @@ func (c Client) DataPlaneClientWithEndpoint(configurationStoreEndpoint string) (
 	return &client, nil
 }
 
-func (c Client) LinkWorkaroundDataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*azuresdkhacks.DataPlaneClient, error) {
+func (c *Client) LinkWorkaroundDataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*azuresdkhacks.DataPlaneClient, error) {
 	api := environments.NewApiEndpoint("AppConfiguration", configurationStoreEndpoint, nil)
 	appConfigAuth, err := c.authorizerFunc(api)
 	if err != nil {

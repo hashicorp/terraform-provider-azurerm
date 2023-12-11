@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -16,7 +17,6 @@ import (
 	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -358,7 +358,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		v := input["azure_policy_enabled"].(bool)
 		props := managedclusters.ManagedClusterAddonProfile{
 			Enabled: v,
-			Config: utils.ToPtr(map[string]string{
+			Config: pointer.To(map[string]string{
 				"version": "v2",
 			}),
 		}

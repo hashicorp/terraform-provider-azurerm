@@ -36,19 +36,9 @@ func ParseB2CDirectoryID(input string) (*B2CDirectoryId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := B2CDirectoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.DirectoryName, ok = parsed.Parsed["directoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "directoryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseB2CDirectoryIDInsensitively(input string) (*B2CDirectoryId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := B2CDirectoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.DirectoryName, ok = parsed.Parsed["directoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "directoryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *B2CDirectoryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroup, ok = input.Parsed["resourceGroup"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", input)
+	}
+
+	if id.DirectoryName, ok = input.Parsed["directoryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "directoryName", input)
+	}
+
+	return nil
 }
 
 // ValidateB2CDirectoryID checks that 'input' can be parsed as a B 2 C Directory ID

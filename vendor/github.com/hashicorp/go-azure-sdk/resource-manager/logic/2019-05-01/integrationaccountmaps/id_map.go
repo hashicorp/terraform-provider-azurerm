@@ -38,23 +38,9 @@ func ParseMapID(input string) (*MapId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MapId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IntegrationAccountName, ok = parsed.Parsed["integrationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", *parsed)
-	}
-
-	if id.MapName, ok = parsed.Parsed["mapName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mapName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseMapIDInsensitively(input string) (*MapId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MapId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IntegrationAccountName, ok = parsed.Parsed["integrationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", *parsed)
-	}
-
-	if id.MapName, ok = parsed.Parsed["mapName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mapName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *MapId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.IntegrationAccountName, ok = input.Parsed["integrationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", input)
+	}
+
+	if id.MapName, ok = input.Parsed["mapName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mapName", input)
+	}
+
+	return nil
 }
 
 // ValidateMapID checks that 'input' can be parsed as a Map ID

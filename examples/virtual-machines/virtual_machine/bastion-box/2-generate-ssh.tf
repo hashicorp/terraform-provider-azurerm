@@ -7,5 +7,5 @@ resource "tls_private_key" "example" {
 }
 
 locals {
-  public_ssh_key = "${tls_private_key.example.public_key_openssh}"
+  public_ssh_key = tls_private_key.example.public_key_openssh
 }

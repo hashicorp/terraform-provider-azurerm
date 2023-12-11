@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -511,7 +512,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("applying container registries for %s: %+v", id, err)
 		}
 		buildResource := appplatform.BuildService{
-			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), id)),
+			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), id)),
 		}
 		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
 		if err != nil {
@@ -639,7 +640,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("applying container registries for %s: %+v", id, err)
 		}
 		buildResource := appplatform.BuildService{
-			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), *id)),
+			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), *id)),
 		}
 		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
 		if err != nil {
