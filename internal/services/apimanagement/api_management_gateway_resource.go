@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,15 +8,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementGateway() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementGateway() *pluginsdk.Resource {
 		Delete: resourceApiManagementGatewayDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.GatewayID(id)
+			_, err := gateway.ParseGatewayID(id)
 			return err
 		}),
 
@@ -42,7 +45,7 @@ func resourceApiManagementGateway() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementID,
+				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
 			"description": {
@@ -84,22 +87,22 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apimId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
+	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
 
-	id := parse.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroup, apimId.ServiceName, d.Get("name").(string))
+	id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("making read request %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_gateway", id.ID())
 		}
 	}
@@ -107,14 +110,14 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 	description := d.Get("description").(string)
 	locationData := expandApiManagementGatewayLocationData(d.Get("location_data").([]interface{}))
 
-	parameters := apimanagement.GatewayContract{
-		GatewayContractProperties: &apimanagement.GatewayContractProperties{
-			Description:  utils.String(description),
+	parameters := gateway.GatewayContract{
+		Properties: &gateway.GatewayContractProperties{
+			Description:  pointer.To(description),
 			LocationData: locationData,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, gateway.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
@@ -128,19 +131,16 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GatewayID(d.Id())
+	id, err := gateway.ParseGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
-	apimId := parse.NewApiManagementID(id.SubscriptionId, id.ResourceGroup, id.ServiceName)
+	apimId := apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Gateway %q (Resource Group %q / API Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
@@ -148,12 +148,14 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("making read request for %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.GatewayId)
 	d.Set("api_management_id", apimId.ID())
 
-	if properties := resp.GatewayContractProperties; properties != nil {
-		d.Set("description", properties.Description)
-		d.Set("location_data", flattenApiManagementGatewayLocationData(properties.LocationData))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("location_data", flattenApiManagementGatewayLocationData(props.LocationData))
+		}
 	}
 
 	return nil
@@ -164,16 +166,13 @@ func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GatewayID(d.Id())
+	id, err := gateway.ParseGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	name := id.Name
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, gateway.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
@@ -181,40 +180,40 @@ func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandApiManagementGatewayLocationData(input []interface{}) *apimanagement.ResourceLocationDataContract {
+func expandApiManagementGatewayLocationData(input []interface{}) *gateway.ResourceLocationDataContract {
 	if len(input) == 0 {
 		return nil
 	}
 
-	locationData := apimanagement.ResourceLocationDataContract{}
+	locationData := gateway.ResourceLocationDataContract{}
 
 	vs := input[0].(map[string]interface{})
 	for k, v := range vs {
 		switch k {
 		case "name":
-			locationData.Name = utils.String(v.(string))
+			locationData.Name = v.(string)
 		case "city":
-			locationData.City = utils.String(v.(string))
+			locationData.City = pointer.To(v.(string))
 		case "district":
-			locationData.District = utils.String(v.(string))
+			locationData.District = pointer.To(v.(string))
 		case "region":
-			locationData.CountryOrRegion = utils.String(v.(string))
+			locationData.CountryOrRegion = pointer.To(v.(string))
 		}
 	}
 
 	return &locationData
 }
 
-func flattenApiManagementGatewayLocationData(input *apimanagement.ResourceLocationDataContract) []interface{} {
+func flattenApiManagementGatewayLocationData(input *gateway.ResourceLocationDataContract) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	locationData := map[string]interface{}{
-		"name":     utils.NormalizeNilableString(input.Name),
-		"city":     utils.NormalizeNilableString(input.City),
-		"region":   utils.NormalizeNilableString(input.CountryOrRegion),
-		"district": utils.NormalizeNilableString(input.District),
+		"name":     input.Name,
+		"city":     pointer.From(input.City),
+		"region":   pointer.From(input.CountryOrRegion),
+		"district": pointer.From(input.District),
 	}
 
 	return []interface{}{locationData}

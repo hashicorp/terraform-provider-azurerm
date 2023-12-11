@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package serviceconnector_test
 
 import (
@@ -44,6 +47,51 @@ func TestAccServiceConnectorAppServiceCosmosdb_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccServiceConnectorAppServiceCosmosdb_secretAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
+	r := ServiceConnectorAppServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cosmosdbWithSecretAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("authentication"),
+	})
+}
+
+func TestAccServiceConnectorAppServiceCosmosdb_servicePrincipalSecretAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
+	r := ServiceConnectorAppServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cosmosdbWithServicePrincipalSecretAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("authentication"),
+	})
+}
+
+func TestAccServiceConnectorAppServiceCosmosdb_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
+	r := ServiceConnectorAppServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cosmosdbWithUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("authentication"),
 	})
 }
 
@@ -152,6 +200,7 @@ resource "azurerm_linux_web_app" "test" {
     ignore_changes = [
       app_settings["AZURE_STORAGEBLOB_RESOURCEENDPOINT"],
       identity,
+      sticky_settings,
     ]
   }
 }
@@ -178,6 +227,75 @@ resource "azurerm_app_service_connection" "test" {
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   authentication {
     type = "systemAssignedIdentity"
+  }
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func (r ServiceConnectorAppServiceResource) cosmosdbWithSecretAuth(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_app_service_connection" "test" {
+  name               = "acctestserviceconnector%[2]d"
+  app_service_id     = azurerm_linux_web_app.test.id
+  target_resource_id = azurerm_cosmosdb_sql_database.test.id
+  authentication {
+    type   = "secret"
+    name   = "foo"
+    secret = "bar"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ServiceConnectorAppServiceResource) cosmosdbWithServicePrincipalSecretAuth(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_app_service_connection" "test" {
+  name               = "acctestserviceconnector%[3]d"
+  app_service_id     = azurerm_linux_web_app.test.id
+  target_resource_id = azurerm_cosmosdb_sql_database.test.id
+  authentication {
+    type         = "servicePrincipalSecret"
+    client_id    = "someclientid"
+    principal_id = azurerm_user_assigned_identity.test.principal_id
+    secret       = "somesecret"
+  }
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func (r ServiceConnectorAppServiceResource) cosmosdbWithUserAssignedIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_app_service_connection" "test" {
+  name               = "acctestserviceconnector%[3]d"
+  app_service_id     = azurerm_linux_web_app.test.id
+  target_resource_id = azurerm_cosmosdb_sql_database.test.id
+  authentication {
+    type            = "userAssignedIdentity"
+    subscription_id = data.azurerm_subscription.test.subscription_id
+    client_id       = azurerm_user_assigned_identity.test.client_id
   }
 }
 `, template, data.RandomString, data.RandomInteger)
@@ -294,6 +412,7 @@ resource "azurerm_linux_web_app" "test" {
     ignore_changes = [
       app_settings["AZURE_STORAGEBLOB_RESOURCEENDPOINT"],
       identity,
+      sticky_settings,
     ]
   }
 }
@@ -397,6 +516,12 @@ resource "azurerm_subnet" "test1" {
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      service_endpoints,
+    ]
+  }
 }
 
 resource "azurerm_linux_web_app" "test" {
@@ -407,6 +532,14 @@ resource "azurerm_linux_web_app" "test" {
   virtual_network_subnet_id = azurerm_subnet.test1.id
 
   site_config {}
+
+  lifecycle {
+    ignore_changes = [
+      app_settings,
+      identity,
+      sticky_settings,
+    ]
+  }
 }
 
 resource "azurerm_app_service_connection" "test" {
@@ -414,7 +547,7 @@ resource "azurerm_app_service_connection" "test" {
   app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
-  vnet_solution      = "privateLink"
+  vnet_solution      = "serviceEndpoint"
   authentication {
     type = "systemAssignedIdentity"
   }
@@ -486,6 +619,7 @@ resource "azurerm_linux_web_app" "test" {
     ignore_changes = [
       app_settings,
       identity,
+      sticky_settings,
     ]
   }
 }

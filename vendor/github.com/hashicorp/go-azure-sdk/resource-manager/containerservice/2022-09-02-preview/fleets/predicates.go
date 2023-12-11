@@ -4,7 +4,7 @@ package fleets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FleetOperationPredicate struct {
-	Etag     *string
+	ETag     *string
 	Id       *string
 	Location *string
 	Name     *string
@@ -13,11 +13,11 @@ type FleetOperationPredicate struct {
 
 func (p FleetOperationPredicate) Matches(input Fleet) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.ETag != nil && (input.ETag == nil || *p.ETag != *input.ETag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
@@ -25,11 +25,11 @@ func (p FleetOperationPredicate) Matches(input Fleet) bool {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

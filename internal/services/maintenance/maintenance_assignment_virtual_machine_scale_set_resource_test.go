@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance_test
 
 import (
@@ -9,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -48,19 +50,16 @@ func TestAccMaintenanceAssignmentVirtualMachineScaleSet_requiresImport(t *testin
 }
 
 func (MaintenanceAssignmentVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	maVmScaleSetID, err := parse.MaintenanceAssignmentVirtualMachineScaleSetID(state.ID)
+	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	id := configurationassignments.NewProviderID(maVmScaleSetID.VirtualMachineScaleSetId.SubscriptionId, maVmScaleSetID.VirtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", maVmScaleSetID.VirtualMachineScaleSetId.Name)
-
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id)
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine Scale Set (target resource id: %q): %v", maVmScaleSetID.VirtualMachineScaleSetIdRaw, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
@@ -183,8 +182,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

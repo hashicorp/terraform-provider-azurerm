@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter_test
 
 import (
@@ -5,21 +8,23 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterAssessmentPolicyResource struct{}
 
-func TestAccSecurityCenterAssessmentPolicy_basic(t *testing.T) {
+func testAccSecurityCenterAssessmentPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -30,11 +35,11 @@ func TestAccSecurityCenterAssessmentPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessmentPolicy_complete(t *testing.T) {
+func testAccSecurityCenterAssessmentPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,11 +50,11 @@ func TestAccSecurityCenterAssessmentPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessmentPolicy_update(t *testing.T) {
+func testAccSecurityCenterAssessmentPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -69,21 +74,21 @@ func TestAccSecurityCenterAssessmentPolicy_update(t *testing.T) {
 
 func (r SecurityCenterAssessmentPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	assessmentMetadataClient := client.SecurityCenter.AssessmentsMetadataClient
-	id, err := parse.AssessmentMetadataID(state.ID)
+	id, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := assessmentMetadataClient.GetInSubscription(ctx, id.AssessmentMetadataName)
+	resp, err := assessmentMetadataClient.GetInSubscription(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 
-		return nil, fmt.Errorf("retrieving Azure Security Center Assessment Metadata %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving %q: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AssessmentMetadataProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SecurityCenterAssessmentPolicyResource) basic() string {

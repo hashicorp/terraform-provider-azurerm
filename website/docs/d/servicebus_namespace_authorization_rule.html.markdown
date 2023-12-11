@@ -14,9 +14,8 @@ Use this data source to access information about an existing ServiceBus Namespac
 
 ```hcl
 data "azurerm_servicebus_namespace_authorization_rule" "example" {
-  name                = "examplerule"
-  namespace_name      = "examplenamespace"
-  resource_group_name = "example-resources"
+  name         = "examplerule"
+  namespace_id = "examplenamespace"
 }
 
 output "rule_id" {
@@ -26,11 +25,15 @@ output "rule_id" {
 
 ## Argument Reference
 
-* `name` - Specifies the name of the ServiceBus Namespace Authorization Rule.
+* `name` - (Required) Specifies the name of the ServiceBus Namespace Authorization Rule.
 
-* `namespace_name` - Specifies the name of the ServiceBus Namespace.
+* `namespace_name` - (Required) Specifies the name of the ServiceBus Namespace.
 
-* `resource_group_name` - Specifies the name of the Resource Group where the ServiceBus Namespace exists.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
+
+~> **Note:** `namespace_name` and `resource_group_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `namespace_id`.
+
+* `namespace_id` - (Required) Specifies the ID of the ServiceBus Namespace where the Service Bus Namespace Authorization Rule exists.
 
 ## Attributes Reference
 

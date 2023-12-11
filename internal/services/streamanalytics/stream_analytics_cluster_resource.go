@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -13,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ClusterResource struct{}
@@ -96,11 +99,11 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			props := clusters.Cluster{
-				Name:     utils.String(model.Name),
-				Location: utils.String(model.Location),
+				Name:     pointer.To(model.Name),
+				Location: pointer.To(model.Location),
 				Sku: &clusters.ClusterSku{
-					Name:     utils.ToPtr(clusters.ClusterSkuNameDefault),
-					Capacity: utils.ToPtr(model.StreamingCapacity),
+					Name:     pointer.To(clusters.ClusterSkuNameDefault),
+					Capacity: pointer.To(model.StreamingCapacity),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -197,7 +200,7 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("streaming_capacity") || metadata.ResourceData.HasChange("tags") {
 				props := clusters.Cluster{
 					Sku: &clusters.ClusterSku{
-						Capacity: utils.ToPtr(state.StreamingCapacity),
+						Capacity: pointer.To(state.StreamingCapacity),
 					},
 					Tags: tags.Expand(state.Tags),
 				}

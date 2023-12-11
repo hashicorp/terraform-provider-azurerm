@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -150,7 +153,7 @@ func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.Automation.RunbookClient.Get(ctx, *id)
+	resp, err := clients.Automation.Runbook.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", id.RunbookName, id.ResourceGroupName)
 	}

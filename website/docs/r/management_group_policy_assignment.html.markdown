@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `management_group_id` - (Required) The ID of the Management Group. Changing this forces a new Policy Assignment to be created.
 
-* `name` - (Required) The name which should be used for this Policy Assignment. Changing this forces a new Policy Assignment to be created.
+* `name` - (Required) The name which should be used for this Policy Assignment. Possible values must be between 3 and 24 characters in length. Changing this forces a new Policy Assignment to be created.
 
 * `policy_definition_id` - (Required) The ID of the Policy Definition or Policy Definition Set. Changing this forces a new Policy Assignment to be created.
 
@@ -106,7 +106,7 @@ A `overrides` block supports the following:
 
 * `value` - (Required) Specifies the value to override the policy property. Possible values for `policyEffect` override listed [policy effects](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effects).
 
-* `selectors` - (Optional) One or more `override_selector` as defined below.
+* `selectors` - (Optional) One or more `override_selector` block as defined below.
 
 ---
 
@@ -128,7 +128,7 @@ A `resource_selectors` block supports the following:
 
 A `resource_selector` block supports the following:
 
-* `kind` - (Required) Specifies which characteristic will narrow down the set of evaluated resources. Possible values are `resourceLocation`,  `resourceType` and `resourceWithoutLocation`.
+* `kind` - (Required) Specifies which characteristic will narrow down the set of evaluated resources. Possible values are `resourceLocation`, `resourceType` and `resourceWithoutLocation`.
 
 * `in` - (Optional) The list of allowed values for the specified kind. Cannot be used with `not_in`. Can contain up to 50 values.
 

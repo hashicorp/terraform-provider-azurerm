@@ -10,6 +10,8 @@ description: |-
 
 Manages the transparent data encryption configuration for a MSSQL Server
 
+!> **IMPORTANT:** This resource should only be used with pre-existing MS SQL Instances that are over 2 years old. For new MS SQL Instances that will be created through the use of the `azurerm_mssql_server` resource, please enable Transit Data Encryption through `azurerm_mssql_server` resource itself by configuring an [identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_server#identity) block. By default all new MS SQL Instances are deployed with System Managed Transparent Data Encryption enabled. 
+
 ~> **NOTE:** Once transparent data encryption is enabled on a MS SQL instance, it is not possible to remove TDE. You will be able to switch between 'ServiceManaged' and 'CustomerManaged' keys, but will not be able to remove encryption. For safety when this resource is deleted, the TDE mode will automatically be set to 'ServiceManaged'. See `key_vault_uri` for more information on how to specify the key types. As SQL Server only supports a single configuration for encryption settings, this resource will replace the current encryption settings on the server.
 
 ~> **Note:** See [documentation](https://docs.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-overview) for important information on how handle lifecycle management of the keys to prevent data lockout.
@@ -72,19 +74,16 @@ resource "azurerm_mssql_server" "example" {
     object_id      = "00000000-0000-0000-0000-000000000000"
   }
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
   tags = {
     environment = "production"
   }
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [transparent_data_encryption_key_vault_key_id]
   }
 }
 

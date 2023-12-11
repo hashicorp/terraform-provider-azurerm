@@ -30,6 +30,12 @@ resource "azurerm_api_management_api_operation" "example" {
   url_template        = "/users/{id}/delete"
   description         = "This can only be done by the logged in user."
 
+  template_parameter {
+    name     = "id"
+    type     = "number"
+    required = true
+  }
+
   response {
     status_code = 200
   }
@@ -62,7 +68,7 @@ The following arguments are supported:
 
 * `response` - (Optional) One or more `response` blocks as defined below.
 
-* `template_parameter` - (Optional) One or more `template_parameter` blocks as defined below.
+* `template_parameter` - (Optional) One or more `template_parameter` blocks as defined below. Required if `url_template` contains one or more parameters.
 
 ---
 
@@ -94,7 +100,7 @@ A `form_parameter` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Form Parameter.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 
@@ -116,7 +122,7 @@ A `header` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Header.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 
@@ -138,7 +144,7 @@ A `query_parameter` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Query Parameter.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 
@@ -204,7 +210,7 @@ A `template_parameter` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Template Parameter.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -22,10 +25,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -897,7 +900,7 @@ func flattenExportPolicy(p *registries.Policies) bool {
 }
 
 func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1043,6 +1046,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"virtual_network": {
+						Deprecated: " This is only used exclusively for service endpoints (which is a feature being deprecated). Users are expected to use Private Endpoints instead",
 						Type:       pluginsdk.TypeSet,
 						Optional:   true,
 						ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -1058,7 +1062,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 								"subnet_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: networkValidate.SubnetID,
+									ValidateFunc: commonids.ValidateSubnetID,
 								},
 							},
 						},
@@ -1147,4 +1151,10 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if features.FourPointOhBeta() {
+		delete(schema["network_rule_set"].Elem.(*pluginsdk.Resource).Schema, "virtual_network")
+	}
+
+	return schema
 }

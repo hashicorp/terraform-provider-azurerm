@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package frontdoor_test
 
 import (
@@ -127,7 +130,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -159,7 +162,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -223,7 +226,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d"
+  name     = "acctestRG-%d"
   location = "%[2]s"
 }
 

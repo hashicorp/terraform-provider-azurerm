@@ -1,12 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
@@ -96,8 +99,8 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 		}
 		return outputs.CsvSerialization{
 			Properties: &outputs.CsvSerializationProperties{
-				Encoding:       utils.ToPtr(outputs.Encoding(encoding)),
-				FieldDelimiter: utils.String(fieldDelimiter),
+				Encoding:       pointer.To(outputs.Encoding(encoding)),
+				FieldDelimiter: pointer.To(fieldDelimiter),
 			},
 		}, nil
 
@@ -114,8 +117,8 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 
 		return outputs.JsonSerialization{
 			Properties: &outputs.JsonSerializationProperties{
-				Encoding: utils.ToPtr(outputs.Encoding(encoding)),
-				Format:   utils.ToPtr(outputs.JsonOutputSerializationFormat(format)),
+				Encoding: pointer.To(outputs.Encoding(encoding)),
+				Format:   pointer.To(outputs.JsonOutputSerializationFormat(format)),
 			},
 		}, nil
 

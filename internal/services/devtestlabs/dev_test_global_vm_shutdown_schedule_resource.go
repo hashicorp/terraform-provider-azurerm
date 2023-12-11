@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package devtestlabs
 
 import (
@@ -6,12 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -44,7 +47,7 @@ func resourceDevTestGlobalVMShutdownSchedule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"enabled": {
@@ -107,15 +110,15 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
-	vmId, err := computeParse.VirtualMachineID(vmID)
+	vmId, err := commonids.ParseVirtualMachineID(vmID)
 	if err != nil {
 		return err
 	}
 
 	// Can't find any official documentation on this, but the API returns a 400 for any other name.
 	// The best example I could find is here: https://social.msdn.microsoft.com/Forums/en-US/25a02403-dba9-4bcb-bdcc-1f4afcba5b65/powershell-script-to-autoshutdown-azure-virtual-machine?forum=WAVirtualMachinesforWindows
-	name := "shutdown-computevm-" + vmId.Name
-	id := globalschedules.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroup, name)
+	name := "shutdown-computevm-" + vmId.VirtualMachineName
+	id := globalschedules.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroupName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id, globalschedules.GetOperationOptions{})

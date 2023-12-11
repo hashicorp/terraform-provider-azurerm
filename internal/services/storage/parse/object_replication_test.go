@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // This is manual for concat two ids are not supported in auto-generation
@@ -5,7 +8,7 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/objectreplicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/objectreplicationpolicies"
 )
 
 func TestObjectReplicationIDFormatter(t *testing.T) {

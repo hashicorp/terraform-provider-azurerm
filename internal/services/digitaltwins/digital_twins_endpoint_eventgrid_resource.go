@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package digitaltwins
 
 import (
@@ -7,15 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/digitaltwinsinstance"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/digitaltwinsinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
@@ -111,10 +113,10 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 	payload := endpoints.DigitalTwinsEndpointResource{
 		Properties: &endpoints.EventGrid{
 			AuthenticationType: pointer.To(endpoints.AuthenticationTypeKeyBased),
-			TopicEndpoint:      utils.String(d.Get("eventgrid_topic_endpoint").(string)),
-			AccessKey1:         utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
-			AccessKey2:         utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
-			DeadLetterSecret:   utils.String(d.Get("dead_letter_storage_secret").(string)),
+			TopicEndpoint:      d.Get("eventgrid_topic_endpoint").(string),
+			AccessKey1:         d.Get("eventgrid_topic_primary_access_key").(string),
+			AccessKey2:         pointer.To(d.Get("eventgrid_topic_secondary_access_key").(string)),
+			DeadLetterSecret:   pointer.To(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 

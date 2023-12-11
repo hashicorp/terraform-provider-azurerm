@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -52,7 +55,7 @@ func (r SubscriptionPolicyRemediationResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	resp, err := client.Policy.RemediationsClient.RemediationsGetAtSubscription(ctx, *id)
+	resp, err := client.Policy.RemediationsClient.GetAtSubscription(ctx, *id)
 	if err != nil || resp.Model == nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

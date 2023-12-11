@@ -23,7 +23,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c AppsClient) Update(ctx context.Context, id IotAppId, input AppPatch) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
@@ -6,11 +9,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,7 +30,7 @@ func resourceMySQLVirtualNetworkRule() *pluginsdk.Resource {
 		Delete: resourceMySQLVirtualNetworkRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualNetworkRuleID(id)
+			_, err := virtualnetworkrules.ParseVirtualNetworkRuleID(id)
 			return err
 		}),
 
@@ -57,47 +61,44 @@ func resourceMySQLVirtualNetworkRule() *pluginsdk.Resource {
 			"subnet_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 		},
 	}
 }
 
 func resourceMySQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.VirtualNetworkRules
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	id := virtualnetworkrules.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mysql_virtual_network_rule", id.ID())
 		}
 	}
 
-	parameters := mysql.VirtualNetworkRule{
-		VirtualNetworkRuleProperties: &mysql.VirtualNetworkRuleProperties{
-			VirtualNetworkSubnetID:           utils.String(d.Get("subnet_id").(string)),
+	parameters := virtualnetworkrules.VirtualNetworkRule{
+		Properties: &virtualnetworkrules.VirtualNetworkRuleProperties{
+			VirtualNetworkSubnetId:           d.Get("subnet_id").(string),
 			IgnoreMissingVnetServiceEndpoint: utils.Bool(false),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
-	}
 
+	// todo check if we need this
 	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for %s to become ready", id)
 	stateConf := &pluginsdk.StateChangeConf{
@@ -122,18 +123,18 @@ func resourceMySQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 }
 
 func resourceMySQLVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.VirtualNetworkRules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -142,43 +143,41 @@ func resourceMySQLVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.VirtualNetworkRuleName)
 	d.Set("server_name", id.ServerName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.VirtualNetworkRuleProperties; props != nil {
-		d.Set("subnet_id", props.VirtualNetworkSubnetID)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("subnet_id", props.VirtualNetworkSubnetId)
+		}
 	}
 
 	return nil
 }
 
 func resourceMySQLVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
+	client := meta.(*clients.Client).MySQL.MySqlClient.VirtualNetworkRules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mysql.VirtualNetworkRulesClient, id parse.VirtualNetworkRuleId) pluginsdk.StateRefreshFunc {
+func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *virtualnetworkrules.VirtualNetworkRulesClient, id virtualnetworkrules.VirtualNetworkRuleId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+			if response.WasNotFound(resp.HttpResponse) {
 				log.Printf("[DEBUG] Retrieving %s returned 404.", id)
 				return nil, "ResponseNotFound", nil
 			}
@@ -186,9 +185,13 @@ func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *
 			return nil, "", fmt.Errorf("polling for the state of the %s: %+v", id, err)
 		}
 
-		if props := resp.VirtualNetworkRuleProperties; props != nil {
-			log.Printf("[DEBUG] Retrieving %s returned Status %s", id, props.State)
-			return resp, string(props.State), nil
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if props.State != nil {
+					log.Printf("[DEBUG] Retrieving %s returned Status %s", id, *props.State)
+					return resp, string(*props.State), nil
+				}
+			}
 		}
 
 		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.

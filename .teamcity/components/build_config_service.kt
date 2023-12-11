@@ -1,11 +1,12 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.*
+import jetbrains.buildServer.configs.kotlin.*
 
-class serviceDetails(name: String, displayName: String, environment: String) {
+class serviceDetails(name: String, displayName: String, environment: String, vcsRootId : String) {
     val packageName = name
     val displayName = displayName
     val environment = environment
+    val vcsRootId = vcsRootId
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
             id(uniqueID(providerName))
@@ -13,7 +14,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
             name = "%s - Acceptance Tests".format(displayName)
 
             vcs {
-                root(providerRepository)
+                root(rootId = AbsoluteId(vcsRootId))
                 cleanCheckout = true
             }
 
@@ -25,6 +26,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
 
             failureConditions {
                 errorMessage = true
+                executionTimeoutMin = 60 * timeout
             }
 
             features {
@@ -32,7 +34,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
             }
 
             params {
-                TerraformAcceptanceTestParameters(parallelism, "TestAcc", "12")
+                TerraformAcceptanceTestParameters(parallelism, "TestAcc", timeout)
                 TerraformAcceptanceTestsFlag()
                 TerraformCoreBinaryTesting()
                 TerraformShouldPanicForSchemaErrors()

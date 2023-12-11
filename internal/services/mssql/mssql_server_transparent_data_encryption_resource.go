@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -109,18 +112,18 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		// Set the encryption protector properties
 		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
 		if err != nil {
-			return fmt.Errorf("Unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
 
 		// Make sure it's a key, if not, throw an error
-		if keyId.NestedItemType == "keys" {
+		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
 			keyName := keyId.Name
 			keyVersion := keyId.Version
 
 			// Extract the vault name from the keyvault base url
 			idURL, err := url.ParseRequestURI(keyId.KeyVaultBaseUrl)
 			if err != nil {
-				return fmt.Errorf("Unable to parse key vault hostname: %s", keyId.KeyVaultBaseUrl)
+				return fmt.Errorf("unable to parse key vault hostname: %s", keyId.KeyVaultBaseUrl)
 			}
 
 			hostParts := strings.Split(idURL.Host, ".")
@@ -129,7 +132,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 			// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
 			serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyName, keyVersion)
 		} else {
-			return fmt.Errorf("Key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
+			return fmt.Errorf("key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
 		}
 	}
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter_test
 
 import (
@@ -19,7 +22,7 @@ func testAccSecurityCenterAssessment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,7 +37,7 @@ func testAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -49,7 +52,7 @@ func testAccSecurityCenterAssessment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -64,7 +67,7 @@ func testAccSecurityCenterAssessment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -198,8 +201,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

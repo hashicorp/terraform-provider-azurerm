@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import "testing"
@@ -156,6 +159,26 @@ func TestDatabaseSkuName(t *testing.T) {
 		{
 			name:  "Invalid Serverless 8IM",
 			input: "HS_S_8IM_48",
+			valid: false,
+		},
+		{
+			name:  "Valid Premium 8IM",
+			input: "HS_PRMS_8",
+			valid: true,
+		},
+		{
+			name:  "Invalid Premium 8IM",
+			input: "HS_PRMS_28",
+			valid: false,
+		},
+		{
+			name:  "Valid Premium 8IH",
+			input: "HS_MOPRMS_8",
+			valid: true,
+		},
+		{
+			name:  "Invalid Premium 8IH",
+			input: "HS_MOPRMS_128",
 			valid: false,
 		},
 	}

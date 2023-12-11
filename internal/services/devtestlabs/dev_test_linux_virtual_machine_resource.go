@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package devtestlabs
 
 import (
@@ -80,6 +83,7 @@ func resourceArmDevTestLinuxVirtualMachine() *pluginsdk.Resource {
 			"storage_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"Premium",

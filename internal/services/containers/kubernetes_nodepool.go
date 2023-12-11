@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -7,14 +10,18 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -85,14 +92,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"enable_node_public_ip": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
 					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_host_encryption": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
 					"kubelet_config": schemaNodePoolKubeletConfig(),
@@ -103,6 +108,19 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
+					},
+
+					"gpu_instance": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.GPUInstanceProfileMIGOneg),
+							string(managedclusters.GPUInstanceProfileMIGTwog),
+							string(managedclusters.GPUInstanceProfileMIGThreeg),
+							string(managedclusters.GPUInstanceProfileMIGFourg),
+							string(managedclusters.GPUInstanceProfileMIGSeveng),
+						}, false),
 					},
 
 					"kubelet_disk_type": {
@@ -126,7 +144,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Computed: true,
-						ForceNew: true,
 					},
 
 					"message_of_the_day": {
@@ -171,7 +188,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"node_taints": {
 						Type:     pluginsdk.TypeList,
-						ForceNew: true,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
@@ -183,7 +199,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_disk_size_gb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						Computed:     true,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
@@ -191,7 +206,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_disk_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						Default:  agentpools.OSDiskTypeManaged,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.OSDiskTypeEphemeral),
@@ -202,11 +216,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_sku": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						Computed: true, // defaults to Ubuntu if using Linux
 						ValidateFunc: validation.StringInSlice([]string{
-							string(agentpools.OSSKUCBLMariner),
-							string(agentpools.OSSKUMariner),
+							string(agentpools.OSSKUAzureLinux),
 							string(agentpools.OSSKUUbuntu),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
@@ -215,7 +227,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"ultra_ssd_enabled": {
 						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
 						Default:  false,
 						Optional: true,
 					},
@@ -223,8 +234,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"vnet_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"orchestrator_version": {
 						Type:         pluginsdk.TypeString,
@@ -235,8 +245,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,
@@ -247,7 +256,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"only_critical_addons_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
 					"scale_down_mode": {
@@ -258,6 +266,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(managedclusters.ScaleDownModeDeallocate),
 							string(managedclusters.ScaleDownModeDelete),
 						}, false),
+					},
+
+					"snapshot_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: snapshots.ValidateSnapshotID,
 					},
 
 					"host_group_id": {
@@ -280,7 +294,18 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 				}
 
-				s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
+				s["zones"] = commonschema.ZonesMultipleOptional()
+
+				if !features.FourPointOhBeta() {
+					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
+						string(agentpools.OSSKUAzureLinux),
+						string(agentpools.OSSKUCBLMariner),
+						string(agentpools.OSSKUMariner),
+						string(agentpools.OSSKUUbuntu),
+						string(agentpools.OSSKUWindowsTwoZeroOneNine),
+						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+					}, false)
+				}
 
 				return s
 			}(),
@@ -289,7 +314,93 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"cpu_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"static",
+					}, false),
+				},
+
+				"cpu_cfs_quota_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Default:  true,
+					Optional: true,
+				},
+
+				"cpu_cfs_quota_period": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"image_gc_high_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"image_gc_low_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"topology_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"best-effort",
+						"restricted",
+						"single-numa-node",
+					}, false),
+				},
+
+				"allowed_unsafe_sysctls": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"container_log_max_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+
+				// TODO 4.0: change this to `container_log_max_files`
+				"container_log_max_line": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(2),
+				},
+
+				"pod_max_pid": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+
+	// TODO 4.0: change the default value to `true` in the document
+	if !features.FourPointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["cpu_cfs_quota_enabled"].Default = false
+	}
+
+	return &schema
+}
+
+func schemaNodePoolKubeletConfigForceNew() *pluginsdk.Schema {
+	schema := pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
@@ -309,6 +420,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				"cpu_cfs_quota_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  true,
 					ForceNew: true,
 				},
 
@@ -375,9 +487,56 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	// TODO 4.0: change the default value to `true` in the document
+	if !features.FourPointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["cpu_cfs_quota_enabled"].Default = false
+	}
+
+	return &schema
 }
 
 func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"sysctl_config": schemaNodePoolSysctlConfig(),
+
+				"transparent_huge_page_enabled": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"transparent_huge_page_defrag": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"defer",
+						"defer+madvise",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"swap_file_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaNodePoolLinuxOSConfigForceNew() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -524,7 +683,7 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(32768, 65000),
+					ValidateFunc: validation.IntBetween(32768, 65535),
 				},
 
 				"net_ipv4_neigh_default_gc_thresh1": {
@@ -559,7 +718,7 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(10, 75),
+					ValidateFunc: validation.IntBetween(10, 90),
 				},
 
 				"net_ipv4_tcp_keepalive_probes": {
@@ -600,14 +759,14 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(65536, 147456),
+					ValidateFunc: validation.IntBetween(65536, 524288),
 				},
 
 				"net_netfilter_nf_conntrack_max": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(131072, 1048576),
+					ValidateFunc: validation.IntBetween(131072, 2097152),
 				},
 
 				"vm_max_map_count": {
@@ -673,6 +832,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			EnableCustomCATrust:       defaultCluster.EnableCustomCATrust,
 			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
 			EnableFIPS:                defaultCluster.EnableFIPS,
+			EnableUltraSSD:            defaultCluster.EnableUltraSSD,
 			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
 			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
 			AvailabilityZones:         defaultCluster.AvailabilityZones,
@@ -712,7 +872,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			TransparentHugePageEnabled: linuxOsConfigRaw.TransparentHugePageEnabled,
 		}
 		if sysctlsRaw := linuxOsConfigRaw.Sysctls; sysctlsRaw != nil {
-			linuxOsConfig.Sysctls = utils.ToPtr(agentpools.SysctlConfig(*sysctlsRaw))
+			linuxOsConfig.Sysctls = pointer.To(agentpools.SysctlConfig(*sysctlsRaw))
 		}
 		agentpool.Properties.LinuxOSConfig = &linuxOsConfig
 	}
@@ -731,32 +891,47 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		agentpool.Properties.NetworkProfile = &networkProfile
 	}
 	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
-		agentpool.Properties.OsType = utils.ToPtr(agentpools.OSType(string(*osTypeNodePool)))
+		agentpool.Properties.OsType = pointer.To(agentpools.OSType(string(*osTypeNodePool)))
+	}
+	if osSku := defaultCluster.OsSKU; osSku != nil {
+		agentpool.Properties.OsSKU = pointer.To(agentpools.OSSKU(*osSku))
 	}
 	if kubeletDiskTypeNodePool := defaultCluster.KubeletDiskType; kubeletDiskTypeNodePool != nil {
-		agentpool.Properties.KubeletDiskType = utils.ToPtr(agentpools.KubeletDiskType(string(*kubeletDiskTypeNodePool)))
+		agentpool.Properties.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(string(*kubeletDiskTypeNodePool)))
 	}
 	if agentPoolTypeNodePool := defaultCluster.Type; agentPoolTypeNodePool != nil {
-		agentpool.Properties.Type = utils.ToPtr(agentpools.AgentPoolType(string(*agentPoolTypeNodePool)))
+		agentpool.Properties.Type = pointer.To(agentpools.AgentPoolType(string(*agentPoolTypeNodePool)))
 	}
 	if scaleSetPriorityNodePool := defaultCluster.ScaleSetPriority; scaleSetPriorityNodePool != nil {
-		agentpool.Properties.ScaleSetPriority = utils.ToPtr(agentpools.ScaleSetPriority(string(*scaleSetPriorityNodePool)))
+		agentpool.Properties.ScaleSetPriority = pointer.To(agentpools.ScaleSetPriority(string(*scaleSetPriorityNodePool)))
 	}
 	if scaleSetEvictionPolicyNodePool := defaultCluster.ScaleSetEvictionPolicy; scaleSetEvictionPolicyNodePool != nil {
-		agentpool.Properties.ScaleSetEvictionPolicy = utils.ToPtr(agentpools.ScaleSetEvictionPolicy(string(*scaleSetEvictionPolicyNodePool)))
+		agentpool.Properties.ScaleSetEvictionPolicy = pointer.To(agentpools.ScaleSetEvictionPolicy(string(*scaleSetEvictionPolicyNodePool)))
 	}
 	if modeNodePool := defaultCluster.Mode; modeNodePool != nil {
-		agentpool.Properties.Mode = utils.ToPtr(agentpools.AgentPoolMode(string(*modeNodePool)))
+		agentpool.Properties.Mode = pointer.To(agentpools.AgentPoolMode(string(*modeNodePool)))
 	}
 	if scaleDownModeNodePool := defaultCluster.ScaleDownMode; scaleDownModeNodePool != nil {
-		agentpool.Properties.ScaleDownMode = utils.ToPtr(agentpools.ScaleDownMode(string(*scaleDownModeNodePool)))
+		agentpool.Properties.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(string(*scaleDownModeNodePool)))
 	}
 	agentpool.Properties.UpgradeSettings = &agentpools.AgentPoolUpgradeSettings{}
 	if upgradeSettingsNodePool := defaultCluster.UpgradeSettings; upgradeSettingsNodePool != nil && upgradeSettingsNodePool.MaxSurge != nil && *upgradeSettingsNodePool.MaxSurge != "" {
 		agentpool.Properties.UpgradeSettings.MaxSurge = upgradeSettingsNodePool.MaxSurge
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
-		agentpool.Properties.WorkloadRuntime = utils.ToPtr(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
+		agentpool.Properties.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
+	}
+
+	if creationData := defaultCluster.CreationData; creationData != nil {
+		if creationData.SourceResourceId != nil {
+			agentpool.Properties.CreationData = &agentpools.CreationData{
+				SourceResourceId: creationData.SourceResourceId,
+			}
+		}
+	}
+
+	if defaultCluster.GpuInstanceProfile != nil {
+		agentpool.Properties.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(*defaultCluster.GpuInstanceProfile))
 	}
 
 	return agentpool
@@ -789,23 +964,23 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		EnableFIPS:             utils.Bool(raw["fips_enabled"].(bool)),
 		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
 		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
-		KubeletDiskType:        utils.ToPtr(managedclusters.KubeletDiskType(raw["kubelet_disk_type"].(string))),
+		KubeletDiskType:        pointer.To(managedclusters.KubeletDiskType(raw["kubelet_disk_type"].(string))),
 		Name:                   raw["name"].(string),
 		NodeLabels:             nodeLabels,
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
-		Type:                   utils.ToPtr(managedclusters.AgentPoolType(raw["type"].(string))),
+		Type:                   pointer.To(managedclusters.AgentPoolType(raw["type"].(string))),
 		VMSize:                 utils.String(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
 		// Windows agents can be configured via the separate node pool resource
-		OsType: utils.ToPtr(managedclusters.OSTypeLinux),
+		OsType: pointer.To(managedclusters.OSTypeLinux),
 
 		// without this set the API returns:
 		// Code="MustDefineAtLeastOneSystemPool" Message="Must define at least one system pool."
 		// since this is the "default" node pool we can assume this is a system node pool
-		Mode: utils.ToPtr(managedclusters.AgentPoolModeSystem),
+		Mode: pointer.To(managedclusters.AgentPoolModeSystem),
 
 		UpgradeSettings: expandClusterNodePoolUpgradeSettings(raw["upgrade_settings"].([]interface{})),
 
@@ -836,13 +1011,13 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.OsDiskSizeGB = utils.Int64(osDiskSizeGB)
 	}
 
-	profile.OsDiskType = utils.ToPtr(managedclusters.OSDiskTypeManaged)
+	profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeManaged)
 	if osDiskType := raw["os_disk_type"].(string); osDiskType != "" {
-		profile.OsDiskType = utils.ToPtr(managedclusters.OSDiskType(osDiskType))
+		profile.OsDiskType = pointer.To(managedclusters.OSDiskType(osDiskType))
 	}
 
 	if osSku := raw["os_sku"].(string); osSku != "" {
-		profile.OsSKU = utils.ToPtr(managedclusters.OSSKU(osSku))
+		profile.OsSKU = pointer.To(managedclusters.OSSKU(osSku))
 	}
 
 	if podSubnetID := raw["pod_subnet_id"].(string); podSubnetID != "" {
@@ -852,7 +1027,13 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
 	profile.ScaleDownMode = &scaleDownModeDelete
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
-		profile.ScaleDownMode = utils.ToPtr(managedclusters.ScaleDownMode(scaleDownMode))
+		profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownMode(scaleDownMode))
+	}
+
+	if snapshotId := raw["snapshot_id"].(string); snapshotId != "" {
+		profile.CreationData = &managedclusters.CreationData{
+			SourceResourceId: utils.String(snapshotId),
+		}
 	}
 
 	if ultraSSDEnabled, ok := raw["ultra_ssd_enabled"]; ok {
@@ -876,11 +1057,15 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}
 
 	if workloadRunTime := raw["workload_runtime"].(string); workloadRunTime != "" {
-		profile.WorkloadRuntime = utils.ToPtr(managedclusters.WorkloadRuntime(workloadRunTime))
+		profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntime(workloadRunTime))
 	}
 
 	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
 		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
+	}
+
+	if gpuInstanceProfile := raw["gpu_instance"].(string); gpuInstanceProfile != "" {
+		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
 	count := raw["node_count"].(int)
@@ -1162,6 +1347,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		enableHostEncryption = *agentPool.EnableEncryptionAtHost
 	}
 
+	gpuInstanceProfile := ""
+	if agentPool.GpuInstanceProfile != nil {
+		gpuInstanceProfile = string(*agentPool.GpuInstanceProfile)
+	}
+
 	maxCount := 0
 	if agentPool.MaxCount != nil {
 		maxCount = int(*agentPool.MaxCount)
@@ -1256,6 +1446,15 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		scaleDownMode = *agentPool.ScaleDownMode
 	}
 
+	snapshotId := ""
+	if agentPool.CreationData != nil && agentPool.CreationData.SourceResourceId != nil {
+		id, err := snapshots.ParseSnapshotIDInsensitively(*agentPool.CreationData.SourceResourceId)
+		if err != nil {
+			return nil, err
+		}
+		snapshotId = id.ID()
+	}
+
 	vmSize := ""
 	if agentPool.VMSize != nil {
 		vmSize = *agentPool.VMSize
@@ -1299,6 +1498,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"enable_host_encryption":        enableHostEncryption,
 		"custom_ca_trust_enabled":       customCaTrustEnabled,
 		"fips_enabled":                  enableFIPS,
+		"gpu_instance":                  gpuInstanceProfile,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,
 		"max_count":                     maxCount,
@@ -1315,6 +1515,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"os_disk_type":                  string(osDiskType),
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
+		"snapshot_id":                   snapshotId,
 		"tags":                          tags.Flatten(agentPool.Tags),
 		"temporary_name_for_rotation":   temporaryName,
 		"type":                          agentPoolType,

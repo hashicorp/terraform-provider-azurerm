@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -14,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/schedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,9 +31,9 @@ import (
 
 func resourceAutomationSchedule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationScheduleCreateUpdate,
+		Create: resourceAutomationScheduleCreate,
 		Read:   resourceAutomationScheduleRead,
-		Update: resourceAutomationScheduleCreateUpdate,
+		Update: resourceAutomationScheduleUpdate,
 		Delete: resourceAutomationScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -86,7 +89,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: suppress.RFC3339Time,
+				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 				// defaults to now + 7 minutes in create function if not set
 			},
@@ -95,7 +98,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
@@ -208,8 +211,8 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ScheduleClient
+func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Schedule
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,17 +221,15 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	id := schedule.NewScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_schedule", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_schedule", id.ID())
 	}
 
 	frequency := d.Get("frequency").(string)
@@ -262,8 +263,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("expiry_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
-		parameters.Properties.SetExpiryTimeAsTime(t.In(loc))
+		parameters.Properties.ExpiryTime = pointer.To(v.(string))
 	}
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
@@ -283,7 +283,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -291,8 +291,94 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceAutomationScheduleRead(d, meta)
 }
 
+func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Schedule
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule update.")
+
+	id := schedule.NewScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+
+	}
+
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("reading existing properties of %s", id)
+	}
+
+	parameters := schedule.ScheduleCreateOrUpdateParameters{
+		Name: id.ScheduleName,
+		Properties: schedule.ScheduleCreateOrUpdateProperties{
+			Frequency:   pointer.From(existing.Model.Properties.Frequency),
+			Description: existing.Model.Properties.Description,
+			TimeZone:    existing.Model.Properties.TimeZone,
+		},
+	}
+	if d.HasChange("frequency") {
+		parameters.Properties.Frequency = schedule.ScheduleFrequency(d.Get("frequency").(string))
+	}
+
+	if d.HasChange("timezone") {
+		parameters.Properties.TimeZone = pointer.To(d.Get("timezone").(string))
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	parameters.Properties.StartTime = pointer.From(existing.Model.Properties.StartTime)
+	if d.HasChange("start_time") {
+		// start time can default to now + 7 (5 could be invalid by the time the API is called)
+		loc, err := time.LoadLocation(pointer.From(parameters.Properties.TimeZone))
+		if err != nil {
+			return err
+		}
+		if v, ok := d.GetOk("start_time"); ok {
+			t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
+			duration := time.Duration(5) * time.Minute
+			if time.Until(t) < duration {
+				return fmt.Errorf("`start_time` is %q and should be at least %q in the future", t, duration)
+			}
+
+			parameters.Properties.SetStartTimeAsTime(t.In(loc))
+		} else {
+			parameters.Properties.SetStartTimeAsTime(time.Now().In(loc).Add(time.Duration(7) * time.Minute))
+		}
+	}
+
+	parameters.Properties.ExpiryTime = existing.Model.Properties.ExpiryTime
+	if d.HasChange("expiry_time") {
+		parameters.Properties.ExpiryTime = pointer.To(d.Get("expiry_time").(string))
+	}
+
+	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
+	if parameters.Properties.Frequency != schedule.ScheduleFrequencyOneTime {
+		parameters.Properties.Interval = existing.Model.Properties.Interval
+		if d.HasChange("interval") {
+			parameters.Properties.Interval = pointer.To(d.Get("interval"))
+		}
+	}
+
+	if d.HasChange("week_days") || d.HasChange("month_days") || d.HasChange("monthly_occurrence") {
+		// only pay attention to the advanced schedule fields if frequency is either Week or Month
+		if parameters.Properties.Frequency == schedule.ScheduleFrequencyWeek || parameters.Properties.Frequency == schedule.ScheduleFrequencyMonth {
+			parameters.Properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+	return resourceAutomationScheduleRead(d, meta)
+}
+
 func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ScheduleClient
+	client := meta.(*clients.Client).Automation.Schedule
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -324,12 +410,7 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 				return err
 			}
 			d.Set("start_time", startTime.Format(time.RFC3339))
-
-			expiryTime, err := props.GetExpiryTimeAsTime()
-			if err != nil {
-				return err
-			}
-			d.Set("expiry_time", expiryTime.Format(time.RFC3339))
+			d.Set("expiry_time", pointer.From(props.ExpiryTime))
 
 			if v := props.Interval; v != nil {
 				d.Set("interval", v)
@@ -358,7 +439,7 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceAutomationScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ScheduleClient
+	client := meta.(*clients.Client).Automation.Schedule
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

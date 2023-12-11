@@ -1,0 +1,22 @@
+---
+name: Increment Milestone
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  increment-milestone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+      - name: "Increment Milestone"
+        shell: bash
+        run: bash ./scripts/increment-milestone.sh -u https://api.github.com/repos${{ github.owner }}/${{ github.repository }}/milestones -r ${{github.ref_name}} -t ${{secrets.GITHUB_TOKEN}}

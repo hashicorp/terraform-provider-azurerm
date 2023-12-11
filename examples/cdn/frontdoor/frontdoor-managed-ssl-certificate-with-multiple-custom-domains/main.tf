@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -211,11 +214,11 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_route" "example" {
-  name                            = "${var.prefix}-route"
-  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.example.id]
-  enabled                         = true
+  name                          = "${var.prefix}-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  enabled                       = true
 
   forwarding_protocol        = "MatchRequest"
   https_redirect_enabled     = true

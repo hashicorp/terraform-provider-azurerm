@@ -1,30 +1,33 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "internal"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = azurerm_virtual_network.example.name
+  resource_group_name  = azurerm_resource_group.example.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "${var.prefix}-vmss"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -49,7 +52,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
     ip_configuration {
       name      = "internal"
-      subnet_id = "${azurerm_subnet.example.id}"
+      subnet_id = azurerm_subnet.example.id
       primary   = true
     }
   }
@@ -63,8 +66,8 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

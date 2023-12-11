@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -6,18 +9,18 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
@@ -51,7 +54,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"lun": {
@@ -96,15 +99,15 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedVirtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	parsedVirtualMachineId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", parsedVirtualMachineId.ID(), err)
 	}
 
-	locks.ByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
-	defer locks.UnlockByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
+	locks.ByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 
-	virtualMachine, err := client.Get(ctx, parsedVirtualMachineId.ResourceGroup, parsedVirtualMachineId.Name, "")
+	virtualMachine, err := client.Get(ctx, parsedVirtualMachineId.ResourceGroupName, parsedVirtualMachineId.VirtualMachineName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualMachine.Response) {
 			return fmt.Errorf("Virtual Machine %q  was not found", parsedVirtualMachineId.String())
@@ -176,7 +179,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	// which we're intentionally not wrapping, since the errors good.
-	future, err := client.CreateOrUpdate(ctx, parsedVirtualMachineId.ResourceGroup, parsedVirtualMachineId.Name, virtualMachine)
+	future, err := client.CreateOrUpdate(ctx, parsedVirtualMachineId.ResourceGroupName, parsedVirtualMachineId.VirtualMachineName, virtualMachine)
 	if err != nil {
 		return fmt.Errorf("updating Virtual Machine %q  with Disk %q: %+v", parsedVirtualMachineId.String(), name, err)
 	}

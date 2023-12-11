@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package CdnFrontDoorruleconditions
 
 import (
@@ -230,6 +233,11 @@ func validateCdnFrontDoorExpandConditionOperatorValues(operator string, matchVal
 
 	if operator == string(cdn.OperatorAny) && len(*matchValues) > 0 {
 		return fmt.Errorf("%q is invalid: the 'match_values' field must not be set if the conditions 'operator' is set to 'Any'", m.ConfigName)
+	}
+
+	// make the 'match_values' field required if the operator is not set to 'Any'...
+	if operator != string(cdn.OperatorAny) && len(*matchValues) == 0 {
+		return fmt.Errorf("%q is invalid: the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'", m.ConfigName)
 	}
 
 	return nil

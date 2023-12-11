@@ -23,7 +23,7 @@ type ResumeProtectionOperationResponse struct {
 // ResumeProtection ...
 func (c BackupInstancesClient) ResumeProtection(ctx context.Context, id BackupInstanceId) (result ResumeProtectionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

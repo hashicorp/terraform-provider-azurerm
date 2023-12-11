@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -11,7 +14,9 @@ var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		AutomationVariablesDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
@@ -22,6 +27,7 @@ func (r Registration) Resources() []sdk.Resource {
 		SoftwareUpdateConfigurationResource{},
 		SourceControlResource{},
 		WatcherResource{},
+		Python3PackageResource{},
 	}
 }
 
@@ -48,6 +54,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_variable_bool":     dataSourceAutomationVariableBool(),
 		"azurerm_automation_variable_datetime": dataSourceAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":      dataSourceAutomationVariableInt(),
+		"azurerm_automation_variable_object":   dataSourceAutomationVariableObject(),
 		"azurerm_automation_variable_string":   dataSourceAutomationVariableString(),
 	}
 }
@@ -71,6 +78,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_variable_bool":                  resourceAutomationVariableBool(),
 		"azurerm_automation_variable_datetime":              resourceAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":                   resourceAutomationVariableInt(),
+		"azurerm_automation_variable_object":                resourceAutomationVariableObject(),
 		"azurerm_automation_variable_string":                resourceAutomationVariableString(),
 		"azurerm_automation_webhook":                        resourceAutomationWebhook(),
 	}

@@ -1,6 +1,10 @@
 package workflows
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForKeyType() []string {
 		string(KeyTypePrimary),
 		string(KeyTypeSecondary),
 	}
+}
+
+func (s *KeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKeyType(input string) (*KeyType, error) {
@@ -46,6 +63,19 @@ func PossibleValuesForOpenAuthenticationProviderType() []string {
 	return []string{
 		string(OpenAuthenticationProviderTypeAAD),
 	}
+}
+
+func (s *OpenAuthenticationProviderType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOpenAuthenticationProviderType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOpenAuthenticationProviderType(input string) (*OpenAuthenticationProviderType, error) {
@@ -89,6 +119,19 @@ func PossibleValuesForParameterType() []string {
 	}
 }
 
+func (s *ParameterType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseParameterType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseParameterType(input string) (*ParameterType, error) {
 	vals := map[string]ParameterType{
 		"array":        ParameterTypeArray,
@@ -130,6 +173,19 @@ func PossibleValuesForSkuName() []string {
 		string(SkuNameShared),
 		string(SkuNameStandard),
 	}
+}
+
+func (s *SkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSkuName(input string) (*SkuName, error) {
@@ -204,6 +260,19 @@ func PossibleValuesForWorkflowProvisioningState() []string {
 	}
 }
 
+func (s *WorkflowProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseWorkflowProvisioningState(input string) (*WorkflowProvisioningState, error) {
 	vals := map[string]WorkflowProvisioningState{
 		"accepted":      WorkflowProvisioningStateAccepted,
@@ -258,6 +327,19 @@ func PossibleValuesForWorkflowState() []string {
 		string(WorkflowStateNotSpecified),
 		string(WorkflowStateSuspended),
 	}
+}
+
+func (s *WorkflowState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkflowState(input string) (*WorkflowState, error) {

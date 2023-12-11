@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration
 
 import (
@@ -8,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -150,14 +154,15 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
-			// allow some time for role permission to be done propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", model.Key)
+			// allow some time for role permission to be propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:      []string{"Forbidden"},
-				Target:       []string{"Error", "Exists"},
-				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
-				PollInterval: 20 * time.Second,
-				Timeout:      time.Until(deadline),
+				Pending:                   []string{"Forbidden"},
+				Target:                    []string{"Error", "Exists", "NotFound"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -207,6 +212,21 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be provisioned", model.Key)
+			stateConf = &pluginsdk.StateChangeConf{
+				Pending:                   []string{"NotFound", "Forbidden"},
+				Target:                    []string{"Exists"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Key %q to be provisioned: %+v", model.Key, err)
+			}
+
 			metadata.SetID(nestedItemId)
 			return nil
 		},
@@ -222,8 +242,8 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			resourceClient := metadata.Client.Resource
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}

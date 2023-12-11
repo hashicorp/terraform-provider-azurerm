@@ -1,58 +1,61 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.resource_group}"
-  location = "${var.location}"
+  name     = var.resource_group
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "vnet" {
   name                = "${var.hostname}vnet"
-  location            = "${var.location}"
+  location            = var.location
   address_space       = ["${var.address_space}"]
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_subnet" "subnet" {
   name                 = "${var.hostname}subnet"
-  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
-  resource_group_name  = "${azurerm_resource_group.rg.name}"
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = azurerm_resource_group.rg.name
   address_prefixes     = ["${var.subnet_prefix}"]
 }
 
 resource "azurerm_network_interface" "nic" {
   name                = "nic"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
     name                          = "ipconfig"
-    subnet_id                     = "${azurerm_subnet.subnet.id}"
+    subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "stor" {
   name                     = "${var.hostname}stor"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
-  location                 = "${azurerm_resource_group.rg.location}"
-  account_tier             = "${var.storage_account_tier}"
-  account_replication_type = "${var.storage_replication_type}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = var.storage_account_tier
+  account_replication_type = var.storage_replication_type
 }
 
 resource "azurerm_virtual_machine" "vm" {
-  name                  = "${var.hostname}"
-  location              = "${var.location}"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
-  vm_size               = "${var.vm_size}"
+  name                  = var.hostname
+  location              = var.location
+  resource_group_name   = azurerm_resource_group.rg.name
+  vm_size               = var.vm_size
   network_interface_ids = ["${azurerm_network_interface.nic.id}"]
 
   storage_image_reference {
-    publisher = "${var.image_publisher}"
-    offer     = "${var.image_offer}"
-    sku       = "${var.image_sku}"
-    version   = "${var.image_version}"
+    publisher = var.image_publisher
+    offer     = var.image_offer
+    sku       = var.image_sku
+    version   = var.image_version
   }
 
   storage_os_disk {
@@ -62,9 +65,9 @@ resource "azurerm_virtual_machine" "vm" {
   }
 
   os_profile {
-    computer_name  = "${var.hostname}"
-    admin_username = "${var.admin_username}"
-    admin_password = "${var.admin_password}"
+    computer_name  = var.hostname
+    admin_username = var.admin_username
+    admin_password = var.admin_password
   }
 
   os_profile_linux_config {
@@ -74,7 +77,7 @@ resource "azurerm_virtual_machine" "vm" {
 
 resource "azurerm_template_deployment" "linux_vm" {
   name                = "encrypt"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  resource_group_name = azurerm_resource_group.rg.name
   deployment_mode     = "Incremental"
   depends_on          = ["azurerm_virtual_machine.vm"]
 

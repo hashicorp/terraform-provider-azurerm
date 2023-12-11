@@ -1,16 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementGateway() *pluginsdk.Resource {
@@ -27,7 +31,7 @@ func dataSourceApiManagementGateway() *pluginsdk.Resource {
 			"api_management_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementID,
+				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
 			"description": {
@@ -68,35 +72,38 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apimId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
+	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
 
-	id := parse.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroup, apimId.ServiceName, d.Get("name").(string))
+	id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("making read request %s: %+v", id, err)
 	}
 
-	_, err = parse.GatewayID(*resp.ID)
-	if err != nil {
-		return fmt.Errorf("parsing Gateway ID %q", *resp.ID)
+	if resp.Model != nil {
+		_, err = gateway.ParseGatewayID(*resp.Model.Id)
+		if err != nil {
+			return fmt.Errorf("parsing Gateway ID %q", *resp.Model.Id)
+		}
 	}
-
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
 	d.Set("api_management_id", apimId.ID())
 
-	if properties := resp.GatewayContractProperties; properties != nil {
-		d.Set("description", properties.Description)
-		d.Set("location_data", flattenApiManagementGatewayLocationData(properties.LocationData))
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("location_data", flattenApiManagementGatewayLocationData(props.LocationData))
+		}
 	}
 
 	return nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -14,7 +17,7 @@ func NestedItemId(i interface{}, k string) (warnings []string, errors []error) {
 
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("Expected %s to be a string!", k))
+		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
 		return warnings, errors
 	}
 
@@ -33,7 +36,7 @@ func VersionlessNestedItemId(i interface{}, k string) (warnings []string, errors
 
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("Expected %s to be a string!", k))
+		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
 		return warnings, errors
 	}
 
@@ -57,7 +60,7 @@ func NestedItemIdWithOptionalVersion(i interface{}, k string) (warnings []string
 
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("Expected %s to be a string!", k))
+		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
 		return warnings, errors
 	}
 

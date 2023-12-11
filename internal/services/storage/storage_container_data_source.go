@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,7 +102,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := parse.NewStorageContainerResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, "default", containerName)
+	resourceManagerId := commonids.NewStorageContainerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

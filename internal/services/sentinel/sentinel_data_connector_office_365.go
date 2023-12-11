@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -24,10 +27,7 @@ func resourceSentinelDataConnectorOffice365() *pluginsdk.Resource {
 		Update: resourceSentinelDataConnectorOffice365CreateUpdate,
 		Delete: resourceSentinelDataConnectorOffice365Delete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
-			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindOffice365)),
+		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindOffice365),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

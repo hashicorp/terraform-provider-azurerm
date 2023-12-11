@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -68,6 +71,13 @@ func TestAccAzureRMPolicySetDefinition_customNoParameter(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customNoParameter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customNoParameterUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -474,6 +484,24 @@ resource "azurerm_policy_set_definition" "test" {
 
   policy_definition_reference {
     policy_definition_id = azurerm_policy_definition.test.id
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicySetDefinitionResource) customNoParameterUpdate(data acceptance.TestData) string {
+	template := r.templateNoParameter(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPolSet-%d"
+  policy_type  = "Custom"
+  display_name = "acctestPolSet-display-%d"
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = "{}"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)

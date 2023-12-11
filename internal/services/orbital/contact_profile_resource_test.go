@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package orbital_test
 
 import (
@@ -73,7 +76,7 @@ func (r ContactProfileResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.Orbital.ContactProfileClient.ContactProfilesGet(ctx, *id)
+	resp, err := client.Orbital.ContactProfileClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

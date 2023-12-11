@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -84,10 +87,7 @@ func (r DataConnectorAwsS3Resource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func (r DataConnectorAwsS3Resource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesS3)(ctx, metadata.ResourceData, metadata.Client)
-		return err
-	}
+	return importDataConnectorTyped(securityinsight.DataConnectorKindAmazonWebServicesS3)
 }
 
 func (r DataConnectorAwsS3Resource) Create() sdk.ResourceFunc {

@@ -25,9 +25,23 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "example" {
   definition {
     name        = "name1"
     description = "definition1"
+    service     = "Microsoft.Storage"
     service_resources = [
       azurerm_resource_group.example.id,
       azurerm_storage_account.example.id
+    ]
+  }
+  definition {
+    name        = "name2"
+    description = "definition2"
+    service     = "Global"
+    service_resources = [
+      "/services/Azure",
+      "/services/Azure/Batch",
+      "/services/Azure/DataFactory",
+      "/services/Azure/MachineLearning",
+      "/services/Azure/ManagedInstance",
+      "/services/Azure/WebPI",
     ]
   }
 }
@@ -63,7 +77,11 @@ A `definition` block supports the following:
 
 * `name` - (Required) The name which should be used for this Subnet Service Endpoint Storage Policy Definition.
 
-* `service_resources` - (Required) Specifies a list of resources that this Subnet Service Endpoint Storage Policy Definition applies to.
+* `service` - (Optional) The type of service resources. Valid values are `Microsoft.Storage` or `Global`. When the `service_resources` property contains resource IDs, this property must be `Microsoft.Storage`. When the `service_resources` property contains Aliases, this property must be `Global`. Defaults to `Microsoft.Storage`. 
+
+* `service_resources` - (Required) Specifies a list of resources or aliases that this Subnet Service Endpoint Storage Policy Definition applies to.
+
+~> **NOTE** The `service_resources` property must contain either Aliases or Resource IDs, but not both.
 
 * `description` - (Optional) The description of this Subnet Service Endpoint Storage Policy Definition.
 

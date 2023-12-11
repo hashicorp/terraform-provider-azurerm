@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventgrid
 
 import (
@@ -6,13 +9,15 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,7 +39,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DomainID(id)
+			_, err := domains.ParseDomainID(id)
 			return err
 		}),
 
@@ -59,15 +64,11 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"input_schema": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(eventgrid.InputSchemaEventGridSchema),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(eventgrid.InputSchemaCloudEventSchemaV10),
-					string(eventgrid.InputSchemaCustomEventSchema),
-					string(eventgrid.InputSchemaEventGridSchema),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(domains.InputSchemaEventGridSchema),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(domains.PossibleValuesForInputSchema(), false),
 			},
 
 			// lintignore:XS003
@@ -139,9 +140,17 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
-			"public_network_access_enabled": eventSubscriptionPublicNetworkAccessEnabled(),
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
-			"local_auth_enabled": localAuthEnabled(),
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"auto_create_topic_with_first_subscription": {
 				Type:     pluginsdk.TypeBool,
@@ -155,7 +164,28 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
+			"inbound_ip_rule": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   128,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ip_mask": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(domains.IPActionTypeAllow),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(domains.IPActionTypeAllow),
+							}, false),
+						},
+					},
+				},
+			},
 
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -174,198 +204,187 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.DomainsClient
+	client := meta.(*clients.Client).EventGrid.Domains
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
+	id := domains.NewDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_eventgrid_domain", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
-	domainProperties := &eventgrid.DomainProperties{
-		InputSchemaMapping:                   expandAzureRmEventgridDomainInputMapping(d),
-		InputSchema:                          eventgrid.InputSchema(d.Get("input_schema").(string)),
-		PublicNetworkAccess:                  expandPublicNetworkAccess(d),
-		InboundIPRules:                       expandInboundIPRules(d),
-		DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
-		AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
-		AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
+	inboundIPRules := expandDomainInboundIPRules(d.Get("inbound_ip_rule").([]interface{}))
+	publicNetworkAccess := domains.PublicNetworkAccessDisabled
+	if v, ok := d.GetOk("public_network_access_enabled"); ok && v.(bool) {
+		publicNetworkAccess = domains.PublicNetworkAccessEnabled
 	}
 
-	domain := eventgrid.Domain{
-		Location:         &location,
-		DomainProperties: domainProperties,
-		Tags:             tags.Expand(t),
+	domain := domains.Domain{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &domains.DomainProperties{
+			AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
+			AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
+			DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			InboundIPRules:                       inboundIPRules,
+			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
+			InputSchemaMapping:                   expandDomainInputMapping(d),
+			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		identityRaw := v.([]interface{})
-		identity, err := expandIdentity(identityRaw)
+		identity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		domain.Identity = identity
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Domain creation with Properties: %+v", domain)
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, domain)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, domain); err != nil {
 		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to become available: %s", id, err)
-	}
-
 	d.SetId(id.ID())
-
 	return resourceEventGridDomainRead(d, meta)
 }
 
 func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.DomainsClient
+	client := meta.(*clients.Client).EventGrid.Domains
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DomainID(d.Id())
+	id, err := domains.ParseDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Domain %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("%s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on EventGrid Domain %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	keys, err := client.ListSharedAccessKeys(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Shared Access Keys for %s: %+v", *id, err)
 	}
 
-	if props := resp.DomainProperties; props != nil {
-		d.Set("endpoint", props.Endpoint)
+	d.Set("name", id.DomainName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-		d.Set("input_schema", string(props.InputSchema))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-		inputMappingFields, err := flattenAzureRmEventgridDomainInputMapping(props.InputSchemaMapping)
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
-			return fmt.Errorf("flattening `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
-			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
-		}
-
-		inputMappingDefaultValues, err := flattenAzureRmEventgridDomainInputMappingDefaultValues(props.InputSchemaMapping)
-		if err != nil {
-			return fmt.Errorf("flattening `input_schema_mapping_default_values` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
-		}
-		if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
-			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		publicNetworkAccessEnabled := flattenPublicNetworkAccess(props.PublicNetworkAccess)
-		if err := d.Set("public_network_access_enabled", publicNetworkAccessEnabled); err != nil {
-			return fmt.Errorf("setting `public_network_access_enabled` in EventGrid Domain %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if props := model.Properties; props != nil {
+			d.Set("endpoint", props.Endpoint)
+
+			inputSchema := ""
+			if props.InputSchema != nil {
+				inputSchema = string(*props.InputSchema)
+			}
+			d.Set("input_schema", inputSchema)
+
+			inputMappingFields := flattenDomainInputMapping(props.InputSchemaMapping)
+			if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
+			}
+
+			inputMappingDefaultValues := flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)
+			if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
+			}
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == domains.PublicNetworkAccessDisabled {
+				publicNetworkAccessEnabled = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			inboundIPRules := flattenDomainInboundIPRules(props.InboundIPRules)
+			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
+			}
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !*props.DisableLocalAuth
+			}
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			autoCreateTopicWithFirstSubscription := true
+			if props.AutoCreateTopicWithFirstSubscription != nil {
+				autoCreateTopicWithFirstSubscription = *props.AutoCreateTopicWithFirstSubscription
+			}
+			d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
+
+			autoDeleteTopicWithLastSubscription := true
+			if props.AutoDeleteTopicWithLastSubscription != nil {
+				autoDeleteTopicWithLastSubscription = *props.AutoDeleteTopicWithLastSubscription
+			}
+			d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
 		}
 
-		inboundIPRules := flattenInboundIPRules(props.InboundIPRules)
-		if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
-			return fmt.Errorf("setting `inbound_ip_rule` in EventGrid Domain %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
-
-		localAuthEnabled := true
-		if props.DisableLocalAuth != nil {
-			localAuthEnabled = !*props.DisableLocalAuth
-		}
-
-		d.Set("local_auth_enabled", localAuthEnabled)
-
-		autoCreateTopicWithFirstSubscription := true
-		if props.AutoCreateTopicWithFirstSubscription != nil {
-			autoCreateTopicWithFirstSubscription = *props.AutoCreateTopicWithFirstSubscription
-		}
-
-		d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
-
-		autoDeleteTopicWithLastSubscription := true
-		if props.AutoDeleteTopicWithLastSubscription != nil {
-			autoDeleteTopicWithLastSubscription = *props.AutoDeleteTopicWithLastSubscription
-		}
-
-		d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
 	}
 
-	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Shared Access Keys for EventGrid Domain %q: %+v", id.Name, err)
-	}
-
-	flattenedIdentity, err := flattenIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", flattenedIdentity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	d.Set("primary_access_key", keys.Key1)
-	d.Set("secondary_access_key", keys.Key2)
-
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.DomainsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.DomainID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting Event Grid Domain %q: %+v", id.Name, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("deleting Event Grid Domain %q: %+v", id.Name, err)
+	if model := keys.Model; model != nil {
+		d.Set("primary_access_key", model.Key1)
+		d.Set("secondary_access_key", model.Key2)
 	}
 
 	return nil
 }
 
-func expandAzureRmEventgridDomainInputMapping(d *pluginsdk.ResourceData) *eventgrid.JSONInputSchemaMapping {
+func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).EventGrid.Domains
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := domains.ParseDomainID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchemaMapping {
 	imf, imfok := d.GetOk("input_mapping_fields")
 
 	imdv, imdvok := d.GetOk("input_mapping_default_values")
@@ -374,7 +393,7 @@ func expandAzureRmEventgridDomainInputMapping(d *pluginsdk.ResourceData) *eventg
 		return nil
 	}
 
-	jismp := eventgrid.JSONInputSchemaMappingProperties{}
+	jismp := domains.JsonInputSchemaMappingProperties{}
 
 	if imfok {
 		mappings := imf.([]interface{})
@@ -382,27 +401,37 @@ func expandAzureRmEventgridDomainInputMapping(d *pluginsdk.ResourceData) *eventg
 			mapping := mappings[0].(map[string]interface{})
 
 			if id := mapping["id"].(string); id != "" {
-				jismp.ID = &eventgrid.JSONField{SourceField: &id}
+				jismp.Id = &domains.JsonField{SourceField: &id}
 			}
 
 			if eventTime := mapping["event_time"].(string); eventTime != "" {
-				jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
+				jismp.EventTime = &domains.JsonField{
+					SourceField: &eventTime,
+				}
 			}
 
 			if topic := mapping["topic"].(string); topic != "" {
-				jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
+				jismp.Topic = &domains.JsonField{
+					SourceField: &topic,
+				}
 			}
 
 			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
+				jismp.DataVersion = &domains.JsonFieldWithDefault{
+					SourceField: &dataVersion,
+				}
 			}
 
 			if subject := mapping["subject"].(string); subject != "" {
-				jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
+				jismp.Subject = &domains.JsonFieldWithDefault{
+					SourceField: &subject,
+				}
 			}
 
 			if eventType := mapping["event_type"].(string); eventType != "" {
-				jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+				jismp.EventType = &domains.JsonFieldWithDefault{
+					SourceField: &eventType,
+				}
 			}
 		}
 	}
@@ -413,89 +442,141 @@ func expandAzureRmEventgridDomainInputMapping(d *pluginsdk.ResourceData) *eventg
 			mapping := mappings[0].(map[string]interface{})
 
 			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-				jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+				jismp.DataVersion = &domains.JsonFieldWithDefault{
+					DefaultValue: &dataVersion,
+				}
 			}
 
 			if subject := mapping["subject"].(string); subject != "" {
-				jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+				jismp.Subject = &domains.JsonFieldWithDefault{
+					DefaultValue: &subject,
+				}
 			}
 
 			if eventType := mapping["event_type"].(string); eventType != "" {
-				jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+				jismp.EventType = &domains.JsonFieldWithDefault{
+					DefaultValue: &eventType,
+				}
 			}
 		}
 	}
 
-	jsonMapping := eventgrid.JSONInputSchemaMapping{
-		JSONInputSchemaMappingProperties: &jismp,
-		InputSchemaMappingType:           eventgrid.InputSchemaMappingTypeJSON,
+	return &domains.JsonInputSchemaMapping{
+		Properties: &jismp,
 	}
-
-	return &jsonMapping
 }
 
-func flattenAzureRmEventgridDomainInputMapping(input eventgrid.BasicInputSchemaMapping) ([]interface{}, error) {
-	if input == nil {
-		return nil, nil
-	}
-	result := make(map[string]interface{})
+func flattenDomainInputMapping(input domains.InputSchemaMapping) []interface{} {
+	output := make([]interface{}, 0)
+	val, ok := input.(domains.JsonInputSchemaMapping)
+	if ok {
+		if props := val.Properties; props != nil {
+			eventTime := ""
+			if props.EventTime != nil && props.EventTime.SourceField != nil {
+				eventTime = *props.EventTime.SourceField
+			}
 
-	jsonValues, ok := input.(eventgrid.JSONInputSchemaMapping)
-	if !ok {
-		return nil, fmt.Errorf("Unable to read JSONInputSchemaMapping")
-	}
-	props := jsonValues.JSONInputSchemaMappingProperties
+			id := ""
+			if props.Id != nil && props.Id.SourceField != nil {
+				id = *props.Id.SourceField
+			}
 
-	if props.EventTime != nil && props.EventTime.SourceField != nil {
-		result["event_time"] = *props.EventTime.SourceField
-	}
+			topic := ""
+			if props.Topic != nil && props.Topic.SourceField != nil {
+				topic = *props.Topic.SourceField
+			}
 
-	if props.ID != nil && props.ID.SourceField != nil {
-		result["id"] = *props.ID.SourceField
-	}
+			dataVersion := ""
+			if props.DataVersion != nil && props.DataVersion.SourceField != nil {
+				dataVersion = *props.DataVersion.SourceField
+			}
 
-	if props.Topic != nil && props.Topic.SourceField != nil {
-		result["topic"] = *props.Topic.SourceField
-	}
+			eventType := ""
+			if props.EventType != nil && props.EventType.SourceField != nil {
+				eventType = *props.EventType.SourceField
+			}
 
-	if props.DataVersion != nil && props.DataVersion.SourceField != nil {
-		result["data_version"] = *props.DataVersion.SourceField
-	}
+			subject := ""
+			if props.Subject != nil && props.Subject.SourceField != nil {
+				subject = *props.Subject.SourceField
+			}
 
-	if props.EventType != nil && props.EventType.SourceField != nil {
-		result["event_type"] = *props.EventType.SourceField
+			output = append(output, map[string]interface{}{
+				"data_version": dataVersion,
+				"event_type":   eventType,
+				"event_time":   eventTime,
+				"id":           id,
+				"topic":        topic,
+				"subject":      subject,
+			})
+		}
 	}
-
-	if props.Subject != nil && props.Subject.SourceField != nil {
-		result["subject"] = *props.Subject.SourceField
-	}
-
-	return []interface{}{result}, nil
+	return output
 }
 
-func flattenAzureRmEventgridDomainInputMappingDefaultValues(input eventgrid.BasicInputSchemaMapping) ([]interface{}, error) {
+func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []interface{} {
+	output := make([]interface{}, 0)
+	val, ok := input.(domains.JsonInputSchemaMapping)
+	if ok {
+		if props := val.Properties; props != nil {
+			dataVersion := ""
+			if props.DataVersion != nil && props.DataVersion.DefaultValue != nil {
+				dataVersion = *props.DataVersion.DefaultValue
+			}
+
+			eventType := ""
+			if props.EventType != nil && props.EventType.DefaultValue != nil {
+				eventType = *props.EventType.DefaultValue
+			}
+
+			subject := ""
+			if props.Subject != nil && props.Subject.DefaultValue != nil {
+				subject = *props.Subject.DefaultValue
+			}
+
+			output = append(output, map[string]interface{}{
+				"data_version": dataVersion,
+				"event_type":   eventType,
+				"subject":      subject,
+			})
+		}
+	}
+
+	return output
+}
+
+func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
+	if len(input) == 0 {
+		return nil
+	}
+
+	rules := make([]domains.InboundIPRule, 0)
+	for _, item := range input {
+		rawRule := item.(map[string]interface{})
+		rules = append(rules, domains.InboundIPRule{
+			Action: pointer.To(domains.IPActionType(rawRule["action"].(string))),
+			IPMask: utils.String(rawRule["ip_mask"].(string)),
+		})
+	}
+	return &rules
+}
+
+func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []interface{} {
+	rules := make([]interface{}, 0)
 	if input == nil {
-		return nil, nil
-	}
-	result := make(map[string]interface{})
-
-	jsonValues, ok := input.(eventgrid.JSONInputSchemaMapping)
-	if !ok {
-		return nil, fmt.Errorf("Unable to read JSONInputSchemaMapping")
-	}
-	props := jsonValues.JSONInputSchemaMappingProperties
-
-	if props.DataVersion != nil && props.DataVersion.DefaultValue != nil {
-		result["data_version"] = *props.DataVersion.DefaultValue
+		return rules
 	}
 
-	if props.EventType != nil && props.EventType.DefaultValue != nil {
-		result["event_type"] = *props.EventType.DefaultValue
-	}
+	for _, r := range *input {
+		action := ""
+		if r.Action != nil {
+			action = string(*r.Action)
+		}
 
-	if props.Subject != nil && props.Subject.DefaultValue != nil {
-		result["subject"] = *props.Subject.DefaultValue
+		rules = append(rules, map[string]interface{}{
+			"action":  action,
+			"ip_mask": pointer.From(r.IPMask),
+		})
 	}
-
-	return []interface{}{result}, nil
+	return rules
 }

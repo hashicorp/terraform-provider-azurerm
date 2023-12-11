@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -39,9 +42,9 @@ resource "azurerm_virtual_network_gateway" "example" {
   sku      = "VpnGw1"
 
   ip_configuration {
-     name                          = "vnetGatewayConfig"
-     public_ip_address_id          = azurerm_public_ip.example.id
-     private_ip_address_allocation = "Dynamic"
-     subnet_id                     = azurerm_subnet.example.id
+    name                          = "vnetGatewayConfig"
+    public_ip_address_id          = azurerm_public_ip.example.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.example.id
   }
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -11,142 +14,15 @@ func SchemaForDataFlowSourceAndSink() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+		Elem:     resourceSourceAndSink(),
+	}
+}
 
-				"description": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"dataset": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-						},
-					},
-				},
-
-				"flowlet": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-
-							"dataset_parameters": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-					},
-				},
-
-				"linked_service": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-						},
-					},
-				},
-
-				"rejected_linked_service": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-						},
-					},
-				},
-
-				"schema_linked_service": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"parameters": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+func SchemaForDataFlowletSourceAndSink() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem:     resourceSourceAndSink(),
 	}
 }
 
@@ -479,6 +355,145 @@ func flattenDataFactoryDataFlowReference(input *datafactory.DataFlowReference) [
 			"name":               name,
 			"parameters":         input.Parameters,
 			"dataset_parameters": input.DatasetParameters,
+		},
+	}
+}
+
+func resourceSourceAndSink() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"dataset": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"flowlet": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"dataset_parameters": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"linked_service": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"rejected_linked_service": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"schema_linked_service": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }

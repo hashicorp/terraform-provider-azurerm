@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -68,10 +71,7 @@ func (r DataConnectorOffice365ProjectResource) IDValidationFunc() pluginsdk.Sche
 }
 
 func (r DataConnectorOffice365ProjectResource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindOffice365Project)(ctx, metadata.ResourceData, metadata.Client)
-		return err
-	}
+	return importDataConnectorTyped(securityinsight.DataConnectorKindOffice365Project)
 }
 
 func (r DataConnectorOffice365ProjectResource) Create() sdk.ResourceFunc {

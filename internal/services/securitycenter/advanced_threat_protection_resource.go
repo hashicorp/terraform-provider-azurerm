@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter
 
 import (
@@ -83,6 +86,39 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
 		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.TargetResourceID, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+
+	// the API appears to be eventually consistent, tracked on https://github.com/Azure/azure-rest-api-specs/issues/25232
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{"diff"},
+		Target:  []string{"consistent"},
+		Refresh: func() (result interface{}, state string, err error) {
+			resp, err := client.Get(ctx, id.TargetResourceID)
+			if err != nil {
+				return resp, "error", err
+			}
+			if atpp := resp.AdvancedThreatProtectionProperties; atpp != nil {
+				respEnabled := atpp.IsEnabled != nil && *atpp.IsEnabled
+				if respEnabled == d.Get("enabled").(bool) {
+					return resp, "consistent", nil
+				} else {
+					return resp, "diff", nil
+				}
+			}
+			return resp, "error", fmt.Errorf("Properties was nil")
+		},
+		MinTimeout:                1 * time.Minute,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of advanced threat protection: %+v", err)
 	}
 
 	d.SetId(id.ID())

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -18,9 +21,6 @@ type MobileNetworkSimPolicyResource struct{}
 
 func TestAccMobileNetworkSimPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,9 +35,6 @@ func TestAccMobileNetworkSimPolicy_basic(t *testing.T) {
 
 func TestAccMobileNetworkSimPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,9 +49,6 @@ func TestAccMobileNetworkSimPolicy_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkSimPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,9 +63,6 @@ func TestAccMobileNetworkSimPolicy_complete(t *testing.T) {
 
 func TestAccMobileNetworkSimPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
-
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
 
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

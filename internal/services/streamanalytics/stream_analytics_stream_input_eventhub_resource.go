@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -14,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
@@ -138,28 +141,28 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	eventHubDataSourceProps := &inputs.EventHubStreamInputDataSourceProperties{
-		EventHubName:        utils.String(d.Get("eventhub_name").(string)),
-		ServiceBusNamespace: utils.String(d.Get("servicebus_namespace").(string)),
-		ConsumerGroupName:   utils.String(d.Get("eventhub_consumer_group_name").(string)),
-		AuthenticationMode:  utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		EventHubName:        pointer.To(d.Get("eventhub_name").(string)),
+		ServiceBusNamespace: pointer.To(d.Get("servicebus_namespace").(string)),
+		ConsumerGroupName:   pointer.To(d.Get("eventhub_consumer_group_name").(string)),
+		AuthenticationMode:  pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 	}
 
 	if v, ok := d.GetOk("shared_access_policy_key"); ok {
-		eventHubDataSourceProps.SharedAccessPolicyKey = utils.String(v.(string))
+		eventHubDataSourceProps.SharedAccessPolicyKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("shared_access_policy_name"); ok {
-		eventHubDataSourceProps.SharedAccessPolicyName = utils.String(v.(string))
+		eventHubDataSourceProps.SharedAccessPolicyName = pointer.To(v.(string))
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.StreamInputProperties{
 			Datasource: &inputs.EventHubStreamInputDataSource{
 				Properties: eventHubDataSourceProps,
 			},
 			Serialization: serialization,
-			PartitionKey:  utils.String(d.Get("partition_key").(string)),
+			PartitionKey:  pointer.To(d.Get("partition_key").(string)),
 		},
 	}
 

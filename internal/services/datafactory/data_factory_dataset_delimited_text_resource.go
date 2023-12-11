@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -47,7 +51,7 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryID,
+				ValidateFunc: factories.ValidateFactoryID,
 			},
 
 			"linked_service_name": {
@@ -143,18 +147,33 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"file_system": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_file_system_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 						"path": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -318,12 +337,12 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
@@ -340,7 +359,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 
 	location := expandDataFactoryDatasetLocation(d)
 	if location == nil {
-		return fmt.Errorf("one of `http_server_location`, `azure_blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
+		return fmt.Errorf("one of `http_server_location`, `azure_blob_fs_location`, `azure_blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
 	}
 
 	delimited_textDatasetProperties := datafactory.DelimitedTextDatasetTypeProperties{
@@ -405,7 +424,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		delimited_textTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		delimited_textTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -446,7 +465,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
@@ -463,7 +482,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset DelimitedText %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeDelimitedText, resp.Properties)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)
@@ -472,7 +491,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 		d.Set("description", delimited_textTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(delimited_textTable.Parameters)
+	parameters := flattenDataSetParameters(delimited_textTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

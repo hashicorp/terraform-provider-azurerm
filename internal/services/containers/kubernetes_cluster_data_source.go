@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -6,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -13,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -199,6 +203,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"current_kubernetes_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"dns_prefix": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -328,6 +337,14 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 					},
+				},
+			},
+
+			"custom_ca_trust_certificates_base64": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -670,6 +687,27 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"service_mesh_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"internal_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"external_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -683,7 +721,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := managedclusters.NewManagedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -706,11 +744,12 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("dns_prefix", props.DnsPrefix)
-			d.Set("fqdn", props.Fqdn)
-			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
-			d.Set("private_fqdn", props.PrivateFQDN)
-			d.Set("kubernetes_version", props.KubernetesVersion)
+			d.Set("dns_prefix", pointer.From(props.DnsPrefix))
+			d.Set("fqdn", pointer.From(props.Fqdn))
+			d.Set("disk_encryption_set_id", pointer.From(props.DiskEncryptionSetID))
+			d.Set("private_fqdn", pointer.From(props.PrivateFQDN))
+			d.Set("kubernetes_version", pointer.From(props.KubernetesVersion))
+			d.Set("current_kubernetes_version", pointer.From(props.CurrentKubernetesVersion))
 
 			nodeResourceGroup := ""
 			if v := props.NodeResourceGroup; v != nil {
@@ -750,6 +789,16 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
+			}
+
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
+			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
+				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
+			}
+
+			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
+			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
+				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
 
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
@@ -886,27 +935,27 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 
 	if input != nil {
 		blobEnabled := false
-		if input.BlobCSIDriver != nil {
+		if input.BlobCSIDriver != nil && input.BlobCSIDriver.Enabled != nil {
 			blobEnabled = *input.BlobCSIDriver.Enabled
 		}
 
 		diskEnabled := true
-		if input.DiskCSIDriver != nil {
+		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Enabled != nil {
 			diskEnabled = *input.DiskCSIDriver.Enabled
 		}
 
 		diskVersion := ""
-		if input.DiskCSIDriver != nil {
+		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
 			diskVersion = *input.DiskCSIDriver.Version
 		}
 
 		fileEnabled := true
-		if input.FileCSIDriver != nil {
+		if input.FileCSIDriver != nil && input.FileCSIDriver.Enabled != nil {
 			fileEnabled = *input.FileCSIDriver.Enabled
 		}
 
 		snapshotController := true
-		if input.SnapshotController != nil {
+		if input.SnapshotController != nil && input.SnapshotController.Enabled != nil {
 			snapshotController = *input.SnapshotController.Enabled
 		}
 
@@ -1334,10 +1383,6 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 		values["dns_service_ip"] = *profile.DnsServiceIP
 	}
 
-	if profile.DockerBridgeCidr != nil {
-		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
-	}
-
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
 	}
@@ -1434,4 +1479,18 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 			"max_surge": maxSurge,
 		},
 	}
+}
+
+func flattenCustomCaTrustCerts(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	if input == nil || input.CustomCATrustCertificates == nil {
+		return make([]interface{}, 0)
+	}
+
+	customCaTrustCertInterface := make([]interface{}, len(*input.CustomCATrustCertificates))
+
+	for index, value := range *input.CustomCATrustCertificates {
+		customCaTrustCertInterface[index] = value
+	}
+
+	return customCaTrustCertInterface
 }

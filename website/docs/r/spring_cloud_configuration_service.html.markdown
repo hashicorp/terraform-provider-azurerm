@@ -57,6 +57,8 @@ The following arguments are supported:
 
 ---
 
+* `generation` - (Optional) The generation of the Spring Cloud Configuration Service. Possible values are `Gen1` and `Gen2`.
+
 * `repository` - (Optional) One or more `repository` blocks as defined below.
 
 ---
@@ -70,6 +72,8 @@ A `repository` block supports the following:
 * `patterns` - (Required) Specifies the collection of patterns of the repository.
 
 * `uri` - (Required) Specifies the URI of the repository.
+
+* `ca_certificate_id` - (Optional) Specifies the ID of the Certificate Authority used when retrieving the Git Repository via HTTPS.
 
 * `host_key` - (Optional) Specifies the SSH public key of git repository.
 

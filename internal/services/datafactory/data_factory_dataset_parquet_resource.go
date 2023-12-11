@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -47,7 +51,7 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryID,
+				ValidateFunc: factories.ValidateFactoryID,
 			},
 
 			"linked_service_name": {
@@ -73,11 +77,53 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 			},
 
 			// Parquet Specific Field, one option for 'location'
+			"azure_blob_fs_location": {
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"file_system": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_file_system_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"filename": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
+			// Parquet Specific Field, one option for 'location'
 			"azure_blob_storage_location": {
-				Type:          pluginsdk.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"http_server_location"},
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"container": {
@@ -152,10 +198,10 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 
 			// Parquet Specific Field, one option for 'location'
 			"http_server_location": {
-				Type:          pluginsdk.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"azure_blob_storage_location"},
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"relative_url": {
@@ -244,12 +290,12 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
@@ -266,7 +312,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 
 	location := expandDataFactoryDatasetLocation(d)
 	if location == nil {
-		return fmt.Errorf("One of `http_server_location`, `azure_blob_storage_location` must be specified to create a DataFactory Parquet Dataset")
+		return fmt.Errorf("One of `http_server_location`, `azure_blob_fs_location`, `azure_blob_storage_location` must be specified to create a DataFactory Parquet Dataset")
 	}
 
 	parquetDatasetProperties := datafactory.ParquetDatasetTypeProperties{
@@ -296,7 +342,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		parquetTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		parquetTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -337,7 +383,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
@@ -354,7 +400,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 
 	parquetTable, ok := resp.Properties.AsParquetDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset Parquet %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeParquet, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset Parquet %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeParquet, resp.Properties)
 	}
 
 	d.Set("additional_properties", parquetTable.AdditionalProperties)
@@ -363,7 +409,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("description", parquetTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(parquetTable.Parameters)
+	parameters := flattenDataSetParameters(parquetTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
@@ -388,6 +434,11 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
 			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
 				return fmt.Errorf("setting `azure_blob_storage_location` for Data Factory Parquet Dataset %s", err)
+			}
+		}
+		if azureBlobFSLocation, ok := properties.Location.AsAzureBlobFSLocation(); ok {
+			if err := d.Set("azure_blob_fs_location", flattenDataFactoryDatasetAzureBlobFSLocation(azureBlobFSLocation)); err != nil {
+				return fmt.Errorf("setting `azure_blob_fs_location` for Data Factory Parquet Dataset %s", err)
 			}
 		}
 

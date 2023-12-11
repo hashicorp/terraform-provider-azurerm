@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -9,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func dataSourceSharedImageVersion() *pluginsdk.Resource {
@@ -193,8 +197,17 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 					return nil, fmt.Errorf("parsing version(s): %v", errs)
 				}
 			}
-			image := images[len(images)-1]
-			return &image, nil
+
+			if !features.FourPointOhBeta() {
+				image := images[len(images)-1]
+				return &image, nil
+			}
+
+			for i := len(images) - 1; i >= 0; i-- {
+				if prop := images[i].GalleryImageVersionProperties; prop == nil || prop.PublishingProfile == nil || prop.PublishingProfile.ExcludeFromLatest == nil || !*prop.PublishingProfile.ExcludeFromLatest {
+					return &(images[i]), nil
+				}
+			}
 		}
 		return nil, notFoundError
 

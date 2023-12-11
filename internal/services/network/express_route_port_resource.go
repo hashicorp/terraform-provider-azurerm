@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -10,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -62,6 +66,11 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"macsec_sci_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 			"id": {
 				Type:     pluginsdk.TypeString,
@@ -227,6 +236,10 @@ func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta int
 		param.ExpressRoutePortPropertiesFormat.BillingType = network.ExpressRoutePortsBillingType(v.(string))
 	}
 
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
 	// Hence, if this is a new creation we will do a create-then-update here.
 	if d.IsNewResource() {
@@ -320,6 +333,10 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting Express Route Port %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -400,13 +417,19 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *network.ExpressRo
 		adminState = network.ExpressRouteLinkAdminStateEnabled
 	}
 
+	sciState := network.ExpressRouteLinkMacSecSciStateDisabled
+	if b["macsec_sci_enabled"].(bool) {
+		sciState = network.ExpressRouteLinkMacSecSciStateEnabled
+	}
+
 	link := network.ExpressRouteLink{
 		// The link name is fixed
 		Name: utils.String(fmt.Sprintf("link%d", idx)),
 		ExpressRouteLinkPropertiesFormat: &network.ExpressRouteLinkPropertiesFormat{
 			AdminState: adminState,
 			MacSecConfig: &network.ExpressRouteLinkMacSecConfig{
-				Cipher: network.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string)),
+				Cipher:   network.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string)),
+				SciState: sciState,
 			},
 		},
 	}
@@ -448,6 +471,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 		cknSecretId   string
 		cakSecretId   string
 		cipher        string
+		sciState      bool
 	)
 
 	if prop := link.ExpressRouteLinkPropertiesFormat; prop != nil {
@@ -465,6 +489,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 		}
 		connectorType = string(prop.ConnectorType)
 		adminState = prop.AdminState == network.ExpressRouteLinkAdminStateEnabled
+		sciState = prop.MacSecConfig.SciState == network.ExpressRouteLinkMacSecSciStateEnabled
 		if cfg := prop.MacSecConfig; cfg != nil {
 			if cfg.CknSecretIdentifier != nil {
 				cknSecretId = *cfg.CknSecretIdentifier
@@ -488,6 +513,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 			"macsec_ckn_keyvault_secret_id": cknSecretId,
 			"macsec_cak_keyvault_secret_id": cakSecretId,
 			"macsec_cipher":                 cipher,
+			"macsec_sci_enabled":            sciState,
 		},
 	}
 }

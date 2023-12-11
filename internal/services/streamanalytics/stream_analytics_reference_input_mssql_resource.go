@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -15,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
@@ -151,31 +154,31 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	properties := &inputs.AzureSqlReferenceInputDataSourceProperties{
-		Server:      utils.String(d.Get("server").(string)),
-		Database:    utils.String(d.Get("database").(string)),
-		User:        utils.String(d.Get("username").(string)),
-		Password:    utils.String(d.Get("password").(string)),
-		RefreshType: utils.ToPtr(inputs.RefreshType(refreshType)),
+		Server:      pointer.To(d.Get("server").(string)),
+		Database:    pointer.To(d.Get("database").(string)),
+		User:        pointer.To(d.Get("username").(string)),
+		Password:    pointer.To(d.Get("password").(string)),
+		RefreshType: pointer.To(inputs.RefreshType(refreshType)),
 	}
 
 	if v, ok := d.GetOk("refresh_interval_duration"); ok {
-		properties.RefreshRate = utils.String(v.(string))
+		properties.RefreshRate = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("full_snapshot_query"); ok {
-		properties.FullSnapshotQuery = utils.String(v.(string))
+		properties.FullSnapshotQuery = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("delta_snapshot_query"); ok {
-		properties.DeltaSnapshotQuery = utils.String(v.(string))
+		properties.DeltaSnapshotQuery = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("table"); ok {
-		properties.Table = utils.String(v.(string))
+		properties.Table = pointer.To(v.(string))
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.ReferenceInputProperties{
 			Datasource: &inputs.AzureSqlReferenceInputDataSource{
 				Properties: properties,

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
@@ -13,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -460,9 +463,15 @@ func resourceBatchPool() *pluginsdk.Resource {
 								string(pool.DynamicVNetAssignmentScopeJob),
 							}, false),
 						},
+						"accelerated_networking_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+							ForceNew: true,
+						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -649,6 +658,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+						"automatic_upgrade_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"settings_json": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -709,6 +722,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 					string(pool.InterNodeCommunicationStateDisabled),
 				}, false),
 			},
+
+			"target_node_communication_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNodeCommunicationMode(), false),
+			},
+
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -850,11 +870,11 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
-	parameters.Identity = identity
+	parameters.Identity = identityResult
 
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
@@ -910,6 +930,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
+	}
+
+	if v, ok := d.GetOk("target_node_communication_mode"); ok {
+		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
 	}
 
 	_, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{})
@@ -1040,6 +1064,10 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Properties.MountConfiguration = mountConfiguration
 
+	if d.HasChange("target_node_communication_mode") {
+		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
+	}
+
 	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
@@ -1082,11 +1110,11 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		identity, err := identity.FlattenUserAssignedMap(model.Identity)
+		identityResult, err := identity.FlattenUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		if err := d.Set("identity", identity); err != nil {
+		if err := d.Set("identity", identityResult); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -1176,6 +1204,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 							if item.AutoUpgradeMinorVersion != nil {
 								extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
 							}
+							if item.EnableAutomaticUpgrade != nil {
+								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
+							}
 							if item.Settings != nil {
 								extension["settings_json"] = item.Settings
 							}
@@ -1236,6 +1267,12 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				}
 				d.Set("mount", mountConfigs)
 			}
+
+			targetNodeCommunicationMode := ""
+			if props.TargetNodeCommunicationMode != nil {
+				targetNodeCommunicationMode = string(*props.TargetNodeCommunicationMode)
+			}
+			d.Set("target_node_communication_mode", targetNodeCommunicationMode)
 
 			if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 				return fmt.Errorf("setting `network_configuration`: %v", err)

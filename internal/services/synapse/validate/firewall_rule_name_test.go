@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -27,6 +30,11 @@ func TestFirewallRuleName(t *testing.T) {
 		{
 			// can contain hyphen
 			input:    "ab-c",
+			expected: true,
+		},
+		{
+			// can contain utf-8 chars
+			input:    "øüå-rule",
 			expected: true,
 		},
 		{

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package redisenterprise
 
 import (
@@ -9,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -296,7 +299,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("retrieving %s: %+v", *clusterId, err)
 			}
 
-			if strings.Contains(strings.ToLower(string(resp.Model.Sku.Name)), "flash") {
+			if resp.Model != nil && strings.Contains(strings.ToLower(string(resp.Model.Sku.Name)), "flash") {
 				return fmt.Errorf("creating a Redis Enterprise Database with modules in a Redis Enterprise Cluster that has an incompatible Flash SKU type %q - please remove the Redis Enterprise Database modules or change the Redis Enterprise Cluster SKU type %s", string(resp.Model.Sku.Name), id)
 			}
 		}
@@ -304,7 +307,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
@@ -442,13 +445,8 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
-	future, err := client.Create(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updatig %s: %+v", id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -512,8 +510,8 @@ func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]da
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		moduleName := v["name"].(string)
-		if moduleName != "RediSearch" && isGeoEnabled {
-			return nil, fmt.Errorf("Only RediSearch module is allowed with geo-replication")
+		if moduleName != "RediSearch" && moduleName != "RedisJSON" && isGeoEnabled {
+			return nil, fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
 		}
 		results = append(results, databases.Module{
 			Name: moduleName,

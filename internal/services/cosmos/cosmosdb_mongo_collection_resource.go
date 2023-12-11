@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -7,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -167,7 +171,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 
 	var ttl *int
 	if v, ok := d.GetOk("default_ttl_seconds"); ok {
-		ttl = utils.Int(v.(int))
+		ttl = pointer.To(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
@@ -186,17 +190,17 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+			db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		db.MongoDBCollectionCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
+		db.MongoDBCollectionCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -236,7 +240,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 
 	var ttl *int
 	if v, ok := d.GetOk("default_ttl_seconds"); ok {
-		ttl = utils.Int(v.(int))
+		ttl = pointer.To(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
@@ -255,7 +259,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = utils.Int32(int32(analyticalStorageTTL.(int)))
+		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -274,12 +278,11 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
+		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParametersLegacy(d)
 		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
-				return fmt.Errorf("setting Throughput for Cosmos MongoDB Collection %q (Account: %q, Database: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
+				return fmt.Errorf("setting Throughput for Cosmos MongoDB Collection %q (Account: %q, Database: %q): %+v - if the collection has not been created with an initial throughput, you cannot configure it later", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 			}
 		}
 
@@ -375,7 +378,7 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("autoscale_settings", nil)
 			}
 		} else {
-			common.SetResourceDataThroughputFromResponse(throughputResp, d)
+			common.SetResourceDataThroughputFromResponseLegacy(throughputResp, d)
 		}
 	}
 
@@ -440,7 +443,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 				Keys: &[]string{"_ts"},
 			},
 			Options: &documentdb.MongoIndexOptions{
-				ExpireAfterSeconds: utils.Int32(int32(*defaultTtl)),
+				ExpireAfterSeconds: pointer.To(int32(*defaultTtl)),
 			},
 		})
 	}

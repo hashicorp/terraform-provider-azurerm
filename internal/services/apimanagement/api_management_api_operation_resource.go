@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,15 +8,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementApiOperation() *pluginsdk.Resource {
@@ -23,7 +26,7 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 		Update: resourceApiManagementApiOperationCreateUpdate,
 		Delete: resourceApiManagementApiOperationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApiOperationID(id)
+			_, err := apioperation.ParseOperationID(id)
 			return err
 		}),
 
@@ -117,17 +120,17 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApiOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
+	id := apioperation.NewOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
 		}
 	}
@@ -152,19 +155,19 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	templateParametersRaw := d.Get("template_parameter").([]interface{})
 	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", templateParametersRaw)
 
-	parameters := apimanagement.OperationContract{
-		OperationContractProperties: &apimanagement.OperationContractProperties{
-			Description:        utils.String(description),
-			DisplayName:        utils.String(displayName),
-			Method:             utils.String(method),
+	parameters := apioperation.OperationContract{
+		Properties: &apioperation.OperationContractProperties{
+			Description:        pointer.To(description),
+			DisplayName:        displayName,
+			Method:             method,
 			Request:            requestContract,
 			Responses:          responseContracts,
 			TemplateParameters: templateParameters,
-			URLTemplate:        utils.String(urlTemplate),
+			UrlTemplate:        urlTemplate,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, apioperation.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -178,59 +181,63 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiOperationID(d.Id())
+	id, err := apioperation.ParseOperationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName)
+	apiName := getApiName(id.ApiId)
+
+	newId := apioperation.NewOperationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.OperationId)
+	resp, err := client.Get(ctx, newId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", newId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 
-	d.Set("operation_id", id.OperationName)
-	d.Set("api_name", id.ApiName)
+	d.Set("operation_id", id.OperationId)
+	d.Set("api_name", apiName)
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.OperationContractProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("method", props.Method)
-		d.Set("url_template", props.URLTemplate)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("method", props.Method)
+			d.Set("url_template", props.UrlTemplate)
 
-		flattenedRequest, err := flattenApiManagementOperationRequestContract(props.Request)
-		if err != nil {
-			return err
-		}
-		if err := d.Set("request", flattenedRequest); err != nil {
-			return fmt.Errorf("flattening `request`: %+v", err)
-		}
+			flattenedRequest, err := flattenApiManagementOperationRequestContract(props.Request)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("request", flattenedRequest); err != nil {
+				return fmt.Errorf("flattening `request`: %+v", err)
+			}
 
-		flattenedResponse, err := flattenApiManagementOperationResponseContract(props.Responses)
-		if err != nil {
-			return err
-		}
-		if err := d.Set("response", flattenedResponse); err != nil {
-			return fmt.Errorf("flattening `response`: %+v", err)
-		}
+			flattenedResponse, err := flattenApiManagementOperationResponseContract(props.Responses)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("response", flattenedResponse); err != nil {
+				return fmt.Errorf("flattening `response`: %+v", err)
+			}
 
-		flattenedTemplateParams, err := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
-		if err != nil {
-			return err
-		}
+			flattenedTemplateParams, err := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+			if err != nil {
+				return err
+			}
 
-		if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
-			return fmt.Errorf("flattening `template_parameter`: %+v", err)
+			if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
+				return fmt.Errorf("flattening `template_parameter`: %+v", err)
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -239,22 +246,25 @@ func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiOperationID(d.Id())
+	id, err := apioperation.ParseOperationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.OperationName, "")
+	name := getApiName(id.ApiId)
+
+	newId := apioperation.NewOperationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name, id.OperationId)
+	resp, err := client.Delete(ctx, newId, apioperation.DeleteOperationOptions{})
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", newId, err)
 		}
 	}
 
 	return nil
 }
 
-func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*apimanagement.RequestContract, error) {
+func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*apioperation.RequestContract, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -286,24 +296,22 @@ func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, sche
 		return nil, err
 	}
 
-	return &apimanagement.RequestContract{
-		Description:     utils.String(description),
+	return &apioperation.RequestContract{
+		Description:     pointer.To(description),
 		Headers:         headers,
 		QueryParameters: queryParameters,
 		Representations: representations,
 	}, nil
 }
 
-func flattenApiManagementOperationRequestContract(input *apimanagement.RequestContract) ([]interface{}, error) {
+func flattenApiManagementOperationRequestContract(input *apioperation.RequestContract) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
 
 	output := make(map[string]interface{})
 
-	if input.Description != nil {
-		output["description"] = *input.Description
-	}
+	output["description"] = pointer.From(input.Description)
 
 	header, err := schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
 	if err != nil {
@@ -326,12 +334,12 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 	return []interface{}{output}, nil
 }
 
-func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.ResponseContract, error) {
+func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apioperation.ResponseContract, error) {
 	if len(input) == 0 {
-		return &[]apimanagement.ResponseContract{}, nil
+		return &[]apioperation.ResponseContract{}, nil
 	}
 
-	outputs := make([]apimanagement.ResponseContract, 0)
+	outputs := make([]apioperation.ResponseContract, 0)
 
 	for i, v := range input {
 		vs := v.(map[string]interface{})
@@ -348,11 +356,11 @@ func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, sch
 			return nil, err
 		}
 
-		output := apimanagement.ResponseContract{
-			Description:     utils.String(description),
+		output := apioperation.ResponseContract{
+			Description:     pointer.To(description),
 			Headers:         headers,
 			Representations: representations,
-			StatusCode:      utils.Int32(int32(statusCode)),
+			StatusCode:      int64(statusCode),
 		}
 
 		outputs = append(outputs, output)
@@ -361,7 +369,7 @@ func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, sch
 	return &outputs, nil
 }
 
-func flattenApiManagementOperationResponseContract(input *[]apimanagement.ResponseContract) ([]interface{}, error) {
+func flattenApiManagementOperationResponseContract(input *[]apioperation.ResponseContract) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
@@ -375,9 +383,7 @@ func flattenApiManagementOperationResponseContract(input *[]apimanagement.Respon
 			output["description"] = *v.Description
 		}
 
-		if v.StatusCode != nil {
-			output["status_code"] = int(*v.StatusCode)
-		}
+		output["status_code"] = int(v.StatusCode)
 
 		header, err := schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
 		if err != nil {

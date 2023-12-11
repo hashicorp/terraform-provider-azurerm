@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights_test
 
 import (
@@ -22,7 +25,7 @@ func TestAccApplicationInsightsWorkbook_basic(t *testing.T) {
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, data.RandomInteger),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -36,7 +39,7 @@ func TestAccApplicationInsightsWorkbook_requiresImport(t *testing.T) {
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, data.RandomInteger),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -51,6 +54,27 @@ func TestAccApplicationInsightsWorkbook_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationInsightsWorkbook_updateDisplayName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -121,7 +145,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApplicationInsightsWorkbookResource) basic(data acceptance.TestData) string {
+func (r ApplicationInsightsWorkbookResource) basic(data acceptance.TestData, intValue int) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -148,7 +172,7 @@ resource "azurerm_application_insights_workbook" "test" {
     ]
   })
 }
-`, template, data.RandomInteger)
+`, template, intValue)
 }
 
 func (r ApplicationInsightsWorkbookResource) hiddenTitleInTags(data acceptance.TestData) string {
@@ -185,7 +209,7 @@ resource "azurerm_application_insights_workbook" "test" {
 }
 
 func (r ApplicationInsightsWorkbookResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+	config := r.basic(data, data.RandomInteger)
 	return fmt.Sprintf(`
 			%s
 

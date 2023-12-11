@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices
 
 import (
@@ -40,12 +43,14 @@ func (h HyperVReplicationPolicyAssociationResource) Arguments() map[string]*plug
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"hyperv_site_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
 		},
+
 		"policy_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

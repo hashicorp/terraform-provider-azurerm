@@ -1,8 +1,6 @@
-import AzureRM
-import ClientConfiguration
-import jetbrains.buildServer.configs.kotlin.v2019_2.*
+import jetbrains.buildServer.configs.kotlin.*
 
-version = "2020.2"
+version = "2023.05"
 
 var clientId = DslContext.getParameter("clientId", "")
 var clientSecret = DslContext.getParameter("clientSecret", "")
@@ -13,7 +11,12 @@ var tenantId = DslContext.getParameter("tenantId", "")
 var environment = DslContext.getParameter("environment", "public")
 var clientIdAlt = DslContext.getParameter("clientIdAlt", "")
 var clientSecretAlt = DslContext.getParameter("clientSecretAlt", "")
+var tenantIdAlt = DslContext.getParameter("tenantIdAlt", "")
+var subscriptionIdAltTenant = DslContext.getParameter("subscriptionIdAltTenant", "")
+var principalIdAltTenant = DslContext.getParameter("principalIdAltTenant", "")
+var vcsRootId = DslContext.getParameter("vcsRootId", "TF_HashiCorp_AzureRM_Repository")
+var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 
-var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest)
+var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, enableTestTriggersGlobally)
 
 project(AzureRM(environment, clientConfig))

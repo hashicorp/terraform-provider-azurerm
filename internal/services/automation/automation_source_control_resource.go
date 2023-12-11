@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -6,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/sourcecontrol"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -156,7 +159,7 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 
 			var model SourceControlModel
 			if err := meta.Decode(&model); err != nil {
@@ -217,7 +220,7 @@ func (m SourceControlResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -260,7 +263,7 @@ func (m SourceControlResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 
 			id, err := sourcecontrol.ParseSourceControlID(meta.ResourceData.Id())
 			if err != nil {
@@ -320,7 +323,7 @@ func (m SourceControlResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			meta.Logger.Infof("deleting %s", *id)
-			client := meta.Client.Automation.SourceControlClient
+			client := meta.Client.Automation.SourceControl
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)
 			}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos_test
 
 import (
@@ -25,6 +28,7 @@ func TestAccCosmosDbMongoDatabase_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				checkAccCosmosDBAccount_mongodb("azurerm_cosmosdb_account.test"),
 			),
 		},
 		data.ImportStep(),
@@ -40,6 +44,7 @@ func TestAccCosmosDbMongoDatabase_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				checkAccCosmosDBAccount_mongodb("azurerm_cosmosdb_account.test"),
 			),
 		},
 		data.ImportStep(),
@@ -87,6 +92,7 @@ func TestAccCosmosDbMongoDatabase_serverless(t *testing.T) {
 			Config: r.serverless(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				checkAccCosmosDBAccount_mongodb("azurerm_cosmosdb_account.test"),
 			),
 		},
 		data.ImportStep(),
@@ -157,4 +163,13 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
 }
 `, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindMongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo"}), data.RandomInteger)
+}
+
+func checkAccCosmosDBAccount_mongodb(resourceName string) acceptance.TestCheckFunc {
+	return acceptance.ComposeTestCheckFunc(
+		check.That(resourceName).Key("primary_mongodb_connection_string").Exists(),
+		check.That(resourceName).Key("secondary_mongodb_connection_string").Exists(),
+		check.That(resourceName).Key("primary_readonly_mongodb_connection_string").Exists(),
+		check.That(resourceName).Key("secondary_readonly_mongodb_connection_string").Exists(),
+	)
 }

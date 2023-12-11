@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementAuthorizationBackendResource struct{}
@@ -203,34 +207,34 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BackendID(state.ID)
+	id, err := backend.ParseBackendID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.BackendClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := clients.ApiManagement.BackendClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BackendID(state.ID)
+	id, err := backend.ParseBackendID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.ApiManagement.BackendClient.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, "")
+	resp, err := client.ApiManagement.BackendClient.Delete(ctx, *id, backend.DeleteOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return utils.Bool(true), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(true), nil
 		}
 		return nil, fmt.Errorf("deleting Backend: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ApiManagementAuthorizationBackendResource) basic(data acceptance.TestData, testName string) string {

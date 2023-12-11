@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package netapp
 
 import (
@@ -8,18 +11,18 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -94,7 +97,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"create_from_snapshot_resource_id": {
@@ -133,14 +136,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"security_style": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
-					"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForSecurityStyle(), false),
 			},
 
 			"storage_quota_in_gb": {
@@ -150,9 +150,10 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"throughput_in_mibps": {
-				Type:     pluginsdk.TypeFloat,
-				Optional: true,
-				Computed: true,
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatAtLeast(1.0),
 			},
 
 			"export_policy_rule": {
@@ -618,9 +619,13 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+
+		avsDataStore := false
 		if props.AvsDataStore != nil {
-			d.Set("azure_vmware_data_store_enabled", strings.EqualFold(string(*props.AvsDataStore), string(volumes.AvsDataStoreEnabled)))
+			avsDataStore = strings.EqualFold(string(*props.AvsDataStore), string(volumes.AvsDataStoreEnabled))
 		}
+		d.Set("azure_vmware_data_store_enabled", avsDataStore)
+
 		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("setting `export_policy_rule`: %+v", err)
 		}

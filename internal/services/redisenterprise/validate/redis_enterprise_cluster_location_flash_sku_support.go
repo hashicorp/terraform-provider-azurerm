@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -34,7 +37,6 @@ func invalidRedisEnterpriseClusterFlashLocations() []string {
 func friendlyInvalidRedisEnterpriseClusterFlashLocations() []string {
 	return []string{
 		"Australia Southeast",
-		"Brazil South",
 		"Central US",
 		"Central US EUAP",
 		"East Asia",

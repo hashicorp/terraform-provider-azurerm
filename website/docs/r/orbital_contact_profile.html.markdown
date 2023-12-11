@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "testvnet"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
@@ -48,8 +48,8 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_orbital_contact_profile" "example" {
   name                              = "example-contact-profile"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.example.name
+  location                          = azurerm_resource_group.example.location
   minimum_variable_contact_duration = "PT1M"
   auto_tracking                     = "disabled"
 

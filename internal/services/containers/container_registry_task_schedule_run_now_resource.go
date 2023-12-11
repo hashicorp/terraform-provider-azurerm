@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/runs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
@@ -101,8 +105,9 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 
 			runName := ""
 			for _, v := range *run.Model {
-				if *v.Properties.Task == taskId.TaskName {
-					runName = *v.Name
+				if v.Properties != nil && pointer.From(v.Properties.Task) == taskId.TaskName {
+					runName = pointer.From(v.Name)
+					break
 				}
 			}
 

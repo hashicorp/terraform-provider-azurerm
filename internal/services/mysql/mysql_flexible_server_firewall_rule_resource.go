@@ -1,20 +1,21 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMySqlFlexibleServerFirewallRule() *pluginsdk.Resource {
@@ -25,7 +26,7 @@ func resourceMySqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 		Delete: resourceMySqlFlexibleServerFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FlexibleServerFirewallRuleID(id)
+			_, err := firewallrules.ParseFirewallRuleID(id)
 			return err
 		}),
 
@@ -68,43 +69,34 @@ func resourceMySqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 }
 
 func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerFirewallRulesClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Flexible Server Firewall Rule creation.")
-	startIPAddress := d.Get("start_ip_address").(string)
-	endIPAddress := d.Get("end_ip_address").(string)
-
-	id := parse.NewFlexibleServerFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	id := firewallrules.NewFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.FirewallRuleName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mysql_flexible_server_firewall_rule", id.ID())
 		}
 	}
 
-	properties := mysqlflexibleservers.FirewallRule{
-		FirewallRuleProperties: &mysqlflexibleservers.FirewallRuleProperties{
-			StartIPAddress: utils.String(startIPAddress),
-			EndIPAddress:   utils.String(endIPAddress),
+	payload := firewallrules.FirewallRule{
+		Properties: firewallrules.FirewallRuleProperties{
+			StartIPAddress: d.Get("start_ip_address").(string),
+			EndIPAddress:   d.Get("end_ip_address").(string),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FlexibleServerName, id.FirewallRuleName, properties)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -112,18 +104,18 @@ func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceDa
 }
 
 func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerFirewallRulesClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerFirewallRuleID(d.Id())
+	id, err := firewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.FirewallRuleName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -132,31 +124,28 @@ func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta
 
 	d.Set("name", id.FirewallRuleName)
 	d.Set("server_name", id.FlexibleServerName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("start_ip_address", resp.StartIPAddress)
-	d.Set("end_ip_address", resp.EndIPAddress)
+	if model := resp.Model; model != nil {
+		d.Set("start_ip_address", model.Properties.StartIPAddress)
+		d.Set("end_ip_address", model.Properties.EndIPAddress)
+	}
 
 	return nil
 }
 
 func resourceMySqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerFirewallRulesClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerFirewallRuleID(d.Id())
+	id, err := firewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.FlexibleServerName, id.FirewallRuleName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

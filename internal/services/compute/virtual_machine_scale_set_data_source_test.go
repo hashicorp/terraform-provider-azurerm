@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -105,6 +108,10 @@ func (VirtualMachineScaleSetDataSource) orchestrated(data acceptance.TestData) s
 data "azurerm_virtual_machine_scale_set" "test" {
   name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
   resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [
+    azurerm_windows_virtual_machine.test
+  ]
 }
 `, template)
 }

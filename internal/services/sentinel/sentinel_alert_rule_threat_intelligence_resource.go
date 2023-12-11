@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -98,7 +101,7 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 
 			id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, metaModel.Name)
 
-			resp, err := client.AlertRulesGet(ctx, id)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("checking for existing %q: %+v", id, err)
@@ -133,7 +136,7 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.AlertRulesCreateOrUpdate(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
 
@@ -154,7 +157,7 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			resp, err := client.AlertRulesGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -195,7 +198,7 @@ func (a AlertRuleThreatIntelligenceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %+v", err)
 			}
 
@@ -219,7 +222,7 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("parsing %+v", err)
 			}
-			resp, err := client.AlertRulesGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading %+v", err)
 			}
@@ -246,7 +249,7 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.AlertRulesCreateOrUpdate(ctx, *id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 

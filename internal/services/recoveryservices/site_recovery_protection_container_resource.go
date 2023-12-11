@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices
 
 import (
@@ -19,7 +22,6 @@ func resourceSiteRecoveryProtectionContainer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryProtectionContainerCreate,
 		Read:   resourceSiteRecoveryProtectionContainerRead,
-		Update: nil,
 		Delete: resourceSiteRecoveryProtectionContainerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := replicationprotectioncontainers.ParseReplicationProtectionContainerID(id)
@@ -29,7 +31,6 @@ func resourceSiteRecoveryProtectionContainer() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 

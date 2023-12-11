@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos_test
 
 import (
@@ -16,8 +19,9 @@ func TestAccCassandraSequential(t *testing.T) {
 			"requiresImport": testAccCassandraCluster_requiresImport,
 		},
 		"dataCenter": {
-			"basic":  testAccCassandraDatacenter_basic,
-			"update": testAccCassandraDatacenter_update,
+			"basic":     testAccCassandraDatacenter_basic,
+			"update":    testAccCassandraDatacenter_update,
+			"updateSku": testAccCassandraDatacenter_updateSku,
 		},
 	})
 }

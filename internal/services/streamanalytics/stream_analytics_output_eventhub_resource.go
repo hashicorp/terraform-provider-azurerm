@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -146,11 +150,11 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	eventHubOutputDataSourceProps := &outputs.EventHubOutputDataSourceProperties{
-		PartitionKey:        utils.String(partitionKey),
+		PartitionKey:        pointer.To(partitionKey),
 		PropertyColumns:     utils.ExpandStringSlice(propertyColumns),
-		EventHubName:        utils.String(eventHubName),
-		ServiceBusNamespace: utils.String(serviceBusNamespace),
-		AuthenticationMode:  utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		EventHubName:        pointer.To(eventHubName),
+		ServiceBusNamespace: pointer.To(serviceBusNamespace),
+		AuthenticationMode:  pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 	}
 
 	if sharedAccessPolicyKey != "" {
@@ -162,7 +166,7 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	props := outputs.Output{
-		Name: utils.String(id.OutputName),
+		Name: pointer.To(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.EventHubOutputDataSource{
 				Properties: eventHubOutputDataSourceProps,

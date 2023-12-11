@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -24,10 +27,7 @@ func resourceSentinelDataConnectorAwsCloudTrail() *pluginsdk.Resource {
 		Update: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
 		Delete: resourceSentinelDataConnectorAwsCloudTrailDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
-			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)),
+		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

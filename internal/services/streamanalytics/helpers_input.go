@@ -1,12 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaStreamAnalyticsStreamInputSerialization() *pluginsdk.Schema {
@@ -74,8 +77,8 @@ func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (inputs.
 		}
 		return inputs.CsvSerialization{
 			Properties: &inputs.CsvSerializationProperties{
-				Encoding:       utils.ToPtr(inputs.Encoding(encoding)),
-				FieldDelimiter: utils.String(fieldDelimiter),
+				Encoding:       pointer.To(inputs.Encoding(encoding)),
+				FieldDelimiter: pointer.To(fieldDelimiter),
 			},
 		}, nil
 
@@ -86,7 +89,7 @@ func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (inputs.
 
 		return inputs.JsonSerialization{
 			Properties: &inputs.JsonSerializationProperties{
-				Encoding: utils.ToPtr(inputs.Encoding(encoding)),
+				Encoding: pointer.To(inputs.Encoding(encoding)),
 			},
 		}, nil
 	}
@@ -118,8 +121,8 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 		}
 		return inputs.CsvSerialization{
 			Properties: &inputs.CsvSerializationProperties{
-				Encoding:       utils.ToPtr(inputs.Encoding(encoding)),
-				FieldDelimiter: utils.String(fieldDelimiter),
+				Encoding:       pointer.To(inputs.Encoding(encoding)),
+				FieldDelimiter: pointer.To(fieldDelimiter),
 			},
 		}, nil
 
@@ -130,7 +133,7 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 
 		return inputs.JsonSerialization{
 			Properties: &inputs.JsonSerializationProperties{
-				Encoding: utils.ToPtr(inputs.Encoding(encoding)),
+				Encoding: pointer.To(inputs.Encoding(encoding)),
 			},
 		}, nil
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package labservice
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab"
@@ -14,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -396,7 +399,7 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"load_balancer_id": {
@@ -625,7 +628,7 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 				state.Network = flattenNetworkProfile(props.NetworkProfile)
 				state.Roster = flattenRosterProfile(props.RosterProfile)
 				state.Security = flattenSecurityProfile(props.SecurityProfile)
-				state.VirtualMachine = flattenVirtualMachineProfile(props.VirtualMachineProfile, metadata.ResourceData)
+				state.VirtualMachine = flattenVirtualMachineProfile(props.VirtualMachineProfile, metadata.ResourceData.Get("virtual_machine.0.admin_user.0.password").(string))
 
 				if props.Description != nil {
 					state.Description = *props.Description
@@ -965,11 +968,11 @@ func expandSku(input []Sku) lab.Sku {
 	return result
 }
 
-func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, d *pluginsdk.ResourceData) []VirtualMachine {
+func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, password string) []VirtualMachine {
 	var virtualMachineProfiles []VirtualMachine
 
 	virtualMachineProfile := VirtualMachine{
-		AdminUser:      flattenCredential(&input.AdminUser, d.Get("virtual_machine.0.admin_user.0.password").(string)),
+		AdminUser:      flattenCredential(&input.AdminUser, password),
 		CreateOption:   input.CreateOption,
 		ImageReference: flattenImageReference(&input.ImageReference),
 		Sku:            flattenSku(&input.Sku),
@@ -981,7 +984,7 @@ func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, d *pluginsdk.
 	}
 
 	if input.NonAdminUser != nil {
-		virtualMachineProfile.NonAdminUser = flattenCredential(input.NonAdminUser, d.Get("virtual_machine.0.non_admin_user.0.password").(string))
+		virtualMachineProfile.NonAdminUser = flattenCredential(input.NonAdminUser, password)
 	}
 
 	if input.UseSharedPassword != nil {

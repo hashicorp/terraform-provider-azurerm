@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 import (
@@ -5,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -14,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
@@ -74,6 +79,16 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
+			"application_performance_monitoring_ids": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: appplatform2.ValidateApmID,
+				},
 			},
 
 			"arguments": {
@@ -204,6 +219,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
+				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]interface{})),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -258,6 +274,11 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
 				return fmt.Errorf("setting `addon_json`: %s", err)
 			}
+			apmIds, err := flattenSpringCloudDeploymentApms(settings.Apms)
+			if err != nil {
+				return fmt.Errorf("setting `application_performance_monitoring_ids`: %+v", err)
+			}
+			d.Set("application_performance_monitoring_ids", apmIds)
 		}
 		if source, ok := resp.Properties.Source.AsCustomContainerUserSourceInfo(); ok && source != nil {
 			if container := source.CustomContainer; container != nil {
@@ -316,4 +337,32 @@ func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *
 	}
 
 	return &result
+}
+
+func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmReference {
+	if len(input) == 0 {
+		return nil
+	}
+	result := make([]appplatform.ApmReference, 0)
+	for _, v := range input {
+		result = append(result, appplatform.ApmReference{
+			ResourceID: pointer.To(v.(string)),
+		})
+	}
+	return pointer.To(result)
+}
+
+func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) ([]interface{}, error) {
+	if input == nil {
+		return nil, nil
+	}
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		id, err := appplatform2.ParseApmIDInsensitively(*v.ResourceID)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, id.ID())
+	}
+	return result, nil
 }

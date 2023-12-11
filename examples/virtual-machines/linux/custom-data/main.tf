@@ -1,5 +1,18 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
+}
+
+locals {
+  custom_data = <<CUSTOM_DATA
+#!/bin/bash
+sudo -i
+cat << EOF > /etc/customdata
+example data
+EOF
+CUSTOM_DATA
 }
 
 resource "azurerm_resource_group" "main" {
@@ -40,16 +53,17 @@ resource "azurerm_linux_virtual_machine" "main" {
   size                            = "Standard_F2"
   admin_username                  = "adminuser"
   admin_password                  = "P@ssw0rd1234!"
-  custom_data                     = base64encode("Hello World!")
+  custom_data                     = base64encode(local.custom_data)
   disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.main.id,
   ]
 
+
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

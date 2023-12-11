@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -14,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
@@ -138,21 +141,21 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.ReferenceInputProperties{
 			Datasource: &inputs.BlobReferenceInputDataSource{
 				Properties: &inputs.BlobDataSourceProperties{
-					Container:   utils.String(d.Get("storage_container_name").(string)),
-					DateFormat:  utils.String(d.Get("date_format").(string)),
-					PathPattern: utils.String(d.Get("path_pattern").(string)),
-					TimeFormat:  utils.String(d.Get("time_format").(string)),
+					Container:   pointer.To(d.Get("storage_container_name").(string)),
+					DateFormat:  pointer.To(d.Get("date_format").(string)),
+					PathPattern: pointer.To(d.Get("path_pattern").(string)),
+					TimeFormat:  pointer.To(d.Get("time_format").(string)),
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
-							AccountName: utils.String(d.Get("storage_account_name").(string)),
+							AccountName: pointer.To(d.Get("storage_account_name").(string)),
 							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
-					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 				},
 			},
 			Serialization: serialization,
@@ -187,21 +190,21 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 
 	// TODO d.HasChanges()
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.ReferenceInputProperties{
 			Datasource: &inputs.BlobReferenceInputDataSource{
 				Properties: &inputs.BlobDataSourceProperties{
-					Container:   utils.String(d.Get("storage_container_name").(string)),
-					DateFormat:  utils.String(d.Get("date_format").(string)),
-					PathPattern: utils.String(d.Get("path_pattern").(string)),
-					TimeFormat:  utils.String(d.Get("time_format").(string)),
+					Container:   pointer.To(d.Get("storage_container_name").(string)),
+					DateFormat:  pointer.To(d.Get("date_format").(string)),
+					PathPattern: pointer.To(d.Get("path_pattern").(string)),
+					TimeFormat:  pointer.To(d.Get("time_format").(string)),
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
-							AccountName: utils.String(d.Get("storage_account_name").(string)),
+							AccountName: pointer.To(d.Get("storage_account_name").(string)),
 							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
-					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 				},
 			},
 			Serialization: serialization,
@@ -324,7 +327,7 @@ func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, 
 
 func normalizeAccountKey(accountKey string) *string {
 	if accountKey != "" {
-		return utils.String(accountKey)
+		return pointer.To(accountKey)
 	}
 
 	return nil

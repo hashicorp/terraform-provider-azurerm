@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -7,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -101,16 +105,16 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 
 	log.Printf("[INFO] preparing arguments for MsSql Server Extended Auditing Policy creation.")
 
-	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name)
+		existing, err := client.Get(ctx, serverId.ResourceGroupName, serverId.ServerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failed to check for presence of existing Server %q Sql Auditing (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
+				return fmt.Errorf("retrieving MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 			}
 		}
 
@@ -147,24 +151,16 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, params)
+	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroupName, serverId.ServerName, params)
 	if err != nil {
-		return fmt.Errorf("creating MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("creating MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 	}
 
-	read, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
-	}
-
-	if read.Name == nil || *read.Name == "" {
-		return fmt.Errorf("reading MsSql Server %q Extended Auditing Policy (Resource Group %q) Name is empty or nil", serverId.Name, serverId.ResourceGroup)
-	}
-	id := parse.NewServerExtendedAuditingPolicyID(subscriptionId, serverId.ResourceGroup, serverId.Name, *read.Name)
+	id := parse.NewServerExtendedAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, "default")
 
 	d.SetId(id.ID())
 
@@ -173,7 +169,6 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 
 func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
-	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,15 +183,11 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Server %s Extended Auditing Policy (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Server Extended Auditing Policy %s: %+v", id, err)
 	}
 
-	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.ServerName, "")
-	if err != nil || serverResp.ID == nil || *serverResp.ID == "" {
-		return fmt.Errorf("reading MsSql Server %q ID is empty or nil(Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
-	}
-
-	d.Set("server_id", serverResp.ID)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	d.Set("server_id", serverId.ID())
 
 	if props := resp.ExtendedServerBlobAuditingPolicyProperties; props != nil {
 		d.Set("storage_endpoint", props.StorageEndpoint)

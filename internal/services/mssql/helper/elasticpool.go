@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helper
 
 import (
@@ -193,6 +196,23 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			8: 768,
 		},
 	},
+	"hyperscale": {
+		"gen5": {
+			4:  1024,
+			6:  1536,
+			8:  2048,
+			10: 2048,
+			12: 3072,
+			14: 3072,
+			16: 3072,
+			18: 3072,
+			20: 3072,
+			24: 4096,
+			32: 4096,
+			40: 4096,
+			80: 4096,
+		},
+	},
 }
 
 // getTierFromName: this map contains all of the valid mappings between 'name' and 'tier'
@@ -212,6 +232,7 @@ var getTierFromName = map[string]string{
 	"bc_gen4":      "BusinessCritical",
 	"bc_gen5":      "BusinessCritical",
 	"bc_dc":        "BusinessCritical",
+	"hs_gen5":      "HyperScale",
 }
 
 func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
@@ -223,6 +244,7 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	maxSizeGb := diff.Get("max_size_gb")
 	minCapacity := diff.Get("per_database_settings.0.min_capacity")
 	maxCapacity := diff.Get("per_database_settings.0.max_capacity")
+	enclaveType := diff.Get("enclave_type")
 
 	s := sku{
 		Name:        name.(string),
@@ -242,23 +264,28 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	}
 
 	// Check to see if the name describes a vCore type SKU
-	if strings.HasPrefix(strings.ToLower(s.Name), "gp_") || strings.HasPrefix(strings.ToLower(s.Name), "bc_") {
+	if strings.HasPrefix(strings.ToLower(s.Name), "gp_") || strings.HasPrefix(strings.ToLower(s.Name), "bc_") || strings.HasPrefix(strings.ToLower(s.Name), "hs_") {
 		s.SkuType = VCore
 	}
 
 	// Universal check for both DTU and vCore based SKUs
 	if !nameTierIsValid(s) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
+		return fmt.Errorf("mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
 	}
 
 	// Verify that Family is valid
 	if s.SkuType == DTU && s.Family != "" {
-		return fmt.Errorf("Invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
+		return fmt.Errorf("invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
 	} else if s.SkuType == VCore && !nameContainsFamily(s) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
+		return fmt.Errorf("mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
 
-	// get max GB and do validation based on SKU type
+	// Validate if 'enclave_type' is valid for this SKU type
+	if enclaveType != "" && strings.Contains(strings.ToLower(s.Name), "_dc") {
+		return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", s.Name)
+	}
+
+	// Get max GB and do validation based on SKU type
 	if s.SkuType == DTU {
 		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
 		return doDTUSKUValidation(s)
@@ -403,7 +430,7 @@ func doVCoreSKUValidation(s sku) error {
 		return fmt.Errorf("service tier '%s' %s with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", s.Tier, s.Family, s.Capacity, int(s.MaxAllowedGB), int(s.MaxSizeGb))
 	}
 
-	if int(s.MaxSizeGb) < 5 {
+	if s.Tier != "Hyperscale" && int(s.MaxSizeGb) < 5 {
 		return fmt.Errorf("service tier '%s' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", s.Tier, int(s.MaxSizeGb))
 	}
 

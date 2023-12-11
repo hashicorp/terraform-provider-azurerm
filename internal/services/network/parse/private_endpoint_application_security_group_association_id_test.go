@@ -1,7 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
 	"testing"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
 )
 
 func TestPrivateEndpointApplicationSecurityGroupAssociationID(t *testing.T) {
@@ -46,15 +52,15 @@ func TestPrivateEndpointApplicationSecurityGroupAssociationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoints1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationSecurityGroups/securityGroup1",
 			Error: false,
 			Expect: &PrivateEndpointApplicationSecurityGroupAssociationId{
-				ApplicationSecurityGroupId: ApplicationSecurityGroupId{
-					ResourceGroup:  "mygroup1",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					Name:           "securityGroup1",
+				ApplicationSecurityGroupId: applicationsecuritygroups.ApplicationSecurityGroupId{
+					ResourceGroupName:            "mygroup1",
+					SubscriptionId:               "00000000-0000-0000-0000-000000000000",
+					ApplicationSecurityGroupName: "securityGroup1",
 				},
-				PrivateEndpointId: PrivateEndpointId{
-					ResourceGroup:  "group1",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					Name:           "endpoints1",
+				PrivateEndpointId: privateendpoints.PrivateEndpointId{
+					ResourceGroupName:   "group1",
+					SubscriptionId:      "00000000-0000-0000-0000-000000000000",
+					PrivateEndpointName: "endpoints1",
 				},
 			},
 		},
@@ -71,12 +77,12 @@ func TestPrivateEndpointApplicationSecurityGroupAssociationID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.PrivateEndpointId.Name != v.Expect.PrivateEndpointId.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.PrivateEndpointId.Name, actual.PrivateEndpointId.Name)
+		if actual.PrivateEndpointId.PrivateEndpointName != v.Expect.PrivateEndpointId.PrivateEndpointName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.PrivateEndpointId.PrivateEndpointName, actual.PrivateEndpointId.PrivateEndpointName)
 		}
 
-		if actual.ApplicationSecurityGroupId.ResourceGroup != v.Expect.ApplicationSecurityGroupId.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ApplicationSecurityGroupId.ResourceGroup, actual.ApplicationSecurityGroupId.ResourceGroup)
+		if actual.ApplicationSecurityGroupId.ResourceGroupName != v.Expect.ApplicationSecurityGroupId.ResourceGroupName {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ApplicationSecurityGroupId.ResourceGroupName, actual.ApplicationSecurityGroupId.ResourceGroupName)
 		}
 	}
 }

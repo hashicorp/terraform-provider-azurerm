@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks_test
 
 import (
@@ -123,8 +126,20 @@ func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context,
 	return utils.Bool(false), nil
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
-	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
+func (r DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
+	cmkTemplate := r.cmkTemplate()
+	template := r.basic(data, cmkTemplate)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_databricks_workspace_customer_managed_key" "import" {
+  workspace_id     = azurerm_databricks_workspace.test.id
+  key_vault_key_id = azurerm_key_vault_key.test.id
+}
+`, template)
+}
+
+func (r DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
+	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,21 +168,8 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, "eastus2", keyVault, cmk)
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
-	cmkTemplate := DatabricksWorkspaceCustomerManagedKeyResource{}.cmkTemplate()
-	template := DatabricksWorkspaceCustomerManagedKeyResource{}.basic(data, cmkTemplate)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_databricks_workspace_customer_managed_key" "import" {
-  workspace_id     = azurerm_databricks_workspace.test.id
-  key_vault_key_id = azurerm_key_vault_key.test.id
-}
-`, template)
-}
-
-func (DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
-	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
+func (r DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
+	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -251,6 +253,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -272,6 +275,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
     "Delete",

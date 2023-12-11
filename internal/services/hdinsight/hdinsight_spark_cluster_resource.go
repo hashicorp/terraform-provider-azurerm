@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package hdinsight
 
 import (
@@ -7,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -23,9 +27,9 @@ import (
 var hdInsightSparkClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         utils.Int(2),
+	MaxInstanceCount:         pointer.To(2),
 	CanSpecifyDisks:          false,
-	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	FixedTargetInstanceCount: pointer.To(int32(2)),
 }
 
 var hdInsightSparkClusterWorkerNodeDefinition = HDInsightNodeDefinition{
@@ -39,8 +43,8 @@ var hdInsightSparkClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 var hdInsightSparkClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         utils.Int(3),
-	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	MaxInstanceCount:         pointer.To(3),
+	FixedTargetInstanceCount: pointer.To(int32(3)),
 	CanSpecifyDisks:          false,
 }
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -45,7 +48,37 @@ func TestAccSubnetServiceEndpointStoragePolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccSubnetServiceEndpointStoragePolicy_update(t *testing.T) {
+func TestAccSubnetServiceEndpointStoragePolicy_alias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
+	r := SubnetServiceEndpointPolicyStorageResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alias(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnetServiceEndpointStoragePolicy_storage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
+	r := SubnetServiceEndpointPolicyStorageResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnetServiceEndpointStoragePolicy_update_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
 	r := SubnetServiceEndpointPolicyStorageResource{}
 
@@ -59,6 +92,64 @@ func TestAccSubnetServiceEndpointStoragePolicy_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnetServiceEndpointStoragePolicy_update_alias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
+	r := SubnetServiceEndpointPolicyStorageResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.alias(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnetServiceEndpointStoragePolicy_update_storage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")
+	r := SubnetServiceEndpointPolicyStorageResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storage(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -132,14 +223,103 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   definition {
-    name        = "def1"
+    name        = "resourceid"
     description = "test definition1"
+    service     = "Microsoft.Storage"
     service_resources = [
       "/subscriptions/%s",
       azurerm_resource_group.test.id,
-      azurerm_storage_account.test.id
+      azurerm_storage_account.test.id,
     ]
   }
+
+  definition {
+    name        = "alias"
+    description = "test definition1"
+    service     = "Global"
+    service_resources = [
+      "/services/Azure",
+      "/services/Azure/Batch",
+      "/services/Azure/DataFactory",
+      "/services/Azure/MachineLearning",
+      "/services/Azure/ManagedInstance",
+      "/services/Azure/WebPI",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
+}
+`, r.template(data), data.RandomString, data.RandomInteger, data.Client().SubscriptionID)
+}
+
+func (r SubnetServiceEndpointPolicyStorageResource) alias(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestasasepd%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
+  name                = "acctestSEP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  definition {
+    name        = "alias"
+    description = "test definition1"
+    service     = "Global"
+    service_resources = [
+      "/services/Azure",
+      "/services/Azure/Batch",
+      "/services/Azure/DataFactory",
+      "/services/Azure/MachineLearning",
+      "/services/Azure/ManagedInstance",
+      "/services/Azure/WebPI",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
+}
+`, r.template(data), data.RandomString, data.RandomInteger)
+}
+
+func (r SubnetServiceEndpointPolicyStorageResource) storage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestasasepd%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
+  name                = "acctestSEP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  definition {
+    name        = "resourceid"
+    description = "test definition1"
+    service     = "Microsoft.Storage"
+    service_resources = [
+      "/subscriptions/%s",
+      azurerm_resource_group.test.id,
+      azurerm_storage_account.test.id,
+    ]
+  }
+
   tags = {
     environment = "Production"
     cost_center = "MSFT"

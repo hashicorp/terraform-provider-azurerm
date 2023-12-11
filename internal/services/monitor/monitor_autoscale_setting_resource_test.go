@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/autoscalesettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -71,6 +74,50 @@ func TestAccMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 				check.That(data.ResourceName).Key("profile.1.name").HasValue("secondary"),
 			),
 		},
+	})
+}
+
+func TestAccMonitorAutoScaleSetting_predictive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.predictive(data, "Enabled", "PT1M"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorAutoScaleSetting_predictiveUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	r := MonitorAutoScaleSettingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.predictive(data, "Enabled", "PT1H"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.predictive(data, "ForecastOnly", "PT1M"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -388,6 +435,56 @@ resource "azurerm_monitor_autoscale_setting" "import" {
   }
 }
 `, template)
+}
+
+func (MonitorAutoScaleSettingResource) predictive(data acceptance.TestData, scaleMode, scaleLookAheadTime string) string {
+	template := MonitorAutoScaleSettingResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_linux_virtual_machine_scale_set.test.id
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name              = "Percentage CPU"
+        metric_resource_id       = azurerm_linux_virtual_machine_scale_set.test.id
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Last"
+        operator                 = "GreaterThan"
+        threshold                = 75
+        divide_by_instance_count = true
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+
+  predictive {
+    scale_mode      = %q
+    look_ahead_time = %q
+  }
+}
+`, template, data.RandomInteger, scaleMode, scaleLookAheadTime)
 }
 
 func (MonitorAutoScaleSettingResource) multipleProfiles(data acceptance.TestData) string {
@@ -1022,8 +1119,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

@@ -1,19 +1,23 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceVirtualMachineExtension() *pluginsdk.Resource {
@@ -50,7 +54,7 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"publisher": {
@@ -104,6 +108,15 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 
 			"protected_settings_from_key_vault": protectedSettingsFromKeyVaultSchema(true),
 
+			"provision_after_extensions": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -115,11 +128,11 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	virtualMachineId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroup, virtualMachineId.Name, d.Get("name").(string))
+	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, d.Get("name").(string))
 
 	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {
@@ -182,6 +195,10 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		extension.VirtualMachineExtensionProperties.ProtectedSettings = &protectedSettings
 	}
 
+	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
+		extension.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+	}
+
 	future, err := vmExtensionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, extension)
 	if err != nil {
 		return err
@@ -236,6 +253,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
+		d.Set("provision_after_extensions", pointer.From(props.ProvisionAfterExtensions))
 
 		suppressFailure := false
 		if props.SuppressFailures != nil {

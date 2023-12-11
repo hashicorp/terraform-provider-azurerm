@@ -1,7 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resourceproviders
 
 import (
 	"fmt"
+	"log"
 )
 
 // DetermineWhichRequiredResourceProvidersRequireRegistration determines which Resource Providers require registration to be able to be used
@@ -17,8 +21,8 @@ func DetermineWhichRequiredResourceProvidersRequireRegistration(requiredResource
 		}
 
 		if _, isUnregistered := (*unregisteredResourceProviders)[providerName]; !isUnregistered {
-			// this is likely a typo in the Required Resource Providers list, so we should surface this
-			return nil, fmt.Errorf("the required Resource Provider %q wasn't returned from the Azure API", providerName)
+			// some RPs may not exist in some non-public clouds, so we'll log a warning here instead of raising an error
+			log.Printf("[WARN] The required Resource Provider %q wasn't returned from the Azure API", providerName)
 		}
 
 		requiringRegistration = append(requiringRegistration, providerName)

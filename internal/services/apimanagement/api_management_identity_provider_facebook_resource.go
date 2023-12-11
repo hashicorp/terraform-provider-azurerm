@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,16 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementIdentityProviderFacebook() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementIdentityProviderFacebook() *pluginsdk.Resource {
 		Update: resourceApiManagementIdentityProviderFacebookCreateUpdate,
 		Delete: resourceApiManagementIdentityProviderFacebookDelete,
 
-		Importer: identityProviderImportFunc(apimanagement.IdentityProviderTypeFacebook),
+		Importer: identityProviderImportFunc(identityprovider.IdentityProviderTypeFacebook),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -60,32 +63,32 @@ func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.Reso
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), string(apimanagement.IdentityProviderTypeFacebook))
+	id := identityprovider.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), identityprovider.IdentityProviderTypeFacebook)
 	clientID := d.Get("app_id").(string)
 	clientSecret := d.Get("app_secret").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.IdentityProviderType(id.Name))
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_facebook", id.ID())
 		}
 	}
 
-	parameters := apimanagement.IdentityProviderCreateContract{
-		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
-			ClientID:     utils.String(clientID),
-			ClientSecret: utils.String(clientSecret),
-			Type:         apimanagement.IdentityProviderTypeFacebook,
+	parameters := identityprovider.IdentityProviderCreateContract{
+		Properties: &identityprovider.IdentityProviderCreateContractProperties{
+			ClientId:     clientID,
+			ClientSecret: clientSecret,
+			Type:         pointer.To(identityprovider.IdentityProviderTypeFacebook),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, apimanagement.IdentityProviderTypeFacebook, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -99,30 +102,31 @@ func resourceApiManagementIdentityProviderFacebookRead(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IdentityProviderID(d.Id())
+	id, err := identityprovider.ParseIdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroupName
 	serviceName := id.ServiceName
-	identityProviderName := id.Name
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Identity Provider %q (Resource Group %q / API Management Service %q) was not found - removing from state!", identityProviderName, resourceGroup, serviceName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Identity Provider %q (Resource Group %q / API Management Service %q): %+v", identityProviderName, resourceGroup, serviceName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
 
-	if props := resp.IdentityProviderContractProperties; props != nil {
-		d.Set("app_id", props.ClientID)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("app_id", props.ClientId)
+		}
 	}
 
 	return nil
@@ -133,17 +137,14 @@ func resourceApiManagementIdentityProviderFacebookDelete(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IdentityProviderID(d.Id())
+	id, err := identityprovider.ParseIdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	identityProviderName := id.Name
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName), ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Identity Provider %q (Resource Group %q / API Management Service %q): %+v", identityProviderName, resourceGroup, serviceName, err)
+	if resp, err := client.Delete(ctx, *id, identityprovider.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

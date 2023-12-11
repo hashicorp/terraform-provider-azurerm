@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
@@ -5,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 type encodeTestData struct {
@@ -88,6 +92,208 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 				"salut":   "tous les monde",
 				"guten":   "tag",
 				"morning": "alvaro",
+			},
+		},
+	}.test(t)
+}
+
+func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
+	type SimpleType struct {
+		String           string             `tfschema:"string"`
+		StringPtr        *string            `tfschema:"string_ptr"`
+		Number           int                `tfschema:"number"`
+		NumberPtr        *int               `tfschema:"number_ptr"`
+		Price            float64            `tfschema:"price"`
+		PricePtr         *float64           `tfschema:"price_ptr"`
+		Enabled          bool               `tfschema:"enabled"`
+		EnabledPtr       *bool              `tfschema:"enabled_ptr"`
+		ListOfFloats     []float64          `tfschema:"list_of_floats"`
+		ListOfNumbers    []int              `tfschema:"list_of_numbers"`
+		ListOfStrings    []string           `tfschema:"list_of_strings"`
+		ListOfStringsPtr *[]string          `tfschema:"list_of_strings_ptr"`
+		MapOfBools       map[string]bool    `tfschema:"map_of_bools"`
+		MapOfNumbers     map[string]int     `tfschema:"map_of_numbers"`
+		MapOfStrings     map[string]string  `tfschema:"map_of_strings"`
+		MapOfStringsPtr  *map[string]string `tfschema:"map_of_strings_ptr"`
+	}
+
+	encodeTestData{
+		Input: &SimpleType{
+			String:  "world",
+			Number:  42,
+			Price:   129.99,
+			Enabled: true,
+			ListOfFloats: []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			ListOfNumbers: []int{1, 2, 3},
+			ListOfStrings: []string{
+				"have",
+				"you",
+				"heard",
+			},
+			MapOfBools: map[string]bool{
+				"awesome_feature": true,
+			},
+			MapOfNumbers: map[string]int{
+				"hello": 1,
+				"there": 3,
+			},
+			MapOfStrings: map[string]string{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+		},
+		Expected: map[string]interface{}{
+			"number":      int64(42),
+			"number_ptr":  nil,
+			"price":       float64(129.99),
+			"price_ptr":   nil,
+			"string":      "world",
+			"string_ptr":  nil,
+			"enabled":     true,
+			"enabled_ptr": nil,
+			"list_of_floats": []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			"list_of_numbers": []int{1, 2, 3},
+			"list_of_strings": []string{
+				"have",
+				"you",
+				"heard",
+			},
+			"list_of_strings_ptr": nil,
+			"map_of_bools": map[string]interface{}{
+				"awesome_feature": true,
+			},
+			"map_of_numbers": map[string]interface{}{
+				"hello": 1,
+				"there": 3,
+			},
+			"map_of_strings": map[string]interface{}{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+			"map_of_strings_ptr": nil,
+		},
+	}.test(t)
+}
+
+func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
+	type SimpleType struct {
+		String           string             `tfschema:"string"`
+		StringPtr        *string            `tfschema:"string_ptr"`
+		Number           int                `tfschema:"number"`
+		NumberPtr        *int               `tfschema:"number_ptr"`
+		Price            float64            `tfschema:"price"`
+		PricePtr         *float64           `tfschema:"price_ptr"`
+		Enabled          bool               `tfschema:"enabled"`
+		EnabledPtr       *bool              `tfschema:"enabled_ptr"`
+		ListOfFloats     []float64          `tfschema:"list_of_floats"`
+		ListOfNumbers    []int              `tfschema:"list_of_numbers"`
+		ListOfStrings    []string           `tfschema:"list_of_strings"`
+		ListOfStringsPtr *[]string          `tfschema:"list_of_strings_ptr"`
+		MapOfBools       map[string]bool    `tfschema:"map_of_bools"`
+		MapOfNumbers     map[string]int     `tfschema:"map_of_numbers"`
+		MapOfStrings     map[string]string  `tfschema:"map_of_strings"`
+		MapOfStringsPtr  *map[string]string `tfschema:"map_of_strings_ptr"`
+	}
+
+	encodeTestData{
+		Input: &SimpleType{
+			String:     "world",
+			StringPtr:  pointer.To("foo"),
+			Number:     42,
+			NumberPtr:  pointer.To(22),
+			Price:      129.99,
+			PricePtr:   pointer.To(3.50),
+			Enabled:    true,
+			EnabledPtr: pointer.To(true),
+			ListOfFloats: []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			ListOfNumbers: []int{1, 2, 3},
+			ListOfStrings: []string{
+				"have",
+				"you",
+				"heard",
+			},
+			ListOfStringsPtr: pointer.To([]string{
+				"about",
+				"the",
+				"bird",
+			}),
+			MapOfBools: map[string]bool{
+				"awesome_feature": true,
+			},
+			MapOfNumbers: map[string]int{
+				"hello": 1,
+				"there": 3,
+			},
+			MapOfStrings: map[string]string{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+			MapOfStringsPtr: pointer.To(map[string]string{
+				"foo": "bar",
+			}),
+		},
+		Expected: map[string]interface{}{
+			"number":      int64(42),
+			"number_ptr":  int64(22),
+			"price":       float64(129.99),
+			"price_ptr":   float64(3.50),
+			"string":      "world",
+			"string_ptr":  "foo",
+			"enabled":     true,
+			"enabled_ptr": true,
+			"list_of_floats": []float64{
+				1.0,
+				2.0,
+				3.0,
+				1.234567890,
+			},
+			"list_of_numbers": []int{1, 2, 3},
+			"list_of_strings": []string{
+				"have",
+				"you",
+				"heard",
+			},
+			"list_of_strings_ptr": []string{
+				"about",
+				"the",
+				"bird",
+			},
+			"map_of_bools": map[string]interface{}{
+				"awesome_feature": true,
+			},
+			"map_of_numbers": map[string]interface{}{
+				"hello": 1,
+				"there": 3,
+			},
+			"map_of_strings": map[string]interface{}{
+				"hello":   "there",
+				"salut":   "tous les monde",
+				"guten":   "tag",
+				"morning": "alvaro",
+			},
+			"map_of_strings_ptr": map[string]interface{}{
+				"foo": "bar",
 			},
 		},
 	}.test(t)
@@ -647,13 +853,154 @@ func TestResourceEncode_NestedThreeLevelsDeepMultipleItems(t *testing.T) {
 	}.test(t)
 }
 
+func TestResourceEncode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T) {
+	type ThirdInner struct {
+		Value string `tfschema:"value"`
+	}
+	type SecondInner struct {
+		Value *string       `tfschema:"value"`
+		Third *[]ThirdInner `tfschema:"third"`
+	}
+	type FirstInner struct {
+		Value  *string        `tfschema:"value"`
+		Second *[]SecondInner `tfschema:"second"`
+	}
+	type Type struct {
+		First *[]FirstInner `tfschema:"first"`
+	}
+
+	encodeTestData{
+		Input: &Type{
+			First: &[]FirstInner{
+				{
+					Value: pointer.To("first - 1"),
+					Second: &[]SecondInner{
+						{
+							Value: pointer.To("second - 1"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 1",
+								},
+								{
+									Value: "third - 2",
+								},
+								{
+									Value: "third - 3",
+								},
+							},
+						},
+						{
+							Value: pointer.To("second - 2"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 4",
+								},
+								{
+									Value: "third - 5",
+								},
+								{
+									Value: "third - 6",
+								},
+							},
+						},
+					},
+				},
+				{
+					Value: pointer.To("first - 2"),
+					Second: &[]SecondInner{
+						{
+							Value: pointer.To("second - 3"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 7",
+								},
+								{
+									Value: "third - 8",
+								},
+							},
+						},
+						{
+							Value: pointer.To("second - 4"),
+							Third: &[]ThirdInner{
+								{
+									Value: "third - 9",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Expected: map[string]interface{}{
+			"first": []interface{}{
+				map[string]interface{}{
+					"value": "first - 1",
+					"second": []interface{}{
+						map[string]interface{}{
+							"value": "second - 1",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 1",
+								},
+								map[string]interface{}{
+									"value": "third - 2",
+								},
+								map[string]interface{}{
+									"value": "third - 3",
+								},
+							},
+						},
+						map[string]interface{}{
+							"value": "second - 2",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 4",
+								},
+								map[string]interface{}{
+									"value": "third - 5",
+								},
+								map[string]interface{}{
+									"value": "third - 6",
+								},
+							},
+						},
+					},
+				},
+				map[string]interface{}{
+					"value": "first - 2",
+					"second": []interface{}{
+						map[string]interface{}{
+							"value": "second - 3",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 7",
+								},
+								map[string]interface{}{
+									"value": "third - 8",
+								},
+							},
+						},
+						map[string]interface{}{
+							"value": "second - 4",
+							"third": []interface{}{
+								map[string]interface{}{
+									"value": "third - 9",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}.test(t)
+}
+
 func (testData encodeTestData) test(t *testing.T) {
 	objType := reflect.TypeOf(testData.Input).Elem()
 	objVal := reflect.ValueOf(testData.Input).Elem()
-	fieldName := reflect.ValueOf(testData.Input).Elem().String()
 	debugLogger := ConsoleLogger{}
 
-	output, err := recurse(objType, objVal, fieldName, debugLogger)
+	output, err := recurse(objType, objVal, debugLogger)
 	if err != nil {
 		if testData.ExpectError {
 			// we're good

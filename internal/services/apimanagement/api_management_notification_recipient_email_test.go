@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientemail"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementNotificationRecipientEmailResource struct{}
@@ -47,25 +50,26 @@ func TestAccApiManagementNotificationRecipientEmail_requiresImport(t *testing.T)
 }
 
 func (ApiManagementNotificationRecipientEmailResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NotificationRecipientEmailID(state.ID)
+	id, err := notificationrecipientemail.ParseRecipientEmailID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	emails, err := client.ApiManagement.NotificationRecipientEmailClient.ListByNotification(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName))
+	notificationId := notificationrecipientemail.NewNotificationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.NotificationName)
+	emails, err := client.ApiManagement.NotificationRecipientEmailClient.ListByNotification(ctx, notificationId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(emails.Response) {
-			return nil, fmt.Errorf("retrieving Api Management Notification Recipient Email %q (Resource Group %q): %+v", id.RecipientEmailName, id.ResourceGroup, err)
+		if !response.WasNotFound(emails.HttpResponse) {
+			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 	}
-	if emails.Value != nil {
-		for _, existing := range *emails.Value {
-			if existing.RecipientEmailContractProperties != nil && existing.RecipientEmailContractProperties.Email != nil && *existing.RecipientEmailContractProperties.Email == id.RecipientEmailName {
-				return utils.Bool(true), nil
+	if model := emails.Model; model != nil && model.Value != nil {
+		for _, existing := range *model.Value {
+			if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == id.RecipientEmailName {
+				return pointer.To(true), nil
 			}
 		}
 	}
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r ApiManagementNotificationRecipientEmailResource) basic(data acceptance.TestData) string {

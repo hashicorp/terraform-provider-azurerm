@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -146,21 +150,21 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 
 	systemPropertyColumns := d.Get("system_property_columns").(map[string]interface{})
 	dataSourceProperties := &outputs.ServiceBusTopicOutputDataSourceProperties{
-		TopicName:             utils.String(d.Get("topic_name").(string)),
-		ServiceBusNamespace:   utils.String(d.Get("servicebus_namespace").(string)),
+		TopicName:             pointer.To(d.Get("topic_name").(string)),
+		ServiceBusNamespace:   pointer.To(d.Get("servicebus_namespace").(string)),
 		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 		SystemPropertyColumns: expandSystemPropertyColumns(systemPropertyColumns),
-		AuthenticationMode:    utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode
 	if *dataSourceProperties.AuthenticationMode == outputs.AuthenticationModeConnectionString {
-		dataSourceProperties.SharedAccessPolicyKey = utils.String(d.Get("shared_access_policy_key").(string))
-		dataSourceProperties.SharedAccessPolicyName = utils.String(d.Get("shared_access_policy_name").(string))
+		dataSourceProperties.SharedAccessPolicyKey = pointer.To(d.Get("shared_access_policy_key").(string))
+		dataSourceProperties.SharedAccessPolicyName = pointer.To(d.Get("shared_access_policy_name").(string))
 	}
 
 	props := outputs.Output{
-		Name: utils.String(id.OutputName),
+		Name: pointer.To(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.ServiceBusTopicOutputDataSource{
 				Properties: dataSourceProperties,

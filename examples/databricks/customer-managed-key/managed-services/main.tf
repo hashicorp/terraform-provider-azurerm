@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -77,9 +80,9 @@ resource "azurerm_key_vault_access_policy" "terraform" {
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
-  key_vault_id   = azurerm_key_vault.example.id
-  tenant_id      = azurerm_key_vault.example.tenant_id
-  object_id      = "See the README.md file for instructions on how to lookup the correct value to enter here"
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = azurerm_key_vault.example.tenant_id
+  object_id    = "See the README.md file for instructions on how to lookup the correct value to enter here"
 
   key_permissions = [
     "get",

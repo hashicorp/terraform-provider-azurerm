@@ -62,6 +62,10 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = true
     }
 
+    subscription {
+      prevent_cancellation_on_destroy = false
+    }
+
     template_deployment {
       delete_nested_items_during_deletion = true
     }
@@ -113,7 +117,7 @@ The `api_management` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
-* `recover_soft_deleted` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
+* `recover_soft_deleted` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`.
 
 ---
 
@@ -121,14 +125,13 @@ The `app_configuration` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_app_configuration` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
-* `recover_soft_deleted` - (Optional) Should the `azurerm_app_configuration` resources recover a Soft-Deleted App Configuration service? Defaults to `true`
-*
+* `recover_soft_deleted` - (Optional) Should the `azurerm_app_configuration` resources recover a Soft-Deleted App Configuration service? Defaults to `true`.
 
 ---
 
 The `application_insights` block supports the following:
 
-* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the create step? Defaults to `false`.
+* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the creation step? Defaults to `false`.
 
 ---
 
@@ -183,6 +186,12 @@ The `managed_disk` block supports the following:
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
+
+---
+
+The `subscription` block supports the following:
+
+* `prevent_cancellation_on_destroy` - (Optional) Should the `azurerm_subscription` resource prevent a subscription to be cancelled on destroy? Defaults to `false`.
 
 ---
 

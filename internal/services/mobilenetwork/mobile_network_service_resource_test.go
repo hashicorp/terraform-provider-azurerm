@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -18,9 +21,6 @@ type MobileNetworkServiceResource struct{}
 
 func TestAccMobileNetworkService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,8 +35,6 @@ func TestAccMobileNetworkService_basic(t *testing.T) {
 
 func TestAccMobileNetworkService_withQosPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
 
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -52,9 +50,6 @@ func TestAccMobileNetworkService_withQosPolicy(t *testing.T) {
 
 func TestAccMobileNetworkService_withServiceQosPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,9 +64,6 @@ func TestAccMobileNetworkService_withServiceQosPolicy(t *testing.T) {
 
 func TestAccMobileNetworkService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,9 +78,6 @@ func TestAccMobileNetworkService_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -103,9 +92,6 @@ func TestAccMobileNetworkService_complete(t *testing.T) {
 
 func TestAccMobileNetworkService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_service", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -49,7 +53,7 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseID,
+				ValidateFunc: commonids.ValidateSqlDatabaseID,
 			},
 
 			"location": commonschema.Location(),
@@ -68,8 +72,11 @@ func resourceMsSqlJobAgentCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	databaseId := d.Get("database_id").(string)
-	dbId, _ := parse.DatabaseID(databaseId)
-	id := parse.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroup, dbId.ServerName, d.Get("name").(string))
+	dbId, err := commonids.ParseSqlDatabaseID(databaseId)
+	if err != nil {
+		return err
+	}
+	id := parse.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.ServerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)

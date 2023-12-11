@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productapi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementProductAPIResource struct{}
@@ -46,16 +49,16 @@ func TestAccApiManagementProductApi_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementProductAPIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProductApiID(state.ID)
+	id, err := productapi.ParseProductApiID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err = clients.ApiManagement.ProductApisClient.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, id.ApiName); err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+	if _, err = clients.ApiManagement.ProductApisClient.CheckEntityExists(ctx, *id); err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (ApiManagementProductAPIResource) basic(data acceptance.TestData) string {

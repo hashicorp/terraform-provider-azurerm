@@ -20,7 +20,7 @@ type WebTestsCreateOrUpdateOperationResponse struct {
 // WebTestsCreateOrUpdate ...
 func (c WebTestsAPIsClient) WebTestsCreateOrUpdate(ctx context.Context, id WebTestId, input WebTest) (result WebTestsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
@@ -7,10 +10,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	validateNetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -26,6 +29,8 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 		Read:   resourceServiceBusNamespaceNetworkRuleSetRead,
 		Update: resourceServiceBusNamespaceNetworkRuleSetCreateUpdate,
 		Delete: resourceServiceBusNamespaceNetworkRuleSetDelete,
+
+		DeprecationMessage: "The `azurerm_servicebus_namespace_network_rule_set` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use `network_rule_set` inside the `azurerm_servicebus_namespace` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)
@@ -97,7 +102,7 @@ func resourceServicebusNamespaceNetworkRuleSetSchema() map[string]*pluginsdk.Sch
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validateNetwork.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 						// The subnet ID returned from the service will have `resourceGroup/{resourceGroupName}` all in lower cases...
 						DiffSuppressFunc: suppress.CaseDifference,
 					},

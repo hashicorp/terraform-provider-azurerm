@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -8,9 +11,9 @@ locals {
 }
 
 resource "azurerm_virtual_machine" "example" {
-  name                  = "${local.virtual_machine_name}"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
+  name                  = local.virtual_machine_name
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
 
@@ -33,17 +36,17 @@ resource "azurerm_virtual_machine" "example" {
   }
 
   os_profile {
-    computer_name  = "${local.virtual_machine_name}"
-    admin_username = "${local.admin_username}"
-    admin_password = "${local.admin_password}"
-    custom_data    = "${local.custom_data_content}"
+    computer_name  = local.virtual_machine_name
+    admin_username = local.admin_username
+    admin_password = local.admin_password
+    custom_data    = local.custom_data_content
   }
 
   os_profile_secrets {
-    source_vault_id = "${azurerm_key_vault.example.id}"
+    source_vault_id = azurerm_key_vault.example.id
 
     vault_certificates {
-      certificate_url   = "${azurerm_key_vault_certificate.example.secret_id}"
+      certificate_url   = azurerm_key_vault_certificate.example.secret_id
       certificate_store = "My"
     }
   }
@@ -65,14 +68,14 @@ resource "azurerm_virtual_machine" "example" {
       pass         = "oobeSystem"
       component    = "Microsoft-Windows-Shell-Setup"
       setting_name = "FirstLogonCommands"
-      content      = "${file("./files/FirstLogonCommands.xml")}"
+      content      = file("./files/FirstLogonCommands.xml")
     }
   }
 
   provisioner "remote-exec" {
     connection {
-      user     = "${local.admin_username}"
-      password = "${local.admin_password}"
+      user     = local.admin_username
+      password = local.admin_password
       port     = 5986
       https    = true
       timeout  = "10m"

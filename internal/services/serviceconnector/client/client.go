@@ -1,25 +1,36 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ServiceLinkerClient *servicelinker.ServiceLinkerClient
 	LinksClient         *links.LinksClient
+	ServiceLinkerClient *servicelinker.ServiceLinkerClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	serviceLinkerClient := servicelinker.NewServiceLinkerClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&serviceLinkerClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	linksClient, err := links.NewLinksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Links Client: %+v", err)
+	}
+	o.Configure(linksClient.Client, o.Authorizers.ResourceManager)
 
-	linksClient := links.NewLinksClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&linksClient.Client, o.ResourceManagerAuthorizer)
+	serviceLinkerClient, err := servicelinker.NewServiceLinkerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ServiceLinker Client: %+v", err)
+	}
+	o.Configure(serviceLinkerClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ServiceLinkerClient: &serviceLinkerClient,
-		LinksClient:         &linksClient,
-	}
+		LinksClient:         linksClient,
+		ServiceLinkerClient: serviceLinkerClient,
+	}, nil
 }

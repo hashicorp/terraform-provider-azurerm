@@ -1,8 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package fluidrelay
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/fluid-relay"
+}
 
 func (r Registration) Name() string {
 	return "Fluid Relay"

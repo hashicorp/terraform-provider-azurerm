@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/diagnostic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementDiagnosticResource struct{}
@@ -105,17 +108,17 @@ func TestAccApiManagementDiagnostic_completeUpdate(t *testing.T) {
 }
 
 func (ApiManagementDiagnosticResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	diagnosticId, err := parse.DiagnosticID(state.ID)
+	diagnosticId, err := diagnostic.ParseDiagnosticID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.DiagnosticClient.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name)
+	resp, err := clients.ApiManagement.DiagnosticClient.Get(ctx, *diagnosticId)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Diagnostic (%s): %+v", diagnosticId.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *diagnosticId, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Properties != nil), nil
 }
 
 func (ApiManagementDiagnosticResource) template(data acceptance.TestData) string {

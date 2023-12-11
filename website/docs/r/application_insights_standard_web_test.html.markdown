@@ -103,7 +103,7 @@ A `request` block supports the following:
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 
-* `http_verb` - (Optional) Which HTTP verb to use for the call. Options are 'GET', 'POST', 'PUT', 'PATCH', and 'DELETE'.
+* `http_verb` - (Optional) Which HTTP verb to use for the call. Options are 'GET', 'POST', 'PUT', 'PATCH', and 'DELETE'. Defaults to `GET`.
 
 * `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependend requests be enabled? Defaults to `true`.
 
@@ -141,5 +141,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Application Insights Standard WebTests can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_insights_standard_web_test.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Insights/webTests/appinsightswebtest
+terraform import azurerm_application_insights_standard_web_test.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Insights/webTests/appinsightswebtest
 ```

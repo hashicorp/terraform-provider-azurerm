@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse
 
 import (
@@ -65,6 +68,17 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
+			},
+
+			"principal_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"User",
+					"Group",
+					"ServicePrincipal",
+				}, false),
 			},
 
 			"role_name": {
@@ -162,6 +176,12 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		PrincipalID: &principalID,
 		Scope:       utils.String(scope),
 	}
+
+	if v, ok := d.GetOk("principal_type"); ok {
+		principalType := v.(string)
+		roleAssignment.PrincipalType = &principalType
+	}
+
 	resp, err := client.CreateRoleAssignment(ctx, roleAssignment, uuid)
 	if err != nil {
 		return fmt.Errorf("creating Synapse RoleAssignment %q: %+v", roleName, err)
@@ -221,6 +241,12 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 		principalID = resp.PrincipalID.String()
 	}
 	d.Set("principal_id", principalID)
+
+	principalType := ""
+	if resp.PrincipalType != nil {
+		principalType = *resp.PrincipalType
+	}
+	d.Set("principal_type", principalType)
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""

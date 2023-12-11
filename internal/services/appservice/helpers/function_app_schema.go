@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
@@ -5,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 const (
@@ -975,10 +978,10 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
-	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0` and `7.0`.
+	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0` and `8.0`.
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS`
-	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.10`, `3.9`, `3.8`, `3.7`
+	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
 	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
 	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`, `17`
 	CustomHandler         bool                     `tfschema:"use_custom_runtime"`          // Supported values `true`
@@ -986,7 +989,7 @@ type ApplicationStackLinuxFunctionApp struct {
 }
 
 type ApplicationStackWindowsFunctionApp struct {
-	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `3.1`, `6` and `7`
+	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `v3.0`, `v4.0`, `v6.0`, `v7.0` and `v8.0`
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17`
@@ -1016,6 +1019,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"3.1",
 						"6.0",
 						"7.0",
+						"8.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1048,6 +1052,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						"3.11",
 						"3.10",
 						"3.9",
 						"3.8",
@@ -1062,7 +1067,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Python to use. Possible values include `3.10`, `3.9`, `3.8`, and `3.7`.",
+					Description: "The version of Python to use. Possible values include `3.11`, `3.10`, `3.9`, `3.8`, and `3.7`.",
 				},
 
 				"node_version": {
@@ -1292,6 +1297,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"v4.0",
 						"v6.0",
 						"v7.0",
+						"v8.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",

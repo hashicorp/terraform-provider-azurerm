@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {
     key_vault {
@@ -90,12 +93,12 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = "${var.prefix}-vm"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssw0rd1234!"
+  name                = "${var.prefix}-vm"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@ssw0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

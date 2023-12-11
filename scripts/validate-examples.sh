@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 echo "==> Checking examples validate with 'terraform validate'..."
 
-exampleDirs=$(find ./examples -mindepth 2 -maxdepth 2 -type d '!' -exec test -e "{}/*.tf" ';' -print | sort)
+exampleDirs=$(find ./examples -mindepth 2 -maxdepth 2 -type d '!' -exec test -e "{}/*.tf" ';' -print | sort | egrep -v "tfc-checks")
 examplesWithErrors=()
 hasError=false
 

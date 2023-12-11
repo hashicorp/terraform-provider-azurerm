@@ -21,7 +21,7 @@ type TopicsRegenerateKeysOperationResponse struct {
 // TopicsRegenerateKeys ...
 func (c TopicsAuthorizationRuleClient) TopicsRegenerateKeys(ctx context.Context, id TopicAuthorizationRuleId, input RegenerateAccessKeyParameters) (result TopicsRegenerateKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

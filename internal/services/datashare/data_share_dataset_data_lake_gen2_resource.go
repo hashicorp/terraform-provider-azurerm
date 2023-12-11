@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datashare
 
 import (
@@ -6,13 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
-	storageParsers "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,7 +56,7 @@ func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"file_system_name": {
@@ -109,7 +111,7 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", id.ID())
 	}
 
-	strId, err := storageParsers.StorageAccountID(d.Get("storage_account_id").(string))
+	strId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -119,8 +121,8 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	if filePath, ok := d.GetOk("file_path"); ok {
 		dataSet = dataset.ADLSGen2FileDataSet{
 			Properties: dataset.ADLSGen2FileProperties{
-				StorageAccountName: strId.Name,
-				ResourceGroup:      strId.ResourceGroup,
+				StorageAccountName: strId.StorageAccountName,
+				ResourceGroup:      strId.ResourceGroupName,
 				SubscriptionId:     strId.SubscriptionId,
 				FileSystem:         d.Get("file_system_name").(string),
 				FilePath:           filePath.(string),
@@ -129,8 +131,8 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	} else if folderPath, ok := d.GetOk("folder_path"); ok {
 		dataSet = dataset.ADLSGen2FolderDataSet{
 			Properties: dataset.ADLSGen2FolderProperties{
-				StorageAccountName: strId.Name,
-				ResourceGroup:      strId.ResourceGroup,
+				StorageAccountName: strId.StorageAccountName,
+				ResourceGroup:      strId.ResourceGroupName,
 				SubscriptionId:     strId.SubscriptionId,
 				FileSystem:         d.Get("file_system_name").(string),
 				FolderPath:         folderPath.(string),
@@ -139,8 +141,8 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	} else {
 		dataSet = dataset.ADLSGen2FileSystemDataSet{
 			Properties: dataset.ADLSGen2FileSystemProperties{
-				StorageAccountName: strId.Name,
-				ResourceGroup:      strId.ResourceGroup,
+				StorageAccountName: strId.StorageAccountName,
+				ResourceGroup:      strId.ResourceGroupName,
 				SubscriptionId:     strId.SubscriptionId,
 				FileSystem:         d.Get("file_system_name").(string),
 			},
@@ -183,19 +185,19 @@ func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta in
 		m := *model
 		if ds, ok := m.(dataset.ADLSGen2FileDataSet); ok {
 			props := ds.Properties
-			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
+			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("file_path", props.FilePath)
 			d.Set("display_name", props.DataSetId)
 		} else if ds, ok := m.(dataset.ADLSGen2FolderDataSet); ok {
 			props := ds.Properties
-			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
+			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("folder_path", props.FolderPath)
 			d.Set("display_name", props.DataSetId)
 		} else if ds, ok := m.(dataset.ADLSGen2FileSystemDataSet); ok {
 			props := ds.Properties
-			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
+			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("display_name", props.DataSetId)
 		} else {

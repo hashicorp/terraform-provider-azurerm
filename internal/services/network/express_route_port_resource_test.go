@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -278,6 +281,7 @@ resource "azurerm_express_route_port" "test" {
     macsec_cipher                 = "GcmAes256"
     macsec_ckn_keyvault_secret_id = azurerm_key_vault_secret.ckn.id
     macsec_cak_keyvault_secret_id = azurerm_key_vault_secret.cak.id
+    macsec_sci_enabled            = true
   }
   link2 {
     macsec_cipher                 = "GcmAes128"

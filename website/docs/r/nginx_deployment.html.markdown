@@ -18,7 +18,6 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-
 resource "azurerm_public_ip" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
@@ -70,9 +69,9 @@ resource "azurerm_nginx_deployment" "example" {
     subnet_id = azurerm_subnet.example.id
   }
 
-  tags = {
-    foo = "bar"
-  }
+  capacity = 20
+
+  email = "user@test.com"
 }
 ```
 
@@ -92,7 +91,13 @@ The following arguments are supported:
 
 ---
 
+* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment. Defaults to `20`.
+
+-> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
+
 * `diagnose_support_enabled` - (Optional) Should the diagnosis support be enabled?
+
+* `email` - (Optional) Specify the preferred support contact email address of the user used for sending alerts and notification.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -143,6 +148,7 @@ A `logging_storage_account` block supports the following:
 A `network_interface` block supports the following:
 
 * `subnet_id` - (Required) Specify The SubNet Resource ID to this Nginx Deployment.
+
 
 ## Attributes Reference
 

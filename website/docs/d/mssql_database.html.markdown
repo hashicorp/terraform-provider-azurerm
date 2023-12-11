@@ -41,13 +41,17 @@ output "database_id" {
 
 * `name` - The name of the MS SQL Database.
 
-* `server_id` - The id of the MS SQL Server on which to create the database.
+* `server_id` - The id of the MS SQL Server on which to read the database.
 
 ## Attributes Reference
+
+* `id` - The ID of the database.
 
 * `collation` - The collation of the database.
 
 * `elastic_pool_id` - The id of the elastic pool containing this database.
+
+* `enclave_type` - The type of enclave being used by the database.
 
 * `license_type` - The license type to apply for this database.
 

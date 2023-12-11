@@ -1,13 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -81,36 +86,43 @@ func TestAccMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 }
 
 func (t MySQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConfigurationID(state.ID)
+	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := clients.MySQL.MySqlClient.Configurations.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading MySQL Configuration (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MySQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ServerID(state.Attributes["id"])
+		serverId, err := configurations.ParseServerID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
+		configurationId := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, configurationName)
+
+		ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+		resp, err := clients.MySQL.MySqlClient.Configurations.Get(ctx2, configurationId)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", configurationName, id.Name, id.ResourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("%s does not exist", configurationId)
 			}
-			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
+			return fmt.Errorf("get on mysqlConfigurationsClient: %+v", err)
 		}
 
-		actualValue := *resp.Value
-		defaultValue := *resp.DefaultValue
+		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Value == nil || resp.Model.Properties.DefaultValue == nil {
+			return fmt.Errorf("one of model/properties/value/defaultValue was nil for %s", configurationId)
+		}
+		actualValue := *resp.Model.Properties.Value
+		defaultValue := *resp.Model.Properties.DefaultValue
 
 		if defaultValue != actualValue {
 			return fmt.Errorf("MySQL Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
@@ -122,22 +134,28 @@ func (r MySQLConfigurationResource) checkReset(configurationName string) accepta
 
 func (r MySQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ConfigurationID(state.Attributes["id"])
+		id, err := configurations.ParseConfigurationID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MySQL.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+		resp, err := clients.MySQL.MySqlClient.Configurations.Get(ctx2, *id)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("%s does not exist", id)
 			}
 
-			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
+			return fmt.Errorf("get on mysqlConfigurationsClient: %+v", err)
 		}
 
-		if *resp.Value != value {
-			return fmt.Errorf("MySQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
+		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Value == nil {
+			return fmt.Errorf("one of model/properties/value was nil for %s", id)
+		}
+
+		if *resp.Model.Properties.Value != value {
+			return fmt.Errorf("MySQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Model.Properties.Value, resp)
 		}
 
 		return nil

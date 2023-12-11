@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -7,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -18,12 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type WindowsFunctionAppResource struct{}
@@ -39,27 +41,30 @@ type WindowsFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                 map[string]string                      `tfschema:"app_settings"`
-	StickySettings              []helpers.StickySettings               `tfschema:"sticky_settings"`
-	AuthSettings                []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	AuthV2Settings              []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
-	Backup                      []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode              string                                 `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths    string                                 `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings           []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota        int                                    `tfschema:"daily_memory_time_quota"`
-	Enabled                     bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion   string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare    bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                   bool                                   `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID string                                 `tfschema:"key_vault_reference_identity_id"`
-	SiteConfig                  []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	StorageAccounts             []helpers.StorageAccount               `tfschema:"storage_account"`
-	Tags                        map[string]string                      `tfschema:"tags"`
-	VirtualNetworkSubnetID      string                                 `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile               string                                 `tfschema:"zip_deploy_file"`
+	AppSettings                      map[string]string                      `tfschema:"app_settings"`
+	StickySettings                   []helpers.StickySettings               `tfschema:"sticky_settings"`
+	AuthSettings                     []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                   bool                                   `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                bool                                   `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                 `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                []helpers.ConnectionString             `tfschema:"connection_string"`
+	DailyMemoryTimeQuota             int                                    `tfschema:"daily_memory_time_quota"`
+	Enabled                          bool                                   `tfschema:"enabled"`
+	FunctionExtensionsVersion        string                                 `tfschema:"functions_extension_version"`
+	ForceDisableContentShare         bool                                   `tfschema:"content_share_force_disabled"`
+	HttpsOnly                        bool                                   `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                                 `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess              bool                                   `tfschema:"public_network_access_enabled"`
+	SiteConfig                       []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StorageAccounts                  []helpers.StorageAccount               `tfschema:"storage_account"`
+	Tags                             map[string]string                      `tfschema:"tags"`
+	VirtualNetworkSubnetID           string                                 `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                    string                                 `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -253,6 +258,24 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionApp(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),
@@ -264,7 +287,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"zip_deploy_file": {
@@ -448,19 +471,15 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
 					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
-					_, contentShareConnectionString := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+					if _, contentShareConnectionStringPresent := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
+						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
 							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-					}
-					if !contentShareConnectionString {
-						if contentOverVnetEnabled && contentSharePresent {
-							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET are specified")
-						}
-						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 				} else {
 					if _, present := functionApp.AppSettings["AzureWebJobsStorage__accountName"]; !present {
@@ -489,8 +508,18 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    utils.Bool(functionApp.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)),
+					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
 				},
 			}
+
+			pna := helpers.PublicNetworkAccessEnabled
+			if !functionApp.PublicNetworkAccess {
+				pna = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
 			if functionApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
@@ -511,6 +540,28 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
+			}
+
+			if !functionApp.PublishingDeployBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if !functionApp.PublishingFTPBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
 			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -671,6 +722,20 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
 			}
 
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthFTP = pointer.From(csmProps.Allow)
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			}
+
 			state := WindowsFunctionAppModel{
 				Name:                        id.SiteName,
 				ResourceGroup:               id.ResourceGroup,
@@ -686,10 +751,18 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
+			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
+			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
+
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = pointer.From(hostingEnv.ID)
+				hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.ID)
+				if err != nil {
+					return err
+				}
+				state.HostingEnvId = hostingEnvId.ID()
 			}
 
 			if v := props.OutboundIPAddresses; v != nil {
@@ -924,19 +997,15 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := state.AppSettings["WEBSITE_CONTENTOVERVNET"]
 					_, contentSharePresent := state.AppSettings["WEBSITE_CONTENTSHARE"]
-					_, contentShareConnectionString := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+					if _, contentShareConnectionStringPresent := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
+						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
 							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
 						}
 						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
-					}
-					if !contentShareConnectionString {
-						if contentOverVnetEnabled && contentSharePresent {
-							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET is specified")
-						}
-						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 				} else {
 					if _, present := state.AppSettings["AzureWebJobsStorage__accountName"]; !present {
@@ -964,9 +1033,21 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				existing.SiteConfig = siteConfig
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pna := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pna = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+				existing.PublicNetworkAccess = pointer.To(pna)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
+			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)
 			if err != nil {
@@ -974,6 +1055,28 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingFTPBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingDeployBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
 			}
 
 			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: existing.SiteConfig}); err != nil {

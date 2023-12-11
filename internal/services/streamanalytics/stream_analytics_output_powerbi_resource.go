@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -13,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type OutputPowerBIResource struct{}
@@ -128,24 +131,24 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 			}
 
 			powerBIOutputProps := &outputs.PowerBIOutputDataSourceProperties{
-				Dataset:            utils.String(model.DataSet),
-				Table:              utils.String(model.Table),
-				GroupId:            utils.String(model.GroupID),
-				GroupName:          utils.String(model.GroupName),
-				RefreshToken:       utils.String("someRefreshToken"),               // A valid refresh token is currently only obtainable via the Azure Portal. Put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token.
-				AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode("Msi")), // Set authentication mode as "Msi" here since other modes requires params obtainable from portal only.
+				Dataset:            pointer.To(model.DataSet),
+				Table:              pointer.To(model.Table),
+				GroupId:            pointer.To(model.GroupID),
+				GroupName:          pointer.To(model.GroupName),
+				RefreshToken:       pointer.To("someRefreshToken"),                // A valid refresh token is currently only obtainable via the Azure Portal. Put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token.
+				AuthenticationMode: pointer.To(outputs.AuthenticationMode("Msi")), // Set authentication mode as "Msi" here since other modes requires params obtainable from portal only.
 			}
 
 			if model.TokenUserDisplayName != "" {
-				powerBIOutputProps.TokenUserDisplayName = utils.String(model.TokenUserDisplayName)
+				powerBIOutputProps.TokenUserDisplayName = pointer.To(model.TokenUserDisplayName)
 			}
 
 			if model.TokenUserPrincipalName != "" {
-				powerBIOutputProps.TokenUserPrincipalName = utils.String(model.TokenUserPrincipalName)
+				powerBIOutputProps.TokenUserPrincipalName = pointer.To(model.TokenUserPrincipalName)
 			}
 
 			props := outputs.Output{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.PowerBIOutputDataSource{
 						Properties: powerBIOutputProps,

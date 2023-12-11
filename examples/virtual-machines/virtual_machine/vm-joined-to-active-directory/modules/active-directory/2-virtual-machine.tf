@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   virtual_machine_name = "${var.prefix}-dc"
   virtual_machine_fqdn = "${local.virtual_machine_name}.${var.active_directory_domain}"
@@ -6,9 +9,9 @@ locals {
 }
 
 resource "azurerm_virtual_machine" "domain-controller" {
-  name                          = "${local.virtual_machine_name}"
-  location                      = "${var.location}"
-  resource_group_name           = "${var.resource_group_name}"
+  name                          = local.virtual_machine_name
+  location                      = var.location
+  resource_group_name           = var.resource_group_name
   network_interface_ids         = ["${azurerm_network_interface.primary.id}"]
   vm_size                       = "Standard_F2"
   delete_os_disk_on_termination = true
@@ -28,10 +31,10 @@ resource "azurerm_virtual_machine" "domain-controller" {
   }
 
   os_profile {
-    computer_name  = "${local.virtual_machine_name}"
-    admin_username = "${var.admin_username}"
-    admin_password = "${var.admin_password}"
-    custom_data    = "${local.custom_data_content}"
+    computer_name  = local.virtual_machine_name
+    admin_username = var.admin_username
+    admin_password = var.admin_password
+    custom_data    = local.custom_data_content
   }
 
   os_profile_windows_config {
@@ -50,7 +53,7 @@ resource "azurerm_virtual_machine" "domain-controller" {
       pass         = "oobeSystem"
       component    = "Microsoft-Windows-Shell-Setup"
       setting_name = "FirstLogonCommands"
-      content      = "${file("${path.module}/files/FirstLogonCommands.xml")}"
+      content      = file("${path.module}/files/FirstLogonCommands.xml")
     }
   }
 }

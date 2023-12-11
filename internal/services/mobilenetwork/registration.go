@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork
 
 import (
@@ -34,18 +37,26 @@ func (r Registration) DataSources() []sdk.DataSource {
 		SimGroupDataSource{},
 		SliceDataSource{},
 		SimPolicyDataSource{},
+		PacketCoreControlPlaneDataSource{},
+		PacketCoreDataPlaneDataSource{},
+		AttachedDataNetworkDataSource{},
+		SimDataSource{},
 	}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AttachedDataNetworkResource{},
 		DataNetworkResource{},
 		MobileNetworkResource{},
+		PacketCoreControlPlaneResource{},
+		PacketCoreDataPlaneResource{},
+		SiteResource{},
+		SliceResource{},
 		ServiceResource{},
 		SimGroupResource{},
 		SimPolicyResource{},
-		SiteResource{},
-		SliceResource{},
+		SimResource{},
 	}
 }

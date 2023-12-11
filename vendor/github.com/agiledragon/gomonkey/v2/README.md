@@ -25,6 +25,7 @@ gomonkey is a library to make monkey patching in unit tests easy, and the core i
   - amd64
   - arm64
   - 386
+  - loong64
 
 - OS
   - Linux

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementNotificationRecipientUserResource struct{}
@@ -47,25 +50,26 @@ func TestAccApiManagementNotificationRecipientUser_requiresImport(t *testing.T) 
 }
 
 func (ApiManagementNotificationRecipientUserResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NotificationRecipientUserID(state.ID)
+	id, err := notificationrecipientuser.ParseRecipientUserID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	users, err := client.ApiManagement.NotificationRecipientUserClient.ListByNotification(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName))
+	notificationId := notificationrecipientuser.NewNotificationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.NotificationName)
+	users, err := client.ApiManagement.NotificationRecipientUserClient.ListByNotification(ctx, notificationId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(users.Response) {
-			return nil, fmt.Errorf("retrieving Api Management Notification Recipient User %q (Resource Group %q): %+v", id.RecipientUserName, id.ResourceGroup, err)
+		if !response.WasNotFound(users.HttpResponse) {
+			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 	}
-	if users.Value != nil {
-		for _, existing := range *users.Value {
-			if existing.Name != nil && *existing.Name == id.RecipientUserName {
-				return utils.Bool(true), nil
+	if model := users.Model; model != nil && model.Value != nil {
+		for _, existing := range *model.Value {
+			if existing.Name != nil && *existing.Name == id.UserId {
+				return pointer.To(true), nil
 			}
 		}
 	}
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r ApiManagementNotificationRecipientUserResource) basic(data acceptance.TestData) string {

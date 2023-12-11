@@ -1,17 +1,22 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMsSqlServer() *pluginsdk.Resource {
@@ -57,7 +62,7 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -69,11 +74,11 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -81,30 +86,38 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id.ID())
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		// NOTE: In the new API Location is just a string, not a pointer..
+		d.Set("location", location.Normalize(model.Location))
 
-	if props := resp.ServerProperties; props != nil {
-		d.Set("version", props.Version)
-		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		if props := model.Properties; props != nil {
+			d.Set("version", props.Version)
+			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		}
+
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, id)
+		if err != nil {
+			return fmt.Errorf("listing %s Restorable Dropped Databases: %v", id, err)
+		}
+
+		if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage)); err != nil {
+			return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	identity, err := flattenSqlServerIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("listing %s Restorable Dropped Databases: %v", id, err)
-	}
-	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage.Response())); err != nil {
-		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

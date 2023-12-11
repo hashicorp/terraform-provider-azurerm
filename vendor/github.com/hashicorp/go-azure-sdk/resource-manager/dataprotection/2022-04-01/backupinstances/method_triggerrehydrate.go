@@ -23,7 +23,7 @@ type TriggerRehydrateOperationResponse struct {
 // TriggerRehydrate ...
 func (c BackupInstancesClient) TriggerRehydrate(ctx context.Context, id BackupInstanceId, input AzureBackupRehydrationRequest) (result TriggerRehydrateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

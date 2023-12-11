@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "service_id" {
   description = "The ID of the API Management Service created"
   value       = azurerm_api_management.apim_service.id
@@ -16,17 +19,17 @@ output "service_public_ip_addresses" {
 output "api_outputs" {
   description = "The IDs, state, and version outputs of the APIs created"
   value = {
-      id             = azurerm_api_management_api.api.id
-      is_current     = azurerm_api_management_api.api.is_current
-      is_online      = azurerm_api_management_api.api.is_online
-      version        = azurerm_api_management_api.api.version
-      version_set_id = azurerm_api_management_api.api.version_set_id
-    }
+    id             = azurerm_api_management_api.api.id
+    is_current     = azurerm_api_management_api.api.is_current
+    is_online      = azurerm_api_management_api.api.is_online
+    version        = azurerm_api_management_api.api.version
+    version_set_id = azurerm_api_management_api.api.version_set_id
+  }
 }
 
 output "product_ids" {
   description = "The ID of the Product created"
-  value = azurerm_api_management_product.product.id
+  value       = azurerm_api_management_product.product.id
 }
 
 output "product_api_ids" {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
@@ -46,6 +49,19 @@ type DataSource interface {
 
 	// Read is a ResourceFunc which looks up and sets field values into the Terraform State
 	Read() ResourceFunc
+}
+
+// DataSourceWithDeprecationReplacedBy is an optional interface
+//
+// DataSource implementing this interface will be marked as Deprecated
+// and output the DeprecationMessage during Terraform operations.
+type DataSourceWithDeprecationReplacedBy interface {
+	DataSource
+
+	// nolint gocritic
+	// DeprecatedInFavourOfDataSource returns the name of the resource that this has been deprecated in favour of
+	// NOTE: this must return a non-empty string
+	DeprecatedInFavourOfDataSource() string
 }
 
 // A Resource is an object which can be provisioned and managed by Terraform

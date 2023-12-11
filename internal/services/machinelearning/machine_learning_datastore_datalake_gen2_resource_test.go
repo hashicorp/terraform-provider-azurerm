@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning_test
 
 import (
@@ -7,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -95,7 +98,7 @@ func TestAccMachineLearningDataStoreDataLakeGen2_requiresImport(t *testing.T) {
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	dataStoreClient := client.MachineLearning.DatastoreClient
+	dataStoreClient := client.MachineLearning.Datastore
 	id, err := datastore.ParseDataStoreID(state.ID)
 	if err != nil {
 		return nil, err

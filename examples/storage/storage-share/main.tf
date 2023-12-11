@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -19,5 +22,5 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_share" "example" {
   name                 = "${var.prefix}storageshare"
   storage_account_name = azurerm_storage_account.example.name
-  quota                = 1
+  quota                = 100
 }

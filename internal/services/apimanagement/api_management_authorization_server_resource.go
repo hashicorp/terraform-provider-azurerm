@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,16 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/authorizationserver"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
@@ -24,7 +27,7 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 		Update: resourceApiManagementAuthorizationServerCreateUpdate,
 		Delete: resourceApiManagementAuthorizationServerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AuthorizationServerID(id)
+			_, err := authorizationserver.ParseAuthorizationServerID(id)
 			return err
 		}),
 
@@ -54,14 +57,14 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.AuthorizationMethodDELETE),
-						string(apimanagement.AuthorizationMethodGET),
-						string(apimanagement.AuthorizationMethodHEAD),
-						string(apimanagement.AuthorizationMethodOPTIONS),
-						string(apimanagement.AuthorizationMethodPATCH),
-						string(apimanagement.AuthorizationMethodPOST),
-						string(apimanagement.AuthorizationMethodPUT),
-						string(apimanagement.AuthorizationMethodTRACE),
+						string(authorizationserver.AuthorizationMethodDELETE),
+						string(authorizationserver.AuthorizationMethodGET),
+						string(authorizationserver.AuthorizationMethodHEAD),
+						string(authorizationserver.AuthorizationMethodOPTIONS),
+						string(authorizationserver.AuthorizationMethodPATCH),
+						string(authorizationserver.AuthorizationMethodPOST),
+						string(authorizationserver.AuthorizationMethodPUT),
+						string(authorizationserver.AuthorizationMethodTRACE),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -91,10 +94,10 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.GrantTypeAuthorizationCode),
-						string(apimanagement.GrantTypeClientCredentials),
-						string(apimanagement.GrantTypeImplicit),
-						string(apimanagement.GrantTypeResourceOwnerPassword),
+						string(authorizationserver.GrantTypeAuthorizationCode),
+						string(authorizationserver.GrantTypeClientCredentials),
+						string(authorizationserver.GrantTypeImplicit),
+						string(authorizationserver.GrantTypeResourceOwnerPassword),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -107,8 +110,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.BearerTokenSendingMethodAuthorizationHeader),
-						string(apimanagement.BearerTokenSendingMethodQuery),
+						string(authorizationserver.BearerTokenSendingMethodAuthorizationHeader),
+						string(authorizationserver.BearerTokenSendingMethodQuery),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -120,8 +123,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.ClientAuthenticationMethodBasic),
-						string(apimanagement.ClientAuthenticationMethodBody),
+						string(authorizationserver.ClientAuthenticationMethodBasic),
+						string(authorizationserver.ClientAuthenticationMethodBody),
 					}, false),
 				},
 				Set: pluginsdk.HashString,
@@ -192,17 +195,17 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAuthorizationServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
+	id := authorizationserver.NewAuthorizationServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_authorization_server", id.ID())
 		}
 	}
@@ -225,23 +228,23 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 	tokenBodyParametersRaw := d.Get("token_body_parameter").([]interface{})
 	tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(tokenBodyParametersRaw)
 
-	params := apimanagement.AuthorizationServerContract{
-		AuthorizationServerContractProperties: &apimanagement.AuthorizationServerContractProperties{
+	params := authorizationserver.AuthorizationServerContract{
+		Properties: &authorizationserver.AuthorizationServerContractProperties{
 			// Required
-			AuthorizationEndpoint:      utils.String(authorizationEndpoint),
-			ClientID:                   utils.String(clientId),
-			ClientRegistrationEndpoint: utils.String(clientRegistrationEndpoint),
-			DisplayName:                utils.String(displayName),
-			GrantTypes:                 grantTypes,
+			AuthorizationEndpoint:      authorizationEndpoint,
+			ClientId:                   clientId,
+			ClientRegistrationEndpoint: clientRegistrationEndpoint,
+			DisplayName:                displayName,
+			GrantTypes:                 pointer.From(grantTypes),
 
 			// Optional
 			ClientAuthenticationMethod: clientAuthenticationMethods,
-			ClientSecret:               utils.String(clientSecret),
-			DefaultScope:               utils.String(defaultScope),
-			Description:                utils.String(description),
-			ResourceOwnerPassword:      utils.String(resourceOwnerPassword),
-			ResourceOwnerUsername:      utils.String(resourceOwnerUsername),
-			SupportState:               utils.Bool(supportState),
+			ClientSecret:               pointer.To(clientSecret),
+			DefaultScope:               pointer.To(defaultScope),
+			Description:                pointer.To(description),
+			ResourceOwnerPassword:      pointer.To(resourceOwnerPassword),
+			ResourceOwnerUsername:      pointer.To(resourceOwnerUsername),
+			SupportState:               pointer.To(supportState),
 			TokenBodyParameters:        tokenBodyParameters,
 		},
 	}
@@ -249,20 +252,20 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 	authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List()
 	if len(authorizationMethodsRaw) > 0 {
 		authorizationMethods := expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
-		params.AuthorizationServerContractProperties.AuthorizationMethods = authorizationMethods
+		params.Properties.AuthorizationMethods = authorizationMethods
 	}
 
 	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List()
 	if len(bearerTokenSendingMethodsRaw) > 0 {
 		bearerTokenSendingMethods := expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
-		params.AuthorizationServerContractProperties.BearerTokenSendingMethods = bearerTokenSendingMethods
+		params.Properties.BearerTokenSendingMethods = bearerTokenSendingMethods
 	}
 
 	if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {
-		params.AuthorizationServerContractProperties.TokenEndpoint = utils.String(tokenEndpoint)
+		params.Properties.TokenEndpoint = pointer.To(tokenEndpoint)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, params, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, params, authorizationserver.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -276,14 +279,14 @@ func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AuthorizationServerID(d.Id())
+	id, err := authorizationserver.ParseAuthorizationServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s does not exist - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -293,41 +296,43 @@ func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.AuthorizationServerContractProperties; props != nil {
-		d.Set("authorization_endpoint", props.AuthorizationEndpoint)
-		d.Set("client_id", props.ClientID)
-		d.Set("client_registration_endpoint", props.ClientRegistrationEndpoint)
-		d.Set("default_scope", props.DefaultScope)
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("support_state", props.SupportState)
-		d.Set("token_endpoint", props.TokenEndpoint)
+	if model := resp.Model; model != nil {
+		d.Set("name", pointer.From(model.Name))
+		if props := model.Properties; props != nil {
+			d.Set("authorization_endpoint", props.AuthorizationEndpoint)
+			d.Set("client_id", props.ClientId)
+			d.Set("client_registration_endpoint", props.ClientRegistrationEndpoint)
+			d.Set("default_scope", pointer.From(props.DefaultScope))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("support_state", pointer.From(props.SupportState))
+			d.Set("token_endpoint", pointer.From(props.TokenEndpoint))
 
-		// TODO: Read properties from api, https://github.com/Azure/azure-rest-api-specs/issues/14128
-		d.Set("resource_owner_password", d.Get("resource_owner_password").(string))
-		d.Set("resource_owner_username", d.Get("resource_owner_username").(string))
+			// TODO: Read properties from api, https://github.com/Azure/azure-rest-api-specs/issues/14128
+			d.Set("resource_owner_password", d.Get("resource_owner_password").(string))
+			d.Set("resource_owner_username", d.Get("resource_owner_username").(string))
 
-		if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(props.AuthorizationMethods)); err != nil {
-			return fmt.Errorf("flattening `authorization_methods`: %+v", err)
-		}
+			if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(props.AuthorizationMethods)); err != nil {
+				return fmt.Errorf("flattening `authorization_methods`: %+v", err)
+			}
 
-		if err := d.Set("bearer_token_sending_methods", flattenApiManagementAuthorizationServerBearerTokenSendingMethods(props.BearerTokenSendingMethods)); err != nil {
-			return fmt.Errorf("flattening `bearer_token_sending_methods`: %+v", err)
-		}
+			if err := d.Set("bearer_token_sending_methods", flattenApiManagementAuthorizationServerBearerTokenSendingMethods(props.BearerTokenSendingMethods)); err != nil {
+				return fmt.Errorf("flattening `bearer_token_sending_methods`: %+v", err)
+			}
 
-		if err := d.Set("client_authentication_method", flattenApiManagementAuthorizationServerClientAuthenticationMethods(props.ClientAuthenticationMethod)); err != nil {
-			return fmt.Errorf("flattening `client_authentication_method`: %+v", err)
-		}
+			if err := d.Set("client_authentication_method", flattenApiManagementAuthorizationServerClientAuthenticationMethods(props.ClientAuthenticationMethod)); err != nil {
+				return fmt.Errorf("flattening `client_authentication_method`: %+v", err)
+			}
 
-		if err := d.Set("grant_types", flattenApiManagementAuthorizationServerGrantTypes(props.GrantTypes)); err != nil {
-			return fmt.Errorf("flattening `grant_types`: %+v", err)
-		}
+			if err := d.Set("grant_types", flattenApiManagementAuthorizationServerGrantTypes(props.GrantTypes)); err != nil {
+				return fmt.Errorf("flattening `grant_types`: %+v", err)
+			}
 
-		if err := d.Set("token_body_parameter", flattenApiManagementAuthorizationServerTokenBodyParameters(props.TokenBodyParameters)); err != nil {
-			return fmt.Errorf("flattening `token_body_parameter`: %+v", err)
+			if err := d.Set("token_body_parameter", flattenApiManagementAuthorizationServerTokenBodyParameters(props.TokenBodyParameters)); err != nil {
+				return fmt.Errorf("flattening `token_body_parameter`: %+v", err)
+			}
 		}
 	}
 
@@ -339,13 +344,13 @@ func resourceApiManagementAuthorizationServerDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AuthorizationServerID(d.Id())
+	id, err := authorizationserver.ParseAuthorizationServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id, authorizationserver.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %s", *id, err)
 		}
 	}
@@ -353,18 +358,39 @@ func resourceApiManagementAuthorizationServerDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func expandApiManagementAuthorizationServerGrantTypes(input []interface{}) *[]apimanagement.GrantType {
-	outputs := make([]apimanagement.GrantType, 0)
+func expandApiManagementAuthorizationServerGrantTypes(input []interface{}) *[]authorizationserver.GrantType {
+	outputs := make([]authorizationserver.GrantType, 0)
 
 	for _, v := range input {
-		grantType := apimanagement.GrantType(v.(string))
+		grantType := authorizationserver.GrantType(v.(string))
 		outputs = append(outputs, grantType)
 	}
 
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerGrantTypes(input *[]apimanagement.GrantType) []interface{} {
+func flattenApiManagementAuthorizationServerGrantTypes(input []authorizationserver.GrantType) []interface{} {
+	outputs := make([]interface{}, 0)
+
+	for _, v := range input {
+		outputs = append(outputs, string(v))
+	}
+
+	return outputs
+}
+
+func expandApiManagementAuthorizationServerAuthorizationMethods(input []interface{}) *[]authorizationserver.AuthorizationMethod {
+	outputs := make([]authorizationserver.AuthorizationMethod, 0)
+
+	for _, v := range input {
+		grantType := authorizationserver.AuthorizationMethod(v.(string))
+		outputs = append(outputs, grantType)
+	}
+
+	return &outputs
+}
+
+func flattenApiManagementAuthorizationServerAuthorizationMethods(input *[]authorizationserver.AuthorizationMethod) []interface{} {
 	outputs := make([]interface{}, 0)
 	if input == nil {
 		return outputs
@@ -377,18 +403,18 @@ func flattenApiManagementAuthorizationServerGrantTypes(input *[]apimanagement.Gr
 	return outputs
 }
 
-func expandApiManagementAuthorizationServerAuthorizationMethods(input []interface{}) *[]apimanagement.AuthorizationMethod {
-	outputs := make([]apimanagement.AuthorizationMethod, 0)
+func expandApiManagementAuthorizationServerBearerTokenSendingMethods(input []interface{}) *[]authorizationserver.BearerTokenSendingMethod {
+	outputs := make([]authorizationserver.BearerTokenSendingMethod, 0)
 
 	for _, v := range input {
-		grantType := apimanagement.AuthorizationMethod(v.(string))
+		grantType := authorizationserver.BearerTokenSendingMethod(v.(string))
 		outputs = append(outputs, grantType)
 	}
 
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerAuthorizationMethods(input *[]apimanagement.AuthorizationMethod) []interface{} {
+func flattenApiManagementAuthorizationServerBearerTokenSendingMethods(input *[]authorizationserver.BearerTokenSendingMethod) []interface{} {
 	outputs := make([]interface{}, 0)
 	if input == nil {
 		return outputs
@@ -401,18 +427,18 @@ func flattenApiManagementAuthorizationServerAuthorizationMethods(input *[]apiman
 	return outputs
 }
 
-func expandApiManagementAuthorizationServerBearerTokenSendingMethods(input []interface{}) *[]apimanagement.BearerTokenSendingMethod {
-	outputs := make([]apimanagement.BearerTokenSendingMethod, 0)
+func expandApiManagementAuthorizationServerClientAuthenticationMethods(input []interface{}) *[]authorizationserver.ClientAuthenticationMethod {
+	outputs := make([]authorizationserver.ClientAuthenticationMethod, 0)
 
 	for _, v := range input {
-		grantType := apimanagement.BearerTokenSendingMethod(v.(string))
+		grantType := authorizationserver.ClientAuthenticationMethod(v.(string))
 		outputs = append(outputs, grantType)
 	}
 
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerBearerTokenSendingMethods(input *[]apimanagement.BearerTokenSendingMethod) []interface{} {
+func flattenApiManagementAuthorizationServerClientAuthenticationMethods(input *[]authorizationserver.ClientAuthenticationMethod) []interface{} {
 	outputs := make([]interface{}, 0)
 	if input == nil {
 		return outputs
@@ -425,41 +451,15 @@ func flattenApiManagementAuthorizationServerBearerTokenSendingMethods(input *[]a
 	return outputs
 }
 
-func expandApiManagementAuthorizationServerClientAuthenticationMethods(input []interface{}) *[]apimanagement.ClientAuthenticationMethod {
-	outputs := make([]apimanagement.ClientAuthenticationMethod, 0)
-
-	for _, v := range input {
-		grantType := apimanagement.ClientAuthenticationMethod(v.(string))
-		outputs = append(outputs, grantType)
-	}
-
-	return &outputs
-}
-
-func flattenApiManagementAuthorizationServerClientAuthenticationMethods(input *[]apimanagement.ClientAuthenticationMethod) []interface{} {
-	outputs := make([]interface{}, 0)
-	if input == nil {
-		return outputs
-	}
-
-	for _, v := range *input {
-		outputs = append(outputs, string(v))
-	}
-
-	return outputs
-}
-
-func expandApiManagementAuthorizationServerTokenBodyParameters(input []interface{}) *[]apimanagement.TokenBodyParameterContract {
-	outputs := make([]apimanagement.TokenBodyParameterContract, 0)
+func expandApiManagementAuthorizationServerTokenBodyParameters(input []interface{}) *[]authorizationserver.TokenBodyParameterContract {
+	outputs := make([]authorizationserver.TokenBodyParameterContract, 0)
 
 	for _, v := range input {
 		vs := v.(map[string]interface{})
-		name := vs["name"].(string)
-		value := vs["value"].(string)
 
-		output := apimanagement.TokenBodyParameterContract{
-			Name:  utils.String(name),
-			Value: utils.String(value),
+		output := authorizationserver.TokenBodyParameterContract{
+			Name:  vs["name"].(string),
+			Value: vs["value"].(string),
 		}
 		outputs = append(outputs, output)
 	}
@@ -467,7 +467,7 @@ func expandApiManagementAuthorizationServerTokenBodyParameters(input []interface
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerTokenBodyParameters(input *[]apimanagement.TokenBodyParameterContract) []interface{} {
+func flattenApiManagementAuthorizationServerTokenBodyParameters(input *[]authorizationserver.TokenBodyParameterContract) []interface{} {
 	outputs := make([]interface{}, 0)
 	if input == nil {
 		return outputs
@@ -476,13 +476,8 @@ func flattenApiManagementAuthorizationServerTokenBodyParameters(input *[]apimana
 	for _, v := range *input {
 		output := make(map[string]interface{})
 
-		if v.Name != nil {
-			output["name"] = *v.Name
-		}
-
-		if v.Value != nil {
-			output["value"] = *v.Value
-		}
+		output["name"] = v.Name
+		output["value"] = v.Value
 
 		outputs = append(outputs, output)
 	}

@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package customproviders
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -15,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCustomProvider() *pluginsdk.Resource {
@@ -230,7 +233,7 @@ func expandCustomProviderResourceType(input []interface{}) *[]customresourceprov
 
 		attrs := v.(map[string]interface{})
 		definitions = append(definitions, customresourceprovider.CustomRPResourceTypeRouteDefinition{
-			RoutingType: utils.ToPtr(customresourceprovider.ResourceTypeRouting(attrs["routing_type"].(string))),
+			RoutingType: pointer.To(customresourceprovider.ResourceTypeRouting(attrs["routing_type"].(string))),
 			Name:        attrs["name"].(string),
 			Endpoint:    attrs["endpoint"].(string),
 		})

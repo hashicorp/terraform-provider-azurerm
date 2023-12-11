@@ -1,9 +1,12 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "resource_group" {
-  value = "${var.resource_group}"
+  value = var.resource_group
 }
 
 output "primary_ip_address" {
-  value = "${azurerm_public_ip.primary.ip_address}"
+  value = azurerm_public_ip.primary.ip_address
 }
 
 output "primary_ssh_command" {

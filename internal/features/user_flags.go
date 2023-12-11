@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package features
 
 type UserFeatures struct {
@@ -12,6 +15,7 @@ type UserFeatures struct {
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
 	ManagedDisk            ManagedDiskFeatures
+	Subscription           SubscriptionFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -70,4 +74,8 @@ type ManagedDiskFeatures struct {
 type AppConfigurationFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 	RecoverSoftDeleted       bool
+}
+
+type SubscriptionFeatures struct {
+	PreventCancellationOnDestroy bool
 }

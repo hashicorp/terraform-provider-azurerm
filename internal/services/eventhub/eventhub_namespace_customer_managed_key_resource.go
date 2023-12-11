@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventhub
 
 import (
@@ -7,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -74,6 +78,19 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 				},
 			},
+
+			"infrastructure_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
 		},
 	}
 }
@@ -106,7 +123,6 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace := resp.Model
-
 	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 	namespace.Properties.Encryption = &namespaces.Encryption{
 		KeySource: &keySource,
@@ -116,7 +132,36 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	if err != nil {
 		return err
 	}
+
+	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
+	if userAssignedIdentity != "" && keyVaultProps != nil {
+
+		// this provides a more helpful error message than the API response
+		if namespace.Identity == nil {
+			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub - currently no user assigned identities are assigned to the parent event hub", userAssignedIdentity)
+		}
+
+		isIdentityAssignedToParent := false
+		for item := range namespace.Identity.IdentityIds {
+			if item == userAssignedIdentity {
+				isIdentityAssignedToParent = true
+			}
+		}
+
+		// this provides a more helpful error message than the API response
+		if !isIdentityAssignedToParent {
+			return fmt.Errorf("user assigned identity '%s' must also be assigned to the parent event hub", userAssignedIdentity)
+		}
+
+		for i := 0; i < len(*keyVaultProps); i++ {
+			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
+				UserAssignedIdentity: &userAssignedIdentity,
+			}
+		}
+	}
+
 	namespace.Properties.Encryption.KeyVaultProperties = keyVaultProps
+	namespace.Properties.Encryption.RequireInfrastructureEncryption = utils.Bool(d.Get("infrastructure_encryption_enabled").(bool))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", *id, err)
@@ -162,14 +207,31 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 		}
 
 		d.Set("key_vault_key_ids", keyVaultKeyIds)
+		d.Set("infrastructure_encryption_enabled", props.Encryption.RequireInfrastructureEncryption)
+
+		if kvprops := props.Encryption.KeyVaultProperties; kvprops != nil {
+			// we can only have a single user managed id for N number of keys, azure portal only allows setting a single one and then applies it to each key
+			for _, item := range *kvprops {
+				if item.Identity != nil && item.Identity.UserAssignedIdentity != nil {
+					userAssignedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*item.Identity.UserAssignedIdentity)
+					if err != nil {
+						return fmt.Errorf("parsing `user_assigned_identity_id`: %+v", err)
+					}
+					if err := d.Set("user_assigned_identity_id", userAssignedId.ID()); err != nil {
+						return fmt.Errorf("setting `user_assigned_identity_id`: %+v", err)
+					}
+
+					break
+				}
+			}
+		}
 	}
 
 	return nil
 }
 
 func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace")
-`)
+	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace`)
 	return nil
 }
 
@@ -196,8 +258,8 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 	return &results, nil
 }
 
-func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]string, error) {
+	results := make([]string, 0)
 	if input == nil || input.KeyVaultProperties == nil {
 		return results, nil
 	}
@@ -218,7 +280,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]int
 			keyVersion = *item.KeyVersion
 		}
 
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice_test
 
 import (
@@ -762,6 +765,7 @@ resource "azurerm_linux_web_app" "test" {
   auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
+    default_provider       = "apple"
 
     apple_v2 {
       client_id                  = "testAppleID"

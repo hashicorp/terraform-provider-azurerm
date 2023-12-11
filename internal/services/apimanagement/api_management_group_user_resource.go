@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,14 +8,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/groupuser"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementGroupUser() *pluginsdk.Resource {
@@ -21,14 +24,13 @@ func resourceApiManagementGroupUser() *pluginsdk.Resource {
 		Read:   resourceApiManagementGroupUserRead,
 		Delete: resourceApiManagementGroupUserDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.GroupUserID(id)
+			_, err := groupuser.ParseGroupUserID(id)
 			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -50,21 +52,21 @@ func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewGroupUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("group_name").(string), d.Get("user_id").(string))
+	id := groupuser.NewGroupUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("group_name").(string), d.Get("user_id").(string))
 
-	exists, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName)
+	exists, err := client.CheckEntityExists(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(exists) {
+		if !response.WasNotFound(exists.HttpResponse) {
 			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(exists) {
+	if !response.WasNotFound(exists.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_api_management_group_user", id.ID())
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName); err != nil {
-		return fmt.Errorf("adding User %q to Group %q (API Management Service %q / Resource Group %q): %+v", id.UserName, id.GroupName, id.ServiceName, id.ResourceGroup, err)
+	if _, err := client.Create(ctx, id); err != nil {
+		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -77,14 +79,14 @@ func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GroupUserID(d.Id())
+	id, err := groupuser.ParseGroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.CheckEntityExists(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName)
+	resp, err := client.CheckEntityExists(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -93,9 +95,9 @@ func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("group_name", id.GroupName)
-	d.Set("user_id", id.UserName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("group_name", id.GroupId)
+	d.Set("user_id", id.UserId)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
 	return nil
@@ -106,14 +108,14 @@ func resourceApiManagementGroupUserDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GroupUserID(d.Id())
+	id, err := groupuser.ParseGroupUserID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.GroupName, id.UserName); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing User %q from Group %q (API Management Service %q / Resource Group %q): %+v", id.UserName, id.GroupName, id.ServiceName, id.ResourceGroup, err)
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

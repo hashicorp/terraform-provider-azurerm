@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -255,16 +258,16 @@ func (r VirtualMachineScaleSetExtensionResource) basicWindows(data acceptance.Te
 %s
 
 resource "azurerm_virtual_machine_scale_set_extension" "test" {
-  name                         = "acctestExt-%d"
+  name                         = "CustomScript"
   virtual_machine_scale_set_id = azurerm_windows_virtual_machine_scale_set.test.id
-  publisher                    = "Microsoft.Azure.Extensions"
-  type                         = "CustomScript"
-  type_handler_version         = "2.0"
+  publisher                    = "Microsoft.Compute"
+  type                         = "CustomScriptExtension"
+  type_handler_version         = "1.10"
   settings = jsonencode({
-    "commandToExecute" = "Write-Host \"Hello\""
+    "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
   })
 }
-`, r.templateWindows(data), data.RandomInteger)
+`, r.templateWindows(data))
 }
 
 func (r VirtualMachineScaleSetExtensionResource) autoUpgradeMinorVersionDisabled(data acceptance.TestData) string {
@@ -442,8 +445,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -565,8 +568,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

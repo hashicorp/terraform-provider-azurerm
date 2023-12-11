@@ -1,19 +1,22 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-network"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_network_security_group" "bastion" {
   name                = "${azurerm_resource_group.example.name}-mgmt-nsg"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   security_rule {
     name                       = "allow-ssh"
@@ -30,17 +33,21 @@ resource "azurerm_network_security_group" "bastion" {
 }
 
 resource "azurerm_subnet" "bastion" {
-  name                      = "${azurerm_resource_group.example.name}-bastion"
-  virtual_network_name      = "${azurerm_virtual_network.example.name}"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
-  address_prefixes          = ["10.0.0.128/25"]
-  network_security_group_id = "${azurerm_network_security_group.bastion.id}"
+  name                 = "${azurerm_resource_group.example.name}-bastion"
+  virtual_network_name = azurerm_virtual_network.example.name
+  resource_group_name  = azurerm_resource_group.example.name
+  address_prefixes     = ["10.0.0.128/25"]
+}
+
+resource "azurerm_subnet_network_security_group_association" "bastion" {
+  subnet_id                 = azurerm_subnet.bastion.id
+  network_security_group_id = azurerm_network_security_group.bastion.id
 }
 
 resource "azurerm_network_security_group" "web" {
   name                = "${azurerm_resource_group.example.name}-web"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   security_rule {
     name                       = "allow-www"
@@ -70,9 +77,13 @@ resource "azurerm_network_security_group" "web" {
 }
 
 resource "azurerm_subnet" "web" {
-  name                      = "${azurerm_resource_group.example.name}-web"
-  virtual_network_name      = "${azurerm_virtual_network.example.name}"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
-  address_prefixes          = ["10.0.1.0/24"]
-  network_security_group_id = "${azurerm_network_security_group.web.id}"
+  name                 = "${azurerm_resource_group.example.name}-web"
+  virtual_network_name = azurerm_virtual_network.example.name
+  resource_group_name  = azurerm_resource_group.example.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_subnet_network_security_group_association" "web" {
+  subnet_id                 = azurerm_subnet.web.id
+  network_security_group_id = azurerm_network_security_group.web.id
 }

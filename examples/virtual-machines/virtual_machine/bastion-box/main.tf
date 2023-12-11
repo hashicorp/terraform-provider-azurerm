@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -8,30 +11,34 @@ locals {
 }
 
 resource "azurerm_network_interface" "example" {
-  name                      = "${azurerm_resource_group.example.name}-nic"
-  location                  = "${azurerm_resource_group.example.location}"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
-  network_security_group_id = "${azurerm_network_security_group.bastion.id}"
+  name                = "${azurerm_resource_group.example.name}-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = "${azurerm_subnet.bastion.id}"
+    subnet_id                     = azurerm_subnet.bastion.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.example.id}"
+    public_ip_address_id          = azurerm_public_ip.example.id
   }
+}
+
+resource "azurerm_network_interface_security_group_association" "example" {
+  network_interface_id      = azurerm_network_interface.example.id
+  network_security_group_id = azurerm_network_security_group.bastion.id
 }
 
 resource "azurerm_public_ip" "example" {
   name                = "${var.prefix}-bastionpip"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_machine" "example" {
-  name                  = "${local.virtual_machine_name}"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
+  name                  = local.virtual_machine_name
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
 
@@ -50,8 +57,8 @@ resource "azurerm_virtual_machine" "example" {
   }
 
   os_profile {
-    computer_name  = "${local.virtual_machine_name}"
-    admin_username = "${local.admin_username}"
+    computer_name  = local.virtual_machine_name
+    admin_username = local.admin_username
   }
 
   os_profile_linux_config {
@@ -59,7 +66,7 @@ resource "azurerm_virtual_machine" "example" {
 
     ssh_keys {
       path     = "/home/${local.admin_username}/.ssh/authorized_keys"
-      key_data = "${local.public_ssh_key}"
+      key_data = local.public_ssh_key
     }
   }
 }

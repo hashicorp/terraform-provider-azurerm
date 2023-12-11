@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -6,15 +9,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementProductPolicy() *pluginsdk.Resource {
@@ -24,7 +28,7 @@ func resourceApiManagementProductPolicy() *pluginsdk.Resource {
 		Update: resourceApiManagementProductPolicyCreateUpdate,
 		Delete: resourceApiManagementProductPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProductPolicyID(id)
+			_, err := productpolicy.ParseProductID(id)
 			return err
 		}),
 
@@ -34,6 +38,12 @@ func resourceApiManagementProductPolicy() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 2,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiManagementProductPolicyV0ToV1{},
+			1: migration.ApiManagementProductPolicyV1ToV2{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -65,45 +75,45 @@ func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProductPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), string(apimanagement.PolicyExportFormatXML))
+	id := productpolicy.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, apimanagement.PolicyExportFormat(id.PolicyName))
+		existing, err := client.Get(ctx, id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatXml)})
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_api_management_product_policy", id.ID())
 		}
 	}
 
-	parameters := apimanagement.PolicyContract{}
+	parameters := productpolicy.PolicyContract{}
 
 	xmlContent := d.Get("xml_content").(string)
 	xmlLink := d.Get("xml_link").(string)
 
 	if xmlContent != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.PolicyContentFormatRawxml,
-			Value:  utils.String(xmlContent),
+		parameters.Properties = &productpolicy.PolicyContractProperties{
+			Format: pointer.To(productpolicy.PolicyContentFormatRawxml),
+			Value:  xmlContent,
 		}
 	}
 
 	if xmlLink != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.PolicyContentFormatRawxmlLink,
-			Value:  utils.String(xmlLink),
+		parameters.Properties = &productpolicy.PolicyContractProperties{
+			Format: pointer.To(productpolicy.PolicyContentFormatRawxmlNegativelink),
+			Value:  xmlLink,
 		}
 	}
 
-	if parameters.PolicyContractProperties == nil {
+	if parameters.Properties == nil {
 		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ProductName, parameters, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, productpolicy.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -116,33 +126,32 @@ func resourceApiManagementProductPolicyRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProductPolicyID(d.Id())
+	id, err := productpolicy.ParseProductID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	productID := id.ProductName
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
+	resp, err := client.Get(ctx, *id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatXml)})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Product Policy (Resource Group %q / API Management Service %q / Product %q) was not found - removing from state!", resourceGroup, serviceName, productID)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
+		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
-	d.Set("product_id", productID)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("product_id", id.ProductId)
 
-	if properties := resp.PolicyContractProperties; properties != nil {
-		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
-		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", html.UnescapeString(*properties.Value))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
+			// as such there is no way to set `xml_link` and we'll let Terraform handle it
+			d.Set("xml_content", html.UnescapeString(props.Value))
+		}
 	}
 
 	return nil
@@ -153,17 +162,14 @@ func resourceApiManagementProductPolicyDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProductPolicyID(d.Id())
+	id, err := productpolicy.ParseProductID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	productID := id.ProductName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productID, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
+	if resp, err := client.Delete(ctx, *id, productpolicy.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

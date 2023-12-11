@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -5,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/emailtemplates"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementEmailTemplateResource struct{}
@@ -71,17 +74,20 @@ func TestAccApiManagementEmailTemplate_update(t *testing.T) {
 }
 
 func (ApiManagementEmailTemplateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EmailTemplateID(state.ID)
+	id, err := emailtemplates.ParseTemplateIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = clients.ApiManagement.EmailTemplateClient.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.TemplateName(id.TemplateName))
+	templateName := emailtemplates.TemplateName(azure.TitleCase(string(id.TemplateName)))
+	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, templateName)
+
+	_, err = clients.ApiManagement.EmailTemplatesClient.EmailTemplateGet(ctx, newId)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ApiManagementEmailTemplateResource) basic(data acceptance.TestData) string {

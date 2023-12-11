@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -150,21 +154,21 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	systemPropertyColumns := d.Get("system_property_columns")
 
 	dataSourceProperties := &outputs.ServiceBusQueueOutputDataSourceProperties{
-		QueueName:             utils.String(queueName),
-		ServiceBusNamespace:   utils.String(serviceBusNamespace),
+		QueueName:             pointer.To(queueName),
+		ServiceBusNamespace:   pointer.To(serviceBusNamespace),
 		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 		SystemPropertyColumns: &systemPropertyColumns,
-		AuthenticationMode:    utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode
 	if *dataSourceProperties.AuthenticationMode == outputs.AuthenticationModeConnectionString {
-		dataSourceProperties.SharedAccessPolicyName = utils.String(sharedAccessPolicyName)
-		dataSourceProperties.SharedAccessPolicyKey = utils.String(sharedAccessPolicyKey)
+		dataSourceProperties.SharedAccessPolicyName = pointer.To(sharedAccessPolicyName)
+		dataSourceProperties.SharedAccessPolicyKey = pointer.To(sharedAccessPolicyKey)
 	}
 
 	props := outputs.Output{
-		Name: utils.String(id.OutputName),
+		Name: pointer.To(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.ServiceBusQueueOutputDataSource{
 				Properties: dataSourceProperties,

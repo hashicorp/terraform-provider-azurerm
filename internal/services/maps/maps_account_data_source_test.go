@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maps_test
 
 import (
@@ -23,7 +26,7 @@ func TestAccMapsAccountDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("testing"),
-				check.That(data.ResourceName).Key("sku_name").HasValue("S0"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("G2"),
 				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),

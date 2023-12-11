@@ -1,30 +1,33 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func importVirtualMachine(osType compute.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := parse.VirtualMachineID(d.Id())
+		id, err := commonids.ParseVirtualMachineID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
 		client := meta.(*clients.Client).Compute.VMClient
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+		vm, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
 		if err != nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		if vm.VirtualMachineProperties == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties` was nil", id)
 		}
 
 		isCorrectOS := false

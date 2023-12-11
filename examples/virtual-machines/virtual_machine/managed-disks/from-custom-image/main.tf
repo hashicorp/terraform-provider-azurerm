@@ -1,17 +1,20 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
 
 # we assume that this Custom Image already exists
 data "azurerm_image" "custom" {
-  name                = "${var.custom_image_name}"
-  resource_group_name = "${var.custom_image_resource_group_name}"
+  name                = var.custom_image_name
+  resource_group_name = var.custom_image_resource_group_name
 }
 
 resource "azurerm_virtual_machine" "example" {
   name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
 
@@ -20,7 +23,7 @@ resource "azurerm_virtual_machine" "example" {
   delete_os_disk_on_termination = true
 
   storage_image_reference {
-    id = "${data.azurerm_image.custom.id}"
+    id = data.azurerm_image.custom.id
   }
 
   storage_os_disk {
