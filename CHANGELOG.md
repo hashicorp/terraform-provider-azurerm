@@ -1,3 +1,11 @@
+## 3.85.0 (Unreleased)
+
+ENHANCEMENTS:
+`azurerm_linux_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
+`azurerm_linux_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
+`azurerm_windows_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
+`azurerm_windows_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
+
 ## 3.84.0 (December 07, 2023)
 
 FEATURES:
