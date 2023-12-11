@@ -290,7 +290,6 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 				} else {
 					existing.Properties.PublicNetworkAccess = botservice.PublicNetworkAccessDisabled
 				}
-				existing.Properties.LuisKey = utils.String(metadata.ResourceData.Get("public_network_access_enabled").(string))
 			}
 
 			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
