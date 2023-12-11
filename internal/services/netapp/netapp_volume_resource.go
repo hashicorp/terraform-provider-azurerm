@@ -59,7 +59,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"zone": commonschema.ZoneSingleOptionalForceNew(),
+			"zone": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -298,6 +304,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
+				Computed:     true,
 				ValidateFunc: azure.ValidateResourceID,
 				RequiredWith: []string{"encryption_key_source"},
 			},
