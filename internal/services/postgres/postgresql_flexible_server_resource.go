@@ -19,13 +19,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-03-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -119,11 +120,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
+			"auto_grow_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"storage_mb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33553408}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"version": {
@@ -157,10 +164,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
+				// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
 				// This is `computed`, because there is a breaking change to require this field when setting vnet.
 				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
 				// We need to ignore the diff when remote is set private dns zone
-				ForceNew:     true,
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
@@ -557,8 +565,14 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `maintenance_window`: %+v", err)
 			}
 
-			if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
-				d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+			if storage := props.Storage; storage != nil {
+				if storage.AutoGrow != nil {
+					d.Set("auto_grow_enabled", *storage.AutoGrow == servers.StorageAutoGrowEnabled)
+				}
+
+				if storage.StorageSizeGB != nil {
+					d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
@@ -656,6 +670,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	if d.HasChange("private_dns_zone_id") {
+		parameters.Properties.Network = expandArmServerNetwork(d)
+	}
+
 	var requireFailover bool
 	// failover is only supported when `zone` and `high_availability.0.standby_availability_zone` are exchanged with each other
 	if d.HasChanges("zone", "high_availability") {
@@ -723,7 +741,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("storage_mb") {
+	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
@@ -732,7 +750,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, storageUpdateParameters); err != nil {
-			return fmt.Errorf("updating `storage_mb` for %s: %+v", *id, err)
+			return fmt.Errorf("updating `auto_grow_enabled` / `storage_mb` for %s: %+v", *id, err)
 		}
 	}
 
@@ -872,6 +890,12 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 
 func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage := servers.Storage{}
+
+	autoGrow := servers.StorageAutoGrowDisabled
+	if v, ok := d.GetOk("auto_grow_enabled"); ok && v.(bool) {
+		autoGrow = servers.StorageAutoGrowEnabled
+	}
+	storage.AutoGrow = &autoGrow
 
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))

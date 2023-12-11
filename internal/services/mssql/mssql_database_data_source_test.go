@@ -22,6 +22,7 @@ func TestAccDataSourceMsSqlDatabase_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-db-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("server_id").Exists(),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
 	})
@@ -42,6 +43,7 @@ func TestAccDataSourceMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
 	})

@@ -98,7 +98,7 @@ func (AccountFilterResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20220801Client.AccountFilters.AccountFiltersGet(ctx, *id)
+	resp, err := clients.Media.V20220801Client.AccountFilters.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

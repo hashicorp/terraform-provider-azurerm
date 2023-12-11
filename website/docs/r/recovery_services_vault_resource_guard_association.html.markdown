@@ -34,7 +34,7 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 
 resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
-  name              = "example-guard-proxy"
+  name              = "VaultProxy"
   vault_id          = azurerm_recovery_services_vault.test.id
   resource_guard_id = azurerm_data_protection_resource_guard.test.id
 }
@@ -44,7 +44,9 @@ resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Recovery Services Vault Resource Guard Association. Changing this forces a new resource to be created.
+* `name` - (Optional) Specifies the name of the Recovery Services Vault Resource Guard Association. Changing this forces a new resource to be created. Defaults to `VaultProxy`.
+
+-> **NOTE:** `name` has been deprecated and will be removed in version 4.0 of the provider.
 
 * `vault_id` - (Required) ID of the Recovery Services Vault which should be associated with. Changing this forces a new resource to be created.
 

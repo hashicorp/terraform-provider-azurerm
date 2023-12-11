@@ -77,7 +77,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 1 hour) Used when creating the Data Explorer Cluster Principal Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Explorer Cluster Principal Assignment.
-* `update` - (Defaults to 1 hour) Used when updating the Data Explorer Cluster Principal Assignment.
 * `delete` - (Defaults to 1 hour) Used when deleting the Data Explorer Cluster Principal Assignment.
 
 ## Import

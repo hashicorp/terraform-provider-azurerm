@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -43,6 +44,21 @@ func TestAccStorageManagementPolicy_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageManagementPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
+	r := StorageManagementPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -412,16 +428,16 @@ func TestAccStorageManagementPolicy_baseblobAccessTimeBased(t *testing.T) {
 
 func (r StorageManagementPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	storageAccountId := state.Attributes["storage_account_id"]
-	id, err := parse.StorageAccountID(storageAccountId)
+	id, err := commonids.ParseStorageAccountID(storageAccountId)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.ManagementPoliciesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Storage.ResourceManager.ManagementPolicies.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Management Policy (Account %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Management Policy for %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -470,6 +486,16 @@ resource "azurerm_storage_management_policy" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageManagementPolicyResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "import" {
+  storage_account_id = azurerm_storage_management_policy.test.storage_account_id
+}
+`, r.basic(data))
 }
 
 func (r StorageManagementPolicyResource) singleAction(data acceptance.TestData) string {
@@ -865,18 +891,21 @@ resource "azurerm_storage_management_policy" "test" {
         tier_to_cool_after_days_since_modification_greater_than        = 10
         tier_to_archive_after_days_since_modification_greater_than     = 50
         tier_to_archive_after_days_since_last_tier_change_greater_than = 10
+        tier_to_cold_after_days_since_modification_greater_than        = 11
         delete_after_days_since_modification_greater_than              = 100
       }
       snapshot {
         change_tier_to_archive_after_days_since_creation               = 90
         tier_to_archive_after_days_since_last_tier_change_greater_than = 10
         change_tier_to_cool_after_days_since_creation                  = 23
+        tier_to_cold_after_days_since_creation_greater_than            = 24
         delete_after_days_since_creation_greater_than                  = 30
       }
       version {
         change_tier_to_archive_after_days_since_creation               = 9
         tier_to_archive_after_days_since_last_tier_change_greater_than = 10
         change_tier_to_cool_after_days_since_creation                  = 90
+        tier_to_cold_after_days_since_creation_greater_than            = 91
         delete_after_days_since_creation                               = 3
       }
     }
@@ -921,18 +950,21 @@ resource "azurerm_storage_management_policy" "test" {
         tier_to_cool_after_days_since_modification_greater_than        = 11
         tier_to_archive_after_days_since_modification_greater_than     = 51
         tier_to_archive_after_days_since_last_tier_change_greater_than = 20
+        tier_to_cold_after_days_since_modification_greater_than        = 12
         delete_after_days_since_modification_greater_than              = 101
       }
       snapshot {
         change_tier_to_archive_after_days_since_creation               = 91
         tier_to_archive_after_days_since_last_tier_change_greater_than = 20
         change_tier_to_cool_after_days_since_creation                  = 24
+        tier_to_cold_after_days_since_creation_greater_than            = 25
         delete_after_days_since_creation_greater_than                  = 31
       }
       version {
         change_tier_to_archive_after_days_since_creation               = 10
         tier_to_archive_after_days_since_last_tier_change_greater_than = 20
         change_tier_to_cool_after_days_since_creation                  = 91
+        tier_to_cold_after_days_since_creation_greater_than            = 92
         delete_after_days_since_creation                               = 4
       }
     }
@@ -1012,6 +1044,7 @@ resource "azurerm_storage_management_policy" "test" {
       base_blob {
         tier_to_cool_after_days_since_modification_greater_than    = 10
         tier_to_archive_after_days_since_modification_greater_than = 50
+        tier_to_cold_after_days_since_modification_greater_than    = 60
         delete_after_days_since_modification_greater_than          = 100
       }
     }
@@ -1038,6 +1071,7 @@ resource "azurerm_storage_management_policy" "test" {
       base_blob {
         tier_to_cool_after_days_since_creation_greater_than    = 10
         tier_to_archive_after_days_since_creation_greater_than = 50
+        tier_to_cold_after_days_since_creation_greater_than    = 60
         delete_after_days_since_creation_greater_than          = 100
       }
     }
@@ -1065,6 +1099,7 @@ resource "azurerm_storage_management_policy" "test" {
         auto_tier_to_hot_from_cool_enabled                             = %t
         tier_to_cool_after_days_since_last_access_time_greater_than    = 10
         tier_to_archive_after_days_since_last_access_time_greater_than = 50
+        tier_to_cold_after_days_since_last_access_time_greater_than    = 60
         delete_after_days_since_last_access_time_greater_than          = 100
       }
     }
@@ -1091,6 +1126,7 @@ resource "azurerm_storage_management_policy" "test" {
       base_blob {
         tier_to_cool_after_days_since_last_access_time_greater_than    = 0
         tier_to_archive_after_days_since_last_access_time_greater_than = 0
+        tier_to_cold_after_days_since_last_access_time_greater_than    = 0
         delete_after_days_since_last_access_time_greater_than          = 0
       }
     }

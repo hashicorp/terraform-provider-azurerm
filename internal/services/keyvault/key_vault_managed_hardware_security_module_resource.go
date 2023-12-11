@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -115,7 +115,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				//Computed: true,
 				Default:  true,
 				ForceNew: true,
 			},
@@ -435,7 +434,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUr
 		keyID, _ := parse.ParseNestedItemID(certIDStr)
 		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
 		if err != nil {
-			return "", fmt.Errorf("retreiving key %s: %v", certID, err)
+			return "", fmt.Errorf("retrieving key %s: %v", certID, err)
 		}
 		if certRes.Cer == nil {
 			return "", fmt.Errorf("got nil key for %s", certID)

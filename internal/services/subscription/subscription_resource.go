@@ -122,7 +122,6 @@ func resourceSubscription() *pluginsdk.Resource {
 
 func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
-	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +135,6 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	id := subscriptionAlias.NewAliasID(aliasName)
-
 	existing, err := aliasClient.AliasGet(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -168,6 +166,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
 		subscriptionId = subscriptionIdRaw.(string)
+		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
 
 		locks.ByID(subscriptionId)
 		defer locks.UnlockByID(subscriptionId)
@@ -192,12 +191,12 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		// Disabled and Warned are both "effectively" cancelled states,
 		if existingSub.State == subscriptions.StateDisabled || existingSub.State == subscriptions.StateWarned {
 			log.Printf("[DEBUG] Existing subscription in Disabled/Cancelled state Terraform will attempt to re-activate it")
-			if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
+			if _, err := aliasClient.SubscriptionEnable(ctx, subscriptionResourceId); err != nil {
 				return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
 			}
 			deadline, _ := ctx.Deadline()
 			createDeadline := time.Until(deadline)
-			if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Active", createDeadline); err != nil {
+			if err := waitForSubscriptionStateToSettle(ctx, client, subscriptionId, "Active", createDeadline); err != nil {
 				return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", subscriptionId, id.AliasName, "Active", err)
 			}
 		}
@@ -224,7 +223,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	deadline, _ := ctx.Deadline()
 	createDeadline := time.Until(deadline)
 
-	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), *alias.Model.Properties.SubscriptionId, "Active", createDeadline); err != nil {
+	if err := waitForSubscriptionStateToSettle(ctx, client, *alias.Model.Properties.SubscriptionId, "Active", createDeadline); err != nil {
 		return fmt.Errorf("failed waiting for Subscription %q (Alias %q) to enter %q state: %+v", *alias.Model.Properties.SubscriptionId, id.AliasName, "Active", err)
 	}
 
@@ -358,7 +357,6 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 // Alias assignments, `Warned` for Cancelled with "something" associated with it.
 func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
-	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -411,24 +409,31 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Cancel the Subscription
-	if _, err := subscriptionClient.Cancel(ctx, subscriptionId); err != nil {
-		return fmt.Errorf("failed to cancel Subscription: %+v", err)
-	}
+	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
+		log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
 
-	deadline, _ := ctx.Deadline()
-	deleteDeadline := time.Until(deadline)
+		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+		if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId); err != nil {
+			return fmt.Errorf("failed to cancel Subscription: %+v", err)
+		}
 
-	if err := waitForSubscriptionStateToSettle(ctx, meta.(*clients.Client), subscriptionId, "Cancelled", deleteDeadline); err != nil {
-		return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.AliasName, err)
+		deadline, _ := ctx.Deadline()
+		deleteDeadline := time.Until(deadline)
+
+		if err := waitForSubscriptionStateToSettle(ctx, client, subscriptionId, "Cancelled", deleteDeadline); err != nil {
+			return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.AliasName, err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping subscription %s cancellation due to feature flag.", *id)
 	}
 
 	return nil
 }
 
-func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Client, subscriptionId string, targetState string, timeout time.Duration) error {
+func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions.Client, subscriptionId string, targetState string, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		Refresh: func() (result interface{}, state string, err error) {
-			status, err := clients.Subscription.Client.Get(ctx, subscriptionId)
+			status, err := client.Get(ctx, subscriptionId)
 			return status, string(status.State), err
 		},
 		PollInterval:              10 * time.Second,

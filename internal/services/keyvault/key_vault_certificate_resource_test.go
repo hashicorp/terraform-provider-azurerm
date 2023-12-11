@@ -138,8 +138,7 @@ func TestAccKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 			),
 		},
 		{
-			Config:  r.softDeleteRecovery(data, false),
-			Destroy: true,
+			Config: r.softDeleteCertificate(data, false),
 		},
 		{
 			Config: r.softDeleteRecovery(data, true),
@@ -404,15 +403,16 @@ func TestAccKeyVaultCertificate_updatedImportedCertificate(t *testing.T) {
 }
 
 func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	keyVaultsClient := clients.KeyVault
-	client := clients.KeyVault.ManagementClient
+	client := clients.KeyVault
+	subscriptionId := clients.Account.SubscriptionId
 
 	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -420,12 +420,12 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	if err != nil {
 		return nil, err
 	}
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	ok, err := client.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	cert, err := client.ManagementClient.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
@@ -1171,13 +1171,27 @@ resource "azurerm_key_vault_certificate" "test" {
 `, r.template(data), data.RandomString)
 }
 
+func (r KeyVaultCertificateResource) softDeleteCertificate(data acceptance.TestData, purge bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_deleted_certificates_on_destroy = %t
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%s`, purge, r.template(data))
+}
+
 func (r KeyVaultCertificateResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy    = "%t"
-      recover_soft_deleted_key_vaults = true
+      purge_soft_deleted_certificates_on_destroy = %t
+      recover_soft_deleted_key_vaults            = true
     }
   }
 }

@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -46,7 +48,7 @@ type FeatureResourceModel struct {
 	Label                string                       `tfschema:"label"`
 	Locked               bool                         `tfschema:"locked"`
 	Tags                 map[string]interface{}       `tfschema:"tags"`
-	PercentageFilter     int                          `tfschema:"percentage_filter_value"`
+	PercentageFilter     float64                      `tfschema:"percentage_filter_value"`
 	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
 	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
 }
@@ -96,9 +98,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 		"percentage_filter_value": {
-			Type:         pluginsdk.TypeInt,
+			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(0, 100),
+			ValidateFunc: validation.FloatBetween(0, 100),
 		},
 		"targeting_filter": {
 			Type:     pluginsdk.TypeList,
@@ -242,9 +244,64 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
-			err = createOrUpdateFeature(ctx, client, model)
+			entity := appconfiguration.KeyValue{
+				Key:         pointer.To(featureKey),
+				Label:       pointer.To(model.Label),
+				Tags:        tags.Expand(model.Tags),
+				ContentType: pointer.To(FeatureKeyContentType),
+				Locked:      pointer.To(model.Locked),
+			}
+
+			value := FeatureValue{
+				ID:          model.Name,
+				Description: model.Description,
+				Enabled:     model.Enabled,
+			}
+
+			value.Conditions.ClientFilters.Filters = make([]interface{}, 0)
+
+			if model.PercentageFilter > 0 {
+				value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
+					Name:       PercentageFilterName,
+					Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
+				})
+			}
+
+			if len(model.TargetingFilters) > 0 {
+				for _, tgtf := range model.TargetingFilters {
+					value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, TargetingFeatureFilter{
+						Name:       TargetingFilterName,
+						Parameters: TargetingFilterParameters{Audience: tgtf},
+					})
+				}
+			}
+
+			if len(model.TimewindowFilters) > 0 {
+				for _, twf := range model.TimewindowFilters {
+					value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, TimewindowFeatureFilter{
+						Name:       TimewindowFilterName,
+						Parameters: twf,
+					})
+				}
+			}
+
+			valueBytes, err := json.Marshal(value)
 			if err != nil {
-				return fmt.Errorf("while creating feature: %+v", err)
+				return fmt.Errorf("while marshalling FeatureValue struct: %+v", err)
+			}
+			entity.Value = pointer.To(string(valueBytes))
+			if _, err = client.PutKeyValue(ctx, featureKey, model.Label, &entity, "", ""); err != nil {
+				return err
+			}
+
+			if model.Locked {
+				if _, err = client.PutLock(ctx, featureKey, model.Label, "", ""); err != nil {
+					return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+				}
+			} else {
+				if _, err = client.DeleteLock(ctx, featureKey, model.Label, "", ""); err != nil {
+					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+				}
 			}
 
 			// https://github.com/Azure/AppConfiguration/issues/763
@@ -277,8 +334,8 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			resourceClient := metadata.Client.Resource
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
@@ -373,6 +430,17 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
+			if err != nil {
+				return fmt.Errorf("while checking for key %q existence: %+v", *nestedItemId, err)
+			}
+
+			var fv FeatureValue
+			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)
+			if err != nil {
+				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
+			}
+
 			var model FeatureResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
@@ -385,14 +453,104 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 
 			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
 
-			if metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("enabled") || metadata.ResourceData.HasChange("locked") || metadata.ResourceData.HasChange("description") {
-				// Remove the lock, if any. We will put it back again if the model says so.
-				if _, err = client.DeleteLock(ctx, nestedItemId.Key, nestedItemId.Label, "", ""); err != nil {
-					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", nestedItemId.Key, nestedItemId.Label, err)
+			// Remove the lock, if any. We will put it back again if the model says so.
+			if _, err = client.DeleteLock(ctx, nestedItemId.Key, nestedItemId.Label, "", ""); err != nil {
+				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", nestedItemId.Key, nestedItemId.Label, err)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				kv.Tags = tags.Expand(model.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("locked") {
+				kv.Locked = pointer.To(model.Locked)
+			}
+
+			if metadata.ResourceData.HasChange("enabled") {
+				fv.Enabled = model.Enabled
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				fv.Description = model.Description
+			}
+
+			filters := make([]interface{}, 0)
+			filterChanged := false
+			timewindowFilters := make([]interface{}, 0)
+			targetingFilters := make([]interface{}, 0)
+			percentageFilter := PercentageFeatureFilter{}
+			if len(fv.Conditions.ClientFilters.Filters) > 0 {
+				for _, f := range fv.Conditions.ClientFilters.Filters {
+					switch f := f.(type) {
+					case TimewindowFeatureFilter:
+						twfp := f
+						timewindowFilters = append(timewindowFilters, twfp)
+					case TargetingFeatureFilter:
+						tfp := f
+						targetingFilters = append(targetingFilters, tfp)
+					case PercentageFeatureFilter:
+						pfp := f
+						percentageFilter = pfp
+					default:
+						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
+					}
 				}
-				err = createOrUpdateFeature(ctx, client, model)
-				if err != nil {
-					return fmt.Errorf("while updating feature: %+v", err)
+			}
+
+			if metadata.ResourceData.HasChange("percentage_filter_value") {
+				filters = append(filters, PercentageFeatureFilter{
+					Name:       PercentageFilterName,
+					Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
+				})
+				filterChanged = true
+			} else {
+				filters = append(filters, percentageFilter)
+			}
+
+			if metadata.ResourceData.HasChange("targeting_filter") {
+				for _, tgtf := range model.TargetingFilters {
+					filters = append(filters, TargetingFeatureFilter{
+						Name:       TargetingFilterName,
+						Parameters: TargetingFilterParameters{Audience: tgtf},
+					})
+				}
+				filterChanged = true
+			} else {
+				filters = append(filters, targetingFilters...)
+			}
+
+			if metadata.ResourceData.HasChange("timewindow_filter") {
+				for _, twf := range model.TimewindowFilters {
+					filters = append(filters, TimewindowFeatureFilter{
+						Name:       TimewindowFilterName,
+						Parameters: twf,
+					})
+				}
+				filterChanged = true
+			} else {
+				filters = append(filters, timewindowFilters...)
+			}
+
+			if filterChanged {
+				fv.Conditions.ClientFilters.Filters = filters
+			}
+
+			valueBytes, err := json.Marshal(fv)
+			if err != nil {
+				return fmt.Errorf("while marshalling FeatureValue struct: %+v", err)
+			}
+			kv.Value = pointer.To(string(valueBytes))
+			if _, err = client.PutKeyValue(ctx, nestedItemId.Key, model.Label, &kv, "", ""); err != nil {
+				return err
+			}
+
+			if model.Locked {
+				if _, err = client.PutLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
+					return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+				}
+			} else {
+				if _, err = client.DeleteLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
+					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
 				}
 			}
 
@@ -442,74 +600,6 @@ func (k FeatureResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.NestedItemId
 }
 
-func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseClient, model FeatureResourceModel) error {
-	rawKey := model.Name
-	if model.Key != "" {
-		rawKey = model.Key
-	}
-	featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, rawKey)
-
-	entity := appconfiguration.KeyValue{
-		Key:         utils.String(featureKey),
-		Label:       utils.String(model.Label),
-		Tags:        tags.Expand(model.Tags),
-		ContentType: utils.String(FeatureKeyContentType),
-		Locked:      utils.Bool(model.Locked),
-	}
-
-	value := FeatureValue{
-		ID:          model.Name,
-		Description: model.Description,
-		Enabled:     model.Enabled,
-	}
-
-	value.Conditions.ClientFilters.Filters = make([]interface{}, 0)
-	if model.PercentageFilter > 0 {
-		value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
-			Name:       PercentageFilterName,
-			Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
-		})
-	}
-
-	if len(model.TargetingFilters) > 0 {
-		for _, tgtf := range model.TargetingFilters {
-			value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, TargetingFeatureFilter{
-				Name:       TargetingFilterName,
-				Parameters: TargetingFilterParameters{Audience: tgtf},
-			})
-		}
-	}
-
-	if len(model.TimewindowFilters) > 0 {
-		for _, twf := range model.TimewindowFilters {
-			value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, TimewindowFeatureFilter{
-				Name:       TimewindowFilterName,
-				Parameters: twf,
-			})
-		}
-	}
-
-	valueBytes, err := json.Marshal(value)
-	if err != nil {
-		return fmt.Errorf("while marshalling FeatureValue struct: %+v", err)
-	}
-	entity.Value = utils.String(string(valueBytes))
-	if _, err = client.PutKeyValue(ctx, featureKey, model.Label, &entity, "", ""); err != nil {
-		return err
-	}
-
-	if model.Locked {
-		if _, err = client.PutLock(ctx, featureKey, model.Label, "", ""); err != nil {
-			return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
-		}
-	} else {
-		if _, err = client.DeleteLock(ctx, featureKey, model.Label, "", ""); err != nil {
-			return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
-		}
-	}
-
-	return nil
-}
 func (k FeatureResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
 		SchemaVersion: 1,

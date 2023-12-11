@@ -628,7 +628,7 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 				state.Network = flattenNetworkProfile(props.NetworkProfile)
 				state.Roster = flattenRosterProfile(props.RosterProfile)
 				state.Security = flattenSecurityProfile(props.SecurityProfile)
-				state.VirtualMachine = flattenVirtualMachineProfile(props.VirtualMachineProfile, metadata.ResourceData)
+				state.VirtualMachine = flattenVirtualMachineProfile(props.VirtualMachineProfile, metadata.ResourceData.Get("virtual_machine.0.admin_user.0.password").(string))
 
 				if props.Description != nil {
 					state.Description = *props.Description
@@ -968,11 +968,11 @@ func expandSku(input []Sku) lab.Sku {
 	return result
 }
 
-func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, d *pluginsdk.ResourceData) []VirtualMachine {
+func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, password string) []VirtualMachine {
 	var virtualMachineProfiles []VirtualMachine
 
 	virtualMachineProfile := VirtualMachine{
-		AdminUser:      flattenCredential(&input.AdminUser, d.Get("virtual_machine.0.admin_user.0.password").(string)),
+		AdminUser:      flattenCredential(&input.AdminUser, password),
 		CreateOption:   input.CreateOption,
 		ImageReference: flattenImageReference(&input.ImageReference),
 		Sku:            flattenSku(&input.Sku),
@@ -984,7 +984,7 @@ func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, d *pluginsdk.
 	}
 
 	if input.NonAdminUser != nil {
-		virtualMachineProfile.NonAdminUser = flattenCredential(input.NonAdminUser, d.Get("virtual_machine.0.non_admin_user.0.password").(string))
+		virtualMachineProfile.NonAdminUser = flattenCredential(input.NonAdminUser, password)
 	}
 
 	if input.UseSharedPassword != nil {

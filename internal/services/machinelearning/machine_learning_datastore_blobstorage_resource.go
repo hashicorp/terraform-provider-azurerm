@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
@@ -16,10 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreBlobStorage struct{}
@@ -150,14 +150,14 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_blobstorage", id.ID())
 			}
 
-			containerId, err := storageparse.StorageContainerResourceManagerID(model.StorageContainerID)
+			containerId, err := commonids.ParseStorageContainerID(model.StorageContainerID)
 			if err != nil {
 				return err
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(model.Name),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
+				Name: pointer.To(model.Name),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureBlob)),
 			}
 
 			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
@@ -166,13 +166,13 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 			}
 
 			props := &datastore.AzureBlobDatastore{
-				AccountName:                   utils.String(containerId.StorageAccountName),
+				AccountName:                   pointer.To(containerId.StorageAccountName),
 				Endpoint:                      storageDomainSuffix,
-				ContainerName:                 utils.String(containerId.ContainerName),
-				Description:                   utils.String(model.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
-				IsDefault:                     utils.Bool(model.IsDefault),
-				Tags:                          utils.ToPtr(model.Tags),
+				ContainerName:                 pointer.To(containerId.ContainerName),
+				Description:                   pointer.To(model.Description),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
+				IsDefault:                     pointer.To(model.IsDefault),
+				Tags:                          pointer.To(model.Tags),
 			}
 
 			accountKey := model.AccountKey
@@ -225,23 +225,23 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			containerId, err := storageparse.StorageContainerResourceManagerID(state.StorageContainerID)
+			containerId, err := commonids.ParseStorageContainerID(state.StorageContainerID)
 			if err != nil {
 				return err
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(id.DataStoreName),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
+				Name: pointer.To(id.DataStoreName),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureBlob)),
 			}
 
 			props := &datastore.AzureBlobDatastore{
-				AccountName:                   utils.String(containerId.StorageAccountName),
-				ContainerName:                 utils.String(containerId.ContainerName),
-				Description:                   utils.String(state.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataAuthIdentity)),
-				IsDefault:                     utils.Bool(state.IsDefault),
-				Tags:                          utils.ToPtr(state.Tags),
+				AccountName:                   pointer.To(containerId.StorageAccountName),
+				ContainerName:                 pointer.To(containerId.ContainerName),
+				Description:                   pointer.To(state.Description),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataAuthIdentity)),
+				IsDefault:                     pointer.To(state.IsDefault),
+				Tags:                          pointer.To(state.Tags),
 			}
 
 			accountKey := state.AccountKey
@@ -282,6 +282,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Datastore
+			storageClient := metadata.Client.Storage
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
@@ -310,8 +311,16 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataAuthIdentity = serviceDataAuth
 
-			containerId := storageparse.NewStorageContainerResourceManagerID(subscriptionId, workspaceId.ResourceGroupName, *data.AccountName, "default", *data.ContainerName)
+			storageAccount, err := storageClient.FindAccount(ctx, *data.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+			}
+			if storageAccount == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", *data.AccountName)
+			}
+			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, *data.AccountName, *data.ContainerName)
 			model.StorageContainerID = containerId.ID()
+
 			model.IsDefault = *data.IsDefault
 
 			if v, ok := metadata.ResourceData.GetOk("account_key"); ok {

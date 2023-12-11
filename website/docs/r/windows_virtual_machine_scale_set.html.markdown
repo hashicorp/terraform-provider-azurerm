@@ -12,11 +12,11 @@ Manages a Windows Virtual Machine Scale Set.
 
 ## Disclaimers
 
--> **NOTE:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Uniform** Orchestration Mode.
+-> **NOTE:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Uniform** Orchestration Mode. For Virtual Machine Scale Sets with **Flexible** orchestration mode, use [`azurerm_orchestrated_virtual_machine_scale_set`](orchestrated_virtual_machine_scale_set.html). Flexible orchestration mode is recommended for workloads on Azure.
 
 -> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
--> **NOTE:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features).
+-> **NOTE:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block).
 
 -> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
 
@@ -49,13 +49,14 @@ resource "azurerm_subnet" "internal" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "example" {
-  name                = "example-vmss"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_password      = "P@55w0rd1234!"
-  admin_username      = "adminuser"
+  name                 = "example-vmss"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  sku                  = "Standard_F2"
+  instances            = 1
+  admin_password       = "P@55w0rd1234!"
+  admin_username       = "adminuser"
+  computer_name_prefix = "vm-"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -146,7 +147,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 -> **NOTE:** `extension_operations_enabled` may only be set to `false` if there are no extensions defined in the `extension` field.
 
-* `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between `15` minutes and `120` minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `90` minutes (`PT1H30M`).
+* `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between `15` minutes and `120` minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `PT1H30M`.
 
 * `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -192,7 +193,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `true`.
 
-* `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
+* `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`, `Shared Image ID`, `Shared Image Version ID`, `Community Gallery Image ID`, `Community Gallery Image Version ID`, `Shared Gallery Image ID` and `Shared Gallery Image Version ID`.
 
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
 
@@ -213,6 +214,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 * `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
 * `upgrade_mode` - (Optional) Specifies how Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`. Changing this forces a new resource to be created.
+
+-> **NOTE:** If rolling upgrades are configured and running on a Linux Virtual Machine Scale Set, they will be cancelled when Terraform tries to destroy the resource.
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
 
@@ -254,7 +257,7 @@ An `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Virtual Machine Scale Set?
 
-* `grace_period` - (Optional) Amount of time (in minutes, between 30 and 90, defaults to 30 minutes) for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in ISO 8601 format. Defaults to `PT30M`.
+* `grace_period` - (Optional) Amount of time (in minutes, between 30 and 90) for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in ISO 8601 format. Defaults to `PT30M`.
 
 ---
 
@@ -582,7 +585,7 @@ A `spot_restore` block supports the following:
 
 * `enabled` - (Optional) Should the Spot-Try-Restore feature be enabled? The Spot-Try-Restore feature will attempt to automatically restore the evicted Spot Virtual Machine Scale Set VM instances opportunistically based on capacity availability and pricing constraints. Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `timeout` - (Optional) The length of time that the Virtual Machine Scale Set should attempt to restore the Spot VM instances which have been evicted. The time duration should be between `15` minutes and `120` minutes (inclusive). The time duration should be specified in the ISO 8601 format. Defaults to `90` minutes (e.g. `PT1H30M`). Changing this forces a new resource to be created.
+* `timeout` - (Optional) The length of time that the Virtual Machine Scale Set should attempt to restore the Spot VM instances which have been evicted. The time duration should be between `15` minutes and `120` minutes (inclusive). The time duration should be specified in the ISO 8601 format. Defaults to `PT1H`. Changing this forces a new resource to be created.
 
 ---
 

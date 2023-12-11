@@ -34,7 +34,7 @@ type AutoHealRequestTrigger struct {
 type AutoHealStatusCodeTrigger struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
 	SubStatus       int    `tfschema:"sub_status"`
-	Win32Status     int    `tfschema:"win32_status"`
+	Win32Status     int    `tfschema:"win32_status_code"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
@@ -240,7 +240,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 								Optional: true,
 							},
 
-							"win32_status": {
+							"win32_status_code": {
 								Type:     pluginsdk.TypeInt,
 								Optional: true,
 							},
@@ -345,7 +345,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 								Computed: true,
 							},
 
-							"win32_status": {
+							"win32_status_code": {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
@@ -401,6 +401,9 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	}
 
 	autoHeal := autoHealSettings[0]
+	if len(autoHeal.Triggers) == 0 {
+		return result
+	}
 
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
@@ -463,17 +466,18 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 		result.Triggers.StatusCodesRange = &statusCodeRangeTriggers
 	}
 
-	action := autoHeal.Actions[0]
-	result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
-	result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
-	if len(action.CustomAction) != 0 {
-		customAction := action.CustomAction[0]
-		result.Actions.CustomAction = &web.AutoHealCustomAction{
-			Exe:        pointer.To(customAction.Executable),
-			Parameters: pointer.To(customAction.Parameters),
+	if len(autoHeal.Actions) > 0 {
+		action := autoHeal.Actions[0]
+		result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
+		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
+		if len(action.CustomAction) != 0 {
+			customAction := action.CustomAction[0]
+			result.Actions.CustomAction = &web.AutoHealCustomAction{
+				Exe:        pointer.To(customAction.Executable),
+				Parameters: pointer.To(customAction.Parameters),
+			}
 		}
 	}
-
 	return result
 }
 

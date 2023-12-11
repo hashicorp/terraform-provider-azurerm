@@ -38,23 +38,9 @@ func ParseFederatedIdentityCredentialID(input string) (*FederatedIdentityCredent
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FederatedIdentityCredentialId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.UserAssignedIdentityName, ok = parsed.Parsed["userAssignedIdentityName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userAssignedIdentityName", *parsed)
-	}
-
-	if id.FederatedIdentityCredentialName, ok = parsed.Parsed["federatedIdentityCredentialName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "federatedIdentityCredentialName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseFederatedIdentityCredentialIDInsensitively(input string) (*FederatedId
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FederatedIdentityCredentialId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.UserAssignedIdentityName, ok = parsed.Parsed["userAssignedIdentityName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userAssignedIdentityName", *parsed)
-	}
-
-	if id.FederatedIdentityCredentialName, ok = parsed.Parsed["federatedIdentityCredentialName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "federatedIdentityCredentialName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *FederatedIdentityCredentialId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.UserAssignedIdentityName, ok = input.Parsed["userAssignedIdentityName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "userAssignedIdentityName", input)
+	}
+
+	if id.FederatedIdentityCredentialName, ok = input.Parsed["federatedIdentityCredentialName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "federatedIdentityCredentialName", input)
+	}
+
+	return nil
 }
 
 // ValidateFederatedIdentityCredentialID checks that 'input' can be parsed as a Federated Identity Credential ID

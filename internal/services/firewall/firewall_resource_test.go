@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -68,14 +68,21 @@ func TestAccFirewall_enableDNS(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.enableDNS(data, "1.1.1.1", "8.8.8.8"),
+			Config: r.enableDNS(data, true, "1.1.1.1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.enableDNS(data, "1.1.1.1"),
+			Config: r.enableDNS(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableDNS(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -376,32 +383,27 @@ func TestAccFirewall_privateRanges(t *testing.T) {
 }
 
 func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallID(state.ID)
+	id, err := azurefirewalls.ParseAzureFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Azure Firewall %s : %v", *id, err)
 	}
 
-	return utils.Bool(resp.AzureFirewallPropertiesFormat != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallID(state.ID)
+	id, err := azurefirewalls.ParseAzureFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := clients.Firewall.AzureFirewallsClient.Delete(ctx, id.ResourceGroup, id.AzureFirewallName)
-	if err != nil {
+	if err = clients.Network.AzureFirewalls.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Azure Firewall %q: %+v", id.AzureFirewallName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, clients.Firewall.AzureFirewallsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion on azureFirewallsClient: %+v", err)
 	}
 
 	return utils.Bool(true), nil
@@ -507,10 +509,20 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (FirewallResource) enableDNS(data acceptance.TestData, dnsServers ...string) string {
-	servers := make([]string, len(dnsServers))
-	for idx, server := range dnsServers {
-		servers[idx] = fmt.Sprintf(`"%s"`, server)
+func (FirewallResource) enableDNS(data acceptance.TestData, enableProxy bool, dnsServers ...string) string {
+	dnsServersStr := ""
+	if len(dnsServers) > 0 {
+		servers := make([]string, len(dnsServers))
+		for idx, server := range dnsServers {
+			servers[idx] = fmt.Sprintf(`"%s"`, server)
+		}
+		dnsServersStr = fmt.Sprintf("dns_servers = [%s]", strings.Join(servers, ", "))
+	}
+	enableProxyStr := ""
+	if enableProxy {
+		enableProxyStr = "dns_proxy_enabled = true"
+	} else {
+		enableProxyStr = "dns_proxy_enabled = false"
 	}
 
 	return fmt.Sprintf(`
@@ -558,9 +570,11 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
   threat_intel_mode = "Deny"
-  dns_servers       = [%s]
+  %s
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, strings.Join(servers, ","))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		dnsServersStr, enableProxyStr)
 }
 
 func (FirewallResource) withManagementIp(data acceptance.TestData) string {

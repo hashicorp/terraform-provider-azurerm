@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -242,9 +242,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 	if features.FourPointOhBeta() {
 		s.Schema["language_extensions"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			ConflictsWith: []string{"language_extensions"},
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {

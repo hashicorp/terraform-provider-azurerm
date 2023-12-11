@@ -153,7 +153,7 @@ data "azurerm_firewall" "test" {
   name                = azurerm_firewall.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, FirewallResource{}.enableDNS(data, dnsServers...))
+`, FirewallResource{}.enableDNS(data, true, dnsServers...))
 }
 
 func (FirewallDataSource) withManagementIp(data acceptance.TestData) string {

@@ -31,7 +31,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following arguments are supported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 - `default_function_key` - Function App resource's default function key.
 

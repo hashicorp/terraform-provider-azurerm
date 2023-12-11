@@ -4,8 +4,8 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
@@ -15,8 +15,9 @@ type Client struct {
 	ManagementClient *dataplane.BaseClient
 	VaultsClient     *vaults.VaultsClient
 
-	MHSMSDClient   *dataplane.HSMSecurityDomainClient
-	MHSMRoleClient *dataplane.RoleDefinitionsClient
+	MHSMSDClient              *dataplane.HSMSecurityDomainClient
+	MHSMRoleClient            *dataplane.RoleDefinitionsClient
+	MHSMRoleAssignmentsClient *dataplane.RoleAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -36,11 +37,15 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
 
+	mhsmRoleAssignClient := dataplane.NewRoleAssignmentsClient()
+	o.ConfigureClient(&mhsmRoleAssignClient.Client, o.ManagedHSMAuthorizer)
+
 	return &Client{
-		ManagedHsmClient: &managedHsmClient,
-		ManagementClient: &managementClient,
-		VaultsClient:     &vaultsClient,
-		MHSMSDClient:     &sdClient,
-		MHSMRoleClient:   &mhsmRoleDefineClient,
+		ManagedHsmClient:          &managedHsmClient,
+		ManagementClient:          &managementClient,
+		VaultsClient:              &vaultsClient,
+		MHSMSDClient:              &sdClient,
+		MHSMRoleClient:            &mhsmRoleDefineClient,
+		MHSMRoleAssignmentsClient: &mhsmRoleAssignClient,
 	}
 }

@@ -72,13 +72,13 @@ The following arguments are supported:
 
 * `enabled` - (Required) Defines that the NetApp Snapshot Policy is enabled or not.
 
-* `hourly_schedule` - (Optional) Sets an hourly snapshot schedule. See details in below `hourly_schedule` block.
+* `hourly_schedule` - (Optional) Sets an hourly snapshot schedule. A `hourly_schedule` block as defined below.
 
-* `daily_schedule` - (Optional) Sets a daily snapshot schedule. See details in below `daily_schedule` block.
+* `daily_schedule` - (Optional) Sets a daily snapshot schedule. A `daily_schedule` block as defined below.
   
-* `weekly_schedule` - (Optional) Sets a weekly snapshot schedule. See details in below `weekly_schedule` block.
+* `weekly_schedule` - (Optional) Sets a weekly snapshot schedule. A `weekly_schedule` block as defined below.
 
-* `monthly_schedule` - (Optional) Sets a monthly snapshot schedule. See details in below `monthly_schedule` block.
+* `monthly_schedule` - (Optional) Sets a monthly snapshot schedule. A `monthly_schedule` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -142,13 +142,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - (Required) Defines that the NetApp Snapshot Policy is enabled or not.
 
-* `hourly_schedule` - (Optional) Hourly snapshot schedule.
+* `hourly_schedule` - Hourly snapshot schedule.
 
-* `daily_schedule` - (Optional) Daily snapshot schedule.
+* `daily_schedule` - Daily snapshot schedule.
   
-* `weekly_schedule` - (Optional) Weekly snapshot schedule.
+* `weekly_schedule` - Weekly snapshot schedule.
 
-* `monthly_schedule` - (Optional) Monthly snapshot schedule.
+* `monthly_schedule` - Monthly snapshot schedule.
 
 ## Timeouts
 

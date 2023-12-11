@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -122,7 +122,7 @@ func testCheckAzureRMAutomationVariableExists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Automation.VariableClient.Get(ctx, *id)
+	resp, err := clients.Automation.Variable.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, id.VariableName, id.AutomationAccountName, id.ResourceGroupName)
 	}

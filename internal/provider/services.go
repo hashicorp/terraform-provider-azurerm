@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azuremanagedlustrefilesystem"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing"
@@ -50,6 +50,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
@@ -58,7 +59,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
@@ -114,10 +114,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription"
@@ -139,10 +141,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		applicationinsights.Registration{},
 		appservice.Registration{},
 		arckubernetes.Registration{},
+		arcresourcebridge.Registration{},
 		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
-		azuremanagedlustrefilesystem.Registration{},
+		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		cognitive.Registration{},
@@ -155,12 +158,15 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		dashboard.Registration{},
 		databoxedge.Registration{},
 		databricks.Registration{},
+		datafactory.Registration{},
 		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
+		elasticsan.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
+		storagecache.Registration{},
 		hybridcompute.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},
@@ -189,6 +195,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
+		servicenetworking.Registration{},
 		storage.Registration{},
 		storagemover.Registration{},
 		signalr.Registration{},
@@ -196,6 +203,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		streamanalytics.Registration{},
 		search.Registration{},
 		springcloud.Registration{},
+		securitycenter.Registration{},
 		vmware.Registration{},
 		voiceservices.Registration{},
 		web.Registration{},
@@ -249,7 +257,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			eventhub.Registration{},
 			firewall.Registration{},
 			frontdoor.Registration{},
-			hpccache.Registration{},
+			storagecache.Registration{},
 			hsm.Registration{},
 			hdinsight.Registration{},
 			healthcare.Registration{},

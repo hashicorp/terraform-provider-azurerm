@@ -4,8 +4,12 @@
 package client
 
 import (
+	"context"
 	"fmt"
+	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
@@ -18,14 +22,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
@@ -244,4 +249,41 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		// NOTE: use `VirtualMachinesClient` instead
 		VMClient: &vmClient,
 	}, nil
+}
+
+func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id commonids.VirtualMachineScaleSetId) error {
+	resp, err := c.VMScaleSetRollingUpgradesClient.GetLatest(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	if err != nil {
+		// No rolling upgrades are running so skipping attempt to cancel them before deletion
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
+		return fmt.Errorf("retrieving rolling updates for %s: %+v", id, err)
+	}
+
+	var upgradeStatus compute.RollingUpgradeStatusCode
+	if status := resp.RunningStatus; status != nil {
+		upgradeStatus = status.Code
+	}
+
+	// If lastest rolling upgrade is marked as completed, skip cancellation
+	if upgradeStatus == compute.RollingUpgradeStatusCodeCompleted {
+		return nil
+	}
+
+	future, err := c.VMScaleSetRollingUpgradesClient.Cancel(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	if err != nil {
+		// If there is no rolling upgrade the API will throw a 409/No rolling upgrade to cancel
+		// we don't error out in this case
+		if response.WasConflict(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, c.VMScaleSetExtensionsClient.Client); err != nil {
+		return fmt.Errorf("waiting for cancelling of rolling upgrades for %s: %+v", id, err)
+	}
+
+	log.Printf("[DEBUG] cancelled Virtual Machine Scale Set Rolling Upgrades for %s.", id)
+	return nil
 }

@@ -21,6 +21,7 @@ func AzureUSGovernment() *Environment {
 	env.MicrosoftGraph = MicrosoftGraphAPI("https://graph.microsoft.us").withResourceIdentifier("https://graph.microsoft.us")
 
 	env.ApiManagement = ApiManagementAPI("azure-api.us")
+	env.AppConfiguration = AppConfigurationAPI("azconfig.azure.us")
 	env.Batch = BatchAPI("https://batch.core.usgovcloudapi.net").withResourceIdentifier("https://batch.core.usgovcloudapi.net")
 	env.ContainerRegistry = ContainerRegistryAPI("azurecr.us")
 	env.CosmosDB = CosmosDBAPI("documents.azure.us")

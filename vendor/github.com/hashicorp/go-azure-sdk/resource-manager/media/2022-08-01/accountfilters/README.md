@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `AccountFiltersClient.AccountFiltersCreateOrUpdate`
+### Example Usage: `AccountFiltersClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := accountfilters.AccountFilter{
 }
 
 
-read, err := client.AccountFiltersCreateOrUpdate(ctx, id, payload)
+read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -41,13 +41,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AccountFiltersClient.AccountFiltersDelete`
+### Example Usage: `AccountFiltersClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := accountfilters.NewAccountFilterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "accountFilterValue")
 
-read, err := client.AccountFiltersDelete(ctx, id)
+read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -57,13 +57,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AccountFiltersClient.AccountFiltersGet`
+### Example Usage: `AccountFiltersClient.Get`
 
 ```go
 ctx := context.TODO()
 id := accountfilters.NewAccountFilterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue", "accountFilterValue")
 
-read, err := client.AccountFiltersGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -73,14 +73,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AccountFiltersClient.AccountFiltersList`
+### Example Usage: `AccountFiltersClient.List`
 
 ```go
 ctx := context.TODO()
 id := accountfilters.NewMediaServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mediaServiceValue")
 
-// alternatively `client.AccountFiltersList(ctx, id)` can be used to do batched pagination
-items, err := client.AccountFiltersListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -90,7 +90,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `AccountFiltersClient.AccountFiltersUpdate`
+### Example Usage: `AccountFiltersClient.Update`
 
 ```go
 ctx := context.TODO()
@@ -101,7 +101,7 @@ payload := accountfilters.AccountFilter{
 }
 
 
-read, err := client.AccountFiltersUpdate(ctx, id, payload)
+read, err := client.Update(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

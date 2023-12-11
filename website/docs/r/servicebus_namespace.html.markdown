@@ -61,6 +61,8 @@ The following arguments are supported:
 
 * `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Changing this forces a new resource to be created.
 
+* `network_rule_set` - (Optional) An `network_rule_set` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -86,6 +88,28 @@ A `customer_managed_key` block supports the following:
 * `identity_id` - (Required) The ID of the User Assigned Identity that has access to the key.
 
 * `infrastructure_encryption_enabled` - (Optional) Used to specify whether enable Infrastructure Encryption (Double Encryption). Changing this forces a new resource to be created.
+
+---
+
+A `network_rule_set` block supports the following:
+
+* `default_action` - (Optional) Specifies the default action for the Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Allow`.
+
+* `public_network_access_enabled` - (Optional) Whether to allow traffic over public network. Possible values are `true` and `false`. Defaults to `true`.
+
+* `trusted_services_allowed` - (Optional) Are Azure Services that are known and trusted for this resource type are allowed to bypass firewall configuration? See [Trusted Microsoft Services](https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/service-bus-messaging/includes/service-bus-trusted-services.md)
+
+* `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the ServiceBus Namespace.
+
+* `network_rules` - (Optional) One or more `network_rules` blocks as defined below.
+
+---
+
+A `network_rules` block supports the following:
+
+* `subnet_id` - (Required) The Subnet ID which should be able to access this ServiceBus Namespace.
+
+* `ignore_missing_vnet_service_endpoint` - (Optional) Should the ServiceBus Namespace Network Rule Set ignore missing Virtual Network Service Endpoint option in the Subnet? Defaults to `false`.
 
 ## Attributes Reference
 

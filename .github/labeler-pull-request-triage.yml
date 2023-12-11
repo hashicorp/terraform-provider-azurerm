@@ -7,6 +7,8 @@ documentation:
   - website/**/*
 tooling:
   - internal/tools/**/*
+state-migration:
+  - internal/services/**/migration/**/*
 service/aadb2c:
   - internal/services/aadb2c/**/*
 
@@ -28,6 +30,9 @@ service/app-service:
 service/application-insights:
   - internal/services/applicationinsights/**/*
 
+service/arc-resource-bridge:
+  - internal/services/arcresourcebridge/**/*
+
 service/attestation:
   - internal/services/attestation/**/*
 
@@ -43,9 +48,6 @@ service/automation:
 
 service/azure-stack-hci:
   - internal/services/azurestackhci/**/*
-
-service/azuremanagedlustrefilesystem:
-  - internal/services/azuremanagedlustrefilesystem/**/*
 
 service/batch:
   - internal/services/batch/**/*
@@ -110,6 +112,9 @@ service/databricks:
 service/datadog:
   - internal/services/datadog/**/*
 
+service/dev-center:
+  - internal/services/devcenter/**/*
+
 service/devtestlabs:
   - internal/services/devtestlabs/**/*
 
@@ -128,6 +133,9 @@ service/domain-services:
 
 service/elastic:
   - internal/services/elastic/**/*
+
+service/elasticsan:
+  - internal/services/elasticsan/**/*
 
 service/event-grid:
   - internal/services/eventgrid/**/*
@@ -152,9 +160,6 @@ service/hdinsight:
 
 service/healthcare:
   - internal/services/healthcare/**/*
-
-service/hpc-cache:
-  - internal/services/hpccache/**/*
 
 service/hsm:
   - internal/services/hsm/**/*
@@ -255,6 +260,9 @@ service/notifications:
 service/orbital:
   - internal/services/orbital/**/*
 
+service/paloalto:
+  - internal/services/paloalto/**/*
+
 service/policy:
   - internal/services/policy/**/*
 
@@ -303,6 +311,9 @@ service/service-fabric:
 
 service/service-fabric-managed-cluster:
   - internal/services/servicefabricmanaged/**/*
+
+service/service-networking:
+  - internal/services/servicenetworking/**/*
 
 service/signalr:
   - internal/services/signalr/**/*

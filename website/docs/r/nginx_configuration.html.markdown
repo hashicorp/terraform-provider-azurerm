@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `config_file` - (Optional) One or more `config_file` blocks as defined below.
 
-* `protected_file` - (Optional) One or more `protected_file` (Protected File) blocks with sensitive information as defined below. If specified `config_file` must also be specified.
+* `protected_file` - (Optional) One or more `protected_file` blocks with sensitive information as defined below. If specified `config_file` must also be specified.
 
 ---
 
@@ -161,7 +161,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Nginxs can be imported using the `resource id`, e.g.
+An Nginx Configuration can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nginx_configuration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/dep1/configurations/default

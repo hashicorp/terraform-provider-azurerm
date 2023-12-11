@@ -6,6 +6,7 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Arc Resource Bridge
 ArcKubernetes
 Attestation
 Authorization
@@ -42,10 +43,12 @@ Databox Edge
 Databricks
 Datadog
 Desktop Virtualization
+Dev Center
 Dev Test
 Digital Twins
 Disks
 Elastic
+Elastic SAN
 Fluid Relay
 Graph Services
 HDInsight
@@ -93,6 +96,7 @@ Security Center
 Sentinel
 Service Fabric
 Service Fabric Managed Clusters
+Service Networking
 Spring Cloud
 Storage
 Storage Mover

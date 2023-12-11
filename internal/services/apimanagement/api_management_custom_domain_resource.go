@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domain"
@@ -46,7 +46,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementID,
+				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
 			"management": {
@@ -98,32 +98,32 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apiMgmtId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
+	apiMgmtId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewCustomDomainID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroup, apiMgmtId.ServiceName, "default")
+	id := parse.NewCustomDomainID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroupName, apiMgmtId.ServiceName, "default")
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
+	existing, err := client.Get(ctx, *apiMgmtId)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *apiMgmtId, err)
 	}
 
 	if d.IsNewResource() {
-		if existing.ServiceProperties != nil && existing.ServiceProperties.HostnameConfigurations != nil && len(*existing.ServiceProperties.HostnameConfigurations) > 1 {
-			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.ID)
+		if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
+			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
 		}
 	}
 
-	existing.ServiceProperties.HostnameConfigurations = expandApiManagementCustomDomains(d)
+	existing.Model.Properties.HostnameConfigurations = expandApiManagementCustomDomains(d)
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
-	log.Printf("[DEBUG] Waiting for %s to become ready", id)
+	log.Printf("[DEBUG] Waiting for %s to become ready", *apiMgmtId)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Updating", "Unknown"},
 		Target:                    []string{"Succeeded", "Ready"},
-		Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
+		Refresh:                   apiManagementRefreshFunc(ctx, client, *apiMgmtId),
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 6,
 	}
@@ -138,22 +138,16 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// The API expects user assigned identities to be submitted with nil values
-	if existing.Identity != nil {
-		for k, v := range existing.Identity.UserAssignedIdentities {
-			if v == nil {
-				continue
-			}
-			existing.Identity.UserAssignedIdentities[k].ClientID = nil
-			existing.Identity.UserAssignedIdentities[k].PrincipalID = nil
+	if existing.Model != nil && existing.Model.Identity != nil {
+		for k := range existing.Model.Identity.IdentityIds {
+			UserAssignedIdentityDetails := existing.Model.Identity.IdentityIds[k]
+			UserAssignedIdentityDetails.ClientId = nil
+			UserAssignedIdentityDetails.PrincipalId = nil
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, existing)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *apiMgmtId, *existing.Model); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
@@ -182,11 +176,11 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	apiMgmtId := parse.NewApiManagementID(id.SubscriptionId, id.ResourceGroup, id.ServiceName)
+	apiMgmtId := apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroup, id.ServiceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
+	resp, err := client.Get(ctx, apiMgmtId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -197,8 +191,8 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("api_management_id", apiMgmtId.ID())
 
-	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
-		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, *apimHostNameSuffix)
+	if resp.Model != nil && resp.Model.Properties.HostnameConfigurations != nil {
+		configs := flattenApiManagementHostnameConfiguration(resp.Model.Properties.HostnameConfigurations, d, *resp.Model.Name, *apimHostNameSuffix)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
 				// lintignore:R001
@@ -222,9 +216,11 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
+	apiMgmtId := apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroup, id.ServiceName)
+
+	resp, err := client.Get(ctx, apiMgmtId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("%s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -238,7 +234,7 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Updating", "Unknown"},
 		Target:                    []string{"Succeeded", "Ready"},
-		Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
+		Refresh:                   apiManagementRefreshFunc(ctx, client, apiMgmtId),
 		MinTimeout:                1 * time.Minute,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 		ContinuousTargetOccurence: 6,
@@ -250,14 +246,12 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	log.Printf("[DEBUG] Deleting %s", *id)
 
-	resp.ServiceProperties.HostnameConfigurations = nil
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, resp)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	if resp.Model != nil {
+		resp.Model.Properties.HostnameConfigurations = nil
 	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
+
+	if err := client.CreateOrUpdateThenPoll(ctx, apiMgmtId, *resp.Model); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
@@ -269,14 +263,14 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanagement.HostnameConfiguration {
-	results := make([]apimanagement.HostnameConfiguration, 0)
+func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanagementservice.HostnameConfiguration {
+	results := make([]apimanagementservice.HostnameConfiguration, 0)
 
 	if managementRawVal, ok := input.GetOk("management"); ok {
 		vs := managementRawVal.([]interface{})
 		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeManagement)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeManagement)
 			results = append(results, output)
 		}
 	}
@@ -284,7 +278,7 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 		vs := portalRawVal.([]interface{})
 		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypePortal)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
 			results = append(results, output)
 		}
 	}
@@ -292,7 +286,7 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 		vs := developerPortalRawVal.([]interface{})
 		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeDeveloperPortal)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
 			results = append(results, output)
 		}
 	}
@@ -301,9 +295,9 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 		vs := gatewayRawVal.([]interface{})
 		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
 			if value, ok := v["default_ssl_binding"]; ok {
-				output.DefaultSslBinding = utils.Bool(value.(bool))
+				output.DefaultSslBinding = pointer.To(value.(bool))
 			}
 			results = append(results, output)
 		}
@@ -313,14 +307,14 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 		vs := scmRawVal.([]interface{})
 		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeScm)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeScm)
 			results = append(results, output)
 		}
 	}
 	return &results
 }
 
-func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
+func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -336,49 +330,36 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		output := make(map[string]interface{})
 
 		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
-		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
+		if config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagementservice.HostnameTypeProxy {
 			continue
 		}
 
-		if config.HostName != nil {
-			output["host_name"] = *config.HostName
-		}
-
-		if config.NegotiateClientCertificate != nil {
-			output["negotiate_client_certificate"] = *config.NegotiateClientCertificate
-		}
-
-		if config.KeyVaultID != nil {
-			output["key_vault_id"] = *config.KeyVaultID
-		}
-
-		if config.IdentityClientID != nil {
-			output["ssl_keyvault_identity_client_id"] = *config.IdentityClientID
-		}
+		output["host_name"] = config.HostName
+		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
+		output["key_vault_id"] = pointer.From(config.KeyVaultId)
+		output["ssl_keyvault_identity_client_id"] = pointer.From(config.IdentityClientId)
 
 		var configType string
 		switch strings.ToLower(string(config.Type)) {
-		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
-			if config.DefaultSslBinding != nil {
-				output["default_ssl_binding"] = *config.DefaultSslBinding
-			}
+			output["default_ssl_binding"] = pointer.From(config.DefaultSslBinding)
 			gatewayResults = append(gatewayResults, output)
 			configType = "gateway"
 
-		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
 			configType = "management"
 
-		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
 			configType = "portal"
 
-		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeDeveloperPortal)):
 			developerPortalResults = append(developerPortalResults, output)
 			configType = "developer_portal"
 
-		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
+		case strings.ToLower(string(apimanagementservice.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
 			configType = "scm"
 		}
@@ -386,7 +367,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		if configType != "" {
 			if valsRaw, ok := d.GetOk(configType); ok {
 				vals := valsRaw.([]interface{})
-				schemaz.CopyCertificateAndPassword(vals, *config.HostName, output)
+				schemaz.CopyCertificateAndPassword(vals, config.HostName, output)
 			}
 		}
 	}

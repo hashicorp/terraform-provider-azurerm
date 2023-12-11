@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -129,7 +129,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Automation.VariableClient
+			client := metadata.Client.Automation.Variable
 
 			variableList, err := client.ListByAutomationAccountComplete(ctx, pointer.From(automationAccountId))
 			if err != nil {

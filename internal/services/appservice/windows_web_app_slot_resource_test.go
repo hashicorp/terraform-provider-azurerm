@@ -629,6 +629,21 @@ func TestAccWindowsWebAppSlot_withDotNet7(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withDotNet8(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -883,10 +898,10 @@ func TestAccWindowsWebAppSlot_withDockerImageDockerHub(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:v3.0-windowsservercore-1809"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:v3.0-windowsservercore-1809"),
 			),
 		},
 		data.ImportStep(),
@@ -1372,6 +1387,9 @@ resource "azurerm_windows_web_app_slot" "test" {
     access_key   = azurerm_storage_account.test.primary_access_key
     mount_path   = "/mounts/files"
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
     Environment = "AccTest"

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -973,7 +973,7 @@ Terraform can automatically recover the soft-deleted Key Vault when this behavio
 enabled within the "features" block (located within the "provider" block) - more
 information can be found here:
 
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 
 Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
 this into Terraform via "terraform import", or pick a different name/location.

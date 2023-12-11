@@ -84,6 +84,16 @@ func RandSSHKeyPair(comment string) (string, string, error) {
 
 // RandTLSCert generates a self-signed TLS certificate with a newly created
 // private key, and returns both the cert and the private key PEM encoded.
+//
+// The private key uses RSA algorithm, 1024 bits, and has no passphrase.
+//
+// The certificate expires in 24 hours, has a random serial number, and is
+// set for Encipherment, Digital Signature, and Server Auth key usage.
+// Only the organization name of the subject is configurable.
+//
+// Testing with different or stricter security requirements should
+// use the standard library [crypto] and [golang.org/x/crypto] packages
+// directly.
 func RandTLSCert(orgName string) (string, string, error) {
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(int64(RandInt())),

@@ -760,7 +760,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-pa-%[2]d"
+  name     = "acctestRG-pa-%[2]d"
   location = %[3]q
 }
 

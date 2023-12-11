@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -128,10 +128,10 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
@@ -165,7 +165,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	instances := make([]interface{}, 0)
-	result, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")
+	result, err := instancesClient.ListComplete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, "", "", "")
 	if err != nil {
 		return fmt.Errorf("listing VM Instances for %q: %+v", id, err)
 	}
@@ -174,14 +174,14 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	for result.NotDone() {
 		instance := result.Value()
 		if instance.InstanceID != nil {
-			nics, err := networkInterfacesClient.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, id.ResourceGroup, id.Name, *instance.InstanceID)
+			nics, err := networkInterfacesClient.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, *instance.InstanceID)
 			if err != nil {
 				if !utils.ResponseWasNotFound(nics.Response().Response) {
 					return fmt.Errorf("listing Network Interfaces for VM Instance %q for %q: %+v", *instance.InstanceID, id, err)
 				}
 
 				// Network Interfaces of VM in Flexible VMSS are accessed from single VM
-				vm, err := vmClient.Get(ctx, id.ResourceGroup, *instance.InstanceID, "")
+				vm, err := vmClient.Get(ctx, id.ResourceGroupName, *instance.InstanceID, "")
 				if err != nil {
 					return fmt.Errorf("retrieving VM Instance %q for %q: %+v", *instance.InstanceID, id, err)
 				}
@@ -196,7 +196,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 					}
 				}
 
-				connInfo, err = getVirtualMachineScaleSetVMConnectionInfo(ctx, networkInterfaces, id.ResourceGroup, id.Name, *instance.InstanceID, publicIPAddressesClient)
+				connInfo, err = getVirtualMachineScaleSetVMConnectionInfo(ctx, networkInterfaces, id.ResourceGroupName, id.VirtualMachineScaleSetName, *instance.InstanceID, publicIPAddressesClient)
 				if err != nil {
 					return err
 				}

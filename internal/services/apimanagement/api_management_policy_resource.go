@@ -9,14 +9,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementPolicy() *pluginsdk.Resource {
@@ -27,13 +27,15 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 		Delete: resourceApiManagementPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PolicyID(id)
+			_, err := policy.ParseServiceID(id)
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.ApiManagementApiPolicyV0ToV1{},
+			0: migration.ApiManagementPolicyV0ToV1{},
+			1: migration.ApiManagementPolicyV1ToV2{},
+			2: migration.ApiManagementPolicyV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -48,7 +50,7 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementID,
+				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
 			"xml_content": {
@@ -76,11 +78,11 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	defer cancel()
 
 	apiManagementID := d.Get("api_management_id").(string)
-	apiMgmtId, err := parse.ApiManagementID(apiManagementID)
+	apiMgmtId, err := apimanagementservice.ParseServiceID(apiManagementID)
 	if err != nil {
 		return err
 	}
-	resourceGroup := apiMgmtId.ResourceGroup
+	resourceGroup := apiMgmtId.ResourceGroupName
 	serviceName := apiMgmtId.ServiceName
 
 	/*
@@ -89,15 +91,15 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Instead of the usual check, the resource documentation clearly states that any existing policy will be overwritten if the resource is used.
 	*/
 
-	parameters := apimanagement.PolicyContract{}
+	parameters := policy.PolicyContract{}
 
 	xmlContent := d.Get("xml_content").(string)
 	xmlLink := d.Get("xml_link").(string)
 
 	if xmlLink != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.PolicyContentFormatRawxmlLink,
-			Value:  utils.String(xmlLink),
+		parameters.Properties = &policy.PolicyContractProperties{
+			Format: pointer.To(policy.PolicyContentFormatRawxmlNegativelink),
+			Value:  xmlLink,
 		}
 	} else if xmlContent != "" {
 		// this is intentionally an else-if since `xml_content` is computed
@@ -107,22 +109,23 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 			d.Set("xml_link", "")
 		}
 
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.PolicyContentFormatRawxml,
-			Value:  utils.String(xmlContent),
+		parameters.Properties = &policy.PolicyContractProperties{
+			Format: pointer.To(policy.PolicyContentFormatRawxml),
+			Value:  xmlContent,
 		}
 	}
 
-	if parameters.PolicyContractProperties == nil {
+	if parameters.Properties == nil {
 		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, parameters, "")
+	policyServiceId := policy.NewServiceID(apiMgmtId.SubscriptionId, resourceGroup, serviceName)
+	_, err = client.CreateOrUpdate(ctx, policyServiceId, parameters, policy.CreateOrUpdateOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("creating or updating Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
+		return fmt.Errorf("creating %s: %+v", policyServiceId, err)
 	}
 
-	id := parse.NewPolicyID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroup, apiMgmtId.ServiceName, "policy")
+	id := policy.NewServiceID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroupName, apiMgmtId.ServiceName)
 	d.SetId(id.ID())
 
 	return resourceApiManagementPolicyRead(d, meta)
@@ -134,46 +137,43 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PolicyID(d.Id())
+	id, err := policy.ParseServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
 
-	serviceResp, err := serviceClient.Get(ctx, resourceGroup, serviceName)
+	apimServiceId := apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
+	serviceResp, err := serviceClient.Get(ctx, apimServiceId)
 	if err != nil {
-		if utils.ResponseWasNotFound(serviceResp.Response) {
-			log.Printf("API Management Service %q was not found in Resource Group %q - removing Policy from state!", serviceName, resourceGroup)
+		if response.WasNotFound(serviceResp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", apimServiceId)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", apimServiceId, err)
 	}
 
-	d.Set("api_management_id", serviceResp.ID)
+	if model := serviceResp.Model; model != nil {
+		d.Set("api_management_id", pointer.From(model.Id))
+	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.PolicyExportFormatXML)
+	serviceId := policy.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
+	resp, err := client.Get(ctx, serviceId, policy.GetOperationOptions{Format: pointer.To(policy.PolicyExportFormatXml)})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Policy (Resource Group %q / API Management Service %q) was not found - removing from state!", resourceGroup, serviceName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("making Read request for Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if properties := resp.PolicyContractProperties; properties != nil {
-		policyContent := ""
-		if pc := properties.Value; pc != nil {
-			policyContent = html.UnescapeString(*pc)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
+			// as such there is no way to set `xml_link` and we'll let Terraform handle it
+			d.Set("xml_content", html.UnescapeString(props.Value))
 		}
-
-		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
-		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", policyContent)
 	}
 
 	return nil
@@ -184,16 +184,14 @@ func resourceApiManagementPolicyDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PolicyID(d.Id())
+	id, err := policy.ParseServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Policy (Resource Group %q / API Management Service %q): %+v", resourceGroup, serviceName, err)
+	if resp, err := client.Delete(ctx, *id, policy.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

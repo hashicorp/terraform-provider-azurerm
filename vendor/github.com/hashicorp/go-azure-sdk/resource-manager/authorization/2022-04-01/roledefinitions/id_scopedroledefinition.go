@@ -34,15 +34,9 @@ func ParseScopedRoleDefinitionID(input string) (*ScopedRoleDefinitionId, error) 
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRoleDefinitionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RoleDefinitionId, ok = parsed.Parsed["roleDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleDefinitionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedRoleDefinitionIDInsensitively(input string) (*ScopedRoleDefiniti
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRoleDefinitionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RoleDefinitionId, ok = parsed.Parsed["roleDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleDefinitionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRoleDefinitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.RoleDefinitionId, ok = input.Parsed["roleDefinitionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "roleDefinitionId", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRoleDefinitionID checks that 'input' can be parsed as a Scoped Role Definition ID

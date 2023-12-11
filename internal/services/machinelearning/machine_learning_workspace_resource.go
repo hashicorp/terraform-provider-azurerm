@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -87,7 +87,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -242,39 +242,39 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	workspace := workspaces.Workspace{
-		Name:     utils.String(id.WorkspaceName),
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Name:     pointer.To(id.WorkspaceName),
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: utils.ToPtr(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
 		},
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			V1LegacyMode:        utils.ToPtr(d.Get("v1_legacy_mode_enabled").(bool)),
+			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 			Encryption:          expandedEncryption,
-			StorageAccount:      utils.String(d.Get("storage_account_id").(string)),
-			ApplicationInsights: utils.String(d.Get("application_insights_id").(string)),
-			KeyVault:            utils.String(d.Get("key_vault_id").(string)),
-			PublicNetworkAccess: utils.ToPtr(workspaces.PublicNetworkAccessDisabled),
+			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
+			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
+			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
+			PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccessDisabled),
 		},
 	}
 
 	if networkAccessBehindVnetEnabled {
-		workspace.Properties.PublicNetworkAccess = utils.ToPtr(workspaces.PublicNetworkAccessEnabled)
+		workspace.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccessEnabled)
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		workspace.Properties.Description = utils.String(v.(string))
+		workspace.Properties.Description = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("friendly_name"); ok {
-		workspace.Properties.FriendlyName = utils.String(v.(string))
+		workspace.Properties.FriendlyName = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("container_registry_id"); ok {
-		workspace.Properties.ContainerRegistry = utils.String(v.(string))
+		workspace.Properties.ContainerRegistry = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("high_business_impact"); ok {
@@ -282,11 +282,11 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("image_build_compute_name"); ok {
-		workspace.Properties.ImageBuildCompute = utils.String(v.(string))
+		workspace.Properties.ImageBuildCompute = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("primary_user_assigned_identity"); ok {
-		workspace.Properties.PrimaryUserAssignedIdentity = utils.String(v.(string))
+		workspace.Properties.PrimaryUserAssignedIdentity = pointer.To(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, workspace)
@@ -471,7 +471,7 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *workspaces.E
 	}
 
 	if raw["user_assigned_identity_id"].(string) != "" {
-		out.Identity.UserAssignedIdentity = utils.String(raw["user_assigned_identity_id"].(string))
+		out.Identity.UserAssignedIdentity = pointer.To(raw["user_assigned_identity_id"].(string))
 	}
 
 	return &out

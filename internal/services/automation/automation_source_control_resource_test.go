@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/sourcecontrol"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,7 +48,7 @@ func (s SourceControlResource) Exists(ctx context.Context, client *clients.Clien
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.SourceControlClient.Get(ctx, *id)
+	resp, err := client.Automation.SourceControl.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Type %s: %+v", *id, err)
 	}

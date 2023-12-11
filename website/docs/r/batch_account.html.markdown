@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `allowed_authentication_modes` - (Optional) Specifies the allowed authentication mode for the Batch account. Possible values include `AAD`, `SharedKey` or `TaskAuthenticationToken`.
 
-* `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data.
+* `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data. One `encryption` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

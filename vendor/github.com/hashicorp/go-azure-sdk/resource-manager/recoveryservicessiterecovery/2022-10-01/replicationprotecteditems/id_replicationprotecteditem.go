@@ -42,31 +42,9 @@ func ParseReplicationProtectedItemID(input string) (*ReplicationProtectedItemId,
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicationProtectedItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.ReplicationFabricName, ok = parsed.Parsed["replicationFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationFabricName", *parsed)
-	}
-
-	if id.ReplicationProtectionContainerName, ok = parsed.Parsed["replicationProtectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectionContainerName", *parsed)
-	}
-
-	if id.ReplicationProtectedItemName, ok = parsed.Parsed["replicationProtectedItemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectedItemName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -81,34 +59,42 @@ func ParseReplicationProtectedItemIDInsensitively(input string) (*ReplicationPro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicationProtectedItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.ReplicationFabricName, ok = parsed.Parsed["replicationFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationFabricName", *parsed)
-	}
-
-	if id.ReplicationProtectionContainerName, ok = parsed.Parsed["replicationProtectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectionContainerName", *parsed)
-	}
-
-	if id.ReplicationProtectedItemName, ok = parsed.Parsed["replicationProtectedItemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectedItemName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ReplicationProtectedItemId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	if id.ReplicationFabricName, ok = input.Parsed["replicationFabricName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "replicationFabricName", input)
+	}
+
+	if id.ReplicationProtectionContainerName, ok = input.Parsed["replicationProtectionContainerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectionContainerName", input)
+	}
+
+	if id.ReplicationProtectedItemName, ok = input.Parsed["replicationProtectedItemName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectedItemName", input)
+	}
+
+	return nil
 }
 
 // ValidateReplicationProtectedItemID checks that 'input' can be parsed as a Replication Protected Item ID

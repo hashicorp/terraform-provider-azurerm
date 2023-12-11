@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
@@ -31,8 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -287,12 +285,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_virtual_machine_scale_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
 			"network_interface": {
 				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
-				Set:        resourceSiteRecoveryReplicatedVMNicHash,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Computed:   true,
 				Optional:   true,
@@ -817,7 +814,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			vmssId := ""
 			if respVmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); respVmssId != "" {
-				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(respVmssId)
+				parsedVmssId, err := commonids.ParseVirtualMachineScaleSetIDInsensitively(respVmssId)
 				if err != nil {
 					return err
 				}
@@ -977,19 +974,6 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["disk_id"]; ok {
-			buf.WriteString(strings.ToLower(v.(string)))
-		}
-	}
-
-	return pluginsdk.HashString(buf.String())
-}
-
-// the default hash function will not ignore Option + Computed properties, which will cause diff.
-func resourceSiteRecoveryReplicatedVMNicHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		if v, ok := m["source_network_interface_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
 		}
 	}

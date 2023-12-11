@@ -53,5 +53,8 @@ func Default() UserFeatures {
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
 		},
+		Subscription: SubscriptionFeatures{
+			PreventCancellationOnDestroy: false,
+		},
 	}
 }
