@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `service_plan_id` - (Optional) The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Windows Web App will be used.
 
+~> **Note:** `service_plan_id` should only be specified if it differs from the Service Plan of the associated Windows Web App.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
