@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -29,10 +30,10 @@ import (
 var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         utils.Int(2),
+	MaxInstanceCount:         pointer.To(2),
 	CanSpecifyDisks:          false,
-	FixedMinInstanceCount:    utils.Int32(int32(1)),
-	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	FixedMinInstanceCount:    pointer.To(int32(1)),
+	FixedTargetInstanceCount: pointer.To(int32(2)),
 }
 
 var hdInsightHadoopClusterWorkerNodeDefinition = HDInsightNodeDefinition{
@@ -46,10 +47,10 @@ var hdInsightHadoopClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 var hdInsightHadoopClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         utils.Int(3),
+	MaxInstanceCount:         pointer.To(3),
 	CanSpecifyDisks:          false,
-	FixedMinInstanceCount:    utils.Int32(int32(1)),
-	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	FixedMinInstanceCount:    pointer.To(int32(1)),
+	FixedTargetInstanceCount: pointer.To(int32(3)),
 }
 
 func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
@@ -462,7 +463,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if edgeNodeProps := edgeNode.Properties; edgeNodeProps != nil {
-			flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps)
+			flattenedRoles = flattenHDInsightEdgeNode(flattenedRoles, edgeNodeProps, d)
 		}
 
 		if props.DiskEncryptionProperties != nil {
@@ -512,7 +513,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationProperties) []interface{} {
+func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationProperties, d *pluginsdk.ResourceData) []interface{} {
 	if len(roles) == 0 || props == nil {
 		return roles
 	}
@@ -545,7 +546,7 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 		for _, action := range *installScriptActions {
 			actions["name"] = action.Name
 			actions["uri"] = action.URI
-			actions["parameters"] = action.Parameters
+			actions["parameters"] = d.Get("roles.0.edge_node.0.install_script_action.0.parameters").(string)
 		}
 	}
 
@@ -640,7 +641,7 @@ func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]hd
 
 		endPoint := hdinsight.ApplicationGetHTTPSEndpoint{
 			AccessModes:        &accessModes,
-			DestinationPort:    utils.Int32(destinationPort),
+			DestinationPort:    pointer.To(destinationPort),
 			PrivateIPAddress:   utils.String(privateIpAddress),
 			SubDomainSuffix:    utils.String(subDomainSuffix),
 			DisableGatewayAuth: utils.Bool(disableGatewayAuth),

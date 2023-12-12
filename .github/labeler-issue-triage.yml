@@ -48,9 +48,6 @@ service/automation:
 service/azure-stack-hci:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_cluster((.|\n)*)###'
 
-service/azuremanagedlustrefilesystem:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_lustre_file_system((.|\n)*)###'
-
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
 
@@ -135,6 +132,9 @@ service/domain-services:
 service/elastic:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_cloud_elasticsearch((.|\n)*)###'
 
+service/elasticsan:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_san((.|\n)*)###'
+
 service/event-grid:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventgrid_((.|\n)*)###'
 
@@ -158,9 +158,6 @@ service/hdinsight:
 
 service/healthcare:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_healthcare_((.|\n)*)###'
-
-service/hpc-cache:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_hpc_cache((.|\n)*)###'
 
 service/hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
@@ -325,7 +322,7 @@ service/sql:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_sql_((.|\n)*)###'
 
 service/storage:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(storage_account\W+|storage_account_blob_container_sas\W+|storage_account_customer_managed_key\W+|storage_account_local_user\W+|storage_account_network_rules\W+|storage_account_sas\W+|storage_blob\W+|storage_blob_inventory_policy\W+|storage_container\W+|storage_data_lake_gen2_filesystem\W+|storage_data_lake_gen2_path\W+|storage_encryption_scope\W+|storage_management_policy\W+|storage_object_replication\W+|storage_queue\W+|storage_share\W+|storage_share_directory\W+|storage_share_file\W+|storage_sync\W+|storage_sync_cloud_endpoint\W+|storage_sync_group\W+|storage_table\W+|storage_table_entity\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(storage_account\W+|storage_account_blob_container_sas\W+|storage_account_customer_managed_key\W+|storage_account_local_user\W+|storage_account_network_rules\W+|storage_account_sas\W+|storage_blob\W+|storage_blob_inventory_policy\W+|storage_container\W+|storage_containers\W+|storage_data_lake_gen2_filesystem\W+|storage_data_lake_gen2_path\W+|storage_encryption_scope\W+|storage_management_policy\W+|storage_object_replication\W+|storage_queue\W+|storage_share\W+|storage_share_directory\W+|storage_share_file\W+|storage_sync\W+|storage_sync_cloud_endpoint\W+|storage_sync_group\W+|storage_table\W+|storage_table_entity\W+)((.|\n)*)###'
 
 service/storagemover:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_storage_mover((.|\n)*)###'
@@ -334,7 +331,7 @@ service/stream-analytics:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stream_analytics_((.|\n)*)###'
 
 service/subscription:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_locations|subscription\W+|subscriptions)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_locations|location|subscription\W+|subscriptions)((.|\n)*)###'
 
 service/synapse:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_synapse_((.|\n)*)###'

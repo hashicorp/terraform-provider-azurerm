@@ -150,6 +150,8 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
 
+~> **NOTE:** Windows Web apps can configure multiple `app_stack` properties, it is recommended to always configure this `Optional` value and set it to the primary application stack of your app to ensure correct operation of this resource and display the correct metadata in the Azure Portal.
+
 * `docker_image_name` - (Optional) The docker image, including tag, to be used. e.g. `azure-app-service/windows/parkingpage:latest`.
 
 * `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
@@ -164,7 +166,7 @@ An `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The tag of the container to be used. This value is required with `docker_container_name`.
 
-* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0` and `v7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0`, `v7.0` and `v8.0`.
 
 ~> **NOTE:** The Portal displayed values and the actual underlying API values differ for this setting, as follows:
 Portal Value | API value
@@ -173,6 +175,7 @@ ASP.NET V3.5 | v2.0
 ASP.NET V4.8 | v4.0
 .NET 6 (LTS) | v6.0
 .NET 7 (STS) | v7.0
+.NET 8 (LTS) | v8.0
 
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
 
@@ -316,7 +319,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 

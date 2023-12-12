@@ -164,6 +164,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			// whilst the standard set above should be sufficient, some APIs differ from the spec and should be documented below:
 			// Dashboard@2022-08-01 returns `Accepted` rather than `InProgress` during creation
 			"Accepted": pollers.PollingStatusInProgress,
+			// EventGrid@2022-06-15 returns `Active` rather than `InProgress` during creation
+			"Active": pollers.PollingStatusInProgress,
 			// NetAppVolumeReplication @ 2023-05-01 returns `AuthorizeReplication` during authorizing replication
 			"AuthorizeReplication": pollers.PollingStatusInProgress,
 			// NetAppVolumeReplication @ 2023-05-01 returns `BreakReplication` during breaking replication
@@ -187,6 +189,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"newReplicaGroup": pollers.PollingStatusInProgress,
 			// SAPVirtualInstance @ 2023-04-01 returns `Preparing System Configuration` during Creation
 			"Preparing System Configuration": pollers.PollingStatusInProgress,
+			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Pausing` during update
+			"Pausing": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
 			"Provisioning": pollers.PollingStatusInProgress,
 			// Resources @ 2020-10-01 (DeploymentScripts) returns `ProvisioningResources` during Creation

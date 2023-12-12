@@ -34,15 +34,9 @@ func ParseScopedRegistrationDefinitionID(input string) (*ScopedRegistrationDefin
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRegistrationDefinitionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RegistrationDefinitionId, ok = parsed.Parsed["registrationDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedRegistrationDefinitionIDInsensitively(input string) (*ScopedRegi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRegistrationDefinitionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RegistrationDefinitionId, ok = parsed.Parsed["registrationDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRegistrationDefinitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.RegistrationDefinitionId, ok = input.Parsed["registrationDefinitionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRegistrationDefinitionID checks that 'input' can be parsed as a Scoped Registration Definition ID

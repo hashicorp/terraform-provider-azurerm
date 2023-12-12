@@ -32,11 +32,9 @@ func ParseViewID(input string) (*ViewId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ViewId{}
-
-	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseViewIDInsensitively(input string) (*ViewId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ViewId{}
-
-	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ViewId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ViewName, ok = input.Parsed["viewName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "viewName", input)
+	}
+
+	return nil
 }
 
 // ValidateViewID checks that 'input' can be parsed as a View ID

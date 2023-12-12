@@ -299,20 +299,28 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			var servicePlanId *parse.ServicePlanId
+			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
+				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+			}
+
+			servicePlanId, err = parse.ServicePlanID(*webApp.SiteProperties.ServerFarmID)
+			if err != nil {
+				return err
+			}
+
 			if webAppSlot.ServicePlanID != "" {
-				servicePlanId, err = parse.ServicePlanID(webAppSlot.ServicePlanID)
+				newServicePlanId, err := parse.ServicePlanID(webAppSlot.ServicePlanID)
 				if err != nil {
 					return err
 				}
-			} else {
-				if props := webApp.SiteProperties; props == nil || props.ServerFarmID == nil {
-					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
-				} else {
-					servicePlanId, err = parse.ServicePlanID(*props.ServerFarmID)
-					if err != nil {
-						return err
-					}
+				// we only set `service_plan_id` when it differs from the parent `service_plan_id` which is causing issues
+				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024
+				// we'll error here if the `service_plan_id` equals the parent `service_plan_id`
+				if strings.EqualFold(newServicePlanId.ID(), servicePlanId.ID()) {
+					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
+
+				servicePlanId = newServicePlanId
 			}
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -731,6 +739,18 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("service_plan_id") {
+				webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading parent Windows Web App for %s: %+v", id, err)
+				}
+				if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
+					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+				}
+				parentServicePlanId, err := parse.ServicePlanID(*webApp.SiteProperties.ServerFarmID)
+				if err != nil {
+					return err
+				}
+
 				o, n := metadata.ResourceData.GetChange("service_plan_id")
 				oldPlan, err := parse.ServicePlanID(o.(string))
 				if err != nil {
@@ -740,6 +760,13 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				newPlan, err := parse.ServicePlanID(n.(string))
 				if err != nil {
 					return err
+				}
+
+				// we only set `service_plan_id` when it differs from the parent `service_plan_id` which is causing issues
+				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024
+				// we'll error here if the `service_plan_id` equals the parent `service_plan_id`
+				if strings.EqualFold(newPlan.ID(), parentServicePlanId.ID()) {
+					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
 				locks.ByID(oldPlan.ID())
 				defer locks.UnlockByID(oldPlan.ID())

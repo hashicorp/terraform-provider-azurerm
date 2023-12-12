@@ -38,23 +38,9 @@ func ParseMemberID(input string) (*MemberId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MemberId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FleetName, ok = parsed.Parsed["fleetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fleetName", *parsed)
-	}
-
-	if id.MemberName, ok = parsed.Parsed["memberName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "memberName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseMemberIDInsensitively(input string) (*MemberId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MemberId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FleetName, ok = parsed.Parsed["fleetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fleetName", *parsed)
-	}
-
-	if id.MemberName, ok = parsed.Parsed["memberName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "memberName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *MemberId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.FleetName, ok = input.Parsed["fleetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "fleetName", input)
+	}
+
+	if id.MemberName, ok = input.Parsed["memberName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "memberName", input)
+	}
+
+	return nil
 }
 
 // ValidateMemberID checks that 'input' can be parsed as a Member ID

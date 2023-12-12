@@ -455,7 +455,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 }
 
 func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicyRuleCollectionGroups
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -510,7 +510,7 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 
 func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicyRuleCollectionGroups
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -558,7 +558,7 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicyRuleCollectionGroups
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

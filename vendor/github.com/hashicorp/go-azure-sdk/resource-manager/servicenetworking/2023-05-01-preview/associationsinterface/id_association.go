@@ -38,23 +38,9 @@ func ParseAssociationID(input string) (*AssociationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AssociationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.TrafficControllerName, ok = parsed.Parsed["trafficControllerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficControllerName", *parsed)
-	}
-
-	if id.AssociationName, ok = parsed.Parsed["associationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "associationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseAssociationIDInsensitively(input string) (*AssociationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AssociationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.TrafficControllerName, ok = parsed.Parsed["trafficControllerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficControllerName", *parsed)
-	}
-
-	if id.AssociationName, ok = parsed.Parsed["associationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "associationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AssociationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.TrafficControllerName, ok = input.Parsed["trafficControllerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "trafficControllerName", input)
+	}
+
+	if id.AssociationName, ok = input.Parsed["associationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "associationName", input)
+	}
+
+	return nil
 }
 
 // ValidateAssociationID checks that 'input' can be parsed as a Association ID
