@@ -9,11 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -31,10 +29,9 @@ type ModuleHash struct {
 }
 
 type AutomationPowerShell72ModuleModel struct {
-	ResourceGroupName     string            `tfschema:"resource_group_name"`
-	AutomationAccountName string            `tfschema:"automation_account_name"`
-	Name                  string            `tfschema:"name"`
-	ModuleLink            []ModuleLinkModel `tfschema:"module_link"`
+	AutomationAccountID string            `tfschema:"automation_account_id"`
+	Name                string            `tfschema:"name"`
+	ModuleLink          []ModuleLinkModel `tfschema:"module_link"`
 }
 
 type PowerShell72ModuleResource struct{}
@@ -48,14 +45,12 @@ func (r PowerShell72ModuleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"automation_account_name": {
+		"automation_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AutomationAccount(),
+			ValidateFunc: module.ValidateAutomationAccountID,
 		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"module_link": {
 			Type:     pluginsdk.TypeList,
@@ -120,9 +115,10 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+			accountID, _ := module.ParseAutomationAccountID(model.AutomationAccountID)
 			name := metadata.ResourceData.Get("name").(string)
 
-			id := module.NewPowerShell72ModuleID(subscriptionId, model.ResourceGroupName, model.AutomationAccountName, name)
+			id := module.NewPowerShell72ModuleID(subscriptionId, accountID.ResourceGroupName, accountID.AutomationAccountName, name)
 
 			existing, err := client.PowerShell72ModuleGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -323,8 +319,7 @@ func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 			}
 
 			output.Name = id.PowerShell72ModuleName
-			output.AutomationAccountName = id.AutomationAccountName
-			output.ResourceGroupName = id.ResourceGroupName
+			output.AutomationAccountID = module.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID()
 
 			return metadata.Encode(&output)
 		},
