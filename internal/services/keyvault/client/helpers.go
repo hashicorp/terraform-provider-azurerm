@@ -10,46 +10,87 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 )
 
-var (
-	keyVaultsCache = map[string]keyVaultDetails{}
-	keysmith       = &sync.RWMutex{}
-	lock           = map[string]*sync.RWMutex{}
-)
-
-type keyVaultDetails struct {
-	keyVaultId       string
+// details for a keyvault or a managedHSM
+type vaultDetails struct {
 	dataPlaneBaseUri string
+	vaultID          string
 	resourceGroup    string
 }
 
-func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	keysmith.Lock()
-	keyVaultsCache[cacheKey] = keyVaultDetails{
-		keyVaultId:       keyVaultId.ID(),
-		dataPlaneBaseUri: dataPlaneUri,
-		resourceGroup:    keyVaultId.ResourceGroupName,
+type vaultCache struct {
+	keyVaultsCache map[string]vaultDetails
+	lock           *sync.RWMutex
+}
+
+func newVaultCache() *vaultCache {
+	return &vaultCache{
+		keyVaultsCache: map[string]vaultDetails{},
+		lock:           &sync.RWMutex{},
 	}
-	keysmith.Unlock()
+}
+
+func keyvaultCacheKey(id commonids.KeyVaultId) string {
+	return strings.ToLower(id.VaultName)
+}
+
+func (v *vaultCache) addKeyvaultToCache(key, id, resourceGroup, dataPlaneUri string) {
+	item := vaultDetails{
+		dataPlaneBaseUri: dataPlaneUri,
+		vaultID:          id,
+		resourceGroup:    resourceGroup,
+	}
+
+	v.lock.Lock()
+	v.keyVaultsCache[key] = item
+	v.lock.Unlock()
+}
+
+func (v *vaultCache) purge(key string) {
+	v.lock.Lock()
+	delete(v.keyVaultsCache, key)
+	v.lock.Unlock()
+}
+
+// id can be either a ID of keyvault or managedHSM or a string of cached key
+func (v *vaultCache) getCachedItem(key string) *vaultDetails {
+	v.lock.RLock()
+	item, ok := v.keyVaultsCache[key]
+	v.lock.RUnlock()
+
+	if ok {
+		return &item
+	}
+	return nil
+}
+
+func (v *vaultCache) getCachedBaseUri(key string) *string {
+	if item := v.getCachedItem(key); item != nil {
+		return pointer.To(item.dataPlaneBaseUri)
+	}
+	return nil
+}
+
+func (v *vaultCache) getCachedID(key string) *string {
+	if item := v.getCachedItem(key); item != nil {
+		return pointer.To(item.vaultID)
+	}
+
+	return nil
+}
+
+func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string) {
+	c.keyvaultCache.addKeyvaultToCache(keyvaultCacheKey(keyVaultId), keyVaultId.ID(), keyVaultId.ResourceGroupName, dataPlaneUri)
 }
 
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.KeyVaultId) (*string, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
-	defer lock[cacheKey].Unlock()
-
-	if v, ok := keyVaultsCache[cacheKey]; ok {
-		return &v.dataPlaneBaseUri, nil
+	if cached := c.keyvaultCache.getCachedBaseUri(keyvaultCacheKey(keyVaultId)); cached != nil {
+		return cached, nil
 	}
 
 	resp, err := c.VaultsClient.Get(ctx, keyVaultId)
@@ -75,16 +116,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.Ke
 }
 
 func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (bool, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
-	defer lock[cacheKey].Unlock()
-
-	if _, ok := keyVaultsCache[cacheKey]; ok {
+	if c.keyvaultCache.getCachedItem(keyvaultCacheKey(keyVaultId)) != nil {
 		return true, nil
 	}
 
@@ -116,18 +148,8 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 		return nil, err
 	}
 
-	cacheKey := c.cacheKeyForKeyVault(*keyVaultName)
-	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
-	defer lock[cacheKey].Unlock()
-
-	// Check the cache to determine if we have an entry for this key vault
-	if v, ok := keyVaultsCache[cacheKey]; ok {
-		return &v.keyVaultId, nil
+	if cached := c.keyvaultCache.getCachedID(strings.ToLower(*keyVaultName)); cached != nil {
+		return cached, nil
 	}
 
 	// Pull out the list of Key Vaults available within the Subscription to re-populate the cache
@@ -176,8 +198,8 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 	}
 
 	// Now that the cache has been repopulated, check if we have the key vault or not
-	if v, ok := keyVaultsCache[cacheKey]; ok {
-		return &v.keyVaultId, nil
+	if cached := c.keyvaultCache.getCachedID(*keyVaultName); cached != nil {
+		return cached, nil
 	}
 
 	// We haven't found it, but Data Sources and Resources need to handle this error separately
@@ -185,19 +207,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 }
 
 func (c *Client) Purge(keyVaultId commonids.KeyVaultId) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	keysmith.Lock()
-	if lock[cacheKey] == nil {
-		lock[cacheKey] = &sync.RWMutex{}
-	}
-	keysmith.Unlock()
-	lock[cacheKey].Lock()
-	delete(keyVaultsCache, cacheKey)
-	lock[cacheKey].Unlock()
-}
-
-func (c *Client) cacheKeyForKeyVault(name string) string {
-	return strings.ToLower(name)
+	c.keyvaultCache.purge(keyvaultCacheKey(keyVaultId))
 }
 
 func (c *Client) parseNameFromBaseUrl(input string) (*string, error) {

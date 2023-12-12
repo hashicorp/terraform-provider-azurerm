@@ -11,6 +11,8 @@ import (
 )
 
 type Client struct {
+	keyvaultCache *vaultCache
+
 	ManagedHsmClient *managedhsms.ManagedHsmsClient
 	ManagementClient *dataplane.BaseClient
 	VaultsClient     *vaults.VaultsClient
@@ -41,6 +43,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&mhsmRoleAssignClient.Client, o.ManagedHSMAuthorizer)
 
 	return &Client{
+		keyvaultCache:             newVaultCache(),
 		ManagedHsmClient:          &managedHsmClient,
 		ManagementClient:          &managementClient,
 		VaultsClient:              &vaultsClient,
