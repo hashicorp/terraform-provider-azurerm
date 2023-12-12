@@ -191,8 +191,11 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 			targetResourceId := ""
 			if props.TargetResource != nil && props.TargetResource.Id != nil {
 				targetResourceId = *props.TargetResource.Id
+				if parsedID, err := recordsets.ParseRecordTypeIDInsensitively(targetResourceId); err == nil {
+					targetResourceId = parsedID.ID()
+				}
 			}
-			d.Set("target_resource_id", normalizeTargetResourceID(targetResourceId))
+			d.Set("target_resource_id", targetResourceId)
 
 			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
 				return err
@@ -218,16 +221,4 @@ func resourceDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func normalizeTargetResourceID(id string) string {
-	if id == "" {
-		return ""
-	}
-
-	if parsed, err := recordsets.ParseRecordTypeIDInsensitively(id); err == nil {
-		return parsed.ID()
-	}
-
-	return id
 }
