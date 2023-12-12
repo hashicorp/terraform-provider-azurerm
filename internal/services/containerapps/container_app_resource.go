@@ -419,9 +419,9 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 			// Ingress traffic weight validations
 			if len(app.Ingress) != 0 {
 				ingress := app.Ingress[0]
-				if old, _ := metadata.ResourceDiff.GetChange("name"); old == "" {
+				if metadata.ResourceDiff.HasChange("name") {
 					// Validation for create time
-					// (Above is a trick to tell whether this is for a new create apply, as for existing resource, the "name" is always not empty)
+					// (Above is a trick to tell whether this is for a new create apply, as the "name" is a force new property)
 					if len(ingress.TrafficWeights) != 0 {
 						if len(ingress.TrafficWeights) > 1 {
 							return fmt.Errorf("at most one `ingress.0.traffic_weight` can be specified during creation")
