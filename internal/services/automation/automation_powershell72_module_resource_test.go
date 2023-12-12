@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AutomationPowerShell72ModuleResource struct{}
+type PowerShell72ModuleResource struct{}
 
 func TestAccAutomationPowerShell72Module_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := AutomationPowerShell72ModuleResource{}
+	r := PowerShell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccAutomationPowerShell72Module_basic(t *testing.T) {
 
 func TestAccAutomationPowerShell72Module_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := AutomationPowerShell72ModuleResource{}
+	r := PowerShell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccAutomationPowerShell72Module_requiresImport(t *testing.T) {
 
 func TestAccAutomationPowerShell72Module_multipleModules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := AutomationPowerShell72ModuleResource{}
+	r := PowerShell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccAutomationPowerShell72Module_multipleModules(t *testing.T) {
 
 func TestAccAutomationPowerShell72Module_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
-	r := AutomationPowerShell72ModuleResource{}
+	r := PowerShell72ModuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +78,7 @@ func TestAccAutomationPowerShell72Module_complete(t *testing.T) {
 	})
 }
 
-func (t AutomationPowerShell72ModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t PowerShell72ModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := module.ParsePowerShell72ModuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (t AutomationPowerShell72ModuleResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AutomationPowerShell72ModuleResource) basic(data acceptance.TestData) string {
+func (PowerShell72ModuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -122,7 +122,7 @@ resource "azurerm_automation_powershell72_module" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AutomationPowerShell72ModuleResource) multipleModules(data acceptance.TestData) string {
+func (PowerShell72ModuleResource) multipleModules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -164,8 +164,8 @@ resource "azurerm_automation_powershell72_module" "second" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AutomationPowerShell72ModuleResource) requiresImport(data acceptance.TestData) string {
-	template := AutomationPowerShell72ModuleResource{}.basic(data)
+func (PowerShell72ModuleResource) requiresImport(data acceptance.TestData) string {
+	template := PowerShell72ModuleResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -181,7 +181,7 @@ resource "azurerm_automation_powershell72_module" "import" {
 `, template)
 }
 
-func (AutomationPowerShell72ModuleResource) complete(data acceptance.TestData) string {
+func (PowerShell72ModuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

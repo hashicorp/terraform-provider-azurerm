@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = AutomationPowerShell72ModuleResource{}
+var _ sdk.Resource = PowerShell72ModuleResource{}
 
 type ModuleLinkModel struct {
 	Uri  string       `tfschema:"uri"`
@@ -37,9 +37,9 @@ type AutomationPowerShell72ModuleModel struct {
 	ModuleLink            []ModuleLinkModel `tfschema:"module_link"`
 }
 
-type AutomationPowerShell72ModuleResource struct{}
+type PowerShell72ModuleResource struct{}
 
-func (r AutomationPowerShell72ModuleResource) Arguments() map[string]*pluginsdk.Schema {
+func (r PowerShell72ModuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -91,23 +91,23 @@ func (r AutomationPowerShell72ModuleResource) Arguments() map[string]*pluginsdk.
 	}
 }
 
-func (r AutomationPowerShell72ModuleResource) Attributes() map[string]*pluginsdk.Schema {
+func (r PowerShell72ModuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AutomationPowerShell72ModuleResource) ModelObject() interface{} {
+func (r PowerShell72ModuleResource) ModelObject() interface{} {
 	return &AutomationPowerShell72ModuleModel{}
 }
 
-func (r AutomationPowerShell72ModuleResource) ResourceType() string {
+func (r PowerShell72ModuleResource) ResourceType() string {
 	return "azurerm_automation_powershell72_module"
 }
 
-func (r AutomationPowerShell72ModuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r PowerShell72ModuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return module.ValidatePowerShell72ModuleID
 }
 
-func (r AutomationPowerShell72ModuleResource) Create() sdk.ResourceFunc {
+func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 
@@ -154,6 +154,7 @@ func (r AutomationPowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			}
 
 			// the API returns 'done' but it's not actually finished provisioning yet
+			// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{
 					string(module.ModuleProvisioningStateActivitiesStored),
@@ -208,7 +209,7 @@ func (r AutomationPowerShell72ModuleResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AutomationPowerShell72ModuleResource) Update() sdk.ResourceFunc {
+func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 
@@ -241,6 +242,7 @@ func (r AutomationPowerShell72ModuleResource) Update() sdk.ResourceFunc {
 			}
 
 			// the API returns 'done' but it's not actually finished provisioning yet
+			// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{
 					string(module.ModuleProvisioningStateActivitiesStored),
@@ -295,7 +297,7 @@ func (r AutomationPowerShell72ModuleResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AutomationPowerShell72ModuleResource) Read() sdk.ResourceFunc {
+func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 
@@ -329,7 +331,7 @@ func (r AutomationPowerShell72ModuleResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (AutomationPowerShell72ModuleResource) Delete() sdk.ResourceFunc {
+func (PowerShell72ModuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 
