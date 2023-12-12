@@ -94,6 +94,18 @@ func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 				Default:      "default",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"verification_timer_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 31536000),
+			},
+
+			"write_back_timer_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 31536000),
+			},
 		},
 	}
 }
@@ -139,8 +151,10 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta i
 			},
 			TargetType: storagetargets.StorageTargetTypeBlobNfs,
 			BlobNfs: &storagetargets.BlobNfsTarget{
-				Target:     pointer.To(containerId),
-				UsageModel: pointer.To(d.Get("usage_model").(string)),
+				Target:            pointer.To(containerId),
+				UsageModel:        pointer.To(d.Get("usage_model").(string)),
+				VerificationTimer: pointer.To(int64(d.Get("verification_timer_in_seconds").(int))),
+				WriteBackTimer:    pointer.To(int64(d.Get("write_back_timer_in_seconds").(int))),
 			},
 		},
 	}
@@ -190,6 +204,8 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 			if b := props.BlobNfs; b != nil {
 				storageContainerId = pointer.From(b.Target)
 				usageModel = pointer.From(b.UsageModel)
+				d.Set("verification_timer_in_seconds", b.VerificationTimer)
+				d.Set("write_back_timer_in_seconds", b.WriteBackTimer)
 			}
 			d.Set("storage_container_id", storageContainerId)
 			d.Set("usage_model", usageModel)
