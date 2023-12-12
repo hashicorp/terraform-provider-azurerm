@@ -59,13 +59,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"zone": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
