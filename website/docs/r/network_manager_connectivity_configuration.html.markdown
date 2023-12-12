@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `network_manager_id` - (Required) Specifies the ID of the Network Manager. Changing this forces a new Network Manager Connectivity Configuration to be created.
 
-* `applies_to_group` - (Required) An `applies_to_group` block as defined below.
+* `applies_to_group` - (Required) One or more `applies_to_group` blocks as defined below.
 
 * `connectivity_topology` - (Required) Specifies the connectivity topology type. Possible values are `HubAndSpoke` and `Mesh`.
 

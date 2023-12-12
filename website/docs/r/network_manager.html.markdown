@@ -61,6 +61,8 @@ A `scope` block supports the following:
 
 * `management_group_ids` - (Optional) A list of management group IDs.
 
+**NOTE:** When specifying a scope at the management group level, you need to register the `Microsoft.Network` at the management group scope before deploying a Network Manager, more information can be found in the [Azure document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-network-manager-scope).
+
 * `subscription_ids` - (Optional) A list of subscription IDs.
 
 ## Attributes Reference
