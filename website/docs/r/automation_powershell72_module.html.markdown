@@ -26,9 +26,8 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_powershell72_module" "example" {
-  name                    = "xActiveDirectory"
-  resource_group_name     = azurerm_resource_group.example.name
-  automation_account_name = azurerm_automation_account.example.name
+  name                  = "xActiveDirectory"
+  automation_account_id = azurerm_automation_account.example.id
 
   module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
@@ -42,9 +41,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Module. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Module is created. Changing this forces a new resource to be created.
-
-* `automation_account_name` - (Required) The name of the automation account in which the Module is created. Changing this forces a new resource to be created.
+* `automation_account_id` - (Required) The ID of Automation Account to manage this Watcher. Changing this forces a new Watcher to be created.
 
 * `module_link` - (Required) A `module_link` block as defined below.
 
