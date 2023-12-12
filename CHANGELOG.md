@@ -7,6 +7,13 @@ ENHANCEMENTS:
 * `azurerm_windows_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_windows_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 
+BUG FIXES:
+
+* `azurerm_management_group_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+* `azurerm_resource_group_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+* `azurerm_subscription_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+* `azurerm_tenant_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+
 ## 3.84.0 (December 07, 2023)
 
 FEATURES:
