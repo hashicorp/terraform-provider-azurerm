@@ -47,6 +47,11 @@ resource "azurerm_virtual_network" "example" {
   flow_timeout_in_minutes = 10
 }
 
+resource "azurerm_network_manager_network_group" "example2" {
+  name               = "example-group2"
+  network_manager_id = azurerm_network_manager.example.id
+}
+
 resource "azurerm_network_manager_connectivity_configuration" "example" {
   name                  = "example-connectivity-conf"
   network_manager_id    = azurerm_network_manager.example.id
@@ -55,6 +60,12 @@ resource "azurerm_network_manager_connectivity_configuration" "example" {
     group_connectivity = "DirectlyConnected"
     network_group_id   = azurerm_network_manager_network_group.example.id
   }
+
+  applies_to_group {
+    group_connectivity = "DirectlyConnected"
+    network_group_id   = azurerm_network_manager_network_group.example2.id
+  }
+
   hub {
     resource_id   = azurerm_virtual_network.example.id
     resource_type = "Microsoft.Network/virtualNetworks"
@@ -79,6 +90,7 @@ The following arguments are supported:
 * `description` - (Optional) A description of the Connectivity Configuration.
 
 * `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported. Possible values are `true` and `false`. 
+
 * `hub` - (Optional) A `hub` block as defined below.
  
 ---
