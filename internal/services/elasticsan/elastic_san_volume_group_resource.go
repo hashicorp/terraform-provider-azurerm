@@ -21,6 +21,7 @@ import (
 
 var _ sdk.Resource = ElasticSANVolumeGroupResource{}
 var _ sdk.ResourceWithUpdate = ElasticSANVolumeGroupResource{}
+var _ sdk.ResourceWithCustomizeDiff = ElasticSANVolumeGroupResource{}
 
 type ElasticSANVolumeGroupResource struct{}
 
@@ -146,6 +147,24 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+	}
+}
+
+func (k ElasticSANVolumeGroupResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config ElasticSANVolumeGroupResourceModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if len(config.Encryption) > 0 && config.EncryptionType != string(volumegroups.EncryptionTypeEncryptionAtRestWithCustomerManagedKey) {
+				return fmt.Errorf("encryption can only be set if encryption_type is EncryptionAtRestWithCustomerManagedKey")
+			}
+
+			return nil
+		},
 	}
 }
 

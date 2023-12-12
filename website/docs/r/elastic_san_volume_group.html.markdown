@@ -13,9 +13,19 @@ Manages an Elastic SAN Volume Group resource.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "West Europe"
+}
 
-provider "azurerm" {
-  features {}
+resource "azurerm_elastic_san" "example" {
+  name                = "examplees-es"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  base_size_in_tib    = 1
+  sku {
+    name = "Premium_LRS"
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -53,16 +63,22 @@ resource "azurerm_key_vault" "example" {
   sku_name                    = "standard"
 }
 
-resource "azurerm_role_assignment" "client" {
-  scope                = azurerm_resource_group.example.id
-  role_definition_name = "Key Vault Crypto Officer"
-  principal_id         = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "userAssignedIdentity" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.example.principal_id
+
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  secret_permissions = ["Get"]
 }
 
-resource "azurerm_role_assignment" "userAssignedIdentity" {
-  scope                = azurerm_resource_group.example.id
-  role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_user_assigned_identity.example.principal_id
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "example" {
@@ -80,7 +96,7 @@ resource "azurerm_key_vault_key" "example" {
     "wrapKey",
   ]
 
-  depends_on = [azurerm_role_assignment.userAssignedIdentity, azurerm_role_assignment.client]
+  depends_on = [azurerm_key_vault_access_policy.userAssignedIdentity, azurerm_key_vault_access_policy.client]
 }
 
 resource "azurerm_elastic_san_volume_group" "example" {
@@ -129,8 +145,9 @@ The following arguments are supported:
 
 An `encryption` block supports the following arguments:
 
-* `identity` - (Optional) An `identity` block as defined below. 
-* `key_vault_key_id` - (Optional) 
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `key_vault_key_id` - (Optional) The Key Vault key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.
 
 ---
 
@@ -158,7 +175,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 An `encryption` block exports the following arguments:
 
-* `current_versioned_key_expiration_timestamp` - Current Versioned Key Expiration Timestamp.
+* `current_versioned_key_expiration_timestamp` - Current Versioned Key Expiration Timestamp of the Elastic SAN Volume Group.
 
 * `current_versioned_key_id` - Current Versioned Key ID.
 

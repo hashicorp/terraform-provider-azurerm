@@ -3,6 +3,7 @@ package elasticsan_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumegroups"
@@ -93,6 +94,18 @@ func TestAccElasticSANVolumeGroup_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccElasticSANVolumeGroup_wrongEncryptionConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
+	r := ElasticSANVolumeGroupTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.wrongEncryptionConfig(data),
+			ExpectError: regexp.MustCompile("encryption can only be set if encryption_type is EncryptionAtRestWithCustomerManagedKey"),
+		},
 	})
 }
 
@@ -318,10 +331,105 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "standard"
 }
 
-resource "azurerm_key_vault_access_policy" "userAssignedIdentity" {
+resource "azurerm_key_vault_access_policy" "systemAssignedIdentity" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_elastic_san_volume_group.test.identity[0].principal_id
+
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  secret_permissions = ["Get"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
+  secret_permissions = ["Get"]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkvk${var.random_string}"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.client]
+}
+
+resource "azurerm_elastic_san_volume_group" "test" {
+  name            = "acctestesvg-${var.random_string}"
+  elastic_san_id  = azurerm_elastic_san.test.id
+  encryption_type = "EncryptionAtRestWithCustomerManagedKey"
+
+  encryption {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data))
+}
+
+func (r ElasticSANVolumeGroupTestResource) wrongEncryptionConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-${var.random_integer}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-${var.random_integer}"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "test-subnet-${var.random_integer}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  service_endpoints    = ["Microsoft.Storage.Global"]
+
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestvg${var.random_string}"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = true
+  sku_name                    = "standard"
+}
+
+resource "azurerm_key_vault_access_policy" "userAssignedIdentity" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
   secret_permissions = ["Get"]
@@ -357,14 +465,21 @@ resource "azurerm_key_vault_key" "test" {
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
   elastic_san_id  = azurerm_elastic_san.test.id
-  encryption_type = "EncryptionAtRestWithCustomerManagedKey"
+  encryption_type = "EncryptionAtRestWithPlatformKey"
 
   encryption {
-    key_vault_key_id = azurerm_key_vault_key.test.id
+    key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  network_rule {
+    subnet_id = azurerm_subnet.test.id
+    action    = "Allow"
   }
 }
 `, r.template(data))
@@ -557,7 +672,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 
-  depends_on = [azurerm_key_vault_access_policy.userAssignedIdentity, azurerm_key_vault_access_policy.client]
+  depends_on = [azurerm_key_vault_access_policy.client]
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
@@ -604,7 +719,7 @@ variable "random_string" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${var.random_integer}"
+  name     = "acctestrg-esvg-${var.random_integer}"
   location = var.primary_location
 }
 
