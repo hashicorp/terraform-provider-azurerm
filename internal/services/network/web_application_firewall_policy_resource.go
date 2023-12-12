@@ -782,7 +782,7 @@ func expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(input []interfa
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		ruleGroupName := v["rule_group_name"].(string)
+		ruleGroupName := convertRuleGroupNameToBeAcceptedByAPI(v["rule_group_name"].(string))
 
 		result := webapplicationfirewallpolicies.ExclusionManagedRuleGroup{
 			RuleGroupName: ruleGroupName,
@@ -874,7 +874,7 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d
 	for i, item := range input {
 		v := item.(map[string]interface{})
 
-		ruleGroupName := v["rule_group_name"].(string)
+		ruleGroupName := convertRuleGroupNameToBeAcceptedByAPI(v["rule_group_name"].(string))
 
 		result := webapplicationfirewallpolicies.ManagedRuleGroupOverride{
 			RuleGroupName: ruleGroupName,
@@ -1108,7 +1108,7 @@ func flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(input *[]weba
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
-		v["rule_group_name"] = item.RuleGroupName
+		v["rule_group_name"] = convertRuleGroupNameFromAPI(item.RuleGroupName)
 		v["excluded_rules"] = flattenWebApplicationFirewallPolicyExclusionManagedRules(item.Rules)
 
 		results = append(results, v)
@@ -1183,7 +1183,7 @@ func flattenWebApplicationFirewallPolicyRuleGroupOverrides(input *[]webapplicati
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
-		v["rule_group_name"] = item.RuleGroupName
+		v["rule_group_name"] = convertRuleGroupNameFromAPI(item.RuleGroupName)
 
 		if !features.FourPointOhBeta() {
 			v["disabled_rules"] = flattenWebApplicationFirewallPolicyRules(item.Rules)
@@ -1295,4 +1295,58 @@ func flattenWebApplicationFirewallPoliciesSubResourcesToIDs(input *[]webapplicat
 	}
 
 	return ids
+}
+
+func convertRuleGroupNameToBeAcceptedByAPI(name string) string {
+	var ruleGroupName string
+	switch name {
+	case "APPLICATION-ATTACK-LFI":
+		ruleGroupName = "LFI"
+	case "APPLICATION-ATTACK-RFI":
+		ruleGroupName = "RFI"
+	case "APPLICATION-ATTACK-RCE":
+		ruleGroupName = "RCE"
+	case "APPLICATION-ATTACK-PHP":
+		ruleGroupName = "PHP"
+	case "APPLICATION-ATTACK-NodeJS":
+		ruleGroupName = "NODEJS"
+	case "APPLICATION-ATTACK-XSS":
+		ruleGroupName = "XSS"
+	case "APPLICATION-ATTACK-SQLI":
+		ruleGroupName = "SQLI"
+	case "APPLICATION-ATTACK-SESSION-FIXATION":
+		ruleGroupName = "FIX"
+	case "APPLICATION-ATTACK-SESSION-JAVA":
+		ruleGroupName = "JAVA"
+	default:
+		ruleGroupName = name
+	}
+	return ruleGroupName
+}
+
+func convertRuleGroupNameFromAPI(name string) string {
+	var ruleGroupName string
+	switch name {
+	case "LFI":
+		ruleGroupName = "APPLICATION-ATTACK-LFI"
+	case "RFI":
+		ruleGroupName = "APPLICATION-ATTACK-RFI"
+	case "RCE":
+		ruleGroupName = "APPLICATION-ATTACK-RCE"
+	case "PHP":
+		ruleGroupName = "APPLICATION-ATTACK-PHP"
+	case "NODEJS":
+		ruleGroupName = "APPLICATION-ATTACK-NodeJS"
+	case "XSS":
+		ruleGroupName = "APPLICATION-ATTACK-XSS"
+	case "SQLI":
+		ruleGroupName = "APPLICATION-ATTACK-SQLI"
+	case "FIX":
+		ruleGroupName = "APPLICATION-ATTACK-SESSION-FIXATION"
+	case "JAVA":
+		ruleGroupName = "APPLICATION-ATTACK-SESSION-JAVA"
+	default:
+		ruleGroupName = name
+	}
+	return ruleGroupName
 }

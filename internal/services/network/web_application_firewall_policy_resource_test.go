@@ -1421,6 +1421,87 @@ resource "azurerm_web_application_firewall_policy" "test" {
           action  = "Log"
         }
       }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-LFI"
+        rule {
+          id      = "930100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-RFI"
+        rule {
+          id      = "931100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-RCE"
+        rule {
+          id      = "932100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-PHP"
+        rule {
+          id      = "933100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-NodeJS"
+        rule {
+          id      = "934100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-XSS"
+        rule {
+          id      = "941100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-SQLI"
+        rule {
+          id      = "942100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-SESSION-FIXATION"
+        rule {
+          id      = "943100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "APPLICATION-ATTACK-SESSION-JAVA"
+        rule {
+          id      = "944100"
+          enabled = false
+          action  = "Log"
+        }
+      }
     }
   }
 }
