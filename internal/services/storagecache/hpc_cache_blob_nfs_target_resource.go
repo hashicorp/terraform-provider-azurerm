@@ -211,8 +211,8 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 			if b := props.BlobNfs; b != nil {
 				storageContainerId = pointer.From(b.Target)
 				usageModel = pointer.From(b.UsageModel)
-				d.Set("verification_timer_in_seconds", b.VerificationTimer)
-				d.Set("write_back_timer_in_seconds", b.WriteBackTimer)
+				d.Set("verification_timer_in_seconds", pointer.From(b.VerificationTimer))
+				d.Set("write_back_timer_in_seconds", pointer.From(b.WriteBackTimer))
 			}
 			d.Set("storage_container_id", storageContainerId)
 			d.Set("usage_model", usageModel)
