@@ -5,6 +5,7 @@ package storagecache
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"log"
 	"time"
 
@@ -151,12 +152,18 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta i
 			},
 			TargetType: storagetargets.StorageTargetTypeBlobNfs,
 			BlobNfs: &storagetargets.BlobNfsTarget{
-				Target:            pointer.To(containerId),
-				UsageModel:        pointer.To(d.Get("usage_model").(string)),
-				VerificationTimer: pointer.To(int64(d.Get("verification_timer_in_seconds").(int))),
-				WriteBackTimer:    pointer.To(int64(d.Get("write_back_timer_in_seconds").(int))),
+				Target:     pointer.To(containerId),
+				UsageModel: pointer.To(d.Get("usage_model").(string)),
 			},
 		},
+	}
+
+	if v, ok := d.GetOk("verification_timer_in_seconds"); ok {
+		param.Properties.BlobNfs.VerificationTimer = utils.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("write_back_timer_in_seconds"); ok {
+		param.Properties.BlobNfs.WriteBackTimer = utils.Int64(int64(v.(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
