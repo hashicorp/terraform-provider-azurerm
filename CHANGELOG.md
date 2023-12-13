@@ -1,19 +1,35 @@
 ## 3.85.0 (Unreleased)
 
+FEATURES:
+
+* New Data Source: `azurerm_locations` [GH-23324]
+
 ENHANCEMENTS:
 
+* dependencies: update `security/automation` to use `hashicorp/go-azure-sdk` [GH-24156]
+* Data Source: `azurerm_monitor_workspace` - add support for the `default_data_collection_endpoint_id` and `default_data_collection_rule_id` properties [GH-24153]
+* Data Source: `azurerm_shared_image_gallery` - add support for property `image_names` [GH-24176]
 * `azurerm_linux_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_linux_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
+* `azurerm_log_analytics_workspace` - add support for the `immediate_data_purge_on_30_days_enabled` property [GH-24015]
+* `azurerm_monitor_workspace` - add support for the `default_data_collection_endpoint_id` and `default_data_collection_rule_id` properties [GH-24153]
+* `azurerm_redis_cache` - add support for the `storage_account_subscription_id` property [GH-24101]
+* `azurerm_storage_blob` - add support for the `source_content` type `Page` [GH-24177]
 * `azurerm_windows_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_windows_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_cognitive_account` - add `ContentSafety` to the `kind` property validation [GH-24205]
 
 BUG FIXES:
 
+* `azurerm_batch_pool` - fix bug where `settings_json` and `protected_settings` were not being unmarshaled [GH-24075]
+* `azurerm_bot_service_azure_bot` - fix bug where `public_network_access_enabled` was being set as the value for `LuisKey` [GH-24164]
+* `azurerm_linux_web_app_slot` - error when `service_plan_id` is identical to the parent `service_plan_id` [GH-23403]
 * `azurerm_management_group_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
 * `azurerm_resource_group_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+* `azurerm_storage_share_file` - prevent panic when the file specified by `source` is empty [GH-24179]
 * `azurerm_subscription_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
 * `azurerm_tenant_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+* `azurerm_windows_web_app_slot` - error when `service_plan_id` is identical to the parent `service_plan_id` [GH-23403]
 
 ## 3.84.0 (December 07, 2023)
 
