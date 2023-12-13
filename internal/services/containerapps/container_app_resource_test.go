@@ -755,7 +755,7 @@ resource "azurerm_container_app" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
     }
- }
+  }
 
   ingress {
     allow_insecure_connections = true
