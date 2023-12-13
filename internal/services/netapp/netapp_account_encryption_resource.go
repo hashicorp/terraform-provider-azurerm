@@ -290,7 +290,7 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVaultClient.Client, SubscriptionID commonids.SubscriptionId, model *netAppModels.NetAppAccountEncryption) (*netappaccounts.AccountEncryption, error) {
+func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVaultClient.Client, subscriptionID commonids.SubscriptionId, model *netAppModels.NetAppAccountEncryption) (*netappaccounts.AccountEncryption, error) {
 	encryptionProperty := netappaccounts.AccountEncryption{
 		KeySource: pointer.To(netappaccounts.KeySourceMicrosoftPointNetApp),
 	}
@@ -304,7 +304,7 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 		return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 	}
 
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, SubscriptionID, keyId.KeyVaultBaseUrl)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionID, keyId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the resource id the key vault at url %q: %s", keyId.KeyVaultBaseUrl, err)
 	}
