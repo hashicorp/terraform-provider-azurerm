@@ -22,7 +22,7 @@ func TestAccCognitiveAccountDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
-				//check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 			),
@@ -39,7 +39,7 @@ func TestAccCognitiveAccountDataSource_identity(t *testing.T) {
 			Config: r.identity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
-				//check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
@@ -61,13 +61,6 @@ resource "azurerm_cognitive_account" "test" {
 
   tags = {
     Acceptance = "Test"
-  }
-
-# remove
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
   }
 }
 
@@ -96,13 +89,6 @@ resource "azurerm_cognitive_account" "test" {
   tags = {
     Acceptance = "Test"
   }
-
-# remove
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
 }
 
 data "azurerm_cognitive_account" "test" {
@@ -121,13 +107,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
-
-	#remove
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
