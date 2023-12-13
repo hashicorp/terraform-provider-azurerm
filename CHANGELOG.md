@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_monitor_workspace` - add support for the `default_data_collection_endpoint_id` and `default_data_collection_rule_id` properties [GH-24153]
 * Data Source: `azurerm_shared_image_gallery` - add support for property `image_names` [GH-24176]
 * `azurerm_dns_txt_record` - allow up to 4096 characters for the property `record.value` [GH-24169]
+* `azurerm_container_app` - add `workload_profile_name` property [GH-24219]
 * `azurerm_linux_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_linux_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_log_analytics_workspace` - add support for the `immediate_data_purge_on_30_days_enabled` property [GH-24015]
