@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20231212.1221926` of `github.com/hashicorp/go-azure-sdk` [GH-24217]
 * dependencies: update `security/automation` to use `hashicorp/go-azure-sdk` [GH-24156]
 * Data Source: `azurerm_cognitive_account` - export the `identity` block [GH-24214]
 * Data Source: `azurerm_monitor_workspace` - add support for the `default_data_collection_endpoint_id` and `default_data_collection_rule_id` properties [GH-24153]
