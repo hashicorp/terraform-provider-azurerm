@@ -3641,6 +3641,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
+
 	versions := []interface{}{}
 	if input.Versions != nil {
 		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
