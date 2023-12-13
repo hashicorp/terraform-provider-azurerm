@@ -75,6 +75,10 @@ The following arguments are supported:
 
 * `secret` - (Optional) One or more `secret` block as detailed below.
 
+* `workload_profile_name` - (Optional) The name of the Workload Profile in the Container App Environment to place this Container App.
+
+~> **Note:** Omit this value to use the default `Consumption` Workload Profile.
+
 * `tags` - (Optional) A mapping of tags to assign to the Container App.
 
 ---

@@ -37,8 +37,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `template` - A `template` block as detailed below.
 
----
-
 * `dapr` - A `dapr` block as detailed below.
 
 * `identity` - An `identity` block as detailed below.
@@ -48,6 +46,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `registry` - A `registry` block as detailed below.
 
 * `secret` - One or more `secret` block as detailed below.
+
+* `workload_profile_name` - The name of the Workload Profile in the Container App Environment in which this Container App is running.
 
 * `tags` - A mapping of tags to assign to the Container App.
 

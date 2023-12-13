@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -41,6 +42,7 @@ type ContainerAppDataSourceModel struct {
 	LatestRevisionName         string                                     `tfschema:"latest_revision_name"`
 	LatestRevisionFqdn         string                                     `tfschema:"latest_revision_fqdn"`
 	CustomDomainVerificationId string                                     `tfschema:"custom_domain_verification_id"`
+	WorkloadProfileName        string                                     `tfschema:"workload_profile_name"`
 }
 
 var _ sdk.DataSource = ContainerAppDataSource{}
@@ -111,6 +113,11 @@ func (r ContainerAppDataSource) Attributes() map[string]*schema.Schema {
 			Sensitive:   true,
 			Description: "The ID of the Custom Domain Verification for this Container App.",
 		},
+
+		"workload_profile_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -172,6 +179,7 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 					containerApp.LatestRevisionFqdn = pointer.From(props.LatestRevisionFqdn)
 					containerApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					containerApp.OutboundIpAddresses = pointer.From(props.OutboundIPAddresses)
+					containerApp.WorkloadProfileName = pointer.From(props.WorkloadProfileName)
 				}
 			}
 
