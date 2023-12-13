@@ -521,6 +521,28 @@ func TestAccIotHub_endpointAuthenticationTypeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccIotHub_cosmosDBRouteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	r := IotHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateWithCosmosDBRoute(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateWithCosmosDBRoute(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t IotHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IotHubID(state.ID)
 	if err != nil {
@@ -2081,4 +2103,98 @@ resource "azurerm_role_assignment" "test_azure_event_hubs_data_sender_system" {
   principal_id         = azurerm_iothub.test.identity[0].principal_id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IotHubResource) updateWithCosmosDBRoute(data acceptance.TestData, update bool) string {
+	tagsBlock := `
+  tags = {
+    test = "1"
+  }
+	`
+	if !update {
+		tagsBlock = ""
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "iothub" {
+  name     = "acctest-iothub-%[1]d"
+  location = "eastus"
+}
+
+resource "azurerm_resource_group" "endpoint" {
+  name     = "acctest-iothub-db-%[1]d"
+  location = "eastus"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[1]d"
+  location            = azurerm_resource_group.endpoint.location
+  resource_group_name = azurerm_resource_group.endpoint.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.endpoint.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acc-%[1]d"
+  resource_group_name = azurerm_resource_group.iothub.name
+  location            = azurerm_resource_group.iothub.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  %[2]s
+}
+
+resource "azurerm_iothub_endpoint_cosmosdb_account" "test" {
+  name                = "acct-%[1]d"
+  resource_group_name = azurerm_resource_group.endpoint.name
+  iothub_id           = azurerm_iothub.test.id
+  container_name      = azurerm_cosmosdb_sql_container.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  endpoint_uri        = azurerm_cosmosdb_account.test.endpoint
+  primary_key         = azurerm_cosmosdb_account.test.primary_key
+  secondary_key       = azurerm_cosmosdb_account.test.secondary_key
+}
+
+resource "azurerm_iothub_route" "test" {
+  resource_group_name = azurerm_resource_group.iothub.name
+  iothub_name         = azurerm_iothub.test.name
+  name                = "acctest-%[1]d"
+
+  source         = "DeviceMessages"
+  condition      = "true"
+  endpoint_names = [azurerm_iothub_endpoint_cosmosdb_account.test.name]
+  enabled        = false
+  depends_on     = [azurerm_iothub_endpoint_cosmosdb_account.test]
+}
+`, data.RandomInteger, tagsBlock)
 }
