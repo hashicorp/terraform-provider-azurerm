@@ -69,7 +69,7 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"tags": commonschema.Tags(),
 		},
