@@ -332,12 +332,6 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			currentStack := ""
 			if len(sc.ApplicationStack) == 1 {
 				currentStack = sc.ApplicationStack[0].CurrentStack
-				if currentStack == helpers.CurrentStackNode || sc.ApplicationStack[0].NodeVersion != "" {
-					if webAppSlot.AppSettings == nil {
-						webAppSlot.AppSettings = make(map[string]string, 0)
-					}
-					webAppSlot.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = sc.ApplicationStack[0].NodeVersion
-				}
 			}
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
