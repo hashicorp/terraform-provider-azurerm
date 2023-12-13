@@ -81,14 +81,20 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Standard",
 				ForceNew: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Basic",
 					"Enterprise",
 					"Standard",
 					"StandardGen2",
 				}, false),
+			},
+
+			"managed_environment_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"build_agent_pool_size": {
@@ -455,7 +461,6 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
-			Tier: utils.String(d.Get("sku_tier").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -464,6 +469,13 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		resource.Properties.VnetAddons = &appplatform.ServiceVNetAddons{
 			LogStreamPublicEndpoint: utils.Bool(enabled),
 		}
+	}
+
+	// we set sku_tier only when managed_environment_id is set
+	// otherwise we break the existing flows where sku_name is set to E0/Basic etc.,
+	if v, ok := d.GetOk("managed_environment_id"); ok {
+		resource.Properties.ManagedEnvironmentID = utils.String(v.(string))
+		resource.Sku.Tier = utils.String(d.Get("sku_tier").(string))
 	}
 
 	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
@@ -810,6 +822,12 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		if vnetAddons := props.VnetAddons; vnetAddons != nil {
 			if err := d.Set("log_stream_public_endpoint_enabled", utils.Bool(*vnetAddons.LogStreamPublicEndpoint)); err != nil {
 				return fmt.Errorf("setting `log_stream_public_endpoint_enabled`: %+v", err)
+			}
+		}
+
+		if managedEnvironmentID := props.ManagedEnvironmentID; managedEnvironmentID != nil {
+			if err := d.Set("managed_environment_id", utils.String(*props.ManagedEnvironmentID)); err != nil {
+				return fmt.Errorf("setting `managed_environment_id`: %+v", err)
 			}
 		}
 
