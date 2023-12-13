@@ -5,6 +5,7 @@ package cognitive
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -67,6 +68,8 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -112,6 +115,14 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
 			}
 			d.Set("endpoint", props.Endpoint)
+		}
+
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
