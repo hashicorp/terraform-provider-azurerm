@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: update `security/automation` to use `hashicorp/go-azure-sdk` [GH-24156]
+* Data Source: `azurerm_cognitive_account` - export the `identity` block [GH-24214]
 * Data Source: `azurerm_monitor_workspace` - add support for the `default_data_collection_endpoint_id` and `default_data_collection_rule_id` properties [GH-24153]
 * Data Source: `azurerm_shared_image_gallery` - add support for property `image_names` [GH-24176]
 * `azurerm_dns_txt_record` - allow up to 4096 characters for the property `record.value` [GH-24169]
@@ -25,6 +26,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_role_definition` - fix bug where `role_definition_id` and `scope` were being incorrectly set [GH-24211]
+* `azurerm_batch_account` - fix bug where `UserAssigned, SystemAssigned` could be passed to the resource even though it isn't supported [GH-24204]
 * `azurerm_batch_pool` - fix bug where `settings_json` and `protected_settings` were not being unmarshaled [GH-24075]
 * `azurerm_bot_service_azure_bot` - fix bug where `public_network_access_enabled` was being set as the value for `LuisKey` [GH-24164]
 * `azurerm_linux_web_app_slot` - error when `service_plan_id` is identical to the parent `service_plan_id` [GH-23403]
@@ -32,9 +35,11 @@ BUG FIXES:
 * `azurerm_pim_active_role_assignment` - fix an importing issue by filtering available role assignments based on the provided `scope` [GH-24077]
 * `azurerm_pim_eligible_role_assignment` - fix an importing issue by filtering available role assignments based on the provided `scope` [GH-24077]
 * `azurerm_resource_group_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+* `azurerm_security_center_setting` - fix the casing for the `setting_name` `Sentinel` [GH-24210]
 * `azurerm_storage_share_file` - prevent panic when the file specified by `source` is empty [GH-24179]
 * `azurerm_subscription_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
 * `azurerm_tenant_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
+* `azurerm_virtual_machine` - prevent a panic by nil checking the first element of `additional_capabilities` [GH-24159]
 * `azurerm_windows_web_app_slot` - error when `service_plan_id` is identical to the parent `service_plan_id` [GH-23403]
 
 ## 3.84.0 (December 07, 2023)
