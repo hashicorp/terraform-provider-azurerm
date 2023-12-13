@@ -48,6 +48,102 @@ func TestAccContainerAppJob_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_withSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_withUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_withSystemAndUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSystemAndUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_withIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_Update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppJob_eventTrigger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
@@ -93,6 +189,43 @@ func TestAccContainerAppJob_scheduleTrigger(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ContainerAppJobResource) eventTrigger(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -104,9 +237,7 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  configuration {
-    trigger_type        = "Event"
-    replica_timeout     = 10
+    replica_timeout_in_seconds     = 10
     replica_retry_limit = 10
     event_trigger_config {
       parallelism              = 4
@@ -124,40 +255,28 @@ resource "azurerm_container_app_job" "test" {
         }
       }
     }
-  }
 
   template {
     containers {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
-      probes {
-        http_get {
-          http_headers {
-            name  = "testheader"
-            value = "testvalue"
-          }
-          path = "/testpath"
-          port = 8080
-        }
-        initial_delay_seconds = 10
-        period_seconds        = 10
-        type                  = "Liveness"
-      }
-      resources {
-        cpu    = 0.5
-        memory = "1Gi"
-      }
-    }
+      liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
 
-    init_containers {
-      args    = ["testarg"]
-      command = ["testcommand"]
-      image   = "repo/testcontainerAppsJob0:v1"
-      name    = "testcontainerappsjob0"
-      resources {
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
         cpu    = 0.5
         memory = "1Gi"
-      }
     }
   }
 }
@@ -175,53 +294,35 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  configuration {
-    trigger_type        = "Manual"
-    replica_timeout     = 10
+    replica_timeout_in_seconds     = 10
     replica_retry_limit = 10
     manual_trigger_config {
       parallelism              = 4
       replica_completion_count = 1
     }
-  }
 
   template {
     containers {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
-      probes {
-        http_get {
-          http_headers {
-            name  = "testheader"
-            value = "testvalue"
-          }
-          path   = "/testpath"
-          port   = 8080
-          host   = "testhost"
-          scheme = "HTTPS"
-        }
-        initial_delay_seconds = 10
-        period_seconds        = 10
-        type                  = "Liveness"
-        failure_threshold     = 1
-        success_threshold     = 1
-        timeout_seconds       = 1
-      }
-      resources {
-        cpu    = 0.5
-        memory = "1Gi"
-      }
-    }
+	  liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
 
-    init_containers {
-      args    = ["testarg"]
-      command = ["testcommand"]
-      image   = "repo/testcontainerAppsJob0:v1"
-      name    = "testcontainerappsjob0"
-      resources {
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+
         cpu    = 0.5
         memory = "1Gi"
-      }
     }
   }
 }
@@ -239,16 +340,13 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  configuration {
-    trigger_type        = "Schedule"
-    replica_timeout     = 1800
+    replica_timeout_in_seconds     = 1800
     replica_retry_limit = 0
     schedule_trigger_config {
       cron_expression          = "*/1 * * * *"
       parallelism              = 1
       replica_completion_count = 1
     }
-  }
   template {
     volumes {
       name         = "appsettings-volume"
@@ -257,25 +355,26 @@ resource "azurerm_container_app_job" "test" {
     containers {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
-      probes {
-        tcp_socket {
-          host = "testhost"
-          port = 8080
+      liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
         }
-        initial_delay_seconds = 5
-        timeout_seconds       = 1
-        success_threshold     = 1
-        failure_threshold     = 1
-        period_seconds        = 3
-        type                  = "Liveness"
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
       }
-      resources {
         cpu    = 0.5
         memory = "1Gi"
-      }
       volume_mounts {
-        mount_path  = "/appsettings"
-        volume_name = "appsettings-volume"
+        path  = "/appsettings"
+        name = "appsettings-volume"
       }
     }
   }
@@ -294,49 +393,310 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  configuration {
-    trigger_type        = "Manual"
-    replica_timeout     = 10
+    replica_timeout_in_seconds     = 10
     replica_retry_limit = 10
     manual_trigger_config {
       parallelism              = 4
       replica_completion_count = 1
     }
-  }
 
   template {
     containers {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
-      probes {
-        http_get {
-          http_headers {
-            name  = "testheader"
-            value = "testvalue"
-          }
-          path = "/testpath"
-          port = 8080
-        }
-        initial_delay_seconds = 10
-        period_seconds        = 10
-        type                  = "Liveness"
-      }
-      resources {
         cpu    = 0.5
         memory = "1Gi"
-      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) withUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+	type = "UserAssigned"
+	identity_ids = [azurerm_user_assigned_identity.test.id]
+}
+
+    replica_timeout_in_seconds     = 10
+    replica_retry_limit = 10
+    manual_trigger_config {
+      parallelism              = 4
+      replica_completion_count = 1
     }
 
-    init_containers {
-      args    = ["testarg"]
-      command = ["testcommand"]
-      image   = "repo/testcontainerAppsJob0:v1"
-      name    = "testcontainerappsjob0"
-      resources {
+  template {
+    containers {
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
         cpu    = 0.5
         memory = "1Gi"
-      }
     }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) withSystemIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+	type = "SystemAssigned"
+  }
+
+    replica_timeout_in_seconds     = 10
+    replica_retry_limit = 10
+    manual_trigger_config {
+      parallelism              = 4
+      replica_completion_count = 1
+    }
+
+  template {
+    containers {
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+        cpu    = 0.5
+        memory = "1Gi"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) withSystemAndUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name = "acctest-uai%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+	type = "SystemAssigned, UserAssigned"
+	identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+    replica_timeout_in_seconds     = 10
+    replica_retry_limit = 10
+    manual_trigger_config {
+      parallelism              = 4
+      replica_completion_count = 1
+    }
+
+  template {
+    containers {
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+        cpu    = 0.5
+        memory = "1Gi"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+	type = "SystemAssigned"
+  }
+
+  replica_timeout_in_seconds     = 10
+  replica_retry_limit = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+  secrets {
+	name = "registry-password"
+	value = "myregistrypassword"
+  }
+  registries {
+    server = "myregistry.azurecr.io"
+	username = "myregistry"
+	password_secret_name = "registry-password"
+  }
+
+  template {
+	volumes {
+	  name = "appsettings-volume"
+	  storage_type = "EmptyDir"
+  	}
+    containers {
+ 	  args = [
+              "-c",
+              "while true; do echo hello; sleep 10;done",
+	  ]
+	  command = [
+	    "/bin/sh",
+	  ]
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+      readiness_probe {
+        transport = "HTTP"
+        port      = 5000
+      }
+
+      liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+      startup_probe {
+        transport = "TCP"
+        port      = 5000
+      }
+
+	  cpu    = 0.5
+	  memory = "1Gi"
+	  volume_mounts {
+	    path = "/appsettings"
+	    name = "appsettings-volume"
+	  }
+    }
+ }
+  tags = {
+	ENV = "test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) completeUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+	type = "SystemAssigned"
+  }
+
+  replica_timeout_in_seconds     = 20
+  replica_retry_limit = 20
+
+  manual_trigger_config {
+    parallelism              = 5
+    replica_completion_count = 2
+  }
+
+  secrets {
+	name = "registry-password"
+	value = "myregistrypassword"
+  }
+
+  registries {
+    server = "myregistry.azurecr.io"
+	username = "myregistry"
+	password_secret_name = "registry-password"
+  }
+
+  template {
+	volumes {
+	  name = "appsettings-volume"
+	  storage_type = "EmptyDir"
+  	}
+    containers {
+ 	  args = [
+              "-c",
+              "while true; do echo hello; sleep 10;done",
+	  ]
+	  command = [
+	    "/bin/sh",
+	  ]
+      image = "repo/testcontainerAppsJob0:v1"
+      name  = "testcontainerappsjob0"
+      readiness_probe {
+        transport = "HTTP"
+        port      = 5000
+      }
+
+      liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+      startup_probe {
+        transport = "TCP"
+        port      = 5000
+		timeout = 5
+		failure_count_threshold = 3
+      }
+
+	  cpu    = 0.25
+	  memory = "0.5Gi"
+	  volume_mounts {
+	    path = "/appsettings"
+	    name = "appsettings-volume"
+	  }
+    }
+ }
+  tags = {
+	ENV = "test"
   }
 }
 `, template, data.RandomInteger)

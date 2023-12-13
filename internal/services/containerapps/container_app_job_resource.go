@@ -3,6 +3,9 @@ package containerapps
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -27,8 +30,14 @@ type ContainerAppJobModel struct {
 	Location                  string                                     `tfschema:"location"`
 	ContainerAppEnvironmentId string                                     `tfschema:"container_app_environment_id"`
 	WorkloadProfileName       string                                     `tfschema:"workload_profile_name"`
-	Template                  []TemplateModel                            `tfschema:"template"`
-	Configuration             []ConfigurationModel                       `tfschema:"configuration"`
+	Template                  []helpers.JobTemplateModel                 `tfschema:"template"`
+	ReplicaRetryLimit         int                                        `tfschema:"replica_retry_limit"`
+	ReplicaTimeoutInSeconds   int                                        `tfschema:"replica_timeout_in_seconds"`
+	Secrets                   []helpers.Secret                           `tfschema:"secrets"`
+	Registries                []helpers.Registry                         `tfschema:"registries"`
+	EventTriggerConfig        []helpers.EventTriggerConfiguration        `tfschema:"event_trigger_config"`
+	ManualTriggerConfig       []helpers.ManualTriggerConfiguration       `tfschema:"manual_trigger_config"`
+	ScheduleTriggerConfig     []helpers.ScheduleTriggerConfiguration     `tfschema:"schedule_trigger_config"`
 	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Tags                      map[string]interface{}                     `tfschema:"tags"`
 
@@ -63,11 +72,11 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"container_app_environment_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: certificates.ValidateManagedEnvironmentID,
+		"container_app_environment_id": commonschema.ResourceIDReferenceRequiredForceNew(certificates.ManagedEnvironmentId{}),
+
+		"replica_timeout_in_seconds": {
+			Type:     pluginsdk.TypeInt,
+			Required: true,
 		},
 
 		"workload_profile_name": {
@@ -76,9 +85,121 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"template": templateSchema(),
+		"template": helpers.JobTemplateSchema(),
 
-		"configuration": configurationSchema(),
+		"secrets": helpers.SecretsSchema(),
+
+		"replica_retry_limit": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+		},
+
+		"registries": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"identity": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"username": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"password_secret_name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"server": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		},
+
+		"event_trigger_config": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			ExactlyOneOf: []string{
+				"event_trigger_config",
+				"manual_trigger_config",
+				"schedule_trigger_config",
+			},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"parallelism": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"replica_completion_count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"scale": helpers.ContainerAppsJobsScaleSchema(),
+				},
+			},
+		},
+
+		"schedule_trigger_config": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			ExactlyOneOf: []string{
+				"event_trigger_config",
+				"manual_trigger_config",
+				"schedule_trigger_config",
+			},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cron_expression": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"parallelism": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"replica_completion_count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
+
+		"manual_trigger_config": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			ExactlyOneOf: []string{
+				"event_trigger_config",
+				"manual_trigger_config",
+				"schedule_trigger_config",
+			},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"parallelism": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"replica_completion_count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
@@ -129,15 +250,41 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			registries, err := helpers.ExpandContainerAppJobRegistries(model.Registries)
+			if err != nil {
+				return fmt.Errorf("invalid registrry config for %s: %v", id, err)
+			}
+
 			job := jobs.Job{
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Name:     pointer.To(model.Name),
 				Properties: &jobs.JobProperties{
+					Configuration: &jobs.JobConfiguration{
+						ReplicaRetryLimit: pointer.To(int64(model.ReplicaRetryLimit)),
+						ReplicaTimeout:    int64(model.ReplicaTimeoutInSeconds),
+						Secrets:           helpers.ExpandContainerAppJobSecrets(model.Secrets),
+						Registries:        registries,
+					},
 					EnvironmentId: pointer.To(model.ContainerAppEnvironmentId),
+					Template:      helpers.ExpandContainerAppJobTemplate(model.Template),
 				},
 				Tags: tags.Expand(model.Tags),
-				Type: nil,
 			}
+
+			var triggerType jobs.TriggerType
+			if len(model.ManualTriggerConfig) > 0 {
+				triggerType = jobs.TriggerTypeManual
+				job.Properties.Configuration.ManualTriggerConfig = helpers.ExpandContainerAppJobConfigurationManualTriggerConfig(model.ManualTriggerConfig)
+			}
+			if len(model.EventTriggerConfig) > 0 {
+				triggerType = jobs.TriggerTypeEvent
+				job.Properties.Configuration.EventTriggerConfig = helpers.ExpandContainerAppJobConfigurationEventTriggerConfig(model.EventTriggerConfig)
+			}
+			if len(model.ScheduleTriggerConfig) > 0 {
+				triggerType = jobs.TriggerTypeSchedule
+				job.Properties.Configuration.ScheduleTriggerConfig = helpers.ExpandContainerAppJobConfigurationScheduleTriggerConfig(model.ScheduleTriggerConfig)
+			}
+			job.Properties.Configuration.TriggerType = triggerType
 
 			ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
@@ -147,22 +294,6 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 
 			if model.WorkloadProfileName != "" {
 				job.Properties.WorkloadProfileName = pointer.To(model.WorkloadProfileName)
-			}
-
-			if model.Configuration != nil {
-				config, err := expandContainerAppJobConfiguration(model.Configuration)
-				if err != nil {
-					return fmt.Errorf("expanding `configuration`: %+v", err)
-				}
-				job.Properties.Configuration = config
-			}
-
-			if model.Template != nil {
-				template, err := expandContainerAppJobTemplate(model.Template)
-				if err != nil {
-					return fmt.Errorf("expanding `template`: %+v", err)
-				}
-				job.Properties.Template = template
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, job); err != nil {
@@ -201,26 +332,49 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 			state.ResourceGroup = id.ResourceGroupName
 
 			if model := existing.Model; model != nil {
-				state.ContainerAppEnvironmentId = *model.Properties.EnvironmentId
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
-				ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
-				if err != nil {
-					return err
+				if model.Identity != nil {
+					ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+					if err != nil {
+						return err
+					}
+					state.Identity = pointer.From(ident)
 				}
-				state.Identity = pointer.From(ident)
 
+				//log.Println("[WARN] model.Properties: ", model.Properties)
 				if props := model.Properties; props != nil {
 					envId, err := managedenvironmentsstorages.ParseManagedEnvironmentIDInsensitively(pointer.From(props.EnvironmentId))
 					if err != nil {
 						return err
 					}
 					state.ContainerAppEnvironmentId = envId.ID()
-					state.Template = flattenContainerAppJobTemplate(props.Template)
-					state.Configuration = flattenContainerAppJobConfiguration(props.Configuration)
+					state.Template = helpers.FlattenContainerAppJobTemplate(props.Template)
+					if config := props.Configuration; config != nil {
+						state.Registries = helpers.FlattenContainerAppJobRegistries(config.Registries)
+						state.ReplicaTimeoutInSeconds = int(config.ReplicaTimeout)
+						if config.ReplicaRetryLimit != nil {
+							state.ReplicaRetryLimit = int(pointer.From(config.ReplicaRetryLimit))
+						}
+
+						switch config.TriggerType {
+						case jobs.TriggerTypeEvent:
+							state.EventTriggerConfig = helpers.FlattenContainerAppJobConfigurationEventTriggerConfig(config.EventTriggerConfig)
+						case jobs.TriggerTypeManual:
+							state.ManualTriggerConfig = helpers.FlattenContainerAppJobConfigurationManualTriggerConfig(config.ManualTriggerConfig)
+						case jobs.TriggerTypeSchedule:
+							state.ScheduleTriggerConfig = helpers.FlattenContainerAppJobConfigurationScheduleTriggerConfig(config.ScheduleTriggerConfig)
+						}
+					}
 					state.WorkloadProfileName = pointer.From(props.WorkloadProfileName)
 				}
 			}
+
+			secretResp, err := client.ListSecrets(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing secrets for %s: %+v", *id, err)
+			}
+			state.Secrets = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
 
 			return metadata.Encode(&state)
 		},
@@ -254,22 +408,56 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving properties for %s for update: %+v", *id, err)
 			}
 
-			d := metadata.ResourceData
-
-			if d.HasChange("template") {
-				template, err := expandContainerAppJobTemplate(state.Template)
-				if err != nil {
-					return fmt.Errorf("expanding `template`: %+v", err)
-				}
-				model.Properties.Template = template
+			if model.Properties.Configuration == nil {
+				model.Properties.Configuration = &jobs.JobConfiguration{}
 			}
 
-			if d.HasChange("configuration") {
-				config, err := expandContainerAppJobConfiguration(state.Configuration)
-				if err != nil {
-					return fmt.Errorf("expanding `configuration`: %+v", err)
+			secretsResp, err := client.ListSecrets(ctx, *id)
+			if err != nil || secretsResp.Model == nil {
+				if !response.WasStatusCode(secretsResp.HttpResponse, http.StatusNoContent) {
+					return fmt.Errorf("retrieving secrets for update for %s: %+v", *id, err)
 				}
-				model.Properties.Configuration = config
+			}
+			model.Properties.Configuration.Secrets = pointer.To(secretsResp.Model.Value)
+
+			d := metadata.ResourceData
+			if d.HasChange("template") {
+				if model.Properties.Template == nil {
+					model.Properties.Template = &jobs.JobTemplate{}
+				}
+				allProbesRemoved := helpers.ContainerAppProbesRemoved(metadata)
+				if allProbesRemoved {
+					containers := *model.Properties.Template.Containers
+					containers[0].Probes = pointer.To(make([]jobs.ContainerAppProbe, 0))
+					model.Properties.Template.Containers = pointer.To(containers)
+				}
+			}
+
+			if d.HasChange("registries") {
+				model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppJobRegistries(state.Registries)
+				if err != nil {
+					return fmt.Errorf("invalid registry config for %s: %v", id, err)
+				}
+			}
+
+			if d.HasChange("replica_retry_limit") {
+				model.Properties.Configuration.ReplicaRetryLimit = pointer.To(int64(state.ReplicaRetryLimit))
+			}
+
+			if d.HasChange("replica_timeout_in_seconds") {
+				model.Properties.Configuration.ReplicaTimeout = int64(state.ReplicaTimeoutInSeconds)
+			}
+
+			if d.HasChange("event_trigger_config") {
+				model.Properties.Configuration.EventTriggerConfig = helpers.ExpandContainerAppJobConfigurationEventTriggerConfig(state.EventTriggerConfig)
+			}
+
+			if d.HasChange("manual_trigger_config") {
+				model.Properties.Configuration.ManualTriggerConfig = helpers.ExpandContainerAppJobConfigurationManualTriggerConfig(state.ManualTriggerConfig)
+			}
+
+			if d.HasChange("schedule_trigger_config") {
+				model.Properties.Configuration.ScheduleTriggerConfig = helpers.ExpandContainerAppJobConfigurationScheduleTriggerConfig(state.ScheduleTriggerConfig)
 			}
 
 			if d.HasChange("identity") {
@@ -287,6 +475,8 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 			if d.HasChange("tags") {
 				model.Tags = tags.Expand(state.Tags)
 			}
+
+			model.Properties.Template = helpers.ExpandContainerAppJobTemplate(state.Template)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -312,6 +502,38 @@ func (r ContainerAppJobResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
+			return nil
+		},
+	}
+}
+
+func (r ContainerAppJobResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff != nil && metadata.ResourceDiff.HasChange("secrets") {
+				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secrets")
+				stateSecrets := stateSecretsRaw.(*schema.Set).List()
+				configSecrets := configSecretsRaw.(*schema.Set).List()
+				// Check there's not less
+				if len(configSecrets) < len(stateSecrets) {
+					return fmt.Errorf("cannot remove secrets from Container Apps at this time due to a limitation in the Container Apps Service. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
+				}
+				// Check secrets names in state are all present in config, the values don't matter
+				if len(stateSecrets) > 0 {
+					for _, s := range stateSecrets {
+						found := false
+						for _, c := range configSecrets {
+							if s.(map[string]interface{})["name"] == c.(map[string]interface{})["name"] {
+								found = true
+								break
+							}
+						}
+						if !found {
+							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported by the Container Apps Service at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
+						}
+					}
+				}
+			}
 			return nil
 		},
 	}
