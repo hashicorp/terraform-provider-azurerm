@@ -1939,6 +1939,7 @@ func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.Res
 		sort.Strings(newSplit)
 
 		if len(oldSplit) != len(newSplit) {
+			return false
 		}
 
 		for i := range oldSplit {
