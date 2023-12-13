@@ -4,7 +4,7 @@
  */
 
 // specifies the default hour (UTC) at which tests should be triggered, if enabled
-var defaultStartHour = 0
+var defaultStartHour = 23
 
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
