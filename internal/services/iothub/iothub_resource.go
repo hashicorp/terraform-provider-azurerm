@@ -876,6 +876,9 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("endpoint") {
+		if prop.Routing == nil {
+			prop.Routing = &devices.RoutingProperties{}
+		}
 		prop.Routing.Endpoints, err = expandIoTHubEndpoints(d, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("expanding `endpoint`: %+v", err)
