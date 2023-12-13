@@ -16,6 +16,8 @@ ENHANCEMENTS:
 * `azurerm_container_app` - add `workload_profile_name` property [GH-24219]
 * `azurerm_linux_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_linux_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
+* `azurerm_linux_web_app` - fix a bug in `app_settings` where settings could be lost [GH-24221]
+* `azurerm_linux_web_app_slot` - fix a bug in `app_settings` where settings could be lost [GH-24221]
 * `azurerm_log_analytics_workspace` - add support for the `immediate_data_purge_on_30_days_enabled` property [GH-24015]
 * `azurerm_machine_learning_datastore_blobstorage` - this resource skips validation when being created [GH-24078]
 * `azurerm_machine_learning_datastore_datalake_gen2` - this resource skips validation when being created [GH-24078]
@@ -25,6 +27,8 @@ ENHANCEMENTS:
 * `azurerm_storage_blob` - add support for the `source_content` type `Page` [GH-24177]
 * `azurerm_windows_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_windows_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
+* `azurerm_windows_web_app` - fix a bug in `app_settings` where settings could be lost [GH-24221]
+* `azurerm_windows_web_app_slot` - fix a bug in `app_settings` where settings could be lost [GH-24221]
 * `azurerm_cognitive_account` - add `ContentSafety` to the `kind` property validation [GH-24205]
 
 BUG FIXES:
