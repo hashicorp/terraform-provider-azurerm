@@ -96,7 +96,7 @@ In Azure Managed Identity resource settings, select **Other** from the **Federat
 
 #### Terraform Configuration - Managed Identity / App registration
 
-Please refeer to examples in [azuredevops_serviceendpoint_azurerm](https://registry.terraform.io/providers/microsoft/azuredevops/latest/docs/resources/serviceendpoint_azurerm#workload-identity-federation-manual-azurerm-service-endpoint-subscription-scoped) resource documentation.
+Please refer to examples in [azuredevops_serviceendpoint_azurerm](https://registry.terraform.io/providers/microsoft/azuredevops/latest/docs/resources/serviceendpoint_azurerm#workload-identity-federation-manual-azurerm-service-endpoint-subscription-scoped) resource documentation.
 
 ### Granting the Application access to manage resources in your Azure Subscription
 
@@ -145,7 +145,7 @@ For more information about OIDC in GitHub Actions, see [official documentation](
 
 Use the `TerraformTaskV4@4` task to easily connect Terraform to Azure using your workload identity. 
 
-Alternatively you can expose the OIDC token to `idToken` variable by setting `addSpnToEnvironment: true`:
+Alternatively, using the `AzureCLI@2` task, you can expose the OIDC token to `idToken` variable by setting `addSpnToEnvironment: true`:
 ```yaml
 - task: AzureCLI@2
   name: set_variables
@@ -186,7 +186,7 @@ provider "azurerm" {
 
 -> **Note:** Support for OpenID Connect was added in version 3.7.0 of the Terraform AzureRM provider.
 
-~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information.  We strongly recommend using `use_azuread_auth` authentication to authenticate to the AzureRM backend with identity instead of an access key.
+~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information.
 
 More information on [the fields supported in the Provider block can be found here](../index.html#argument-reference).
 
