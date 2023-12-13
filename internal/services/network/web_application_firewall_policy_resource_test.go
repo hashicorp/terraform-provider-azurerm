@@ -1423,7 +1423,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-LFI"
+        rule_group_name = "LFI"
         rule {
           id      = "930100"
           enabled = false
@@ -1432,7 +1432,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-RFI"
+        rule_group_name = "RFI"
         rule {
           id      = "931100"
           enabled = false
@@ -1441,7 +1441,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-RCE"
+        rule_group_name = "RCE"
         rule {
           id      = "932100"
           enabled = false
@@ -1450,7 +1450,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-PHP"
+        rule_group_name = "PHP"
         rule {
           id      = "933100"
           enabled = false
@@ -1459,7 +1459,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-NodeJS"
+        rule_group_name = "NODEJS"
         rule {
           id      = "934100"
           enabled = false
@@ -1468,7 +1468,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-XSS"
+        rule_group_name = "XSS"
         rule {
           id      = "941100"
           enabled = false
@@ -1477,7 +1477,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-SQLI"
+        rule_group_name = "SQLI"
         rule {
           id      = "942100"
           enabled = false
@@ -1486,7 +1486,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-SESSION-FIXATION"
+        rule_group_name = "FIX"
         rule {
           id      = "943100"
           enabled = false
@@ -1495,7 +1495,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       }
 
       rule_group_override {
-        rule_group_name = "APPLICATION-ATTACK-SESSION-JAVA"
+        rule_group_name = "JAVA"
         rule {
           id      = "944100"
           enabled = false
