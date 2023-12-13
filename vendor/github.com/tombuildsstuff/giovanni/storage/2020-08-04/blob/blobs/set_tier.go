@@ -2,92 +2,80 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
+type SetTierInput struct {
+	Tier AccessTier
+}
+
+type SetTierResponse struct {
+	HttpResponse *client.Response
+}
+
 // SetTier sets the tier on a blob.
-func (client Client) SetTier(ctx context.Context, accountName, containerName, blobName string, tier AccessTier) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "SetTier", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetTier(ctx context.Context, containerName, blobName string, input SetTierInput) (resp SetTierResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "SetTier", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "SetTier", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "SetTier", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
 
-	req, err := client.SetTierPreparer(ctx, accountName, containerName, blobName, tier)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+			http.StatusAccepted,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: setTierOptions{
+			tier: input.Tier,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "SetTier", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SetTierSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "SetTier", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.SetTierResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "SetTier", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// SetTierPreparer prepares the SetTier request.
-func (client Client) SetTierPreparer(ctx context.Context, accountName, containerName, blobName string, tier AccessTier) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("path", "tier"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version":     APIVersion,
-		"x-ms-access-tier": string(tier),
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type setTierOptions struct {
+	tier AccessTier
 }
 
-// SetTierSender sends the SetTier request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetTierSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s setTierOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Append("x-ms-access-tier", string(s.tier))
+	return headers
 }
 
-// SetTierResponder handles the response to the SetTier request. The method always
-// closes the http.Response Body.
-func (client Client) SetTierResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-	return
+func (s setTierOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (s setTierOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "tier")
+	return out
 }

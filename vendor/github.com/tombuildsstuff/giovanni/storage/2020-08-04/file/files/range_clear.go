@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type ClearByteRangeInput struct {
@@ -17,96 +15,81 @@ type ClearByteRangeInput struct {
 	EndBytes   int64
 }
 
-// ClearByteRange clears the specified Byte Range from within the specified File
-func (client Client) ClearByteRange(ctx context.Context, accountName, shareName, path, fileName string, input ClearByteRangeInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("files.Client", "ClearByteRange", "`accountName` cannot be an empty string.")
-	}
-	if shareName == "" {
-		return result, validation.NewError("files.Client", "ClearByteRange", "`shareName` cannot be an empty string.")
-	}
-	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("files.Client", "ClearByteRange", "`shareName` must be a lower-cased string.")
-	}
-	if fileName == "" {
-		return result, validation.NewError("files.Client", "ClearByteRange", "`fileName` cannot be an empty string.")
-	}
-	if input.StartBytes < 0 {
-		return result, validation.NewError("files.Client", "ClearByteRange", "`input.StartBytes` must be greater or equal to 0.")
-	}
-	if input.EndBytes <= 0 {
-		return result, validation.NewError("files.Client", "ClearByteRange", "`input.EndBytes` must be greater than 0.")
-	}
-
-	req, err := client.ClearByteRangePreparer(ctx, accountName, shareName, path, fileName, input)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "ClearByteRange", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ClearByteRangeSender(req)
-	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "files.Client", "ClearByteRange", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ClearByteRangeResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "ClearByteRange", resp, "Failure responding to request")
-		return
-	}
-
-	return
+type ClearByteRangeResponse struct {
+	HttpResponse *client.Response
 }
 
-// ClearByteRangePreparer prepares the ClearByteRange request.
-func (client Client) ClearByteRangePreparer(ctx context.Context, accountName, shareName, path, fileName string, input ClearByteRangeInput) (*http.Request, error) {
+// ClearByteRange clears the specified Byte Range from within the specified File
+func (c Client) ClearByteRange(ctx context.Context, shareName, path, fileName string, input ClearByteRangeInput) (resp ClearByteRangeResponse, err error) {
+
+	if shareName == "" {
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
+	}
+
+	if strings.ToLower(shareName) != shareName {
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
+	}
+
+	if fileName == "" {
+		return resp, fmt.Errorf("`fileName` cannot be an empty string")
+	}
+
+	if input.StartBytes < 0 {
+		return resp, fmt.Errorf("`input.StartBytes` must be greater or equal to 0")
+	}
+
+	if input.EndBytes <= 0 {
+		return resp, fmt.Errorf("`input.EndBytes` must be greater than 0")
+	}
+
 	if path != "" {
 		path = fmt.Sprintf("%s/", path)
 	}
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-		"directory": autorest.Encode("path", path),
-		"fileName":  autorest.Encode("path", fileName),
+
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: ClearByteRangeOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s%s", shareName, path, fileName),
 	}
 
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "range"),
+	req, err := c.Client.NewRequest(ctx, opts)
+	if err != nil {
+		err = fmt.Errorf("building request: %+v", err)
+		return
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-		"x-ms-write":   "clear",
-		"x-ms-range":   fmt.Sprintf("bytes=%d-%d", input.StartBytes, input.EndBytes),
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
+		return
 	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}/{directory}{fileName}", pathParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ClearByteRangeSender sends the ClearByteRange request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) ClearByteRangeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// ClearByteRangeResponder handles the response to the ClearByteRange request. The method always
-// closes the http.Response Body.
-func (client Client) ClearByteRangeResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
 
 	return
+}
+
+type ClearByteRangeOptions struct {
+	input ClearByteRangeInput
+}
+
+func (c ClearByteRangeOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Append("x-ms-write", "clear")
+	headers.Append("x-ms-range", fmt.Sprintf("bytes=%d-%d", c.input.StartBytes, c.input.EndBytes))
+	return headers
+}
+
+func (c ClearByteRangeOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (c ClearByteRangeOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "range")
+	return out
 }

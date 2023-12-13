@@ -8,15 +8,17 @@ import (
 	"math"
 	"os"
 	"sync"
-
-	"github.com/Azure/go-autorest/autorest"
 )
 
 // PutFile is a helper method which takes a file, and automatically chunks it up, rather than having to do this yourself
-func (client Client) PutFile(ctx context.Context, accountName, shareName, path, fileName string, file *os.File, parallelism int) error {
+func (c Client) PutFile(ctx context.Context, shareName, path, fileName string, file *os.File, parallelism int) error {
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return fmt.Errorf("Error loading file info: %s", err)
+		return fmt.Errorf("error loading file info: %s", err)
+	}
+
+	if fileInfo.Size() == 0 {
+		return fmt.Errorf("file is empty which is not supported")
 	}
 
 	fileSize := fileInfo.Size()
@@ -48,7 +50,7 @@ func (client Client) PutFile(ctx context.Context, accountName, shareName, path, 
 					fileSize:  fileSize,
 				}
 
-				_, err := client.uploadChunk(ctx, accountName, shareName, path, fileName, uci, file)
+				_, err := c.uploadChunk(ctx, shareName, path, fileName, uci, file)
 				if err != nil {
 					errors <- err
 				}
@@ -77,7 +79,7 @@ type uploadChunkInput struct {
 	fileSize  int64
 }
 
-func (client Client) uploadChunk(ctx context.Context, accountName, shareName, path, fileName string, input uploadChunkInput, file *os.File) (result autorest.Response, err error) {
+func (c Client) uploadChunk(ctx context.Context, shareName, path, fileName string, input uploadChunkInput, file *os.File) (result PutRangeResponse, err error) {
 	startBytes := int64(input.chunkSize * input.thisChunk)
 	endBytes := startBytes + int64(input.chunkSize)
 
@@ -102,9 +104,9 @@ func (client Client) uploadChunk(ctx context.Context, accountName, shareName, pa
 		EndBytes:   endBytes,
 		Content:    bytes,
 	}
-	result, err = client.PutByteRange(ctx, accountName, shareName, path, fileName, putBytesInput)
+	result, err = c.PutByteRange(ctx, shareName, path, fileName, putBytesInput)
 	if err != nil {
-		return result, fmt.Errorf("Error putting bytes: %s", err)
+		return result, fmt.Errorf("error putting bytes: %s", err)
 	}
 
 	return

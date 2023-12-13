@@ -1,11 +1,5 @@
 package accounts
 
-import "github.com/Azure/go-autorest/autorest"
-
-type SetServicePropertiesResult struct {
-	autorest.Response
-}
-
 type StorageServiceProperties struct {
 	// Cors - Specifies CORS rules for the Blob service. You can include up to five CorsRule elements in the request. If no CorsRule elements are included in the request body, all CORS rules will be deleted, and CORS will be disabled for the Blob service.
 	Cors *CorsRules `xml:"Cors,omitempty"`

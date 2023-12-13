@@ -8,10 +8,10 @@ import (
 )
 
 // PutBlockBlobFromFile is a helper method which takes a file, and automatically chunks it up, rather than having to do this yourself
-func (client Client) PutBlockBlobFromFile(ctx context.Context, accountName, containerName, blobName string, file *os.File, input PutBlockBlobInput) error {
+func (c Client) PutBlockBlobFromFile(ctx context.Context, containerName, blobName string, file *os.File, input PutBlockBlobInput) error {
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return fmt.Errorf("Error loading file info: %s", err)
+		return fmt.Errorf("error loading file info: %s", err)
 	}
 
 	fileSize := fileInfo.Size()
@@ -26,8 +26,8 @@ func (client Client) PutBlockBlobFromFile(ctx context.Context, accountName, cont
 
 	input.Content = &bytes
 
-	if _, err = client.PutBlockBlob(ctx, accountName, containerName, blobName, input); err != nil {
-		return fmt.Errorf("Error putting bytes: %s", err)
+	if _, err = c.PutBlockBlob(ctx, containerName, blobName, input); err != nil {
+		return fmt.Errorf("error putting bytes: %s", err)
 	}
 
 	return nil

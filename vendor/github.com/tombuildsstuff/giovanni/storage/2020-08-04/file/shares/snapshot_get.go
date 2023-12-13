@@ -2,104 +2,87 @@ package shares
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
-type GetSnapshotPropertiesResult struct {
-	autorest.Response
+type GetSnapshotPropertiesResponse struct {
+	HttpResponse *client.Response
 
 	MetaData map[string]string
 }
 
+type GetSnapshotPropertiesInput struct {
+	snapshotShare string
+}
+
 // GetSnapshot gets information about the specified Snapshot of the specified Storage Share
-func (client Client) GetSnapshot(ctx context.Context, accountName, shareName, snapshotShare string) (result GetSnapshotPropertiesResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("shares.Client", "GetSnapshot", "`accountName` cannot be an empty string.")
-	}
+func (c Client) GetSnapshot(ctx context.Context, shareName string, input GetSnapshotPropertiesInput) (resp GetSnapshotPropertiesResponse, err error) {
 	if shareName == "" {
-		return result, validation.NewError("shares.Client", "GetSnapshot", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("shares.Client", "GetSnapshot", "`shareName` must be a lower-cased string.")
-	}
-	if snapshotShare == "" {
-		return result, validation.NewError("shares.Client", "GetSnapshot", "`snapshotShare` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
 
-	req, err := client.GetSnapshotPreparer(ctx, accountName, shareName, snapshotShare)
+	if input.snapshotShare == "" {
+		return resp, fmt.Errorf("`snapshotShare` cannot be an empty string")
+	}
+
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodGet,
+		OptionsObject: snapShotGetOptions{
+			snapshotShare: input.snapshotShare,
+		},
+		Path: fmt.Sprintf("/%s", shareName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "GetSnapshot", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.GetSnapshotSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "shares.Client", "GetSnapshot", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.GetSnapshotResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "GetSnapshot", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.MetaData = metadata.ParseFromHeaders(resp.HttpResponse.Header)
+		}
 	}
 
 	return
 }
 
-// GetSnapshotPreparer prepares the GetSnapshot request.
-func (client Client) GetSnapshotPreparer(ctx context.Context, accountName, shareName, snapshotShare string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"restype":  autorest.Encode("query", "share"),
-		"snapshot": autorest.Encode("query", snapshotShare),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type snapShotGetOptions struct {
+	snapshotShare string
 }
 
-// GetSnapshotSender sends the GetSnapshot request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetSnapshotSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s snapShotGetOptions) ToHeaders() *client.Headers {
+	return nil
 }
 
-// GetSnapshotResponder handles the response to the GetSnapshot request. The method always
-// closes the http.Response Body.
-func (client Client) GetSnapshotResponder(resp *http.Response) (result GetSnapshotPropertiesResult, err error) {
-	if resp.Header != nil {
-		result.MetaData = metadata.ParseFromHeaders(resp.Header)
-	}
+func (s snapShotGetOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
-	return
+func (s snapShotGetOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("restype", "share")
+	out.Append("snapshot", s.snapshotShare)
+	return out
 }

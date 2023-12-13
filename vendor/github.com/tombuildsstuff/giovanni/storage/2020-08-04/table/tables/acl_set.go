@@ -3,12 +3,11 @@ package tables
 import (
 	"context"
 	"encoding/xml"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type setAcl struct {
@@ -17,82 +16,58 @@ type setAcl struct {
 	XMLName xml.Name `xml:"SignedIdentifiers"`
 }
 
+type SetACLResponse struct {
+	HttpResponse *client.Response
+}
+
 // SetACL sets the specified Access Control List for the specified Table
-func (client Client) SetACL(ctx context.Context, accountName, tableName string, acls []SignedIdentifier) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("tables.Client", "SetACL", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetACL(ctx context.Context, tableName string, acls []SignedIdentifier) (resp SetACLResponse, err error) {
 	if tableName == "" {
-		return result, validation.NewError("tables.Client", "SetACL", "`tableName` cannot be an empty string.")
+		return resp, fmt.Errorf("`tableName` cannot be an empty string")
 	}
 
-	req, err := client.SetACLPreparer(ctx, accountName, tableName, acls)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
+		},
+		HttpMethod:    http.MethodPut,
+		OptionsObject: setAclTableOptions{},
+		Path:          fmt.Sprintf("/%s", tableName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tables.Client", "SetACL", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SetACLSender(req)
+	err = req.Marshal(setAcl{SignedIdentifiers: acls})
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "tables.Client", "SetACL", resp, "Failure sending request")
-		return
+		return resp, fmt.Errorf("marshalling request: %+v", err)
 	}
 
-	result, err = client.SetACLResponder(resp)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tables.Client", "SetACL", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// SetACLPreparer prepares the SetACL request.
-func (client Client) SetACLPreparer(ctx context.Context, accountName, tableName string, acls []SignedIdentifier) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"tableName": autorest.Encode("path", tableName),
-	}
+type setAclTableOptions struct{}
 
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "acl"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	input := setAcl{
-		SignedIdentifiers: acls,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetTableEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{tableName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithXML(&input))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+func (s setAclTableOptions) ToHeaders() *client.Headers {
+	return nil
 }
 
-// SetACLSender sends the SetACL request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetACLSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s setAclTableOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// SetACLResponder handles the response to the SetACL request. The method always
-// closes the http.Response Body.
-func (client Client) SetACLResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (s setAclTableOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "acl")
+	return out
 }

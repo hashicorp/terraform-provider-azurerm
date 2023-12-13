@@ -10,12 +10,12 @@ import (
 )
 
 type StorageContainerWrapper interface {
-	Create(ctx context.Context, resourceGroup, accountName, containerName string, input containers.CreateInput) error
-	Delete(ctx context.Context, resourceGroup, accountName, containerName string) error
-	Exists(ctx context.Context, resourceGroup, accountName, containerName string) (*bool, error)
-	Get(ctx context.Context, resourceGroup, accountName, containerName string) (*StorageContainerProperties, error)
-	UpdateAccessLevel(ctx context.Context, resourceGroup, accountName, containerName string, level containers.AccessLevel) error
-	UpdateMetaData(ctx context.Context, resourceGroup, accountName, containerName string, metadata map[string]string) error
+	Create(ctx context.Context, resourceGroup, containerName string, input containers.CreateInput) error
+	Delete(ctx context.Context, resourceGroup, containerName string) error
+	Exists(ctx context.Context, resourceGroup, containerName string) (*bool, error)
+	Get(ctx context.Context, resourceGroup, containerName string) (*StorageContainerProperties, error)
+	UpdateAccessLevel(ctx context.Context, resourceGroup, containerName string, level containers.AccessLevel) error
+	UpdateMetaData(ctx context.Context, resourceGroup, containerName string, metadata map[string]string) error
 }
 
 type StorageContainerProperties struct {

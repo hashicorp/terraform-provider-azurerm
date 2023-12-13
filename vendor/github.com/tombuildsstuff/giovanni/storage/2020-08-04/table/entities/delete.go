@@ -2,12 +2,11 @@ package entities
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type DeleteEntityInput struct {
@@ -20,80 +19,62 @@ type DeleteEntityInput struct {
 	PartitionKey string
 }
 
+type DeleteEntityResponse struct {
+	HttpResponse *client.Response
+}
+
 // Delete deletes an existing entity in a table.
-func (client Client) Delete(ctx context.Context, accountName, tableName string, input DeleteEntityInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("entities.Client", "Delete", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Delete(ctx context.Context, tableName string, input DeleteEntityInput) (resp DeleteEntityResponse, err error) {
+
 	if tableName == "" {
-		return result, validation.NewError("entities.Client", "Delete", "`tableName` cannot be an empty string.")
+		return resp, fmt.Errorf("`tableName` cannot be an empty string")
 	}
+
 	if input.PartitionKey == "" {
-		return result, validation.NewError("entities.Client", "Delete", "`input.PartitionKey` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.PartitionKey` cannot be an empty string")
 	}
+
 	if input.RowKey == "" {
-		return result, validation.NewError("entities.Client", "Delete", "`input.RowKey` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.RowKey` cannot be an empty string")
 	}
 
-	req, err := client.DeletePreparer(ctx, accountName, tableName, input)
+	opts := client.RequestOptions{
+		ContentType: "application/json",
+		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
+		},
+		HttpMethod:    http.MethodDelete,
+		OptionsObject: deleteEntitiesOptions{},
+		Path:          fmt.Sprintf("/%s(PartitionKey='%s', RowKey='%s')", tableName, input.PartitionKey, input.RowKey),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "entities.Client", "Delete", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "entities.Client", "Delete", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "entities.Client", "Delete", resp, "Failure responding to request")
-		return
-	}
-
 	return
 }
 
-// DeletePreparer prepares the Delete request.
-func (client Client) DeletePreparer(ctx context.Context, accountName, tableName string, input DeleteEntityInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"tableName":    autorest.Encode("path", tableName),
-		"partitionKey": autorest.Encode("path", input.PartitionKey),
-		"rowKey":       autorest.Encode("path", input.RowKey),
-	}
+type deleteEntitiesOptions struct{}
 
-	headers := map[string]interface{}{
-		// TODO: support for eTags
-		"If-Match": "*",
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsDelete(),
-		autorest.WithBaseURL(endpoints.GetTableEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{tableName}(PartitionKey='{partitionKey}', RowKey='{rowKey}')", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+func (d deleteEntitiesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Append("Accept", "application/json")
+	headers.Append("If-Match", "*")
+	return headers
 }
 
-// DeleteSender sends the Delete request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (d deleteEntitiesOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// DeleteResponder handles the response to the Delete request. The method always
-// closes the http.Response Body.
-func (client Client) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (d deleteEntitiesOptions) ToQuery() *client.QueryParams {
+	return nil
 }

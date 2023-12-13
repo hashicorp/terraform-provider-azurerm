@@ -7,10 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type GetPageRangesInput struct {
@@ -20,8 +18,8 @@ type GetPageRangesInput struct {
 	EndByte   *int64
 }
 
-type GetPageRangesResult struct {
-	autorest.Response
+type GetPageRangesResponse struct {
+	HttpResponse *client.Response
 
 	// The size of the blob in bytes
 	ContentLength *int64
@@ -44,109 +42,97 @@ type PageRange struct {
 }
 
 // GetPageRanges returns the list of valid page ranges for a page blob or snapshot of a page blob.
-func (client Client) GetPageRanges(ctx context.Context, accountName, containerName, blobName string, input GetPageRangesInput) (result GetPageRangesResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "GetPageRanges", "`accountName` cannot be an empty string.")
-	}
+func (c Client) GetPageRanges(ctx context.Context, containerName, blobName string, input GetPageRangesInput) (resp GetPageRangesResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "GetPageRanges", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "GetPageRanges", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "GetPageRanges", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
+
 	if (input.StartByte != nil && input.EndByte == nil) || input.StartByte == nil && input.EndByte != nil {
-		return result, validation.NewError("blobs.Client", "GetPageRanges", "`input.StartByte` and `input.EndByte` must both be specified, or both be nil.")
+		return resp, fmt.Errorf("`input.StartByte` and `input.EndByte` must both be specified, or both be nil")
 	}
 
-	req, err := client.GetPageRangesPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodGet,
+		OptionsObject: getPageRangesOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetPageRanges", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.GetPageRangesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetPageRanges", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.GetPageRangesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetPageRanges", resp, "Failure responding to request")
-		return
-	}
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.ContentType = resp.HttpResponse.Header.Get("Content-Type")
+			resp.ETag = resp.HttpResponse.Header.Get("ETag")
 
-	return
-}
+			if v := resp.HttpResponse.Header.Get("x-ms-blob-content-length"); v != "" {
+				i, innerErr := strconv.Atoi(v)
+				if innerErr != nil {
+					err = fmt.Errorf("Error parsing %q as an integer: %s", v, innerErr)
+					return
+				}
 
-// GetPageRangesPreparer prepares the GetPageRanges request.
-func (client Client) GetPageRangesPreparer(ctx context.Context, accountName, containerName, blobName string, input GetPageRangesInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "pagelist"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-
-	if input.StartByte != nil && input.EndByte != nil {
-		headers["x-ms-range"] = fmt.Sprintf("bytes=%d-%d", *input.StartByte, *input.EndByte)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetPageRangesSender sends the GetPageRanges request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetPageRangesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetPageRangesResponder handles the response to the GetPageRanges request. The method always
-// closes the http.Response Body.
-func (client Client) GetPageRangesResponder(resp *http.Response) (result GetPageRangesResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.ContentType = resp.Header.Get("Content-Type")
-		result.ETag = resp.Header.Get("ETag")
-
-		if v := resp.Header.Get("x-ms-blob-content-length"); v != "" {
-			i, innerErr := strconv.Atoi(v)
-			if innerErr != nil {
-				err = fmt.Errorf("Error parsing %q as an integer: %s", v, innerErr)
-				return
+				i64 := int64(i)
+				resp.ContentLength = &i64
 			}
+		}
 
-			i64 := int64(i)
-			result.ContentLength = &i64
+		err = resp.HttpResponse.Unmarshal(&resp)
+		if err != nil {
+			return resp, fmt.Errorf("unmarshalling response: %s", err)
 		}
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingXML(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
 	return
+}
+
+type getPageRangesOptions struct {
+	input GetPageRangesInput
+}
+
+func (g getPageRangesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+
+	if g.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *g.input.LeaseID)
+	}
+
+	if g.input.StartByte != nil && g.input.EndByte != nil {
+		headers.Append("x-ms-range", fmt.Sprintf("bytes=%d-%d", *g.input.StartByte, *g.input.EndByte))
+	}
+
+	return headers
+}
+
+func (g getPageRangesOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (g getPageRangesOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "pagelist")
+	return out
 }

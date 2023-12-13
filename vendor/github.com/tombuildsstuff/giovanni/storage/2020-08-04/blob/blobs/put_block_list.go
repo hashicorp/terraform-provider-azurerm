@@ -2,13 +2,12 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -34,8 +33,8 @@ type PutBlockListInput struct {
 	LeaseID            *string
 }
 
-type PutBlockListResult struct {
-	autorest.Response
+type PutBlockListResponse struct {
+	HttpResponse *client.Response
 
 	ContentMD5   string
 	ETag         string
@@ -45,113 +44,99 @@ type PutBlockListResult struct {
 // PutBlockList writes a blob by specifying the list of block IDs that make up the blob.
 // In order to be written as part of a blob, a block must have been successfully written
 // to the server in a prior Put Block operation.
-func (client Client) PutBlockList(ctx context.Context, accountName, containerName, blobName string, input PutBlockListInput) (result PutBlockListResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockList", "`accountName` cannot be an empty string.")
-	}
+func (c Client) PutBlockList(ctx context.Context, containerName, blobName string, input PutBlockListInput) (resp PutBlockListResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockList", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "PutBlockList", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockList", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
 
-	req, err := client.PutBlockListPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: putBlockListOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "PutBlockList", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.PutBlockListSender(req)
+	err = req.Marshal(&input.BlockList)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "PutBlockList", resp, "Failure sending request")
+		return resp, fmt.Errorf("marshalling request: %v", err)
+	}
+
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.PutBlockListResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "PutBlockList", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.ContentMD5 = resp.HttpResponse.Header.Get("Content-MD5")
+			resp.ETag = resp.HttpResponse.Header.Get("ETag")
+			resp.LastModified = resp.HttpResponse.Header.Get("Last-Modified")
+		}
 	}
 
 	return
 }
 
-// PutBlockListPreparer prepares the PutBlockList request.
-func (client Client) PutBlockListPreparer(ctx context.Context, accountName, containerName, blobName string, input PutBlockListInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "blocklist"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.CacheControl != nil {
-		headers["x-ms-blob-cache-control"] = *input.CacheControl
-	}
-	if input.ContentDisposition != nil {
-		headers["x-ms-blob-content-disposition"] = *input.ContentDisposition
-	}
-	if input.ContentEncoding != nil {
-		headers["x-ms-blob-content-encoding"] = *input.ContentEncoding
-	}
-	if input.ContentLanguage != nil {
-		headers["x-ms-blob-content-language"] = *input.ContentLanguage
-	}
-	if input.ContentMD5 != nil {
-		headers["x-ms-blob-content-md5"] = *input.ContentMD5
-	}
-	if input.ContentType != nil {
-		headers["x-ms-blob-content-type"] = *input.ContentType
-	}
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-
-	headers = metadata.SetIntoHeaders(headers, input.MetaData)
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithXML(input.BlockList))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type putBlockListOptions struct {
+	input PutBlockListInput
 }
 
-// PutBlockListSender sends the PutBlockList request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) PutBlockListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
+func (p putBlockListOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
 
-// PutBlockListResponder handles the response to the PutBlockList request. The method always
-// closes the http.Response Body.
-func (client Client) PutBlockListResponder(resp *http.Response) (result PutBlockListResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.ContentMD5 = resp.Header.Get("Content-MD5")
-		result.ETag = resp.Header.Get("ETag")
-		result.LastModified = resp.Header.Get("Last-Modified")
+	if p.input.CacheControl != nil {
+		headers.Append("x-ms-blob-cache-control", *p.input.CacheControl)
+	}
+	if p.input.ContentDisposition != nil {
+		headers.Append("x-ms-blob-content-disposition", *p.input.ContentDisposition)
+	}
+	if p.input.ContentEncoding != nil {
+		headers.Append("x-ms-blob-content-encoding", *p.input.ContentEncoding)
+	}
+	if p.input.ContentLanguage != nil {
+		headers.Append("x-ms-blob-content-language", *p.input.ContentLanguage)
+	}
+	if p.input.ContentMD5 != nil {
+		headers.Append("x-ms-blob-content-md5", *p.input.ContentMD5)
+	}
+	if p.input.ContentType != nil {
+		headers.Append("x-ms-blob-content-type", *p.input.ContentType)
+	}
+	if p.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *p.input.LeaseID)
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	headers.Merge(metadata.SetMetaDataHeaders(p.input.MetaData))
 
-	return
+	return headers
+}
+
+func (p putBlockListOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (p putBlockListOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "blocklist")
+	return out
 }

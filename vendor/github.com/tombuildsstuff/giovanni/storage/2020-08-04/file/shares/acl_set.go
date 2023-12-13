@@ -1,103 +1,89 @@
 package shares
 
 import (
+	"bytes"
 	"context"
 	"encoding/xml"
+	"fmt"
+	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-type setAcl struct {
+type SetAclResponse struct {
+	HttpResponse *client.Response
+}
+
+type SetAclInput struct {
 	SignedIdentifiers []SignedIdentifier `xml:"SignedIdentifier"`
 
 	XMLName xml.Name `xml:"SignedIdentifiers"`
 }
 
 // SetACL sets the specified Access Control List on the specified Storage Share
-func (client Client) SetACL(ctx context.Context, accountName, shareName string, acls []SignedIdentifier) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("shares.Client", "SetACL", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetACL(ctx context.Context, shareName string, input SetAclInput) (resp SetAclResponse, err error) {
+
 	if shareName == "" {
-		return result, validation.NewError("shares.Client", "SetACL", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("shares.Client", "SetACL", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
 
-	req, err := client.SetACLPreparer(ctx, accountName, shareName, acls)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod:    http.MethodPut,
+		OptionsObject: setAclOptions{},
+		Path:          fmt.Sprintf("/%s", shareName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "SetACL", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SetACLSender(req)
+	b, err := xml.Marshal(&input)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "shares.Client", "SetACL", resp, "Failure sending request")
+		return resp, fmt.Errorf("marshalling input: %v", err)
+	}
+	withHeader := xml.Header + string(b)
+	bytesWithHeader := []byte(withHeader)
+	req.ContentLength = int64(len(bytesWithHeader))
+	req.Header.Set("Content-Length", strconv.Itoa(len(bytesWithHeader)))
+	req.Body = io.NopCloser(bytes.NewReader(bytesWithHeader))
+
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
-
-	result, err = client.SetACLResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "SetACL", resp, "Failure responding to request")
-		return
-	}
-
 	return
 }
 
-// SetACLPreparer prepares the SetACL request.
-func (client Client) SetACLPreparer(ctx context.Context, accountName, shareName string, acls []SignedIdentifier) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("query", "share"),
-		"comp":    autorest.Encode("query", "acl"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	input := setAcl{
-		SignedIdentifiers: acls,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithXML(&input))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type setAclOptions struct {
+	SignedIdentifiers []SignedIdentifier `xml:"SignedIdentifier"`
 }
 
-// SetACLSender sends the SetACL request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetACLSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s setAclOptions) ToHeaders() *client.Headers {
+	return nil
 }
 
-// SetACLResponder handles the response to the SetACL request. The method always
-// closes the http.Response Body.
-func (client Client) SetACLResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
+func (s setAclOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	return
+func (s setAclOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("restype", "share")
+	out.Append("comp", "acl")
+	return out
 }

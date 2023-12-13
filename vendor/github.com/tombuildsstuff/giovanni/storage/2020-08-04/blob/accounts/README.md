@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"time"
 	
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 )
 

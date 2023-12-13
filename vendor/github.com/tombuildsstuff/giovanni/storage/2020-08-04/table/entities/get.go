@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type GetEntityInput struct {
@@ -19,90 +17,76 @@ type GetEntityInput struct {
 	MetaDataLevel MetaDataLevel
 }
 
-type GetEntityResult struct {
-	autorest.Response
+type GetEntityResponse struct {
+	HttpResponse *client.Response
 
 	Entity map[string]interface{}
 }
 
 // Get queries entities in a table and includes the $filter and $select options.
-func (client Client) Get(ctx context.Context, accountName, tableName string, input GetEntityInput) (result GetEntityResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("entities.Client", "Get", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Get(ctx context.Context, tableName string, input GetEntityInput) (resp GetEntityResponse, err error) {
 	if tableName == "" {
-		return result, validation.NewError("entities.Client", "Get", "`tableName` cannot be an empty string.")
+		return resp, fmt.Errorf("`tableName` cannot be an empty string")
 	}
+
 	if input.PartitionKey == "" {
-		return result, validation.NewError("entities.Client", "Get", "`input.PartitionKey` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.PartitionKey` cannot be an empty string")
 	}
+
 	if input.RowKey == "" {
-		return result, validation.NewError("entities.Client", "Get", "`input.RowKey` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.RowKey` cannot be an empty string")
 	}
 
-	req, err := client.GetPreparer(ctx, accountName, tableName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodGet,
+		OptionsObject: getEntitiesOptions{
+			MetaDataLevel: input.MetaDataLevel,
+		},
+		Path: fmt.Sprintf("/%s(PartitionKey='%s', RowKey='%s')", tableName, input.PartitionKey, input.RowKey),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "entities.Client", "Get", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.GetSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "entities.Client", "Get", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.GetResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "entities.Client", "Get", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Body != nil {
+			err = resp.HttpResponse.Unmarshal(&resp.Entity)
+			if err != nil {
+				return resp, fmt.Errorf("unmarshalling response: %+v", err)
+			}
+		}
 	}
-
 	return
 }
 
-// GetPreparer prepares the Get request.
-func (client Client) GetPreparer(ctx context.Context, accountName, tableName string, input GetEntityInput) (*http.Request, error) {
-
-	pathParameters := map[string]interface{}{
-		"tableName":    autorest.Encode("path", tableName),
-		"partitionKey": autorest.Encode("path", input.PartitionKey),
-		"rowKey":       autorest.Encode("path", input.RowKey),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version":          APIVersion,
-		"Accept":                fmt.Sprintf("application/json;odata=%s", input.MetaDataLevel),
-		"DataServiceVersion":    "3.0;NetFx",
-		"MaxDataServiceVersion": "3.0;NetFx",
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetTableEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{tableName}(PartitionKey='{partitionKey}',RowKey='{rowKey}')", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type getEntitiesOptions struct {
+	MetaDataLevel MetaDataLevel
 }
 
-// GetSender sends the Get request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (g getEntitiesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Append("Accept", fmt.Sprintf("application/json;odata=%s", g.MetaDataLevel))
+	headers.Append("DataServiceVersion", "3.0;NetFx")
+	headers.Append("MaxDataServiceVersion", "3.0;NetFx")
+	return headers
 }
 
-// GetResponder handles the response to the Get request. The method always
-// closes the http.Response Body.
-func (client Client) GetResponder(resp *http.Response) (result GetEntityResult, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Entity),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+func (g getEntitiesOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	return
+func (g getEntitiesOptions) ToQuery() *client.QueryParams {
+	return nil
 }

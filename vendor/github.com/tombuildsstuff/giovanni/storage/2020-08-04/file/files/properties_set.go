@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -68,54 +67,61 @@ type SetPropertiesInput struct {
 	MetaData map[string]string
 }
 
+type SetPropertiesResponse struct {
+	HttpResponse *client.Response
+}
+
 // SetProperties sets the specified properties on the specified File
-func (client Client) SetProperties(ctx context.Context, accountName, shareName, path, fileName string, input SetPropertiesInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("files.Client", "SetProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetProperties(ctx context.Context, shareName, path, fileName string, input SetPropertiesInput) (resp SetPropertiesResponse, err error) {
 	if shareName == "" {
-		return result, validation.NewError("files.Client", "SetProperties", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("files.Client", "SetProperties", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
 	if fileName == "" {
-		return result, validation.NewError("files.Client", "SetProperties", "`fileName` cannot be an empty string.")
+		return resp, fmt.Errorf("`fileName` cannot be an empty string")
 	}
 
-	req, err := client.SetPropertiesPreparer(ctx, accountName, shareName, path, fileName, input)
+	if path != "" {
+		path = fmt.Sprintf("/%s/", path)
+	}
+
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: SetPropertiesOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("%s/%s%s", shareName, path, fileName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "SetProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SetPropertiesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "files.Client", "SetProperties", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.SetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "SetProperties", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// SetPropertiesPreparer prepares the SetProperties request.
-func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, shareName, path, fileName string, input SetPropertiesInput) (*http.Request, error) {
-	if path != "" {
-		path = fmt.Sprintf("%s/", path)
-	}
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-		"directory": autorest.Encode("path", path),
-		"fileName":  autorest.Encode("path", fileName),
-	}
+type SetPropertiesOptions struct {
+	input SetPropertiesInput
+}
 
+func (s SetPropertiesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
 	var coalesceDate = func(input *time.Time, defaultVal string) string {
 		if input == nil {
 			return defaultVal
@@ -124,63 +130,44 @@ func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, sha
 		return input.Format(time.RFC1123)
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-		"x-ms-type":    "file",
+	headers.Append("x-ms-type", "file")
 
-		"x-ms-content-length":       input.ContentLength,
-		"x-ms-file-permission":      "inherit", // TODO: expose this in future
-		"x-ms-file-attributes":      "None",    // TODO: expose this in future
-		"x-ms-file-creation-time":   coalesceDate(input.CreatedAt, "now"),
-		"x-ms-file-last-write-time": coalesceDate(input.LastModified, "now"),
-	}
+	headers.Append("x-ms-content-length", strconv.Itoa(int(s.input.ContentLength)))
+	headers.Append("x-ms-file-permission", "inherit") // TODO: expose this in future
+	headers.Append("x-ms-file-attributes", "None")    // TODO: expose this in future
+	headers.Append("x-ms-file-creation-time", coalesceDate(s.input.CreatedAt, "now"))
+	headers.Append("x-ms-file-last-write-time", coalesceDate(s.input.LastModified, "now"))
 
-	if input.ContentControl != nil {
-		headers["x-ms-cache-control"] = *input.ContentControl
+	if s.input.ContentControl != nil {
+		headers.Append("x-ms-cache-control", *s.input.ContentControl)
 	}
-	if input.ContentDisposition != nil {
-		headers["x-ms-content-disposition"] = *input.ContentDisposition
+	if s.input.ContentDisposition != nil {
+		headers.Append("x-ms-content-disposition", *s.input.ContentDisposition)
 	}
-	if input.ContentEncoding != nil {
-		headers["x-ms-content-encoding"] = *input.ContentEncoding
+	if s.input.ContentEncoding != nil {
+		headers.Append("x-ms-content-encoding", *s.input.ContentEncoding)
 	}
-	if input.ContentLanguage != nil {
-		headers["x-ms-content-language"] = *input.ContentLanguage
+	if s.input.ContentLanguage != nil {
+		headers.Append("x-ms-content-language", *s.input.ContentLanguage)
 	}
-	if input.ContentMD5 != nil {
-		headers["x-ms-content-md5"] = *input.ContentMD5
+	if s.input.ContentMD5 != nil {
+		headers.Append("x-ms-content-md5", *s.input.ContentMD5)
 	}
-	if input.ContentType != nil {
-		headers["x-ms-content-type"] = *input.ContentType
+	if s.input.ContentType != nil {
+		headers.Append("x-ms-content-type", *s.input.ContentType)
 	}
 
-	headers = metadata.SetIntoHeaders(headers, input.MetaData)
+	if len(s.input.MetaData) > 0 {
+		headers.Merge(metadata.SetMetaDataHeaders(s.input.MetaData))
+	}
 
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}/{directory}{fileName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+	return headers
 }
 
-// SetPropertiesSender sends the SetProperties request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s SetPropertiesOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// SetPropertiesResponder handles the response to the SetProperties request. The method always
-// closes the http.Response Body.
-func (client Client) SetPropertiesResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (s SetPropertiesOptions) ToQuery() *client.QueryParams {
+	return nil
 }

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
 )
 
@@ -24,19 +24,19 @@ func NewDataPlaneStorageContainerWrapper(client *containers.Client) StorageConta
 	}
 }
 
-func (w DataPlaneStorageContainerWrapper) Create(ctx context.Context, _, accountName, containerName string, input containers.CreateInput) error {
+func (w DataPlaneStorageContainerWrapper) Create(ctx context.Context, _, containerName string, input containers.CreateInput) error {
 	timeout, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context is missing a timeout")
 	}
 
-	if resp, err := w.client.Create(ctx, accountName, containerName, input); err != nil {
+	if resp, err := w.client.Create(ctx, containerName, input); err != nil {
 		// If we fail due to previous delete still in progress, then we can retry
-		if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+		if response.WasConflict(resp.HttpResponse.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:        []string{"waitingOnDelete"},
 				Target:         []string{"succeeded"},
-				Refresh:        w.createRefreshFunc(ctx, accountName, containerName, input),
+				Refresh:        w.createRefreshFunc(ctx, containerName, input),
 				PollInterval:   10 * time.Second,
 				NotFoundChecks: 180,
 				Timeout:        time.Until(timeout),
@@ -52,31 +52,31 @@ func (w DataPlaneStorageContainerWrapper) Create(ctx context.Context, _, account
 	return nil
 }
 
-func (w DataPlaneStorageContainerWrapper) Delete(ctx context.Context, _, accountName, containerName string) error {
-	resp, err := w.client.Delete(ctx, accountName, containerName)
-	if utils.ResponseWasNotFound(resp) {
+func (w DataPlaneStorageContainerWrapper) Delete(ctx context.Context, _, containerName string) error {
+	resp, err := w.client.Delete(ctx, containerName)
+	if response.WasNotFound(resp.HttpResponse.Response) {
 		return nil
 	}
 
 	return err
 }
 
-func (w DataPlaneStorageContainerWrapper) Exists(ctx context.Context, _, accountName, containerName string) (*bool, error) {
-	existing, err := w.client.GetProperties(ctx, accountName, containerName)
+func (w DataPlaneStorageContainerWrapper) Exists(ctx context.Context, _, containerName string) (*bool, error) {
+	existing, err := w.client.GetProperties(ctx, containerName, containers.GetPropertiesInput{})
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse.Response) {
 			return nil, err
 		}
 	}
 
-	exists := !utils.ResponseWasNotFound(existing.Response)
+	exists := !response.WasNotFound(existing.HttpResponse.Response)
 	return &exists, nil
 }
 
-func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, _, accountName, containerName string) (*StorageContainerProperties, error) {
-	props, err := w.client.GetProperties(ctx, accountName, containerName)
+func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, _, containerName string) (*StorageContainerProperties, error) {
+	props, err := w.client.GetProperties(ctx, containerName, containers.GetPropertiesInput{})
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
+		if response.WasNotFound(props.HttpResponse.Response) {
 			return nil, nil
 		}
 
@@ -84,32 +84,38 @@ func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, _, accountNam
 	}
 
 	return &StorageContainerProperties{
-		AccessLevel:           props.AccessLevel,
-		MetaData:              props.MetaData,
-		HasImmutabilityPolicy: props.HasImmutabilityPolicy,
-		HasLegalHold:          props.HasLegalHold,
+		AccessLevel:           props.Model.AccessLevel,
+		MetaData:              props.Model.MetaData,
+		HasImmutabilityPolicy: props.Model.HasImmutabilityPolicy,
+		HasLegalHold:          props.Model.HasLegalHold,
 	}, nil
 }
 
-func (w DataPlaneStorageContainerWrapper) UpdateAccessLevel(ctx context.Context, _, accountName, containerName string, level containers.AccessLevel) error {
-	_, err := w.client.SetAccessControl(ctx, accountName, containerName, level)
+func (w DataPlaneStorageContainerWrapper) UpdateAccessLevel(ctx context.Context, _, containerName string, level containers.AccessLevel) error {
+	acInput := containers.SetAccessControlInput{
+		AccessLevel: level,
+	}
+	_, err := w.client.SetAccessControl(ctx, containerName, acInput)
 	return err
 }
 
-func (w DataPlaneStorageContainerWrapper) UpdateMetaData(ctx context.Context, _, accountName, containerName string, metaData map[string]string) error {
-	_, err := w.client.SetMetaData(ctx, accountName, containerName, metaData)
+func (w DataPlaneStorageContainerWrapper) UpdateMetaData(ctx context.Context, _, containerName string, metaData map[string]string) error {
+	metadataInput := containers.SetMetaDataInput{
+		MetaData: metaData,
+	}
+	_, err := w.client.SetMetaData(ctx, containerName, metadataInput)
 	return err
 }
 
-func (w DataPlaneStorageContainerWrapper) createRefreshFunc(ctx context.Context, accountName string, containerName string, input containers.CreateInput) pluginsdk.StateRefreshFunc {
+func (w DataPlaneStorageContainerWrapper) createRefreshFunc(ctx context.Context, containerName string, input containers.CreateInput) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := w.client.Create(ctx, accountName, containerName, input)
+		resp, err := w.client.Create(ctx, containerName, input)
 		if err != nil {
-			if !utils.ResponseWasConflict(resp.Response) {
+			if !response.WasConflict(resp.HttpResponse.Response) {
 				return nil, "", err
 			}
 
-			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+			if response.WasConflict(resp.HttpResponse.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
 				return nil, "waitingOnDelete", nil
 			}
 		}

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -189,13 +190,13 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	id := blobsClient.GetResourceID(accountName, containerName, name)
 	if d.IsNewResource() {
 		input := blobs.GetPropertiesInput{}
-		props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
+		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
 		if err != nil {
-			if !utils.ResponseWasNotFound(props.Response) {
+			if !response.WasNotFound(props.HttpResponse.Response) {
 				return fmt.Errorf("checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, account.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(props.Response) {
+		if !response.WasNotFound(props.HttpResponse.Response) {
 			return tf.ImportAsExistsError("azurerm_storage_blob", id)
 		}
 	}

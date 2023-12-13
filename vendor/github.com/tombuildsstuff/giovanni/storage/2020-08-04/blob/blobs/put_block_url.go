@@ -2,13 +2,12 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type PutBlockFromURLInput struct {
@@ -20,110 +19,94 @@ type PutBlockFromURLInput struct {
 	Range      *string
 }
 
-type PutBlockFromURLResult struct {
-	autorest.Response
-	ContentMD5 string
+type PutBlockFromURLResponse struct {
+	HttpResponse *client.Response
+	ContentMD5   string
 }
 
 // PutBlockFromURL creates a new block to be committed as part of a blob where the contents are read from a URL
-func (client Client) PutBlockFromURL(ctx context.Context, accountName, containerName, blobName string, input PutBlockFromURLInput) (result PutBlockFromURLResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockFromURL", "`accountName` cannot be an empty string.")
-	}
+func (c Client) PutBlockFromURL(ctx context.Context, containerName, blobName string, input PutBlockFromURLInput) (resp PutBlockFromURLResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockFromURL", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "PutBlockFromURL", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockFromURL", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
+
 	if input.BlockID == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockFromURL", "`input.BlockID` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.BlockID` cannot be an empty string")
 	}
+
 	if input.CopySource == "" {
-		return result, validation.NewError("blobs.Client", "PutBlockFromURL", "`input.CopySource` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.CopySource` cannot be an empty string")
 	}
 
-	req, err := client.PutBlockFromURLPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: putBlockUrlOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "PutBlockFromURL", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.PutBlockFromURLSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "PutBlockFromURL", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.PutBlockFromURLResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "PutBlockFromURL", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.ContentMD5 = resp.HttpResponse.Header.Get("Content-MD5")
+		}
 	}
 
 	return
 }
 
-// PutBlockFromURLPreparer prepares the PutBlockFromURL request.
-func (client Client) PutBlockFromURLPreparer(ctx context.Context, accountName, containerName, blobName string, input PutBlockFromURLInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp":    autorest.Encode("query", "block"),
-		"blockid": autorest.Encode("query", input.BlockID),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version":     APIVersion,
-		"x-ms-copy-source": input.CopySource,
-	}
-
-	if input.ContentMD5 != nil {
-		headers["x-ms-source-content-md5"] = *input.ContentMD5
-	}
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-	if input.Range != nil {
-		headers["x-ms-source-range"] = *input.Range
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type putBlockUrlOptions struct {
+	input PutBlockFromURLInput
 }
 
-// PutBlockFromURLSender sends the PutBlockFromURL request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) PutBlockFromURLSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (p putBlockUrlOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+
+	headers.Append("x-ms-copy-source", p.input.CopySource)
+
+	if p.input.ContentMD5 != nil {
+		headers.Append("x-ms-source-content-md5", *p.input.ContentMD5)
+	}
+	if p.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *p.input.LeaseID)
+	}
+	if p.input.Range != nil {
+		headers.Append("x-ms-source-range", *p.input.Range)
+	}
+	return headers
 }
 
-// PutBlockFromURLResponder handles the response to the PutBlockFromURL request. The method always
-// closes the http.Response Body.
-func (client Client) PutBlockFromURLResponder(resp *http.Response) (result PutBlockFromURLResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.ContentMD5 = resp.Header.Get("Content-MD5")
-	}
+func (p putBlockUrlOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
-	return
+func (p putBlockUrlOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "block")
+	out.Append("blockid", p.input.BlockID)
+	return out
 }

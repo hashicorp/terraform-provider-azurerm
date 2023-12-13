@@ -15,9 +15,9 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/go-cmp v0.5.9
-	github.com/google/uuid v1.3.1
-	github.com/hashicorp/go-azure-helpers v0.65.1
-	github.com/hashicorp/go-azure-sdk v0.20240117.1163544
+	github.com/google/uuid v1.4.0
+	github.com/hashicorp/go-azure-helpers v0.65.0
+	github.com/hashicorp/go-azure-sdk v0.20231215.1114251
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -28,7 +28,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
-	github.com/tombuildsstuff/giovanni v0.20.0
+	github.com/tombuildsstuff/giovanni v0.21.0
 	github.com/tombuildsstuff/kermit v0.20230703.1101016
 	golang.org/x/crypto v0.17.0
 	golang.org/x/tools v0.13.0

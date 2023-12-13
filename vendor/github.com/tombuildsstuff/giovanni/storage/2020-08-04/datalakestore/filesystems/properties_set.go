@@ -2,12 +2,11 @@ package filesystems
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type SetPropertiesInput struct {
@@ -26,84 +25,75 @@ type SetPropertiesInput struct {
 	IfUnmodifiedSince *string
 }
 
+type SetPropertiesResponse struct {
+	HttpResponse *client.Response
+}
+
 // SetProperties sets the Properties for a Data Lake Store Gen2 FileSystem within a Storage Account
-func (client Client) SetProperties(ctx context.Context, accountName string, fileSystemName string, input SetPropertiesInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("datalakestore.Client", "SetProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetProperties(ctx context.Context, fileSystemName string, input SetPropertiesInput) (resp SetPropertiesResponse, err error) {
+
 	if fileSystemName == "" {
-		return result, validation.NewError("datalakestore.Client", "SetProperties", "`fileSystemName` cannot be an empty string.")
+		return resp, fmt.Errorf("`fileSystemName` cannot be an empty string")
 	}
 
-	req, err := client.SetPropertiesPreparer(ctx, accountName, fileSystemName, input)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodPatch,
+		OptionsObject: setPropertiesOptions{
+			properties:        input.Properties,
+			ifUnmodifiedSince: input.IfUnmodifiedSince,
+			ifModifiedSince:   input.IfModifiedSince,
+		},
+
+		Path: fmt.Sprintf("/%s", fileSystemName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
+
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "SetProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
-
-	resp, err := client.SetPropertiesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "SetProperties", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
-	}
-
-	result, err = client.SetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "SetProperties", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// SetPropertiesPreparer prepares the SetProperties request.
-func (client Client) SetPropertiesPreparer(ctx context.Context, accountName string, fileSystemName string, input SetPropertiesInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"fileSystemName": autorest.Encode("path", fileSystemName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"resource": autorest.Encode("query", "filesystem"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-properties": buildProperties(input.Properties),
-		"x-ms-version":    APIVersion,
-	}
-
-	if input.IfModifiedSince != nil {
-		headers["If-Modified-Since"] = *input.IfModifiedSince
-	}
-	if input.IfUnmodifiedSince != nil {
-		headers["If-Unmodified-Since"] = *input.IfUnmodifiedSince
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPatch(),
-		autorest.WithBaseURL(endpoints.GetDataLakeStoreEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{fileSystemName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type setPropertiesOptions struct {
+	properties        map[string]string
+	ifModifiedSince   *string
+	ifUnmodifiedSince *string
 }
 
-// SetPropertiesSender sends the SetProperties request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (o setPropertiesOptions) ToHeaders() *client.Headers {
+
+	headers := &client.Headers{}
+	props := buildProperties(o.properties)
+	if props != "" {
+		headers.Append("x-ms-properties", props)
+	}
+
+	if o.ifModifiedSince != nil {
+		headers.Append("If-Modified-Since", *o.ifModifiedSince)
+	}
+	if o.ifUnmodifiedSince != nil {
+		headers.Append("If-Unmodified-Since", *o.ifUnmodifiedSince)
+	}
+
+	return headers
 }
 
-// SetPropertiesResponder handles the response to the SetProperties request. The method always
-// closes the http.Response Body.
-func (client Client) SetPropertiesResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
+func (setPropertiesOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	return
+func (setPropertiesOptions) ToQuery() *client.QueryParams {
+	return fileSystemOptions{}.ToQuery()
 }

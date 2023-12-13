@@ -2,12 +2,14 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
+	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
 type GetSnapshotPropertiesInput struct {
@@ -21,70 +23,138 @@ type GetSnapshotPropertiesInput struct {
 
 // GetSnapshotProperties returns all user-defined metadata, standard HTTP properties, and system properties for
 // the specified snapshot of a blob
-func (client Client) GetSnapshotProperties(ctx context.Context, accountName, containerName, blobName string, input GetSnapshotPropertiesInput) (result GetPropertiesResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "GetSnapshotProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) GetSnapshotProperties(ctx context.Context, containerName, blobName string, input GetSnapshotPropertiesInput) (resp GetPropertiesResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "GetSnapshotProperties", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "GetSnapshotProperties", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "GetSnapshotProperties", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
+
 	if input.SnapshotID == "" {
-		return result, validation.NewError("blobs.Client", "GetSnapshotProperties", "`input.SnapshotID` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.SnapshotID` cannot be an empty string")
 	}
 
-	req, err := client.GetSnapshotPropertiesPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodHead,
+		OptionsObject: snapshotGetPropertiesOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetSnapshotProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	// we re-use the GetProperties methods since this is otherwise the same
-	resp, err := client.GetPropertiesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetSnapshotProperties", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.GetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetSnapshotProperties", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.AccessTier = AccessTier(resp.HttpResponse.Header.Get("x-ms-access-tier"))
+			resp.AccessTierChangeTime = resp.HttpResponse.Header.Get("x-ms-access-tier-change-time")
+			resp.ArchiveStatus = ArchiveStatus(resp.HttpResponse.Header.Get("x-ms-archive-status"))
+			resp.BlobCommittedBlockCount = resp.HttpResponse.Header.Get("x-ms-blob-committed-block-count")
+			resp.BlobSequenceNumber = resp.HttpResponse.Header.Get("x-ms-blob-sequence-number")
+			resp.BlobType = BlobType(resp.HttpResponse.Header.Get("x-ms-blob-type"))
+			resp.CacheControl = resp.HttpResponse.Header.Get("Cache-Control")
+			resp.ContentDisposition = resp.HttpResponse.Header.Get("Content-Disposition")
+			resp.ContentEncoding = resp.HttpResponse.Header.Get("Content-Encoding")
+			resp.ContentLanguage = resp.HttpResponse.Header.Get("Content-Language")
+			resp.ContentMD5 = resp.HttpResponse.Header.Get("Content-MD5")
+			resp.ContentType = resp.HttpResponse.Header.Get("Content-Type")
+			resp.CopyCompletionTime = resp.HttpResponse.Header.Get("x-ms-copy-completion-time")
+			resp.CopyDestinationSnapshot = resp.HttpResponse.Header.Get("x-ms-copy-destination-snapshot")
+			resp.CopyID = resp.HttpResponse.Header.Get("x-ms-copy-id")
+			resp.CopyProgress = resp.HttpResponse.Header.Get("x-ms-copy-progress")
+			resp.CopySource = resp.HttpResponse.Header.Get("x-ms-copy-source")
+			resp.CopyStatus = CopyStatus(resp.HttpResponse.Header.Get("x-ms-copy-status"))
+			resp.CopyStatusDescription = resp.HttpResponse.Header.Get("x-ms-copy-status-description")
+			resp.CreationTime = resp.HttpResponse.Header.Get("x-ms-creation-time")
+			resp.ETag = resp.HttpResponse.Header.Get("Etag")
+			resp.LastModified = resp.HttpResponse.Header.Get("Last-Modified")
+			resp.LeaseDuration = LeaseDuration(resp.HttpResponse.Header.Get("x-ms-lease-duration"))
+			resp.LeaseState = LeaseState(resp.HttpResponse.Header.Get("x-ms-lease-state"))
+			resp.LeaseStatus = LeaseStatus(resp.HttpResponse.Header.Get("x-ms-lease-status"))
+			resp.MetaData = metadata.ParseFromHeaders(resp.HttpResponse.Header)
+
+			if v := resp.HttpResponse.Header.Get("x-ms-access-tier-inferred"); v != "" {
+				b, innerErr := strconv.ParseBool(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as a bool: %s", v, innerErr)
+					return
+				}
+
+				resp.AccessTierInferred = b
+			}
+
+			if v := resp.HttpResponse.Header.Get("Content-Length"); v != "" {
+				i, innerErr := strconv.Atoi(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as an integer: %s", v, innerErr)
+				}
+
+				resp.ContentLength = int64(i)
+			}
+
+			if v := resp.HttpResponse.Header.Get("x-ms-incremental-copy"); v != "" {
+				b, innerErr := strconv.ParseBool(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as a bool: %s", v, innerErr)
+					return
+				}
+
+				resp.IncrementalCopy = b
+			}
+
+			if v := resp.HttpResponse.Header.Get("x-ms-server-encrypted"); v != "" {
+				b, innerErr := strconv.ParseBool(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as a bool: %s", v, innerErr)
+					return
+				}
+
+				resp.ServerEncrypted = b
+			}
+		}
 	}
 
 	return
 }
 
-// GetSnapshotPreparer prepares the GetSnapshot request.
-func (client Client) GetSnapshotPropertiesPreparer(ctx context.Context, accountName, containerName, blobName string, input GetSnapshotPropertiesInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
+type snapshotGetPropertiesOptions struct {
+	input GetSnapshotPropertiesInput
+}
 
-	queryParameters := map[string]interface{}{
-		"snapshot": autorest.Encode("query", input.SnapshotID),
+func (s snapshotGetPropertiesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	if s.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *s.input.LeaseID)
 	}
+	return headers
+}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
+func (s snapshotGetPropertiesOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsHead(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+func (s snapshotGetPropertiesOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("snapshot", s.input.SnapshotID)
+	return out
 }

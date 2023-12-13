@@ -131,7 +131,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/uuid v1.3.1
+# github.com/google/uuid v1.4.0
 ## explicit
 github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
@@ -1016,6 +1016,8 @@ github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
 github.com/hashicorp/go-azure-sdk/sdk/claims
 github.com/hashicorp/go-azure-sdk/sdk/client
+github.com/hashicorp/go-azure-sdk/sdk/client/dataplane
+github.com/hashicorp/go-azure-sdk/sdk/client/dataplane/storage
 github.com/hashicorp/go-azure-sdk/sdk/client/msgraph
 github.com/hashicorp/go-azure-sdk/sdk/client/pollers
 github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager
@@ -1203,8 +1205,8 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.2.0
 ## explicit; go 1.12
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.20.0
-## explicit; go 1.13
+# github.com/tombuildsstuff/giovanni v0.21.0
+## explicit; go 1.21
 github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers
@@ -1217,9 +1219,7 @@ github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues
 github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities
 github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables
 github.com/tombuildsstuff/giovanni/storage/accesscontrol
-github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
-github.com/tombuildsstuff/giovanni/version
 # github.com/tombuildsstuff/kermit v0.20230703.1101016
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration

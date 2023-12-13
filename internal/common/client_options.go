@@ -61,7 +61,7 @@ type ClientOptions struct {
 	KeyVaultAuthorizer        autorest.Authorizer
 	ManagedHSMAuthorizer      autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
-	StorageAuthorizer         autorest.Authorizer
+	StorageAuthorizer         auth.Authorizer
 	SynapseAuthorizer         autorest.Authorizer
 }
 

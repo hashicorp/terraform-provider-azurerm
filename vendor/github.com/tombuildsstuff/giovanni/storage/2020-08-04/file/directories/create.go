@@ -7,10 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -29,103 +27,89 @@ type CreateDirectoryInput struct {
 	MetaData map[string]string
 }
 
+type CreateDirectoryResponse struct {
+	HttpResponse *client.Response
+}
+
 // Create creates a new directory under the specified share or parent directory.
-func (client Client) Create(ctx context.Context, accountName, shareName, path string, input CreateDirectoryInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("directories.Client", "Create", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Create(ctx context.Context, shareName, path string, input CreateDirectoryInput) (resp CreateDirectoryResponse, err error) {
+
 	if shareName == "" {
-		return result, validation.NewError("directories.Client", "Create", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("directories.Client", "Create", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
+	if err = metadata.Validate(input.MetaData); err != nil {
+		return resp, fmt.Errorf("`input.MetaData` is not valid: %s", err)
+	}
+
 	if path == "" {
-		return result, validation.NewError("directories.Client", "Create", "`path` cannot be an empty string.")
-	}
-	if err := metadata.Validate(input.MetaData); err != nil {
-		return result, validation.NewError("directories.Client", "Create", fmt.Sprintf("`metadata` is not valid: %s.", err))
+		return resp, fmt.Errorf("`path` cannot be an empty string")
 	}
 
-	req, err := client.CreatePreparer(ctx, accountName, shareName, path, input)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: CreateOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", shareName, path),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "directories.Client", "Create", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.CreateSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "directories.Client", "Create", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "directories.Client", "Create", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// CreatePreparer prepares the Create request.
-func (client Client) CreatePreparer(ctx context.Context, accountName, shareName, path string, input CreateDirectoryInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-		"directory": autorest.Encode("path", path),
-	}
+type CreateOptions struct {
+	input CreateDirectoryInput
+}
 
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("query", "directory"),
+func (c CreateOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+
+	if len(c.input.MetaData) > 0 {
+		headers.Merge(metadata.SetMetaDataHeaders(c.input.MetaData))
 	}
 
 	var coalesceDate = func(input *time.Time, defaultVal string) string {
 		if input == nil {
 			return defaultVal
 		}
-
 		return input.Format(time.RFC1123)
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
+	// ... Yes I know these say File not Directory, I didn't design the API.
+	headers.Append("x-ms-file-permission", "inherit") // TODO: expose this in future
+	headers.Append("x-ms-file-attributes", "None")    // TODO: expose this in future
+	headers.Append("x-ms-file-creation-time", coalesceDate(c.input.CreatedAt, "now"))
+	headers.Append("x-ms-file-last-write-time", coalesceDate(c.input.LastModified, "now"))
 
-		// ... Yes I know these say File not Directory, I didn't design the API.
-		"x-ms-file-permission":      "inherit", // TODO: expose this in future
-		"x-ms-file-attributes":      "None",    // TODO: expose this in future
-		"x-ms-file-creation-time":   coalesceDate(input.CreatedAt, "now"),
-		"x-ms-file-last-write-time": coalesceDate(input.LastModified, "now"),
-	}
-
-	headers = metadata.SetIntoHeaders(headers, input.MetaData)
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}/{directory}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+	return headers
 }
 
-// CreateSender sends the Create request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (c CreateOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// CreateResponder handles the response to the Create request. The method always
-// closes the http.Response Body.
-func (client Client) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (c CreateOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("restype", "directory")
+	return out
 }

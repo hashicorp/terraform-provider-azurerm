@@ -6,14 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-type ListRangesResult struct {
-	autorest.Response
+type ListRangesResponse struct {
+	HttpResponse *client.Response
 
 	Ranges []Range `xml:"Range"`
 }
@@ -24,91 +22,69 @@ type Range struct {
 }
 
 // ListRanges returns the list of valid ranges for the specified File.
-func (client Client) ListRanges(ctx context.Context, accountName, shareName, path, fileName string) (result ListRangesResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("files.Client", "ListRanges", "`accountName` cannot be an empty string.")
-	}
+func (c Client) ListRanges(ctx context.Context, shareName, path, fileName string) (resp ListRangesResponse, err error) {
+
 	if shareName == "" {
-		return result, validation.NewError("files.Client", "ListRanges", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("files.Client", "ListRanges", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
 	if path == "" {
-		return result, validation.NewError("files.Client", "ListRanges", "`path` cannot be an empty string.")
+		return resp, fmt.Errorf("`path` cannot be an empty string")
 	}
+
 	if fileName == "" {
-		return result, validation.NewError("files.Client", "ListRanges", "`fileName` cannot be an empty string.")
+		return resp, fmt.Errorf("`fileName` cannot be an empty string")
 	}
 
-	req, err := client.ListRangesPreparer(ctx, accountName, shareName, path, fileName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "ListRanges", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListRangesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "files.Client", "ListRanges", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ListRangesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "ListRanges", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// ListRangesPreparer prepares the ListRanges request.
-func (client Client) ListRangesPreparer(ctx context.Context, accountName, shareName, path, fileName string) (*http.Request, error) {
 	if path != "" {
 		path = fmt.Sprintf("%s/", path)
 	}
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-		"directory": autorest.Encode("path", path),
-		"fileName":  autorest.Encode("path", fileName),
+
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod:    http.MethodGet,
+		OptionsObject: ListRangeOptions{},
+		Path:          fmt.Sprintf("/%s/%s%s", shareName, path, fileName),
 	}
 
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "rangelist"),
+	req, err := c.Client.NewRequest(ctx, opts)
+	if err != nil {
+		err = fmt.Errorf("building request: %+v", err)
+		return
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
+		return
 	}
 
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}/{directory}{fileName}", pathParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListRangesSender sends the ListRanges request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) ListRangesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListRangesResponder handles the response to the ListRanges request. The method always
-// closes the http.Response Body.
-func (client Client) ListRangesResponder(resp *http.Response) (result ListRangesResult, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingXML(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	if resp.HttpResponse != nil {
+		resp.HttpResponse.Unmarshal(&resp)
+	}
 
 	return
+}
+
+type ListRangeOptions struct{}
+
+func (l ListRangeOptions) ToHeaders() *client.Headers {
+	return nil
+}
+
+func (l ListRangeOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (l ListRangeOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "rangelist")
+	return out
 }

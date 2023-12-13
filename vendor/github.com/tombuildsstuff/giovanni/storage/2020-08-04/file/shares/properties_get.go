@@ -7,15 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
 type GetPropertiesResult struct {
-	autorest.Response
+	HttpResponse *client.Response
 
 	MetaData        map[string]string
 	QuotaInGB       int
@@ -24,103 +21,62 @@ type GetPropertiesResult struct {
 }
 
 // GetProperties returns the properties about the specified Storage Share
-func (client Client) GetProperties(ctx context.Context, accountName, shareName string) (result GetPropertiesResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("shares.Client", "GetProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) GetProperties(ctx context.Context, shareName string) (resp GetPropertiesResult, err error) {
 	if shareName == "" {
-		return result, validation.NewError("shares.Client", "GetProperties", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("shares.Client", "GetProperties", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
 
-	req, err := client.GetPropertiesPreparer(ctx, accountName, shareName)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod:    http.MethodGet,
+		OptionsObject: sharesOptions{},
+		Path:          fmt.Sprintf("/%s", shareName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "GetProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.GetPropertiesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "shares.Client", "GetProperties", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.GetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "GetProperties", resp, "Failure responding to request")
-		return
-	}
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.MetaData = metadata.ParseFromHeaders(resp.HttpResponse.Header)
 
-	return
-}
-
-// GetPropertiesPreparer prepares the GetProperties request.
-func (client Client) GetPropertiesPreparer(ctx context.Context, accountName, shareName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("query", "share"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetPropertiesSender sends the GetProperties request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetPropertiesResponder handles the response to the GetProperties request. The method always
-// closes the http.Response Body.
-func (client Client) GetPropertiesResponder(resp *http.Response) (result GetPropertiesResult, err error) {
-	if resp.Header != nil {
-		result.MetaData = metadata.ParseFromHeaders(resp.Header)
-
-		quotaRaw := resp.Header.Get("x-ms-share-quota")
-		if quotaRaw != "" {
-			quota, e := strconv.Atoi(quotaRaw)
-			if e != nil {
-				return result, fmt.Errorf("Error converting %q to an integer: %s", quotaRaw, err)
+			quotaRaw := resp.HttpResponse.Header.Get("x-ms-share-quota")
+			if quotaRaw != "" {
+				quota, e := strconv.Atoi(quotaRaw)
+				if e != nil {
+					return resp, fmt.Errorf("error converting %q to an integer: %s", quotaRaw, err)
+				}
+				resp.QuotaInGB = quota
 			}
-			result.QuotaInGB = quota
-		}
 
-		protocol := SMB
-		if protocolRaw := resp.Header.Get("x-ms-enabled-protocols"); protocolRaw != "" {
-			protocol = ShareProtocol(protocolRaw)
-		}
+			protocol := SMB
+			if protocolRaw := resp.HttpResponse.Header.Get("x-ms-enabled-protocols"); protocolRaw != "" {
+				protocol = ShareProtocol(protocolRaw)
+			}
 
-		if accessTierRaw := resp.Header.Get("x-ms-access-tier"); accessTierRaw != "" {
-			tier := AccessTier(accessTierRaw)
-			result.AccessTier = &tier
+			if accessTierRaw := resp.HttpResponse.Header.Get("x-ms-access-tier"); accessTierRaw != "" {
+				tier := AccessTier(accessTierRaw)
+				resp.AccessTier = &tier
+			}
+			resp.EnabledProtocol = protocol
 		}
-		result.EnabledProtocol = protocol
 	}
-
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
 
 	return
 }

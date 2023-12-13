@@ -2,13 +2,12 @@ package containers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type BreakLeaseInput struct {
@@ -26,104 +25,88 @@ type BreakLeaseInput struct {
 }
 
 type BreakLeaseResponse struct {
-	autorest.Response
+	HttpResponse *client.Response
+	Model        *BreakLeaseModel
+}
 
+type BreakLeaseModel struct {
 	// Approximate time remaining in the lease period, in seconds.
 	// If the break is immediate, 0 is returned.
 	LeaseTime int
 }
 
 // BreakLease breaks a lock based on it's Lease ID
-func (client Client) BreakLease(ctx context.Context, accountName, containerName string, input BreakLeaseInput) (result BreakLeaseResponse, err error) {
-	if accountName == "" {
-		return result, validation.NewError("containers.Client", "BreakLease", "`accountName` cannot be an empty string.")
-	}
+func (c Client) BreakLease(ctx context.Context, containerName string, input BreakLeaseInput) (resp BreakLeaseResponse, err error) {
 	if containerName == "" {
-		return result, validation.NewError("containers.Client", "BreakLease", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
 	if input.LeaseID == "" {
-		return result, validation.NewError("containers.Client", "BreakLease", "`input.LeaseID` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.LeaseID` cannot be an empty string")
 	}
 
-	req, err := client.BreakLeasePreparer(ctx, accountName, containerName, input)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusAccepted,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: breakLeaseOptions{
+			breakPeriod: input.BreakPeriod,
+			leaseId:     input.LeaseID,
+		},
+		Path: fmt.Sprintf("/%s", containerName),
+	}
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "BreakLease", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
+		return
+	}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	resp, err := client.BreakLeaseSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containers.Client", "BreakLease", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.BreakLeaseResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "BreakLease", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// BreakLeasePreparer prepares the BreakLease request.
-func (client Client) BreakLeasePreparer(ctx context.Context, accountName string, containerName string, input BreakLeaseInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("path", "container"),
-		"comp":    autorest.Encode("path", "lease"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version":      APIVersion,
-		"x-ms-lease-action": "break",
-		"x-ms-lease-id":     input.LeaseID,
-	}
-
-	if input.BreakPeriod != nil {
-		headers["x-ms-lease-break-period"] = *input.BreakPeriod
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// BreakLeaseSender sends the BreakLease request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) BreakLeaseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// BreakLeaseResponder handles the response to the BreakLease request. The method always
-// closes the http.Response Body.
-func (client Client) BreakLeaseResponder(resp *http.Response) (result BreakLeaseResponse, err error) {
-	if resp != nil {
-		leaseRaw := resp.Header.Get("x-ms-lease-time")
+	if resp.HttpResponse != nil {
+		leaseRaw := resp.HttpResponse.Header.Get("x-ms-lease-time")
 		if leaseRaw != "" {
-			i, err := strconv.Atoi(leaseRaw)
-			if err == nil {
-				result.LeaseTime = i
+			if i, err := strconv.Atoi(leaseRaw); err == nil {
+				resp.Model = &BreakLeaseModel{
+					LeaseTime: i,
+				}
 			}
 		}
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
 	return
+}
+
+var _ client.Options = breakLeaseOptions{}
+
+type breakLeaseOptions struct {
+	breakPeriod *int
+	leaseId     string
+}
+
+func (o breakLeaseOptions) ToHeaders() *client.Headers {
+	headers := containerOptions{}.ToHeaders()
+
+	headers.Append("x-ms-lease-action", "break")
+	headers.Append("x-ms-lease-id", o.leaseId)
+
+	if o.breakPeriod != nil {
+		headers.Append("x-ms-lease-break-period", fmt.Sprintf("%d", *o.breakPeriod))
+	}
+
+	return headers
+}
+
+func (o breakLeaseOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (o breakLeaseOptions) ToQuery() *client.QueryParams {
+	query := containerOptions{}.ToQuery()
+	query.Append("comp", "lease")
+	return query
 }
