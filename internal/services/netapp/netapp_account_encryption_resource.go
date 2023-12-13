@@ -22,7 +22,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -88,7 +87,7 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.AccountClient
 			keyVaultsClient := metadata.Client.KeyVault
-			resourcesClient := metadata.Client.Resource
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
 
 			var model netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&model); err != nil {
@@ -123,7 +122,7 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 				Properties: &netappaccounts.AccountProperties{},
 			}
 
-			encryptionExpanded, err := expandEncryption(ctx, model.EncryptionKey, keyVaultsClient, resourcesClient, pointer.To(model))
+			encryptionExpanded, err := expandEncryption(ctx, model.EncryptionKey, keyVaultsClient, subscriptionId, pointer.To(model))
 			if err != nil {
 				return err
 			}
@@ -147,7 +146,7 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.AccountClient
 			keyVaultsClient := metadata.Client.KeyVault
-			resourcesClient := metadata.Client.Resource
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
 
 			id, err := netappaccounts.ParseNetAppAccountID(metadata.ResourceData.Id())
 			if err != nil {
@@ -170,7 +169,7 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("user_assigned_identity_id") || metadata.ResourceData.HasChange("system_assigned_identity_principal_id") || metadata.ResourceData.HasChange("encryption_key") {
-				encryptionExpanded, err := expandEncryption(ctx, state.EncryptionKey, keyVaultsClient, resourcesClient, pointer.To(state))
+				encryptionExpanded, err := expandEncryption(ctx, state.EncryptionKey, keyVaultsClient, subscriptionId, pointer.To(state))
 				if err != nil {
 					return err
 				}
@@ -291,7 +290,7 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, model *netAppModels.NetAppAccountEncryption) (*netappaccounts.AccountEncryption, error) {
+func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVaultClient.Client, SubscriptionID commonids.SubscriptionId, model *netAppModels.NetAppAccountEncryption) (*netappaccounts.AccountEncryption, error) {
 	encryptionProperty := netappaccounts.AccountEncryption{
 		KeySource: pointer.To(netappaccounts.KeySourceMicrosoftPointNetApp),
 	}
@@ -305,7 +304,7 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 		return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 	}
 
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyId.KeyVaultBaseUrl)
+	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, SubscriptionID, keyId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the resource id the key vault at url %q: %s", keyId.KeyVaultBaseUrl, err)
 	}
