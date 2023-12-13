@@ -3402,18 +3402,6 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 		return []interface{}{}
 	}
 
-	// The service API returns smb for premium file storage account no matter it is specified in the creation request.
-	// The returned default value in this case only has the `smb.multichannel.enabled = false`.
-	// We need to explicitly check for above case to ensure we didn't write this "unset" block back to the state file, which wil result into a plan diff.
-	if input.Versions == nil && input.ChannelEncryption == nil && input.AuthenticationMethods == nil && input.KerberosTicketEncryption == nil {
-		if input.Multichannel == nil {
-			return []interface{}{}
-		}
-		if input.Multichannel.Enabled == nil || !*input.Multichannel.Enabled {
-			return []interface{}{}
-		}
-	}
-
 	versions := []interface{}{}
 	if input.Versions != nil {
 		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")

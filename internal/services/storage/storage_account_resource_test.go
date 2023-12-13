@@ -1493,7 +1493,7 @@ func TestAccStorageAccount_minimalSharePropertiesPremiumFileStorage(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("share_properties.0.smb"),
 	})
 }
 
@@ -4400,6 +4400,10 @@ resource "azurerm_storage_account" "test" {
     retention_policy {
       days = 5
     }
+  }
+
+  lifecycle {
+    ignore_changes = [share_properties.0.smb]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
