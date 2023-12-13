@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,6 +21,17 @@ import (
 // TODO: this resource should be split into data_export_setting and alert_sync_setting
 
 func resourceSecurityCenterSetting() *pluginsdk.Resource {
+	validSettingName := []string{
+		"MCAS",
+		"WDATP",
+		"Sentinel",
+	}
+	if !features.FourPointOhBeta() {
+		// This is for backward compatibility.. The swagger defines the valid enum to be "Sensinel" (see below), so this ("SENTINEL") shall be removed since 4.0.
+		// https://github.com/Azure/azure-rest-api-specs/blob/b52464f520b77222ac8b0bdeb80a030c0fdf5b1b/specification/security/resource-manager/Microsoft.Security/stable/2021-06-01/settings.json#L285
+		validSettingName = append(validSettingName, "SENTINEL")
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSettingUpdate,
 		Read:   resourceSecurityCenterSettingRead,
@@ -40,14 +52,10 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"setting_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"MCAS",
-					"WDATP",
-					"SENTINEL",
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(validSettingName, false),
 			},
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -146,7 +154,7 @@ func expandSecurityCenterSetting(name string, enabled bool) (security.BasicSetti
 				Enabled: &enabled,
 			},
 		}, nil
-	case "SENTINEL":
+	case "SENTINEL", "Sentinel":
 		return security.AlertSyncSettings{
 			AlertSyncSettingProperties: &security.AlertSyncSettingProperties{
 				Enabled: &enabled,
