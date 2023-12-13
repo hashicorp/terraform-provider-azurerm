@@ -46,6 +46,10 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"MCAS",
 					"WDATP",
+					"Sentinel",
+
+					// TODO 4.0: Remove this per the swagger definition:
+					//           https://github.com/Azure/azure-rest-api-specs/blob/b52464f520b77222ac8b0bdeb80a030c0fdf5b1b/specification/security/resource-manager/Microsoft.Security/stable/2021-06-01/settings.json#L285
 					"SENTINEL",
 				}, false),
 			},
@@ -146,7 +150,7 @@ func expandSecurityCenterSetting(name string, enabled bool) (security.BasicSetti
 				Enabled: &enabled,
 			},
 		}, nil
-	case "SENTINEL":
+	case "SENTINEL", "Sentinel":
 		return security.AlertSyncSettings{
 			AlertSyncSettingProperties: &security.AlertSyncSettingProperties{
 				Enabled: &enabled,
