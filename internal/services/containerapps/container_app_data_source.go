@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,10 +46,10 @@ type ContainerAppDataSourceModel struct {
 
 var _ sdk.DataSource = ContainerAppDataSource{}
 
-func (r ContainerAppDataSource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r ContainerAppDataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -59,17 +58,17 @@ func (r ContainerAppDataSource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r ContainerAppDataSource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r ContainerAppDataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"container_app_environment_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"template": helpers.ContainerTemplateSchemaComputed(),
 
 		"revision_mode": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
@@ -88,27 +87,27 @@ func (r ContainerAppDataSource) Attributes() map[string]*schema.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"outbound_ip_addresses": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"latest_revision_name": {
-			Type:        schema.TypeString,
+			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The name of the latest Container Revision.",
 		},
 
 		"latest_revision_fqdn": {
-			Type:        schema.TypeString,
+			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The fully qualified domain name of the latest Container App.",
 		},
 
 		"custom_domain_verification_id": {
-			Type:        schema.TypeString,
+			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
 			Description: "The ID of the Custom Domain Verification for this Container App.",
