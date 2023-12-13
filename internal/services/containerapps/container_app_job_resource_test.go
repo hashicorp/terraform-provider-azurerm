@@ -237,24 +237,24 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-    replica_timeout_in_seconds     = 10
-    replica_retry_limit = 10
-    event_trigger_config {
-      parallelism              = 4
-      replica_completion_count = 1
-      scale {
-        max_executions   = 10
-        min_executions   = 1
-        polling_interval = 10
-        rules {
-          metadata = {
-            topic_name = "my-topic"
-          }
-          name = "servicebuscalingrule"
-          type = "azure-servicebus"
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  event_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+    scale {
+      max_executions   = 10
+      min_executions   = 1
+      polling_interval = 10
+      rules {
+        metadata = {
+          topic_name = "my-topic"
         }
+        name = "servicebuscalingrule"
+        type = "azure-servicebus"
       }
     }
+  }
 
   template {
     containers {
@@ -275,8 +275,8 @@ resource "azurerm_container_app_job" "test" {
         timeout                 = 2
         failure_count_threshold = 1
       }
-        cpu    = 0.5
-        memory = "1Gi"
+      cpu    = 0.5
+      memory = "1Gi"
     }
   }
 }
@@ -294,18 +294,18 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-    replica_timeout_in_seconds     = 10
-    replica_retry_limit = 10
-    manual_trigger_config {
-      parallelism              = 4
-      replica_completion_count = 1
-    }
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
 
   template {
     containers {
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
-	  liveness_probe {
+      liveness_probe {
         transport = "HTTP"
         port      = 5000
         path      = "/health"
@@ -321,8 +321,8 @@ resource "azurerm_container_app_job" "test" {
         failure_count_threshold = 1
       }
 
-        cpu    = 0.5
-        memory = "1Gi"
+      cpu    = 0.5
+      memory = "1Gi"
     }
   }
 }
@@ -340,13 +340,13 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-    replica_timeout_in_seconds     = 1800
-    replica_retry_limit = 0
-    schedule_trigger_config {
-      cron_expression          = "*/1 * * * *"
-      parallelism              = 1
-      replica_completion_count = 1
-    }
+  replica_timeout_in_seconds = 1800
+  replica_retry_limit        = 0
+  schedule_trigger_config {
+    cron_expression          = "*/1 * * * *"
+    parallelism              = 1
+    replica_completion_count = 1
+  }
   template {
     volumes {
       name         = "appsettings-volume"
@@ -370,10 +370,10 @@ resource "azurerm_container_app_job" "test" {
         timeout                 = 2
         failure_count_threshold = 1
       }
-        cpu    = 0.5
-        memory = "1Gi"
+      cpu    = 0.5
+      memory = "1Gi"
       volume_mounts {
-        path  = "/appsettings"
+        path = "/appsettings"
         name = "appsettings-volume"
       }
     }
@@ -393,19 +393,19 @@ resource "azurerm_container_app_job" "test" {
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-    replica_timeout_in_seconds     = 10
-    replica_retry_limit = 10
-    manual_trigger_config {
-      parallelism              = 4
-      replica_completion_count = 1
-    }
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
 
   template {
     containers {
-      image = "repo/testcontainerAppsJob0:v1"
-      name  = "testcontainerappsjob0"
-        cpu    = 0.5
-        memory = "1Gi"
+      image  = "repo/testcontainerAppsJob0:v1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
     }
   }
 }
@@ -429,23 +429,23 @@ resource "azurerm_container_app_job" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   identity {
-	type = "UserAssigned"
-	identity_ids = [azurerm_user_assigned_identity.test.id]
-}
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
-    replica_timeout_in_seconds     = 10
-    replica_retry_limit = 10
-    manual_trigger_config {
-      parallelism              = 4
-      replica_completion_count = 1
-    }
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
 
   template {
     containers {
-      image = "repo/testcontainerAppsJob0:v1"
-      name  = "testcontainerappsjob0"
-        cpu    = 0.5
-        memory = "1Gi"
+      image  = "repo/testcontainerAppsJob0:v1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
     }
   }
 }
@@ -463,22 +463,22 @@ resource "azurerm_container_app_job" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 
-    replica_timeout_in_seconds     = 10
-    replica_retry_limit = 10
-    manual_trigger_config {
-      parallelism              = 4
-      replica_completion_count = 1
-    }
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
 
   template {
     containers {
-      image = "repo/testcontainerAppsJob0:v1"
-      name  = "testcontainerappsjob0"
-        cpu    = 0.5
-        memory = "1Gi"
+      image  = "repo/testcontainerAppsJob0:v1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
     }
   }
 }
@@ -490,9 +490,9 @@ func (r ContainerAppJobResource) withSystemAndUserAssignedIdentity(data acceptan
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
-  name = "acctest-uai%[2]d"
+  name                = "acctest-uai%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_container_app_job" "test" {
@@ -502,23 +502,23 @@ resource "azurerm_container_app_job" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   identity {
-	type = "SystemAssigned, UserAssigned"
-	identity_ids = [azurerm_user_assigned_identity.test.id]
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-    replica_timeout_in_seconds     = 10
-    replica_retry_limit = 10
-    manual_trigger_config {
-      parallelism              = 4
-      replica_completion_count = 1
-    }
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
 
   template {
     containers {
-      image = "repo/testcontainerAppsJob0:v1"
-      name  = "testcontainerappsjob0"
-        cpu    = 0.5
-        memory = "1Gi"
+      image  = "repo/testcontainerAppsJob0:v1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
     }
   }
 }
@@ -537,38 +537,38 @@ resource "azurerm_container_app_job" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 
-  replica_timeout_in_seconds     = 10
-  replica_retry_limit = 10
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
   manual_trigger_config {
     parallelism              = 4
     replica_completion_count = 1
   }
   secrets {
-	name = "registry-password"
-	value = "myregistrypassword"
+    name  = "registry-password"
+    value = "myregistrypassword"
   }
   registries {
-    server = "myregistry.azurecr.io"
-	username = "myregistry"
-	password_secret_name = "registry-password"
+    server               = "myregistry.azurecr.io"
+    username             = "myregistry"
+    password_secret_name = "registry-password"
   }
 
   template {
-	volumes {
-	  name = "appsettings-volume"
-	  storage_type = "EmptyDir"
-  	}
+    volumes {
+      name         = "appsettings-volume"
+      storage_type = "EmptyDir"
+    }
     containers {
- 	  args = [
-              "-c",
-              "while true; do echo hello; sleep 10;done",
-	  ]
-	  command = [
-	    "/bin/sh",
-	  ]
+      args = [
+        "-c",
+        "while true; do echo hello; sleep 10;done",
+      ]
+      command = [
+        "/bin/sh",
+      ]
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
       readiness_probe {
@@ -596,16 +596,16 @@ resource "azurerm_container_app_job" "test" {
         port      = 5000
       }
 
-	  cpu    = 0.5
-	  memory = "1Gi"
-	  volume_mounts {
-	    path = "/appsettings"
-	    name = "appsettings-volume"
-	  }
+      cpu    = 0.5
+      memory = "1Gi"
+      volume_mounts {
+        path = "/appsettings"
+        name = "appsettings-volume"
+      }
     }
- }
+  }
   tags = {
-	ENV = "test"
+    ENV = "test"
   }
 }
 `, template, data.RandomInteger)
@@ -623,11 +623,11 @@ resource "azurerm_container_app_job" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 
-  replica_timeout_in_seconds     = 20
-  replica_retry_limit = 20
+  replica_timeout_in_seconds = 20
+  replica_retry_limit        = 20
 
   manual_trigger_config {
     parallelism              = 5
@@ -635,29 +635,29 @@ resource "azurerm_container_app_job" "test" {
   }
 
   secrets {
-	name = "registry-password"
-	value = "myregistrypassword"
+    name  = "registry-password"
+    value = "myregistrypassword"
   }
 
   registries {
-    server = "myregistry.azurecr.io"
-	username = "myregistry"
-	password_secret_name = "registry-password"
+    server               = "myregistry.azurecr.io"
+    username             = "myregistry"
+    password_secret_name = "registry-password"
   }
 
   template {
-	volumes {
-	  name = "appsettings-volume"
-	  storage_type = "EmptyDir"
-  	}
+    volumes {
+      name         = "appsettings-volume"
+      storage_type = "EmptyDir"
+    }
     containers {
- 	  args = [
-              "-c",
-              "while true; do echo hello; sleep 10;done",
-	  ]
-	  command = [
-	    "/bin/sh",
-	  ]
+      args = [
+        "-c",
+        "while true; do echo hello; sleep 10;done",
+      ]
+      command = [
+        "/bin/sh",
+      ]
       image = "repo/testcontainerAppsJob0:v1"
       name  = "testcontainerappsjob0"
       readiness_probe {
@@ -681,22 +681,22 @@ resource "azurerm_container_app_job" "test" {
         failure_count_threshold = 1
       }
       startup_probe {
-        transport = "TCP"
-        port      = 5000
-		timeout = 5
-		failure_count_threshold = 3
+        transport               = "TCP"
+        port                    = 5000
+        timeout                 = 5
+        failure_count_threshold = 3
       }
 
-	  cpu    = 0.25
-	  memory = "0.5Gi"
-	  volume_mounts {
-	    path = "/appsettings"
-	    name = "appsettings-volume"
-	  }
+      cpu    = 0.25
+      memory = "0.5Gi"
+      volume_mounts {
+        path = "/appsettings"
+        name = "appsettings-volume"
+      }
     }
- }
+  }
   tags = {
-	ENV = "test"
+    ENV = "test"
   }
 }
 `, template, data.RandomInteger)
