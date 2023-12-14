@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ServicesCreateOrUpdateOperationResponse struct {
 }
 
 // ServicesCreateOrUpdate ...
-func (c AppPlatformClient) ServicesCreateOrUpdate(ctx context.Context, id SpringId, input ServiceResource) (result ServicesCreateOrUpdateOperationResponse, err error) {
+func (c AppPlatformClient) ServicesCreateOrUpdate(ctx context.Context, id commonids.SpringCloudServiceId, input ServiceResource) (result ServicesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +62,7 @@ func (c AppPlatformClient) ServicesCreateOrUpdate(ctx context.Context, id Spring
 }
 
 // ServicesCreateOrUpdateThenPoll performs ServicesCreateOrUpdate then polls until it's completed
-func (c AppPlatformClient) ServicesCreateOrUpdateThenPoll(ctx context.Context, id SpringId, input ServiceResource) error {
+func (c AppPlatformClient) ServicesCreateOrUpdateThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ServiceResource) error {
 	result, err := c.ServicesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServicesCreateOrUpdate: %+v", err)
