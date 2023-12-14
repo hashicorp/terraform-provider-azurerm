@@ -5,7 +5,7 @@ description: |-
   This guide will cover how to use AKS Workload Identity for pods in Azure AKS clusters as authentication for the Azure Provider.
 ---
 
-# Azure Provider: Authenticating using managed identities for Azure resources
+# Azure Provider: Authenticating using managed identities for Azure Kubernetes Service with Workload Identity
 
 Terraform supports a number of different methods for authenticating to Azure:
 
@@ -22,9 +22,9 @@ We recommend using a service principal or a managed identity when running Terraf
 
 ## What is AKS Workload Identity?
 
-[AKS Workload Identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication when running in Azure AKS Kubernetes clusters.
+[AKS Workload Identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication when running in Azure Kubernetes Service clusters.
 
-When a service account and pod are configured to use AKS Workload Identity, a federated identity token is projected into the pod at run-time, along with environment variables to use that identity.
+When a service account and pod are configured to use AKS Workload Identity, a federated identity token is injected into the pod at run-time, along with environment variables to use that identity.
 
 ## Configuring a workload to use an AKS Workload Identity
 
@@ -90,7 +90,7 @@ Setting the `ARM_USE_AKS_WORKLOAD_IDENTITY` environment variable (equivalent to 
 
 If you have not annotated your Kubernetes service account with `azure.workload.identity/client-id`, you will need to specify the `ARM_CLIENT_ID` environment variable (equivalent to provider block argument [`client_id`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#client_id)) to the [client id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity#client_id) of the identity.
 
-In addition to a properly-configured management identity, Terraform needs to know the subscription ID to identify the full context for the Azure provider. The tenant ID will be detected from the environment provided by AKS Workload Identity.
+In addition to a properly-configured managed identity, Terraform needs to know the subscription ID to fully configure the AzureRM provider. The tenant ID will be detected from the environment provided by AKS Workload Identity.
 
 ```shell
 export ARM_USE_AKS_WORKLOAD_IDENTITY=true
