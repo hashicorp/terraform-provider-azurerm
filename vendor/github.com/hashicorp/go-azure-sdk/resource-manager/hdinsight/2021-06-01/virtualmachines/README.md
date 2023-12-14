@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := virtualmachines.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.ListHosts(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := virtualmachines.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 var payload []string
 
 if err := client.RestartHostsThenPoll(ctx, id, payload); err != nil {

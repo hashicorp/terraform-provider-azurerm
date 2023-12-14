@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ExecuteScriptActionsOperationResponse struct {
 }
 
 // ExecuteScriptActions ...
-func (c ClustersClient) ExecuteScriptActions(ctx context.Context, id ClusterId, input ExecuteScriptActionParameters) (result ExecuteScriptActionsOperationResponse, err error) {
+func (c ClustersClient) ExecuteScriptActions(ctx context.Context, id commonids.HDInsightClusterId, input ExecuteScriptActionParameters) (result ExecuteScriptActionsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c ClustersClient) ExecuteScriptActions(ctx context.Context, id ClusterId, 
 }
 
 // ExecuteScriptActionsThenPoll performs ExecuteScriptActions then polls until it's completed
-func (c ClustersClient) ExecuteScriptActionsThenPoll(ctx context.Context, id ClusterId, input ExecuteScriptActionParameters) error {
+func (c ClustersClient) ExecuteScriptActionsThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ExecuteScriptActionParameters) error {
 	result, err := c.ExecuteScriptActions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ExecuteScriptActions: %+v", err)

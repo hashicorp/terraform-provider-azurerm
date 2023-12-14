@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type DisableAzureMonitorOperationResponse struct {
 }
 
 // DisableAzureMonitor ...
-func (c ExtensionsClient) DisableAzureMonitor(ctx context.Context, id ClusterId) (result DisableAzureMonitorOperationResponse, err error) {
+func (c ExtensionsClient) DisableAzureMonitor(ctx context.Context, id commonids.HDInsightClusterId) (result DisableAzureMonitorOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -57,7 +58,7 @@ func (c ExtensionsClient) DisableAzureMonitor(ctx context.Context, id ClusterId)
 }
 
 // DisableAzureMonitorThenPoll performs DisableAzureMonitor then polls until it's completed
-func (c ExtensionsClient) DisableAzureMonitorThenPoll(ctx context.Context, id ClusterId) error {
+func (c ExtensionsClient) DisableAzureMonitorThenPoll(ctx context.Context, id commonids.HDInsightClusterId) error {
 	result, err := c.DisableAzureMonitor(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DisableAzureMonitor: %+v", err)

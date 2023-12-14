@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type RestartHostsOperationResponse struct {
 }
 
 // RestartHosts ...
-func (c VirtualMachinesClient) RestartHosts(ctx context.Context, id ClusterId, input []string) (result RestartHostsOperationResponse, err error) {
+func (c VirtualMachinesClient) RestartHosts(ctx context.Context, id commonids.HDInsightClusterId, input []string) (result RestartHostsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c VirtualMachinesClient) RestartHosts(ctx context.Context, id ClusterId, i
 }
 
 // RestartHostsThenPoll performs RestartHosts then polls until it's completed
-func (c VirtualMachinesClient) RestartHostsThenPoll(ctx context.Context, id ClusterId, input []string) error {
+func (c VirtualMachinesClient) RestartHostsThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input []string) error {
 	result, err := c.RestartHosts(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestartHosts: %+v", err)

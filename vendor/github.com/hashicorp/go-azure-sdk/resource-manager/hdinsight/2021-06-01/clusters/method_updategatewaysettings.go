@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type UpdateGatewaySettingsOperationResponse struct {
 }
 
 // UpdateGatewaySettings ...
-func (c ClustersClient) UpdateGatewaySettings(ctx context.Context, id ClusterId, input UpdateGatewaySettingsParameters) (result UpdateGatewaySettingsOperationResponse, err error) {
+func (c ClustersClient) UpdateGatewaySettings(ctx context.Context, id commonids.HDInsightClusterId, input UpdateGatewaySettingsParameters) (result UpdateGatewaySettingsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c ClustersClient) UpdateGatewaySettings(ctx context.Context, id ClusterId,
 }
 
 // UpdateGatewaySettingsThenPoll performs UpdateGatewaySettings then polls until it's completed
-func (c ClustersClient) UpdateGatewaySettingsThenPoll(ctx context.Context, id ClusterId, input UpdateGatewaySettingsParameters) error {
+func (c ClustersClient) UpdateGatewaySettingsThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input UpdateGatewaySettingsParameters) error {
 	result, err := c.UpdateGatewaySettings(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateGatewaySettings: %+v", err)

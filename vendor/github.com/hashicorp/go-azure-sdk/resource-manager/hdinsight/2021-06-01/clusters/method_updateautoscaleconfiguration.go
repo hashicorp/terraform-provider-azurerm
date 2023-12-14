@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type UpdateAutoScaleConfigurationOperationResponse struct {
 }
 
 // UpdateAutoScaleConfiguration ...
-func (c ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, id ClusterId, input AutoscaleConfigurationUpdateParameter) (result UpdateAutoScaleConfigurationOperationResponse, err error) {
+func (c ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, id commonids.HDInsightClusterId, input AutoscaleConfigurationUpdateParameter) (result UpdateAutoScaleConfigurationOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, id Clu
 }
 
 // UpdateAutoScaleConfigurationThenPoll performs UpdateAutoScaleConfiguration then polls until it's completed
-func (c ClustersClient) UpdateAutoScaleConfigurationThenPoll(ctx context.Context, id ClusterId, input AutoscaleConfigurationUpdateParameter) error {
+func (c ClustersClient) UpdateAutoScaleConfigurationThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input AutoscaleConfigurationUpdateParameter) error {
 	result, err := c.UpdateAutoScaleConfiguration(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateAutoScaleConfiguration: %+v", err)

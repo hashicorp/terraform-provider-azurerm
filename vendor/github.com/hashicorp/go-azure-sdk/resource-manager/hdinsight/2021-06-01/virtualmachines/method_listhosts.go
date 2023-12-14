@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,7 +20,7 @@ type ListHostsOperationResponse struct {
 }
 
 // ListHosts ...
-func (c VirtualMachinesClient) ListHosts(ctx context.Context, id ClusterId) (result ListHostsOperationResponse, err error) {
+func (c VirtualMachinesClient) ListHosts(ctx context.Context, id commonids.HDInsightClusterId) (result ListHostsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type RotateDiskEncryptionKeyOperationResponse struct {
 }
 
 // RotateDiskEncryptionKey ...
-func (c ClustersClient) RotateDiskEncryptionKey(ctx context.Context, id ClusterId, input ClusterDiskEncryptionParameters) (result RotateDiskEncryptionKeyOperationResponse, err error) {
+func (c ClustersClient) RotateDiskEncryptionKey(ctx context.Context, id commonids.HDInsightClusterId, input ClusterDiskEncryptionParameters) (result RotateDiskEncryptionKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c ClustersClient) RotateDiskEncryptionKey(ctx context.Context, id ClusterI
 }
 
 // RotateDiskEncryptionKeyThenPoll performs RotateDiskEncryptionKey then polls until it's completed
-func (c ClustersClient) RotateDiskEncryptionKeyThenPoll(ctx context.Context, id ClusterId, input ClusterDiskEncryptionParameters) error {
+func (c ClustersClient) RotateDiskEncryptionKeyThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ClusterDiskEncryptionParameters) error {
 	result, err := c.RotateDiskEncryptionKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RotateDiskEncryptionKey: %+v", err)

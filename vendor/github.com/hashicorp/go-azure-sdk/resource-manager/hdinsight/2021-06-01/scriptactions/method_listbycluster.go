@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ListByClusterCompleteResult struct {
 }
 
 // ListByCluster ...
-func (c ScriptActionsClient) ListByCluster(ctx context.Context, id ClusterId) (result ListByClusterOperationResponse, err error) {
+func (c ScriptActionsClient) ListByCluster(ctx context.Context, id commonids.HDInsightClusterId) (result ListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c ScriptActionsClient) ListByCluster(ctx context.Context, id ClusterId) (r
 }
 
 // ListByClusterComplete retrieves all the results into a single object
-func (c ScriptActionsClient) ListByClusterComplete(ctx context.Context, id ClusterId) (ListByClusterCompleteResult, error) {
+func (c ScriptActionsClient) ListByClusterComplete(ctx context.Context, id commonids.HDInsightClusterId) (ListByClusterCompleteResult, error) {
 	return c.ListByClusterCompleteMatchingPredicate(ctx, id, RuntimeScriptActionDetailOperationPredicate{})
 }
 
 // ListByClusterCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ScriptActionsClient) ListByClusterCompleteMatchingPredicate(ctx context.Context, id ClusterId, predicate RuntimeScriptActionDetailOperationPredicate) (result ListByClusterCompleteResult, err error) {
+func (c ScriptActionsClient) ListByClusterCompleteMatchingPredicate(ctx context.Context, id commonids.HDInsightClusterId, predicate RuntimeScriptActionDetailOperationPredicate) (result ListByClusterCompleteResult, err error) {
 	items := make([]RuntimeScriptActionDetail, 0)
 
 	resp, err := c.ListByCluster(ctx, id)

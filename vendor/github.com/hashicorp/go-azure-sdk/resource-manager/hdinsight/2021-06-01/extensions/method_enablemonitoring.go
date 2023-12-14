@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type EnableMonitoringOperationResponse struct {
 }
 
 // EnableMonitoring ...
-func (c ExtensionsClient) EnableMonitoring(ctx context.Context, id ClusterId, input ClusterMonitoringRequest) (result EnableMonitoringOperationResponse, err error) {
+func (c ExtensionsClient) EnableMonitoring(ctx context.Context, id commonids.HDInsightClusterId, input ClusterMonitoringRequest) (result EnableMonitoringOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c ExtensionsClient) EnableMonitoring(ctx context.Context, id ClusterId, in
 }
 
 // EnableMonitoringThenPoll performs EnableMonitoring then polls until it's completed
-func (c ExtensionsClient) EnableMonitoringThenPoll(ctx context.Context, id ClusterId, input ClusterMonitoringRequest) error {
+func (c ExtensionsClient) EnableMonitoringThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ClusterMonitoringRequest) error {
 	result, err := c.EnableMonitoring(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing EnableMonitoring: %+v", err)

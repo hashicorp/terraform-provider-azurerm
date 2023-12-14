@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type UpdateIdentityCertificateOperationResponse struct {
 }
 
 // UpdateIdentityCertificate ...
-func (c ClustersClient) UpdateIdentityCertificate(ctx context.Context, id ClusterId, input UpdateClusterIdentityCertificateParameters) (result UpdateIdentityCertificateOperationResponse, err error) {
+func (c ClustersClient) UpdateIdentityCertificate(ctx context.Context, id commonids.HDInsightClusterId, input UpdateClusterIdentityCertificateParameters) (result UpdateIdentityCertificateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c ClustersClient) UpdateIdentityCertificate(ctx context.Context, id Cluste
 }
 
 // UpdateIdentityCertificateThenPoll performs UpdateIdentityCertificate then polls until it's completed
-func (c ClustersClient) UpdateIdentityCertificateThenPoll(ctx context.Context, id ClusterId, input UpdateClusterIdentityCertificateParameters) error {
+func (c ClustersClient) UpdateIdentityCertificateThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input UpdateClusterIdentityCertificateParameters) error {
 	result, err := c.UpdateIdentityCertificate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateIdentityCertificate: %+v", err)

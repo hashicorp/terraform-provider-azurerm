@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.DisableAzureMonitorThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +65,7 @@ if err := client.DisableAzureMonitorThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.DisableMonitoringThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -77,7 +77,7 @@ if err := client.DisableMonitoringThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := extensions.AzureMonitorRequest{
 	// ...
@@ -94,7 +94,7 @@ if err := client.EnableAzureMonitorThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := extensions.ClusterMonitoringRequest{
 	// ...
@@ -127,7 +127,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.GetAzureMonitorStatus(ctx, id)
 if err != nil {
@@ -143,7 +143,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.GetMonitoringStatus(ctx, id)
 if err != nil {

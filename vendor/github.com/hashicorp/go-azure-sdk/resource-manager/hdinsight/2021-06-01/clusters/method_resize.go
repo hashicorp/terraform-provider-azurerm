@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ResizeOperationResponse struct {
 }
 
 // Resize ...
-func (c ClustersClient) Resize(ctx context.Context, id ClusterId, input ClusterResizeParameters) (result ResizeOperationResponse, err error) {
+func (c ClustersClient) Resize(ctx context.Context, id commonids.HDInsightClusterId, input ClusterResizeParameters) (result ResizeOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c ClustersClient) Resize(ctx context.Context, id ClusterId, input ClusterR
 }
 
 // ResizeThenPoll performs Resize then polls until it's completed
-func (c ClustersClient) ResizeThenPoll(ctx context.Context, id ClusterId, input ClusterResizeParameters) error {
+func (c ClustersClient) ResizeThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ClusterResizeParameters) error {
 	result, err := c.Resize(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Resize: %+v", err)

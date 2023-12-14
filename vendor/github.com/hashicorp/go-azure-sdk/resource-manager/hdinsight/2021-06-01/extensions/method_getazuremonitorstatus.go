@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,7 +20,7 @@ type GetAzureMonitorStatusOperationResponse struct {
 }
 
 // GetAzureMonitorStatus ...
-func (c ExtensionsClient) GetAzureMonitorStatus(ctx context.Context, id ClusterId) (result GetAzureMonitorStatusOperationResponse, err error) {
+func (c ExtensionsClient) GetAzureMonitorStatus(ctx context.Context, id commonids.HDInsightClusterId) (result GetAzureMonitorStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
