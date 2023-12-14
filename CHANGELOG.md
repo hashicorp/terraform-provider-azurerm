@@ -9,7 +9,7 @@ ENHANCEMENTS:
 
 * provider: support for authenticating using Azure Kubernetes Service Workload Identity [GH-23965]
 * dependencies: updating to `v0.65.0` of `github.com/hashicorp/go-azure-helpers` [GH-24222]
-* dependencies: updating to `v0.20231214.1094851` of `github.com/hashicorp/go-azure-sdk` [GH-24237]
+* dependencies: updating to `v0.20231214.1134755` of `github.com/hashicorp/go-azure-sdk` [GH-24240]
 * `kusto`: removing the remnants of the old Resource ID Parsers now this uses `hashicorp/go-azure-sdk` [GH-24238]
 * dependencies: update `security/automation` to use `hashicorp/go-azure-sdk` [GH-24156]
 * Data Source: `azurerm_cognitive_account` - export the `identity` block [GH-24214]
