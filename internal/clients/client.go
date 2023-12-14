@@ -472,7 +472,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.LogAnalytics, err = loganalytics.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LogAnalytics: %+v", err)
 	}
-	client.LoadBalancers = loadbalancers.NewClient(o)
+	if client.LoadBalancers, err = loadbalancers.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LoadBalancers: %+v", err)
+	}
 	if client.Logic, err = logic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Logic: %+v", err)
 	}
