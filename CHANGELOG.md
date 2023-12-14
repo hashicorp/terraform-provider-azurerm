@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_shared_image_gallery` - add support for property `image_names` [GH-24176]
 * `azurerm_dns_txt_record` - allow up to 4096 characters for the property `record.value` [GH-24169]
 * `azurerm_container_app` - add `workload_profile_name` property [GH-24219]
+* `azurerm_hpc_cache_blob_nfs_target` - support for the `verification_timer_in_seconds` and `write_back_timer_in_seconds` properties [GH-24207]
 * `azurerm_hpc_cache_nfs_target` - support for the `verification_timer_in_seconds` and `write_back_timer_in_seconds` properties [GH-24208]
 * `azurerm_linux_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_linux_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
