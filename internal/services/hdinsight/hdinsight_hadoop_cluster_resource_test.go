@@ -1305,7 +1305,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       vm_size               = "%s"
       install_script_action {
         name = "script1"
-        uri  = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
+        uri  = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/8b3b3506159c370f032028664a84d604548b3e88/quickstarts/microsoft.hdinsight/hdinsight-linux-add-edge-node/scripts/EmptyNodeSetup.sh"
       }
     }
   }
