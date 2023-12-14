@@ -47,6 +47,7 @@ BUG FIXES:
 * `azurerm_pim_eligible_role_assignment` - fix an importing issue by filtering available role assignments based on the provided `scope` [GH-24077]
 * `azurerm_resource_group_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
 * `azurerm_security_center_setting` - fix the casing for the `setting_name` `Sentinel` [GH-24210]
+* `azurerm_storage_account` - Fix crash when checking for `routingInputs.PublishInternetEndpoints` and `routingInputs.PublishMicrosoftEndpoints` [GH-24228]
 * `azurerm_storage_share_file` - prevent panic when the file specified by `source` is empty [GH-24179]
 * `azurerm_subscription_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
 * `azurerm_tenant_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
