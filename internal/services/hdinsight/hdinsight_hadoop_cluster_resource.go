@@ -520,40 +520,48 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *applications.Applicati
 		}
 	}
 
-	actions := make(map[string]interface{})
-	if installScriptActions := props.InstallScriptActions; installScriptActions != nil {
-		for _, action := range *installScriptActions {
-			actions["name"] = action.Name
-			actions["uri"] = action.Uri
-			actions["parameters"] = d.Get("roles.0.edge_node.0.install_script_action.0.parameters").(string)
+	installScriptActions := make([]interface{}, 0)
+	if props.InstallScriptActions != nil {
+		for _, action := range *props.InstallScriptActions {
+			installScriptActions = append(installScriptActions, map[string]interface{}{
+				"name":       action.Name,
+				"uri":        action.Uri,
+				"parameters": d.Get("roles.0.edge_node.0.install_script_action.0.parameters").(string),
+			})
 		}
 	}
 
-	if uninstallScriptActions := props.UninstallScriptActions; uninstallScriptActions != nil && len(*uninstallScriptActions) != 0 {
-		uninstallActions := make(map[string]interface{})
-		for _, uninstallAction := range *uninstallScriptActions {
-			actions["name"] = uninstallAction.Name
-			actions["uri"] = uninstallAction.Uri
-			actions["parameters"] = uninstallAction.Parameters
+	uninstallScriptActions := make([]interface{}, 0)
+	if props.UninstallScriptActions != nil {
+		for _, uninstallAction := range *props.UninstallScriptActions {
+			uninstallScriptActions = append(uninstallScriptActions, map[string]interface{}{
+				"name":       uninstallAction.Name,
+				"uri":        uninstallAction.Uri,
+				"parameters": d.Get("roles.0.edge_node.0.uninstall_script_actions.0.parameters").(string),
+			})
 		}
-		edgeNode["uninstall_script_actions"] = []interface{}{uninstallActions}
 	}
 
+	httpsEndpoints := make([]interface{}, 0)
 	if HTTPSEndpoints := props.HTTPSEndpoints; HTTPSEndpoints != nil && len(*HTTPSEndpoints) != 0 {
-		httpsEndpoints := make(map[string]interface{})
 		for _, HTTPSEndpoint := range *HTTPSEndpoints {
-			httpsEndpoints["access_modes"] = HTTPSEndpoint.AccessModes
-			httpsEndpoints["destination_port"] = HTTPSEndpoint.DestinationPort
-			httpsEndpoints["disable_gateway_auth"] = HTTPSEndpoint.DisableGatewayAuth
-			httpsEndpoints["private_ip_address"] = HTTPSEndpoint.PrivateIPAddress
-			httpsEndpoints["sub_domain_suffix"] = HTTPSEndpoint.SubDomainSuffix
+			httpsEndpoints = append(httpsEndpoints, map[string]interface{}{
+				"access_modes":         pointer.From(HTTPSEndpoint.AccessModes),
+				"destination_port":     pointer.From(HTTPSEndpoint.DestinationPort),
+				"disable_gateway_auth": pointer.From(HTTPSEndpoint.DisableGatewayAuth),
+				"private_ip_address":   pointer.From(HTTPSEndpoint.PrivateIPAddress),
+				"sub_domain_suffix":    pointer.From(HTTPSEndpoint.SubDomainSuffix),
+			})
 		}
-		edgeNode["https_endpoints"] = []interface{}{httpsEndpoints}
 	}
 
-	edgeNode["install_script_action"] = []interface{}{actions}
-
-	role["edge_node"] = []interface{}{edgeNode}
+	role["edge_node"] = []interface{}{
+		map[string]interface{}{
+			"install_script_action":    installScriptActions,
+			"https_endpoints":          httpsEndpoints,
+			"uninstall_script_actions": uninstallScriptActions,
+		},
+	}
 
 	return []interface{}{role}
 }
