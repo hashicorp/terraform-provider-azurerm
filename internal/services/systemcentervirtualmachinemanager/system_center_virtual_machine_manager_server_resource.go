@@ -63,35 +63,38 @@ func (r SystemCenterVirtualMachineManagerServerResource) Arguments() map[string]
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"fqdn": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-
 		"credential": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"username": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"password": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
+		},
+
+		"custom_location_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.CustomLocationID,
+		},
+
+		"fqdn": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"port": {
@@ -145,8 +148,8 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 				Tags: pointer.To(model.Tags),
 			}
 
-			if model.Port != 0 {
-				parameters.Properties.Port = utils.Int64(int64(model.Port))
+			if v := model.Port; v != 0 {
+				parameters.Properties.Port = utils.Int64(int64(v))
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
@@ -185,7 +188,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 				state.Location = location.Normalize(model.Location)
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Fqdn = model.Properties.Fqdn
-				state.Credential = flattenSystemCenterVirtualMachineManagerServerCredential(model.Properties.Credentials)
+				state.Credential = flattenSystemCenterVirtualMachineManagerServerCredential(model.Properties.Credentials, metadata.ResourceData.Get("credential.0.password").(string))
 				state.Tags = pointer.From(model.Tags)
 
 				if v := model.Properties.Port; v != nil {
@@ -291,7 +294,7 @@ func expandSystemCenterVirtualMachineManagerServerCredential(input []Credential)
 	return result
 }
 
-func flattenSystemCenterVirtualMachineManagerServerCredential(input *vmmservers.VMMCredential) []Credential {
+func flattenSystemCenterVirtualMachineManagerServerCredential(input *vmmservers.VMMCredential, password string) []Credential {
 	result := make([]Credential, 0)
 	if input == nil {
 		return result
@@ -299,7 +302,7 @@ func flattenSystemCenterVirtualMachineManagerServerCredential(input *vmmservers.
 
 	credential := Credential{
 		Username: pointer.From(input.Username),
-		Password: pointer.From(input.Password),
+		Password: password,
 	}
 
 	return append(result, credential)

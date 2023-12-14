@@ -20,16 +20,12 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-data "azurerm_extended_locations" "example" {
-  location = azurerm_resource_group.example.location
-}
-
 resource "azurerm_system_center_virtual_machine_manager_server" "example" {
   name                = "example-scvmmms"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  edge_zone           = data.azurerm_extended_locations.example.extended_locations[0]
-  fqdn                = "exampledomain.com"
+  custom_location_id  = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ExtendedLocation/customLocations/customLocation1"
+  fqdn                = "example.labtest"
 }
 ```
 
@@ -43,11 +39,11 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the System Center Virtual Machine Manager Server should exist. Changing this forces a new resource to be created.
 
+* `credential` - (Required) A `credential` block as defined below.
+
 * `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Server.
 
 * `fqdn` - (Required) The FQDN of the System Center Virtual Machine Manager Server.
-
-* `credential` - (Optional) A `credential` block as defined below.
 
 * `port` - (Optional) The port that is used to listened by the System Center Virtual Machine Manager Server. Possible values are between `1` and `65535`.
 
@@ -57,9 +53,9 @@ The following arguments are supported:
 
 A `credential` block supports the following:
 
-* `username` - (Optional) The username that is used to connect to the System Center Virtual Machine Manager Server.
+* `username` - (Required) The username that is used to connect to the System Center Virtual Machine Manager Server.
 
-* `password` - (Optional) The password that is used to connect to the System Center Virtual Machine Manager Server.
+* `password` - (Required) The password that is used to connect to the System Center Virtual Machine Manager Server.
 
 ## Attributes Reference
 
