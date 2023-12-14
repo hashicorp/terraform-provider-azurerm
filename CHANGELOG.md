@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* provider: support for authenticating using Azure Kubernetes Service Workload Identity [GH-23965]
 * dependencies: updating to `v0.65.0` of `github.com/hashicorp/go-azure-helpers` [GH-24222]
 * dependencies: updating to `v0.20231213.1160254` of `github.com/hashicorp/go-azure-sdk` [GH-24222]
 * dependencies: update `security/automation` to use `hashicorp/go-azure-sdk` [GH-24156]
