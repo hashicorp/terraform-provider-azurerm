@@ -10,6 +10,8 @@ description: |-
 
 Manages a MySQL Database within a MySQL Server
 
+!>**IMPORTANT:** To mitigate the possibility of data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [product documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+
 ## Example Usage
 
 ```hcl
@@ -49,6 +51,10 @@ resource "azurerm_mysql_database" "example" {
   server_name         = azurerm_mysql_server.example.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 ```
 
