@@ -32,6 +32,7 @@ ENHANCEMENTS:
 * `azurerm_monitor_workspace` - add support for the `default_data_collection_endpoint_id` and `default_data_collection_rule_id` properties [GH-24153]
 * `azurerm_redis_cache` - add support for the `storage_account_subscription_id` property [GH-24101]
 * `azurerm_storage_blob` - add support for the `source_content` type `Page` [GH-24177]
+* `azurerm_web_application_firewall_policy` - add new values to the `rule_group_name` validation [GH-24194]
 * `azurerm_windows_web_app` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_windows_web_app_slot` - make `client_secret_setting_name` optional and conflicts with `client_secret_certificate_thumbprint` [GH-21834]
 * `azurerm_windows_web_app` - fix a bug in `app_settings` where settings could be lost [GH-24221]
