@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
@@ -30,7 +31,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := clusters.ParseClusterID(d.Id())
+		id, err := commonids.ParseHDInsightClusterID(d.Id())
 		if err != nil {
 			return err
 		}
@@ -111,15 +112,14 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			}
 		}
 
-		extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
 		if d.HasChange("monitor") {
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			if v, ok := d.GetOk("monitor"); ok {
 				monitorRaw := v.([]interface{})
-				if err := enableHDInsightMonitoring(ctx, extensionsClient, extensionsClusterId, monitorRaw); err != nil {
+				if err := enableHDInsightMonitoring(ctx, extensionsClient, *id, monitorRaw); err != nil {
 					return err
 				}
-			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, extensionsClusterId); err != nil {
+			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, *id); err != nil {
 				return err
 			}
 		}
@@ -127,10 +127,10 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			if v, ok := d.GetOk("extension"); ok {
 				extensionRaw := v.([]interface{})
-				if err := enableHDInsightAzureMonitor(ctx, extensionsClient, extensionsClusterId, extensionRaw); err != nil {
+				if err := enableHDInsightAzureMonitor(ctx, extensionsClient, *id, extensionRaw); err != nil {
 					return err
 				}
-			} else if err := disableHDInsightAzureMonitor(ctx, extensionsClient, extensionsClusterId); err != nil {
+			} else if err := disableHDInsightAzureMonitor(ctx, extensionsClient, *id); err != nil {
 				return err
 			}
 		}
@@ -158,7 +158,7 @@ func hdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
 		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := clusters.ParseClusterID(d.Id())
+		id, err := commonids.ParseHDInsightClusterID(d.Id())
 		if err != nil {
 			return err
 		}
@@ -404,7 +404,7 @@ func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []inte
 	return output
 }
 
-func enableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId extensions.ClusterId, input []interface{}) error {
+func enableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []interface{}) error {
 	payload := ExpandHDInsightsMonitor(input)
 
 	// This API is an LRO without a header or `provisioningState` - so we need to do custom polling on the field
@@ -422,7 +422,7 @@ func enableHDInsightMonitoring(ctx context.Context, client *extensions.Extension
 	return nil
 }
 
-func disableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId extensions.ClusterId) error {
+func disableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId) error {
 	// This API is an LRO without a header or `provisioningState` - so we need to do custom polling on the field
 	// ctx: https://github.com/hashicorp/go-azure-sdk/issues/518
 	if _, err := client.DisableMonitoring(ctx, clusterId); err != nil {
@@ -438,7 +438,7 @@ func disableHDInsightMonitoring(ctx context.Context, client *extensions.Extensio
 	return nil
 }
 
-func enableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId extensions.ClusterId, input []interface{}) error {
+func enableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []interface{}) error {
 	v := input[0].(map[string]interface{})
 
 	payload := extensions.AzureMonitorRequest{
@@ -458,7 +458,7 @@ func enableHDInsightAzureMonitor(ctx context.Context, client *extensions.Extensi
 	return nil
 }
 
-func disableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId extensions.ClusterId) error {
+func disableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId) error {
 	if _, err := client.DisableAzureMonitor(ctx, clusterId); err != nil {
 		return fmt.Errorf("disabling Azure Monitor for %s: %+v", clusterId, err)
 	}

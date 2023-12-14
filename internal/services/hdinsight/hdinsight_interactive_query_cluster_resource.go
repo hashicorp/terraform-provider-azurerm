@@ -10,13 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -59,7 +58,7 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 		Delete: hdinsightClusterDelete("Interactive Query"),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := clusters.ParseClusterID(id)
+			_, err := commonids.ParseHDInsightClusterID(id)
 			return err
 		}),
 
@@ -184,7 +183,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	id := clusters.NewClusterID(subscriptionId, resourceGroup, name)
+	id := commonids.NewHDInsightClusterID(subscriptionId, resourceGroup, name)
 	location := location.Normalize(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -297,17 +296,16 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 	d.SetId(id.ID())
 
 	// We can only enable monitoring after creation
-	extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
-		if err := enableHDInsightMonitoring(ctx, extensionsClient, extensionsClusterId, monitorRaw); err != nil {
+		if err := enableHDInsightMonitoring(ctx, extensionsClient, id, monitorRaw); err != nil {
 			return err
 		}
 	}
 
 	if v, ok := d.GetOk("extension"); ok {
 		extensionRaw := v.([]interface{})
-		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, extensionsClusterId, extensionRaw); err != nil {
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, id, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -322,7 +320,7 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters.ParseClusterID(d.Id())
+	id, err := commonids.ParseHDInsightClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -339,8 +337,7 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
-	configurationsClusterId := configurations.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-	configurationsResp, err := configurationsClient.List(ctx, configurationsClusterId)
+	configurationsResp, err := configurationsClient.List(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving Configuration for Interactive Query %s: %+v", id, err)
 	}
@@ -355,13 +352,12 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving Gateway Configuration for Interactive Query %s: %+v", id, err)
 	}
 
-	extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-	monitor, err := extensionsClient.GetMonitoringStatus(ctx, extensionsClusterId)
+	monitor, err := extensionsClient.GetMonitoringStatus(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving Monitoring Status for Interactive Query %s: %+v", id, err)
 	}
 
-	extension, err := extensionsClient.GetAzureMonitorStatus(ctx, extensionsClusterId)
+	extension, err := extensionsClient.GetAzureMonitorStatus(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving Azure Monitor Status for Interactive Query %s: %+v", id, err)
 	}

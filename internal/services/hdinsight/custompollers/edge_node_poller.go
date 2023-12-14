@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -16,11 +17,11 @@ var _ pollers.PollerType = &EdgeNodePoller{}
 
 // EdgeNodePoller polls until the Edge Nodes have finished provisioning
 type EdgeNodePoller struct {
-	clusterId clusters.ClusterId
 	client    *clusters.ClustersClient
+	clusterId commonids.HDInsightClusterId
 }
 
-func NewEdgeNodePoller(client *clusters.ClustersClient, clusterId clusters.ClusterId) *EdgeNodePoller {
+func NewEdgeNodePoller(client *clusters.ClustersClient, clusterId commonids.HDInsightClusterId) *EdgeNodePoller {
 	return &EdgeNodePoller{
 		client:    client,
 		clusterId: clusterId,

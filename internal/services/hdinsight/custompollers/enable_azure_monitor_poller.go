@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -17,10 +18,10 @@ var _ pollers.PollerType = &EnableAzureMonitorPoller{}
 // is a LRO which doesn't use `provisioningState`.
 type EnableAzureMonitorPoller struct {
 	client    *extensions.ExtensionsClient
-	clusterId extensions.ClusterId
+	clusterId commonids.HDInsightClusterId
 }
 
-func NewEnableAzureMonitorPoller(client *extensions.ExtensionsClient, clusterId extensions.ClusterId) *EnableAzureMonitorPoller {
+func NewEnableAzureMonitorPoller(client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId) *EnableAzureMonitorPoller {
 	return &EnableAzureMonitorPoller{
 		client:    client,
 		clusterId: clusterId,
