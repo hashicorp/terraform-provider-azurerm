@@ -86,7 +86,7 @@ Terraform can be configured to use AKS workload identity for authentication in o
 
 ### Configuring with environment variables
 
-Setting the `ARM_USE_AKS_WORKLOAD_IDENTITY` environment variable (equivalent to provider block argument [`use_aks_workload_identity`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#use_aks_workload_identity)) to `true` tells Terraform to use an AKS workload identity.
+Setting the `ARM_USE_AKS_WORKLOAD_IDENTITY` environment variable (equivalent to provider block argument [`use_aks_workload_identity`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#use_aks_workload_identity)) to `true` tells Terraform to use an AKS workload identity. It is also suggested to disable Azure CLI authentication by setting the `ARM_USE_CLI` environment variable (equivalent to provider block argument [`use_cli`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#use_cli)) to `false`.
 
 If you have not annotated your Kubernetes service account with `azure.workload.identity/client-id`, you will need to specify the `ARM_CLIENT_ID` environment variable (equivalent to provider block argument [`client_id`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#client_id)) to the [client id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity#client_id) of the identity.
 
@@ -94,6 +94,7 @@ In addition to a properly-configured managed identity, Terraform needs to know t
 
 ```shell
 export ARM_USE_AKS_WORKLOAD_IDENTITY=true
+export ARM_USE_CLI=false
 export ARM_SUBSCRIPTION_ID=159f2485-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 export ARM_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # only necessary if the service account is not annotated with the relevant client ID
 ```
@@ -139,6 +140,7 @@ provider "azurerm" {
   features {}
 
   use_aks_workload_identity = true
+  use_cli                   = false
   #...
 }
 ```
