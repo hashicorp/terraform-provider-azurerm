@@ -41,6 +41,7 @@ BUG FIXES:
 * `azurerm_batch_account` - fix bug where `UserAssigned, SystemAssigned` could be passed to the resource even though it isn't supported [GH-24204]
 * `azurerm_batch_pool` - fix bug where `settings_json` and `protected_settings` were not being unmarshaled [GH-24075]
 * `azurerm_bot_service_azure_bot` - fix bug where `public_network_access_enabled` was being set as the value for `LuisKey` [GH-24164]
+* `azurerm_cognitive_account_customer_managed_key` - `identity_client_id` is no longer passed to the api when it is empty [GH-24231]
 * `azurerm_linux_web_app_slot` - error when `service_plan_id` is identical to the parent `service_plan_id` [GH-23403]
 * `azurerm_management_group_template_deployment` - fixing a bug where `template_spec_version_id` couldn't be updated [GH-24072]
 * `azurerm_pim_active_role_assignment` - fix an importing issue by filtering available role assignments based on the provided `scope` [GH-24077]
