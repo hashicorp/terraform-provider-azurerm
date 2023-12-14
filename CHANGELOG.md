@@ -9,7 +9,7 @@ ENHANCEMENTS:
 
 * provider: support for authenticating using Azure Kubernetes Service Workload Identity [GH-23965]
 * dependencies: updating to `v0.65.0` of `github.com/hashicorp/go-azure-helpers` [GH-24222]
-* dependencies: updating to `v0.20231214.1134755` of `github.com/hashicorp/go-azure-sdk` [GH-24240]
+* dependencies: updating to `v0.20231214.1220802` of `github.com/hashicorp/go-azure-sdk` [GH-24246]
 * dependencies: updating to version `v0.20231214.1160726` of `github.com/hashicorp/go-azure-sdk` [GH-24241]
 * dependencies: update `security/automation` to use `hashicorp/go-azure-sdk` [GH-24156]
 * `dataprotection`: updating to API Version `2023-05-01` [GH-24143]
@@ -42,6 +42,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: fix an authentication issue with Azure Storage when running in Azure China cloud [GH-24246]
 * Data Source: `azurerm_role_definition` - fix bug where `role_definition_id` and `scope` were being incorrectly set [GH-24211]
 * `azurerm_batch_account` - fix bug where `UserAssigned, SystemAssigned` could be passed to the resource even though it isn't supported [GH-24204]
 * `azurerm_batch_pool` - fix bug where `settings_json` and `protected_settings` were not being unmarshaled [GH-24075]
