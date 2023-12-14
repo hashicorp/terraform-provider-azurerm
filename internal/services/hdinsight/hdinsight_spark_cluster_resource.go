@@ -374,10 +374,8 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				}
 			}
 
-			if props.NetworkProperties != nil {
-				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
-					return fmt.Errorf("flattening `network`: %+v", err)
-				}
+			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flattening `network`: %+v", err)
 			}
 
 			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)

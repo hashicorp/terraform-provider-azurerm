@@ -391,10 +391,8 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 				}
 			}
 
-			if props.NetworkProperties != nil {
-				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
-					return fmt.Errorf("flattening `network`: %+v", err)
-				}
+			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flattening `network`: %+v", err)
 			}
 
 			interactiveQueryRoles := hdInsightRoleDefinition{

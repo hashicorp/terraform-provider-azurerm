@@ -462,10 +462,8 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
 			}
 
-			if props.NetworkProperties != nil {
-				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
-					return fmt.Errorf("flatten `network`: %+v", err)
-				}
+			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flatten `network`: %+v", err)
 			}
 			if props.ComputeIsolationProperties.EnableComputeIsolation != nil {
 				if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {

@@ -607,9 +607,9 @@ func FlattenHDInsightComputeIsolationProperties(input clusters.ComputeIsolationP
 	}
 }
 
-func FlattenHDInsightsNetwork(input *clusters.NetworkProperties) []interface{} {
+func flattenHDInsightsNetwork(input *clusters.NetworkProperties) []interface{} {
 	if input == nil {
-		return nil
+		return make([]interface{}, 0)
 	}
 
 	connDir := string(clusters.ResourceProviderConnectionOutbound)

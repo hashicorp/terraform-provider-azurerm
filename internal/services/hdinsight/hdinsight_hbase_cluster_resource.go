@@ -341,10 +341,8 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 
 			flattenHDInsightsMetastores(d, configurations)
 
-			if props.NetworkProperties != nil {
-				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
-					return fmt.Errorf("flattening `network`: %+v", err)
-				}
+			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flattening `network`: %+v", err)
 			}
 
 			if props.DiskEncryptionProperties != nil {
