@@ -4,7 +4,6 @@
 package kusto
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AttachedDatabaseConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/clusters/cluster1/attachedDatabaseConfigurations/config1 -rewrite=true
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Cluster -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/clusters/cluster1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ClusterPrincipalAssignment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/clusters/cluster1/principalAssignments/assignment1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Database -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DatabasePrincipalAssignment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/principalAssignments/assignment1 -rewrite=true
