@@ -557,8 +557,7 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					log.Printf("[INFO] appplatform %q does not exist - removing from state", id.ID())
-					metadata.MarkAsGone(id)
-					return nil
+					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
