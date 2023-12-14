@@ -42,13 +42,13 @@ func NewStorageTableDataPlaneId(accountName, domainSuffix, name string) StorageT
 	}
 }
 
-func StorageTableDataPlaneID(input string) (*StorageTableDataPlaneId, error) {
-	parsed, err := tables.ParseResourceID(input)
+func StorageTableDataPlaneID(id, domainSuffix string) (*StorageTableDataPlaneId, error) {
+	parsed, err := tables.ParseTableID(id, domainSuffix)
 	if err != nil {
 		return nil, err
 	}
 
-	uri, err := url.Parse(input)
+	uri, err := url.Parse(id)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func StorageTableDataPlaneID(input string) (*StorageTableDataPlaneId, error) {
 	domainNameSuffix := strings.TrimPrefix(host, fmt.Sprintf("%s.table.", hostSegments[0]))
 
 	return &StorageTableDataPlaneId{
-		AccountName:  parsed.AccountName,
+		AccountName:  parsed.AccountId.AccountName,
 		DomainSuffix: domainNameSuffix,
 		Name:         parsed.TableName,
 	}, nil

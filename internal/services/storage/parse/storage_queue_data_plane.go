@@ -41,8 +41,8 @@ func NewStorageQueueDataPlaneId(accountName, domainSuffix, name string) StorageQ
 	}
 }
 
-func StorageQueueDataPlaneID(id string) (*StorageQueueDataPlaneId, error) {
-	parsed, err := queues.ParseResourceID(id)
+func StorageQueueDataPlaneID(id, domainSuffix string) (*StorageQueueDataPlaneId, error) {
+	parsed, err := queues.ParseQueueID(id, domainSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func StorageQueueDataPlaneID(id string) (*StorageQueueDataPlaneId, error) {
 	domainNameSuffix := strings.TrimPrefix(host, fmt.Sprintf("%s.queue.", hostSegments[0]))
 
 	return &StorageQueueDataPlaneId{
-		AccountName:  parsed.AccountName,
+		AccountName:  parsed.AccountId.AccountName,
 		DomainSuffix: domainNameSuffix,
 		Name:         parsed.QueueName,
 	}, nil
