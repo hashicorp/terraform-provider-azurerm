@@ -28,7 +28,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
-	github.com/tombuildsstuff/giovanni v0.21.0
+	github.com/tombuildsstuff/giovanni v0.22.0
 	github.com/tombuildsstuff/kermit v0.20230703.1101016
 	golang.org/x/crypto v0.17.0
 	golang.org/x/tools v0.13.0

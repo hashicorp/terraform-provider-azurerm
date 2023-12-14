@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
 )
 
@@ -34,10 +35,10 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			0: migration.BlobV0ToV1{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := blobs.ParseResourceID(id)
-			return err
-		}),
+		// Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		// 	_, err := blobs.ParseResourceID(id)
+		// 	return err
+		// }),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -174,12 +175,17 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
@@ -187,7 +193,11 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
-	id := blobsClient.GetResourceID(accountName, containerName, name)
+	accountId, err := accounts.ParseAccountID(account.ID, *domainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing account ID %s: %+v", account.ID, err)
+	}
+	id := blobs.NewBlobID(*accountId, containerName, name)
 	if d.IsNewResource() {
 		input := blobs.GetPropertiesInput{}
 		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
@@ -197,7 +207,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 		if !response.WasNotFound(props.HttpResponse.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_blob", id)
+			return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
 		}
 	}
 
@@ -235,7 +245,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	log.Printf("[DEBUG] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
 
-	d.SetId(id)
+	d.SetId(id.ID())
 
 	return resourceStorageBlobUpdate(d, meta)
 }
@@ -245,17 +255,22 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := blobs.ParseResourceID(d.Id())
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
+	id, err := blobs.ParseBlobID(d.Id(), *domainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %s", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 	}
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
@@ -265,18 +280,22 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("access_tier") {
 		// this is only applicable for Gen2/BlobStorage accounts
-		log.Printf("[DEBUG] Updating Access Tier for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		log.Printf("[DEBUG] Updating Access Tier for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
 
-		if _, err := blobsClient.SetTier(ctx, id.AccountName, id.ContainerName, id.BlobName, accessTier); err != nil {
-			return fmt.Errorf("updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		input := blobs.SetTierInput{
+			Tier: accessTier,
 		}
 
-		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+		if _, err := blobsClient.SetTier(ctx, id.ContainerName, id.BlobName, input); err != nil {
+			return fmt.Errorf("updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 	}
 
 	if d.HasChange("content_type") || d.HasChange("cache_control") {
-		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 		input := blobs.SetPropertiesInput{
 			ContentType:  utils.String(d.Get("content_type").(string)),
 			CacheControl: utils.String(d.Get("cache_control").(string)),
@@ -292,22 +311,22 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			input.ContentMD5 = utils.String(data)
 		}
 
-		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-			return fmt.Errorf("updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		if _, err := blobsClient.SetProperties(ctx, id.ContainerName, id.BlobName, input); err != nil {
+			return fmt.Errorf("updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 		}
-		log.Printf("[DEBUG] Updated Properties for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+		log.Printf("[DEBUG] Updated Properties for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating MetaData for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		log.Printf("[DEBUG] Updating MetaData for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		input := blobs.SetMetaDataInput{
 			MetaData: ExpandMetaData(metaDataRaw),
 		}
-		if _, err := blobsClient.SetMetaData(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-			return fmt.Errorf("updating MetaData for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		if _, err := blobsClient.SetMetaData(ctx, id.ContainerName, id.BlobName, input); err != nil {
+			return fmt.Errorf("updating MetaData for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 		}
-		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 	}
 
 	return resourceStorageBlobRead(d, meta)
@@ -318,17 +337,22 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := blobs.ParseResourceID(d.Id())
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
+	id, err := blobs.ParseBlobID(d.Id(), *domainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %s", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
-		log.Printf("[DEBUG] Unable to locate Account %q for Blob %q (Container %q) - assuming removed & removing from state!", id.AccountName, id.BlobName, id.ContainerName)
+		log.Printf("[DEBUG] Unable to locate Account %q for Blob %q (Container %q) - assuming removed & removing from state!", id.AccountId.AccountName, id.BlobName, id.ContainerName)
 		d.SetId("")
 		return nil
 	}
@@ -338,22 +362,22 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
-	log.Printf("[INFO] Retrieving Storage Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	log.Printf("[INFO] Retrieving Storage Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 	input := blobs.GetPropertiesInput{}
-	props, err := blobsClient.GetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input)
+	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", id.BlobName, id.ContainerName, id.AccountName)
+		if response.WasNotFound(props.HttpResponse.Response) {
+			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 	}
 
 	d.Set("name", id.BlobName)
 	d.Set("storage_container_name", id.ContainerName)
-	d.Set("storage_account_name", id.AccountName)
+	d.Set("storage_account_name", id.AccountId.AccountName)
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
@@ -389,17 +413,22 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := blobs.ParseResourceID(d.Id())
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
+	id, err := blobs.ParseBlobID(d.Id(), *domainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %s", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 	}
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
@@ -407,12 +436,12 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
-	log.Printf("[INFO] Deleting Blob %q from Container %q / Storage Account %q", id.BlobName, id.ContainerName, id.AccountName)
+	log.Printf("[INFO] Deleting Blob %q from Container %q / Storage Account %q", id.BlobName, id.ContainerName, id.AccountId.AccountName)
 	input := blobs.DeleteInput{
 		DeleteSnapshots: true,
 	}
-	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("deleting Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+	if _, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		return fmt.Errorf("deleting Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 	}
 
 	return nil

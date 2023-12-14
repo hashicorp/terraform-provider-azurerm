@@ -1205,7 +1205,7 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.2.0
 ## explicit; go 1.12
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.21.0
+# github.com/tombuildsstuff/giovanni v0.22.0
 ## explicit; go 1.21
 github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs
