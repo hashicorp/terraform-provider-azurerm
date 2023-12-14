@@ -228,6 +228,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Optional: true,
 							Default:  true,
 						},
+						"storage_account_subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
 					},
 				},
 			},
@@ -902,6 +907,10 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		value := isAuthNotRequiredAsString(authEnabled)
 		output.Authnotrequired = utils.String(value)
 	}
+
+	if v := raw["storage_account_subscription_id"].(string); v != "" {
+		output.StorageSubscriptionId = pointer.To(v)
+	}
 	return output, nil
 }
 
@@ -1047,6 +1056,8 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	if v := input.Authnotrequired; v != nil {
 		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
 	}
+
+	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)
 
 	return []interface{}{outputs}, nil
 }

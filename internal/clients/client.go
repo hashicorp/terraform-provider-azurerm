@@ -594,7 +594,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building Storage for StorageMover: %+v", err)
 	}
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
-	client.Subscription = subscription.NewClient(o)
+
+	if client.Subscription, err = subscription.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Subscription: %+v", err)
+	}
+
 	client.Synapse = synapse.NewClient(o)
 	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Traffic Manager: %+v", err)

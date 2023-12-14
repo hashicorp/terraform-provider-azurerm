@@ -351,12 +351,6 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			currentStack := ""
 			if len(sc.ApplicationStack) == 1 {
 				currentStack = sc.ApplicationStack[0].CurrentStack
-				if currentStack == helpers.CurrentStackNode || sc.ApplicationStack[0].NodeVersion != "" {
-					if webApp.AppSettings == nil {
-						webApp.AppSettings = make(map[string]string, 0)
-					}
-					webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = sc.ApplicationStack[0].NodeVersion
-				}
 			}
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -420,7 +414,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
@@ -878,7 +872,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				currentStack = sc.ApplicationStack[0].CurrentStack
 			}
 
-			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
+			if metadata.ResourceData.HasChanges("site_config", "app_settings") || servicePlanChange {
 				existing.SiteConfig, err = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 				if err != nil {
 					return err
@@ -912,8 +906,8 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+			if metadata.ResourceData.HasChanges("app_settings", "site_config") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(existing.SiteConfig.AppSettings)
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)

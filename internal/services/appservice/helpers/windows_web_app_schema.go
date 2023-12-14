@@ -479,10 +479,14 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
-
 	if len(s.ApplicationStack) == 1 {
 		winAppStack := s.ApplicationStack[0]
+		if winAppStack.NodeVersion != "" {
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
+		}
 		if winAppStack.NetFrameworkVersion != "" {
 			expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
 		}
@@ -513,6 +517,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 				expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
 			}
 		}
+
 		if !features.FourPointOhBeta() {
 			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
 				if winAppStack.DockerContainerRegistry != "" {
@@ -534,6 +539,8 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	} else {
 		expanded.WindowsFxVersion = pointer.To("")
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if s.ContainerRegistryUserMSI != "" {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryUserMSI)
@@ -617,6 +624,12 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(s.ApplicationStack) == 1 {
 			winAppStack := s.ApplicationStack[0]
+			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+				if appSettings == nil {
+					appSettings = make(map[string]string)
+				}
+				appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
+			}
 			if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.dotnet_version", "site_config.0.application_stack.0.dotnet_core_version") {
 				switch {
 				case winAppStack.NetFrameworkVersion != "":
@@ -681,6 +694,8 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 			expanded.WindowsFxVersion = pointer.To("")
 		}
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
 		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(s.VirtualApplications)

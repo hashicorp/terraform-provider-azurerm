@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `service_plan_id` - (Optional) The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Linux Web App will be used.
 
+~> **Note:** `service_plan_id` should only be specified if it differs from the Service Plan of the associated Linux Web App.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -304,7 +306,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 

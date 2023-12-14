@@ -244,6 +244,7 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	maxSizeGb := diff.Get("max_size_gb")
 	minCapacity := diff.Get("per_database_settings.0.min_capacity")
 	maxCapacity := diff.Get("per_database_settings.0.max_capacity")
+	enclaveType := diff.Get("enclave_type")
 
 	s := sku{
 		Name:        name.(string),
@@ -279,7 +280,12 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 		return fmt.Errorf("mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
 
-	// get max GB and do validation based on SKU type
+	// Validate if 'enclave_type' is valid for this SKU type
+	if enclaveType != "" && strings.Contains(strings.ToLower(s.Name), "_dc") {
+		return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", s.Name)
+	}
+
+	// Get max GB and do validation based on SKU type
 	if s.SkuType == DTU {
 		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
 		return doDTUSKUValidation(s)

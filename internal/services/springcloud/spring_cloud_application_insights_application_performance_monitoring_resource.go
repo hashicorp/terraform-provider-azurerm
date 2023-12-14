@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudApplicationInsightsApplicationPerformanceMonitoringModel struct {
@@ -125,13 +125,13 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 			resource := appplatform.ApmResource{
 				Properties: &appplatform.ApmProperties{
 					Type: "ApplicationInsights",
-					Properties: utils.ToPtr(map[string]string{
+					Properties: pointer.To(map[string]string{
 						"role_name":                    model.RoleName,
 						"role_instance":                model.RoleInstance,
 						"sampling_requests_per_second": fmt.Sprintf("%d", model.SamplingRequestsPerSecond),
 						"sampling_percentage":          fmt.Sprintf("%d", model.SamplingPercentage),
 					}),
-					Secrets: utils.ToPtr(map[string]string{
+					Secrets: pointer.To(map[string]string{
 						"connection_string": model.ConnectionString,
 					}),
 				},

@@ -48,6 +48,8 @@ The following attributes are exported:
 
 * `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.
 
+* `dns_proxy_enabled` - Whether DNS proxy is enabled. It will forward DNS requests to the DNS servers when it is `true`.
+
 * `management_ip_configuration` - A `management_ip_configuration` block as defined below, which allows force-tunnelling of traffic to be performed by the firewall.
 
 * `threat_intel_mode` - The operation mode for threat intelligence-based filtering.

@@ -85,6 +85,11 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"enclave_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -137,6 +142,12 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 				readScale = pointer.From(props.ReadScale)
 			}
 			d.Set("read_scale", readScale == databases.DatabaseReadScaleEnabled)
+
+			enclaveType := ""
+			if props.PreferredEnclaveType != nil && *props.PreferredEnclaveType != databases.AlwaysEncryptedEnclaveTypeDefault {
+				enclaveType = string(*props.PreferredEnclaveType)
+			}
+			d.Set("enclave_type", enclaveType)
 
 			storageAccountType := string(databases.BackupStorageRedundancyGeo)
 			if props.CurrentBackupStorageRedundancy != nil {
