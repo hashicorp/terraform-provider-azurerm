@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app` - fix a bug in `app_settings` where settings could be lost [GH-24221]
 * `azurerm_linux_web_app_slot` - fix a bug in `app_settings` where settings could be lost [GH-24221]
 * `azurerm_log_analytics_workspace` - add support for the `immediate_data_purge_on_30_days_enabled` property [GH-24015]
+* `azurerm_mssql_server` - support for other identity types for the key vault key [GH-24236]
 * `azurerm_machine_learning_datastore_blobstorage` - this resource skips validation when being created [GH-24078]
 * `azurerm_machine_learning_datastore_datalake_gen2` - this resource skips validation when being created [GH-24078]
 * `azurerm_machine_learning_datastore_fileshare` - this resource skips validation when being created [GH-24078]
