@@ -10,7 +10,7 @@ description: |-
 
 Manages a Kusto (also known as Azure Data Explorer) Database
 
-!>**IMPORTANT:** To mitigate the possibility of data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [product documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
 
 ## Example Usage
 
@@ -40,6 +40,7 @@ resource "azurerm_kusto_database" "database" {
   hot_cache_period   = "P7D"
   soft_delete_period = "P31D"
 
+  # To mitigate the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

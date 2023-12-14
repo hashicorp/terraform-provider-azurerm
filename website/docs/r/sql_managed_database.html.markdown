@@ -10,7 +10,7 @@ description: |-
 
 Manages a SQL Azure Managed Database.
 
-!>**IMPORTANT:** To mitigate the possibility of data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [product documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
 
 ->**NOTE:** The `azurerm_sql_managed_database` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_database`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_database) resource instead.
 
@@ -54,6 +54,7 @@ resource "azurerm_sql_managed_database" "example" {
   name                    = "exampledatabase"
   location                = azurerm_resource_group.example.location
 
+  # To mitigate the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }
