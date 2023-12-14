@@ -345,14 +345,12 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flattening `network`: %+v", err)
 			}
 
-			if props.DiskEncryptionProperties != nil {
-				diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
-				if err != nil {
-					return err
-				}
-				if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
-					return fmt.Errorf("flattening `disk_encryption`: %+v", err)
-				}
+			diskEncryptionProps, err := flattenHDInsightsDiskEncryptionProperties(props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 
 			hbaseRoles := hdInsightRoleDefinition{

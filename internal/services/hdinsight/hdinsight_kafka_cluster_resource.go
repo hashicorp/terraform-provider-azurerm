@@ -471,14 +471,12 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				}
 			}
 
-			if props.DiskEncryptionProperties != nil {
-				diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
-				if err != nil {
-					return err
-				}
-				if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
-					return fmt.Errorf("flattening `disk_encryption`: %+v", err)
-				}
+			diskEncryptionProps, err := flattenHDInsightsDiskEncryptionProperties(props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 
 			extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)

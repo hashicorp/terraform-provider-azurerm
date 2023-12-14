@@ -889,7 +889,10 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	return diskEncryptionProps, nil
 }
 
-func FlattenHDInsightsDiskEncryptionProperties(input clusters.DiskEncryptionProperties) ([]interface{}, error) {
+func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionProperties) (*[]interface{}, error) {
+	if input == nil {
+		return pointer.To(make([]interface{}, 0)), nil
+	}
 	encryptionAlgorithm := ""
 	if input.EncryptionAlgorithm != nil {
 		encryptionAlgorithm = string(*input.EncryptionAlgorithm)
@@ -906,7 +909,7 @@ func FlattenHDInsightsDiskEncryptionProperties(input clusters.DiskEncryptionProp
 		keyVaultKeyId = keyVaultKeyIdRaw.ID()
 	}
 
-	return []interface{}{
+	return &[]interface{}{
 		map[string]interface{}{
 			"encryption_algorithm":          encryptionAlgorithm,
 			"encryption_at_host_enabled":    pointer.From(input.EncryptionAtHost),
