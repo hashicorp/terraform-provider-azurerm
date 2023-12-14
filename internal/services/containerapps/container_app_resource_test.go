@@ -684,6 +684,17 @@ resource "azurerm_container_app" "test" {
       }
     }
 
+    init_container {
+      name   = "init-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      volume_mounts {
+        name = azurerm_container_app_environment_storage.test.name
+        path = "/tmp/testdata"
+      }
+    }
+
     volume {
       name         = azurerm_container_app_environment_storage.test.name
       storage_type = "AzureFile"
