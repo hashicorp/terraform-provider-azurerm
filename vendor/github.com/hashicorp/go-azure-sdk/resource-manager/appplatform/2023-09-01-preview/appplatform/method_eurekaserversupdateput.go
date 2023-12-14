@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type EurekaServersUpdatePutOperationResponse struct {
 }
 
 // EurekaServersUpdatePut ...
-func (c AppPlatformClient) EurekaServersUpdatePut(ctx context.Context, id SpringId, input EurekaServerResource) (result EurekaServersUpdatePutOperationResponse, err error) {
+func (c AppPlatformClient) EurekaServersUpdatePut(ctx context.Context, id commonids.SpringCloudServiceId, input EurekaServerResource) (result EurekaServersUpdatePutOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c AppPlatformClient) EurekaServersUpdatePut(ctx context.Context, id Spring
 }
 
 // EurekaServersUpdatePutThenPoll performs EurekaServersUpdatePut then polls until it's completed
-func (c AppPlatformClient) EurekaServersUpdatePutThenPoll(ctx context.Context, id SpringId, input EurekaServerResource) error {
+func (c AppPlatformClient) EurekaServersUpdatePutThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input EurekaServerResource) error {
 	result, err := c.EurekaServersUpdatePut(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing EurekaServersUpdatePut: %+v", err)
