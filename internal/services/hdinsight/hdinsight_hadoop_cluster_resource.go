@@ -462,10 +462,8 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 
-			if props.ComputeIsolationProperties != nil {
-				if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
-					return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
-				}
+			if err := d.Set("compute_isolation", flattenHDInsightComputeIsolationProperties(props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 
 			if err := d.Set("roles", flattenedRoles); err != nil {

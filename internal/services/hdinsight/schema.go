@@ -584,19 +584,16 @@ func ExpandHDInsightsNetwork(input []interface{}) *clusters.NetworkProperties {
 	}
 }
 
-func FlattenHDInsightComputeIsolationProperties(input clusters.ComputeIsolationProperties) []interface{} {
-	var hostSku string
-	var enableComputeIsolation bool
-
-	if input.EnableComputeIsolation != nil {
-		enableComputeIsolation = *input.EnableComputeIsolation
-	}
-	if input.HostSku != nil {
-		hostSku = *input.HostSku
+func flattenHDInsightComputeIsolationProperties(input *clusters.ComputeIsolationProperties) []interface{} {
+	hostSku := ""
+	enableComputeIsolation := false
+	if input != nil {
+		enableComputeIsolation = pointer.From(input.EnableComputeIsolation)
+		hostSku = pointer.From(input.HostSku)
 	}
 
 	if !enableComputeIsolation {
-		return nil
+		return make([]interface{}, 0)
 	}
 
 	return []interface{}{
