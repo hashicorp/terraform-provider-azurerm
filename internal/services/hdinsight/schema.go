@@ -1503,7 +1503,7 @@ func FindHDInsightRole(input *[]clusters.Role, name string) *clusters.Role {
 	return nil
 }
 
-func FindHDInsightConnectivityEndpoint(name string, input *[]clusters.ConnectivityEndpoint) string {
+func findHDInsightConnectivityEndpoint(name string, input *[]clusters.ConnectivityEndpoint) string {
 	if input == nil {
 		return ""
 	}

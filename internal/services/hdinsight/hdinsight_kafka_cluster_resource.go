@@ -417,6 +417,17 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Gateway Configuration Kafka %s: %+v", id, err)
 	}
 
+	extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	monitor, err := extensionsClient.GetMonitoringStatus(ctx, extensionsClusterId)
+	if err != nil {
+		return fmt.Errorf("retrieving Monitoring Status for Kafka %s: %+v", id, err)
+	}
+
+	extension, err := extensionsClient.GetAzureMonitorStatus(ctx, extensionsClusterId)
+	if err != nil {
+		return fmt.Errorf("retrieving Azure Monitor Status for Kafka %s: %+v", id, err)
+	}
+
 	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -451,11 +462,11 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `roles`: %+v", err)
 			}
 
-			httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 			d.Set("ssh_endpoint", sshEndpoint)
-			kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
+			kafkaRestProxyEndpoint := findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
 			d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
 
 			if props.EncryptionInTransitProperties != nil {
@@ -477,21 +488,10 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 
-			extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-			monitor, err := extensionsClient.GetMonitoringStatus(ctx, extensionsClusterId)
-			if err != nil {
-				return fmt.Errorf("retrieving Monitoring Status for Kafka %s: %+v", id, err)
-			}
-
 			d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
 
 			if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
 				return fmt.Errorf("setting `rest_proxy`: %+v", err)
-			}
-
-			extension, err := extensionsClient.GetAzureMonitorStatus(ctx, extensionsClusterId)
-			if err != nil {
-				return fmt.Errorf("retrieving Azure Monitor Status for Kafka %s: %+v", id, err)
 			}
 
 			d.Set("extension", flattenHDInsightAzureMonitor(extension.Model))

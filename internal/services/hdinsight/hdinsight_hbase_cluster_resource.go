@@ -319,6 +319,17 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Gateway Configuration for HBase %s: %+v", id, err)
 	}
 
+	extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	monitor, err := extensionsClient.GetMonitoringStatus(ctx, extensionsClusterId)
+	if err != nil {
+		return fmt.Errorf("retrieving Monitoring Status for HBase %s: %+v", id, err)
+	}
+
+	extension, err := extensionsClient.GetAzureMonitorStatus(ctx, extensionsClusterId)
+	if err != nil {
+		return fmt.Errorf("retrieving Azure Monitor Status for HBase %s: %+v", id, err)
+	}
+
 	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -367,23 +378,12 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 
-			httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 			d.Set("ssh_endpoint", sshEndpoint)
 
-			extensionsClusterId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-			monitor, err := extensionsClient.GetMonitoringStatus(ctx, extensionsClusterId)
-			if err != nil {
-				return fmt.Errorf("retrieving Monitoring Status for HBase %s: %+v", id, err)
-			}
-
 			d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
-
-			extension, err := extensionsClient.GetAzureMonitorStatus(ctx, extensionsClusterId)
-			if err != nil {
-				return fmt.Errorf("retrieving Azure Monitor Status for HBase %s: %+v", id, err)
-			}
 
 			d.Set("extension", flattenHDInsightAzureMonitor(extension.Model))
 
