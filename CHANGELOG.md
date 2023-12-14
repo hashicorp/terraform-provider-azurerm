@@ -3,6 +3,7 @@
 FEATURES:
 
 * New Data Source: `azurerm_locations` [GH-23324]
+* New Resource: `azurerm_iotcentral_organization` [GH-23132]
 
 ENHANCEMENTS:
 
