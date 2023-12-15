@@ -41,11 +41,11 @@ The following arguments are supported:
 
 * `credential` - (Required) A `credential` block as defined below.
 
-* `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Server.
+* `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Server. Changing this forces a new resource to be created.
 
-* `fqdn` - (Required) The FQDN of the System Center Virtual Machine Manager Server.
+* `fqdn` - (Required) The FQDN of the System Center Virtual Machine Manager Server. Changing this forces a new resource to be created.
 
-* `port` - (Optional) The port that is used to listened by the System Center Virtual Machine Manager Server. Possible values are between `1` and `65535`.
+* `port` - (Optional) The port that is used to listened by the System Center Virtual Machine Manager Server. Possible values are between `1` and `65535`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the System Center Virtual Machine Manager Server.
 
@@ -53,9 +53,9 @@ The following arguments are supported:
 
 A `credential` block supports the following:
 
-* `username` - (Required) The username that is used to connect to the System Center Virtual Machine Manager Server.
+* `username` - (Required) The username that is used to connect to the System Center Virtual Machine Manager Server. Changing this forces a new resource to be created.
 
-* `password` - (Required) The password that is used to connect to the System Center Virtual Machine Manager Server.
+* `password` - (Required) The password that is used to connect to the System Center Virtual Machine Manager Server. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

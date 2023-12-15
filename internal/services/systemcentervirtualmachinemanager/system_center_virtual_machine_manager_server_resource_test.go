@@ -69,7 +69,7 @@ func testAccSystemCenterVirtualMachineManagerServer_complete(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, "Test"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,14 +84,14 @@ func testAccSystemCenterVirtualMachineManagerServer_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, "Test"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("credential.0.password"),
 		{
-			Config: r.update(data),
+			Config: r.complete(data, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -152,7 +152,7 @@ resource "azurerm_system_center_virtual_machine_manager_server" "import" {
 `, r.basic(data), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
 
-func (r SystemCenterVirtualMachineManagerServerResource) complete(data acceptance.TestData) string {
+func (r SystemCenterVirtualMachineManagerServerResource) complete(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -170,34 +170,10 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   }
 
   tags = {
-    Env = "Test"
+    Env = "%s"
   }
 }
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
-}
-
-func (r SystemCenterVirtualMachineManagerServerResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_system_center_virtual_machine_manager_server" "test" {
-  name                = "acctest-scvmmms-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = "%s"
-  fqdn                = "%s"
-  port                = tonumber("%s")
-
-  credential {
-    username = "%s"
-    password = "%s"
-  }
-
-  tags = {
-    Env = "Test2"
-  }
-}
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"), tag)
 }
 
 func (r SystemCenterVirtualMachineManagerServerResource) template(data acceptance.TestData) string {

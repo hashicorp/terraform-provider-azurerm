@@ -72,12 +72,14 @@ func (r SystemCenterVirtualMachineManagerServerResource) Arguments() map[string]
 					"username": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"password": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
@@ -88,18 +90,21 @@ func (r SystemCenterVirtualMachineManagerServerResource) Arguments() map[string]
 		"custom_location_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.CustomLocationID,
 		},
 
 		"fqdn": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"port": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1, 65535),
 		},
 
@@ -217,37 +222,11 @@ func (r SystemCenterVirtualMachineManagerServerResource) Update() sdk.ResourceFu
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			parameters := vmmservers.ResourcePatch{
+				Tags: pointer.To(model.Tags),
 			}
 
-			parameters := existing.Model
-			if parameters == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-			parameters.Properties.Credentials = expandSystemCenterVirtualMachineManagerServerCredential(model.Credential)
-
-			if metadata.ResourceData.HasChange("custom_location_id") {
-				parameters.ExtendedLocation = vmmservers.ExtendedLocation{
-					Type: utils.String("customLocation"),
-					Name: utils.String(model.CustomLocationId),
-				}
-			}
-
-			if metadata.ResourceData.HasChange("fqdn") {
-				parameters.Properties.Fqdn = model.Fqdn
-			}
-
-			if metadata.ResourceData.HasChange("port") {
-				parameters.Properties.Port = utils.Int64(int64(model.Port))
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = pointer.To(model.Tags)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
