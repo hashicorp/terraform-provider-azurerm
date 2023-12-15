@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -32,6 +33,7 @@ type cognitiveDeploymentModel struct {
 type DeploymentModelModel struct {
 	Format  string `tfschema:"format"`
 	Name    string `tfschema:"name"`
+	Source  string `tfschema:"source"`
 	Version string `tfschema:"version"`
 }
 
@@ -98,9 +100,15 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
+					"source": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+
 					"version": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 					},
 				},
 			},
@@ -411,6 +419,10 @@ func expandDeploymentModelModel(inputList []DeploymentModelModel) *deployments.D
 		output.Name = &input.Name
 	}
 
+	if input.Source != "" {
+		output.Source = &input.Source
+	}
+
 	if input.Version != "" {
 		output.Version = &input.Version
 	}
@@ -460,6 +472,12 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 		name = *input.Name
 	}
 	output.Name = name
+
+	source := ""
+	if input.Source != nil {
+		source = *input.Source
+	}
+	output.Source = source
 
 	version := ""
 	if input.Version != nil {
