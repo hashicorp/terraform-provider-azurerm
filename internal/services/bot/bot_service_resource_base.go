@@ -402,7 +402,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				metadata.ResourceData.Set("local_authentication_enabled", localAuthEnabled)
 
 				publicNetworkAccessEnabled := true
-				if v := props.PublicNetworkAccess; v != botservice.PublicNetworkAccessDisabled {
+				if v := props.PublicNetworkAccess; v != botservice.PublicNetworkAccessEnabled {
 					publicNetworkAccessEnabled = false
 				}
 				metadata.ResourceData.Set("public_network_access_enabled", publicNetworkAccessEnabled)
