@@ -380,7 +380,7 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 				}
 
 				if properties.GrafanaIntegrations != nil {
-					state.AzureMonitorWorkspaceIntegrations = flattenAzureMonitorWorkspaceIntegrationModelArray(properties.GrafanaIntegrations.AzureMonitorWorkspaceIntegrations)
+					state.AzureMonitorWorkspaceIntegrations = FlattenAzureMonitorWorkspaceIntegrationModelArray(properties.GrafanaIntegrations.AzureMonitorWorkspaceIntegrations)
 				}
 
 				if properties.GrafanaVersion != nil {
@@ -483,7 +483,7 @@ func expandLegacySystemAndUserAssignedMap(input []interface{}) *identity.LegacyS
 	}
 }
 
-func flattenAzureMonitorWorkspaceIntegrationModelArray(inputList *[]grafanaresource.AzureMonitorWorkspaceIntegration) []AzureMonitorWorkspaceIntegrationModel {
+func FlattenAzureMonitorWorkspaceIntegrationModelArray(inputList *[]grafanaresource.AzureMonitorWorkspaceIntegration) []AzureMonitorWorkspaceIntegrationModel {
 	var outputList []AzureMonitorWorkspaceIntegrationModel
 	if inputList == nil {
 		return outputList
