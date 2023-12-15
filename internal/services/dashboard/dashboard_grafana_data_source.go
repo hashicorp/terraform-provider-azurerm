@@ -159,12 +159,9 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("endpoint", properties.Endpoint)
 			}
 
-			// TO-DO
-			/*
-				if properties.GrafanaIntegrations != nil && properties.GrafanaIntegrations.AzureMonitorWorkspaceIntegrations != nil {
-					d.Set("azure_monitor_workspace_integrations", flattenAzureMonitorWorkspaceIntegrationModelArray(properties.GrafanaIntegrations.AzureMonitorWorkspaceIntegrations))
-				}
-			*/
+			if properties.GrafanaIntegrations != nil && properties.GrafanaIntegrations.AzureMonitorWorkspaceIntegrations != nil {
+				d.Set("azure_monitor_workspace_integrations", flattenAzureMonitorWorkspaceIntegrations(*properties.GrafanaIntegrations.AzureMonitorWorkspaceIntegrations))
+			}
 
 			if properties.GrafanaVersion != nil {
 				d.Set("grafana_version", properties.GrafanaVersion)
@@ -214,4 +211,19 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+// AzureMonitorWorkspaceIntegration represents a struct for Azure Monitor Workspace Integration
+type AzureMonitorWorkspaceIntegration struct {
+	AzureMonitorWorkspaceResourceId *string `json:"azureMonitorWorkspaceResourceId,omitempty"`
+}
+
+func flattenAzureMonitorWorkspaceIntegrations(integrations []grafanaresource.AzureMonitorWorkspaceIntegration) []interface{} {
+	result := make([]interface{}, len(integrations))
+	for i, integration := range integrations {
+		result[i] = map[string]interface{}{
+			"resource_id": integration.AzureMonitorWorkspaceResourceId,
+		}
+	}
+	return result
 }

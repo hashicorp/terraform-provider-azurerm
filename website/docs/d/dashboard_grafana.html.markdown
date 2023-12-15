@@ -43,7 +43,7 @@ The following attributes are exported:
 
 * `location` - Azure location where the resource exists.
 
-* `api_key_enabled` - Whether tje api key setting of the Grafana instance is enabled.
+* `api_key_enabled` - Whether the api key setting of the Grafana instance is enabled.
 
 * `auto_generated_domain_name_label_scope` - Scope for dns deterministic name hash calculation.
 
