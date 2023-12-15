@@ -31,7 +31,6 @@ type Client struct {
 	ContainerRegistryClient      *appplatform.ContainerRegistriesClient
 	CustomDomainsClient          *appplatform.CustomDomainsClient
 	DevToolPortalClient          *appplatform.DevToolPortalsClient
-	GatewayClient                *appplatform.GatewaysClient
 	GatewayCustomDomainClient    *appplatform.GatewayCustomDomainsClient
 	GatewayRouteConfigClient     *appplatform.GatewayRouteConfigsClient
 	MonitoringSettingsClient     *appplatform.MonitoringSettingsClient
@@ -99,9 +98,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	devToolPortalClient := appplatform.NewDevToolPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&devToolPortalClient.Client, o.ResourceManagerAuthorizer)
 
-	gatewayClient := appplatform.NewGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
-
 	gatewayCustomDomainClient := appplatform.NewGatewayCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayCustomDomainClient.Client, o.ResourceManagerAuthorizer)
 
@@ -141,7 +137,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		CustomDomainsClient:          &customDomainsClient,
 		DeploymentsClient:            &deploymentsClient,
 		DevToolPortalClient:          &devToolPortalClient,
-		GatewayClient:                &gatewayClient,
 		GatewayCustomDomainClient:    &gatewayCustomDomainClient,
 		GatewayRouteConfigClient:     &gatewayRouteConfigClient,
 		MonitoringSettingsClient:     &monitoringSettingsClient,

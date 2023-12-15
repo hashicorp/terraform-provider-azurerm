@@ -6,19 +6,16 @@ package springcloud
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type SpringCloudGatewayModel struct {
@@ -87,7 +84,7 @@ func (s SpringCloudGatewayResource) ModelObject() interface{} {
 }
 
 func (s SpringCloudGatewayResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.SpringCloudGatewayID
+	return appplatform.ValidateGatewayID
 }
 
 func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
@@ -105,7 +102,7 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: commonids.ValidateSpringCloudServiceID,
 		},
 
 		"api_metadata": {
@@ -173,7 +170,7 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validate.SpringCloudCertificateID,
+							ValidateFunc: appplatform.ValidateCertificateID,
 						},
 					},
 
@@ -384,38 +381,36 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppPlatform.GatewayClient
-			servicesClient := metadata.Client.AppPlatform.ServicesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			client := metadata.Client.AppPlatform.AppPlatformClient
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := parse.NewSpringCloudGatewayID(subscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
+			id := appplatform.NewGatewayID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
-				}
+			existing, err := client.GatewaysGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return tf.ImportAsExistsError("azurerm_spring_cloud_gateway", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(s.ResourceType(), id)
 			}
 
-			service, err := servicesClient.Get(ctx, springId.ResourceGroup, springId.SpringName)
+			service, err := client.ServicesGet(ctx, *springId)
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", springId, err)
 			}
-			if service.Sku == nil || service.Sku.Name == nil || service.Sku.Tier == nil {
+			if service.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", springId)
+			}
+			if service.Model.Sku == nil || service.Model.Sku.Name == nil || service.Model.Sku.Tier == nil {
 				return fmt.Errorf("invalid `sku` for %s", springId)
 			}
 
 			gatewayResource := appplatform.GatewayResource{
 				Properties: &appplatform.GatewayProperties{
 					ClientAuth:            expandGatewayClientAuth(model.ClientAuthorization),
-					APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata),
+					ApiMetadataProperties: expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata),
 					ApmTypes:              expandGatewayGatewayApmTypes(model.ApplicationPerformanceMonitoringTypes),
 					CorsProperties:        expandGatewayGatewayCorsProperties(model.Cors),
 					EnvironmentVariables:  expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables),
@@ -425,19 +420,15 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 					SsoProperties:         expandGatewaySsoProperties(model.Sso),
 				},
 				Sku: &appplatform.Sku{
-					Name:     service.Sku.Name,
-					Tier:     service.Sku.Tier,
-					Capacity: pointer.To(int32(model.InstanceCount)),
+					Name:     service.Model.Sku.Name,
+					Tier:     service.Model.Sku.Tier,
+					Capacity: pointer.To(int64(model.InstanceCount)),
 				},
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, gatewayResource)
+			err = client.GatewaysCreateOrUpdateThenPoll(ctx, id, gatewayResource)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -455,41 +446,36 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppPlatform.GatewayClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			id, err := appplatform.ParseGatewayID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			id := parse.NewSpringCloudGatewayID(subscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName)
+			client := metadata.Client.AppPlatform.AppPlatformClient
+			resp, err := client.GatewaysGet(ctx, *id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("retrieving %s: %+v", id, err)
-				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("retrieving %s: resource was not found", id)
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			if existing.Properties == nil {
+			properties := resp.Model.Properties
+			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
-			properties := existing.Properties
 
-			if existing.Sku == nil {
+			sku := resp.Model.Sku
+			if sku == nil {
 				return fmt.Errorf("retrieving %s: sku was nil", id)
 			}
-			sku := existing.Sku
 
 			if metadata.ResourceData.HasChange("client_authorization") {
 				properties.ClientAuth = expandGatewayClientAuth(model.ClientAuthorization)
 			}
 
 			if metadata.ResourceData.HasChange("api_metadata") {
-				properties.APIMetadataProperties = expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata)
+				properties.ApiMetadataProperties = expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata)
 			}
 
 			if metadata.ResourceData.HasChange("application_performance_monitoring_types") {
@@ -521,21 +507,16 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("instance_count") {
-				sku.Capacity = pointer.To(int32(model.InstanceCount))
+				sku.Capacity = pointer.To(int64(model.InstanceCount))
 			}
-
-			gatewayResource := appplatform.GatewayResource{
+			resource := appplatform.GatewayResource{
 				Properties: properties,
 				Sku:        sku,
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, gatewayResource)
+			err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
 			}
 
 			return nil
@@ -546,23 +527,22 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.GatewayClient
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			id, err := parse.SpringCloudGatewayID(metadata.ResourceData.Id())
+			id, err := appplatform.ParseGatewayID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName)
+			resp, err := client.GatewaysGet(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					log.Printf("[INFO] appplatform %q does not exist - removing from state", id.ID())
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			springId := parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName)
+			springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 
 			var model SpringCloudGatewayModel
 			if err := metadata.Decode(&model); err != nil {
@@ -575,28 +555,24 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 				SensitiveEnvironmentVariables: model.SensitiveEnvironmentVariables,
 			}
 
-			if props := resp.Properties; props != nil {
-				state.ApiMetadata = flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)
-				state.ApplicationPerformanceMonitoringTypes = flattenGatewayGatewayApmTypes(props.ApmTypes)
-				state.ClientAuthorization = flattenGatewayClientAuth(props.ClientAuth)
-				state.Cors = flattenGatewayGatewayCorsProperties(props.CorsProperties)
-				if props.EnvironmentVariables != nil {
-					env := make(map[string]string)
-					for k, v := range props.EnvironmentVariables.Properties {
-						if v != nil {
-							env[k] = *v
-						}
+			if resp.Model != nil {
+				if props := resp.Model.Properties; props != nil {
+					state.ApiMetadata = flattenGatewayGatewayAPIMetadataProperties(props.ApiMetadataProperties)
+					state.ApplicationPerformanceMonitoringTypes = flattenGatewayGatewayApmTypes(props.ApmTypes)
+					state.ClientAuthorization = flattenGatewayClientAuth(props.ClientAuth)
+					state.Cors = flattenGatewayGatewayCorsProperties(props.CorsProperties)
+					if props.EnvironmentVariables != nil {
+						state.EnvironmentVariables = pointer.From(props.EnvironmentVariables.Properties)
 					}
-					state.EnvironmentVariables = env
+					state.HttpsOnly = pointer.From(props.HTTPSOnly)
+					state.PublicNetworkAccessEnabled = pointer.From(props.Public)
+					state.Quota = flattenGatewayGatewayResourceRequests(props.ResourceRequests)
+					state.Sso = flattenGatewaySsoProperties(props.SsoProperties, model.Sso)
 				}
-				state.HttpsOnly = pointer.From(props.HTTPSOnly)
-				state.PublicNetworkAccessEnabled = pointer.From(props.Public)
-				state.Quota = flattenGatewayGatewayResourceRequests(props.ResourceRequests)
-				state.Sso = flattenGatewaySsoProperties(props.SsoProperties, model.Sso)
-			}
 
-			if sku := resp.Sku; sku != nil {
-				state.InstanceCount = int(pointer.From(sku.Capacity))
+				if sku := resp.Model.Sku; sku != nil {
+					state.InstanceCount = int(pointer.From(sku.Capacity))
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -608,20 +584,16 @@ func (s SpringCloudGatewayResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.GatewayClient
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			id, err := parse.SpringCloudGatewayID(metadata.ResourceData.Id())
+			id, err := appplatform.ParseGatewayID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.GatewayName)
+			err = client.GatewaysDeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -629,17 +601,17 @@ func (s SpringCloudGatewayResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandGatewayGatewayAPIMetadataProperties(input []ApiMetadataModel) *appplatform.GatewayAPIMetadataProperties {
+func expandGatewayGatewayAPIMetadataProperties(input []ApiMetadataModel) *appplatform.GatewayApiMetadataProperties {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0]
-	return &appplatform.GatewayAPIMetadataProperties{
+	return &appplatform.GatewayApiMetadataProperties{
 		Title:         pointer.To(v.Title),
 		Description:   pointer.To(v.Description),
 		Documentation: pointer.To(v.DocumentationUrl),
 		Version:       pointer.To(v.Version),
-		ServerURL:     pointer.To(v.ServerUrl),
+		ServerUrl:     pointer.To(v.ServerUrl),
 	}
 }
 
@@ -653,7 +625,7 @@ func expandGatewayGatewayCorsProperties(input []CorsModel) *appplatform.GatewayC
 		AllowedOriginPatterns: pointer.To(v.AllowedOriginPatterns),
 		AllowedMethods:        pointer.To(v.AllowedMethods),
 		AllowedHeaders:        pointer.To(v.AllowedHeaders),
-		MaxAge:                pointer.To(int32(v.MaxAgeSeconds)),
+		MaxAge:                pointer.To(int64(v.MaxAgeSeconds)),
 		AllowCredentials:      pointer.To(v.CredentialsAllowed),
 		ExposedHeaders:        pointer.To(v.ExposedHeaders),
 	}
@@ -665,7 +637,7 @@ func expandGatewayGatewayResourceRequests(input []QuotaModel) *appplatform.Gatew
 	}
 	v := input[0]
 	return &appplatform.GatewayResourceRequests{
-		CPU:    pointer.To(v.Cpu),
+		Cpu:    pointer.To(v.Cpu),
 		Memory: pointer.To(v.Memory),
 	}
 }
@@ -677,9 +649,9 @@ func expandGatewaySsoProperties(input []GatewaySsoModel) *appplatform.SsoPropert
 	v := input[0]
 	return &appplatform.SsoProperties{
 		Scope:        pointer.To(v.Scope),
-		ClientID:     pointer.To(v.ClientId),
+		ClientId:     pointer.To(v.ClientId),
 		ClientSecret: pointer.To(v.ClientSecret),
-		IssuerURI:    pointer.To(v.IssuerUri),
+		IssuerUri:    pointer.To(v.IssuerUri),
 	}
 }
 
@@ -699,18 +671,9 @@ func expandGatewayGatewayEnvironmentVariables(env map[string]string, secrets map
 		return nil
 	}
 
-	propertiesMap := make(map[string]*string)
-	for k, v := range env {
-		propertiesMap[k] = pointer.To(v)
-	}
-	secretsMap := make(map[string]*string)
-	for k, v := range secrets {
-		secretsMap[k] = pointer.To(v)
-	}
-
 	return &appplatform.GatewayPropertiesEnvironmentVariables{
-		Properties: propertiesMap,
-		Secrets:    secretsMap,
+		Properties: pointer.To(env),
+		Secrets:    pointer.To(secrets),
 	}
 }
 
@@ -725,11 +688,11 @@ func expandGatewayClientAuth(input []ClientAuthorizationModel) *appplatform.Gate
 	}
 	return &appplatform.GatewayPropertiesClientAuth{
 		Certificates:            pointer.To(v.CertificateIds),
-		CertificateVerification: verificationEnabled,
+		CertificateVerification: pointer.To(verificationEnabled),
 	}
 }
 
-func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayAPIMetadataProperties) []ApiMetadataModel {
+func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMetadataProperties) []ApiMetadataModel {
 	if input == nil {
 		return make([]ApiMetadataModel, 0)
 	}
@@ -738,7 +701,7 @@ func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayAPIMet
 		{
 			Description:      pointer.From(input.Description),
 			DocumentationUrl: pointer.From(input.Documentation),
-			ServerUrl:        pointer.From(input.ServerURL),
+			ServerUrl:        pointer.From(input.ServerUrl),
 			Title:            pointer.From(input.Title),
 			Version:          pointer.From(input.Version),
 		},
@@ -769,7 +732,7 @@ func flattenGatewayGatewayResourceRequests(input *appplatform.GatewayResourceReq
 	}
 	return []QuotaModel{
 		{
-			Cpu:    pointer.From(input.CPU),
+			Cpu:    pointer.From(input.Cpu),
 			Memory: pointer.From(input.Memory),
 		},
 	}
@@ -786,8 +749,8 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 	}
 
 	var issuerUri string
-	if input.IssuerURI != nil {
-		issuerUri = *input.IssuerURI
+	if input.IssuerUri != nil {
+		issuerUri = *input.IssuerUri
 	}
 	var clientId string
 	var clientSecret string
@@ -823,14 +786,14 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 	certificateIds := make([]string, 0)
 	if input.Certificates != nil {
 		for _, v := range *input.Certificates {
-			certId, err := parse.SpringCloudCertificateIDInsensitively(v)
+			certId, err := appplatform.ParseCertificateIDInsensitively(v)
 			if err == nil {
 				certificateIds = append(certificateIds, certId.ID())
 			}
 		}
 	}
 	verificationEnabled := false
-	if input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled {
+	if input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled {
 		verificationEnabled = true
 	}
 	return []ClientAuthorizationModel{
