@@ -19,8 +19,8 @@ type SystemCenterVirtualMachineManagerServerResource struct{}
 func TestAccSystemCenterVirtualMachineManagerServerSequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
 
-	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
+	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_PORT") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_PORT`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
 	}
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
@@ -162,7 +162,7 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = "%s"
   fqdn                = "%s"
-  port                = 10000
+  port                = tonumber("%s")
 
   credential {
     username = "%s"
@@ -173,7 +173,7 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
     Env = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
 
 func (r SystemCenterVirtualMachineManagerServerResource) update(data acceptance.TestData) string {
@@ -186,7 +186,7 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = "%s"
   fqdn                = "%s"
-  port                = 10001
+  port                = tonumber("%s")
 
   credential {
     username = "%s"
@@ -197,7 +197,7 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
     Env = "Test2"
   }
 }
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
 
 func (r SystemCenterVirtualMachineManagerServerResource) template(data acceptance.TestData) string {

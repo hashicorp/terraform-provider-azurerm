@@ -226,6 +226,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Update() sdk.ResourceFu
 			if parameters == nil {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			parameters.Properties.Credentials = expandSystemCenterVirtualMachineManagerServerCredential(model.Credential)
 
 			if metadata.ResourceData.HasChange("custom_location_id") {
 				parameters.ExtendedLocation = vmmservers.ExtendedLocation{
@@ -240,10 +241,6 @@ func (r SystemCenterVirtualMachineManagerServerResource) Update() sdk.ResourceFu
 
 			if metadata.ResourceData.HasChange("port") {
 				parameters.Properties.Port = utils.Int64(int64(model.Port))
-			}
-
-			if metadata.ResourceData.HasChange("credential") {
-				parameters.Properties.Credentials = expandSystemCenterVirtualMachineManagerServerCredential(model.Credential)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
