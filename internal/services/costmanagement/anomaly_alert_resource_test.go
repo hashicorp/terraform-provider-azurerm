@@ -59,9 +59,12 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "test" {}
+
 resource "azurerm_cost_anomaly_alert" "test" {
   name            = "-acctest-%d"
   display_name    = "acctest %d"
+  subscription_id = data.azurerm_subscription.test.id
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
   message         = "Oops, cost anomaly"
@@ -77,6 +80,7 @@ func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) str
 resource "azurerm_cost_anomaly_alert" "import" {
   name            = azurerm_cost_anomaly_alert.test.name
   display_name    = azurerm_cost_anomaly_alert.test.display_name
+  subscription_id = azurerm_cost_anomaly_alert.test.subscription_id
   email_subject   = azurerm_cost_anomaly_alert.test.email_subject
   email_addresses = azurerm_cost_anomaly_alert.test.email_addresses
   message         = azurerm_cost_anomaly_alert.test.message
@@ -90,9 +94,12 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "test" {}
+
 resource "azurerm_cost_anomaly_alert" "test" {
   name            = "-acctest-%d"
   display_name    = "acctest name update %d"
+  subscription_id = data.azurerm_subscription.test.id
   email_subject   = "Hi you!"
   email_addresses = ["tester@test.com", "test2@hashicorp.developer"]
   message         = "An updated cost anomaly for you"
