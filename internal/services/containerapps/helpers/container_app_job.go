@@ -1,25 +1,19 @@
 package helpers
 
 import (
-<<<<<<< HEAD
 	"reflect"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-=======
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/jobs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"reflect"
-	"strings"
->>>>>>> a664f9890c (Reuse container app schemas)
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type JobTemplateModel struct {
-	Containers []Container       `tfschema:"containers"`
-	Volumes    []ContainerVolume `tfschema:"volumes"`
+	Containers     []Container       `tfschema:"container"`
+	InitContainers []BaseContainer   `tfschema:"init_container"`
+	Volumes        []ContainerVolume `tfschema:"volume"`
 }
 
 type EventTriggerConfiguration struct {
@@ -42,32 +36,34 @@ type ManualTriggerConfiguration struct {
 type ScaleModel struct {
 	MaxExecutions   int         `tfschema:"max_executions"`
 	MinExecutions   int         `tfschema:"min_executions"`
-	PollingInterval int         `tfschema:"polling_interval"`
+	PollingInterval int         `tfschema:"polling_interval_in_seconds"`
 	Rules           []ScaleRule `tfschema:"rules"`
 }
 
 type ScaleRule struct {
-	Auth     []ScaleRuleAuth        `tfschema:"auth"`
+	Auth     []ScaleRuleAuth        `tfschema:"authentication"`
 	Metadata map[string]interface{} `tfschema:"metadata"`
 	Name     string                 `tfschema:"name"`
-	Type     string                 `tfschema:"type"`
+	Type     string                 `tfschema:"custom_rule_type"`
 }
 
 type ScaleRuleAuth struct {
-	SecretReference  string `tfschema:"secret_ref"`
+	SecretReference  string `tfschema:"secret_name"`
 	TriggerParameter string `tfschema:"trigger_parameter"`
 }
 
 func JobTemplateSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"containers": ContainerAppContainerSchema(),
+				"container": ContainerAppContainerSchema(),
 
-				"volumes": ContainerVolumeSchema(),
+				"init_container": InitContainerAppContainerSchema(),
+
+				"volume": ContainerVolumeSchema(),
 			},
 		},
 	}
@@ -80,71 +76,27 @@ func ContainerAppsJobsScaleSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_executions": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      100,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 
 				"min_executions": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 
-				"polling_interval": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+				"polling_interval_in_seconds": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      30,
+					ValidateFunc: validation.IntAtLeast(1),
 				},
 
-				"rules": containerAppsJobsScaleRulesSchema(),
-			},
-		},
-	}
-}
-
-func containerAppsJobsScaleRulesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"auth": containerAppsJobsScaleRulesAuthSchema(),
-
-				"metadata": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-			},
-		},
-	}
-}
-
-func containerAppsJobsScaleRulesAuthSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"secret_ref": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-
-				"trigger_parameter": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
+				"rules": CustomScaleRuleSchema(),
 			},
 		},
 	}
@@ -214,9 +166,7 @@ func ExpandContainerAppJobConfigurationScheduleTriggerConfig(input []ScheduleTri
 	v := input[0]
 	var scheduleTriggerConfig jobs.JobConfigurationScheduleTriggerConfig
 
-	if v.CronExpression != "" {
-		scheduleTriggerConfig.CronExpression = v.CronExpression
-	}
+	scheduleTriggerConfig.CronExpression = v.CronExpression
 
 	if v.Parallelism != 0 {
 		scheduleTriggerConfig.Parallelism = pointer.To(int64(v.Parallelism))
@@ -244,15 +194,15 @@ func ExpandContainerAppJobConfigurationEventTriggerConfig(input []EventTriggerCo
 		eventTriggerConfig.ReplicaCompletionCount = pointer.To(int64(v.ReplicaCompletionCount))
 	}
 
-	if v.Scale != nil {
-		scale := ExpandContainerAppJobScale(v.Scale)
-		eventTriggerConfig.Scale = scale
-	}
+	eventTriggerConfig.Scale = ExpandContainerAppJobScale(v.Scale)
 
 	return pointer.To(eventTriggerConfig)
 }
 
 func ExpandContainerAppJobScale(input []ScaleModel) *jobs.JobScale {
+	if len(input) == 0 {
+		return nil
+	}
 	v := input[0]
 	var scale jobs.JobScale
 
@@ -268,23 +218,21 @@ func ExpandContainerAppJobScale(input []ScaleModel) *jobs.JobScale {
 		scale.PollingInterval = pointer.To(int64(v.PollingInterval))
 	}
 
-	if v.Rules != nil {
-		rules := ExpandContainerAppJobScaleRules(v.Rules)
-		scale.Rules = rules
-	}
+	scale.Rules = ExpandContainerAppJobScaleRules(v.Rules)
 
 	return pointer.To(scale)
 }
 
 func ExpandContainerAppJobScaleRules(input []ScaleRule) *[]jobs.JobScaleRule {
-	var rules []jobs.JobScaleRule
+	if len(input) == 0 {
+		return nil
+	}
+
+	rules := make([]jobs.JobScaleRule, 0)
 	for _, v := range input {
 		var rule jobs.JobScaleRule
 
-		if v.Auth != nil {
-			auth := ExpandContainerAppJobScaleRulesAuth(v.Auth)
-			rule.Auth = auth
-		}
+		rule.Auth = ExpandContainerAppJobScaleRulesAuth(v.Auth)
 
 		if v.Metadata != nil {
 			metadata := reflect.ValueOf(v.Metadata)
@@ -306,7 +254,10 @@ func ExpandContainerAppJobScaleRules(input []ScaleRule) *[]jobs.JobScaleRule {
 }
 
 func ExpandContainerAppJobScaleRulesAuth(input []ScaleRuleAuth) *[]jobs.ScaleRuleAuth {
-	var auth []jobs.ScaleRuleAuth
+	if len(input) == 0 {
+		return nil
+	}
+	auth := make([]jobs.ScaleRuleAuth, 0)
 	for _, v := range input {
 		var ruleAuth jobs.ScaleRuleAuth
 
@@ -330,8 +281,9 @@ func ExpandContainerAppJobTemplate(input []JobTemplateModel) *jobs.JobTemplate {
 	}
 	v := input[0]
 	template := &jobs.JobTemplate{
-		Containers: expandContainerAppJobContainers(v.Containers),
-		Volumes:    expandContainerAppJobVolumes(v.Volumes),
+		Containers:     expandContainerAppJobContainers(v.Containers),
+		InitContainers: expandInitContainerAppJobContainers(v.InitContainers),
+		Volumes:        expandContainerAppJobVolumes(v.Volumes),
 	}
 
 	return template
@@ -343,8 +295,9 @@ func FlattenContainerAppJobTemplate(input *jobs.JobTemplate) []JobTemplateModel 
 	}
 
 	template := JobTemplateModel{
-		Containers: flattenContainerAppJobContainers(input.Containers),
-		Volumes:    flattenContainerAppJobVolumes(input.Volumes),
+		Containers:     flattenContainerAppJobContainers(input.Containers),
+		InitContainers: flattenInitContainerAppJobContainers(input.InitContainers),
+		Volumes:        flattenContainerAppJobVolumes(input.Volumes),
 	}
 
 	return []JobTemplateModel{template}
@@ -381,6 +334,38 @@ func expandContainerAppJobContainers(input []Container) *[]jobs.Container {
 	}
 
 	return &result
+}
+
+func expandInitContainerAppJobContainers(input []BaseContainer) *[]jobs.BaseContainer {
+	if input == nil {
+		return nil
+	}
+
+	result := make([]jobs.BaseContainer, 0)
+
+	for _, v := range input {
+		container := jobs.BaseContainer{
+			Env:   expandInitContainerJobEnvVar(v),
+			Image: pointer.To(v.Image),
+			Name:  pointer.To(v.Name),
+			Resources: &jobs.ContainerResources{
+				Cpu:              pointer.To(v.CPU),
+				EphemeralStorage: pointer.To(v.EphemeralStorage),
+				Memory:           pointer.To(v.Memory),
+			},
+			VolumeMounts: expandContainerJobVolumeMounts(v.VolumeMounts),
+		}
+		if len(v.Args) != 0 {
+			container.Args = pointer.To(v.Args)
+		}
+		if len(v.Command) != 0 {
+			container.Command = pointer.To(v.Command)
+		}
+
+		result = append(result, container)
+	}
+
+	return pointer.To(result)
 }
 
 func flattenContainerAppJobContainers(input *[]jobs.Container) []Container {
@@ -421,7 +406,55 @@ func flattenContainerAppJobContainers(input *[]jobs.Container) []Container {
 	return result
 }
 
+func flattenInitContainerAppJobContainers(input *[]jobs.BaseContainer) []BaseContainer {
+	if input == nil || len(*input) == 0 {
+		return []BaseContainer{}
+	}
+	result := make([]BaseContainer, 0)
+	for _, v := range *input {
+		container := BaseContainer{
+			Name:         pointer.From(v.Name),
+			Image:        pointer.From(v.Image),
+			Args:         pointer.From(v.Args),
+			Command:      pointer.From(v.Command),
+			Env:          flattenContainerJobEnvVar(v.Env),
+			VolumeMounts: flattenContainerJobVolumeMounts(v.VolumeMounts),
+		}
+
+		if resources := v.Resources; resources != nil {
+			container.CPU = pointer.From(resources.Cpu)
+			container.EphemeralStorage = pointer.From(resources.EphemeralStorage)
+			container.Memory = pointer.From(resources.Memory)
+		}
+
+		result = append(result, container)
+	}
+	return result
+}
+
 func expandContainerJobEnvVar(input Container) *[]jobs.EnvironmentVar {
+	envs := make([]jobs.EnvironmentVar, 0)
+	if input.Env == nil || len(input.Env) == 0 {
+		return &envs
+	}
+
+	for _, v := range input.Env {
+		env := jobs.EnvironmentVar{
+			Name: pointer.To(v.Name),
+		}
+		if v.SecretReference != "" {
+			env.SecretRef = pointer.To(v.SecretReference)
+		} else {
+			env.Value = pointer.To(v.Value)
+		}
+
+		envs = append(envs, env)
+	}
+
+	return &envs
+}
+
+func expandInitContainerJobEnvVar(input BaseContainer) *[]jobs.EnvironmentVar {
 	envs := make([]jobs.EnvironmentVar, 0)
 	if input.Env == nil || len(input.Env) == 0 {
 		return &envs
