@@ -84,12 +84,14 @@ func (v *vaultCache) getCachedID(key string) *string {
 	return nil
 }
 
+var keyvaultCache = newVaultCache()
+
 func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string) {
-	c.keyvaultCache.addKeyvaultToCache(keyvaultCacheKey(keyVaultId), keyVaultId.ID(), keyVaultId.ResourceGroupName, dataPlaneUri)
+	keyvaultCache.addKeyvaultToCache(keyvaultCacheKey(keyVaultId), keyVaultId.ID(), keyVaultId.ResourceGroupName, dataPlaneUri)
 }
 
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.KeyVaultId) (*string, error) {
-	if cached := c.keyvaultCache.getCachedBaseUri(keyvaultCacheKey(keyVaultId)); cached != nil {
+	if cached := keyvaultCache.getCachedBaseUri(keyvaultCacheKey(keyVaultId)); cached != nil {
 		return cached, nil
 	}
 
@@ -116,7 +118,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.Ke
 }
 
 func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (bool, error) {
-	if c.keyvaultCache.getCachedItem(keyvaultCacheKey(keyVaultId)) != nil {
+	if keyvaultCache.getCachedItem(keyvaultCacheKey(keyVaultId)) != nil {
 		return true, nil
 	}
 
@@ -148,7 +150,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 		return nil, err
 	}
 
-	if cached := c.keyvaultCache.getCachedID(strings.ToLower(*keyVaultName)); cached != nil {
+	if cached := keyvaultCache.getCachedID(strings.ToLower(*keyVaultName)); cached != nil {
 		return cached, nil
 	}
 
@@ -198,7 +200,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 	}
 
 	// Now that the cache has been repopulated, check if we have the key vault or not
-	if cached := c.keyvaultCache.getCachedID(*keyVaultName); cached != nil {
+	if cached := keyvaultCache.getCachedID(*keyVaultName); cached != nil {
 		return cached, nil
 	}
 
@@ -207,7 +209,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 }
 
 func (c *Client) Purge(keyVaultId commonids.KeyVaultId) {
-	c.keyvaultCache.purge(keyvaultCacheKey(keyVaultId))
+	keyvaultCache.purge(keyvaultCacheKey(keyVaultId))
 }
 
 func (c *Client) parseNameFromBaseUrl(input string) (*string, error) {
