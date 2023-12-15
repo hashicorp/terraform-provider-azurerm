@@ -190,14 +190,12 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
 resource "azurerm_arc_kubernetes_cluster_extension" "test" {
   name				= "acctest-kce-%[1]d"
   cluster_id 	  = azurerm_arc_kubernetes_cluster.test.id
-  extension_type 	= "Microsoft.Web.Appservice"
-
-  configuration_protected_settings = {
-    "omsagent.secret.key" = "secretKeyValue2"
-  }
+  extension_type 	= "microsoft.contoso.clusters"
+  target_namespace  = "tf-ns4"
+  version = "1.2.0"
 
   configuration_settings = {
-    "omsagent.env.clusterName" = "clusterName2"
+    "Microsoft.CustomLocation.ServiceAccount" = "tf-operator"
   }
 
   identity {
