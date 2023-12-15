@@ -5,6 +5,8 @@ package logic
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"log"
 	"strconv"
 	"strings"
@@ -868,6 +870,12 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -1115,6 +1123,12 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
 
+	publicNetworkAccessEnabled := true
+	if input.PublicNetworkAccess != nil {
+		publicNetworkAccessEnabled = !strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+	}
+	result["public_network_access_enabled"] = publicNetworkAccessEnabled
+
 	results = append(results, result)
 	return results
 }
@@ -1340,6 +1354,14 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 
 	if v, ok := config["vnet_route_all_enabled"]; ok {
 		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["public_network_access_enabled"]; ok {
+		pna := helpers.PublicNetworkAccessEnabled
+		if !v.(bool) {
+			pna = helpers.PublicNetworkAccessDisabled
+		}
+		siteConfig.PublicNetworkAccess = pointer.To(pna)
 	}
 
 	return siteConfig, nil
