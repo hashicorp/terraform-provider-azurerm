@@ -52,7 +52,7 @@ resource "azurerm_mysql_database" "example" {
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

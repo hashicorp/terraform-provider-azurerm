@@ -44,7 +44,7 @@ resource "azurerm_mariadb_database" "example" {
   charset             = "utf8mb4"
   collation           = "utf8mb4_unicode_520_ci"
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

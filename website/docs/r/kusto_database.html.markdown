@@ -40,7 +40,7 @@ resource "azurerm_kusto_database" "database" {
   hot_cache_period   = "P7D"
   soft_delete_period = "P31D"
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

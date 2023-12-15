@@ -54,7 +54,7 @@ resource "azurerm_sql_managed_database" "example" {
   name                    = "exampledatabase"
   location                = azurerm_resource_group.example.location
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

@@ -37,7 +37,7 @@ resource "azurerm_postgresql_flexible_server_database" "example" {
   collation = "en_US.utf8"
   charset   = "utf8"
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

@@ -53,7 +53,7 @@ resource "azurerm_sql_database" "example" {
     environment = "production"
   }
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

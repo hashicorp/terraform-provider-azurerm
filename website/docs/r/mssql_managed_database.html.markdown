@@ -53,7 +53,7 @@ resource "azurerm_mssql_managed_database" "example" {
   name                = "example"
   managed_instance_id = azurerm_mssql_managed_instance.example.id
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }

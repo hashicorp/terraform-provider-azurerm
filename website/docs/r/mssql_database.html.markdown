@@ -56,7 +56,7 @@ resource "azurerm_mssql_database" "example" {
     foo = "bar"
   }
 
-  # To mitigate the possibility of accidental data loss
+  # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
   }
