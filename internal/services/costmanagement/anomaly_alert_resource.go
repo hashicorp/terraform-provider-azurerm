@@ -163,10 +163,6 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			emailAddresses := utils.ExpandStringSlice(emailAddressesRaw)
 
 			subscriptionId := metadata.ResourceData.Get("subscription_id").(string)
-			if subscriptionId == "" {
-				subscriptionId = metadata.Client.Account.SubscriptionId
-			}
-
 			viewId := views.NewScopedViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
 			schedule := scheduledactions.ScheduleProperties{
