@@ -88,9 +88,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ScheduledActionsClient
-
 			subscriptionId := metadata.ResourceData.Get("subscription_id").(string)
-
 			id := scheduledactions.NewScopedScheduledActionID(subscriptionId, metadata.ResourceData.Get("name").(string))
 
 			existing, err := client.GetByScope(ctx, id)
