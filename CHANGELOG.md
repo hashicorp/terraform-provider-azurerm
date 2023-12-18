@@ -1,5 +1,9 @@
 ## 3.86.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_log_analytics_workspace_table` [GH-24229]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20231215.1114251` of `hashicorp/go-azure-sdk` [GH-24251]
