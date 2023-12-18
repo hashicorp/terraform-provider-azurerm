@@ -1,3 +1,9 @@
+## 3.86.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_bot_service` - fixing a bug where `public_network_access_enabled` was always set to `true` in Read func [GH-24255]
+
 ## 3.85.0 (December 14, 2023)
 
 FEATURES:
