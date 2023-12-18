@@ -11,10 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	cdn "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
+	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -191,8 +194,14 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 			targetResourceId := ""
 			if props.TargetResource != nil && props.TargetResource.Id != nil {
 				targetResourceId = *props.TargetResource.Id
-				if parsedID, err := recordsets.ParseRecordTypeIDInsensitively(targetResourceId); err == nil {
-					targetResourceId = parsedID.ID()
+				if recordTypeID, err := recordsets.ParseRecordTypeIDInsensitively(targetResourceId); err == nil {
+					targetResourceId = recordTypeID.ID()
+				} else if trafficManagerID, err := endpoints.ParseEndpointTypeIDInsensitively(targetResourceId); err == nil {
+					targetResourceId = trafficManagerID.ID()
+				} else if cdnID, err := cdn.EndpointIDInsensitively(targetResourceId); err == nil {
+					targetResourceId = cdnID.ID()
+				} else if frontDoorID, err := frontdoor.FrontendEndpointIDInsensitively(targetResourceId); err == nil {
+					targetResourceId = frontDoorID.ID()
 				}
 			}
 			d.Set("target_resource_id", targetResourceId)
