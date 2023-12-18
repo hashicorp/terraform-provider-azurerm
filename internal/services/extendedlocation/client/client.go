@@ -17,7 +17,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building custom location client: %+v", err)
 	}
 	o.Configure(customLocationsClient.Client, o.Authorizers.ResourceManager)
-	//o.ConfigureClient(&customLocationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		CustomLocationsClient: customLocationsClient,

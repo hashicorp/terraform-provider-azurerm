@@ -184,6 +184,10 @@ def helm_install_release(chart_path, subscription_id, kubernetes_distro, kuberne
                         "--set", "global.azureEnvironment={}".format(
                             cloud_name),
                         "--set", "systemDefaultValues.clusterconnect-agent.enabled=true",
+                        "--set", "systemDefaultValues.customLocations.enabled=true",
+                        # 51dfe1e8-70c6-4de5-a08e-e18aff23d815 is from: az ad sp show --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv
+                        # refs: https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/custom-locations#enable-custom-locations-on-your-cluster
+                        "--set", "systemDefaultValues.customLocations.oid={}".format("51dfe1e8-70c6-4de5-a08e-e18aff23d815"),
                         "--namespace", "{}".format("azure-arc-release"),
                         "--create-namespace",
                         "--output", "json"]
@@ -225,7 +229,7 @@ def install_agent():
 
     # Retrieving Helm chart OCI Artifact location
     registry_path = get_helm_registry("https://westeurope.dp.kubernetesconfiguration.azure.com")
-    
+
     # Get helm chart path
     chart_path = get_chart_path(
         registry_path, None, None, helm_client_location)

@@ -6,6 +6,10 @@ type Registration struct{}
 
 var _ sdk.TypedServiceRegistration = Registration{}
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/extended-location"
+}
+
 func (r Registration) WebsiteCategories() []string {
 	return []string{}
 }
