@@ -11,10 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                     // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -163,20 +164,26 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
+	scopeId, err := commonids.ParseScopeID(scope)
+	if err != nil {
+		return fmt.Errorf("parsing %s: %+v", scopeId, err)
+	}
 
 	var roleDefinitionId string
 	if v, ok := d.GetOk("role_definition_id"); ok {
 		roleDefinitionId = v.(string)
 	} else if v, ok := d.GetOk("role_definition_name"); ok {
 		roleName := v.(string)
-		roleDefinitions, err := roleDefinitionsClient.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", roleName))
+		roleDefinitions, err := roleDefinitionsClient.List(ctx, *scopeId, roledefinitions.ListOperationOptions{
+			Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", roleName)),
+		})
 		if err != nil {
 			return fmt.Errorf("loading Role Definition List: %+v", err)
 		}
-		if len(roleDefinitions.Values()) != 1 {
+		if roleDefinitions.Model == nil || len(*roleDefinitions.Model) != 1 {
 			return fmt.Errorf("loading Role Definition List: could not find role '%s'", roleName)
 		}
-		roleDefinitionId = *roleDefinitions.Values()[0].ID
+		roleDefinitionId = *(*roleDefinitions.Model)[0].Id
 	} else {
 		return fmt.Errorf("Error: either role_definition_id or role_definition_name needs to be set")
 	}
@@ -297,14 +304,18 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleId := props.RoleDefinitionID; roleId != nil {
-			roleResp, err := roleDefinitionsClient.GetByID(ctx, *roleId)
+			parsedRoleId, err := roledefinitions.ParseScopedRoleDefinitionID(*roleId)
+			if err != nil {
+				return fmt.Errorf("parsing %s: %+v", *roleId, err)
+			}
+			roleResp, err := roleDefinitionsClient.Get(ctx, *parsedRoleId)
 			if err != nil {
 				return fmt.Errorf("loading Role Definition %q: %+v", *roleId, err)
 			}
-
-			if roleProps := roleResp.RoleDefinitionProperties; roleProps != nil {
-				d.Set("role_definition_name", roleProps.RoleName)
+			if roleResp.Model != nil && roleResp.Model.Properties != nil {
+				d.Set("role_definition_name", pointer.From(roleResp.Model.Properties.RoleName))
 			}
+
 		}
 	}
 
