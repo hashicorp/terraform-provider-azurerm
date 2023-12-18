@@ -3,33 +3,38 @@ package extendedlocation
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 type CustomLocationResource struct{}
 
 type CustomLocationResourceModel struct {
-	Name                string   `tfschema:"name"`
-	ResourceGroupName   string   `tfschema:"resource_group_name"`
-	Location            string   `tfschema:"location"`
-	AuthenticationType  string   `tfschema:"authentication_type"`
-	AuthenticationValue string   `tfschema:"authentication_value"`
-	ClusterExtensionIds []string `tfschema:"cluster_extension_ids"`
-	DisplayName         string   `tfschema:"display_name"`
-	HostResourceId      string   `tfschema:"host_resource_id"`
-	HostType            string   `tfschema:"host_type"`
-	Namespace           string   `tfschema:"namespace"`
+	Name                string      `tfschema:"name"`
+	ResourceGroupName   string      `tfschema:"resource_group_name"`
+	Location            string      `tfschema:"location"`
+	Authentication      []AuthModel `tfschema:"authentication"`
+	ClusterExtensionIds []string    `tfschema:"cluster_extension_ids"`
+	DisplayName         string      `tfschema:"display_name"`
+	HostResourceId      string      `tfschema:"host_resource_id"`
+	HostType            string      `tfschema:"host_type"`
+	Namespace           string      `tfschema:"namespace"`
 }
 
-func (r CustomLocationResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+type AuthModel struct {
+	Type  string `tfschema:"type"`
+	Value string `tfschema:"value"`
+}
+
+func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -51,6 +56,13 @@ func (r CustomLocationResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"namespace": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"cluster_extension_ids": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -65,16 +77,24 @@ func (r CustomLocationResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"authentication_type": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
+		"authentication": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-		"authentication_value": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+					"value": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
 		},
 
 		"display_name": {
@@ -90,17 +110,11 @@ func (r CustomLocationResource) Arguments() map[string]*schema.Schema {
 				string(customlocations.HostTypeKubernetes),
 			}, false),
 		},
-
-		"namespace": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
 	}
 }
 
-func (r CustomLocationResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+func (r CustomLocationResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r CustomLocationResource) ModelObject() interface{} {
@@ -108,7 +122,7 @@ func (r CustomLocationResource) ModelObject() interface{} {
 }
 
 func (r CustomLocationResource) ResourceType() string {
-	return "azurerm_extended_custom_locations"
+	return "azurerm_extended_custom_location"
 }
 
 func (r CustomLocationResource) Create() sdk.ResourceFunc {
@@ -135,10 +149,11 @@ func (r CustomLocationResource) Create() sdk.ResourceFunc {
 
 			customLocationProps := customlocations.CustomLocationProperties{}
 
-			if model.AuthenticationValue != "" && model.AuthenticationType != "" {
+			if model.Authentication != nil {
+				auth := model.Authentication[0]
 				customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
-					Type:  &model.AuthenticationType,
-					Value: &model.AuthenticationValue,
+					Type:  &auth.Type,
+					Value: &auth.Value,
 				}
 			}
 
@@ -202,14 +217,20 @@ func (r CustomLocationResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 
 				state := CustomLocationResourceModel{
-					Name:              id.ResourceName,
+					Name:              id.CustomLocationName,
 					ResourceGroupName: id.ResourceGroupName,
 					Location:          model.Location,
 				}
 
-				if props.Authentication != nil && props.Authentication.Type != nil && props.Authentication.Value != nil {
-					state.AuthenticationType = *props.Authentication.Type
-					state.AuthenticationValue = *props.Authentication.Value
+				if props != nil && props.Authentication != nil {
+					authType := pointer.From(props.Authentication.Type)
+					authValue := pointer.From(props.Authentication.Value)
+					state.Authentication = []AuthModel{
+						{
+							Type:  authType,
+							Value: authValue,
+						},
+					}
 				}
 
 				if props.ClusterExtensionIds != nil {
@@ -280,10 +301,13 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 			customLocationProps := customlocations.CustomLocationProperties{}
 			d := metadata.ResourceData
 
-			if d.HasChanges("authentication_type", "authentication_value") {
-				customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
-					Type:  &state.AuthenticationType,
-					Value: &state.AuthenticationValue,
+			if d.HasChanges("authentication") {
+				if state.Authentication != nil {
+					auth := state.Authentication[0]
+					customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
+						Type:  &auth.Type,
+						Value: &auth.Value,
+					}
 				}
 			}
 

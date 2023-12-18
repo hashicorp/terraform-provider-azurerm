@@ -8,6 +8,10 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"math/rand"
+	"os"
+	"testing"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -16,9 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"math/rand"
-	"os"
-	"testing"
 )
 
 type CustomLocationResource struct{}
@@ -40,7 +41,7 @@ func (r CustomLocationResource) Exists(ctx context.Context, client *clients.Clie
 }
 
 func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_extended_custom_locations", "test")
+	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
 
@@ -55,20 +56,63 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 	})
 }
 
+func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
+	r := CustomLocationResource{}
+	credential, privateKey, publicKey := r.getCredentials(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, credential, privateKey, publicKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, credential, privateKey, publicKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CustomLocationResource) basic(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	template := r.template(data, credential, publicKey, privateKey)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_extended_custom_locations" "test" {
-  name = "acctestcustomlocation%d"
+resource "azurerm_extended_custom_location" "test" {
+  name                = "acctestcustomlocation%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  location            = azurerm_resource_group.test.location
   cluster_extension_ids = [
-	"${azurerm_arc_kubernetes_cluster_extension.test.id}"
+    "${azurerm_arc_kubernetes_cluster_extension.test.id}"
   ]
-  display_name = "customlocation%[2]d"
-  namespace = "namespace%[2]d"
+  display_name     = "customlocation%[2]d"
+  namespace        = "namespace%[2]d"
+  host_resource_id = azurerm_arc_kubernetes_cluster.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func (r CustomLocationResource) update(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+	template := r.template(data, credential, publicKey, privateKey)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_extended_custom_location" "test" {
+  name                = "acctestcustomlocation%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_extension_ids = [
+    "${azurerm_arc_kubernetes_cluster_extension.test.id}",
+  ]
+
+  display_name     = "customlocationupdate%[2]d"
+  namespace        = "namespace%[2]d"
   host_resource_id = azurerm_arc_kubernetes_cluster.test.id
 }
 `, template, data.RandomInteger)
@@ -80,14 +124,14 @@ func (r CustomLocationResource) template(data acceptance.TestData, credential st
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-	resource_group {
-	  prevent_deletion_if_contains_resources = false
-	}
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
@@ -139,6 +183,12 @@ resource "azurerm_network_security_group" "my_terraform_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  lifecycle {
+    ignore_changes = [
+      security_rule,
+    ]
+  }
 }
 
 resource "azurerm_network_interface_security_group_association" "example" {
@@ -169,6 +219,13 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+
+  lifecycle {
+    ignore_changes = [
+      identity,
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_arc_kubernetes_cluster" "test" {
@@ -188,14 +245,13 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_arc_kubernetes_cluster_extension" "test" {
-  name				= "acctest-kce-%[1]d"
-  cluster_id 	  = azurerm_arc_kubernetes_cluster.test.id
-  extension_type 	= "microsoft.contoso.clusters"
-  target_namespace  = "tf-ns4"
-  version = "1.2.0"
+  name              = "extension4"
+  cluster_id        = azurerm_arc_kubernetes_cluster.test.id
+  extension_type    = "microsoft.vmware"
+  release_namespace = "vmware-extension"
 
   configuration_settings = {
-    "Microsoft.CustomLocation.ServiceAccount" = "tf-operator"
+    "Microsoft.CustomLocation.ServiceAccount" = "vmware-operator"
   }
 
   identity {
