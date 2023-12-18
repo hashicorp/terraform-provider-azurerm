@@ -391,7 +391,7 @@ resource "azurerm_spring_cloud_configuration_service" "test" {
   repository {
     name                     = "fake"
     label                    = "master"
-    patterns                 = ["auth-service","gateway"]
+    patterns                 = ["auth-service", "gateway"]
     uri                      = "https://github.com/Azure-Samples/piggymetrics-config"
     search_paths             = ["/"]
     strict_host_key_checking = false
