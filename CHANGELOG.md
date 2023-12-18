@@ -4,6 +4,11 @@ BUG FIXES:
 
 * `azurerm_bot_service` - fixing a bug where `public_network_access_enabled` was always set to `true` in Read func [GH-24255]
 
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20231215.1114251` of `hashicorp/go-azure-sdk` [GH-24251]
+  
+
 ## 3.85.0 (December 14, 2023)
 
 FEATURES:
