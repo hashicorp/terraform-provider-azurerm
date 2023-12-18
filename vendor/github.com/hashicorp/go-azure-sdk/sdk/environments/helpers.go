@@ -51,7 +51,7 @@ func BatchAPI(endpoint string) *ApiEndpoint {
 		endpoint:           pointer.To(endpoint),
 		appId:              pointer.To(batchAppId),
 		name:               "Batch",
-		resourceIdentifier: pointer.To("https://batch.core.windows.net"),
+		resourceIdentifier: pointer.To(endpoint),
 	}
 }
 
@@ -121,7 +121,7 @@ func ManagedHSMAPI(endpoint, domainSuffix string) Api {
 		endpoint:           pointer.To(endpoint),
 		appId:              pointer.To(managedHSMAppId),
 		name:               "ManagedHSM",
-		resourceIdentifier: pointer.To("https://managedhsm.azure.net"),
+		resourceIdentifier: pointer.To(endpoint),
 	}
 }
 
@@ -141,7 +141,7 @@ func MicrosoftGraphAPI(endpoint string) *ApiEndpoint {
 		endpoint:           pointer.To(endpoint),
 		appId:              pointer.To(microsoftGraphAppId),
 		name:               "MicrosoftGraph",
-		resourceIdentifier: pointer.To("https://graph.microsoft.com"),
+		resourceIdentifier: pointer.To(endpoint),
 	}
 }
 
@@ -181,7 +181,7 @@ func ResourceManagerAPI(endpoint string) *ApiEndpoint {
 		endpoint:           pointer.To(endpoint),
 		appId:              pointer.To(azureServiceManagementAppId),
 		name:               "ResourceManager",
-		resourceIdentifier: pointer.To("https://management.azure.com"),
+		resourceIdentifier: pointer.To(endpoint),
 	}
 }
 
@@ -191,7 +191,7 @@ func ServiceBusAPI(endpoint, domainSuffix string) Api {
 		endpoint:           pointer.To(endpoint),
 		appId:              pointer.To(serviceBusAppId),
 		name:               "ServiceBus",
-		resourceIdentifier: pointer.To("https://servicebus.azure.net"),
+		resourceIdentifier: pointer.To(endpoint),
 	}
 }
 

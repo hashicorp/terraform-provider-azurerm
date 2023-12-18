@@ -107,7 +107,6 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 }
 
 func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -148,15 +147,27 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
 		pricing.Properties.SubPlan = utils.String(vSub.(string))
 	}
+
+	// When the state file contains an `extension` with `additional_extension_properties`
+	// But the tf config does not, `d.Get("extension")` will contain a zero element.
+	// Tracked by https://github.com/hashicorp/terraform-plugin-sdk/issues/1248
+	realCfgExtensions := make([]interface{}, 0)
+	for _, e := range d.Get("extension").(*pluginsdk.Set).List() {
+		v := e.(map[string]interface{})
+		if v["name"] != "" {
+			realCfgExtensions = append(realCfgExtensions, e)
+		}
+	}
+
 	if d.HasChange("extension") {
 		// can not set extensions for free tier
 		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
-			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
+			extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 			pricing.Properties.Extensions = extensions
 		}
 	}
 
-	if len(d.Get("extension").(*pluginsdk.Set).List()) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+	if len(realCfgExtensions) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
 		return fmt.Errorf("extensions cannot be enabled when using free tier")
 	}
 
@@ -173,7 +184,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 
 	// after turning on the bundle, we have now the extensions list
 	if d.IsNewResource() || isCurrentlyInFree {
-		var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
+		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		pricing.Properties.Extensions = extensions
 		_, updateErr := client.Update(ctx, id, pricing)
 		if err != nil {
@@ -248,8 +259,8 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 }
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
-	var extensionStatuses = map[string]bool{}
-	var extensionProperties = map[string]*interface{}{}
+	extensionStatuses := map[string]bool{}
+	extensionProperties := map[string]*interface{}{}
 	var outputList []pricings_v2023_01_01.Extension
 
 	if extensionsStatusFromBackend != nil {
@@ -291,7 +302,6 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 }
 
 func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{} {
-
 	outputList := make([]interface{}, 0)
 
 	if inputList == nil {

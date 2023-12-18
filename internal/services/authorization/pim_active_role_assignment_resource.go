@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	// nolint: staticcheck
@@ -180,7 +181,8 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
 			}
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect {
+				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
@@ -262,8 +264,10 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 			}
 			var instance *roleassignmentscheduleinstances.RoleAssignmentScheduleInstance
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect {
+				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					instance = &item
+					break
 				}
 			}
 			if instance == nil {
@@ -629,9 +633,11 @@ func waitForActiveRoleAssignment(ctx context.Context, client *roleassignmentsche
 
 		for _, item := range items.Items {
 			if *item.Properties.RoleDefinitionId == roleDefinitionId &&
-				*item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect {
+				*item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect &&
+				strings.EqualFold(*item.Properties.Scope, scope) {
 				state = "Found"
 				result = item
+				break
 			}
 		}
 

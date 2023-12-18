@@ -40,27 +40,9 @@ func ParseAttachedDataNetworkID(input string) (*AttachedDataNetworkId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AttachedDataNetworkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PacketCoreControlPlaneName, ok = parsed.Parsed["packetCoreControlPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreControlPlaneName", *parsed)
-	}
-
-	if id.PacketCoreDataPlaneName, ok = parsed.Parsed["packetCoreDataPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreDataPlaneName", *parsed)
-	}
-
-	if id.AttachedDataNetworkName, ok = parsed.Parsed["attachedDataNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "attachedDataNetworkName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseAttachedDataNetworkIDInsensitively(input string) (*AttachedDataNetwork
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AttachedDataNetworkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PacketCoreControlPlaneName, ok = parsed.Parsed["packetCoreControlPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreControlPlaneName", *parsed)
-	}
-
-	if id.PacketCoreDataPlaneName, ok = parsed.Parsed["packetCoreDataPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreDataPlaneName", *parsed)
-	}
-
-	if id.AttachedDataNetworkName, ok = parsed.Parsed["attachedDataNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "attachedDataNetworkName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AttachedDataNetworkId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PacketCoreControlPlaneName, ok = input.Parsed["packetCoreControlPlaneName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "packetCoreControlPlaneName", input)
+	}
+
+	if id.PacketCoreDataPlaneName, ok = input.Parsed["packetCoreDataPlaneName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "packetCoreDataPlaneName", input)
+	}
+
+	if id.AttachedDataNetworkName, ok = input.Parsed["attachedDataNetworkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "attachedDataNetworkName", input)
+	}
+
+	return nil
 }
 
 // ValidateAttachedDataNetworkID checks that 'input' can be parsed as a Attached Data Network ID

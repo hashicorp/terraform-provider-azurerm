@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the certificate. Changing this forces a new resource to be created.
 
+-> **NOTE:** The resource group must be the same as that which the app service plan is defined in - otherwise the certificate will not show as available for the app services.
+
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `pfx_blob` - (Optional) The base64-encoded contents of the certificate. Changing this forces a new resource to be created.

@@ -59,7 +59,7 @@ variable "storage_account_replication_type" {
 
 variable "os_image_map" {
   description = "os image map"
-  type        = "map"
+  type        = map(string)
 
   default = {
     centos_publisher = "Openlogic"
