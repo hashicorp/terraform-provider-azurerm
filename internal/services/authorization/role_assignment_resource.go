@@ -303,14 +303,19 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("condition_version", props.ConditionVersion)
 
 		// allows for import when role name is used (also if the role name changes a plan will show a diff)
-		if roleId := props.RoleDefinitionID; roleId != nil {
-			parsedRoleId, err := roledefinitions.ParseScopedRoleDefinitionID(*roleId)
-			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", *roleId, err)
+		if roleDefResourceId := props.RoleDefinitionID; roleDefResourceId != nil {
+			// The role definition id returned does not contain scope when the scope is some special case.
+			// Such as management group. So we might need to add scope here.
+			if strings.HasPrefix(*roleDefResourceId, "/providers") {
+				roleDefResourceId = pointer.To(fmt.Sprintf("/%s", *roleDefResourceId))
 			}
-			roleResp, err := roleDefinitionsClient.Get(ctx, *parsedRoleId)
+			parsedRoleDefId, err := roledefinitions.ParseScopedRoleDefinitionID(*roleDefResourceId)
 			if err != nil {
-				return fmt.Errorf("loading Role Definition %q: %+v", *roleId, err)
+				return fmt.Errorf("parsing %q: %+v", *roleDefResourceId, err)
+			}
+			roleResp, err := roleDefinitionsClient.Get(ctx, *parsedRoleDefId)
+			if err != nil {
+				return fmt.Errorf("loading Role Definition %q: %+v", *roleDefResourceId, err)
 			}
 			if roleResp.Model != nil && roleResp.Model.Properties != nil {
 				d.Set("role_definition_name", pointer.From(roleResp.Model.Properties.RoleName))
