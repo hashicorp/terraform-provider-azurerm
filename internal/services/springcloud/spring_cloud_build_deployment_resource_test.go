@@ -69,14 +69,14 @@ func TestAccSpringCloudBuildDeployment_addon(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addon(data, "app/dev"),
+			Config: r.addon(data, "auth-service"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addon(data, "app/prod"),
+			Config: r.addon(data, "gateway"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
