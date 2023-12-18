@@ -11,7 +11,6 @@ type CustomLocationOperationPredicate struct {
 }
 
 func (p CustomLocationOperationPredicate) Matches(input CustomLocation) bool {
-	
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
@@ -19,7 +18,6 @@ func (p CustomLocationOperationPredicate) Matches(input CustomLocation) bool {
 	if p.Location != nil && *p.Location != input.Location {
 		return false
 	}
-	
 	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}

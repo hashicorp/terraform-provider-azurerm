@@ -114,7 +114,7 @@ func (id CustomLocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftExtendedLocation", "Microsoft.ExtendedLocation", "Microsoft.ExtendedLocation"),
 		resourceids.StaticSegment("staticCustomLocations", "customLocations", "customLocations"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("customLocationName", "customLocationValue"),
 	}
 }
 
