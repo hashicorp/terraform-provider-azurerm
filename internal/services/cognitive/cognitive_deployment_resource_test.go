@@ -152,7 +152,6 @@ resource "azurerm_cognitive_deployment" "test" {
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
-    version = "2"
   }
   scale {
     type = "Standard"
