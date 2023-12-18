@@ -658,20 +658,17 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("kustomizations") {
-				if _, exists := metadata.ResourceData.GetOk("git_repository"); exists {
-					_, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
-					if err != nil {
-						return err
-					}
-					properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
-				} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
-					_, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
-				}
 				properties.Properties.Kustomizations = expandKustomizationDefinitionModel(model.Kustomizations)
 			}
 
 			if metadata.ResourceData.HasChange("continuous_reconciliation_enabled") {
 				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
+			}
+
+			if properties.Properties.ConfigurationProtectedSettings == nil {
+				if err := setConfigurationProtectedSettings(metadata, model, properties); err != nil {
+					return err
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
@@ -1139,5 +1136,18 @@ func validateArcKubernetesFluxConfigurationModel(model *ArcKubernetesFluxConfigu
 		allKeys[k.Name] = true
 	}
 
+	return nil
+}
+
+func setConfigurationProtectedSettings(metadata sdk.ResourceMetaData, model ArcKubernetesFluxConfigurationModel, properties *fluxconfiguration.FluxConfiguration) error {
+	if _, exists := metadata.ResourceData.GetOk("git_repository"); exists {
+		_, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
+		if err != nil {
+			return err
+		}
+		properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
+	} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
+		_, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
+	}
 	return nil
 }
