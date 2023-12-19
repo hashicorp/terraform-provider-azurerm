@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `pfx_blob` - (Optional) The base64-encoded contents of the certificate. Changing this forces a new resource to be created.
 
--> **NOTE:** Exactly one of `key_vault_secret_id`, `key_vault_id` or `pfx_blob` must be specified.
+-> **NOTE:** Exactly one of `key_vault_secret_id` or `pfx_blob` must be specified.
 
 * `password` - (Optional) The password to access the certificate's private key. Changing this forces a new resource to be created.
 
@@ -52,13 +52,9 @@ The following arguments are supported:
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
 
--> **NOTE:** `key_vault_secret_id` has been deprecated in favour of `key_vault_id` and `key_vault_secret_name` property and will be removed in version 4.0 of the AzureRM Provider.
+-> **NOTE:** Exactly one of `key_vault_secret_id` or `pfx_blob` must be specified.
 
-* `key_vault_id` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
-
--> **NOTE:** Exactly one of `key_vault_secret_id`, `key_vault_id` or `pfx_blob` must be specified. `key_vault_id` must be specified with `key_vault_secret_name`.
-
--> **NOTE:** If using `key_vault_secret_id` or `key_vault_id`, the WebApp Service Resource Principal ID `abfa0a7c-a6b6-4736-8310-5855508787cd` must have 'Secret -> get' and 'Certificate -> get' permissions on the Key Vault containing the certificate. (Source: [App Service Blog](https://azure.github.io/AppService/2016/05/24/Deploying-Azure-Web-App-Certificate-through-Key-Vault.html)) If you use Terraform to create the access policy you have to specify the Object ID of this Principal. This Object ID can be retrieved via following data reference, since it is different in every AAD Tenant:
+-> **NOTE:** If using `key_vault_secret_id`, the WebApp Service Resource Principal ID `abfa0a7c-a6b6-4736-8310-5855508787cd` must have 'Secret -> get' and 'Certificate -> get' permissions on the Key Vault containing the certificate. (Source: [App Service Blog](https://azure.github.io/AppService/2016/05/24/Deploying-Azure-Web-App-Certificate-through-Key-Vault.html)) If you use Terraform to create the access policy you have to specify the Object ID of this Principal. This Object ID can be retrieved via following data reference, since it is different in every AAD Tenant:
 
 ```hcl
 data "azuread_service_principal" "MicrosoftWebApp" {
@@ -66,9 +62,9 @@ data "azuread_service_principal" "MicrosoftWebApp" {
 }
 ```
 
-* `key_vault_secret_name` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
+* `key_vault_id` - (Optional) The ID of the Key Vault. Must be specified if Key Vault of `key_vault_secret_id` is in different subscription from the App Service Certificate. Changing this forces a new resource to be created.
 
--> **NOTE:** `key_vault_secret_name` must be specified with `key_vault_id`.
+-> **NOTE:** `key_vault_id` must be specified with `key_vault_secret_id`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

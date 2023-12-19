@@ -49,7 +49,6 @@ func TestAccAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	})
 }
 
-// remove the test in 4.0
 func TestAccAppServiceCertificate_KeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
@@ -65,29 +64,6 @@ func TestAccAppServiceCertificate_KeyVault(t *testing.T) {
 	})
 }
 
-// remove the test in 4.0
-func TestAccAppServiceCertificate_KeyVaultIdUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
-	r := AppServiceCertificateResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.keyVault(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
-			),
-		},
-		data.ImportStep("key_vault_secret_id"),
-		{
-			Config: r.keyVaultId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
-			),
-		},
-		data.ImportStep("key_vault_secret_id", "key_vault_id", "key_vault_secret_name"),
-	})
-}
-
 func TestAccAppServiceCertificate_KeyVaultId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
@@ -99,7 +75,7 @@ func TestAccAppServiceCertificate_KeyVaultId(t *testing.T) {
 				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 			),
 		},
-		data.ImportStep("key_vault_secret_id", "key_vault_id", "key_vault_secret_name"),
+		data.ImportStep("key_vault_secret_id", "key_vault_id"),
 	})
 }
 
@@ -348,11 +324,11 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_app_service_certificate" "test" {
-  name                  = "acctest%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  key_vault_id          = azurerm_key_vault.test.id
-  key_vault_secret_name = azurerm_key_vault_certificate.test.name
+  name                = "acctest%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_id        = azurerm_key_vault.test.id
+  key_vault_secret_id = azurerm_key_vault_certificate.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

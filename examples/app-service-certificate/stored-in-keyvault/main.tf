@@ -84,9 +84,8 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 
 resource "azurerm_app_service_certificate" "example" {
-  name                  = "${var.prefix}-cert"
-  resource_group_name   = azurerm_resource_group.example.name
-  location              = azurerm_resource_group.example.location
-  key_vault_id          = azurerm_key_vault.example.id
-  key_vault_secret_name = azurerm_key_vault_certificate.example.name
+  name                = "${var.prefix}-cert"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  key_vault_secret_id = azurerm_key_vault_certificate.example.secret_id
 }
