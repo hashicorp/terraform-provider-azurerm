@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ServicesDeleteOperationResponse struct {
 }
 
 // ServicesDelete ...
-func (c AppPlatformClient) ServicesDelete(ctx context.Context, id SpringId) (result ServicesDeleteOperationResponse, err error) {
+func (c AppPlatformClient) ServicesDelete(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -57,7 +58,7 @@ func (c AppPlatformClient) ServicesDelete(ctx context.Context, id SpringId) (res
 }
 
 // ServicesDeleteThenPoll performs ServicesDelete then polls until it's completed
-func (c AppPlatformClient) ServicesDeleteThenPoll(ctx context.Context, id SpringId) error {
+func (c AppPlatformClient) ServicesDeleteThenPoll(ctx context.Context, id commonids.SpringCloudServiceId) error {
 	result, err := c.ServicesDelete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServicesDelete: %+v", err)

@@ -14,9 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceDataProtectionBackupVault() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataProtectionBackupVaultCreateUpdate,
 		Read:   resourceDataProtectionBackupVaultRead,
 		Update: resourceDataProtectionBackupVaultCreateUpdate,
@@ -58,17 +59,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"datastore_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaults.StorageSettingStoreTypesArchiveStore),
-					string(backupvaults.StorageSettingStoreTypesSnapshotStore),
-					string(backupvaults.StorageSettingStoreTypesVaultStore),
-				}, false),
-			},
-
 			"redundancy": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -84,6 +74,33 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	// Confirmed with the service team that `SnapshotStore` has been replaced with `OperationalStore`.
+	if !features.FourPointOhBeta() {
+		resource.Schema["datastore_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(backupvaults.StorageSettingStoreTypesArchiveStore),
+				"SnapshotStore",
+				string(backupvaults.StorageSettingStoreTypesOperationalStore),
+				string(backupvaults.StorageSettingStoreTypesVaultStore),
+			}, false),
+		}
+	} else {
+		resource.Schema["datastore_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(backupvaults.StorageSettingStoreTypesArchiveStore),
+				string(backupvaults.StorageSettingStoreTypesOperationalStore),
+				string(backupvaults.StorageSettingStoreTypesVaultStore),
+			}, false),
+		}
+	}
+	return resource
 }
 
 func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

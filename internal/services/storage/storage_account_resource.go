@@ -3641,6 +3641,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
+
 	versions := []interface{}{}
 	if input.Versions != nil {
 		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
@@ -3830,7 +3831,7 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 
 	// below null check is to avoid nullpointer scenarios when either of publish_internet_endpoints
 	// or publish_microsoft_endpoints or both aren't set
-	if routingInputs != nil && *routingInputs.PublishInternetEndpoints {
+	if routingInputs != nil && routingInputs.PublishInternetEndpoints != nil && *routingInputs.PublishInternetEndpoints {
 		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Blob, "blob_internet"); err != nil {
 			return err
 		}
@@ -3848,7 +3849,7 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		}
 	}
 
-	if routingInputs != nil && *routingInputs.PublishMicrosoftEndpoints {
+	if routingInputs != nil && routingInputs.PublishMicrosoftEndpoints != nil && *routingInputs.PublishMicrosoftEndpoints {
 		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Blob, "blob_microsoft"); err != nil {
 			return err
 		}

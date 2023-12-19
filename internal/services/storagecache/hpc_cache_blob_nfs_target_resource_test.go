@@ -112,14 +112,14 @@ func TestAccHPCCacheBlobNFSTarget_usageModel(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.usageModel(data, "READ_WRITE"),
+			Config: r.usageModelReadWrite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.usageModel(data, "READ_ONLY"),
+			Config: r.usageModelReadOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -376,17 +376,35 @@ resource "azurerm_hpc_cache" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r HPCCacheBlobNFSTargetResource) usageModel(data acceptance.TestData, modelName string) string {
+func (r HPCCacheBlobNFSTargetResource) usageModelReadWrite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_hpc_cache_blob_nfs_target" "test" {
-  name                 = "acctest-HPCCTGT-%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  cache_name           = azurerm_hpc_cache.test.name
-  storage_container_id = jsondecode(azurerm_resource_group_template_deployment.storage-containers.output_content).id.value
-  namespace_path       = "/p1"
-  usage_model          = "%s"
+  name                          = "acctest-HPCCTGT-%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  cache_name                    = azurerm_hpc_cache.test.name
+  storage_container_id          = jsondecode(azurerm_resource_group_template_deployment.storage-containers.output_content).id.value
+  namespace_path                = "/p1"
+  usage_model                   = "READ_WRITE"
+  verification_timer_in_seconds = 29000
+  write_back_timer_in_seconds   = 3700
 }
-`, r.template(data), data.RandomString, modelName)
+`, r.template(data), data.RandomString)
+}
+
+func (r HPCCacheBlobNFSTargetResource) usageModelReadOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_blob_nfs_target" "test" {
+  name                          = "acctest-HPCCTGT-%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  cache_name                    = azurerm_hpc_cache.test.name
+  storage_container_id          = jsondecode(azurerm_resource_group_template_deployment.storage-containers.output_content).id.value
+  namespace_path                = "/p1"
+  usage_model                   = "READ_ONLY"
+  verification_timer_in_seconds = 30000
+}
+`, r.template(data), data.RandomString)
 }

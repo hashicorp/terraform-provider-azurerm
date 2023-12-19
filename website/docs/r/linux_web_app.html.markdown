@@ -41,7 +41,7 @@ resource "azurerm_linux_web_app" "example" {
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -764,7 +764,7 @@ A `status_code` block supports the following:
 
 ---
 
-A `sticky_settings` block exports the following:
+A `sticky_settings` block supports the following:
 
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 

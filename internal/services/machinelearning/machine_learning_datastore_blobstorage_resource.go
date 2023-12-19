@@ -198,7 +198,7 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 			}
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -267,7 +267,7 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 			}
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}

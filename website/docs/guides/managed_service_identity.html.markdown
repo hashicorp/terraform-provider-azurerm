@@ -14,6 +14,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 - [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 - [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 - [Authenticating to Azure using OpenID Connect](service_principal_oidc.html)
+- [Authenticating to Azure using AKS Workload Identity](aks_workload_identity.html)
 
 ---
 
@@ -70,7 +71,7 @@ Terraform can be configured to use managed identity for authentication in one of
 
 ### Configuring with environment variables
 
-Setting the`ARM_USE_MSI` environment variable (equivalent to provider block argument [`use_msi`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#use_msi)) to `true` tells Terraform to use a managed identity.
+Setting the `ARM_USE_MSI` environment variable (equivalent to provider block argument [`use_msi`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#use_msi)) to `true` tells Terraform to use a managed identity.
 
 By default, Terraform will use the system assigned identity for authentication. To use a user assigned identity instead, you will need to specify the `ARM_CLIENT_ID` environment variable (equivalent to provider block argument [`client_id`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#client_id)) to the [client id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity#client_id) of the identity.
 

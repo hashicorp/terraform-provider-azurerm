@@ -249,7 +249,7 @@ func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// Support only Client Certificate authentication
+	// Support only Client Secret authentication
 	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
@@ -312,7 +312,7 @@ func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// Support only Client Certificate authentication
+	// Support only Client Secret authentication
 	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
@@ -367,7 +367,7 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// Support only Client Certificate authentication
+	// Support only OIDC authentication
 	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
@@ -420,7 +420,7 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// Support only Client Certificate authentication
+	// Support only GitHub OIDC authentication
 	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
@@ -441,6 +441,74 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("AZURE_CLIENT_ID") == "" {
+		t.Skip("AZURE_CLIENT_ID not set")
+	}
+	if os.Getenv("AZURE_TENANT_ID") == "" {
+		t.Skip("AZURE_TENANT_ID not set")
+	}
+	if os.Getenv("AZURE_FEDERATED_TOKEN_FILE") == "" {
+		t.Skip("AZURE_FEDERATED_TOKEN_FILE not set")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only AKS Workload Identity authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		oidcToken, err := getOidcToken(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                   *env,
+			TenantID:                      *tenantId,
+			ClientID:                      *clientId,
+			EnableAuthenticationUsingOIDC: true,
+			OIDCAssertionToken:            *oidcToken,
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	// Ensure we enable AKS Workload Identity else the configuration will not be detected
+	conf := map[string]interface{}{"use_aks_workload_identity": true}
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(conf))
 	if d != nil && d.HasError() {
 		t.Fatalf("err: %+v", d)
 	}

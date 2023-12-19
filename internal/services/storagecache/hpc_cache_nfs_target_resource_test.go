@@ -46,21 +46,21 @@ func TestAccHPCCacheNFSTarget_usageModel(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.usageModel(data, "READ_HEAVY_CHECK_180"),
+			Config: r.usageModelReadHeavyCheck180(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.usageModel(data, "READ_WRITE"),
+			Config: r.usageModelReadWrite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.usageModel(data, "READ_ONLY"),
+			Config: r.usageModelReadOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -193,7 +193,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) usageModel(data acceptance.TestData, modelName string) string {
+func (r HPCCacheNFSTargetResource) usageModelReadHeavyCheck180(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -202,18 +202,73 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
   resource_group_name = azurerm_resource_group.test.name
   cache_name          = azurerm_hpc_cache.test.name
   target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
-  usage_model         = "%s"
+  usage_model         = "READ_HEAVY_CHECK_180"
+
   namespace_junction {
     namespace_path = "/nfs/a1"
     nfs_export     = "/export/a"
     target_path    = "1"
   }
+
   namespace_junction {
     namespace_path = "/nfs/b"
     nfs_export     = "/export/b"
   }
 }
-`, r.cacheTemplate(data), data.RandomString, modelName)
+`, r.cacheTemplate(data), data.RandomString)
+}
+
+func (r HPCCacheNFSTargetResource) usageModelReadWrite(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_nfs_target" "test" {
+  name                          = "acctest-HPCCTGT-%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  cache_name                    = azurerm_hpc_cache.test.name
+  target_host_name              = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model                   = "READ_WRITE"
+  verification_timer_in_seconds = 29000
+  write_back_timer_in_seconds   = 3700
+
+  namespace_junction {
+    namespace_path = "/nfs/a1"
+    nfs_export     = "/export/a"
+    target_path    = "1"
+  }
+
+  namespace_junction {
+    namespace_path = "/nfs/b"
+    nfs_export     = "/export/b"
+  }
+}
+`, r.cacheTemplate(data), data.RandomString)
+}
+
+func (r HPCCacheNFSTargetResource) usageModelReadOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache_nfs_target" "test" {
+  name                          = "acctest-HPCCTGT-%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  cache_name                    = azurerm_hpc_cache.test.name
+  target_host_name              = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model                   = "READ_ONLY"
+  verification_timer_in_seconds = 30000
+
+  namespace_junction {
+    namespace_path = "/nfs/a1"
+    nfs_export     = "/export/a"
+    target_path    = "1"
+  }
+
+  namespace_junction {
+    namespace_path = "/nfs/b"
+    nfs_export     = "/export/b"
+  }
+}
+`, r.cacheTemplate(data), data.RandomString)
 }
 
 func (r HPCCacheNFSTargetResource) namespaceJunction(data acceptance.TestData) string {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type MonitoringSettingsUpdatePutOperationResponse struct {
 }
 
 // MonitoringSettingsUpdatePut ...
-func (c AppPlatformClient) MonitoringSettingsUpdatePut(ctx context.Context, id SpringId, input MonitoringSettingResource) (result MonitoringSettingsUpdatePutOperationResponse, err error) {
+func (c AppPlatformClient) MonitoringSettingsUpdatePut(ctx context.Context, id commonids.SpringCloudServiceId, input MonitoringSettingResource) (result MonitoringSettingsUpdatePutOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c AppPlatformClient) MonitoringSettingsUpdatePut(ctx context.Context, id S
 }
 
 // MonitoringSettingsUpdatePutThenPoll performs MonitoringSettingsUpdatePut then polls until it's completed
-func (c AppPlatformClient) MonitoringSettingsUpdatePutThenPoll(ctx context.Context, id SpringId, input MonitoringSettingResource) error {
+func (c AppPlatformClient) MonitoringSettingsUpdatePutThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input MonitoringSettingResource) error {
 	result, err := c.MonitoringSettingsUpdatePut(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MonitoringSettingsUpdatePut: %+v", err)

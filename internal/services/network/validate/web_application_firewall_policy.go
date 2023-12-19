@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+// ValidateWebApplicationFirewallPolicyRuleGroupName the following command will return a list of available Rule Group Names with information on whether the rules are GA, Deprecated, etc.:
+// az rest --method get --url “https://management.azure.com/subscriptions/{subscription_id_here}/providers/Microsoft.Network/locations/{location}/applicationGatewayWafDynamicManifests/default?api-version=2023-05-01” --query “properties.availableRuleSets[].ruleGroups[].ruleGroupName” | sort | uniq
 var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice([]string{
 	"BadBots",
 	"crs_20_protocol_violations",
@@ -19,8 +21,10 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"crs_41_xss_attacks",
 	"crs_42_tight_security",
 	"crs_45_trojans",
+	"crs_49_inbound_blocking",
 	"General",
 	"GoodBots",
+	"KnownBadBots",
 	"Known-CVEs",
 	"REQUEST-911-METHOD-ENFORCEMENT",
 	"REQUEST-913-SCANNER-DETECTION",
@@ -38,15 +42,15 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"METHOD-ENFORCEMENT",
 	"PROTOCOL-ENFORCEMENT",
 	"PROTOCOL-ATTACK",
-	"APPLICATION-ATTACK-LFI",
-	"APPLICATION-ATTACK-RFI",
-	"APPLICATION-ATTACK-RCE",
-	"APPLICATION-ATTACK-PHP",
-	"APPLICATION-ATTACK-NodeJS",
-	"APPLICATION-ATTACK-XSS",
-	"APPLICATION-ATTACK-SQLI",
-	"APPLICATION-ATTACK-SESSION-FIXATION",
-	"APPLICATION-ATTACK-SESSION-JAVA",
+	"LFI",
+	"RFI",
+	"RCE",
+	"PHP",
+	"NODEJS",
+	"XSS",
+	"SQLI",
+	"FIX",
+	"JAVA",
 	"MS-ThreatIntel-WebShells",
 	"MS-ThreatIntel-AppSec",
 	"MS-ThreatIntel-SQLI",

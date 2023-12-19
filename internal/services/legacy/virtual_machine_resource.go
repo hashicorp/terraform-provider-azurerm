@@ -1755,7 +1755,7 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *pluginsdk.ResourceData) *c
 
 func expandAzureRmVirtualMachineAdditionalCapabilities(d *pluginsdk.ResourceData) *compute.AdditionalCapabilities {
 	additionalCapabilities := d.Get("additional_capabilities").([]interface{})
-	if len(additionalCapabilities) == 0 {
+	if len(additionalCapabilities) == 0 || additionalCapabilities[0] == nil {
 		return nil
 	}
 
