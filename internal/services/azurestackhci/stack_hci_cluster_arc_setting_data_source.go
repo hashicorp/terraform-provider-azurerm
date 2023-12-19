@@ -76,12 +76,6 @@ func (r StackHCIClusterArcSettingDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
-			if model := existing.Model; model != nil {
-				if props := model.Properties; props != nil {
-
-				}
-			}
-
 			metadata.SetID(id)
 
 			return metadata.Encode(&setting)
