@@ -55,7 +55,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_spring_cloud_certificate":              resourceSpringCloudCertificate(),
 		"azurerm_spring_cloud_configuration_service":    resourceSpringCloudConfigurationService(),
 		"azurerm_spring_cloud_custom_domain":            resourceSpringCloudCustomDomain(),
-		"azurerm_spring_cloud_gateway":                  resourceSpringCloudGateway(),
 		"azurerm_spring_cloud_gateway_custom_domain":    resourceSpringCloudGatewayCustomDomain(),
 		"azurerm_spring_cloud_gateway_route_config":     resourceSpringCloudGatewayRouteConfig(),
 		"azurerm_spring_cloud_container_deployment":     resourceSpringCloudContainerDeployment(),
@@ -71,6 +70,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		SpringCloudGatewayResource{},
 		SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{},
 		SpringCloudAcceleratorResource{},
 		SpringCloudApplicationLiveViewResource{},

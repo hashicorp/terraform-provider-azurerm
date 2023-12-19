@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
@@ -88,8 +89,6 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
-
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -99,6 +98,13 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"enclave_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -109,41 +115,54 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewElasticPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	id := commonids.NewSqlElasticPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("server_name", id.ServerName)
+	if model := resp.Model; model != nil {
+		d.Set("name", id.ElasticPoolName)
+		d.Set("resource_group_name", id.ResourceGroupName)
+		d.Set("server_name", id.ServerName)
+		d.Set("location", location.Normalize(model.Location))
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if props := resp.ElasticPoolProperties; props != nil {
-		d.Set("max_size_gb", float64(*props.MaxSizeBytes/int64(1073741824)))
-		d.Set("max_size_bytes", props.MaxSizeBytes)
-
-		d.Set("zone_redundant", props.ZoneRedundant)
-		d.Set("license_type", props.LicenseType)
-
-		if perDbSettings := props.PerDatabaseSettings; perDbSettings != nil {
-			d.Set("per_db_min_capacity", perDbSettings.MinCapacity)
-			d.Set("per_db_max_capacity", perDbSettings.MaxCapacity)
+		if err := d.Set("sku", flattenMsSqlElasticPoolSku(model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
 		}
+
+		if props := model.Properties; props != nil {
+			d.Set("max_size_gb", float64(*props.MaxSizeBytes/int64(1073741824)))
+			d.Set("max_size_bytes", props.MaxSizeBytes)
+			d.Set("zone_redundant", props.ZoneRedundant)
+
+			licenseType := ""
+			if props.LicenseType != nil {
+				licenseType = string(*props.LicenseType)
+			}
+			d.Set("license_type", licenseType)
+
+			if perDbSettings := props.PerDatabaseSettings; perDbSettings != nil {
+				d.Set("per_db_min_capacity", perDbSettings.MinCapacity)
+				d.Set("per_db_max_capacity", perDbSettings.MaxCapacity)
+			}
+
+			enclaveType := ""
+			if props.PreferredEnclaveType != nil && *props.PreferredEnclaveType != elasticpools.AlwaysEncryptedEnclaveTypeDefault {
+				enclaveType = string(elasticpools.AlwaysEncryptedEnclaveTypeVBS)
+			}
+			d.Set("enclave_type", enclaveType)
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	if err := d.Set("sku", flattenMsSqlElasticPoolSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

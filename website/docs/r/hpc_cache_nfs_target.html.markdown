@@ -143,6 +143,10 @@ The following arguments are supported:
 
 * `namespace_junction` - (Required) Can be specified multiple times to define multiple `namespace_junction`. Each `namespace_junction` block supports fields documented below.
 
+* `verification_timer_in_seconds` - (Optional) The amount of time the cache waits before it checks the back-end storage for file updates. Possible values are between `1` and `31536000`.
+
+* `write_back_timer_in_seconds` - (Optional) The amount of time the cache waits after the last file change before it copies the changed file to back-end storage. Possible values are between `1` and `31536000`.
+
 ---
 
 A `namespace_junction` block supports the following:

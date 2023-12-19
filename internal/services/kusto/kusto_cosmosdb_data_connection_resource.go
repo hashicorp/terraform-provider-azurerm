@@ -54,7 +54,7 @@ func (r CosmosDBDataConnectionResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DatabaseID,
+			ValidateFunc: databases.ValidateDatabaseID,
 		},
 		"managed_identity_id": {
 			Type:         pluginsdk.TypeString,

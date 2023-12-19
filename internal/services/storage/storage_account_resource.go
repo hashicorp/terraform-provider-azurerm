@@ -14,7 +14,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -873,12 +872,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_blob_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -893,12 +932,32 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_queue_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -913,12 +972,32 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_table_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_table_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_table_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -933,12 +1012,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_web_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_web_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_web_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -953,12 +1072,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_dfs_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_dfs_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_dfs_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -973,12 +1132,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_file_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_file_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_file_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_microsoft_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -1030,25 +1229,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		},
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				client := v.(*clients.Client).Storage.AccountsClient
-				// The `name` only changes for the new resource creation scenario, in which case we will further check the name availability.
-				if d.HasChange("name") {
-					_, name := d.GetChange("name")
-					resp, err := client.CheckNameAvailability(ctx, storage.AccountCheckNameAvailabilityParameters{
-						Name: pointer.To(name.(string)),
-						Type: pointer.To("Microsoft.Storage/storageAccounts"),
-					})
-					if err != nil {
-						return err
-					}
-					if ok := resp.NameAvailable; ok != nil && !(*ok) {
-						errmsg := fmt.Sprintf("`name` is not available: [%s]", resp.Reason)
-						if msg := resp.Message; msg != nil {
-							errmsg += " " + *msg
-						}
-						return fmt.Errorf(errmsg)
-					}
-				}
 				if d.HasChange("account_kind") {
 					accountKind, changedKind := d.GetChange("account_kind")
 
@@ -2046,8 +2226,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
-			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints, resp.RoutingPreference); err != nil {
+			return fmt.Errorf("setting internet, microsoft primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
 		if accessKeys := keys.Keys; accessKeys != nil {
@@ -2059,8 +2239,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 		}
 
-		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
-			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints, resp.RoutingPreference); err != nil {
+			return fmt.Errorf("setting internet, microsoft secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
 		if accessKeys := keys.Keys; accessKeys != nil {
@@ -3461,6 +3641,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
+
 	versions := []interface{}{}
 	if input.Versions != nil {
 		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
@@ -3624,7 +3805,7 @@ func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *st
 	return fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", endpoint, name, key)
 }
 
-func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceData, primary *storage.Endpoints) error {
+func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceData, primary *storage.Endpoints, routingInputs *storage.RoutingPreference) error {
 	if primary == nil {
 		return fmt.Errorf("primary endpoints should not be empty")
 	}
@@ -3648,10 +3829,56 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		return err
 	}
 
+	// below null check is to avoid nullpointer scenarios when either of publish_internet_endpoints
+	// or publish_microsoft_endpoints or both aren't set
+	if routingInputs != nil && routingInputs.PublishInternetEndpoints != nil && *routingInputs.PublishInternetEndpoints {
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Blob, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Dfs, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.File, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Web, "web_internet"); err != nil {
+			return err
+		}
+	}
+
+	if routingInputs != nil && routingInputs.PublishMicrosoftEndpoints != nil && *routingInputs.PublishMicrosoftEndpoints {
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Blob, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Dfs, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.File, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Web, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Table, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceData, secondary *storage.Endpoints) error {
+func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceData, secondary *storage.Endpoints, routingInputs *storage.RoutingPreference) error {
 	if secondary == nil {
 		return nil
 	}
@@ -3673,6 +3900,50 @@ func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceD
 	}
 	if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
 		return err
+	}
+
+	if v := routingInputs; v != nil && v.PublishInternetEndpoints != nil && *v.PublishInternetEndpoints {
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Blob, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Dfs, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.File, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Web, "web_internet"); err != nil {
+			return err
+		}
+	}
+
+	if routingInputs != nil && *routingInputs.PublishMicrosoftEndpoints {
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Blob, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Dfs, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.File, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Web, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Table, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
 	}
 	return nil
 }

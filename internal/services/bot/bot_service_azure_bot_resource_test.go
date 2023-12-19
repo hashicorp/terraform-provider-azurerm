@@ -189,6 +189,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
   microsoft_app_id                      = data.azurerm_client_config.current.client_id
   sku                                   = "F0"
   local_authentication_enabled          = false
+  public_network_access_enabled         = false
   icon_url                              = "https://registry.terraform.io/images/providers/azure.png"
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key

@@ -10,6 +10,8 @@ description: |-
 
 Manages a PostgreSQL Database within a PostgreSQL Server
 
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+
 ## Example Usage
 
 ```hcl
@@ -42,6 +44,11 @@ resource "azurerm_postgresql_database" "example" {
   server_name         = azurerm_postgresql_server.example.name
   charset             = "UTF8"
   collation           = "English_United States.1252"
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 ```
 

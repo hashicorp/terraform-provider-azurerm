@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -72,6 +73,11 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 			},
 
 			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"geo_replicated_primary_host_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -175,6 +181,7 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("linked_redis_cache_location", location.Normalize(props.LinkedRedisCacheLocation))
 			d.Set("server_role", string(props.ServerRole))
+			d.Set("geo_replicated_primary_host_name", pointer.From(props.GeoReplicatedPrimaryHostName))
 		}
 	}
 

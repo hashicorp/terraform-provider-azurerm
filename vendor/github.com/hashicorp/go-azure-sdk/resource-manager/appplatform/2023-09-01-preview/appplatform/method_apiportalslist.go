@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ApiPortalsListCompleteResult struct {
 }
 
 // ApiPortalsList ...
-func (c AppPlatformClient) ApiPortalsList(ctx context.Context, id SpringId) (result ApiPortalsListOperationResponse, err error) {
+func (c AppPlatformClient) ApiPortalsList(ctx context.Context, id commonids.SpringCloudServiceId) (result ApiPortalsListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ApiPortalsList(ctx context.Context, id SpringId) (res
 }
 
 // ApiPortalsListComplete retrieves all the results into a single object
-func (c AppPlatformClient) ApiPortalsListComplete(ctx context.Context, id SpringId) (ApiPortalsListCompleteResult, error) {
+func (c AppPlatformClient) ApiPortalsListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ApiPortalsListCompleteResult, error) {
 	return c.ApiPortalsListCompleteMatchingPredicate(ctx, id, ApiPortalResourceOperationPredicate{})
 }
 
 // ApiPortalsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ApiPortalsListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate ApiPortalResourceOperationPredicate) (result ApiPortalsListCompleteResult, err error) {
+func (c AppPlatformClient) ApiPortalsListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate ApiPortalResourceOperationPredicate) (result ApiPortalsListCompleteResult, err error) {
 	items := make([]ApiPortalResource, 0)
 
 	resp, err := c.ApiPortalsList(ctx, id)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ServiceRegistriesListCompleteResult struct {
 }
 
 // ServiceRegistriesList ...
-func (c AppPlatformClient) ServiceRegistriesList(ctx context.Context, id SpringId) (result ServiceRegistriesListOperationResponse, err error) {
+func (c AppPlatformClient) ServiceRegistriesList(ctx context.Context, id commonids.SpringCloudServiceId) (result ServiceRegistriesListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ServiceRegistriesList(ctx context.Context, id SpringI
 }
 
 // ServiceRegistriesListComplete retrieves all the results into a single object
-func (c AppPlatformClient) ServiceRegistriesListComplete(ctx context.Context, id SpringId) (ServiceRegistriesListCompleteResult, error) {
+func (c AppPlatformClient) ServiceRegistriesListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ServiceRegistriesListCompleteResult, error) {
 	return c.ServiceRegistriesListCompleteMatchingPredicate(ctx, id, ServiceRegistryResourceOperationPredicate{})
 }
 
 // ServiceRegistriesListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ServiceRegistriesListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate ServiceRegistryResourceOperationPredicate) (result ServiceRegistriesListCompleteResult, err error) {
+func (c AppPlatformClient) ServiceRegistriesListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate ServiceRegistryResourceOperationPredicate) (result ServiceRegistriesListCompleteResult, err error) {
 	items := make([]ServiceRegistryResource, 0)
 
 	resp, err := c.ServiceRegistriesList(ctx, id)

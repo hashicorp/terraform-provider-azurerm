@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to use for this workspace.
 
+* `immediate_data_purge_on_30_days_enabled` - (Optional) Whether to remove the data in the Log Analytics Workspace immediately after 30 days.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster.

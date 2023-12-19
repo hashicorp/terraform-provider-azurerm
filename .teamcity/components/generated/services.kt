@@ -49,6 +49,7 @@ var services = mapOf(
         "disks" to "Disks",
         "domainservices" to "DomainServices",
         "elastic" to "Elastic",
+        "elasticsan" to "ElasticSan",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "firewall" to "Firewall",

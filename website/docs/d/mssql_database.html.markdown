@@ -51,6 +51,8 @@ output "database_id" {
 
 * `elastic_pool_id` - The id of the elastic pool containing this database.
 
+* `enclave_type` - The type of enclave being used by the database.
+
 * `license_type` - The license type to apply for this database.
 
 * `max_size_gb` - The max size of the database in gigabytes.

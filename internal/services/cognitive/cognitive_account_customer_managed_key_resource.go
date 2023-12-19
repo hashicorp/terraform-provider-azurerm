@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,10 +101,13 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		return err
 	}
 	props.Properties.Encryption.KeyVaultProperties = &cognitiveservicesaccounts.KeyVaultProperties{
-		KeyName:          utils.String(keyId.Name),
-		KeyVersion:       utils.String(keyId.Version),
-		KeyVaultUri:      utils.String(keyId.KeyVaultBaseUrl),
-		IdentityClientId: utils.String(d.Get("identity_client_id").(string)),
+		KeyName:     utils.String(keyId.Name),
+		KeyVersion:  utils.String(keyId.Version),
+		KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
+	}
+
+	if identityClientId := d.Get("identity_client_id").(string); identityClientId != "" {
+		props.Properties.Encryption.KeyVaultProperties.IdentityClientId = pointer.To(identityClientId)
 	}
 
 	// todo check if poll works in all the resources

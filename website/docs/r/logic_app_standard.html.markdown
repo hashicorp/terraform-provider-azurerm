@@ -211,6 +211,8 @@ The `site_config` block supports the following:
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this Logic App Only affects apps on the Premium plan.
 
+* `public_network_access_enabled` - (Optional) Is public network access enabled? Defaults to `true`.
+
 * `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
 
 * `use_32_bit_worker_process` - (Optional) Should the Logic App run in 32 bit mode, rather than 64 bit mode? Defaults to `true`.
