@@ -67,8 +67,8 @@ func newSiteRecoveryVMWareReplicatedVMResource(vaultId, sourceVMName, applianceN
 		Credential:       credential,
 		SourceMacAddress: sourceMacAddress,
 	}, nil
-
 }
+
 func (r SiteRecoveryVMWareReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(state.ID)
 	if err != nil {
@@ -115,28 +115,7 @@ func (r SiteRecoveryVMWareReplicatedVmResource) basic(data acceptance.TestData) 
 provider "azurerm" {
   subscription_id = "%[1]s"
   features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
   }
-}
-
-data "azurerm_recovery_services_vault" "vault" {
-  name                = "%[2]s"
-  resource_group_name = "%[3]s"
-}
-
-resource "azurerm_site_recovery_vmware_replication_policy" "test" {
-  recovery_vault_id                                    = data.azurerm_recovery_services_vault.vault.id
-  name                                                 = "acctest-policy-%[4]d"
-  recovery_point_retention_in_minutes                  = 1440
-  application_consistent_snapshot_frequency_in_minutes = 240
-}
-
-resource "azurerm_site_recovery_vmware_replication_policy_association" "test" {
-  name              = "acctest-%[4]d"
-  recovery_vault_id = data.azurerm_recovery_services_vault.vault.id
-  policy_id         = azurerm_site_recovery_vmware_replication_policy.test.id
 }
 
 resource "azurerm_resource_group" "target" {
@@ -166,6 +145,23 @@ resource "azurerm_subnet" "target" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+data "azurerm_recovery_services_vault" "vault" {
+  name                = "%[2]s"
+  resource_group_name = "%[3]s"
+}
+
+resource "azurerm_site_recovery_vmware_replication_policy" "test" {
+  recovery_vault_id                                    = data.azurerm_recovery_services_vault.vault.id
+  name                                                 = "acctest-policy-%[4]d"
+  recovery_point_retention_in_minutes                  = 1440
+  application_consistent_snapshot_frequency_in_minutes = 240
+}
+
+resource "azurerm_site_recovery_vmware_replication_policy_association" "test" {
+  name              = "acctest-%[4]d"
+  recovery_vault_id = data.azurerm_recovery_services_vault.vault.id
+  policy_id         = azurerm_site_recovery_vmware_replication_policy.test.id
+}
 
 resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
   name                                       = "acct%[4]d"
@@ -186,10 +182,6 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
     source_mac_address = "%[10]s"
     target_subnet_name = azurerm_subnet.target.name
     is_primary         = true
-  }
-
-  timeouts {
-    create = "600m"
   }
 
   lifecycle {

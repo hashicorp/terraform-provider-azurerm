@@ -61,14 +61,6 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["192.168.2.0/24"]
 }
 
-resource "azurerm_storage_account" "example" {
-  name                     = "examplesa"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
   name                                       = "example-vmware-vm"
   recovery_vault_id                          = azurerm_recovery_services_vault.example.id
@@ -100,9 +92,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the replicated VM. Changing this forces a new resource to be created.
 
-* `recovery_vault_id` - (Required) The ID of the Recovery Services Vault where the replicated VM is created. Changing this forces a new resource to be created.
-
 * `physical_server_credential_name` - (Required) The name of the credential to access the source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/en-us/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
+
+* `recovery_vault_id` - (Required) The ID of the Recovery Services Vault where the replicated VM is created. Changing this forces a new resource to be created.
 
 * `recovery_replication_policy_id` - (Required) The ID of the policy to use for this replicated VM. Changing this forces a new resource to be created.
 
@@ -128,8 +120,6 @@ The following arguments are supported:
 
 * `default_target_disk_encryption_set_id` - (Optional) The ID of the default Disk Encryption Set that should be used for the disks when a failover is done.
 
-**Note:** Only one of `default_target_disk_encryption_set_id` or `managed_disk` can be specified.
-
 **Note:** Changing `default_target_disk_encryption_set_id` forces a new resource to be created. But removing it does not.
 
 **Note:** When `default_target_disk_encryption_set_id` co-exist with `managed_disk`, the value of `default_target_disk_encryption_set_id` must be as same as `target_disk_encryption_set_id` of every `managed_disk` or it forces a new resource to be created. 
@@ -148,17 +138,15 @@ The following arguments are supported:
 
 * `managed_disk` - (Optional) One or more `managed_disk` block as defined below. It's available only if mobility service is already installed on the source VM.
 
-**Note:** a replicated VM could be created without `managed_disk` block, once the block has been specified, changing it expect removing it forces a new resource to be created..
+**Note:** A replicated VM could be created without `managed_disk` block, once the block has been specified, changing it expect removing it forces a new resource to be created.
 
 * `network_interface` - (Optional) One or more `network_interface` block as defined below.
 
+* `target_availability_set_id` - (Optional) The ID of availability set that the new VM should belong to when a failover is done. Changing this forces a new resource to be created.
+
 * `target_boot_diagnostics_storage_account_id` - (Optional) The ID of the storage account that should be used for boot diagnostics when a failover is done.
 
-* `test_network_id` - (Optional) The ID of network to use when a test failover is done.
-
 * `target_proximity_placement_group_id` - (Optional) The ID of Proximity Placement Group the new VM should belong to when a failover is done.
-
-* `target_availability_set_id` - (Optional) The ID of availability set that the new VM should belong to when a failover is done. Changing this forces a new resource to be created.
 
 **Note:** Only one of `target_availability_set_id` or `target_zone` can be specified.
 
@@ -166,6 +154,7 @@ The following arguments are supported:
 
 * `target_vm_size` - (Optional) Size of the VM that should be created when a failover is done, such as `Standard_F2`. If it's not specified, it will automatically be set by detecting the source VM size.
 
+* `test_network_id` - (Optional) The ID of network to use when a test failover is done.
 ---
 
 A `managed_disk` block supports the following:

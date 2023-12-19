@@ -3,7 +3,6 @@ package recoveryservices
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,24 +12,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
 	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/custompollers"
-	validateResourceGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -88,8 +85,10 @@ func (s VMWareReplicatedVmResource) IDValidationFunc() pluginsdk.SchemaValidateF
 	return replicationprotecteditems.ValidateReplicationProtectedItemID
 }
 
-var _ sdk.ResourceWithUpdate = VMWareReplicatedVmResource{}
-var _ sdk.ResourceWithCustomizeDiff = VMWareReplicatedVmResource{}
+var (
+	_ sdk.ResourceWithUpdate        = VMWareReplicatedVmResource{}
+	_ sdk.ResourceWithCustomizeDiff = VMWareReplicatedVmResource{}
+)
 
 func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -100,12 +99,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"recovery_vault_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: replicationprotecteditems.ValidateVaultID,
-		},
+		"recovery_vault_id": commonschema.ResourceIDReferenceRequired(vaults.VaultId{}),
 
 		"source_vm_name": {
 			Type:         pluginsdk.TypeString,
@@ -121,12 +115,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"recovery_replication_policy_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: replicationpolicies.ValidateReplicationPolicyID,
-		},
+		"recovery_replication_policy_id": commonschema.ResourceIDReferenceRequired(replicationpolicies.ReplicationPolicyId{}),
 
 		"physical_server_credential_name": {
 			Type:         pluginsdk.TypeString,
@@ -142,12 +131,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForLicenseType(), false),
 		},
 
-		"target_resource_group_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validateResourceGroup.ResourceGroupID,
-		},
+		"target_resource_group_id": commonschema.ResourceIDReferenceRequired(commonids.ResourceGroupId{}),
 
 		"target_vm_name": {
 			Type:         pluginsdk.TypeString,
@@ -171,10 +155,9 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"default_target_disk_encryption_set_id": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ConflictsWith: []string{"managed_disk"},
-			ValidateFunc:  diskencryptionsets.ValidateDiskEncryptionSetID,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: diskencryptionsets.ValidateDiskEncryptionSetID,
 		},
 
 		"multi_vm_group_name": {
@@ -183,11 +166,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"target_proximity_placement_group_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
-		},
+		"target_proximity_placement_group_id": commonschema.ResourceIDReferenceOptional(proximityplacementgroups.ProximityPlacementGroupId{}),
 
 		"target_vm_size": {
 			Type:         pluginsdk.TypeString,
@@ -220,17 +199,9 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"network_interface"},
 		},
 
-		"test_network_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
+		"test_network_id": commonschema.ResourceIDReferenceOptional(commonids.VirtualNetworkId{}),
 
-		"target_boot_diagnostics_storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
+		"target_boot_diagnostics_storage_account_id": commonschema.ResourceIDReferenceOptional(commonids.StorageAccountId{}),
 
 		// managed disk is enabled only if mobility service is already installed. (in most cases, it's not installed)
 		"managed_disk": {
@@ -251,10 +222,9 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ValidateFunc:     validation.StringIsNotEmpty,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"target_disk_type": {
@@ -263,17 +233,9 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 				ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 			},
 
-			"target_disk_encryption_set_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: diskencryptionsets.ValidateDiskEncryptionSetID,
-			},
+			"target_disk_encryption_set_id": commonschema.ResourceIDReferenceOptional(diskencryptionsets.DiskEncryptionSetId{}),
 
-			"log_storage_account_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: commonids.ValidateStorageAccountID,
-			},
+			"log_storage_account_id": commonschema.ResourceIDReferenceOptional(commonids.StorageAccountId{}),
 		},
 	}
 }
@@ -518,11 +480,41 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("polling %q: %+v", id, err)
 			}
 
-			log.Printf("[DEBUG] Waiting for %s to be fully protected..", id)
-			pollerType := custompollers.NewVMWareReplicatedVMPoller(client, id)
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"Pending"},
+				Target:  []string{"Protected"},
+				Refresh: func() (result interface{}, state string, err error) {
+					resp, err := client.Get(ctx, id)
+					if err != nil {
+						return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)
+					}
 
-			protectPoller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := protectPoller.PollUntilDone(ctx); err != nil {
+					protectionState := ""
+					if model := resp.Model; model != nil && model.Properties != nil && resp.Model.Properties.ProtectionState != nil {
+						protectionState = *model.Properties.ProtectionState
+					}
+
+					if strings.EqualFold(protectionState, "Protected") {
+						return resp, protectionState, nil
+					}
+
+					// The `protectionState` has pretty much enums, and will changes in the duration of replicate.
+					// While failed ones and canceled ones have common pattern.
+					if strings.HasSuffix(protectionState, "Failed") || strings.HasPrefix(protectionState, "Cancel") {
+						return resp, protectionState, fmt.Errorf("replicate failed or canceled")
+					}
+
+					return resp, "Pending", nil
+				},
+				MinTimeout: 15 * time.Second,
+				Timeout:    time.Until(deadline),
+			}
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully protected: %s", id, err)
 			}
 
