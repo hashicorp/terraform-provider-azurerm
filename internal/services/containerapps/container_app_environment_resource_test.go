@@ -245,22 +245,18 @@ resource "azurerm_container_app_environment" "test" {
 func (r ContainerAppEnvironmentResource) completeWithWorkloadProfileConsumptionOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-	resource_group {
-	  prevent_deletion_if_contains_resources = false
-	}
-  }
+  features {}
 }
 
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                     = "acctest-CAEnv%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  infrastructure_subnet_id = azurerm_subnet.control.id
+  name                                       = "acctest-CAEnv%[2]d"
+  resource_group_name                        = azurerm_resource_group.test.name
+  location                                   = azurerm_resource_group.test.location
+  infrastructure_subnet_id                   = azurerm_subnet.control.id
   workload_profiles_consumption_only_enabled = true
-  zone_redundancy_enabled = true
+  zone_redundancy_enabled                    = true
 
   tags = {
     Foo    = "Bar"

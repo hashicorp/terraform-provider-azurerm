@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
+* `workload_profiles_consumption_only_enabled` - (Optional) Should the Container App Environment be created with Workload Profiles in Consumption Only Mode? Defaults to `false`.
+
 * `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
