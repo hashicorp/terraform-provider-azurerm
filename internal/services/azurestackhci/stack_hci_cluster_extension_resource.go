@@ -130,7 +130,7 @@ func (r StackHCIExtensionResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if config.AutomaticUpgradeEnabled == true && config.TypeHandlerVersion != "" {
+			if config.AutomaticUpgradeEnabled && config.TypeHandlerVersion != "" {
 				return fmt.Errorf("`type_handler_version` cannot be set if `automatic_upgrade_enabled` is true")
 			}
 
@@ -239,24 +239,23 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 				extension.Name = id.ExtensionName
 				extension.ArcSettingId = extensions.NewArcSettingID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.ArcSettingName).ID()
 
-				if props := model.Properties; props != nil {
-					if param := props.ExtensionParameters; param != nil {
-						extension.AutomaticUpgradeEnabled = pointer.From(param.EnableAutomaticUpgrade)
-						extension.AutoUpgradeMinorVersion = pointer.From(param.AutoUpgradeMinorVersion)
-						extension.ForceUpdateTag = pointer.From(param.ForceUpdateTag)
-						extension.Publisher = pointer.From(param.Publisher)
-						extension.Type = pointer.From(param.Type)
-						extension.TypeHandlerVersion = pointer.From(param.TypeHandlerVersion)
+				if model.Properties != nil && model.Properties.ExtensionParameters != nil {
+					param := model.Properties.ExtensionParameters
+					extension.AutomaticUpgradeEnabled = pointer.From(param.EnableAutomaticUpgrade)
+					extension.AutoUpgradeMinorVersion = pointer.From(param.AutoUpgradeMinorVersion)
+					extension.ForceUpdateTag = pointer.From(param.ForceUpdateTag)
+					extension.Publisher = pointer.From(param.Publisher)
+					extension.Type = pointer.From(param.Type)
+					extension.TypeHandlerVersion = pointer.From(param.TypeHandlerVersion)
 
-						var setting string
-						if param.Settings != nil {
-							setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]interface{}))
-							if err != nil {
-								return fmt.Errorf("flatenning `settings`: %+v", err)
-							}
+					var setting string
+					if param.Settings != nil {
+						setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]interface{}))
+						if err != nil {
+							return fmt.Errorf("flatenning `settings`: %+v", err)
 						}
-						extension.Setting = setting
 					}
+					extension.Setting = setting
 				}
 			}
 

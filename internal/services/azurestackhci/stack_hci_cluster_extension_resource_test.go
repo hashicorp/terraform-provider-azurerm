@@ -48,7 +48,7 @@ func TestAccStackHCIClusterExtension_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -241,6 +241,7 @@ resource "azurerm_stack_hci_extension" "import" {
 `, config)
 }
 
+// nolint: unparam
 func (r StackHCIExtensionResource) template(data acceptance.TestData) string {
 	stackHCIClusterName := os.Getenv("ARM_TEST_HCI_CLUSTER_NAME")
 	resourceGroupName := os.Getenv("ARM_TEST_HCI_RESOURCE_GROUP_NAME")
