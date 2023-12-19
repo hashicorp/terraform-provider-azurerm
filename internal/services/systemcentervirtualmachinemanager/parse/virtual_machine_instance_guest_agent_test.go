@@ -3,14 +3,13 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 var _ resourceids.Id = SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{}
 
 func TestVirtualMachineInstanceGuestAgentIDFormatter(t *testing.T) {
-	actual := NewSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1").ID()
+	actual := NewSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1", "default", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -28,15 +27,15 @@ func TestVirtualMachineInstanceGuestAgentID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default",
 			Expected: &SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{
-				ScopeId: commonids.ScopeId{
-					Scope: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
-				},
+				Scope:                      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
+				VirtualMachineInstanceName: "default",
+				GuestAgentName:             "default",
 			},
 		},
 		{
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.HYBRIDCOMPUTE/MACHINES/MACHINE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.HYBRIDCOMPUTE/MACHINES/MACHINE1/PROVIDERS/MICROSOFT.SCVMM/VIRTUALMACHINEINSTANCES/DEFAULT/GUESTAGENTS/DEFAULT",
 			Error: true,
 		},
 	}
@@ -56,8 +55,8 @@ func TestVirtualMachineInstanceGuestAgentID(t *testing.T) {
 			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.ScopeId != v.Expected.ScopeId {
-			t.Fatalf("Expected %q but got %q for ScopeId", v.Expected.ScopeId, actual.ScopeId)
+		if actual.Scope != v.Expected.Scope {
+			t.Fatalf("Expected %q but got %q for Scope", v.Expected.Scope, actual.Scope)
 		}
 	}
 }
