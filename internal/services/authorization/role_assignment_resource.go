@@ -304,8 +304,9 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleDefResourceId := props.RoleDefinitionID; roleDefResourceId != nil {
-			// The role definition id returned does not contain scope when the scope is some special case.
-			// Such as management group. So we might need to add scope here.
+			// Workaround for https://github.com/hashicorp/pandora/issues/3257
+			// The role definition id returned does not contain scope when the role definition was on tenant level (management group or tenant).
+			// And adding tenant id as scope will cause 404 response, so just adding a slash to parse that.
 			if strings.HasPrefix(*roleDefResourceId, "/providers") {
 				roleDefResourceId = pointer.To(fmt.Sprintf("/%s", *roleDefResourceId))
 			}
