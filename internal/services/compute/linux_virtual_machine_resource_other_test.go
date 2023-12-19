@@ -624,7 +624,7 @@ func TestAccLinuxVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 	})
 }
 
-func u(t *testing.T) {
+func TestAccLinuxVirtualMachine_otherUltraSsdEmptyToUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
