@@ -2223,7 +2223,7 @@ func SecretsSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.Any(
 						commonids.ValidateUserAssignedIdentityID,
-						validation.StringInSlice([]string{"system"}, true),
+						validation.StringInSlice([]string{"System"}, false),
 					),
 					Description: "The identity to use for accessing key vault reference.",
 				},
