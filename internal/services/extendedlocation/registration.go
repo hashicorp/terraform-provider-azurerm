@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package extendedlocation
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -11,7 +14,9 @@ func (r Registration) AssociatedGitHubLabel() string {
 }
 
 func (r Registration) WebsiteCategories() []string {
-	return []string{}
+	return []string{
+		"Extended Location",
+	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
