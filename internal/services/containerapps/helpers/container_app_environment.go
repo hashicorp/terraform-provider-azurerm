@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const consumption = "Consumption"
+const Consumption = "Consumption"
 
 type WorkloadProfileModel struct {
 	MaximumCount        int    `tfschema:"maximum_count"`
@@ -25,6 +25,10 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
+		ExactlyOneOf: []string{
+			"workload_profiles_consumption_only_enabled",
+			"workload_profile",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -75,7 +79,7 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 			WorkloadProfileType: v.WorkloadProfileType,
 		}
 
-		if v.Name != consumption {
+		if v.Name != Consumption {
 			r.MaximumCount = pointer.To(int64(v.MaximumCount))
 			r.MinimumCount = pointer.To(int64(v.MinimumCount))
 		}
@@ -84,8 +88,8 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 	}
 
 	result = append(result, managedenvironments.WorkloadProfile{
-		Name:                consumption,
-		WorkloadProfileType: consumption,
+		Name:                Consumption,
+		WorkloadProfileType: Consumption,
 	})
 
 	return &result
@@ -98,7 +102,7 @@ func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []Wor
 	result := make([]WorkloadProfileModel, 0)
 
 	for _, v := range *input {
-		if strings.EqualFold(v.WorkloadProfileType, consumption) {
+		if strings.EqualFold(v.WorkloadProfileType, Consumption) {
 			continue
 		}
 		result = append(result, WorkloadProfileModel{

@@ -36,6 +36,7 @@ type ContainerAppEnvironmentModel struct {
 	InternalLoadBalancerEnabled             bool                           `tfschema:"internal_load_balancer_enabled"`
 	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
 	Tags                                    map[string]interface{}         `tfschema:"tags"`
+	WorkloadProfilesConsumptionOnlyEnabled  bool                           `tfschema:"workload_profiles_consumption_only_enabled"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
 	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
 
@@ -116,6 +117,17 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Default:      false,
 			RequiredWith: []string{"infrastructure_subnet_id"},
 			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+		},
+
+		"workload_profiles_consumption_only_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ExactlyOneOf: []string{
+				"workload_profiles_consumption_only_enabled",
+				"workload_profile",
+			},
+			Description: "Should the Container Environment only allow Consumption Workload Profiles? Defaults to `false`.",
 		},
 
 		"workload_profile": helpers.WorkloadProfileSchema(),
@@ -251,6 +263,15 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 			}
 
+			if containerAppEnvironment.WorkloadProfilesConsumptionOnlyEnabled {
+				managedEnvironment.Properties.WorkloadProfiles = &[]managedenvironments.WorkloadProfile{
+					{
+						Name:                helpers.Consumption,
+						WorkloadProfileType: helpers.Consumption,
+					},
+				}
+			}
+
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
@@ -301,8 +322,13 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
-					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
+
+					if workloadProfiles := helpers.FlattenWorkloadProfiles(props.WorkloadProfiles); len(workloadProfiles) > 0 {
+						state.WorkloadProfilesConsumptionOnlyEnabled = false
+						state.WorkloadProfiles = workloadProfiles
+					} else {
+						state.WorkloadProfilesConsumptionOnlyEnabled = true
+					}
 				}
 			}
 
