@@ -13,6 +13,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_bot_service` - fixing a bug where `public_network_access_enabled` was always set to `true` in Read func [GH-24255]
+* `azurerm_logic_app_standard` - update default value of `version` from `~3` which is no longer supported to `~4` [GH-24134]
 
 ## 3.85.0 (December 14, 2023)
 
