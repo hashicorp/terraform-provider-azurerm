@@ -266,6 +266,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
+
+			"additional_unattend_content": additionalUnattendContentSchema(),
 		},
 	}
 }
@@ -403,6 +405,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	extensionOperationsEnabled := d.Get("extension_operations_enabled").(bool)
 	osProfileRaw := d.Get("os_profile").([]interface{})
 
+	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
+	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
+
 	if len(osProfileRaw) > 0 {
 		osProfile := osProfileRaw[0].(map[string]interface{})
 		winConfigRaw = osProfile["windows_configuration"].([]interface{})
@@ -419,6 +424,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig, customData)
+
+			if len(additionalUnattendContentRaw) > 0 {
+				vmssOsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+			}
 
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
@@ -1301,6 +1310,12 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		}
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("user_data_base64", profile.UserData)
+
+		if windows := profile.OsProfile.WindowsConfiguration; windows != nil {
+			if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(windows.AdditionalUnattendContent, d)); err != nil {
+				return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
+			}
+		}
 	}
 
 	if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
