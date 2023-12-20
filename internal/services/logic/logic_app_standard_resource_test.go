@@ -29,7 +29,7 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,workflowapp"),
-				check.That(data.ResourceName).Key("version").HasValue("~3"),
+				check.That(data.ResourceName).Key("version").HasValue("~4"),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
@@ -780,7 +780,7 @@ func TestAccLogicAppStandard_dotnetVersion5(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotnetVersion(data, "~3", "v5.0"),
+			Config: r.dotnetVersion(data, "~4", "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v5.0"),
@@ -1858,7 +1858,7 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  version                    = "~3"
+  version                    = "~4"
 
   site_config {
     pre_warmed_instance_count        = 1
