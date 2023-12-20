@@ -1,0 +1,111 @@
+package datafactory
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate,
+		// Read:   resourceDataFactoryCustomDatasetRead,
+		// Update: resourceDataFactoryCustomDatasetCreateUpdate,
+		// Delete: resourceDataFactoryCustomDatasetDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DataSetID(id)
+			return err
+		}),
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"annotations": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+			"data_factory_id": {
+				Description:  "ID of the Data Factory",
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: factories.ValidateFactoryID,
+			},
+			"description": {
+				Description: "Text description of the credential",
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+			},
+			"identity_id": {
+				Description: "Resource ID of a User-Assigned Managed Identity",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true,
+			},
+			"name": {
+				Description: "Credential Name",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
+				ForceNew:    true, // TODO: figure out whats required
+			},
+		},
+	}
+}
+
+func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DataFactory.Credentials
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewCredentialId(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
+
+	if d.IsNewResource() {
+		existing, err := client.CredentialOperationsGet(ctx, id, credentials.CredentialOperationsGetOperationOptions{})
+		if err != nil {
+			if existing.HttpResponse.Status == "404" {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if existing.HttpResponse.Status == "404" {
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
+		}
+	}
+
+	credential := credentials.ManagedIdentityCredentialResource{
+		Type: utils.String("ManagedIdentity"),
+		Properties: credentials.ManagedIdentityCredential{
+			Description: utils.String(d.Get("description").(string)),
+			Annotations: d.Get("annotations").(*[]interface{}),
+			TypeProperties: &credentials.ManagedIdentityTypeProperties{
+				ResourceId: utils.String(d.Get("identity_id").(string)),
+			},
+		},
+	}
+
+	if _, err := client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+}
