@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	paloalto_2022_08_29 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29"
 	paloalto_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
