@@ -38,7 +38,7 @@ func (r ElasticSANVolumeGroupResource) ModelObject() interface{} {
 }
 
 type ElasticSANVolumeGroupResourceModel struct {
-	ElasticSanId   string                                          `tfschema:"elastic_san_id"`
+	SanId          string                                          `tfschema:"san_id"`
 	EncryptionType string                                          `tfschema:"encryption_type"`
 	Encryption     []ElasticSANVolumeGroupResourceEncryptionModel  `tfschema:"encryption"`
 	Identity       []identity.ModelSystemAssignedUserAssigned      `tfschema:"identity"`
@@ -69,7 +69,7 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validate.ElasticSanVolumnGroupName,
 		},
 
-		"elastic_san_id": {
+		"san_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -89,15 +89,15 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"user_assigned_identity_id": {
-						Optional:     true,
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-					},
 					"key_vault_key_id": {
 						Required:     true,
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+					"user_assigned_identity_id": {
+						Optional:     true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 					"current_versioned_key_expiration_timestamp": {
 						Computed: true,
@@ -185,7 +185,7 @@ func (r ElasticSANVolumeGroupResource) Create() sdk.ResourceFunc {
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			elasticSanId, err := volumegroups.ParseElasticSanID(config.ElasticSanId)
+			elasticSanId, err := volumegroups.ParseElasticSanID(config.SanId)
 			if err != nil {
 				return err
 			}
@@ -255,7 +255,7 @@ func (r ElasticSANVolumeGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				schema.ElasticSanId = elasticSanId.ID()
+				schema.SanId = elasticSanId.ID()
 				schema.Name = id.VolumeGroupName
 
 				flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
@@ -427,6 +427,7 @@ func FlattenVolumeGroupEncryption(input *volumegroups.EncryptionProperties) ([]E
 }
 
 func ExpandVolumeGroupNetworkRules(input []ElasticSANVolumeGroupResourceNetworkRuleModel) *volumegroups.NetworkRuleSet {
+	// if return nil, the Network Rules will not be removed during update
 	if len(input) == 0 {
 		return &volumegroups.NetworkRuleSet{
 			VirtualNetworkRules: &[]volumegroups.VirtualNetworkRule{},
@@ -447,7 +448,7 @@ func ExpandVolumeGroupNetworkRules(input []ElasticSANVolumeGroupResourceNetworkR
 }
 
 func FlattenVolumeGroupNetworkRules(input *volumegroups.NetworkRuleSet) []ElasticSANVolumeGroupResourceNetworkRuleModel {
-	if input == nil {
+	if input == nil || input.VirtualNetworkRules == nil {
 		return []ElasticSANVolumeGroupResourceNetworkRuleModel{}
 	}
 

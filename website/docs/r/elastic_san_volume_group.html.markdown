@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `elastic_san_id` - (Required) Specifies the Elastic SAN ID within which this Elastic SAN Volume Group should exist. Changing this forces a new resource to be created.
 
-* `encryption_type` - (Optional) Type of encryption. Possible values are `EncryptionAtRestWithCustomerManagedKey` and `EncryptionAtRestWithPlatformKey`. Defaults to `EncryptionAtRestWithPlatformKey`.
+* `encryption_type` - (Optional) Specifies the type of the key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerManagedKey` and `EncryptionAtRestWithPlatformKey`. Defaults to `EncryptionAtRestWithPlatformKey`.
 
 * `encryption` - (Optional) An `encryption` block as defined below.
 
@@ -139,15 +139,15 @@ The following arguments are supported:
 
 * `network_rule` - (Optional) One or more `network_rule` blocks as defined below.
 
-* `protocol_type` - (Optional) The protocol type of the Elastic SAN Volume Group. The only possible value is `Iscsi`. Defaults to `Iscsi`.
+* `protocol_type` - (Optional) Specifies the type of the storage target. The only possible value is `Iscsi`. Defaults to `Iscsi`.
 
 ---
 
 An `encryption` block supports the following arguments:
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `key_vault_key_id` - (Required) The Key Vault key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.
 
-* `key_vault_key_id` - (Optional) The Key Vault key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.
+* `user_assigned_identity_id` - (Optional) The ID of the User Assigned Identity used by this Elastic SAN Volume Group.
 
 ---
 
@@ -171,23 +171,27 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Elastic SAN Volume Group.
 
+* `encryption` - An `encryption` block as defined below.
+
+* `identity` - An `identity` block as defined below.
+
 ---
 
 An `encryption` block exports the following arguments:
 
-* `current_versioned_key_expiration_timestamp` - Current Versioned Key Expiration Timestamp of the Elastic SAN Volume Group.
+* `current_versioned_key_expiration_timestamp` - The timestamp of the expiration time for the current version of the customer managed key.
 
-* `current_versioned_key_id` - Current Versioned Key ID.
+* `current_versioned_key_id` - The ID of the current versioned Key Vault Key in use.
 
-* `last_key_rotation_timestamp` - Last Key Rotation Timestamp.
+* `last_key_rotation_timestamp` - The timestamp of the last rotation of the Key Vault Key.
 
 ---
 
 An `identity` block exports the following arguments:
 
-* `principal_id` - The Principal ID for the System-Assigned Managed Identity assigned to this Elastic SAN Volume Group.
+* `principal_id` - The Principal ID associated with the Managed Service Identity assigned to this Elastic SAN Volume Group.
 
-* `tenant_id` - The Tenant ID for the System-Assigned Managed Identity assigned to this Elastic SAN Volume Group.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity assigned to this Elastic SAN Volume Group.
 
 ## Timeouts
 
