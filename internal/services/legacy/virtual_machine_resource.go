@@ -192,7 +192,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -434,7 +434,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -470,7 +470,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -555,7 +555,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -1032,18 +1032,20 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 		return fmt.Errorf("`vhd.URI` was nil`")
 	}
 
+	domainSuffix := storageClient.Environment.StorageEndpointSuffix
+
 	uri := *vhd.URI
-	id, err := blobs.ParseResourceID(uri)
+	id, err := blobs.ParseBlobID(uri, domainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %s", uri, err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountName, uri)
+		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountId.AccountName, uri)
 	}
 
 	if err != nil {
@@ -1058,8 +1060,8 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 	input := blobs.DeleteInput{
 		DeleteSnapshots: false,
 	}
-	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	if _, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		return fmt.Errorf("deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil

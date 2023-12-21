@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -255,9 +256,9 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 		}
 
 		input := blobs.GetPropertiesInput{}
-		props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
+		props, err := client.GetProperties(ctx, containerName, blobName, input)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
+			if response.WasNotFound(props.HttpResponse.Response) {
 				if !shouldExist {
 					return nil
 				}
