@@ -3,12 +3,12 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_credential_user_managed_identity"
 description: |-
-  Manage a Data Factory User Assigned Managed Identity resource
+  Manage a Data Factory User Assigned Managed Identity credential resource
 ---
 
 # azurerm_data_factory_credential_user_managed_identity
 
-Manage a Data Factory User Assigned Managed Identity resource
+Manage a Data Factory User Assigned Managed Identity credential resource. These resources are used by Data Factory to access data sources.
 
 ## Example Usage
 
@@ -53,8 +53,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 
 * `identity_id` - (Required) The Resouce ID of an existing User Assigned Managed Identity. This can be changed without recreating the resource.
 
-~> **Note:** The User Assigned Managed Identity must also be assigned to the parent Data Factory. Attempting to create a Credentials resource without
- first doing this will result in an Azure API error.
+~> **Note:** Attempting to create a credentials resource without first assigning the identity to the parent Data Factory will result in an Azure API error.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Dataset.
 
