@@ -15,13 +15,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.Resource = DataFactoryCredentialUserAssignedManagedIdentityResource{}
-var _ sdk.ResourceWithUpdate = DataFactoryCredentialUserAssignedManagedIdentityResource{}
+type DataFactoryCredentialUserAssignedManagedIdentityResource struct{}
 
 // user managed identities only have one type
 const IDENTITY_TYPE = "ManagedIdentity"
 
-type DataFactoryCredentialUserAssignedManagedIdentityResource struct{}
+var _ sdk.Resource = DataFactoryCredentialUserAssignedManagedIdentityResource{}
+var _ sdk.ResourceWithUpdate = DataFactoryCredentialUserAssignedManagedIdentityResource{}
+
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) ResourceType() string {
+	return "azurerm_data_factory_credential_user_managed_identity"
+}
 
 type DataFactoryCredentialUserAssignedManagedIdentityResourceSchema struct {
 	Name          string   `tfschema:"name"`
@@ -60,8 +64,8 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Arguments() map[
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"annotations": {
-			Description: "(Optional) List of string annotations",
+		"annotations": { // this property is not visible in the azure portal
+			Description: "(Optional) List of string annotations.",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
 			Elem: &pluginsdk.Schema{
@@ -77,10 +81,6 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Attributes() map
 
 func (DataFactoryCredentialUserAssignedManagedIdentityResource) ModelObject() interface{} {
 	return &DataFactoryCredentialUserAssignedManagedIdentityResourceSchema{}
-}
-
-func (DataFactoryCredentialUserAssignedManagedIdentityResource) ResourceType() string {
-	return "data_factory_credential_user_assigned_managed_identity"
 }
 
 func (DataFactoryCredentialUserAssignedManagedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
