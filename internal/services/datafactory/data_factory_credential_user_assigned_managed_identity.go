@@ -1,179 +1,281 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate,
-		Read:   resourceDataFactoryCredentialsUserAssignedManagedIdentityRead,
-		Update: resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate,
-		Delete: resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete,
-
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := credentials.ParseCredentialID(id)
-			return err
-		}),
-
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
-		},
-
-		Schema: map[string]*pluginsdk.Schema{
-			"annotations": { // annotations not visible in portal
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-			"data_factory_id": {
-				Description:  "Resource ID of the Data Factory",
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: credentials.ValidateFactoryID,
-			},
-			"description": {
-				Description: "Text description of the credential",
-				Type:        pluginsdk.TypeString,
-				Optional:    true,
-			},
-			"identity_id": {
-				Description: "Resource ID of a User-Assigned Managed Identity",
-				Type:        pluginsdk.TypeString,
-				Required:    true,
-			},
-			"name": {
-				Description: "Credential Name",
-				Type:        pluginsdk.TypeString,
-				Required:    true,
-				ForceNew:    true,
-			},
-		},
-	}
-}
+var _ sdk.Resource = DataFactoryCredentialUserAssignedManagedIdentityResource{}
+var _ sdk.ResourceWithUpdate = DataFactoryCredentialUserAssignedManagedIdentityResource{}
 
 // user managed identities only have one type
 const IDENTITY_TYPE = "ManagedIdentity"
 
-func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.Credentials
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+type DataFactoryCredentialUserAssignedManagedIdentityResource struct{}
 
-	dataFactoryId, err := credentials.ParseFactoryID(d.Get("data_factory_id").(string))
-	if err != nil {
-		return err
-	}
+type DataFactoryCredentialUserAssignedManagedIdentityResourceSchema struct {
+	Name          string   `tfschema:"name"`
+	DataFactoryId string   `tfschema:"data_factory_id"`
+	IdentityId    string   `tfschema:"identity_id"`
+	Description   string   `tfschema:"description"`
+	Annotations   []string `tfschema:"annotations"`
+}
 
-	id := credentials.CredentialId{
-		SubscriptionId:    dataFactoryId.SubscriptionId,
-		ResourceGroupName: dataFactoryId.ResourceGroupName,
-		FactoryName:       dataFactoryId.FactoryName,
-		CredentialName:    d.Get("name").(string),
-	}
-
-	if d.IsNewResource() {
-		existing, err := client.CredentialOperationsGet(ctx, id, credentials.CredentialOperationsGetOperationOptions{})
-		if err != nil {
-			if existing.HttpResponse.Status == "404" {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
-		if existing.HttpResponse.Status == "404" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
-		}
-	}
-
-	credential := credentials.ManagedIdentityCredentialResource{
-		Type: utils.String(IDENTITY_TYPE),
-		Properties: credentials.ManagedIdentityCredential{
-			TypeProperties: &credentials.ManagedIdentityTypeProperties{},
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Description:  "The desired name of the credential resource",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"data_factory_id": {
+			Description:  "The resource ID of the parent Data Factory",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: factories.ValidateFactoryID,
+		},
+		"identity_id": {
+			Description:  "The resource ID of the User Assigned Managed Identity",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+		"description": {
+			Description:  "(Optional) Short text description",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"annotations": {
+			Description: "(Optional) List of string annotations",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 	}
-
-	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		credential.Properties.Annotations = &annotations
-	}
-
-	if v, ok := d.GetOk("description"); ok {
-		description := v.(string)
-		credential.Properties.Description = &description
-	}
-
-	if v, ok := d.GetOk("identity_id"); ok {
-		identityId := v.(string)
-		credential.Properties.TypeProperties.ResourceId = &identityId
-	}
-
-	resp, err := client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	d.SetId(*resp.Model.Id)
-
-	return resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d, meta)
 }
 
-func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.Credentials
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	credentialId, err := credentials.ParseCredentialID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	existing, err := client.CredentialOperationsGet(ctx, *credentialId, credentials.CredentialOperationsGetOperationOptions{})
-	if err != nil {
-		if existing.HttpResponse.Status == "404" {
-			return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
-		}
-	}
-
-	d.Set("name", credentialId.CredentialName)
-	d.Set("description", existing.Model.Properties.Description)
-	if err := d.Set("annotations", flattenDataFactoryAnnotations(existing.Model.Properties.Annotations)); err != nil {
-		return fmt.Errorf("setting `annotations`: %+v", err)
-	}
-	d.Set("identity_id", existing.Model.Properties.TypeProperties.ResourceId)
-	d.Set("data_factory_id", factories.NewFactoryID(credentialId.SubscriptionId, credentialId.ResourceGroupName, credentialId.FactoryName).ID())
-
-	return nil
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
-func resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.Credentials
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) ModelObject() interface{} {
+	return &DataFactoryCredentialUserAssignedManagedIdentityResourceSchema{}
+}
 
-	credentialId, err := credentials.ParseCredentialID(d.Id())
-	if err != nil {
-		return err
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) ResourceType() string {
+	return "data_factory_credential_user_assigned_managed_identity"
+}
+
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return credentials.ValidateCredentialID
+}
+
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			d := metadata.ResourceData
+			client := metadata.Client.DataFactory.Credentials
+
+			credentialId, err := credentials.ParseCredentialID(d.Id())
+			if err != nil {
+				return err
+			}
+
+			var state DataFactoryCredentialUserAssignedManagedIdentityResourceSchema
+
+			existing, err := client.CredentialOperationsGet(ctx, *credentialId, credentials.CredentialOperationsGetOperationOptions{})
+			if err != nil {
+				if existing.HttpResponse.Status == "404" {
+					return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
+				}
+			}
+
+			state.Name = credentialId.CredentialName
+			state.Description = *existing.Model.Properties.Description
+			state.IdentityId = *existing.Model.Properties.TypeProperties.ResourceId
+			state.DataFactoryId = factories.NewFactoryID(credentialId.SubscriptionId, credentialId.ResourceGroupName, credentialId.FactoryName).ID()
+			state.Annotations = flattenDataFactoryAnnotations(existing.Model.Properties.Annotations)
+
+			return nil
+		},
 	}
+}
 
-	_, err = client.CredentialOperationsDelete(ctx, *credentialId)
-	if err != nil {
-		return err
+func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataFactory.Credentials
+
+			var data DataFactoryCredentialUserAssignedManagedIdentityResourceSchema
+			if err := metadata.Decode(&data); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			dataFactoryId, err := credentials.ParseFactoryID(data.DataFactoryId)
+			if err != nil {
+				return err
+			}
+
+			id := credentials.CredentialId{
+				SubscriptionId:    dataFactoryId.SubscriptionId,
+				ResourceGroupName: dataFactoryId.ResourceGroupName,
+				FactoryName:       dataFactoryId.FactoryName,
+				CredentialName:    data.Name,
+			}
+
+			existing, err := client.CredentialOperationsGet(ctx, id, credentials.CredentialOperationsGetOperationOptions{})
+			if err != nil {
+				if existing.HttpResponse.Status == "404" {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+			if existing.HttpResponse.Status == "404" {
+				return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
+			}
+
+			credential := credentials.ManagedIdentityCredentialResource{
+				Type: utils.String(IDENTITY_TYPE),
+				Properties: credentials.ManagedIdentityCredential{
+					TypeProperties: &credentials.ManagedIdentityTypeProperties{},
+				},
+			}
+
+			if len(data.Annotations) > 0 {
+				annotations := make([]interface{}, len(data.Annotations))
+				for i, v := range data.Annotations {
+					annotations[i] = v
+				}
+				credential.Properties.Annotations = &annotations
+			}
+
+			if data.Description != "" {
+				credential.Properties.Description = &data.Description
+			}
+
+			if data.IdentityId != "" {
+				credential.Properties.TypeProperties.ResourceId = &data.IdentityId
+			}
+
+			_, err = client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{})
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
+		},
 	}
+}
 
-	return nil
+func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataFactory.Credentials
+			id, err := credentials.ParseCredentialID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var data DataFactoryCredentialUserAssignedManagedIdentityResourceSchema
+			if err := metadata.Decode(&data); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.CredentialOperationsGet(ctx, *id, credentials.CredentialOperationsGetOperationOptions{})
+			if err != nil {
+				if existing.HttpResponse.Status == "404" {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
+			}
+
+			credential := credentials.ManagedIdentityCredentialResource{
+				Type: existing.Model.Type,
+				Name: existing.Model.Name,
+				Id:   existing.Model.Id,
+				Properties: credentials.ManagedIdentityCredential{
+					Annotations: existing.Model.Properties.Annotations,
+					Description: existing.Model.Properties.Description,
+					TypeProperties: &credentials.ManagedIdentityTypeProperties{
+						ResourceId: existing.Model.Properties.TypeProperties.ResourceId,
+					},
+				},
+			}
+
+			if metadata.ResourceData.HasChange("name") {
+				credential.Name = &data.Name
+			}
+
+			if metadata.ResourceData.HasChange("identity_id") {
+				credential.Properties.TypeProperties.ResourceId = &data.IdentityId
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				credential.Properties.Description = &data.Description
+			}
+
+			if metadata.ResourceData.HasChange("annotations") {
+				if len(data.Annotations) > 0 {
+					annotations := make([]interface{}, len(data.Annotations))
+					for i, v := range data.Annotations {
+						annotations[i] = v
+					}
+					credential.Properties.Annotations = &annotations
+				} else {
+					credential.Properties.Annotations = nil
+				}
+			}
+
+			_, err = client.CredentialOperationsCreateOrUpdate(ctx, *id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{})
+			if err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
+		},
+	}
+}
+
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			d := metadata.ResourceData
+			client := metadata.Client.DataFactory.Credentials
+
+			credentialId, err := credentials.ParseCredentialID(d.Id())
+			if err != nil {
+				return err
+			}
+
+			_, err = client.CredentialOperationsDelete(ctx, *credentialId)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
 }
