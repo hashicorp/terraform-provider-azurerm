@@ -120,13 +120,9 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"workload_profiles_consumption_only_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-			ExactlyOneOf: []string{
-				"workload_profiles_consumption_only_enabled",
-				"workload_profile",
-			},
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 			Description: "Should the Container Environment only allow Consumption Workload Profiles? Defaults to `false`.",
 		},
 

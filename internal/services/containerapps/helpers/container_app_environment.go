@@ -25,10 +25,6 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		ExactlyOneOf: []string{
-			"workload_profiles_consumption_only_enabled",
-			"workload_profile",
-		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
