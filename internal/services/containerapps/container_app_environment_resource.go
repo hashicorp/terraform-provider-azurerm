@@ -331,6 +331,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			logAnalyticsClient := metadata.Client.LogAnalytics.SharedKeyWorkspacesClient
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -358,6 +359,40 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			// (@jackofallops) This is not updatable and needs to be removed since the read does not return the sensitive Key field.
 			// Whilst not ideal, this means we don't need to try and retrieve it again just to send a no-op.
 			existing.Model.Properties.AppLogsConfiguration = nil
+			if metadata.ResourceData.Get("log_analytics_workspace_id") != "" {
+				logAnalyticsId, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Get("log_analytics_workspace_id").(string))
+				if err != nil {
+					return err
+				}
+
+				workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
+				}
+
+				if workspace.Model == nil || workspace.Model.Properties == nil {
+					return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
+				}
+
+				if workspace.Model.Properties.CustomerId == nil {
+					return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
+				}
+
+				keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
+				}
+				if keys.Model.PrimarySharedKey == nil {
+					return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
+				}
+				existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					Destination: pointer.To("log-analytics"),
+					LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
+						CustomerId: workspace.Model.Properties.CustomerId,
+						SharedKey:  keys.Model.PrimarySharedKey,
+					},
+				}
+			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
