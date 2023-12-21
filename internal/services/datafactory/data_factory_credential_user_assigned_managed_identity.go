@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -46,7 +45,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: factories.ValidateFactoryID,
+				ValidateFunc: credentials.ValidateFactoryID,
 			},
 			"description": {
 				Description: "Text description of the credential",
@@ -77,7 +76,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pl
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := credentials.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
