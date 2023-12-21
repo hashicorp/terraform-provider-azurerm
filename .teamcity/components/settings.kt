@@ -103,6 +103,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Lab Service is only available in certain locations
         "labservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
+        // load balancer global tire Public IP is only available in
+        "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
+
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
 
