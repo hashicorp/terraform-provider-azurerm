@@ -373,6 +373,7 @@ resource "azurerm_public_ip" "backend-ip-cr" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  sku_tier            = "Global"
 }
 
 resource "azurerm_lb" "backend-lb-R1" {
