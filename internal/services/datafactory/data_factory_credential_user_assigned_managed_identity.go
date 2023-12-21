@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -154,6 +155,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 	d.Set("identity_id", existing.Model.Properties.TypeProperties.ResourceId)
+	d.Set("data_factory_id", factories.NewFactoryID(credentialId.SubscriptionId, credentialId.ResourceGroupName, credentialId.FactoryName).ID())
 
 	return nil
 }
