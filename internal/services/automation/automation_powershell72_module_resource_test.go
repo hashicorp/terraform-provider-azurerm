@@ -111,9 +111,8 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_powershell72_module" "test" {
-  name                    = "xActiveDirectory"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  name                  = "xActiveDirectory"
+  automation_account_id = azurerm_automation_account.test.id
 
   module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
@@ -141,9 +140,8 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_powershell72_module" "test" {
-  name                    = "xActiveDirectory"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  name                  = "xActiveDirectory"
+  automation_account_id = azurerm_automation_account.test.id
 
   module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
@@ -151,9 +149,8 @@ resource "azurerm_automation_powershell72_module" "test" {
 }
 
 resource "azurerm_automation_powershell72_module" "second" {
-  name                    = "AzureRmMinus"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  name                  = "AzureRmMinus"
+  automation_account_id = azurerm_automation_account.test.id
 
   module_link {
     uri = "https://www.powershellgallery.com/api/v2/package/AzureRmMinus/0.3.0.0"
@@ -170,9 +167,8 @@ func (PowerShell72ModuleResource) requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_automation_powershell72_module" "import" {
-  name                    = azurerm_automation_powershell72_module.test.name
-  resource_group_name     = azurerm_automation_powershell72_module.test.resource_group_name
-  automation_account_name = azurerm_automation_powershell72_module.test.automation_account_name
+  name                  = azurerm_automation_powershell72_module.test.name
+  automation_account_id = azurerm_automation_powershell72_module.test.automation_account_id
 
   module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
@@ -200,9 +196,8 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_powershell72_module" "test" {
-  name                    = "xActiveDirectory"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  name                  = "xActiveDirectory"
+  automation_account_id = azurerm_automation_account.test.id
 
   module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
