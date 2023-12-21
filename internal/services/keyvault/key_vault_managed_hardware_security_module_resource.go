@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -385,7 +384,6 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 
-	purgeAgain := true
 	purgeAgainUntil := time.Now().Add(time.Minute)
 	waitConf := pluginsdk.StateChangeConf{
 		Delay:        time.Second * 30,
@@ -403,10 +401,10 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 				return nil, "", fmt.Errorf("retrieving deleted managed HSM %s: %+v", purgeId, err)
 			}
 
-			if purgeAgain && time.Now().After(purgeAgainUntil) {
-				purgeAgain = false
+			if time.Now().After(purgeAgainUntil) {
+				purgeAgainUntil = time.Now().Add(time.Minute)
 				purgeResp, _ := hsmClient.PurgeDeleted(ctx, purgeId)
-				if response.WasNotFound(purgeResp.HttpResponse) || response.WasStatusCode(purgeResp.HttpResponse, http.StatusConflict) {
+				if response.WasNotFound(purgeResp.HttpResponse) {
 					return purgeResp, "Finish", nil
 				}
 			}
