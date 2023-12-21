@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -376,9 +377,45 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		}
 	}
 
-	purgedId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
-	if err := hsmClient.PurgeDeletedThenPoll(ctx, purgedId); err != nil {
+	// the polling operation of purge can not terminate correctly, so we use the custom polling operation of polling delete
+	// try to purge again if managed HSM still exists after 1 minute
+	// for API issue: https://github.com/Azure/azure-rest-api-specs/issues/27138
+	purgeId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
+	if _, err := hsmClient.PurgeDeleted(ctx, purgeId); err != nil {
 		return fmt.Errorf("purging %s: %+v", id, err)
+	}
+
+	purgeAgain := true
+	purgeAgainUntil := time.Now().Add(time.Minute)
+	waitConf := pluginsdk.StateChangeConf{
+		Delay:        time.Second * 30,
+		Pending:      []string{"Pending"},
+		Target:       []string{"Finish"},
+		Timeout:      time.Minute * 5,
+		PollInterval: time.Second * 20,
+		Refresh: func() (interface{}, string, error) {
+			deletedResp, err := hsmClient.GetDeleted(ctx, purgeId)
+			if response.WasNotFound(deletedResp.HttpResponse) {
+				return deletedResp, "Finish", nil
+			}
+
+			if err != nil {
+				return nil, "", fmt.Errorf("retrieving deleted managed HSM %s: %+v", purgeId, err)
+			}
+
+			if purgeAgain && time.Now().After(purgeAgainUntil) {
+				purgeAgain = false
+				purgeResp, _ := hsmClient.PurgeDeleted(ctx, purgeId)
+				if response.WasNotFound(purgeResp.HttpResponse) || response.WasStatusCode(purgeResp.HttpResponse, http.StatusConflict) {
+					return purgeResp, "Finish", nil
+				}
+			}
+
+			return deletedResp, "Pending", nil
+		},
+	}
+	if _, err := waitConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be purged: %+v", id, err)
 	}
 
 	return nil
