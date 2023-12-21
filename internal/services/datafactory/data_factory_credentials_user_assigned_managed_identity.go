@@ -69,6 +69,9 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 	}
 }
 
+// user managed identities only have one type
+const IDENTITY_TYPE = "ManagedIdentity"
+
 func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.Credentials
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -95,17 +98,33 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pl
 	}
 
 	credential := credentials.ManagedIdentityCredentialResource{
-		Type: utils.String("ManagedIdentity"),
-		Properties: credentials.ManagedIdentityCredential{
-			Description: utils.String(d.Get("description").(string)),
-			Annotations: d.Get("annotations").(*[]interface{}),
-			TypeProperties: &credentials.ManagedIdentityTypeProperties{
-				ResourceId: utils.String(d.Get("identity_id").(string)),
-			},
-		},
+		Type:       utils.String(IDENTITY_TYPE),
+		Properties: credentials.ManagedIdentityCredential{},
+	}
+
+	if v, ok := d.GetOk("annotations"); ok {
+		annotations := v.([]interface{})
+		credential.Properties.Annotations = &annotations
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		description := v.(string)
+		credential.Properties.Description = &description
+	}
+
+	if v, ok := d.GetOk("identity_id"); ok {
+		identityId := v.(string)
+		credential.Properties.TypeProperties.ResourceId = &identityId
 	}
 
 	if _, err := client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
+
+	return resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d, meta)
+}
+
+func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
