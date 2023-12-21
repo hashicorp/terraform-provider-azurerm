@@ -69,7 +69,7 @@ func testAccSystemCenterVirtualMachineManagerServer_complete(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "Test"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,14 +84,14 @@ func testAccSystemCenterVirtualMachineManagerServer_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "Test"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("credential.0.password"),
 		{
-			Config: r.complete(data, "Test2"),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -118,6 +118,10 @@ func (r SystemCenterVirtualMachineManagerServerResource) basic(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   name                = "acctest-scvmmms-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -137,24 +141,29 @@ func (r SystemCenterVirtualMachineManagerServerResource) requiresImport(data acc
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_server" "import" {
   name                = azurerm_system_center_virtual_machine_manager_server.test.name
   resource_group_name = azurerm_system_center_virtual_machine_manager_server.test.resource_group_name
   location            = azurerm_system_center_virtual_machine_manager_server.test.location
   custom_location_id  = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   fqdn                = azurerm_system_center_virtual_machine_manager_server.test.fqdn
-
-  credential {
-    username = "%s"
-    password = "%s"
-  }
+  username            = "%s"
+  password            = "%s"
 }
 `, r.basic(data), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
 
-func (r SystemCenterVirtualMachineManagerServerResource) complete(data acceptance.TestData, tag string) string {
+func (r SystemCenterVirtualMachineManagerServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   name                = "acctest-scvmmms-%d"
@@ -163,25 +172,43 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   custom_location_id  = "%s"
   fqdn                = "%s"
   port                = tonumber("%s")
-
-  credential {
-    username = "%s"
-    password = "%s"
-  }
+  username            = "%s"
+  password            = "%s"
 
   tags = {
-    Env = "%s"
+    Env = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"), tag)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
 
-func (r SystemCenterVirtualMachineManagerServerResource) template(data acceptance.TestData) string {
+func (r SystemCenterVirtualMachineManagerServerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%s
+
 provider "azurerm" {
   features {}
 }
 
+resource "azurerm_system_center_virtual_machine_manager_server" "test" {
+  name                = "acctest-scvmmms-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = "%s"
+  fqdn                = "%s"
+  port                = tonumber("%s")
+  username            = "%s"
+  password            = "%s"
+
+  tags = {
+    Env = "Test2"
+  }
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_PORT"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+}
+
+func (r SystemCenterVirtualMachineManagerServerResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-scvmmms-%d"
   location = "%s"

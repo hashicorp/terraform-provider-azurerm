@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
@@ -23,14 +24,10 @@ type SystemCenterVirtualMachineManagerServerModel struct {
 	Location          string            `tfschema:"location"`
 	CustomLocationId  string            `tfschema:"custom_location_id"`
 	Fqdn              string            `tfschema:"fqdn"`
-	Credential        []Credential      `tfschema:"credential"`
+	Username          string            `tfschema:"username"`
+	Password          string            `tfschema:"password"`
 	Port              int               `tfschema:"port"`
 	Tags              map[string]string `tfschema:"tags"`
-}
-
-type Credential struct {
-	Username string `tfschema:"username"`
-	Password string `tfschema:"password"`
 }
 
 var _ sdk.Resource = SystemCenterVirtualMachineManagerServerResource{}
@@ -63,41 +60,32 @@ func (r SystemCenterVirtualMachineManagerServerResource) Arguments() map[string]
 
 		"location": commonschema.Location(),
 
-		"credential": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"username": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"password": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
 		"custom_location_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CustomLocationID,
+			ValidateFunc: customlocations.ValidateCustomLocationID,
 		},
 
 		"fqdn": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"username": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"password": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -143,12 +131,15 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 			parameters := &vmmservers.VMMServer{
 				Location: location.Normalize(model.Location),
 				ExtendedLocation: vmmservers.ExtendedLocation{
-					Type: utils.String("customLocation"),
-					Name: utils.String(model.CustomLocationId),
+					Type: pointer.To("customLocation"),
+					Name: pointer.To(model.CustomLocationId),
 				},
 				Properties: vmmservers.VMMServerProperties{
-					Credentials: expandSystemCenterVirtualMachineManagerServerCredential(model.Credential),
-					Fqdn:        model.Fqdn,
+					Credentials: &vmmservers.VMMCredential{
+						Username: pointer.To(model.Username),
+						Password: pointer.To(model.Password),
+					},
+					Fqdn: model.Fqdn,
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -193,8 +184,12 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 				state.Location = location.Normalize(model.Location)
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Fqdn = model.Properties.Fqdn
-				state.Credential = flattenSystemCenterVirtualMachineManagerServerCredential(model.Properties.Credentials, metadata.ResourceData.Get("credential.0.password").(string))
+				state.Password = metadata.ResourceData.Get("credential.0.password").(string)
 				state.Tags = pointer.From(model.Tags)
+
+				if v := model.Properties.Credentials; v != nil {
+					state.Username = pointer.From(v.Username)
+				}
 
 				if v := model.Properties.Port; v != nil {
 					state.Port = int(*v)
@@ -253,33 +248,4 @@ func (r SystemCenterVirtualMachineManagerServerResource) Delete() sdk.ResourceFu
 			return nil
 		},
 	}
-}
-
-func expandSystemCenterVirtualMachineManagerServerCredential(input []Credential) *vmmservers.VMMCredential {
-	if len(input) == 0 {
-		return nil
-	}
-
-	credential := &input[0]
-
-	result := &vmmservers.VMMCredential{
-		Username: pointer.To(credential.Username),
-		Password: pointer.To(credential.Password),
-	}
-
-	return result
-}
-
-func flattenSystemCenterVirtualMachineManagerServerCredential(input *vmmservers.VMMCredential, password string) []Credential {
-	result := make([]Credential, 0)
-	if input == nil {
-		return result
-	}
-
-	credential := Credential{
-		Username: pointer.From(input.Username),
-		Password: password,
-	}
-
-	return append(result, credential)
 }
