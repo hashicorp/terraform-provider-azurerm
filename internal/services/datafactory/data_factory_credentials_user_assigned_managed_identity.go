@@ -17,8 +17,8 @@ import (
 func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate,
-		// Read:   resourceDataFactoryCustomDatasetRead,
-		// Update: resourceDataFactoryCustomDatasetCreateUpdate,
+		Read:   resourceDataFactoryCredentialsUserAssignedManagedIdentityRead,
+		Update: resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate,
 		// Delete: resourceDataFactoryCustomDatasetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -82,7 +82,12 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pl
 		return err
 	}
 
-	id := parse.NewCredentialId(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := credentials.CredentialId{
+		SubscriptionId:    dataFactoryId.SubscriptionId,
+		ResourceGroupName: dataFactoryId.ResourceGroupName,
+		FactoryName:       dataFactoryId.FactoryName,
+		CredentialName:    d.Get("name").(string),
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.CredentialOperationsGet(ctx, id, credentials.CredentialOperationsGetOperationOptions{})
@@ -127,4 +132,28 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pl
 }
 
 func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DataFactory.Credentials
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	credentialId, err := parse.CredentialID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.CredentialOperationsGet(ctx, *credentialId, credentials.CredentialOperationsGetOperationOptions{})
+	if err != nil {
+		if existing.HttpResponse.Status == "404" {
+			return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
+		}
+	}
+
+	d.Set("name", credentialId.CredentialName)
+	d.Set("data_factory_id", credentialId.FactoryName)
+	d.Set("description", existing.Model.Properties.Description)
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(existing.Model.Properties.Annotations)); err != nil {
+		return fmt.Errorf("setting `annotations`: %+v", err)
+	}
+
+	return nil
 }
