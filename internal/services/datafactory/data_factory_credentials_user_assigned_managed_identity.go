@@ -19,7 +19,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 		Create: resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate,
 		Read:   resourceDataFactoryCredentialsUserAssignedManagedIdentityRead,
 		Update: resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate,
-		// Delete: resourceDataFactoryCustomDatasetDelete,
+		Delete: resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DataSetID(id)
@@ -133,7 +133,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pl
 
 func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.Credentials
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	credentialId, err := parse.CredentialID(d.Id())
@@ -156,4 +156,22 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.
 	}
 
 	return nil
+}
+
+func resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DataFactory.Credentials
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	credentialId, err := parse.CredentialID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.CredentialOperationsDelete(ctx, *credentialId)
+	if err != nil {
+		if resp.HttpResponse.Status == "404" {
+			return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
+		}
+	}
 }
