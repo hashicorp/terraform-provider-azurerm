@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerServerModel struct {
@@ -145,7 +144,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 			}
 
 			if v := model.Port; v != 0 {
-				parameters.Properties.Port = utils.Int64(int64(v))
+				parameters.Properties.Port = pointer.To(int64(v))
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
@@ -184,16 +183,14 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 				state.Location = location.Normalize(model.Location)
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Fqdn = model.Properties.Fqdn
-				state.Password = metadata.ResourceData.Get("credential.0.password").(string)
+				state.Password = metadata.ResourceData.Get("password").(string)
+				state.Port = int(pointer.From(model.Properties.Port))
 				state.Tags = pointer.From(model.Tags)
 
 				if v := model.Properties.Credentials; v != nil {
 					state.Username = pointer.From(v.Username)
 				}
 
-				if v := model.Properties.Port; v != nil {
-					state.Port = int(*v)
-				}
 			}
 
 			return metadata.Encode(&state)

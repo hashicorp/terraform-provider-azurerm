@@ -44,7 +44,7 @@ func testAccSystemCenterVirtualMachineManagerServer_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("credential.0.password"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -74,7 +74,7 @@ func testAccSystemCenterVirtualMachineManagerServer_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("credential.0.password"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -89,14 +89,14 @@ func testAccSystemCenterVirtualMachineManagerServer_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("credential.0.password"),
+		data.ImportStep("password"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("credential.0.password"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -128,11 +128,8 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = "%s"
   fqdn                = "%s"
-
-  credential {
-    username = "%s"
-    password = "%s"
-  }
+  username            = "%s"
+  password            = "%s"
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
@@ -140,10 +137,6 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
 func (r SystemCenterVirtualMachineManagerServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_system_center_virtual_machine_manager_server" "import" {
   name                = azurerm_system_center_virtual_machine_manager_server.test.name
