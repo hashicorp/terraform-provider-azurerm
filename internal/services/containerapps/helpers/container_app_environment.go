@@ -37,6 +37,7 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						consumption,
 						"D4",
 						"D8",
 						"D16",
@@ -98,9 +99,6 @@ func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []Wor
 	result := make([]WorkloadProfileModel, 0)
 
 	for _, v := range *input {
-		if strings.EqualFold(v.WorkloadProfileType, consumption) {
-			continue
-		}
 		result = append(result, WorkloadProfileModel{
 			Name:                v.Name,
 			MaximumCount:        int(pointer.From(v.MaximumCount)),
