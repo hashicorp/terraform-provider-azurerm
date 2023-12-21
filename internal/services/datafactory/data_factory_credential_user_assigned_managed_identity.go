@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -21,7 +20,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 		Delete: resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CredentialID(id)
+			_, err := credentials.ParseCredentialID(id)
 			return err
 		}),
 
@@ -33,7 +32,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"annotations": {
+			"annotations": { // annotations not visible in portal
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -41,7 +40,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 				},
 			},
 			"data_factory_id": {
-				Description:  "ID of the Data Factory",
+				Description:  "Resource ID of the Data Factory",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -56,13 +55,12 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 				Description: "Resource ID of a User-Assigned Managed Identity",
 				Type:        pluginsdk.TypeString,
 				Required:    true,
-				ForceNew:    true,
 			},
 			"name": {
 				Description: "Credential Name",
 				Type:        pluginsdk.TypeString,
 				Required:    true,
-				ForceNew:    true, // TODO: figure out whats required
+				ForceNew:    true,
 			},
 		},
 	}
@@ -102,8 +100,10 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pl
 	}
 
 	credential := credentials.ManagedIdentityCredentialResource{
-		Type:       utils.String(IDENTITY_TYPE),
-		Properties: credentials.ManagedIdentityCredential{},
+		Type: utils.String(IDENTITY_TYPE),
+		Properties: credentials.ManagedIdentityCredential{
+			TypeProperties: &credentials.ManagedIdentityTypeProperties{},
+		},
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -121,11 +121,12 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityCreateUpdate(d *pl
 		credential.Properties.TypeProperties.ResourceId = &identityId
 	}
 
-	if _, err := client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{}); err != nil {
+	resp, err := client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{})
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(*resp.Model.Id)
 
 	return resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d, meta)
 }
@@ -135,7 +136,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	credentialId, err := parse.CredentialID(d.Id())
+	credentialId, err := credentials.ParseCredentialID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -148,11 +149,11 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityRead(d *pluginsdk.
 	}
 
 	d.Set("name", credentialId.CredentialName)
-	d.Set("data_factory_id", credentialId.FactoryName)
 	d.Set("description", existing.Model.Properties.Description)
 	if err := d.Set("annotations", flattenDataFactoryAnnotations(existing.Model.Properties.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
+	d.Set("identity_id", existing.Model.Properties.TypeProperties.ResourceId)
 
 	return nil
 }
@@ -162,7 +163,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete(d *pluginsd
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	credentialId, err := parse.CredentialID(d.Id())
+	credentialId, err := credentials.ParseCredentialID(d.Id())
 	if err != nil {
 		return err
 	}

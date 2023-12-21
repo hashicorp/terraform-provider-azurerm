@@ -36,6 +36,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(factoriesClient.Client, o.Authorizers.ResourceManager)
 
+	credentialsClient, err := credentials.NewCredentialsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Factories client: %+v", err)
+	}
+	o.Configure(credentialsClient.Client, o.Authorizers.ResourceManager)
+
 	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ManagedPrivateEndpoints client: %+v", err)
@@ -69,6 +75,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		Factories:               factoriesClient,
+		Credentials:             credentialsClient,
 		ManagedPrivateEndpoints: managedPrivateEndpointsClient,
 		ManagedVirtualNetworks:  managedVirtualNetworksClient,
 
