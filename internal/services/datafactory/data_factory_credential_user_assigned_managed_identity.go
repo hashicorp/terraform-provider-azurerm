@@ -22,7 +22,7 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentity() *pluginsdk.Reso
 		Delete: resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DataSetID(id)
+			_, err := parse.CredentialID(id)
 			return err
 		}),
 
@@ -168,10 +168,10 @@ func resourceDataFactoryCredentialsUserAssignedManagedIdentityDelete(d *pluginsd
 		return err
 	}
 
-	resp, err := client.CredentialOperationsDelete(ctx, *credentialId)
+	_, err = client.CredentialOperationsDelete(ctx, *credentialId)
 	if err != nil {
-		if resp.HttpResponse.Status == "404" {
-			return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
-		}
+		return err
 	}
+
+	return nil
 }
