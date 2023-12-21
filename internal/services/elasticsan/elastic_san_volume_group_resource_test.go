@@ -183,8 +183,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name           = "acctestesvg-${var.random_string}"
-  elastic_san_id = azurerm_elastic_san.test.id
+  name   = "acctestesvg-${var.random_string}"
+  san_id = azurerm_elastic_san.test.id
 }
 `, r.template(data))
 }
@@ -194,8 +194,8 @@ func (r ElasticSANVolumeGroupTestResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_elastic_san_volume_group" "import" {
-  name           = azurerm_elastic_san_volume_group.test.name
-  elastic_san_id = azurerm_elastic_san.test.id
+  name   = azurerm_elastic_san_volume_group.test.name
+  san_id = azurerm_elastic_san.test.id
 }
 `, r.basic(data))
 }
@@ -215,8 +215,8 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name           = "acctestesvg-${var.random_string}"
-  elastic_san_id = azurerm_elastic_san.test.id
+  name   = "acctestesvg-${var.random_string}"
+  san_id = azurerm_elastic_san.test.id
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -234,8 +234,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name           = "acctestesvg-${var.random_string}"
-  elastic_san_id = azurerm_elastic_san.test.id
+  name   = "acctestesvg-${var.random_string}"
+  san_id = azurerm_elastic_san.test.id
   identity {
     type = "SystemAssigned"
   }
@@ -301,8 +301,8 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name           = "acctestesvg-${var.random_string}"
-  elastic_san_id = azurerm_elastic_san.test.id
+  name   = "acctestesvg-${var.random_string}"
+  san_id = azurerm_elastic_san.test.id
   identity {
     type = "SystemAssigned"
   }
@@ -369,7 +369,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  elastic_san_id  = azurerm_elastic_san.test.id
+  san_id          = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
 
   encryption {
@@ -464,7 +464,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  elastic_san_id  = azurerm_elastic_san.test.id
+  san_id          = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithPlatformKey"
 
   encryption {
@@ -566,7 +566,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  elastic_san_id  = azurerm_elastic_san.test.id
+  san_id          = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
 
   encryption {
@@ -677,7 +677,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  elastic_san_id  = azurerm_elastic_san.test.id
+  san_id          = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
   protocol_type   = "Iscsi"
 
