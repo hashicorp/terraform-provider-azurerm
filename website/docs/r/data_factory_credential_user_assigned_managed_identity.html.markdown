@@ -47,17 +47,19 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the credential. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Credential. Changing this forces a new resource to be created.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Credential with. Changing this forces a new resource.
 
 * `identity_id` - (Required) The Resouce ID of an existing User Assigned Managed Identity. This can be changed without recreating the resource.
 
-~> **Note:** Attempting to create a credentials resource without first assigning the identity to the parent Data Factory will result in an Azure API error.
+~> **Note:** Attempting to create a Credential resource without first assigning the identity to the parent Data Factory will result in an Azure API error.
 
-* `annotations` - (Optional) List of tags that can be used for describing the Data Factory Dataset.
+* `annotations` - (Optional) List of tags that can be used for describing the Data Factory Credential.
 
-* `description` - (Optional) The description for the Data Factory Dataset.
+~> **Note:** Manually altering a Credential resource will cause annotations to be lost, resulting in a change being detected on the next run.
+
+* `description` - (Optional) The description for the Data Factory Credential.
 
 ---
 
@@ -65,16 +67,16 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Data Factory Dataset.
+* `id` - The ID of the Data Factory Credential.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Dataset.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Dataset.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Dataset.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Credential.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Credential.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Credential.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Credential.
 
 ## Import
 
