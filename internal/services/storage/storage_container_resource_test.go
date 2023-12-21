@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
 )
 
 type StorageContainerResource struct{}
@@ -187,47 +187,59 @@ func TestAccStorageContainer_web(t *testing.T) {
 }
 
 func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageContainerDataPlaneID(state.ID)
+	domainSuffix, ok := client.Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
+	id, err := containers.ParseContainerID(state.ID, *domainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountName, id.Name, err)
+		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
+		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
 	}
 
 	containersClient, err := client.Storage.ContainersClient(ctx, *account)
 	if err != nil {
 		return nil, fmt.Errorf("building Containers Client: %+v", err)
 	}
-	prop, err := containersClient.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+	prop, err := containersClient.Get(ctx, account.ResourceGroup, id.ContainerName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
 	return utils.Bool(prop != nil), nil
 }
 
 func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageContainerDataPlaneID(state.ID)
+	domainSuffix, ok := client.Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
+	id, err := containers.ParseContainerID(state.ID, *domainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountName, id.Name, err)
+		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
+		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
 	}
 	containersClient, err := client.Storage.ContainersClient(ctx, *account)
 	if err != nil {
 		return nil, fmt.Errorf("building Containers Client: %+v", err)
 	}
-	if err := containersClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
-		return nil, fmt.Errorf("deleting Container %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+	if err := containersClient.Delete(ctx, account.ResourceGroup, id.ContainerName); err != nil {
+		return nil, fmt.Errorf("deleting Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
 	return utils.Bool(true), nil
 }

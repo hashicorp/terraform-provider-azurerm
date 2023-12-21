@@ -6,8 +6,6 @@ package validate
 import (
 	"fmt"
 	"regexp"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 )
 
 func StorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
@@ -27,18 +25,4 @@ func StorageContainerName(v interface{}, k string) (warnings []string, errors []
 			"%q cannot begin with a hyphen: %q", k, value))
 	}
 	return warnings, errors
-}
-
-func StorageContainerDataPlaneID(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	if _, err := parse.StorageContainerDataPlaneID(v); err != nil {
-		errors = append(errors, err)
-	}
-
-	return
 }

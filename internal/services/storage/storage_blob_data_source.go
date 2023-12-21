@@ -9,10 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
 )
 
@@ -76,6 +77,11 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
 	accountName := d.Get("storage_account_name").(string)
 	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
@@ -88,18 +94,23 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
+	accountId, err := accounts.ParseAccountID(account.ID, *domainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing account ID %s: %+v", account.ID, err)
+	}
+
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
-	id := blobsClient.GetResourceID(accountName, containerName, name)
+	id := blobs.NewBlobID(*accountId, containerName, name)
 
 	log.Printf("[INFO] Retrieving Storage Blob %q (Container %q / Account %q).", name, containerName, accountName)
 	input := blobs.GetPropertiesInput{}
-	props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
+		if response.WasNotFound(props.HttpResponse.Response) {
 			return fmt.Errorf("the Blob %q was not found in Container %q / Account %q", name, containerName, accountName)
 		}
 
@@ -125,7 +136,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 
-	d.SetId(id)
+	d.SetId(id.ID())
 
 	d.Set("url", id)
 

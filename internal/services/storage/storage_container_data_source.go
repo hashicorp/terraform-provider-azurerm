@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
 )
 
 func dataSourceStorageContainer() *pluginsdk.Resource {
@@ -64,6 +65,11 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("retrieving domain suffix for Storage Accounts")
+	}
+
 	containerName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
 
@@ -75,15 +81,20 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Account %q for Storage Container %q", accountName, containerName)
 	}
 
+	accountId, err := accounts.ParseAccountID(account.ID, *domainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing account ID %s: %+v", account.ID, err)
+	}
+
 	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("building Containers Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
 	}
 
-	id := parse.NewStorageContainerDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, containerName).ID()
+	id := containers.NewContainerID(*accountId, containerName).ID()
 	d.SetId(id)
 
-	props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
+	props, err := client.Get(ctx, account.ResourceGroup, containerName)
 	if err != nil {
 		return fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
 	}

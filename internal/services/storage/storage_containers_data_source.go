@@ -12,9 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
 )
 
 type storageContainersDataSource struct{}
@@ -88,6 +89,11 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Storage.ResourceManager.BlobContainers
 
+			domainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("retrieving domain suffix for Storage Accounts")
+			}
+
 			var plan storageContainersDataSourceModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %+v", err)
@@ -98,12 +104,17 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			accountId, err := accounts.ParseAccountID(plan.StorageAccountId, *domainSuffix)
+			if err != nil {
+				return fmt.Errorf("parsing account ID %s: %+v", accountId.ID, err)
+			}
+
 			resp, err := client.ListCompleteMatchingPredicate(ctx, *id, blobcontainers.DefaultListOperationOptions(), blobcontainers.ListContainerItemOperationPredicate{})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			plan.Containers = flattenStorageContainersContainers(resp.Items, id.StorageAccountName, metadata.Client.Storage.Environment.StorageEndpointSuffix, plan.NamePrefix)
+			plan.Containers = flattenStorageContainersContainers(resp.Items, *accountId, plan.NamePrefix)
 
 			if err := metadata.Encode(&plan); err != nil {
 				return fmt.Errorf("encoding %s: %+v", id, err)
@@ -116,7 +127,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountName, endpointSuffix, prefix string) []containerModel {
+func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
 	var output []containerModel
 	for _, item := range l {
 		var name string
@@ -136,7 +147,7 @@ func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, ac
 		output = append(output, containerModel{
 			Name:              name,
 			ResourceManagerId: mgmtId,
-			DataPlaneId:       parse.NewStorageContainerDataPlaneId(accountName, endpointSuffix, name).ID(),
+			DataPlaneId:       containers.NewContainerID(accountId, name).ID(),
 		})
 	}
 

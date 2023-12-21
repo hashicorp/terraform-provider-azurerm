@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
@@ -60,10 +61,26 @@ func (s ShareV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		shareName := parsedId[0]
 		accountName := parsedId[2]
 
-		environment := meta.(*clients.Client).Account.AzureEnvironment
-		client := shares.NewWithEnvironment(environment)
+		storageClient := meta.(*clients.Client).Storage
+		account, err := storageClient.FindAccount(ctx, accountName)
+		if err != nil {
+			return rawState, fmt.Errorf("retrieving Account %q for Share: %s", accountName, err)
+		}
+		if account == nil {
+			return rawState, fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		}
 
-		newResourceId := client.GetResourceID(accountName, shareName)
+		domainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+		if !ok {
+			return rawState, fmt.Errorf("retrieving domain suffix for Storage Accounts")
+		}
+
+		accountId, err := accounts.ParseAccountID(account.ID, *domainSuffix)
+		if err != nil {
+			return rawState, fmt.Errorf("parsing account ID %s: %+v", account.ID, err)
+		}
+
+		newResourceId := shares.NewShareID(*accountId, shareName)
 		log.Printf("[DEBUG] Updating Resource ID from %q to %q", id, newResourceId)
 
 		rawState["id"] = newResourceId
