@@ -61,8 +61,8 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 
 			"protocol": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
 				Optional: true,
+				Default:  string(loadbalancers.ProbeProtocolTcp),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(loadbalancers.ProbeProtocolHTTP),
 					string(loadbalancers.ProbeProtocolHTTPS),
