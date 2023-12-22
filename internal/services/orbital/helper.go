@@ -6,6 +6,7 @@ package orbital
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -287,8 +288,8 @@ func flattenContactProfileChannel(input []contactprofile.ContactProfileLinkChann
 			BandwidthMhz:              v.BandwidthMHz,
 			CenterFrequencyMhz:        v.CenterFrequencyMHz,
 			Name:                      v.Name,
-			ModulationConfiguration:   *v.ModulationConfiguration,
-			DemodulationConfiguration: *v.DemodulationConfiguration,
+			ModulationConfiguration:   pointer.From(v.ModulationConfiguration),
+			DemodulationConfiguration: pointer.From(v.DemodulationConfiguration),
 		}
 		endPoint := v.EndPoint
 		endPointModel := EndPointModel{
@@ -337,9 +338,9 @@ func expandContactProfileChannel(input []ContactProfileChannelModel) ([]contactp
 		channel := contactprofile.ContactProfileLinkChannel{
 			BandwidthMHz:              v.BandwidthMhz,
 			CenterFrequencyMHz:        v.CenterFrequencyMhz,
-			DemodulationConfiguration: &v.DemodulationConfiguration,
+			DemodulationConfiguration: pointer.To(v.DemodulationConfiguration),
 			EndPoint:                  contactprofile.EndPoint{},
-			ModulationConfiguration:   &v.ModulationConfiguration,
+			ModulationConfiguration:   pointer.To(v.ModulationConfiguration),
 			Name:                      v.Name,
 		}
 		endPoint, err := expandEndPoint(v.EndPoint)
