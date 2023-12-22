@@ -117,6 +117,24 @@ func resourceSubscription() *pluginsdk.Resource {
 				Computed:    true,
 			},
 
+			"subscription_owner_id": {
+				Type:         pluginsdk.TypeString,
+				Description:  "Owner ID of the subscription",
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"subscription_tenant_id"},
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"subscription_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Description:  "Tenant ID of the subscription",
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"subscription_owner_id"},
+				ValidateFunc: validation.IsUUID,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -159,7 +177,8 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	req := subscriptionAlias.PutAliasRequest{
 		Properties: &subscriptionAlias.PutAliasRequestProperties{
-			Workload: &workload,
+			Workload:             &workload,
+			AdditionalProperties: &subscriptionAlias.PutAliasRequestAdditionalProperties{},
 		},
 	}
 
@@ -213,6 +232,8 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
 		req.Properties.DisplayName = utils.String(d.Get("subscription_name").(string))
 		req.Properties.BillingScope = utils.String(d.Get("billing_scope_id").(string))
+		req.Properties.AdditionalProperties.SubscriptionOwnerId = utils.String(d.Get("subscription_owner_id").(string))
+		req.Properties.AdditionalProperties.SubscriptionTenantId = utils.String(d.Get("subscription_tenant_id").(string))
 	}
 
 	if err := aliasClient.AliasCreateThenPoll(ctx, id, req); err != nil {
