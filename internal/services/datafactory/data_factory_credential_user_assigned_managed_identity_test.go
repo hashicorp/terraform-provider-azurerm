@@ -16,7 +16,7 @@ import (
 type CredentialUserAssignedManagedIdentityResource struct{}
 
 func TestAccDataFactoryCredentialUserAssignedManagedIdentity_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_sql_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
 	r := CredentialUserAssignedManagedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -24,6 +24,8 @@ func TestAccDataFactoryCredentialUserAssignedManagedIdentity_basic(t *testing.T)
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("annotations.#").HasValue("1"),
+				check.That(data.ResourceName).Key("description").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -55,16 +57,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
   name                = "acctestdf%d"
   resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 }
 
 resource "azurerm_data_factory_credential_user_managed_identity" "test" {
