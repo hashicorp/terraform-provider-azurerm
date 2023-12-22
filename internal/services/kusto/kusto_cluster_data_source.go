@@ -79,11 +79,11 @@ func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&resp.Model.Location))
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		identityMap, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		if err := d.Set("identity", identity); err != nil {
+		if err := d.Set("identity", identityMap); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
