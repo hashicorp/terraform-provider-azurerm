@@ -384,35 +384,9 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 
-	purgeAgainUntil := time.Now().Add(time.Minute)
-	waitConf := pluginsdk.StateChangeConf{
-		Delay:        time.Second * 30,
-		Pending:      []string{"Pending"},
-		Target:       []string{"Finish"},
-		Timeout:      time.Minute * 5,
-		PollInterval: time.Second * 20,
-		Refresh: func() (interface{}, string, error) {
-			deletedResp, err := hsmClient.GetDeleted(ctx, purgeId)
-			if response.WasNotFound(deletedResp.HttpResponse) {
-				return deletedResp, "Finish", nil
-			}
-
-			if err != nil {
-				return nil, "", fmt.Errorf("retrieving deleted managed HSM %s: %+v", purgeId, err)
-			}
-
-			if time.Now().After(purgeAgainUntil) {
-				purgeAgainUntil = time.Now().Add(time.Minute)
-				purgeResp, _ := hsmClient.PurgeDeleted(ctx, purgeId)
-				if response.WasNotFound(purgeResp.HttpResponse) {
-					return purgeResp, "Finish", nil
-				}
-			}
-
-			return deletedResp, "Pending", nil
-		},
-	}
-	if _, err := waitConf.WaitForStateContext(ctx); err != nil {
+	purgePoller := custompollers.NewHSMPurgePoller(hsmClient, purgeId)
+	poller := pollers.NewPoller(purgePoller, time.Second*30, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be purged: %+v", id, err)
 	}
 
