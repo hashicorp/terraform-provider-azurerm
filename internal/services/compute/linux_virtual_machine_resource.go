@@ -1386,7 +1386,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("additional_capabilities") {
 		shouldUpdate = true
 
-		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+		n, _ := d.GetChange("additional_capabilities")
+		if len(n.([]interface{})) == 0 || d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
 			shouldShutDown = true
 			shouldDeallocate = true
 		}
