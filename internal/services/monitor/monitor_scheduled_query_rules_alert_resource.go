@@ -101,6 +101,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 			"data_source_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"auto_mitigation_enabled": {
