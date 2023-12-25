@@ -1,3 +1,22 @@
+## 3.86.0 (Unreleased)
+
+FEATURES:
+
+* New Resource: `azurerm_log_analytics_workspace_table` [GH-24229]
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20231215.1114251` of `hashicorp/go-azure-sdk` [GH-24251]
+* `azurerm_logic_app_standard` - add support for `site_config.0.public_network_access_enabled` [GH-24257]
+* `azurerm_linux_web_app` - add support for value `20-lts` for `node_version` for  [GH-24289]
+
+BUG FIXES:
+
+* `azurerm_bot_service` - fixing a bug where `public_network_access_enabled` was always set to `true` in Read func [GH-24255]
+* * `azurerm_linux_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
+* `azurerm_logic_app_standard` - update default value of `version` from `~3` which is no longer supported to `~4` [GH-24134]
+* `azurerm_windows_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
+
 ## 3.85.0 (December 14, 2023)
 
 FEATURES:
