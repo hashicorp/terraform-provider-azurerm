@@ -222,9 +222,23 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
+* `allowed_host_ports` - (Optional)  One or more `allowed_host_ports` blocks as defined below.
+
+* `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
+
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
+
+---
+
+An `allowed_host_ports` block supports the following:
+
+* `port_start` - (Optional) Specifies the start of the port range.
+
+* `port_end` - (Optional) Specifies the end of the port range.
+
+* `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
 
 ---
 
