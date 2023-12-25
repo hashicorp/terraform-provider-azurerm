@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -54,7 +55,7 @@ func (o DeploymentsListForClusterOperationOptions) ToQuery() *client.QueryParams
 }
 
 // DeploymentsListForCluster ...
-func (c AppPlatformClient) DeploymentsListForCluster(ctx context.Context, id SpringId, options DeploymentsListForClusterOperationOptions) (result DeploymentsListForClusterOperationResponse, err error) {
+func (c AppPlatformClient) DeploymentsListForCluster(ctx context.Context, id commonids.SpringCloudServiceId, options DeploymentsListForClusterOperationOptions) (result DeploymentsListForClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -93,12 +94,12 @@ func (c AppPlatformClient) DeploymentsListForCluster(ctx context.Context, id Spr
 }
 
 // DeploymentsListForClusterComplete retrieves all the results into a single object
-func (c AppPlatformClient) DeploymentsListForClusterComplete(ctx context.Context, id SpringId, options DeploymentsListForClusterOperationOptions) (DeploymentsListForClusterCompleteResult, error) {
+func (c AppPlatformClient) DeploymentsListForClusterComplete(ctx context.Context, id commonids.SpringCloudServiceId, options DeploymentsListForClusterOperationOptions) (DeploymentsListForClusterCompleteResult, error) {
 	return c.DeploymentsListForClusterCompleteMatchingPredicate(ctx, id, options, DeploymentResourceOperationPredicate{})
 }
 
 // DeploymentsListForClusterCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) DeploymentsListForClusterCompleteMatchingPredicate(ctx context.Context, id SpringId, options DeploymentsListForClusterOperationOptions, predicate DeploymentResourceOperationPredicate) (result DeploymentsListForClusterCompleteResult, err error) {
+func (c AppPlatformClient) DeploymentsListForClusterCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, options DeploymentsListForClusterOperationOptions, predicate DeploymentResourceOperationPredicate) (result DeploymentsListForClusterCompleteResult, err error) {
 	items := make([]DeploymentResource, 0)
 
 	resp, err := c.DeploymentsListForCluster(ctx, id, options)

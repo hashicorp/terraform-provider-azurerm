@@ -42,31 +42,9 @@ func ParseProtectedItemID(input string) (*ProtectedItemId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProtectedItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.BackupFabricName, ok = parsed.Parsed["backupFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupFabricName", *parsed)
-	}
-
-	if id.ProtectionContainerName, ok = parsed.Parsed["protectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectionContainerName", *parsed)
-	}
-
-	if id.ProtectedItemName, ok = parsed.Parsed["protectedItemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectedItemName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -81,34 +59,42 @@ func ParseProtectedItemIDInsensitively(input string) (*ProtectedItemId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProtectedItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.BackupFabricName, ok = parsed.Parsed["backupFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupFabricName", *parsed)
-	}
-
-	if id.ProtectionContainerName, ok = parsed.Parsed["protectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectionContainerName", *parsed)
-	}
-
-	if id.ProtectedItemName, ok = parsed.Parsed["protectedItemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectedItemName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProtectedItemId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	if id.BackupFabricName, ok = input.Parsed["backupFabricName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "backupFabricName", input)
+	}
+
+	if id.ProtectionContainerName, ok = input.Parsed["protectionContainerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "protectionContainerName", input)
+	}
+
+	if id.ProtectedItemName, ok = input.Parsed["protectedItemName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "protectedItemName", input)
+	}
+
+	return nil
 }
 
 // ValidateProtectedItemID checks that 'input' can be parsed as a Protected Item ID

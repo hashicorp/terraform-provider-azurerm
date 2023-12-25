@@ -212,7 +212,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	authType := d.Get("authorization_type").(string)
 	if authType != "" {
-		computeInstance.Properties.ComputeInstanceAuthorizationType = utils.ToPtr(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
+		computeInstance.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{
@@ -306,7 +306,7 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	future, err := client.ComputeDelete(ctx, *id, machinelearningcomputes.ComputeDeleteOperationOptions{
-		UnderlyingResourceAction: utils.ToPtr(machinelearningcomputes.UnderlyingResourceActionDelete),
+		UnderlyingResourceAction: pointer.To(machinelearningcomputes.UnderlyingResourceActionDelete),
 	})
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
@@ -334,12 +334,12 @@ func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinele
 func expandComputeSSHSetting(input []interface{}) *machinelearningcomputes.ComputeInstanceSshSettings {
 	if len(input) == 0 {
 		return &machinelearningcomputes.ComputeInstanceSshSettings{
-			SshPublicAccess: utils.ToPtr(machinelearningcomputes.SshPublicAccessDisabled),
+			SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessDisabled),
 		}
 	}
 	value := input[0].(map[string]interface{})
 	return &machinelearningcomputes.ComputeInstanceSshSettings{
-		SshPublicAccess: utils.ToPtr(machinelearningcomputes.SshPublicAccessEnabled),
+		SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessEnabled),
 		AdminPublicKey:  utils.String(value["public_key"].(string)),
 	}
 }

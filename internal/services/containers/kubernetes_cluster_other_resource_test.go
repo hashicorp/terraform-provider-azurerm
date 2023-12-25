@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
@@ -1040,6 +1041,51 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 				}, "azurerm_kubernetes_cluster.source"),
 			),
 		},
+	})
+}
+
+func TestAccKubernetesCluster_gpuInstance(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gpuInstance(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_supportPlanKubernetesOfficial(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.supportPlanKubernetesOfficial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_supportPlanAKSLongTermSupport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.supportPlanAKSLongTermSupport(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -2327,21 +2373,23 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfigAutoUpgrade(data acceptance.TestData) string {
+	startDate := time.Now().Format("2006-01-02T00:00:00Z")
+	endDate := time.Now().AddDate(0, 0, 4).Format("2006-01-02T00:00:00Z")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -2359,19 +2407,19 @@ resource "azurerm_kubernetes_cluster" "test" {
     week_index  = "First"
     start_time  = "07:00"
     utc_offset  = "+01:00"
-    start_date  = "2023-11-26T00:00:00Z"
+    start_date  = "%[3]s"
 
     not_allowed {
-      end   = "2023-11-30T00:00:00Z"
-      start = "2023-11-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
     not_allowed {
-      end   = "2023-12-30T00:00:00Z"
-      start = "2023-12-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, startDate, endDate)
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfigDefault(data acceptance.TestData) string {
@@ -2429,21 +2477,23 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfigNodeOs(data acceptance.TestData) string {
+	startDate := time.Now().Format("2006-01-02T00:00:00Z")
+	endDate := time.Now().AddDate(0, 0, 4).Format("2006-01-02T00:00:00Z")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -2460,19 +2510,19 @@ resource "azurerm_kubernetes_cluster" "test" {
     day_of_month = 5
     start_time   = "07:00"
     utc_offset   = "+01:00"
-    start_date   = "2023-11-26T00:00:00Z"
+    start_date   = "%[3]s"
 
     not_allowed {
-      end   = "2023-11-30T00:00:00Z"
-      start = "2023-11-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
     not_allowed {
-      end   = "2023-12-30T00:00:00Z"
-      start = "2023-12-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, startDate, endDate)
 }
 
 func (KubernetesClusterResource) ultraSSD(data acceptance.TestData, ultraSSDEnabled bool) string {
@@ -3102,4 +3152,95 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (KubernetesClusterResource) gpuInstance(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name         = "default"
+    node_count   = 1
+    vm_size      = "Standard_NC24ads_A100_v4"
+    gpu_instance = "MIG1g"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) supportPlanKubernetesOfficial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  support_plan = "KubernetesOfficial"
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) supportPlanAKSLongTermSupport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  support_plan = "AKSLongTermSupport"
+  sku_tier     = "Premium"
+}
+`, data.Locations.Primary, data.RandomInteger)
 }

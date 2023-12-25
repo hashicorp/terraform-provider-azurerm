@@ -342,7 +342,7 @@ func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients
 
 	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-	resp, err := clients.Firewall.Client.AzureFirewalls.Get(ctx, firewallId)
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Firewall  Network Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
@@ -375,7 +375,7 @@ func (r FirewallNetworkRuleCollectionResource) checkFirewallNetworkRuleCollectio
 
 		firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-		read, err := clients.Firewall.Client.AzureFirewalls.Get(ctx, firewallId)
+		read, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 		if err != nil {
 			return err
 		}
@@ -402,7 +402,7 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 
 	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-	read, err := clients.Firewall.Client.AzureFirewalls.Get(ctx, firewallId)
+	read, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return utils.Bool(false), err
 	}
@@ -420,7 +420,7 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 
 	read.Model.Properties.NetworkRuleCollections = &rules
 
-	if err = clients.Firewall.Client.AzureFirewalls.CreateOrUpdateThenPoll(ctx, firewallId, *read.Model); err != nil {
+	if err = clients.Network.AzureFirewalls.CreateOrUpdateThenPoll(ctx, firewallId, *read.Model); err != nil {
 		return utils.Bool(false), fmt.Errorf("removing Network Rule Collection from Firewall: %+v", err)
 	}
 
@@ -879,7 +879,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, FirewallResource{}.enableDNS(data, "1.1.1.1", "8.8.8.8"))
+`, FirewallResource{}.enableDNS(data, true, "1.1.1.1", "8.8.8.8"))
 }
 
 func (r FirewallNetworkRuleCollectionResource) noSource(data acceptance.TestData) string {

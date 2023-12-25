@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,7 +20,7 @@ type ServicesListTestKeysOperationResponse struct {
 }
 
 // ServicesListTestKeys ...
-func (c AppPlatformClient) ServicesListTestKeys(ctx context.Context, id SpringId) (result ServicesListTestKeysOperationResponse, err error) {
+func (c AppPlatformClient) ServicesListTestKeys(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesListTestKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

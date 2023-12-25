@@ -185,12 +185,14 @@ resource "azurerm_spring_cloud_customized_accelerator" "test" {
   spring_cloud_accelerator_id = azurerm_spring_cloud_accelerator.test.id
 
   git_repository {
-    url                 = "https://github.com/Azure-Samples/piggymetrics"
-    branch              = "Azure"
+    url                 = "https://github.com/sample-accelerators/fragments.git"
+    branch              = "main"
     interval_in_seconds = 100
+    path                = "java-version"
   }
 
   accelerator_tags = ["tag-a", "tag-b"]
+  accelerator_type = "Fragment"
   description      = "test description"
   display_name     = "test name"
   icon_url         = "https://images.freecreatives.com/wp-content/uploads/2015/05/smiley-559124_640.jpg"

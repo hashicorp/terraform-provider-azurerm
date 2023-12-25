@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,7 +20,7 @@ type ServicesRegenerateTestKeyOperationResponse struct {
 }
 
 // ServicesRegenerateTestKey ...
-func (c AppPlatformClient) ServicesRegenerateTestKey(ctx context.Context, id SpringId, input RegenerateTestKeyRequestPayload) (result ServicesRegenerateTestKeyOperationResponse, err error) {
+func (c AppPlatformClient) ServicesRegenerateTestKey(ctx context.Context, id commonids.SpringCloudServiceId, input RegenerateTestKeyRequestPayload) (result ServicesRegenerateTestKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

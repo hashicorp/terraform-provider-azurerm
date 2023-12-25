@@ -79,7 +79,7 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 			return sbu.copy(ctx)
 		}
 		if sbu.SourceContent != "" {
-			return fmt.Errorf("`source_content` cannot be specified for a Page blob")
+			return sbu.uploadPageBlobFromContent(ctx)
 		}
 		if sbu.Source != "" {
 			return sbu.uploadPageBlob(ctx)
@@ -183,6 +183,22 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
+	tmpFile, err := os.CreateTemp(os.TempDir(), "upload-")
+	if err != nil {
+		return fmt.Errorf("creating temporary file: %s", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+		return fmt.Errorf("writing Source Content to Temp File: %s", err)
+	}
+	defer tmpFile.Close()
+
+	sbu.Source = tmpFile.Name()
+	return sbu.uploadPageBlob(ctx)
 }
 
 func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {

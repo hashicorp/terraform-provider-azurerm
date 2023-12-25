@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type GatewaysListCompleteResult struct {
 }
 
 // GatewaysList ...
-func (c AppPlatformClient) GatewaysList(ctx context.Context, id SpringId) (result GatewaysListOperationResponse, err error) {
+func (c AppPlatformClient) GatewaysList(ctx context.Context, id commonids.SpringCloudServiceId) (result GatewaysListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) GatewaysList(ctx context.Context, id SpringId) (resul
 }
 
 // GatewaysListComplete retrieves all the results into a single object
-func (c AppPlatformClient) GatewaysListComplete(ctx context.Context, id SpringId) (GatewaysListCompleteResult, error) {
+func (c AppPlatformClient) GatewaysListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (GatewaysListCompleteResult, error) {
 	return c.GatewaysListCompleteMatchingPredicate(ctx, id, GatewayResourceOperationPredicate{})
 }
 
 // GatewaysListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) GatewaysListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate GatewayResourceOperationPredicate) (result GatewaysListCompleteResult, err error) {
+func (c AppPlatformClient) GatewaysListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate GatewayResourceOperationPredicate) (result GatewaysListCompleteResult, err error) {
 	items := make([]GatewayResource, 0)
 
 	resp, err := c.GatewaysList(ctx, id)

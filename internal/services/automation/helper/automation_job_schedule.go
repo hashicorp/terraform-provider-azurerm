@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"

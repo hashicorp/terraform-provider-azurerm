@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -150,6 +151,19 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
+		},
+
+		"gpu_instance": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.GPUInstanceProfileMIGOneg),
+				string(managedclusters.GPUInstanceProfileMIGTwog),
+				string(managedclusters.GPUInstanceProfileMIGThreeg),
+				string(managedclusters.GPUInstanceProfileMIGFourg),
+				string(managedclusters.GPUInstanceProfileMIGSeveng),
+			}, false),
 		},
 
 		"kubelet_disk_type": {
@@ -448,19 +462,19 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
-		OsType:                 utils.ToPtr(agentpools.OSType(osType)),
-		EnableAutoScaling:      utils.Bool(enableAutoScaling),
-		EnableCustomCATrust:    utils.Bool(d.Get("custom_ca_trust_enabled").(bool)),
-		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
-		EnableEncryptionAtHost: utils.Bool(d.Get("enable_host_encryption").(bool)),
-		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
-		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
-		KubeletDiskType:        utils.ToPtr(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string))),
-		Mode:                   utils.ToPtr(mode),
-		ScaleSetPriority:       utils.ToPtr(agentpools.ScaleSetPriority(d.Get("priority").(string))),
+		OsType:                 pointer.To(agentpools.OSType(osType)),
+		EnableAutoScaling:      pointer.To(enableAutoScaling),
+		EnableCustomCATrust:    pointer.To(d.Get("custom_ca_trust_enabled").(bool)),
+		EnableFIPS:             pointer.To(d.Get("fips_enabled").(bool)),
+		EnableEncryptionAtHost: pointer.To(d.Get("enable_host_encryption").(bool)),
+		EnableUltraSSD:         pointer.To(d.Get("ultra_ssd_enabled").(bool)),
+		EnableNodePublicIP:     pointer.To(d.Get("enable_node_public_ip").(bool)),
+		KubeletDiskType:        pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string))),
+		Mode:                   pointer.To(mode),
+		ScaleSetPriority:       pointer.To(agentpools.ScaleSetPriority(d.Get("priority").(string))),
 		Tags:                   tags.Expand(t),
-		Type:                   utils.ToPtr(agentpools.AgentPoolTypeVirtualMachineScaleSets),
-		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		Type:                   pointer.To(agentpools.AgentPoolTypeVirtualMachineScaleSets),
+		VMSize:                 pointer.To(d.Get("vm_size").(string)),
 		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
 		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
@@ -468,20 +482,24 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Count: utils.Int64(int64(count)),
 	}
 
+	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
+		profile.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(gpuInstanceProfile))
+	}
+
 	if osSku := d.Get("os_sku").(string); osSku != "" {
-		profile.OsSKU = utils.ToPtr(agentpools.OSSKU(osSku))
+		profile.OsSKU = pointer.To(agentpools.OSSKU(osSku))
 	}
 
 	if scaleDownMode := d.Get("scale_down_mode").(string); scaleDownMode != "" {
-		profile.ScaleDownMode = utils.ToPtr(agentpools.ScaleDownMode(scaleDownMode))
+		profile.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(scaleDownMode))
 	}
 
 	if workloadRuntime := d.Get("workload_runtime").(string); workloadRuntime != "" {
-		profile.WorkloadRuntime = utils.ToPtr(agentpools.WorkloadRuntime(workloadRuntime))
+		profile.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(workloadRuntime))
 	}
 
 	if priority == string(managedclusters.ScaleSetPrioritySpot) {
-		profile.ScaleSetEvictionPolicy = utils.ToPtr(agentpools.ScaleSetEvictionPolicy(evictionPolicy))
+		profile.ScaleSetEvictionPolicy = pointer.To(agentpools.ScaleSetEvictionPolicy(evictionPolicy))
 		profile.SpotMaxPrice = utils.Float(spotMaxPrice)
 	} else {
 		if evictionPolicy != "" {
@@ -543,7 +561,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if osDiskType := d.Get("os_disk_type").(string); osDiskType != "" {
-		profile.OsDiskType = utils.ToPtr(agentpools.OSDiskType(osDiskType))
+		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
 	if podSubnetID := d.Get("pod_subnet_id").(string); podSubnetID != "" {
@@ -843,6 +861,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if v := props.KubeletDiskType; v != nil {
 			d.Set("kubelet_disk_type", string(*v))
+		}
+
+		if v := props.GpuInstanceProfile; v != nil {
+			d.Set("gpu_instance", string(*v))
 		}
 
 		if props.CreationData != nil {

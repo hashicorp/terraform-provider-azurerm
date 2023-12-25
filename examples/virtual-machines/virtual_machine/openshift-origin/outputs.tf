@@ -10,17 +10,17 @@ output "openshift_primary_ssh" {
 }
 
 output "openshift_infra_load_balancer_fqdn" {
-  value = "${azurerm_public_ip.infra_lb_pip.fqdn}"
+  value = azurerm_public_ip.infra_lb_pip.fqdn
 }
 
 output "node_os_storage_account_name" {
-  value = "${azurerm_storage_account.nodeos_storage_account.name}"
+  value = azurerm_storage_account.nodeos_storage_account.name
 }
 
 output "node_data_storage_account_name" {
-  value = "${azurerm_storage_account.nodedata_storage_account.name}"
+  value = azurerm_storage_account.nodedata_storage_account.name
 }
 
 output "infra_storage_account_name" {
-  value = "${azurerm_storage_account.infra_storage_account.name}"
+  value = azurerm_storage_account.infra_storage_account.name
 }

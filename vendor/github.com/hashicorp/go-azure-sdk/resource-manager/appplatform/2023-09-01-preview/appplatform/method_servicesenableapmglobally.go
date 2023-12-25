@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ServicesEnableApmGloballyOperationResponse struct {
 }
 
 // ServicesEnableApmGlobally ...
-func (c AppPlatformClient) ServicesEnableApmGlobally(ctx context.Context, id SpringId, input ApmReference) (result ServicesEnableApmGloballyOperationResponse, err error) {
+func (c AppPlatformClient) ServicesEnableApmGlobally(ctx context.Context, id commonids.SpringCloudServiceId, input ApmReference) (result ServicesEnableApmGloballyOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c AppPlatformClient) ServicesEnableApmGlobally(ctx context.Context, id Spr
 }
 
 // ServicesEnableApmGloballyThenPoll performs ServicesEnableApmGlobally then polls until it's completed
-func (c AppPlatformClient) ServicesEnableApmGloballyThenPoll(ctx context.Context, id SpringId, input ApmReference) error {
+func (c AppPlatformClient) ServicesEnableApmGloballyThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ApmReference) error {
 	result, err := c.ServicesEnableApmGlobally(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServicesEnableApmGlobally: %+v", err)

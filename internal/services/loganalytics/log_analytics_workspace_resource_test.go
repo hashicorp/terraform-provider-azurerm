@@ -332,6 +332,32 @@ func TestAccLogAnalyticsWorkspace_ToggleDisableLocalAuth(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_ToggleImmediatelyPurgeDataOn30Days(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withImmediatePurgeDataOn30Days(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withImmediatePurgeDataOn30Days(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withImmediatePurgeDataOn30Days(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccLogAnalyticsWorkspace_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
@@ -379,6 +405,65 @@ func TestAccLogAnalyticsWorkspace_withDefaultDataCollectionRule(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_withSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_withUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_toggleIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
@@ -412,6 +497,66 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceResource) withSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (LogAnalyticsWorkspaceResource) withUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest-%[1]d"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LogAnalyticsWorkspaceResource) requiresImport(data acceptance.TestData) string {
@@ -819,4 +964,26 @@ resource "azurerm_log_analytics_workspace" "test" {
   data_collection_rule_id = "%[3]s"
 }
 `, data.RandomInteger, data.Locations.Primary, ruleID)
+}
+
+func (LogAnalyticsWorkspaceResource) withImmediatePurgeDataOn30Days(data acceptance.TestData, enable bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                                    = "acctestLAW-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  sku                                     = "PerGB2018"
+  retention_in_days                       = 30
+  immediate_data_purge_on_30_days_enabled = %[4]t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
 }
