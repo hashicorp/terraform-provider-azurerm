@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Specifies whether the public network access is enabled for the IoT Hub Device Update Account. Possible values are `true` and `false`. Defaults to `true`.
 
-* `sku` - (Optional) Sku of the IoT Hub Device Update Account. Possible values are `Free` and `Standard`. Defaults to `Standard`.
+* `sku` - (Optional) Sku of the IoT Hub Device Update Account. Possible values are `Free` and `Standard`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the IoT Hub Device Update Account.
 

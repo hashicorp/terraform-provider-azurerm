@@ -21,9 +21,7 @@ import (
 
 type IotHubDeviceUpdateAccountResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubDeviceUpdateAccountResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubDeviceUpdateAccountResource{}
 
 type IotHubDeviceUpdateAccountModel struct {
 	Name                       string            `tfschema:"name"`
@@ -58,6 +56,7 @@ func (r IotHubDeviceUpdateAccountResource) Arguments() map[string]*pluginsdk.Sch
 
 		"sku": {
 			Type:     pluginsdk.TypeString,
+			ForceNew: true,
 			Optional: true,
 			Default:  deviceupdates.SKUStandard,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -253,10 +252,6 @@ func (r IotHubDeviceUpdateAccountResource) Update() sdk.ResourceFunc {
 					publicNetworkAccess = deviceupdates.PublicNetworkAccessDisabled
 				}
 				existing.Properties.PublicNetworkAccess = &publicNetworkAccess
-			}
-
-			if metadata.ResourceData.HasChange("sku") {
-				existing.Properties.Sku = &model.Sku
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
