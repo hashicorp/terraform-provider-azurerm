@@ -21,7 +21,7 @@ type ManagerResource struct{}
 
 func TestAccNetworkManager(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one network manager per subscription at once
+	// Azure only being happy about provisioning one (connectivity or securityAdmin) network manager per subscription at once
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]map[string]func(t *testing.T){

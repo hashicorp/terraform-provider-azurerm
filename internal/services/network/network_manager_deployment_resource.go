@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -334,7 +335,7 @@ func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networ
 
 	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for the Deployment %s: %+v", *managerDeploymentId, err)
+		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 
 	return nil
@@ -346,13 +347,21 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotStarted", "Deploying"},
 		Target:     []string{"Deployed"},
-		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId),
-		Timeout:    d,
+		Refresh: func() (interface{}, string, error) {
+			result, state, err := resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId)()
+			if state == "NotFound" {
+				// to serve NotFoundChecks, return nil result
+				return nil, "NotFound", err
+			}
+			return result, state, err
+		},
+		NotFoundChecks: 20,
+		Timeout:        d,
 	}
 
 	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for the Deployment %s: %+v", *managerDeploymentId, err)
+		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 
 	return nil
@@ -380,6 +389,7 @@ func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *net
 		}
 
 		if resp.Model.Value == nil || len(*resp.Model.Value) == 0 || *(*resp.Model.Value)[0].ConfigurationIds == nil || len(*(*resp.Model.Value)[0].ConfigurationIds) == 0 {
+			log.Printf("[DEBUG] retrieving Deployment %s: retrival succeeds however the specific deployment not found", *id)
 			return resp, "NotFound", nil
 		}
 
