@@ -74,6 +74,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerConnectedRegistryResource{},
 		KubernetesClusterExtensionResource{},
 		KubernetesFluxConfigurationResource{},
+		KubernetesFleetUpdateStrategyResource{},
 	}
 	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources
