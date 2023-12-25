@@ -389,7 +389,7 @@ func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *net
 		}
 
 		if resp.Model.Value == nil || len(*resp.Model.Value) == 0 || *(*resp.Model.Value)[0].ConfigurationIds == nil || len(*(*resp.Model.Value)[0].ConfigurationIds) == 0 {
-			log.Printf("[DEBUG] retrieving Deployment %s: retrival succeeds however the specific deployment not found", *id)
+			log.Printf("[DEBUG] retrieving %s: listing deployments succeeds however the specific deployment was not found", *id)
 			return resp, "NotFound", nil
 		}
 
