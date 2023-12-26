@@ -69,12 +69,7 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validate.ElasticSanVolumnGroupName,
 		},
 
-		"san_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: volumegroups.ValidateElasticSanID,
-		},
+		"san_id": commonschema.ResourceIDReferenceRequiredForceNew(volumegroups.ElasticSanId{}),
 
 		"encryption_type": {
 			Type:         pluginsdk.TypeString,
@@ -140,8 +135,8 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				// None is not exposed
 				string(volumegroups.StorageTargetTypeIscsi),
+				string(volumegroups.StorageTargetTypeNone),
 			}, false),
 			Default: string(volumegroups.StorageTargetTypeIscsi),
 		},
@@ -268,7 +263,7 @@ func (r ElasticSANVolumeGroupResource) Read() sdk.ResourceFunc {
 					schema.EncryptionType = string(pointer.From(model.Properties.Encryption))
 					schema.NetworkRule = FlattenVolumeGroupNetworkRules(model.Properties.NetworkAcls)
 
-					if model.Properties.ProtocolType != nil && *model.Properties.ProtocolType != volumegroups.StorageTargetTypeNone {
+					if model.Properties.ProtocolType != nil {
 						schema.ProtocolType = string(pointer.From(model.Properties.ProtocolType))
 					}
 
