@@ -32,6 +32,20 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspaceTable_plan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
+	r := LogAnalyticsWorkspaceTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.plan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (t LogAnalyticsWorkspaceTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := tables.ParseTableID(state.ID)
 	if err != nil {
@@ -65,6 +79,29 @@ resource "azurerm_log_analytics_workspace_table" "test" {
   name              = "AppEvents"
   workspace_id      = azurerm_log_analytics_workspace.test.id
   retention_in_days = 7
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceTableResource) plan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  retention_in_days   = 30
+}
+resource "azurerm_log_analytics_workspace_table" "test" {
+  name         = "AppTraces"
+  workspace_id = azurerm_log_analytics_workspace.test.id
+  plan         = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
