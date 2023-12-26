@@ -53,3 +53,7 @@ tf.zip
 
 # do not upload secrets
 .env
+
+# custom for myself
+.gitignore
+.typos.toml
