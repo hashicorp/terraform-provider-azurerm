@@ -172,7 +172,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			},
 
 			// https://github.com/Azure/azure-rest-api-specs/issues/13365
-			"tags": commonschema.TagsForceNew(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -258,6 +258,22 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	resp, err := hsmClient.Get(ctx, *id)
 	if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	model := resp.Model
+	hasUpdate := false
+	if d.HasChange("tags") {
+		hasUpdate = true
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+	if d.HasChange("network_acls") {
+		hasUpdate = true
+		model.Properties.NetworkAcls = expandMHSMNetworkAcls(d.Get("network_acls").([]interface{}))
+	}
+	if hasUpdate {
+		if err := hsmClient.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+			return fmt.Errorf("updating %s tags: %+v", id, err)
+		}
 	}
 
 	// security domain download to activate this module
