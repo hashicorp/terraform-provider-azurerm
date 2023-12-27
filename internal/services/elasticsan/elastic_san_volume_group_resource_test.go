@@ -571,7 +571,6 @@ resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
   san_id          = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
-  protocol_type   = "None"
 
   encryption {
     key_vault_key_id          = azurerm_key_vault_key.test.versionless_id

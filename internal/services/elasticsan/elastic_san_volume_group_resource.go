@@ -135,8 +135,8 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				// None is not exposed, Iscsi is only allowed protocolType to connect to volume group
 				string(volumegroups.StorageTargetTypeIscsi),
-				string(volumegroups.StorageTargetTypeNone),
 			}, false),
 			Default: string(volumegroups.StorageTargetTypeIscsi),
 		},

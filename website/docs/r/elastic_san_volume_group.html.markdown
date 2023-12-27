@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `network_rule` - (Optional) One or more `network_rule` blocks as defined below.
 
-* `protocol_type` - (Optional) Specifies the type of the storage target. The only possible values are `Iscsi` and `None`. Defaults to `Iscsi`.
+* `protocol_type` - (Optional) Specifies the type of the storage target. The only possible values are `Iscsi`. Defaults to `Iscsi`.
 
 ---
 
