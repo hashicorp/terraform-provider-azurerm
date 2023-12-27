@@ -72,7 +72,7 @@ The following arguments are supported:
 
 ~> **Note:** `file_copy_enabled` is only supported when `sku` is `Standard`.
 
-* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
+* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Basic`, `Developer` and `Standard`. Defaults to `Basic`.
 
 ~> **Note** Downgrading the SKU will force a new resource to be created.
 

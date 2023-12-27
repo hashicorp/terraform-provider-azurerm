@@ -25,8 +25,9 @@ import (
 )
 
 var skuWeight = map[string]int8{
-	"Basic":    1,
-	"Standard": 2,
+	"Basic":     1,
+	"Standard":  2,
+	"Developer": 3,
 }
 
 func resourceBastionHost() *pluginsdk.Resource {
@@ -125,6 +126,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(bastionhosts.BastionHostSkuNameBasic),
+					string(bastionhosts.BastionHostSkuNameDeveloper),
 					string(bastionhosts.BastionHostSkuNameStandard),
 				}, false),
 				Default: string(bastionhosts.BastionHostSkuNameBasic),

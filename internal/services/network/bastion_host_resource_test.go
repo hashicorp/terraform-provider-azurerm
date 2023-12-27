@@ -114,7 +114,7 @@ func TestAccBastionHost_sku(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.sku(data, "Standard"),
+			Config: r.sku(data, "Developer"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
