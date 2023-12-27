@@ -135,14 +135,6 @@ func (r WorkloadsSAPDeploymentVirtualInstanceResource) Exists(ctx context.Contex
 
 func (r WorkloadsSAPDeploymentVirtualInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
 resource "tls_private_key" "test" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -199,6 +191,14 @@ resource "azurerm_resource_group" "app" {
 func (r WorkloadsSAPDeploymentVirtualInstanceResource) basic(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
   name                        = "X%d"
@@ -430,6 +430,14 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "import" {
 func (r WorkloadsSAPDeploymentVirtualInstanceResource) complete(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
@@ -671,6 +679,14 @@ func (r WorkloadsSAPDeploymentVirtualInstanceResource) update(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
   name                        = "X%d"
   resource_group_name         = azurerm_resource_group.test.name
@@ -778,6 +794,14 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
 func (r WorkloadsSAPDeploymentVirtualInstanceResource) transportMount(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_storage_account" "test" {
   name                      = "acctestsa%s"
