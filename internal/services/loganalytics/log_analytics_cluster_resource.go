@@ -66,13 +66,6 @@ func (l LogAnalyticsClusterResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.IntInSlice([]int{500, 1000, 2000, 5000}),
 		},
 
-		"availability_zones_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Default:  true,
-			Optional: true,
-			ForceNew: true, // check the value previous created cluster
-		},
-
 		"tags": tags.Schema(),
 	}
 }
@@ -235,6 +228,10 @@ func (r LogAnalyticsClusterResource) Update() sdk.ResourceFunc {
 
 			if props := model.Properties; props == nil {
 				return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+			}
+
+			if metadata.ResourceData.HasChange("size_gb") && model.Sku != nil && model.Sku.Capacity != nil {
+				model.Sku.Capacity = &config.SizeGB
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
