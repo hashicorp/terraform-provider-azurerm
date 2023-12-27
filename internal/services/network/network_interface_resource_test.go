@@ -33,6 +33,20 @@ func TestAccNetworkInterface_basic(t *testing.T) {
 	})
 }
 
+func TestAccNetworkInterface_parallel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.parallel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetworkInterface_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
@@ -414,6 +428,37 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkInterfaceResource) parallel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_network_interface" "parallel" {
+  count               = 50
+  name                = "acctestni-%d-${count.index}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r NetworkInterfaceResource) auxiliaryNone(data acceptance.TestData) string {

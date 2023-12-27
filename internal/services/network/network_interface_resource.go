@@ -277,13 +277,6 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("expanding `ip_configuration`: %+v", err)
 	}
-	lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
-	if err != nil {
-		return fmt.Errorf("determining locking details: %+v", err)
-	}
-
-	lockingDetails.lock()
-	defer lockingDetails.unlock()
 
 	if len(*ipConfigs) > 0 {
 		properties.IPConfigurations = ipConfigs
@@ -390,13 +383,6 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return fmt.Errorf("expanding `ip_configuration`: %+v", err)
 		}
-		lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
-		if err != nil {
-			return fmt.Errorf("determining locking details: %+v", err)
-		}
-
-		lockingDetails.lock()
-		defer lockingDetails.unlock()
 
 		// then map the fields managed in other resources back
 		ipConfigs = mapFieldsToNetworkInterface(ipConfigs, info)
@@ -559,24 +545,6 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", *id)
-	}
-
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
-	}
-
-	props := *existing.Model.Properties
-
-	lockingDetails, err := determineResourcesToLockFromIPConfiguration(props.IPConfigurations)
-	if err != nil {
-		return fmt.Errorf("determining locking details: %+v", err)
-	}
-
-	lockingDetails.lock()
-	defer lockingDetails.unlock()
 
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
