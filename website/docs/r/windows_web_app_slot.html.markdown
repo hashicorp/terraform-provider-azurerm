@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
-* `https_only` - (Optional) Should the Windows Web App Slot require HTTPS connections.
+* `https_only` - (Optional) Should the Windows Web App Slot require HTTPS connections. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
 

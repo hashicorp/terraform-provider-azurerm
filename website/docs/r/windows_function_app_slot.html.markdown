@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.
 
-* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
+* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
