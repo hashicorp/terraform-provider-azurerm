@@ -173,6 +173,8 @@ A `main_profile` block supports the following:
 
 * `encryption_at_host_enabled` - (Optional) Whether main virtual machines are encrypted at host. Defaults to `false`. Changing this forces a new resource to be created.
 
+**NOTE:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/en-us/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
+
 * `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. Changing this forces a new resource to be created.
 
 ---
@@ -197,6 +199,8 @@ A `worker_profile` block supports the following:
 
 A `cluster_profile` block supports the following:
 
+* `version` - (Required) The version of the OpenShift cluster. Changing this forces a new resource to be created.
+
 * `domain` - (Required) The custom domain for the cluster. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional). Changing this forces a new resource to be created.
 
 * `pull_secret` - (Optional) The Red Hat pull secret for the cluster. Changing this forces a new resource to be created.
@@ -207,9 +211,11 @@ A `cluster_profile` block supports the following:
 
 A `network_profile` block supports the following:
 
-* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. Defaults to `10.128.0.0/1`. Changing this forces a new resource to be created.
+* `pod_cidr` - (Required) The CIDR to use for pod IP addresses. Changing this forces a new resource to be created.
 
-* `service_cidr` - (Optional) The network range used by the Openshift service. Defaults to `172.30.0.0/16`. Changing this forces a new resource to be created.
+* `service_cidr` - (Required) The network range used by the Openshift service. Changing this forces a new resource to be created.
+
+* `outbound_type` - (Optional) The outbound (egress) routing method. Possible values are `Loadbalancer` and `UserDefinedRouting`. Defaults to `LoadBalancer`. Changing this forces a new resource to be created.
 
 ---
 
@@ -229,9 +235,13 @@ A `ingress_profile` block supports the following:
 
 The following attributes are exported:
 
-* `cluster_version` - The Red Hat OpenShift cluster version.
-
 * `console_url` - The Red Hat OpenShift cluster console URL.
+
+* `cluster_profile` - A `cluster_profile` block as defined below.
+
+* `api_server_profile` - An `api_server_profile` block as defined below.
+
+* `ingress_profile` - An `ingress_profile` block as defined below.
 
 ---
 

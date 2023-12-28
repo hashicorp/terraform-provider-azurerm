@@ -119,6 +119,21 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 	})
 }
 
+func TestAccOpenShiftCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := openshiftclusters.ParseProviderOpenShiftClusterID(state.ID)
 	if err != nil {
@@ -144,6 +159,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain = "aro-%[3]s.com"
+    version = "4.13.23"
   }
 
   network_profile {
@@ -184,6 +200,58 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
+func (r OpenShiftClusterResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+  %[1]s
+
+resource "azurerm_redhat_openshift_cluster" "import" {
+  name = azurerm_redhat_openshift_cluster.test.name
+  resource_group_name = azurerm_redhat_openshift_cluster.test.resource_group_name
+  location = azurerm_redhat_openshift_cluster.test.location
+
+  cluster_profile {
+    domain = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
+    version = azurerm_redhat_openshift_cluster.test.cluster_profile.0.version
+  }
+
+  network_profile {
+    pod_cidr     = azurerm_redhat_openshift_cluster.test.network_profile.0.pod_cidr
+    service_cidr = azurerm_redhat_openshift_cluster.test.network_profile.0.service_cidr
+  }
+
+  main_profile {
+    vm_size   = azurerm_redhat_openshift_cluster.test.main_profile.0.vm_size
+    subnet_id = azurerm_redhat_openshift_cluster.test.main_profile.0.subnet_id
+  }
+
+  api_server_profile {
+    visibility = azurerm_redhat_openshift_cluster.test.api_server_profile.0.visibility
+  }
+
+  ingress_profile {
+    visibility = azurerm_redhat_openshift_cluster.test.ingress_profile.0.visibility
+  }
+
+  worker_profile {
+    vm_size      = azurerm_redhat_openshift_cluster.test.worker_profile.0.vm_size
+    disk_size_gb = azurerm_redhat_openshift_cluster.test.worker_profile.0.disk_size_gb
+    node_count   = azurerm_redhat_openshift_cluster.test.worker_profile.0.node_count
+    subnet_id    = azurerm_redhat_openshift_cluster.test.worker_profile.0.subnet_id
+  }
+
+  service_principal {
+    client_id     = azurerm_redhat_openshift_cluster.test.service_principal.0.client_id
+    client_secret = azurerm_redhat_openshift_cluster.test.service_principal.0.client_secret
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
+}
+  `, r.basic(data))
+}
+
 func (r OpenShiftClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -213,6 +281,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain = "aro-%[3]s.com"
+    version = "4.13.23"
   }
 
   network_profile {
@@ -266,9 +335,10 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
+  
   cluster_profile {
     domain = "aro-%[3]s.com"
+    version = "4.13.23"
   }
 
   network_profile {
@@ -321,6 +391,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain = "aro-%[3]s.com"
+    version = "4.13.23"
   }
 
   network_profile {
@@ -372,6 +443,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain       = "aro-%[3]s.com"
+    version = "4.13.23"
     fips_enabled = true
   }
 
@@ -504,6 +576,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain = "aro-%[3]s.com"
+    version = "4.13.23"
   }
 
   network_profile {

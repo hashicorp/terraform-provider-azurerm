@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	openShiftValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -53,6 +53,7 @@ type ClusterProfile struct {
 	Domain          string `tfschema:"domain"`
 	FipsEnabled     bool   `tfschema:"fips_enabled"`
 	ResourceGroupId string `tfschema:"resource_group_id"`
+	Version         string `tfschema:"version"`
 }
 
 type NetworkProfile struct {
@@ -115,6 +116,12 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.ClusterVersion,
+					},
 					"fips_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -145,7 +152,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"client_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: openShiftValidate.ClientID,
+						ValidateFunc: validate.ClientID,
 					},
 					"client_secret": {
 						Type:         pluginsdk.TypeString,
@@ -164,6 +171,18 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"pod_cidr": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonValidate.CIDR,
+					},
+					"service_cidr": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonValidate.CIDR,
+					},
 					"outbound_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -173,18 +192,6 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 							openshiftclusters.PossibleValuesForOutboundType(),
 							false,
 						),
-					},
-					"pod_cidr": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.CIDR,
-					},
-					"service_cidr": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.CIDR,
 					},
 				},
 			},
@@ -330,11 +337,6 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 
 func (r RedHatOpenShiftCluster) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"cluster_version": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"console_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -494,10 +496,6 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 					if props.ConsoleProfile != nil {
 						state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
 					}
-
-					if props.ClusterProfile != nil {
-						state.ClusterVersion = pointer.From(props.ClusterProfile.Version)
-					}
 				}
 			}
 
@@ -543,6 +541,7 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 		Domain:               pointer.To(input[0].Domain),
 		PullSecret:           pointer.To(input[0].PullSecret),
 		FipsValidatedModules: pointer.To(fipsValidatedModules),
+		Version:              pointer.To(input[0].Version),
 	}
 }
 
@@ -562,6 +561,7 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) [
 			Domain:          pointer.From(profile.Domain),
 			FipsEnabled:     fipsEnabled,
 			ResourceGroupId: pointer.From(profile.ResourceGroupId),
+			Version:         pointer.From(profile.Version),
 		},
 	}
 }
