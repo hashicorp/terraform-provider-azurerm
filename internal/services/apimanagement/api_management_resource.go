@@ -19,15 +19,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/delegationsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/deletedservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/policy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/product"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signinsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signupsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1696,7 +1696,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressId = &publicIPAddressID
 		}
 
-		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(config["zones"].(*schema.Set).List())
 		if len(zones) > 0 {
 			additionalLocation.Zones = &zones
 		}
@@ -2239,7 +2239,7 @@ Terraform can automatically recover the soft-deleted API Management when this be
 enabled within the "features" block (located within the "provider" block) - more
 information can be found here:
 
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 
 Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
 this into Terraform via "terraform import", or pick a different name/location.

@@ -865,6 +865,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					"Linux",
 					"Windows",
 					"AgentDirectToStore",
+					"WorkspaceTransforms",
 				},
 				false),
 		},

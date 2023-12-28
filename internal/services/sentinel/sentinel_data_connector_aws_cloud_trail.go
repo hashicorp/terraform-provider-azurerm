@@ -27,10 +27,7 @@ func resourceSentinelDataConnectorAwsCloudTrail() *pluginsdk.Resource {
 		Update: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
 		Delete: resourceSentinelDataConnectorAwsCloudTrailDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
-			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail)),
+		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -5,6 +5,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-12-01-preview/defenderforstorage"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
@@ -22,7 +23,7 @@ type Client struct {
 	AdvancedThreatProtectionClient      *security.AdvancedThreatProtectionClient
 	AutoProvisioningClient              *security.AutoProvisioningSettingsClient
 	SettingClient                       *security.SettingsClient
-	AutomationsClient                   *security.AutomationsClient
+	AutomationsClient                   *automations.AutomationsClient
 	ServerVulnerabilityAssessmentClient *security.ServerVulnerabilityAssessmentClient
 	DefenderForStorageClient            *defenderforstorage.DefenderForStorageClient
 }
@@ -60,7 +61,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	SettingClient := security.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
 
-	AutomationsClient := security.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	AutomationsClient := automations.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
 
 	ServerVulnerabilityAssessmentClient := security.NewServerVulnerabilityAssessmentClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)

@@ -313,6 +313,14 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
+			// Azure AKS Workload Identity fields
+			"use_aks_workload_identity": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_AKS_WORKLOAD_IDENTITY", false),
+				Description: "Allow Azure AKS Workload Identity to be used for Authentication.",
+			},
+
 			// Managed Tracking GUID for User-agent
 			"partner_id": {
 				Type:         schema.TypeString,
@@ -373,7 +381,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, diag.Errorf("the provider only supports 3 auxiliary tenant IDs")
+			return nil, diag.Errorf("the provider only supports up to 3 auxiliary tenant IDs")
 		}
 
 		var clientCertificateData []byte
@@ -400,6 +408,11 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			return nil, diag.FromErr(err)
 		}
 
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		var (
 			env *environments.Environment
 
@@ -418,13 +431,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		var (
 			enableAzureCli        = d.Get("use_cli").(bool)
 			enableManagedIdentity = d.Get("use_msi").(bool)
-			enableOidc            = d.Get("use_oidc").(bool)
+			enableOidc            = d.Get("use_oidc").(bool) || d.Get("use_aks_workload_identity").(bool)
 		)
 
 		authConfig := &auth.Credentials{
 			Environment:        *env,
 			ClientID:           *clientId,
-			TenantID:           d.Get("tenant_id").(string),
+			TenantID:           *tenantId,
 			AuxiliaryTenantIDs: auxTenants,
 
 			ClientCertificateData:     clientCertificateData,
@@ -529,6 +542,23 @@ func getOidcToken(d *schema.ResourceData) (*string, error) {
 		idToken = fileToken
 	}
 
+	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_FEDERATED_TOKEN_FILE") != "" {
+		path := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
+		fileTokenRaw, err := os.ReadFile(os.Getenv("AZURE_FEDERATED_TOKEN_FILE"))
+
+		if err != nil {
+			return nil, fmt.Errorf("reading OIDC Token from file %q provided by AKS Workload Identity: %v", path, err)
+		}
+
+		fileToken := strings.TrimSpace(string(fileTokenRaw))
+
+		if idToken != "" && idToken != fileToken {
+			return nil, fmt.Errorf("mismatch between supplied OIDC token and OIDC token file contents provided by AKS Workload Identity - please either remove one, ensure they match, or disable use_aks_workload_identity")
+		}
+
+		idToken = fileToken
+	}
+
 	return &idToken, nil
 }
 
@@ -549,6 +579,14 @@ func getClientId(d *schema.ResourceData) (*string, error) {
 		}
 
 		clientId = fileClientId
+	}
+
+	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_CLIENT_ID") != "" {
+		aksClientId := os.Getenv("AZURE_CLIENT_ID")
+		if clientId != "" && clientId != aksClientId {
+			return nil, fmt.Errorf("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
+		}
+		clientId = aksClientId
 	}
 
 	return &clientId, nil
@@ -574,6 +612,20 @@ func getClientSecret(d *schema.ResourceData) (*string, error) {
 	}
 
 	return &clientSecret, nil
+}
+
+func getTenantId(d *schema.ResourceData) (*string, error) {
+	tenantId := strings.TrimSpace(d.Get("tenant_id").(string))
+
+	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_TENANT_ID") != "" {
+		aksTenantId := os.Getenv("AZURE_TENANT_ID")
+		if tenantId != "" && tenantId != aksTenantId {
+			return nil, fmt.Errorf("mismatch between supplied Tenant ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
+		}
+		tenantId = aksTenantId
+	}
+
+	return &tenantId, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.

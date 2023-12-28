@@ -22,6 +22,7 @@ func AzureChina() *Environment {
 
 	// DataLake, ManagedHSM and OperationalInsights are not available
 	env.ApiManagement = ApiManagementAPI("azure-api.cn")
+	env.AppConfiguration = AppConfigurationAPI("azconfig.azure.cn")
 	env.Batch = BatchAPI("https://batch.chinacloudapi.cn").withResourceIdentifier("https://batch.chinacloudapi.cn")
 	env.ContainerRegistry = ContainerRegistryAPI("azurecr.cn")
 	env.CosmosDB = CosmosDBAPI("documents.azure.cn")
@@ -32,7 +33,7 @@ func AzureChina() *Environment {
 	env.Postgresql = PostgresqlAPI("postgres.database.chinacloudapi.cn").withResourceIdentifier("https://ossrdbms-aad.database.chinacloudapi.cn")
 	env.ServiceBus = ServiceBusAPI("https://servicebus.chinacloudapi.cn", "servicebus.chinacloudapi.cn")
 	env.Sql = SqlAPI("database.chinacloudapi.cn").withResourceIdentifier("https://database.chinacloudapi.cn")
-	env.Storage = StorageAPI("core.chinacloudapi.cn").withResourceIdentifier("https://core.chinacloudapi.cn")
+	env.Storage = StorageAPI("core.chinacloudapi.cn").withResourceIdentifier("https://storage.azure.com")
 	env.Synapse = SynapseAPI("dev.azuresynapse.azure.cn")
 	env.TrafficManager = TrafficManagerAPI("trafficmanager.cn")
 

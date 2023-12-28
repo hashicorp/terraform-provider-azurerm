@@ -17,8 +17,10 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-hclog"
 	"golang.org/x/mod/modfile"
@@ -237,12 +239,14 @@ func run(ctx context.Context, input config) error {
 		if err := os.WriteFile(input.outputFileName, []byte(description), 0644); err != nil {
 			return fmt.Errorf("writing description to `%s`: %+v", input.outputFileName, err)
 		}
+
+		logger.Info(fmt.Sprintf("Processing completed - details written to %q", input.outputFileName))
 	} else {
-		logger.Info("Skipping writing PR description since an output file was not specified")
+		logger.Info("Writing PR description to stdout since an output file was not specified")
+		logger.Info("Summary of changes:")
+		logger.Info(description)
 	}
-	// Let's also output it for good measure
-	logger.Info("Processing completed - summary of changes:")
-	logger.Info(description)
+
 	return nil
 }
 
@@ -617,7 +621,23 @@ func stageAndCommitChanges(workingDirectory string, message string) error {
 	}
 
 	logger.Trace(fmt.Sprintf("Committing all changes in %q..", workingDirectory))
-	opts := &git.CommitOptions{}
+	opts := &git.CommitOptions{
+		// locally the author/committer info comes from the `.gitconfig`
+	}
+	if os.Getenv("RUNNING_IN_AUTOMATION") != "" {
+		// however in automation lets hardcode this
+		opts.Author = &object.Signature{
+			Name:  os.Getenv("GIT_COMMIT_USERNAME"),
+			Email: "",
+			When:  time.Now(),
+		}
+		opts.Committer = &object.Signature{
+			Name:  os.Getenv("GIT_COMMIT_USERNAME"),
+			Email: "",
+			When:  time.Now(),
+		}
+	}
+
 	hash, err := worktree.Commit(message, opts)
 	if err != nil {
 		return fmt.Errorf("commiting changes to %q: %+v", workingDirectory, err)

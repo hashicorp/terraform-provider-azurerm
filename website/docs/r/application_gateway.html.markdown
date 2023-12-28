@@ -25,18 +25,11 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.254.0.0/16"]
 }
 
-resource "azurerm_subnet" "frontend" {
-  name                 = "frontend"
+resource "azurerm_subnet" "example" {
+  name                 = "example"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.254.0.0/24"]
-}
-
-resource "azurerm_subnet" "backend" {
-  name                 = "backend"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.254.2.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -70,7 +63,7 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.frontend.id
+    subnet_id = azurerm_subnet.example.id
   }
 
   frontend_port {
@@ -212,12 +205,6 @@ A `trusted_root_certificate` block supports the following:
 
 ---
 
-A `authentication_certificate` block, within the `backend_http_settings` block supports the following:
-
-* `name` - (Required) The name of the Authentication Certificate.
-
----
-
 A `backend_address_pool` block supports the following:
 
 * `name` - (Required) The name of the Backend Address Pool.
@@ -250,11 +237,17 @@ A `backend_http_settings` block supports the following:
 
 * `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
+* `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
 
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
+
+---
+
+A `authentication_certificate_backend` block, within the `backend_http_settings` block supports the following:
+
+* `name` - (Required) The name of the Authentication Certificate.
 
 ---
 
@@ -276,7 +269,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/azure/virtual-network/public-ip-addresses#application-gateways) for details.
 
-* `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
+* `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
 
 * `private_link_configuration_name` - (Optional) The name of the private link configuration to use for this frontend IP configuration.
 
@@ -388,7 +381,7 @@ A `path_rule` block supports the following:
 
 ---
 
-A `probe` block support the following:
+A `probe` block supports the following:
 
 * `host` - (Optional) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as `127.0.0.1`, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
 
@@ -545,7 +538,7 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Possible values are `OWASP` and `Microsoft_BotManagerRuleSet`.
+* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Possible values are `OWASP` and `Microsoft_BotManagerRuleSet`. Defaults to `OWASP`.
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ServicesStartOperationResponse struct {
 }
 
 // ServicesStart ...
-func (c AppPlatformClient) ServicesStart(ctx context.Context, id SpringId) (result ServicesStartOperationResponse, err error) {
+func (c AppPlatformClient) ServicesStart(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesStartOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -55,7 +56,7 @@ func (c AppPlatformClient) ServicesStart(ctx context.Context, id SpringId) (resu
 }
 
 // ServicesStartThenPoll performs ServicesStart then polls until it's completed
-func (c AppPlatformClient) ServicesStartThenPoll(ctx context.Context, id SpringId) error {
+func (c AppPlatformClient) ServicesStartThenPoll(ctx context.Context, id commonids.SpringCloudServiceId) error {
 	result, err := c.ServicesStart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServicesStart: %+v", err)

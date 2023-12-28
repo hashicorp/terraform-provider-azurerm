@@ -71,12 +71,12 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.cfg("SENTINEL", true),
+			Config: r.cfg("Sentinel", true),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 		{
-			Config: r.cfg("SENTINEL", false),
+			Config: r.cfg("Sentinel", false),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),

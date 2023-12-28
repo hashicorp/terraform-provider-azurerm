@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this Redis Cache. `true` means this resource could be accessed by both public and private endpoint. `false` means only private endpoint access is allowed. Defaults to `true`.
 
-* `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
+* `redis_configuration` - (Optional) A `redis_configuration` block as defined below - with some limitations by SKU - defaults/details are shown below.
 
 * `replicas_per_master` - (Optional) Amount of replicas to create per master for this Redis Cache.
 
@@ -105,6 +105,18 @@ An `identity` block supports the following:
 
 ---
 
+A `patch_schedule` block supports the following:
+
+* `day_of_week` - (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
+
+* `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
+
+~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.
+
+* `maintenance_window` - (Optional) The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated. Defaults to `PT5H`.
+
+---
+
 A `redis_configuration` block supports the following:
 
 * `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache. Defaults to `false`.
@@ -128,9 +140,11 @@ redis_configuration {
 
 -> **NOTE:** `enable_authentication` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `enable_authentication` set to `true`.
 
+* `active_directory_authentication_enabled` - (Optional) Enable Microsoft Entra (AAD) authentication. Defaults to `false`.
+
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
-* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below. Defaults to `volatile-lru`.
+* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults to `volatile-lru`.
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
@@ -143,6 +157,8 @@ redis_configuration {
 * `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKUs. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.example.primary_blob_endpoint};AccountName=${azurerm_storage_account.example.name};AccountKey=${azurerm_storage_account.example.primary_access_key}`.
 
 ~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
+
+* `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 
 ```hcl
 resource "azurerm_redis_cache" "example" {
@@ -172,18 +188,6 @@ redis_configuration {
 | maxmemory_policy                | volatile-lru | volatile-lru | volatile-lru |
 
 ~> **NOTE:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory_reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below.
-
----
-
-A `patch_schedule` block supports the following:
-
-* `day_of_week` - (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
-
-* `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
-
-~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.
-
-* `maintenance_window` - (Optional) The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated. Defaults to `PT5H`.
 
 ## Attributes Reference
 

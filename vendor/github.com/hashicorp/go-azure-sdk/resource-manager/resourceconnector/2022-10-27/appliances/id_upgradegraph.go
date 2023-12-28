@@ -38,23 +38,9 @@ func ParseUpgradeGraphID(input string) (*UpgradeGraphId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UpgradeGraphId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplianceName, ok = parsed.Parsed["applianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applianceName", *parsed)
-	}
-
-	if id.UpgradeGraphName, ok = parsed.Parsed["upgradeGraphName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "upgradeGraphName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseUpgradeGraphIDInsensitively(input string) (*UpgradeGraphId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UpgradeGraphId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplianceName, ok = parsed.Parsed["applianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applianceName", *parsed)
-	}
-
-	if id.UpgradeGraphName, ok = parsed.Parsed["upgradeGraphName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "upgradeGraphName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *UpgradeGraphId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ApplianceName, ok = input.Parsed["applianceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applianceName", input)
+	}
+
+	if id.UpgradeGraphName, ok = input.Parsed["upgradeGraphName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "upgradeGraphName", input)
+	}
+
+	return nil
 }
 
 // ValidateUpgradeGraphID checks that 'input' can be parsed as a Upgrade Graph ID

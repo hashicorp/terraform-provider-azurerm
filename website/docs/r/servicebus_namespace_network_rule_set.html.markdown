@@ -10,6 +10,11 @@ description: |-
 
 Manages a ServiceBus Namespace Network Rule Set.
 
+
+> The `azurerm_servicebus_namespace_network_rule_set` resource is deprecated
+and will be removed in version 4.0 of the AzureRM provider. Please use
+`network_rule_set` inside the `azurerm_servicebus_namespace` resource instead.
+
 ## Example Usage
 
 ```hcl
@@ -71,7 +76,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The ServiceBus Namespace must be `Premium` in order to attach a ServiceBus Namespace Network Rule Set.
 
-* `default_action` - (Optional) Specifies the default action for the ServiceBus Namespace Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Optional) Specifies the default action for the ServiceBus Namespace Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Allow`.
 
 * `public_network_access_enabled` - (Optional) Whether to allow traffic over public network. Possible values are `true` and `false`. Defaults to `true`.
 

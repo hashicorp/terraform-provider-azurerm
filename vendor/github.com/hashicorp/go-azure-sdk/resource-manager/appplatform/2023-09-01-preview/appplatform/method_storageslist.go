@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type StoragesListCompleteResult struct {
 }
 
 // StoragesList ...
-func (c AppPlatformClient) StoragesList(ctx context.Context, id SpringId) (result StoragesListOperationResponse, err error) {
+func (c AppPlatformClient) StoragesList(ctx context.Context, id commonids.SpringCloudServiceId) (result StoragesListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) StoragesList(ctx context.Context, id SpringId) (resul
 }
 
 // StoragesListComplete retrieves all the results into a single object
-func (c AppPlatformClient) StoragesListComplete(ctx context.Context, id SpringId) (StoragesListCompleteResult, error) {
+func (c AppPlatformClient) StoragesListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (StoragesListCompleteResult, error) {
 	return c.StoragesListCompleteMatchingPredicate(ctx, id, StorageResourceOperationPredicate{})
 }
 
 // StoragesListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) StoragesListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate StorageResourceOperationPredicate) (result StoragesListCompleteResult, err error) {
+func (c AppPlatformClient) StoragesListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate StorageResourceOperationPredicate) (result StoragesListCompleteResult, err error) {
 	items := make([]StorageResource, 0)
 
 	resp, err := c.StoragesList(ctx, id)

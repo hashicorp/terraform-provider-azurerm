@@ -110,7 +110,7 @@ The following arguments are supported:
 
 -> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is `true`.
+* `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). Defaults to `true`.
 
 ~> **Note:** Terraform uses Shared Key Authorisation to provision Storage Containers, Blobs and other items - when Shared Key Access is disabled, you will need to enable [the `storage_use_azuread` flag in the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#storage_use_azuread) to use Azure AD for authentication, however not all Azure Storage services support Active Directory authentication.
 
@@ -324,11 +324,11 @@ A `network_rules` block supports the following:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional) Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
-* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. /31 CIDRs, /32 CIDRs, and Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)),  are not allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. /31 CIDRs, /32 CIDRs, and Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)), are not allowed.
 
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
-* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
+* `private_link_access` - (Optional) One or more `private_link_access` block as defined below.
 
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
@@ -454,49 +454,129 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_blob_host` - The hostname with port if applicable for blob storage in the primary location.
 
+* `primary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the primary location.
+
+* `primary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the primary location.
+
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
 
 * `secondary_blob_host` - The hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the secondary location.
 
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
 * `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
 
+* `primary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the primary location.
+
+* `primary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the primary location.
+
 * `secondary_queue_endpoint` - The endpoint URL for queue storage in the secondary location.
 
 * `secondary_queue_host` - The hostname with port if applicable for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the secondary location.
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 
 * `primary_table_host` - The hostname with port if applicable for table storage in the primary location.
 
+* `primary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the primary location.
+
+* `primary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the primary location.
+
 * `secondary_table_endpoint` - The endpoint URL for table storage in the secondary location.
 
 * `secondary_table_host` - The hostname with port if applicable for table storage in the secondary location.
+
+* `secondary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the secondary location.
+
+* `secondary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the secondary location.
 
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 
 * `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
 
+* `primary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the primary location.
+
+* `primary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the primary location.
+
+* `primary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the primary location.
+
+* `primary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the primary location.
+
 * `secondary_file_endpoint` - The endpoint URL for file storage in the secondary location.
 
 * `secondary_file_host` - The hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the secondary location.
 
 * `primary_dfs_endpoint` - The endpoint URL for DFS storage in the primary location.
 
 * `primary_dfs_host` - The hostname with port if applicable for DFS storage in the primary location.
 
+* `primary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the primary location.
+
 * `secondary_dfs_endpoint` - The endpoint URL for DFS storage in the secondary location.
 
 * `secondary_dfs_host` - The hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the secondary location.
 
 * `primary_web_endpoint` - The endpoint URL for web storage in the primary location.
 
 * `primary_web_host` - The hostname with port if applicable for web storage in the primary location.
 
+* `primary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the primary location.
+
+* `primary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the primary location.
+
+* `primary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the primary location.
+
+* `primary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the primary location.
+
 * `secondary_web_endpoint` - The endpoint URL for web storage in the secondary location.
 
 * `secondary_web_host` - The hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the secondary location.
 
 * `primary_access_key` - The primary access key for the storage account.
 

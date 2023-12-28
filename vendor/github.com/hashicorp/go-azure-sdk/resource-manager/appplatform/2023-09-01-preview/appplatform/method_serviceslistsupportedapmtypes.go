@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ServicesListSupportedApmTypesCompleteResult struct {
 }
 
 // ServicesListSupportedApmTypes ...
-func (c AppPlatformClient) ServicesListSupportedApmTypes(ctx context.Context, id SpringId) (result ServicesListSupportedApmTypesOperationResponse, err error) {
+func (c AppPlatformClient) ServicesListSupportedApmTypes(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesListSupportedApmTypesOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ServicesListSupportedApmTypes(ctx context.Context, id
 }
 
 // ServicesListSupportedApmTypesComplete retrieves all the results into a single object
-func (c AppPlatformClient) ServicesListSupportedApmTypesComplete(ctx context.Context, id SpringId) (ServicesListSupportedApmTypesCompleteResult, error) {
+func (c AppPlatformClient) ServicesListSupportedApmTypesComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ServicesListSupportedApmTypesCompleteResult, error) {
 	return c.ServicesListSupportedApmTypesCompleteMatchingPredicate(ctx, id, SupportedApmTypeOperationPredicate{})
 }
 
 // ServicesListSupportedApmTypesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ServicesListSupportedApmTypesCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate SupportedApmTypeOperationPredicate) (result ServicesListSupportedApmTypesCompleteResult, err error) {
+func (c AppPlatformClient) ServicesListSupportedApmTypesCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate SupportedApmTypeOperationPredicate) (result ServicesListSupportedApmTypesCompleteResult, err error) {
 	items := make([]SupportedApmType, 0)
 
 	resp, err := c.ServicesListSupportedApmTypes(ctx, id)
