@@ -1939,7 +1939,7 @@ resource "azurerm_site_recovery_fabric" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   name                = "acctest-fabric2-%[1]d"
-  location            = azurerm_resource_group.test2.location
+  location            = data.azurerm_extended_locations.test.extended_locations[0]
   depends_on          = [azurerm_site_recovery_fabric.test1]
 }
 
