@@ -148,9 +148,9 @@ resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
   strategy {
     stage {
-      name = "acctestfus-%[2]d"
+      name = "acctestfus-%[2]d-complte"
       group {
-        name = "acctestfus-%[2]d"
+        name = "acctestfus-%[2]d-complete"
       }
       after_stage_wait_in_seconds = 21
     }
