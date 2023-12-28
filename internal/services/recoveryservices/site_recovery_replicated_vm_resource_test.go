@@ -1893,6 +1893,8 @@ func (r SiteRecoveryReplicatedVmResource) withTargetEdgeZone(data acceptance.Tes
 	// WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Secondary = "westus"
 
+	// Enabling protection from Azure to ExtendedLocation is not supported.
+	// The source VM must be on extended location.
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1914,7 +1916,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_resource_group" "test2" {
   name     = "acctestRG-recovery-%[1]d-2"
-  location = "%[3]s"
+  location = "%[2]s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -1978,6 +1980,8 @@ resource "azurerm_virtual_network" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
+
+  edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
 }
 
 resource "azurerm_subnet" "test1" {
@@ -2025,6 +2029,7 @@ resource "azurerm_network_interface" "test" {
     public_ip_address_id          = azurerm_public_ip.test-source.id
   }
 
+  edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -2060,6 +2065,8 @@ resource "azurerm_public_ip" "test-source" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+
+  edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
 }
 
 resource "azurerm_public_ip" "test-recovery" {
