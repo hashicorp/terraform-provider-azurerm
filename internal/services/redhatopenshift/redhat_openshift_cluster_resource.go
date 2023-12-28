@@ -31,7 +31,7 @@ type RedHatOpenShiftClusterModel struct {
 	Name             string             `tfschema:"name"`
 	Location         string             `tfschema:"location"`
 	ResourceGroup    string             `tfschema:"resource_group_name"`
-	Version          string             `tfschema:"version"`
+	ClusterVersion   string             `tfschema:"cluster_version"`
 	ConsoleUrl       string             `tfschema:"console_url"`
 	ServicePrincipal []ServicePrincipal `tfschema:"service_principal"`
 	ClusterProfile   []ClusterProfile   `tfschema:"cluster_profile"`
@@ -56,10 +56,9 @@ type ClusterProfile struct {
 }
 
 type NetworkProfile struct {
-	PreconfiguredNsgEnabled bool   `tfschema:"preconfigured_nsg_enabled"`
-	OutboundType            string `tfschema:"outbound_type"`
-	PodCidr                 string `tfschema:"pod_cidr"`
-	ServiceCidr             string `tfschema:"service_cidr"`
+	OutboundType string `tfschema:"outbound_type"`
+	PodCidr      string `tfschema:"pod_cidr"`
+	ServiceCidr  string `tfschema:"service_cidr"`
 }
 
 type MainProfile struct {
@@ -165,12 +164,6 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"preconfigured_nsg_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
 					"outbound_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -337,7 +330,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 
 func (r RedHatOpenShiftCluster) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"version": {
+		"cluster_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -393,7 +386,7 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 					ClusterProfile:          expandOpenshiftClusterProfile(config.ClusterProfile, id.SubscriptionId),
 					ServicePrincipalProfile: expandOpenshiftServicePrincipalProfile(config.ServicePrincipal),
 					NetworkProfile:          expandOpenshiftNetworkProfile(config.NetworkProfile),
-					MasterProfile:           expandOpenshiftMasterProfile(config.MainProfile),
+					MasterProfile:           expandOpenshiftMainProfile(config.MainProfile),
 					WorkerProfiles:          expandOpenshiftWorkerProfiles(config.WorkerProfile),
 					ApiserverProfile:        expandOpenshiftApiServerProfile(config.ApiServerProfile),
 					IngressProfiles:         expandOpenshiftIngressProfiles(config.IngressProfile),
@@ -503,7 +496,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 					}
 
 					if props.ClusterProfile != nil {
-						state.Version = pointer.From(props.ClusterProfile.Version)
+						state.ClusterVersion = pointer.From(props.ClusterProfile.Version)
 					}
 				}
 			}
@@ -515,6 +508,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 
 func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -529,7 +523,26 @@ func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
-		Timeout: 90 * time.Minute,
+	}
+}
+
+func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string) *openshiftclusters.ClusterProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	fipsValidatedModules := openshiftclusters.FipsValidatedModulesDisabled
+	if input[0].FipsEnabled {
+		fipsValidatedModules = openshiftclusters.FipsValidatedModulesEnabled
+	}
+
+	return &openshiftclusters.ClusterProfile{
+		// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
+		// resource id being `aro-{domain}` so we'll follow that here.
+		ResourceGroupId:      pointer.To(commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", input[0].Domain)).ID()),
+		Domain:               pointer.To(input[0].Domain),
+		PullSecret:           pointer.To(input[0].PullSecret),
+		FipsValidatedModules: pointer.To(fipsValidatedModules),
 	}
 }
 
@@ -553,6 +566,17 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) [
 	}
 }
 
+func expandOpenshiftServicePrincipalProfile(input []ServicePrincipal) *openshiftclusters.ServicePrincipalProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &openshiftclusters.ServicePrincipalProfile{
+		ClientId:     pointer.To(input[0].ClientId),
+		ClientSecret: pointer.To(input[0].ClientSecret),
+	}
+}
+
 func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServicePrincipalProfile, config RedHatOpenShiftClusterModel) []ServicePrincipal {
 	if profile == nil {
 		return []ServicePrincipal{}
@@ -572,6 +596,18 @@ func flattenOpenShiftServicePrincipalProfile(profile *openshiftclusters.ServiceP
 	}
 }
 
+func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.NetworkProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &openshiftclusters.NetworkProfile{
+		OutboundType: pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
+		PodCidr:      pointer.To(input[0].PodCidr),
+		ServiceCidr:  pointer.To(input[0].ServiceCidr),
+	}
+}
+
 func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) []NetworkProfile {
 	if profile == nil {
 		return []NetworkProfile{}
@@ -579,11 +615,28 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 
 	return []NetworkProfile{
 		{
-			PreconfiguredNsgEnabled: profile.PreconfiguredNSG != nil && *profile.PreconfiguredNSG == openshiftclusters.PreconfiguredNSGEnabled,
-			OutboundType:            string(pointer.From(profile.OutboundType)),
-			PodCidr:                 pointer.From(profile.PodCidr),
-			ServiceCidr:             pointer.From(profile.ServiceCidr),
+			OutboundType: string(pointer.From(profile.OutboundType)),
+			PodCidr:      pointer.From(profile.PodCidr),
+			ServiceCidr:  pointer.From(profile.ServiceCidr),
 		},
+	}
+}
+
+func expandOpenshiftMainProfile(input []MainProfile) *openshiftclusters.MasterProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	encryptionAtHost := openshiftclusters.EncryptionAtHostDisabled
+	if input[0].EncryptionAtHostEnabled {
+		encryptionAtHost = openshiftclusters.EncryptionAtHostEnabled
+	}
+
+	return &openshiftclusters.MasterProfile{
+		VMSize:              pointer.To(input[0].VmSize),
+		SubnetId:            pointer.To(input[0].SubnetId),
+		EncryptionAtHost:    pointer.To(encryptionAtHost),
+		DiskEncryptionSetId: pointer.To(input[0].DiskEncryptionSetId),
 	}
 }
 
@@ -605,6 +658,33 @@ func flattenOpenShiftMainProfile(profile *openshiftclusters.MasterProfile) []Mai
 			DiskEncryptionSetId:     pointer.From(profile.DiskEncryptionSetId),
 		},
 	}
+}
+
+func expandOpenshiftWorkerProfiles(input []WorkerProfile) *[]openshiftclusters.WorkerProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	profiles := make([]openshiftclusters.WorkerProfile, 0)
+
+	encryptionAtHost := openshiftclusters.EncryptionAtHostDisabled
+	if input[0].EncryptionAtHostEnabled {
+		encryptionAtHost = openshiftclusters.EncryptionAtHostEnabled
+	}
+
+	profile := openshiftclusters.WorkerProfile{
+		Name:                pointer.To("worker"),
+		VMSize:              pointer.To(input[0].VmSize),
+		DiskSizeGB:          pointer.To(input[0].DiskSizeGb),
+		SubnetId:            pointer.To(input[0].SubnetId),
+		Count:               pointer.To(input[0].NodeCount),
+		EncryptionAtHost:    pointer.To(encryptionAtHost),
+		DiskEncryptionSetId: pointer.To(input[0].DiskEncryptionSetId),
+	}
+
+	profiles = append(profiles, profile)
+
+	return &profiles
 }
 
 func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile) ([]WorkerProfile, error) {
@@ -641,6 +721,18 @@ func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile)
 	}, nil
 }
 
+func expandOpenshiftApiServerProfile(input []ApiServerProfile) *openshiftclusters.APIServerProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	visibility := openshiftclusters.Visibility(input[0].Visibility)
+
+	return &openshiftclusters.APIServerProfile{
+		Visibility: &visibility,
+	}
+}
+
 func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfile) []ApiServerProfile {
 	if profile == nil {
 		return []ApiServerProfile{}
@@ -652,130 +744,6 @@ func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfil
 			Url:        pointer.From(profile.Url),
 			IpAddress:  pointer.From(profile.IP),
 		},
-	}
-}
-
-func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfile) []IngressProfile {
-	if profiles == nil {
-		return []IngressProfile{}
-	}
-
-	results := make([]IngressProfile, 0)
-
-	for _, profile := range *profiles {
-		results = append(results, IngressProfile{
-			Visibility: string(pointer.From(profile.Visibility)),
-			IpAddress:  pointer.From(profile.IP),
-			Name:       pointer.From(profile.Name),
-		})
-	}
-
-	return results
-}
-
-func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string) *openshiftclusters.ClusterProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	fipsValidatedModules := openshiftclusters.FipsValidatedModulesDisabled
-	if input[0].FipsEnabled {
-		fipsValidatedModules = openshiftclusters.FipsValidatedModulesEnabled
-	}
-
-	return &openshiftclusters.ClusterProfile{
-		// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
-		// resource id being `aro-{domain}` so we'll follow that here.
-		ResourceGroupId:      pointer.To(commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", input[0].Domain)).ID()),
-		Domain:               pointer.To(input[0].Domain),
-		PullSecret:           pointer.To(input[0].PullSecret),
-		FipsValidatedModules: pointer.To(fipsValidatedModules),
-	}
-}
-
-func expandOpenshiftServicePrincipalProfile(input []ServicePrincipal) *openshiftclusters.ServicePrincipalProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	return &openshiftclusters.ServicePrincipalProfile{
-		ClientId:     pointer.To(input[0].ClientId),
-		ClientSecret: pointer.To(input[0].ClientSecret),
-	}
-}
-
-func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.NetworkProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	preconfiguredNsg := openshiftclusters.PreconfiguredNSGDisabled
-	if input[0].PreconfiguredNsgEnabled {
-		preconfiguredNsg = openshiftclusters.PreconfiguredNSGEnabled
-	}
-
-	return &openshiftclusters.NetworkProfile{
-		OutboundType:     pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
-		PreconfiguredNSG: pointer.To(preconfiguredNsg),
-		PodCidr:          pointer.To(input[0].PodCidr),
-		ServiceCidr:      pointer.To(input[0].ServiceCidr),
-	}
-}
-
-func expandOpenshiftMasterProfile(input []MainProfile) *openshiftclusters.MasterProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	encryptionAtHost := openshiftclusters.EncryptionAtHostDisabled
-	if input[0].EncryptionAtHostEnabled {
-		encryptionAtHost = openshiftclusters.EncryptionAtHostEnabled
-	}
-
-	return &openshiftclusters.MasterProfile{
-		VMSize:              pointer.To(input[0].VmSize),
-		SubnetId:            pointer.To(input[0].SubnetId),
-		EncryptionAtHost:    pointer.To(encryptionAtHost),
-		DiskEncryptionSetId: pointer.To(input[0].DiskEncryptionSetId),
-	}
-}
-
-func expandOpenshiftWorkerProfiles(input []WorkerProfile) *[]openshiftclusters.WorkerProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	profiles := make([]openshiftclusters.WorkerProfile, 0)
-
-	encryptionAtHost := openshiftclusters.EncryptionAtHostDisabled
-	if input[0].EncryptionAtHostEnabled {
-		encryptionAtHost = openshiftclusters.EncryptionAtHostEnabled
-	}
-
-	profile := openshiftclusters.WorkerProfile{
-		Name:                pointer.To("worker"),
-		VMSize:              pointer.To(input[0].VmSize),
-		DiskSizeGB:          pointer.To(input[0].DiskSizeGb),
-		SubnetId:            pointer.To(input[0].SubnetId),
-		Count:               pointer.To(input[0].NodeCount),
-		EncryptionAtHost:    pointer.To(encryptionAtHost),
-		DiskEncryptionSetId: pointer.To(input[0].DiskEncryptionSetId),
-	}
-
-	profiles = append(profiles, profile)
-
-	return &profiles
-}
-
-func expandOpenshiftApiServerProfile(input []ApiServerProfile) *openshiftclusters.APIServerProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	visibility := openshiftclusters.Visibility(input[0].Visibility)
-
-	return &openshiftclusters.APIServerProfile{
-		Visibility: &visibility,
 	}
 }
 
@@ -794,4 +762,22 @@ func expandOpenshiftIngressProfiles(input []IngressProfile) *[]openshiftclusters
 	profiles = append(profiles, profile)
 
 	return &profiles
+}
+
+func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfile) []IngressProfile {
+	if profiles == nil {
+		return []IngressProfile{}
+	}
+
+	results := make([]IngressProfile, 0)
+
+	for _, profile := range *profiles {
+		results = append(results, IngressProfile{
+			Visibility: string(pointer.From(profile.Visibility)),
+			IpAddress:  pointer.From(profile.IP),
+			Name:       pointer.From(profile.Name),
+		})
+	}
+
+	return results
 }
