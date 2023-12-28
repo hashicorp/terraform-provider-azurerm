@@ -38,23 +38,9 @@ func ParseAvailabilityGroupListenerID(input string) (*AvailabilityGroupListenerI
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AvailabilityGroupListenerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
-	}
-
-	if id.AvailabilityGroupListenerName, ok = parsed.Parsed["availabilityGroupListenerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "availabilityGroupListenerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseAvailabilityGroupListenerIDInsensitively(input string) (*AvailabilityG
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AvailabilityGroupListenerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
-	}
-
-	if id.AvailabilityGroupListenerName, ok = parsed.Parsed["availabilityGroupListenerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "availabilityGroupListenerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AvailabilityGroupListenerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SqlVirtualMachineGroupName, ok = input.Parsed["sqlVirtualMachineGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", input)
+	}
+
+	if id.AvailabilityGroupListenerName, ok = input.Parsed["availabilityGroupListenerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "availabilityGroupListenerName", input)
+	}
+
+	return nil
 }
 
 // ValidateAvailabilityGroupListenerID checks that 'input' can be parsed as a Availability Group Listener ID

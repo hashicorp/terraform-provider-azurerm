@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ConfigurationServicesListCompleteResult struct {
 }
 
 // ConfigurationServicesList ...
-func (c AppPlatformClient) ConfigurationServicesList(ctx context.Context, id SpringId) (result ConfigurationServicesListOperationResponse, err error) {
+func (c AppPlatformClient) ConfigurationServicesList(ctx context.Context, id commonids.SpringCloudServiceId) (result ConfigurationServicesListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ConfigurationServicesList(ctx context.Context, id Spr
 }
 
 // ConfigurationServicesListComplete retrieves all the results into a single object
-func (c AppPlatformClient) ConfigurationServicesListComplete(ctx context.Context, id SpringId) (ConfigurationServicesListCompleteResult, error) {
+func (c AppPlatformClient) ConfigurationServicesListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ConfigurationServicesListCompleteResult, error) {
 	return c.ConfigurationServicesListCompleteMatchingPredicate(ctx, id, ConfigurationServiceResourceOperationPredicate{})
 }
 
 // ConfigurationServicesListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ConfigurationServicesListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate ConfigurationServiceResourceOperationPredicate) (result ConfigurationServicesListCompleteResult, err error) {
+func (c AppPlatformClient) ConfigurationServicesListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate ConfigurationServiceResourceOperationPredicate) (result ConfigurationServicesListCompleteResult, err error) {
 	items := make([]ConfigurationServiceResource, 0)
 
 	resp, err := c.ConfigurationServicesList(ctx, id)

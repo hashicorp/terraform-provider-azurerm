@@ -25,6 +25,7 @@ type SpringCloudCustomizedAcceleratorModel struct {
 	Name                     string               `tfschema:"name"`
 	SpringCloudAcceleratorId string               `tfschema:"spring_cloud_accelerator_id"`
 	AcceleratorTags          []string             `tfschema:"accelerator_tags"`
+	AcceleratorType          string               `tfschema:"accelerator_type"`
 	Description              string               `tfschema:"description"`
 	DisplayName              string               `tfschema:"display_name"`
 	GitRepository            []GitRepositoryModel `tfschema:"git_repository"`
@@ -40,6 +41,7 @@ type GitRepositoryModel struct {
 	GitTag            string           `tfschema:"git_tag"`
 	IntervalInSeconds int64            `tfschema:"interval_in_seconds"`
 	Url               string           `tfschema:"url"`
+	Path              string           `tfschema:"path"`
 }
 
 type BasicAuthModel struct {
@@ -189,6 +191,12 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(10),
 					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 				},
 			},
 		},
@@ -200,6 +208,16 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+		},
+
+		"accelerator_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  appplatform.CustomizedAcceleratorTypeAccelerator,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(appplatform.CustomizedAcceleratorTypeAccelerator),
+				string(appplatform.CustomizedAcceleratorTypeFragment),
+			}, false),
 		},
 
 		"description": {
@@ -252,6 +270,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Create() sdk.ResourceFunc {
 
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
 				Properties: &appplatform.CustomizedAcceleratorProperties{
+					AcceleratorType: pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType)),
 					DisplayName:     pointer.To(model.DisplayName),
 					Description:     pointer.To(model.Description),
 					IconUrl:         pointer.To(model.IconUrl),
@@ -302,6 +321,10 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("accelerator_tags") {
 				properties.AcceleratorTags = &model.AcceleratorTags
+			}
+
+			if metadata.ResourceData.HasChange("accelerator_type") {
+				properties.AcceleratorType = pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType))
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -356,6 +379,9 @@ func (s SpringCloudCustomizedAcceleratorResource) Read() sdk.ResourceFunc {
 			if props := resp.Model.Properties; props != nil {
 				if props.AcceleratorTags != nil {
 					state.AcceleratorTags = *props.AcceleratorTags
+				}
+				if props.AcceleratorType != nil {
+					state.AcceleratorType = string(*props.AcceleratorType)
 				}
 				if props.Description != nil {
 					state.Description = *props.Description
@@ -436,6 +462,7 @@ func expandSpringCloudCustomizedAcceleratorGitRepository(repository []GitReposit
 		Commit:      pointer.To(repo.Commit),
 		GitTag:      pointer.To(repo.GitTag),
 		AuthSetting: authSetting,
+		SubPath:     pointer.To(repo.Path),
 	}
 	if repo.IntervalInSeconds != 0 {
 		res.IntervalInSeconds = pointer.To(repo.IntervalInSeconds)
@@ -499,6 +526,11 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 		intervalInSeconds = *input.IntervalInSeconds
 	}
 
+	subPath := ""
+	if input.SubPath != nil {
+		subPath = *input.SubPath
+	}
+
 	url := input.Url
 
 	return []GitRepositoryModel{
@@ -511,6 +543,7 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 			GitTag:            gitTag,
 			IntervalInSeconds: intervalInSeconds,
 			Url:               url,
+			Path:              subPath,
 		},
 	}
 }

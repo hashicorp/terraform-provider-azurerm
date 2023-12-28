@@ -38,23 +38,9 @@ func ParseCollectorPolicyID(input string) (*CollectorPolicyId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CollectorPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AzureTrafficCollectorName, ok = parsed.Parsed["azureTrafficCollectorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "azureTrafficCollectorName", *parsed)
-	}
-
-	if id.CollectorPolicyName, ok = parsed.Parsed["collectorPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "collectorPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseCollectorPolicyIDInsensitively(input string) (*CollectorPolicyId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CollectorPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AzureTrafficCollectorName, ok = parsed.Parsed["azureTrafficCollectorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "azureTrafficCollectorName", *parsed)
-	}
-
-	if id.CollectorPolicyName, ok = parsed.Parsed["collectorPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "collectorPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CollectorPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AzureTrafficCollectorName, ok = input.Parsed["azureTrafficCollectorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "azureTrafficCollectorName", input)
+	}
+
+	if id.CollectorPolicyName, ok = input.Parsed["collectorPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "collectorPolicyName", input)
+	}
+
+	return nil
 }
 
 // ValidateCollectorPolicyID checks that 'input' can be parsed as a Collector Policy ID

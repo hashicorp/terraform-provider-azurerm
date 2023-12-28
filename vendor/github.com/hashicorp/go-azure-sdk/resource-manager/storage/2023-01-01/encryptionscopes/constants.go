@@ -1,6 +1,10 @@
 package encryptionscopes
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEncryptionScopeSource() []string {
 		string(EncryptionScopeSourceMicrosoftPointKeyVault),
 		string(EncryptionScopeSourceMicrosoftPointStorage),
 	}
+}
+
+func (s *EncryptionScopeSource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionScopeSource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEncryptionScopeSource(input string) (*EncryptionScopeSource, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForEncryptionScopeState() []string {
 	}
 }
 
+func (s *EncryptionScopeState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionScopeState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEncryptionScopeState(input string) (*EncryptionScopeState, error) {
 	vals := map[string]EncryptionScopeState{
 		"disabled": EncryptionScopeStateDisabled,
@@ -75,6 +105,19 @@ func PossibleValuesForListEncryptionScopesInclude() []string {
 		string(ListEncryptionScopesIncludeDisabled),
 		string(ListEncryptionScopesIncludeEnabled),
 	}
+}
+
+func (s *ListEncryptionScopesInclude) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseListEncryptionScopesInclude(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseListEncryptionScopesInclude(input string) (*ListEncryptionScopesInclude, error) {

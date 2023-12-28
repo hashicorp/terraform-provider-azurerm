@@ -1696,7 +1696,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressId = &publicIPAddressID
 		}
 
-		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(config["zones"].(*schema.Set).List())
 		if len(zones) > 0 {
 			additionalLocation.Zones = &zones
 		}
@@ -2239,7 +2239,7 @@ Terraform can automatically recover the soft-deleted API Management when this be
 enabled within the "features" block (located within the "provider" block) - more
 information can be found here:
 
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 
 Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
 this into Terraform via "terraform import", or pick a different name/location.

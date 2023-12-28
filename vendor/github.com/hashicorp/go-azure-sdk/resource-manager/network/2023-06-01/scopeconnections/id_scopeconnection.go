@@ -38,23 +38,9 @@ func ParseScopeConnectionID(input string) (*ScopeConnectionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.ScopeConnectionName, ok = parsed.Parsed["scopeConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseScopeConnectionIDInsensitively(input string) (*ScopeConnectionId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.ScopeConnectionName, ok = parsed.Parsed["scopeConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopeConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkManagerName, ok = input.Parsed["networkManagerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", input)
+	}
+
+	if id.ScopeConnectionName, ok = input.Parsed["scopeConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scopeConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopeConnectionID checks that 'input' can be parsed as a Scope Connection ID

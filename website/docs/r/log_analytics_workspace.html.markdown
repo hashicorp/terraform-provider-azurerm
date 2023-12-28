@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `cmk_for_query_forced` - (Optional) Is Customer Managed Storage mandatory for query management?
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `internet_ingestion_enabled` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
@@ -67,9 +69,21 @@ The following arguments are supported:
 
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to use for this workspace.
 
+* `immediate_data_purge_on_30_days_enabled` - (Optional) Whether to remove the data in the Log Analytics Workspace immediately after 30 days.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Log Analytics Workspace. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you) and `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Log Analytics Workspace has been created.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ## Attributes Reference
 

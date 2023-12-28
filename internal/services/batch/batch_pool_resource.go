@@ -1208,7 +1208,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								extension["settings_json"] = item.Settings
+								extension["settings_json"], err = pluginsdk.FlattenJsonToString((*item.Settings).(map[string]interface{}))
+								if err != nil {
+									return fmt.Errorf("flattening `settings_json`: %+v", err)
+								}
 							}
 
 							for i := 0; i < n; i++ {

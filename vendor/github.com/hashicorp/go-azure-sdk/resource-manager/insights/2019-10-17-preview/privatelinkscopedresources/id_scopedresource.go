@@ -38,23 +38,9 @@ func ParseScopedResourceID(input string) (*ScopedResourceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedResourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
-	}
-
-	if id.ScopedResourceName, ok = parsed.Parsed["scopedResourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopedResourceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseScopedResourceIDInsensitively(input string) (*ScopedResourceId, error)
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedResourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
-	}
-
-	if id.ScopedResourceName, ok = parsed.Parsed["scopedResourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopedResourceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedResourceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrivateLinkScopeName, ok = input.Parsed["privateLinkScopeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", input)
+	}
+
+	if id.ScopedResourceName, ok = input.Parsed["scopedResourceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scopedResourceName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedResourceID checks that 'input' can be parsed as a Scoped Resource ID

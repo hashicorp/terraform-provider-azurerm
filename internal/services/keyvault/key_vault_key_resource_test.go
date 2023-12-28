@@ -382,15 +382,16 @@ func TestAccKeyVaultKey_RotationPolicyUnauthorized(t *testing.T) {
 }
 
 func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.KeyVault.ManagementClient
-	keyVaultsClient := clients.KeyVault
+	client := clients.KeyVault
+	subscriptionId := clients.Account.SubscriptionId
 
 	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -399,12 +400,12 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	ok, err := client.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := client.ManagementClient.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Key Vault Key %q: %+v", state.ID, err)
 	}

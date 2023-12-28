@@ -100,6 +100,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"capacity": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			Default:      20,
 			ValidateFunc: validation.IntPositive,
 		},
 

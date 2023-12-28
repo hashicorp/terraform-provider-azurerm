@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -145,6 +145,10 @@ func resourceRedisCache() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"active_directory_authentication_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"maxclients": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
@@ -223,6 +227,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
+						},
+						"storage_account_subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -466,7 +475,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Scaling", "Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating", "ConfiguringAAD"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, id),
 		MinTimeout: 15 * time.Second,
@@ -570,7 +579,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for %s to become available", *id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion"},
+		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion", "ConfiguringAAD"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
@@ -821,9 +830,24 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		output.MaxmemoryPolicy = utils.String(v)
 	}
 
+	// AAD/Entra support
+	// nolint : staticcheck
+	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
+	if valExists {
+		entraEnabled := v.(bool)
+
+		// active_directory_authentication_enabled is available when SKU is Premium
+		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+
+			output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
+		} else if entraEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			return nil, fmt.Errorf("The `active_directory_authentication_enabled` property requires a `Premium` sku to be set")
+		}
+	}
+
 	// RDB Backup
 	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
+	v, valExists = d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		rdbBackupEnabled := v.(bool)
 
@@ -883,6 +907,10 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		value := isAuthNotRequiredAsString(authEnabled)
 		output.Authnotrequired = utils.String(value)
 	}
+
+	if v := raw["storage_account_subscription_id"].(string); v != "" {
+		output.StorageSubscriptionId = pointer.To(v)
+	}
 	return output, nil
 }
 
@@ -938,6 +966,14 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 
 func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
 	outputs := make(map[string]interface{})
+
+	if input.AadEnabled != nil {
+		a, err := strconv.ParseBool(*input.AadEnabled)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `aad-enabled` %q: %+v", *input.AadEnabled, err)
+		}
+		outputs["active_directory_authentication_enabled"] = a
+	}
 
 	if input.Maxclients != nil {
 		i, err := strconv.Atoi(*input.Maxclients)
@@ -1020,6 +1056,8 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	if v := input.Authnotrequired; v != nil {
 		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
 	}
+
+	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)
 
 	return []interface{}{outputs}, nil
 }

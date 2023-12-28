@@ -74,7 +74,7 @@ func TestAccVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 
 	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnettovnet(data1, data2.RandomInteger, sharedKey),
+			Config: r.vnettovnet(data1, data1.RandomInteger, data2.RandomInteger, sharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
@@ -177,7 +177,7 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 
 	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnettovnet(data1, data2.RandomInteger, firstSharedKey),
+			Config: r.vnettovnet(data1, data1.RandomInteger, data2.RandomInteger, firstSharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
@@ -186,7 +186,7 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 			),
 		},
 		{
-			Config: r.vnettovnet(data1, data2.RandomInteger, secondSharedKey),
+			Config: r.vnettovnet(data1, data1.RandomInteger, data2.RandomInteger, secondSharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
@@ -444,7 +444,7 @@ resource "azurerm_virtual_network_gateway_connection" "import" {
 `, r.sitetosite(data))
 }
 
-func (VirtualNetworkGatewayConnectionResource) vnettovnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
+func (VirtualNetworkGatewayConnectionResource) vnettovnet(data acceptance.TestData, rInt1 int, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
 variable "random1" {
   default = "%d"
@@ -567,7 +567,7 @@ resource "azurerm_virtual_network_gateway_connection" "test_2" {
 
   shared_key = var.shared_key
 }
-`, data.RandomInteger, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
+`, rInt1, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func (VirtualNetworkGatewayConnectionResource) ipsecpolicy(data acceptance.TestData) string {
