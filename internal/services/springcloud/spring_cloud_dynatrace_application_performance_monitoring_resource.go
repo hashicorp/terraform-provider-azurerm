@@ -3,6 +3,7 @@ package springcloud
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -51,7 +52,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments(
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(appplatform.SpringId{}),
+		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.SpringCloudServiceId{}),
 
 		"connection_point": {
 			Type:         pluginsdk.TypeString,
@@ -114,11 +115,11 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Create() s
 			}
 
 			client := metadata.Client.AppPlatform.AppPlatformClient
-			springId, err := appplatform.ParseSpringID(model.SpringCloudServiceId)
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.SpringName, model.Name)
+			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
 			existing, err := client.ApmsGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -234,7 +235,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Update() s
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
 				}
-				springId := appplatform.NewSpringID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
+				springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 				if model.GloballyEnabled {
 					err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference)
 					if err != nil {
@@ -273,7 +274,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Read() sdk
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			springId := appplatform.NewSpringID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
+			springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 			result, err := client.ServicesListGloballyEnabledApms(ctx, springId)
 			if err != nil {
 				return fmt.Errorf("listing globally enabled apms: %+v", err)
