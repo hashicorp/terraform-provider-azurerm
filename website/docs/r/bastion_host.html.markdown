@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** `ip_configuration` can be changed while upgrading `Developer` SKU to other SKUs.
+~> **Note:** `ip_configuration` can be changed without re-creation only when upgrading `Developer` SKU to other SKUs.
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network for the Bastion Host with `Developer` SKU. Changing this forces a new resource to be created.
 
-~> **Note:** `virtual_network_id` cannot be changed when `sku` is `Developer`.
+~> **Note:** Changing `virtual_network_id` will force a new resource to be created when `sku` is `Developer`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

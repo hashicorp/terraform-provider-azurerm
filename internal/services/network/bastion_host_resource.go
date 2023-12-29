@@ -6,7 +6,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -162,7 +161,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 				return false
 			}),
 
-			pluginsdk.ForceNewIf("virtual_network_id", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+			pluginsdk.ForceNewIf("virtual_network_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) bool {
+				// `virtual_network_id` cannot be changed when `sku` is `Developer`.
 				if d.HasChange("virtual_network_id") {
 					old, new := d.GetChange("sku")
 					if old.(string) != "" && new.(string) != "" {
@@ -174,16 +174,17 @@ func resourceBastionHost() *pluginsdk.Resource {
 				return false
 			}),
 
-			pluginsdk.ForceNewIf("ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+			pluginsdk.ForceNewIf("ip_configuration", func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) bool {
+				// `ip_configuration` can be changed while upgrading `Developer` SKU to other SKUs.
 				if d.HasChange("ip_configuration") {
 					old, new := d.GetChange("sku")
 					if old.(string) != "" && new.(string) != "" {
-						if skuWeight[old.(string)] == 1 && skuWeight[old.(string)] < skuWeight[new.(string)] {
-							return true
+						if skuWeight[old.(string)] == 1 && skuWeight[old.(string)] <= skuWeight[new.(string)] {
+							return false
 						}
 					}
 				}
-				return false
+				return true
 			}),
 		),
 	}
