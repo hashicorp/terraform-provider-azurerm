@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -76,7 +77,6 @@ func resourceBastionHost() *pluginsdk.Resource {
 
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
-				ForceNew: true,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -158,6 +158,30 @@ func resourceBastionHost() *pluginsdk.Resource {
 				// downgrade the SKU is not supported, recreate the resource
 				if old.(string) != "" && new.(string) != "" {
 					return skuWeight[old.(string)] > skuWeight[new.(string)]
+				}
+				return false
+			}),
+
+			pluginsdk.ForceNewIf("virtual_network_id", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				if d.HasChange("virtual_network_id") {
+					old, new := d.GetChange("sku")
+					if old.(string) != "" && new.(string) != "" {
+						if skuWeight[old.(string)] == 1 && skuWeight[old.(string)] == skuWeight[new.(string)] {
+							return true
+						}
+					}
+				}
+				return false
+			}),
+
+			pluginsdk.ForceNewIf("ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				if d.HasChange("ip_configuration") {
+					old, new := d.GetChange("sku")
+					if old.(string) != "" && new.(string) != "" {
+						if skuWeight[old.(string)] == 1 && skuWeight[old.(string)] < skuWeight[new.(string)] {
+							return true
+						}
+					}
 				}
 				return false
 			}),
@@ -252,6 +276,8 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.VirtualNetwork = &bastionhosts.SubResource{
 			Id: utils.String(v.(string)),
 		}
+	} else if sku == string(bastionhosts.BastionHostSkuNameDeveloper) {
+		return fmt.Errorf("`virtual_network_id` is required when `sku` is `Developer`")
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {

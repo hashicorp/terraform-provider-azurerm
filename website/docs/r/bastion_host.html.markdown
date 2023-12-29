@@ -72,13 +72,15 @@ The following arguments are supported:
 
 ~> **Note:** `file_copy_enabled` is only supported when `sku` is `Standard`.
 
-* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Basic`, `Developer` and `Standard`. Defaults to `Basic`.
+* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic` and `Standard`. Defaults to `Basic`.
 
 ~> **Note** Downgrading the SKU will force a new resource to be created.
 
 ~> **Note** The Bastion Host with `Developer` SKU must not contain IP Configuration.
 
 * `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** `ip_configuration` can be changed while upgrading `Developer` SKU to other SKUs.
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
@@ -96,7 +98,9 @@ The following arguments are supported:
 
 ~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard`.
 
-* `virtual_network_id` - (Optional) The ID of the Virtual Network for the Bastion Host with `Developer` SKU.
+* `virtual_network_id` - (Optional) The ID of the Virtual Network for the Bastion Host with `Developer` SKU. Changing this forces a new resource to be created.
+
+~> **Note:** `virtual_network_id` cannot be changed when `sku` is `Developer`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

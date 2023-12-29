@@ -32,6 +32,21 @@ func TestAccBastionHost_basic(t *testing.T) {
 	})
 }
 
+func TestAccBastionHost_developerSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
+	r := BastionHostResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.developerSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccBastionHost_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
 	r := BastionHostResource{}
@@ -92,22 +107,15 @@ func TestAccBastionHost_sku(t *testing.T) {
 	r := BastionHostResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.sku(data, "Basic"),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
-		//{
-		//	Config: r.sku(data, "Standard"),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
 		{
-			Config: r.developerSku(data),
+			Config: r.sku(data, "Basic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sku(data, "Standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -202,14 +210,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["192.168.1.224/27"]
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "acctestBastionPIP%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
 resource "azurerm_bastion_host" "test" {
   name                = "acctestBastion%s"
   location            = azurerm_resource_group.test.location
@@ -217,9 +217,9 @@ resource "azurerm_bastion_host" "test" {
   sku                 = "Developer"
   virtual_network_id  = azurerm_virtual_network.test.id
 
-  depends_on = [azurerm_subnet.test, azurerm_public_ip.test]
+  depends_on = [azurerm_subnet.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (BastionHostResource) complete(data acceptance.TestData) string {
