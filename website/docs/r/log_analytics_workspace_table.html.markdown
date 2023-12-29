@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The object ID of the Log Analytics Workspace that contains the table.
 
-* `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic. Defaults to `Analytics`.
+* `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic`. Defaults to `Analytics`.
 
 -> **Note:** The `name` of tables currently support `Basic` plan can be found in [this article](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/basic-logs-configure?tabs=portal-1#supported-tables) for further details.
 

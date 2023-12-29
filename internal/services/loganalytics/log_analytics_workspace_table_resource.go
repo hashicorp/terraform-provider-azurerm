@@ -37,7 +37,7 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if string(tables.TablePlanEnumBasic) == rd.Get("plan").(string) {
 				if _, ok := rd.GetOk("retention_in_days"); ok {
-					return fmt.Errorf("cannot set retention_in_days as it is immutabl on Basic plan")
+					return fmt.Errorf("cannot set retention_in_days as it is immutable on Basic plan")
 				}
 			}
 
