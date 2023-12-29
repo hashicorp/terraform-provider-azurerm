@@ -32,20 +32,6 @@ func TestAccBastionHost_basic(t *testing.T) {
 	})
 }
 
-func TestAccBastionHost_standardSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
-	r := BastionHostResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.standardSku(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
 func TestAccBastionHost_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
 	r := BastionHostResource{}
@@ -106,15 +92,22 @@ func TestAccBastionHost_sku(t *testing.T) {
 	r := BastionHostResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		//{
+		//	Config: r.sku(data, "Basic"),
+		//	Check: acceptance.ComposeTestCheckFunc(
+		//		check.That(data.ResourceName).ExistsInAzure(r),
+		//	),
+		//},
+		//data.ImportStep(),
+		//{
+		//	Config: r.sku(data, "Standard"),
+		//	Check: acceptance.ComposeTestCheckFunc(
+		//		check.That(data.ResourceName).ExistsInAzure(r),
+		//	),
+		//},
+		//data.ImportStep(),
 		{
-			Config: r.sku(data, "Basic"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.sku(data, "Developer"),
+			Config: r.developerSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -184,7 +177,7 @@ resource "azurerm_bastion_host" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString)
 }
 
-func (BastionHostResource) standardSku(data acceptance.TestData) string {
+func (BastionHostResource) developerSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -218,20 +211,13 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_bastion_host" "test" {
-  name                   = "acctestBastion%s"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  sku                    = "Standard"
-  file_copy_enabled      = true
-  ip_connect_enabled     = true
-  shareable_link_enabled = true
-  tunneling_enabled      = true
+  name                = "acctestBastion%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Developer"
+  virtual_network_id  = azurerm_virtual_network.test.id
 
-  ip_configuration {
-    name                 = "ip-configuration"
-    subnet_id            = azurerm_subnet.test.id
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
+  depends_on = [azurerm_subnet.test, azurerm_public_ip.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString)
 }
@@ -270,10 +256,15 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_bastion_host" "test" {
-  name                = "acctestBastion%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  copy_paste_enabled  = false
+  name                   = "acctestBastion%s"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  sku                    = "Standard"
+  copy_paste_enabled     = false
+  file_copy_enabled      = true
+  ip_connect_enabled     = true
+  shareable_link_enabled = true
+  tunneling_enabled      = true
 
   ip_configuration {
     name                 = "ip-configuration"

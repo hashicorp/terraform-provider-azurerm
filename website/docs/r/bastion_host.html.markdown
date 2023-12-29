@@ -76,7 +76,9 @@ The following arguments are supported:
 
 ~> **Note** Downgrading the SKU will force a new resource to be created.
 
-* `ip_configuration` - (Required) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
+~> **Note** The Bastion Host with `Developer` SKU must not contain IP Configuration.
+
+* `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
@@ -93,6 +95,8 @@ The following arguments are supported:
 * `tunneling_enabled` - (Optional) Is Tunneling feature enabled for the Bastion Host. Defaults to `false`.
 
 ~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard`.
+
+* `virtual_network_id` - (Optional) The ID of the Virtual Network for the Bastion Host with `Developer` SKU.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
