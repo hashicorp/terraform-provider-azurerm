@@ -49,7 +49,7 @@ The following arguments are supported:
 
 -> **Note:** `retention_in_days` will revert back to the value of azurerm_log_analytics_workspace retention_in_days when a azurerm_log_analytics_workspace_table is deleted.
 
--> **Note:** The `retention_in_days` cannot be specified when the `plan` is `Basic` because it is immutable.
+-> **Note:** The `retention_in_days` cannot be specified when `plan` is `Basic` because the retention is fixed at eight days.
 
 ## Attributes Reference
 
