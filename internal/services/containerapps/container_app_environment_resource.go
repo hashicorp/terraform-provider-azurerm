@@ -96,7 +96,7 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: resourcegroups.ValidateName,
-			Description:  "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
+			Description:  "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
 		},
 
 		"infrastructure_subnet_id": {

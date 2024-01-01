@@ -23,8 +23,9 @@ type WorkloadProfileModel struct {
 
 func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
+		Type:         pluginsdk.TypeSet,
+		Optional:     true,
+		RequiredWith: []string{"infrastructure_resource_group_name"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
