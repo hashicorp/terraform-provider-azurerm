@@ -106,7 +106,7 @@ The following arguments are supported:
 ~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
-			
+
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the Azure docs on [running the Web App directly from the Zip package](https://learn.microsoft.com/en-us/azure/app-service/deploy-run-package), or [automating the build for Zip deploy](https://learn.microsoft.com/en-us/azure/app-service/deploy-zip#enable-build-automation-for-zip-deploy) for further details.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
@@ -178,7 +178,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.8`, `3.9`, `3.10`, `3.11` and `3.12`.
 
 * `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
 
@@ -228,7 +228,7 @@ An `auth_settings_v2` block supports the following:
 
 * `runtime_version` - (Optional) The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`.
 
-* `config_file_path` - (Optional) The path to the App Auth settings. 
+* `config_file_path` - (Optional) The path to the App Auth settings.
 
 ~> **Note:** Relative Paths are evaluated from the Site Root directory.
 
@@ -436,7 +436,7 @@ A `login` block supports the following:
 
 * `preserve_url_fragments_for_logins` - (Optional) Should the fragments from the request be preserved after the login request is made. Defaults to `false`.
 
-* `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. 
+* `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends.
 
 ~> **Note:** URLs within the current domain are always implicitly allowed.
 
