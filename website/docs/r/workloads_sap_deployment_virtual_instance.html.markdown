@@ -74,87 +74,85 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "example" {
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG"
 
-  deployment_with_os_configuration {
-    app_location = azurerm_resource_group.app.location
+  app_location = azurerm_resource_group.app.location
 
-    os_sap_configuration {
-      sap_fqdn = "sap.bpaas.com"
+  os_sap_configuration {
+    sap_fqdn = "sap.bpaas.com"
+  }
+
+  single_server_configuration {
+    app_resource_group_name = azurerm_resource_group.app.name
+    subnet_id               = azurerm_subnet.example.id
+    database_type           = "HANA"
+    secondary_ip_enabled    = true
+
+    virtual_machine_configuration {
+      virtual_machine_size = "Standard_E32ds_v4"
+
+      image {
+        offer     = "RHEL-SAP-HA"
+        publisher = "RedHat"
+        sku       = "82sapha-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        admin_username  = "testAdmin"
+        ssh_private_key = tls_private_key.example.private_key_pem
+        ssh_public_key  = data.tls_public_key.example.public_key_openssh
+      }
     }
 
-    single_server_configuration {
-      app_resource_group_name = azurerm_resource_group.app.name
-      subnet_id               = azurerm_subnet.example.id
-      database_type           = "HANA"
-      secondary_ip_enabled    = true
+    disk_volume_configuration {
+      volume_name     = "hana/data"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-      virtual_machine_configuration {
-        virtual_machine_size = "Standard_E32ds_v4"
+    disk_volume_configuration {
+      volume_name     = "hana/log"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-        image {
-          offer     = "RHEL-SAP-HA"
-          publisher = "RedHat"
-          sku       = "82sapha-gen2"
-          version   = "latest"
-        }
+    disk_volume_configuration {
+      volume_name     = "hana/shared"
+      number_of_disks = 1
+      size_in_gb      = 256
+      sku_name        = "Premium_LRS"
+    }
 
-        os_profile {
-          admin_username  = "testAdmin"
-          ssh_private_key = tls_private_key.example.private_key_pem
-          ssh_public_key  = data.tls_public_key.example.public_key_openssh
-        }
-      }
+    disk_volume_configuration {
+      volume_name     = "usr/sap"
+      number_of_disks = 1
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/data"
-        number_of_disks = 3
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
+    disk_volume_configuration {
+      volume_name     = "backup"
+      number_of_disks = 2
+      size_in_gb      = 256
+      sku_name        = "StandardSSD_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/log"
-        number_of_disks = 3
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
+    disk_volume_configuration {
+      volume_name     = "os"
+      number_of_disks = 1
+      size_in_gb      = 64
+      sku_name        = "StandardSSD_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/shared"
-        number_of_disks = 1
-        size_in_gb      = 256
-        sku_name        = "Premium_LRS"
-      }
+    virtual_machine_full_resource_names {
+      host_name               = "apphostName0"
+      os_disk_name            = "app0osdisk"
+      virtual_machine_name    = "appvm0"
+      network_interface_names = ["appnic0"]
 
-      disk_volume_configuration {
-        volume_name     = "usr/sap"
-        number_of_disks = 1
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
-
-      disk_volume_configuration {
-        volume_name     = "backup"
-        number_of_disks = 2
-        size_in_gb      = 256
-        sku_name        = "StandardSSD_LRS"
-      }
-
-      disk_volume_configuration {
-        volume_name     = "os"
-        number_of_disks = 1
-        size_in_gb      = 64
-        sku_name        = "StandardSSD_LRS"
-      }
-
-      virtual_machine_full_resource_names {
-        host_name               = "apphostName0"
-        os_disk_name            = "app0osdisk"
-        virtual_machine_name    = "appvm0"
-        network_interface_names = ["appnic0"]
-
-        data_disk_names = {
-          default = "app0disk0"
-        }
+      data_disk_names = {
+        default = "app0disk0"
       }
     }
   }
@@ -183,29 +181,23 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the SAP Virtual Instance should exist. Changing this forces a new resource to be created.
 
-* `deployment_with_os_configuration` - (Required) A `deployment_with_os_configuration` block as defined below. Changing this forces a new resource to be created.
+* `app_location` - (Required) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
 
 * `environment` - (Required) The environment type for the SAP Virtual Instance. Possible values are `NonProd` and `Prod`. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `os_sap_configuration` - (Required) An `os_sap_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `sap_product` - (Required) The SAP Product type for the SAP Virtual Instance. Possible values are `ECC`, `Other` and `S4HANA`. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Virtual Instance. Changing this forces a new resource to be created.
-
-* `tags` - (Optional) A mapping of tags which should be assigned to the SAP Virtual Instance.
-
----
-
-A `deployment_with_os_configuration` block supports the following:
-
-* `app_location` - (Required) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
-
-* `os_sap_configuration` - (Required) An `os_sap_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `three_tier_configuration` - (Optional) A `three_tier_configuration` block as defined below. Changing this forces a new resource to be created.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the SAP Virtual Instance.
 
 ---
 

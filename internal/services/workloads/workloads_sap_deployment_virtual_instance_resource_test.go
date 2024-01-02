@@ -30,7 +30,7 @@ func TestAccWorkloadsSAPDeploymentVirtualInstance_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("deployment_with_os_configuration.0.single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key"),
+		data.ImportStep("single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key"),
 	})
 }
 
@@ -66,9 +66,9 @@ func TestAccWorkloadsSAPDeploymentVirtualInstance_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"deployment_with_os_configuration.0.three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
-			"deployment_with_os_configuration.0.three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
-			"deployment_with_os_configuration.0.three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
 		),
 	})
 }
@@ -85,14 +85,14 @@ func TestAccWorkloadsSAPDeploymentVirtualInstance_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("deployment_with_os_configuration.0.single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key"),
+		data.ImportStep("single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key"),
 		{
 			Config: r.update(data, sapVISNameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("deployment_with_os_configuration.0.single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key"),
+		data.ImportStep("single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key"),
 	})
 }
 
@@ -109,9 +109,9 @@ func TestAccWorkloadsSAPDeploymentVirtualInstance_transportMount(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"deployment_with_os_configuration.0.three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
-			"deployment_with_os_configuration.0.three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
-			"deployment_with_os_configuration.0.three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
 		),
 	})
 }
@@ -208,90 +208,89 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
 
-  deployment_with_os_configuration {
-    app_location = azurerm_resource_group.app.location
+  app_location = azurerm_resource_group.app.location
 
-    os_sap_configuration {
-      sap_fqdn = "sap.bpaas.com"
+  os_sap_configuration {
+    sap_fqdn = "sap.bpaas.com"
+  }
+
+  single_server_configuration {
+    app_resource_group_name = azurerm_resource_group.app.name
+    subnet_id               = azurerm_subnet.test.id
+    database_type           = "HANA"
+    secondary_ip_enabled    = true
+
+    virtual_machine_configuration {
+      virtual_machine_size = "Standard_E32ds_v4"
+
+      image {
+        offer     = "RHEL-SAP-HA"
+        publisher = "RedHat"
+        sku       = "82sapha-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        admin_username  = "testAdmin"
+        ssh_private_key = tls_private_key.test.private_key_pem
+        ssh_public_key  = data.tls_public_key.test.public_key_openssh
+      }
     }
 
-    single_server_configuration {
-      app_resource_group_name = azurerm_resource_group.app.name
-      subnet_id               = azurerm_subnet.test.id
-      database_type           = "HANA"
-      secondary_ip_enabled    = true
+    disk_volume_configuration {
+      volume_name     = "hana/data"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-      virtual_machine_configuration {
-        virtual_machine_size = "Standard_E32ds_v4"
+    disk_volume_configuration {
+      volume_name     = "hana/log"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-        image {
-          offer     = "RHEL-SAP-HA"
-          publisher = "RedHat"
-          sku       = "82sapha-gen2"
-          version   = "latest"
-        }
+    disk_volume_configuration {
+      volume_name     = "hana/shared"
+      number_of_disks = 1
+      size_in_gb      = 256
+      sku_name        = "Premium_LRS"
+    }
 
-        os_profile {
-          admin_username  = "testAdmin"
-          ssh_private_key = tls_private_key.test.private_key_pem
-          ssh_public_key  = data.tls_public_key.test.public_key_openssh
-        }
-      }
+    disk_volume_configuration {
+      volume_name     = "usr/sap"
+      number_of_disks = 1
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/data"
-        number_of_disks = 3
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
+    disk_volume_configuration {
+      volume_name     = "backup"
+      number_of_disks = 2
+      size_in_gb      = 256
+      sku_name        = "StandardSSD_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/log"
-        number_of_disks = 3
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
+    disk_volume_configuration {
+      volume_name     = "os"
+      number_of_disks = 1
+      size_in_gb      = 64
+      sku_name        = "StandardSSD_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/shared"
-        number_of_disks = 1
-        size_in_gb      = 256
-        sku_name        = "Premium_LRS"
-      }
+    virtual_machine_full_resource_names {
+      host_name               = "apphostName0"
+      os_disk_name            = "app0osdisk"
+      virtual_machine_name    = "appvm0"
+      network_interface_names = ["appnic0"]
 
-      disk_volume_configuration {
-        volume_name     = "usr/sap"
-        number_of_disks = 1
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
-
-      disk_volume_configuration {
-        volume_name     = "backup"
-        number_of_disks = 2
-        size_in_gb      = 256
-        sku_name        = "StandardSSD_LRS"
-      }
-
-      disk_volume_configuration {
-        volume_name     = "os"
-        number_of_disks = 1
-        size_in_gb      = 64
-        sku_name        = "StandardSSD_LRS"
-      }
-
-      virtual_machine_full_resource_names {
-        host_name               = "apphostName0"
-        os_disk_name            = "app0osdisk"
-        virtual_machine_name    = "appvm0"
-        network_interface_names = ["appnic0"]
-
-        data_disk_names = {
-          default = "app0disk0"
-        }
+      data_disk_names = {
+        default = "app0disk0"
       }
     }
   }
+
   identity {
     type = "UserAssigned"
 
@@ -323,87 +322,85 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "import" {
   sap_product                 = azurerm_workloads_sap_deployment_virtual_instance.test.sap_product
   managed_resource_group_name = azurerm_workloads_sap_deployment_virtual_instance.test.managed_resource_group_name
 
-  deployment_with_os_configuration {
-    app_location = azurerm_resource_group.app.location
+  app_location = azurerm_resource_group.app.location
 
-    os_sap_configuration {
-      sap_fqdn = "sap.bpaas.com"
+  os_sap_configuration {
+    sap_fqdn = "sap.bpaas.com"
+  }
+
+  single_server_configuration {
+    app_resource_group_name = azurerm_resource_group.app.name
+    subnet_id               = azurerm_subnet.test.id
+    database_type           = "HANA"
+    secondary_ip_enabled    = true
+
+    virtual_machine_configuration {
+      virtual_machine_size = "Standard_E32ds_v4"
+
+      image {
+        offer     = "RHEL-SAP-HA"
+        publisher = "RedHat"
+        sku       = "82sapha-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        admin_username  = "testAdmin"
+        ssh_private_key = tls_private_key.test.private_key_pem
+        ssh_public_key  = data.tls_public_key.test.public_key_openssh
+      }
     }
 
-    single_server_configuration {
-      app_resource_group_name = azurerm_resource_group.app.name
-      subnet_id               = azurerm_subnet.test.id
-      database_type           = "HANA"
-      secondary_ip_enabled    = true
+    disk_volume_configuration {
+      volume_name     = "hana/data"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-      virtual_machine_configuration {
-        virtual_machine_size = "Standard_E32ds_v4"
+    disk_volume_configuration {
+      volume_name     = "hana/log"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-        image {
-          offer     = "RHEL-SAP-HA"
-          publisher = "RedHat"
-          sku       = "82sapha-gen2"
-          version   = "latest"
-        }
+    disk_volume_configuration {
+      volume_name     = "hana/shared"
+      number_of_disks = 1
+      size_in_gb      = 256
+      sku_name        = "Premium_LRS"
+    }
 
-        os_profile {
-          admin_username  = "testAdmin"
-          ssh_private_key = tls_private_key.test.private_key_pem
-          ssh_public_key  = data.tls_public_key.test.public_key_openssh
-        }
-      }
+    disk_volume_configuration {
+      volume_name     = "usr/sap"
+      number_of_disks = 1
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/data"
-        number_of_disks = 3
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
+    disk_volume_configuration {
+      volume_name     = "backup"
+      number_of_disks = 2
+      size_in_gb      = 256
+      sku_name        = "StandardSSD_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/log"
-        number_of_disks = 3
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
+    disk_volume_configuration {
+      volume_name     = "os"
+      number_of_disks = 1
+      size_in_gb      = 64
+      sku_name        = "StandardSSD_LRS"
+    }
 
-      disk_volume_configuration {
-        volume_name     = "hana/shared"
-        number_of_disks = 1
-        size_in_gb      = 256
-        sku_name        = "Premium_LRS"
-      }
+    virtual_machine_full_resource_names {
+      host_name               = "apphostName0"
+      os_disk_name            = "app0osdisk"
+      virtual_machine_name    = "appvm0"
+      network_interface_names = ["appnic0"]
 
-      disk_volume_configuration {
-        volume_name     = "usr/sap"
-        number_of_disks = 1
-        size_in_gb      = 128
-        sku_name        = "Premium_LRS"
-      }
-
-      disk_volume_configuration {
-        volume_name     = "backup"
-        number_of_disks = 2
-        size_in_gb      = 256
-        sku_name        = "StandardSSD_LRS"
-      }
-
-      disk_volume_configuration {
-        volume_name     = "os"
-        number_of_disks = 1
-        size_in_gb      = 64
-        sku_name        = "StandardSSD_LRS"
-      }
-
-      virtual_machine_full_resource_names {
-        host_name               = "apphostName0"
-        os_disk_name            = "app0osdisk"
-        virtual_machine_name    = "appvm0"
-        network_interface_names = ["appnic0"]
-
-        data_disk_names = {
-          default = "app0disk0"
-        }
+      data_disk_names = {
+        default = "app0disk0"
       }
     }
   }
@@ -455,261 +452,72 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
 
-  deployment_with_os_configuration {
-    app_location = azurerm_resource_group.app.location
+  app_location = azurerm_resource_group.app.location
 
-    os_sap_configuration {
-      sap_fqdn = "sap.bpaas.com"
+  os_sap_configuration {
+    sap_fqdn = "sap.bpaas.com"
 
-      deployer_virtual_machine_packages {
-        storage_account_id = azurerm_storage_account.test.id
-        url                = "https://www.bing.com"
-      }
-    }
-
-    three_tier_configuration {
-      app_resource_group_name = azurerm_resource_group.app.name
-      secondary_ip_enabled    = true
-
-      application_server_configuration {
-        instance_count = 1
-        subnet_id      = azurerm_subnet.test.id
-
-        virtual_machine_configuration {
-          virtual_machine_size = "Standard_D16ds_v4"
-
-          image {
-            offer     = "RHEL-SAP-HA"
-            publisher = "RedHat"
-            sku       = "82sapha-gen2"
-            version   = "latest"
-          }
-
-          os_profile {
-            admin_username  = "testAdmin"
-            ssh_private_key = tls_private_key.test.private_key_pem
-            ssh_public_key  = data.tls_public_key.test.public_key_openssh
-          }
-        }
-      }
-
-      central_server_configuration {
-        instance_count = 1
-        subnet_id      = azurerm_subnet.test.id
-
-        virtual_machine_configuration {
-          virtual_machine_size = "Standard_D16ds_v4"
-
-          image {
-            offer     = "RHEL-SAP-HA"
-            publisher = "RedHat"
-            sku       = "82sapha-gen2"
-            version   = "latest"
-          }
-
-          os_profile {
-            admin_username  = "testAdmin"
-            ssh_private_key = tls_private_key.test.private_key_pem
-            ssh_public_key  = data.tls_public_key.test.public_key_openssh
-          }
-        }
-      }
-
-      database_server_configuration {
-        instance_count = 1
-        subnet_id      = azurerm_subnet.test.id
-        database_type  = "HANA"
-
-        virtual_machine_configuration {
-          virtual_machine_size = "Standard_E16ds_v4"
-
-          image {
-            offer     = "RHEL-SAP-HA"
-            publisher = "RedHat"
-            sku       = "82sapha-gen2"
-            version   = "latest"
-          }
-
-          os_profile {
-            admin_username  = "testAdmin"
-            ssh_private_key = tls_private_key.test.private_key_pem
-            ssh_public_key  = data.tls_public_key.test.public_key_openssh
-          }
-        }
-
-        disk_volume_configuration {
-          volume_name     = "hana/data"
-          number_of_disks = 3
-          size_in_gb      = 128
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "hana/log"
-          number_of_disks = 3
-          size_in_gb      = 128
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "hana/shared"
-          number_of_disks = 1
-          size_in_gb      = 256
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "usr/sap"
-          number_of_disks = 1
-          size_in_gb      = 128
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "backup"
-          number_of_disks = 2
-          size_in_gb      = 256
-          sku_name        = "StandardSSD_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "os"
-          number_of_disks = 1
-          size_in_gb      = 64
-          sku_name        = "StandardSSD_LRS"
-        }
-      }
-
-      full_resource_names {
-        application_server {
-          availability_set_name = "appAvSet"
-
-          virtual_machine {
-            host_name               = "apphostName0"
-            os_disk_name            = "app0osdisk"
-            virtual_machine_name    = "appvm0"
-            network_interface_names = ["appnic0"]
-
-            data_disk_names = {
-              default = "app0disk0"
-            }
-          }
-        }
-
-        central_server {
-          availability_set_name = "csAvSet"
-
-          load_balancer {
-            name                            = "ascslb"
-            backend_pool_names              = ["ascsBackendPool"]
-            frontend_ip_configuration_names = ["ascsip0"]
-            health_probe_names              = ["ascsHealthProbe"]
-          }
-
-          virtual_machine {
-            host_name               = "ascshostName"
-            os_disk_name            = "ascsosdisk"
-            virtual_machine_name    = "ascsvm"
-            network_interface_names = ["ascsnic"]
-
-            data_disk_names = {
-              default = "ascsdisk"
-            }
-          }
-        }
-
-        database_server {
-          availability_set_name = "dbAvSet"
-
-          load_balancer {
-            name                            = "dblb"
-            backend_pool_names              = ["dbBackendPool"]
-            frontend_ip_configuration_names = ["dbip"]
-            health_probe_names              = ["dbHealthProbe"]
-          }
-
-          virtual_machine {
-            host_name               = "dbprhost"
-            os_disk_name            = "dbprosdisk"
-            virtual_machine_name    = "dbvmpr"
-            network_interface_names = ["dbprnic"]
-
-            data_disk_names = {
-              hanaData   = "hanadatapr0,hanadatapr1"
-              hanaLog    = "hanalogpr0,hanalogpr1,hanalogpr2"
-              usrSap     = "usrsappr0"
-              hanaShared = "hanasharedpr0,hanasharedpr1"
-            }
-          }
-        }
-
-        shared_storage {
-          account_name          = "sharedtestsa%s"
-          private_endpoint_name = "testPE%s"
-        }
-      }
-
-      transport_create_and_mount {
-        resource_group_id    = azurerm_resource_group.app.id
-        storage_account_name = "transsa%s"
-      }
+    deployer_virtual_machine_packages {
+      storage_account_id = azurerm_storage_account.test.id
+      url                = "https://www.bing.com"
     }
   }
 
-  identity {
-    type = "UserAssigned"
+  three_tier_configuration {
+    app_resource_group_name = azurerm_resource_group.app.name
+    secondary_ip_enabled    = true
 
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-
-  tags = {
-    Env = "Test"
-  }
-
-  depends_on = [
-    azurerm_role_assignment.test
-  ]
-}
-`, r.template(data), data.RandomString, sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
-}
-
-func (r WorkloadsSAPDeploymentVirtualInstanceResource) update(data acceptance.TestData, sapVISNameSuffix int) string {
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
-  name                        = "X%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  environment                 = "NonProd"
-  sap_product                 = "S4HANA"
-  managed_resource_group_name = "managedTestRG%d"
-
-  deployment_with_os_configuration {
-    app_location = azurerm_resource_group.app.location
-
-    os_sap_configuration {
-      sap_fqdn = "sap.bpaas.com"
-    }
-
-    single_server_configuration {
-      app_resource_group_name = azurerm_resource_group.app.name
-      subnet_id               = azurerm_subnet.test.id
-      database_type           = "HANA"
-      secondary_ip_enabled    = true
+    application_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
 
       virtual_machine_configuration {
-        virtual_machine_size = "Standard_E32ds_v4"
+        virtual_machine_size = "Standard_D16ds_v4"
+
+        image {
+          offer     = "RHEL-SAP-HA"
+          publisher = "RedHat"
+          sku       = "82sapha-gen2"
+          version   = "latest"
+        }
+
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
+      }
+    }
+
+    central_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
+
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_D16ds_v4"
+
+        image {
+          offer     = "RHEL-SAP-HA"
+          publisher = "RedHat"
+          sku       = "82sapha-gen2"
+          version   = "latest"
+        }
+
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
+      }
+    }
+
+    database_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
+      database_type  = "HANA"
+
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_E16ds_v4"
 
         image {
           offer     = "RHEL-SAP-HA"
@@ -766,16 +574,201 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
         size_in_gb      = 64
         sku_name        = "StandardSSD_LRS"
       }
+    }
 
-      virtual_machine_full_resource_names {
-        host_name               = "apphostName0"
-        os_disk_name            = "app0osdisk"
-        virtual_machine_name    = "appvm0"
-        network_interface_names = ["appnic0"]
+    full_resource_names {
+      application_server {
+        availability_set_name = "appAvSet"
 
-        data_disk_names = {
-          default = "app0disk0"
+        virtual_machine {
+          host_name               = "apphostName0"
+          os_disk_name            = "app0osdisk"
+          virtual_machine_name    = "appvm0"
+          network_interface_names = ["appnic0"]
+
+          data_disk_names = {
+            default = "app0disk0"
+          }
         }
+      }
+
+      central_server {
+        availability_set_name = "csAvSet"
+
+        load_balancer {
+          name                            = "ascslb"
+          backend_pool_names              = ["ascsBackendPool"]
+          frontend_ip_configuration_names = ["ascsip0"]
+          health_probe_names              = ["ascsHealthProbe"]
+        }
+
+        virtual_machine {
+          host_name               = "ascshostName"
+          os_disk_name            = "ascsosdisk"
+          virtual_machine_name    = "ascsvm"
+          network_interface_names = ["ascsnic"]
+
+          data_disk_names = {
+            default = "ascsdisk"
+          }
+        }
+      }
+
+      database_server {
+        availability_set_name = "dbAvSet"
+
+        load_balancer {
+          name                            = "dblb"
+          backend_pool_names              = ["dbBackendPool"]
+          frontend_ip_configuration_names = ["dbip"]
+          health_probe_names              = ["dbHealthProbe"]
+        }
+
+        virtual_machine {
+          host_name               = "dbprhost"
+          os_disk_name            = "dbprosdisk"
+          virtual_machine_name    = "dbvmpr"
+          network_interface_names = ["dbprnic"]
+
+          data_disk_names = {
+            hanaData   = "hanadatapr0,hanadatapr1"
+            hanaLog    = "hanalogpr0,hanalogpr1,hanalogpr2"
+            usrSap     = "usrsappr0"
+            hanaShared = "hanasharedpr0,hanasharedpr1"
+          }
+        }
+      }
+
+      shared_storage {
+        account_name          = "sharedtestsa%s"
+        private_endpoint_name = "testPE%s"
+      }
+    }
+
+    transport_create_and_mount {
+      resource_group_id    = azurerm_resource_group.app.id
+      storage_account_name = "transsa%s"
+    }
+  }
+
+  identity {
+    type = "UserAssigned"
+
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  tags = {
+    Env = "Test"
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
+}
+`, r.template(data), data.RandomString, sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (r WorkloadsSAPDeploymentVirtualInstanceResource) update(data acceptance.TestData, sapVISNameSuffix int) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
+  name                        = "X%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  environment                 = "NonProd"
+  sap_product                 = "S4HANA"
+  managed_resource_group_name = "managedTestRG%d"
+
+  app_location = azurerm_resource_group.app.location
+
+  os_sap_configuration {
+    sap_fqdn = "sap.bpaas.com"
+  }
+
+  single_server_configuration {
+    app_resource_group_name = azurerm_resource_group.app.name
+    subnet_id               = azurerm_subnet.test.id
+    database_type           = "HANA"
+    secondary_ip_enabled    = true
+
+    virtual_machine_configuration {
+      virtual_machine_size = "Standard_E32ds_v4"
+
+      image {
+        offer     = "RHEL-SAP-HA"
+        publisher = "RedHat"
+        sku       = "82sapha-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        admin_username  = "testAdmin"
+        ssh_private_key = tls_private_key.test.private_key_pem
+        ssh_public_key  = data.tls_public_key.test.public_key_openssh
+      }
+    }
+
+    disk_volume_configuration {
+      volume_name     = "hana/data"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
+
+    disk_volume_configuration {
+      volume_name     = "hana/log"
+      number_of_disks = 3
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
+
+    disk_volume_configuration {
+      volume_name     = "hana/shared"
+      number_of_disks = 1
+      size_in_gb      = 256
+      sku_name        = "Premium_LRS"
+    }
+
+    disk_volume_configuration {
+      volume_name     = "usr/sap"
+      number_of_disks = 1
+      size_in_gb      = 128
+      sku_name        = "Premium_LRS"
+    }
+
+    disk_volume_configuration {
+      volume_name     = "backup"
+      number_of_disks = 2
+      size_in_gb      = 256
+      sku_name        = "StandardSSD_LRS"
+    }
+
+    disk_volume_configuration {
+      volume_name     = "os"
+      number_of_disks = 1
+      size_in_gb      = 64
+      sku_name        = "StandardSSD_LRS"
+    }
+
+    virtual_machine_full_resource_names {
+      host_name               = "apphostName0"
+      os_disk_name            = "app0osdisk"
+      virtual_machine_name    = "appvm0"
+      network_interface_names = ["appnic0"]
+
+      data_disk_names = {
+        default = "app0disk0"
       }
     }
   }
@@ -852,204 +845,202 @@ resource "azurerm_workloads_sap_deployment_virtual_instance" "test" {
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
 
-  deployment_with_os_configuration {
-    app_location = azurerm_resource_group.app.location
+  app_location = azurerm_resource_group.app.location
 
-    os_sap_configuration {
-      sap_fqdn = "sap.bpaas.com"
+  os_sap_configuration {
+    sap_fqdn = "sap.bpaas.com"
 
-      deployer_virtual_machine_packages {
-        storage_account_id = azurerm_storage_account.test.id
-        url                = "https://www.bing.com"
+    deployer_virtual_machine_packages {
+      storage_account_id = azurerm_storage_account.test.id
+      url                = "https://www.bing.com"
+    }
+  }
+
+  three_tier_configuration {
+    app_resource_group_name = azurerm_resource_group.app.name
+    secondary_ip_enabled    = true
+
+    application_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
+
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_D16ds_v4"
+
+        image {
+          offer     = "RHEL-SAP-HA"
+          publisher = "RedHat"
+          sku       = "82sapha-gen2"
+          version   = "latest"
+        }
+
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
       }
     }
 
-    three_tier_configuration {
-      app_resource_group_name = azurerm_resource_group.app.name
-      secondary_ip_enabled    = true
+    central_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
 
-      application_server_configuration {
-        instance_count = 1
-        subnet_id      = azurerm_subnet.test.id
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_D16ds_v4"
 
-        virtual_machine_configuration {
-          virtual_machine_size = "Standard_D16ds_v4"
+        image {
+          offer     = "RHEL-SAP-HA"
+          publisher = "RedHat"
+          sku       = "82sapha-gen2"
+          version   = "latest"
+        }
 
-          image {
-            offer     = "RHEL-SAP-HA"
-            publisher = "RedHat"
-            sku       = "82sapha-gen2"
-            version   = "latest"
-          }
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
+      }
+    }
 
-          os_profile {
-            admin_username  = "testAdmin"
-            ssh_private_key = tls_private_key.test.private_key_pem
-            ssh_public_key  = data.tls_public_key.test.public_key_openssh
+    database_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
+      database_type  = "HANA"
+
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_E16ds_v4"
+
+        image {
+          offer     = "RHEL-SAP-HA"
+          publisher = "RedHat"
+          sku       = "82sapha-gen2"
+          version   = "latest"
+        }
+
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
+      }
+
+      disk_volume_configuration {
+        volume_name     = "hana/data"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
+      }
+
+      disk_volume_configuration {
+        volume_name     = "hana/log"
+        number_of_disks = 3
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
+      }
+
+      disk_volume_configuration {
+        volume_name     = "hana/shared"
+        number_of_disks = 1
+        size_in_gb      = 256
+        sku_name        = "Premium_LRS"
+      }
+
+      disk_volume_configuration {
+        volume_name     = "usr/sap"
+        number_of_disks = 1
+        size_in_gb      = 128
+        sku_name        = "Premium_LRS"
+      }
+
+      disk_volume_configuration {
+        volume_name     = "backup"
+        number_of_disks = 2
+        size_in_gb      = 256
+        sku_name        = "StandardSSD_LRS"
+      }
+
+      disk_volume_configuration {
+        volume_name     = "os"
+        number_of_disks = 1
+        size_in_gb      = 64
+        sku_name        = "StandardSSD_LRS"
+      }
+    }
+
+    full_resource_names {
+      application_server {
+        availability_set_name = "appAvSet"
+
+        virtual_machine {
+          host_name               = "apphostName0"
+          os_disk_name            = "app0osdisk"
+          virtual_machine_name    = "appvm0"
+          network_interface_names = ["appnic0"]
+
+          data_disk_names = {
+            default = "app0disk0"
           }
         }
       }
 
-      central_server_configuration {
-        instance_count = 1
-        subnet_id      = azurerm_subnet.test.id
+      central_server {
+        availability_set_name = "csAvSet"
 
-        virtual_machine_configuration {
-          virtual_machine_size = "Standard_D16ds_v4"
+        load_balancer {
+          name                            = "ascslb"
+          backend_pool_names              = ["ascsBackendPool"]
+          frontend_ip_configuration_names = ["ascsip0"]
+          health_probe_names              = ["ascsHealthProbe"]
+        }
 
-          image {
-            offer     = "RHEL-SAP-HA"
-            publisher = "RedHat"
-            sku       = "82sapha-gen2"
-            version   = "latest"
-          }
+        virtual_machine {
+          host_name               = "ascshostName"
+          os_disk_name            = "ascsosdisk"
+          virtual_machine_name    = "ascsvm"
+          network_interface_names = ["ascsnic"]
 
-          os_profile {
-            admin_username  = "testAdmin"
-            ssh_private_key = tls_private_key.test.private_key_pem
-            ssh_public_key  = data.tls_public_key.test.public_key_openssh
+          data_disk_names = {
+            default = "ascsdisk"
           }
         }
       }
 
-      database_server_configuration {
-        instance_count = 1
-        subnet_id      = azurerm_subnet.test.id
-        database_type  = "HANA"
+      database_server {
+        availability_set_name = "dbAvSet"
 
-        virtual_machine_configuration {
-          virtual_machine_size = "Standard_E16ds_v4"
+        load_balancer {
+          name                            = "dblb"
+          backend_pool_names              = ["dbBackendPool"]
+          frontend_ip_configuration_names = ["dbip"]
+          health_probe_names              = ["dbHealthProbe"]
+        }
 
-          image {
-            offer     = "RHEL-SAP-HA"
-            publisher = "RedHat"
-            sku       = "82sapha-gen2"
-            version   = "latest"
+        virtual_machine {
+          host_name               = "dbprhost"
+          os_disk_name            = "dbprosdisk"
+          virtual_machine_name    = "dbvmpr"
+          network_interface_names = ["dbprnic"]
+
+          data_disk_names = {
+            hanaData   = "hanadatapr0,hanadatapr1"
+            hanaLog    = "hanalogpr0,hanalogpr1,hanalogpr2"
+            usrSap     = "usrsappr0"
+            hanaShared = "hanasharedpr0,hanasharedpr1"
           }
-
-          os_profile {
-            admin_username  = "testAdmin"
-            ssh_private_key = tls_private_key.test.private_key_pem
-            ssh_public_key  = data.tls_public_key.test.public_key_openssh
-          }
-        }
-
-        disk_volume_configuration {
-          volume_name     = "hana/data"
-          number_of_disks = 3
-          size_in_gb      = 128
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "hana/log"
-          number_of_disks = 3
-          size_in_gb      = 128
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "hana/shared"
-          number_of_disks = 1
-          size_in_gb      = 256
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "usr/sap"
-          number_of_disks = 1
-          size_in_gb      = 128
-          sku_name        = "Premium_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "backup"
-          number_of_disks = 2
-          size_in_gb      = 256
-          sku_name        = "StandardSSD_LRS"
-        }
-
-        disk_volume_configuration {
-          volume_name     = "os"
-          number_of_disks = 1
-          size_in_gb      = 64
-          sku_name        = "StandardSSD_LRS"
         }
       }
 
-      full_resource_names {
-        application_server {
-          availability_set_name = "appAvSet"
-
-          virtual_machine {
-            host_name               = "apphostName0"
-            os_disk_name            = "app0osdisk"
-            virtual_machine_name    = "appvm0"
-            network_interface_names = ["appnic0"]
-
-            data_disk_names = {
-              default = "app0disk0"
-            }
-          }
-        }
-
-        central_server {
-          availability_set_name = "csAvSet"
-
-          load_balancer {
-            name                            = "ascslb"
-            backend_pool_names              = ["ascsBackendPool"]
-            frontend_ip_configuration_names = ["ascsip0"]
-            health_probe_names              = ["ascsHealthProbe"]
-          }
-
-          virtual_machine {
-            host_name               = "ascshostName"
-            os_disk_name            = "ascsosdisk"
-            virtual_machine_name    = "ascsvm"
-            network_interface_names = ["ascsnic"]
-
-            data_disk_names = {
-              default = "ascsdisk"
-            }
-          }
-        }
-
-        database_server {
-          availability_set_name = "dbAvSet"
-
-          load_balancer {
-            name                            = "dblb"
-            backend_pool_names              = ["dbBackendPool"]
-            frontend_ip_configuration_names = ["dbip"]
-            health_probe_names              = ["dbHealthProbe"]
-          }
-
-          virtual_machine {
-            host_name               = "dbprhost"
-            os_disk_name            = "dbprosdisk"
-            virtual_machine_name    = "dbvmpr"
-            network_interface_names = ["dbprnic"]
-
-            data_disk_names = {
-              hanaData   = "hanadatapr0,hanadatapr1"
-              hanaLog    = "hanalogpr0,hanalogpr1,hanalogpr2"
-              usrSap     = "usrsappr0"
-              hanaShared = "hanasharedpr0,hanasharedpr1"
-            }
-          }
-        }
-
-        shared_storage {
-          account_name          = "sharedtestsa%s"
-          private_endpoint_name = "testPE%s"
-        }
+      shared_storage {
+        account_name          = "sharedtestsa%s"
+        private_endpoint_name = "testPE%s"
       }
+    }
 
-      transport_mount {
-        file_share_id       = azurerm_storage_share.test.resource_manager_id
-        private_endpoint_id = azurerm_private_endpoint.test.id
-      }
+    transport_mount {
+      file_share_id       = azurerm_storage_share.test.resource_manager_id
+      private_endpoint_id = azurerm_private_endpoint.test.id
     }
   }
 
