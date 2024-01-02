@@ -300,6 +300,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 				existing.Properties.IconURL = utils.String(metadata.ResourceData.Get("icon_url").(string))
 			}
 
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
+			}
+
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
