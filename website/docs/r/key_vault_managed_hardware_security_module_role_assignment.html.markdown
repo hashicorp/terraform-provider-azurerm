@@ -1,29 +1,29 @@
 ---
 subcategory: "Key Vault"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_key_vault_role_assignment"
+page_title: "Azure Resource Manager: azurerm_key_vault_managed_hardware_security_module_role_assignment"
 description: |-
-  Manages a KeyVault Role Assignment.
+  Manages a Managed Hardware Security Module Role Assignment.
 ---
 
-# azurerm_key_vault_role_assignment
+# azurerm_key_vault_managed_hardware_security_module_role_assignment
 
-Manages a KeyVault Role Assignment.
+Manages a Managed Hardware Security Module Role Assignment.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault_role_definition" "user" {
+data "azurerm_key_vault_managed_hardware_security_module_role_definition" "user" {
   vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
   name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
   scope          = "/"
 }
 
-resource "azurerm_key_vault_role_assignment" "example" {
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "example" {
   name               = "a9dbe818-56e7-5878-c0ce-a1477692c1d6"
   vault_base_url     = azurerm_key_vault_managed_hardware_security_module.example.hsm_uri
-  scope              = "${data.azurerm_key_vault_role_definition.user.scope}"
-  role_definition_id = "${data.azurerm_key_vault_role_definition.user.resource_id}"
+  scope              = "${data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.scope}"
+  role_definition_id = "${data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.resource_id}"
   principal_id       = "${data.azurerm_client_config.current.object_id}"
 }
 ```
@@ -63,5 +63,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 KeyVaults can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_role_assignment.example https://0000.managedhsm.azure.net///RoleAssignment/00000000-0000-0000-0000-000000000000
+terraform import azurerm_key_vault_managed_hardware_security_module_role_assignment.example https://0000.managedhsm.azure.net///RoleAssignment/00000000-0000-0000-0000-000000000000
 ```
