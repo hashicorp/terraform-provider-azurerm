@@ -11,9 +11,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -23,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxWebAppResource struct{}
@@ -123,9 +126,9 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  "Required",
 			ValidateFunc: validation.StringInSlice([]string{
-				string(web.ClientCertModeOptional),
-				string(web.ClientCertModeRequired),
-				string(web.ClientCertModeOptionalInteractiveUser),
+				string(webapps.ClientCertModeOptional),
+				string(webapps.ClientCertModeRequired),
+				string(webapps.ClientCertModeOptionalInteractiveUser),
 			}, false),
 		},
 
@@ -277,20 +280,20 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			servicePlanClient := metadata.Client.AppService.ServicePlanClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewWebAppID(subscriptionId, webApp.ResourceGroup, webApp.Name)
+			id := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: pointer.To(webApp.Name),
-				Type: web.CheckNameResourceTypesMicrosoftWebsites,
+			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
+				Name: webApp.Name,
+				Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
 			}
 
 			servicePlanId, err := parse.ServicePlanID(webApp.ServicePlanId)
@@ -322,11 +325,10 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					}
 				}
 
-				availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
 				availabilityRequest.IsFqdn = pointer.To(true)
 			}
 
-			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
+			checkName, err := aseClient.CheckNameAvailability(ctx, availabilityRequest)
 			if err != nil {
 				return fmt.Errorf("checking name availability for Linux %s: %+v", id, err)
 			}
@@ -349,23 +351,23 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			siteEnvelope := web.Site{
-				Location: pointer.To(webApp.Location),
+			siteEnvelope := webapps.Site{
+				Location: webApp.Location,
 				Identity: expandedIdentity,
-				Tags:     tags.FromTypedObject(webApp.Tags),
-				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          pointer.To(webApp.ServicePlanId),
+				Tags:     &webApp.Tags,
+				Properties: &webapps.SiteProperties{
+					ServerFarmId:          pointer.To(webApp.ServicePlanId),
 					Enabled:               pointer.To(webApp.Enabled),
 					HTTPSOnly:             pointer.To(webApp.HttpsOnly),
 					SiteConfig:            siteConfig,
 					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					ClientCertMode:        pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
 					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
 				},
 			}
