@@ -146,6 +146,8 @@ redis_configuration {
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults to `volatile-lru`.
 
+* `preferred_data_persistence_auth_method` - (Optional) Preferred auth method to communicate to storage account used for data persistence. Possible values are `SAS` and `ManagedIdentity`. Defaults to `SAS`.
+
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
 * `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKUs. Defaults to `false`.
