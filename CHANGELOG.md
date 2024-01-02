@@ -16,6 +16,7 @@ BUG FIXES:
 * * `azurerm_linux_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
 * `azurerm_logic_app_standard` - update default value of `version` from `~3` which is no longer supported to `~4` [GH-24134]
 * `azurerm_windows_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
+* `azurerm_bot_service_azure_bot` - `tags` can now be updated [GH-24332]
 
 ## 3.85.0 (December 14, 2023)
 
