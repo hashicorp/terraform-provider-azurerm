@@ -446,7 +446,13 @@ func flattenMaintenanceConfigurationInstallPatches(input *maintenanceconfigurati
 		output := make(map[string]interface{})
 
 		if rebootSetting := v.RebootSetting; rebootSetting != nil {
-			output["reboot"] = *rebootSetting
+			// https://github.com/Azure/azure-rest-api-specs/issues/27222
+			if *rebootSetting == "AlwaysReboot" {
+				output["reboot"] = "Always"
+
+			} else {
+				output["reboot"] = *rebootSetting
+			}
 		}
 
 		if windowsParameters := v.WindowsParameters; windowsParameters != nil {
