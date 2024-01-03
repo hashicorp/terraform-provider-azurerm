@@ -20,6 +20,7 @@ BUG FIXES:
 * `azurerm_scheduled_query_rules_alert` - `data_source_id` is now ForceNew [GH-24327]
 * `azurerm_scheduled_query_rules_log` - `data_source_id` is now ForceNew [GH-24327]
 * `azurerm_iothub_device_update_account` - `sku` is now ForceNew [GH-24324]
+* `azurerm_logic_app_standard` - fix a crash when setting default `version` 4.0 flag [GH-24322]
 
 ## 3.85.0 (December 14, 2023)
 
