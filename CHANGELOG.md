@@ -22,7 +22,8 @@ BUG FIXES:
 * `azurerm_scheduled_query_rules_log` - `data_source_id` is now ForceNew [GH-24327]
 * `azurerm_iothub_device_update_account` - `sku` is now ForceNew [GH-24324]
 * `azurerm_logic_app_standard` - fix a crash when setting default `version` 4.0 flag [GH-24322]
-* Data Source: `azurerm_role_definition` fix `role_definition_id` [GH-24320]
+* Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24320]
+* `azurerm_cosmosdb_account` - fix validation for `ip_range_filter` [GH-24306]
 
 ## 3.85.0 (December 14, 2023)
 
