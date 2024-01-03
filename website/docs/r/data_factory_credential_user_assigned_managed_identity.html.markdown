@@ -83,14 +83,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Data Factory Credentials can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_credential_user_managed_identity.example /subscriptions/1f3d6e58-feed-4bb6-87e5-a52305ad3375/resourceGroups/example-resources/providers/Microsoft.DataFactory/factories/bruceharrison-12334/credentials/credential1
-```
-
-HCL import blocks can also be used for import
-
-```hcl
-import {
-  to = azurerm_data_factory_credential_user_managed_identity.test
-  id = "/subscriptions/1f3d6e58-feed-4bb6-87e5-a52305ad3375/resourceGroups/example-resources/providers/Microsoft.DataFactory/factories/bruceharrison-12334/credentials/credential1"
-}
+terraform import azurerm_data_factory_credential_user_managed_identity.example /subscriptions/1f3d6e58-feed-4bb6-87e5-a52305ad3375/resourceGroups/example-resources/providers/Microsoft.DataFactory/factories/example/credentials/credential1
 ```
