@@ -110,12 +110,14 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Read() sdk.Resou
 
 			state.Name = credentialId.CredentialName
 
-			if existing.Model.Properties.Description != nil {
-				state.Description = *existing.Model.Properties.Description
-			}
+			if existing.Model != nil {
+				if existing.Model.Properties.Description != nil {
+					state.Description = *existing.Model.Properties.Description
+				}
 
-			if existing.Model.Properties.TypeProperties.ResourceId != nil {
-				state.IdentityId = *existing.Model.Properties.TypeProperties.ResourceId
+				if existing.Model.Properties.TypeProperties != nil && existing.Model.Properties.TypeProperties.ResourceId != nil {
+					state.IdentityId = *existing.Model.Properties.TypeProperties.ResourceId
+				}
 			}
 
 			state.DataFactoryId = factories.NewFactoryID(credentialId.SubscriptionId, credentialId.ResourceGroupName, credentialId.FactoryName).ID()
