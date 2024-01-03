@@ -13,18 +13,19 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24320]
 * `azurerm_bot_service` - fixing a bug where `public_network_access_enabled` was always set to `true` in Read func [GH-24255]
+* `azurerm_bot_service_azure_bot` - `tags` can now be updated [GH-24332]
+* `azurerm_cosmosdb_account` - fix validation for `ip_range_filter` [GH-24306]
 * `azurerm_linux_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
 * `azurerm_logic_app_standard` - update default value of `version` from `~3` which is no longer supported to `~4` [GH-24134]
-* `azurerm_windows_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
-* `azurerm_bot_service_azure_bot` - `tags` can now be updated [GH-24332]
-* `azurerm_scheduled_query_rules_alert` - `data_source_id` is now ForceNew [GH-24327]
-* `azurerm_scheduled_query_rules_log` - `data_source_id` is now ForceNew [GH-24327]
 * `azurerm_iothub_device_update_account` - `sku` is now ForceNew [GH-24324]
 * `azurerm_logic_app_standard` - fix a crash when setting default `version` 4.0 flag [GH-24322]
-* Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24320]
-* `azurerm_cosmosdb_account` - fix validation for `ip_range_filter` [GH-24306]
-
+* `azurerm_orchestrated_virtual_machine_scale_set` - correctly update resource when hotpatch is enabled [GH-24335]
+* `azurerm_windows_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
+* `azurerm_scheduled_query_rules_alert` - `data_source_id` is now ForceNew [GH-24327]
+* `azurerm_scheduled_query_rules_log` - `data_source_id` is now ForceNew [GH-24327]
+  
 ## 3.85.0 (December 14, 2023)
 
 FEATURES:
