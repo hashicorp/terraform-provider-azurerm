@@ -213,23 +213,14 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.R
 
 			existing, err := client.CredentialOperationsGet(ctx, *id, credentials.CredentialOperationsGetOperationOptions{})
 			if err != nil {
-				if existing.HttpResponse.Status == "404" {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
-				}
+				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 
-			credential := credentials.ManagedIdentityCredentialResource{
-				Type: existing.Model.Type,
-				Name: existing.Model.Name,
-				Id:   existing.Model.Id,
-				Properties: credentials.ManagedIdentityCredential{
-					Annotations: existing.Model.Properties.Annotations,
-					Description: existing.Model.Properties.Description,
-					TypeProperties: &credentials.ManagedIdentityTypeProperties{
-						ResourceId: existing.Model.Properties.TypeProperties.ResourceId,
-					},
-				},
+			if existing.Model == nil {
+				return fmt.Errorf("model was nil for %s", id)
 			}
+
+			credential := *existing.Model
 
 			if metadata.ResourceData.HasChange("description") {
 				credential.Properties.Description = &data.Description
