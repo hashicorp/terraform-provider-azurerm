@@ -31,7 +31,6 @@ type RedHatOpenShiftClusterModel struct {
 	Name             string             `tfschema:"name"`
 	Location         string             `tfschema:"location"`
 	ResourceGroup    string             `tfschema:"resource_group_name"`
-	ClusterVersion   string             `tfschema:"cluster_version"`
 	ConsoleUrl       string             `tfschema:"console_url"`
 	ServicePrincipal []ServicePrincipal `tfschema:"service_principal"`
 	ClusterProfile   []ClusterProfile   `tfschema:"cluster_profile"`
@@ -152,7 +151,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"client_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.ClientID,
+						ValidateFunc: validation.IsUUID,
 					},
 					"client_secret": {
 						Type:         pluginsdk.TypeString,

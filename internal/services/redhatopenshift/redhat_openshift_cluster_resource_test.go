@@ -158,7 +158,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "aro-%[3]s.com"
+    domain  = "aro-%[3]s.com"
     version = "4.13.23"
   }
 
@@ -205,12 +205,12 @@ func (r OpenShiftClusterResource) requiresImport(data acceptance.TestData) strin
   %[1]s
 
 resource "azurerm_redhat_openshift_cluster" "import" {
-  name = azurerm_redhat_openshift_cluster.test.name
+  name                = azurerm_redhat_openshift_cluster.test.name
   resource_group_name = azurerm_redhat_openshift_cluster.test.resource_group_name
-  location = azurerm_redhat_openshift_cluster.test.location
+  location            = azurerm_redhat_openshift_cluster.test.location
 
   cluster_profile {
-    domain = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
+    domain  = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
     version = azurerm_redhat_openshift_cluster.test.cluster_profile.0.version
   }
 
@@ -280,7 +280,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "aro-%[3]s.com"
+    domain  = "aro-%[3]s.com"
     version = "4.13.23"
   }
 
@@ -335,9 +335,9 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  
+
   cluster_profile {
-    domain = "aro-%[3]s.com"
+    domain  = "aro-%[3]s.com"
     version = "4.13.23"
   }
 
@@ -390,7 +390,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "aro-%[3]s.com"
+    domain  = "aro-%[3]s.com"
     version = "4.13.23"
   }
 
@@ -443,7 +443,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain       = "aro-%[3]s.com"
-    version = "4.13.23"
+    version      = "4.13.23"
     fips_enabled = true
   }
 
@@ -575,7 +575,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "aro-%[3]s.com"
+    domain  = "aro-%[3]s.com"
     version = "4.13.23"
   }
 

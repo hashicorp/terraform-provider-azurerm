@@ -213,7 +213,7 @@ A `network_profile` block supports the following:
 
 * `pod_cidr` - (Required) The CIDR to use for pod IP addresses. Changing this forces a new resource to be created.
 
-* `service_cidr` - (Required) The network range used by the Openshift service. Changing this forces a new resource to be created.
+* `service_cidr` - (Required) The network range used by the OpenShift service. Changing this forces a new resource to be created.
 
 * `outbound_type` - (Optional) The outbound (egress) routing method. Possible values are `Loadbalancer` and `UserDefinedRouting`. Defaults to `LoadBalancer`. Changing this forces a new resource to be created.
 
