@@ -162,7 +162,9 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 			credential := credentials.ManagedIdentityCredentialResource{
 				Type: utils.String(IDENTITY_TYPE),
 				Properties: credentials.ManagedIdentityCredential{
-					TypeProperties: &credentials.ManagedIdentityTypeProperties{},
+					TypeProperties: &credentials.ManagedIdentityTypeProperties{
+						ResourceId: &data.IdentityId,
+					},
 				},
 			}
 
@@ -176,10 +178,6 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 
 			if data.Description != "" {
 				credential.Properties.Description = &data.Description
-			}
-
-			if data.IdentityId != "" {
-				credential.Properties.TypeProperties.ResourceId = &data.IdentityId
 			}
 
 			_, err = client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{})
