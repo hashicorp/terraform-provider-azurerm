@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20231215.1114251` of `hashicorp/go-azure-sdk` [GH-24251]
+* dependencies: `azurerm_spring_cloud_api_portal` - update to use `hashicorp/go-azure-sdk` [GH-24321]
 * `azurerm_logic_app_standard` - add support for `site_config.0.public_network_access_enabled` [GH-24257]
 * `azurerm_linux_web_app` - add support for value `20-lts` for `node_version` for  [GH-24289]
 
