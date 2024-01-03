@@ -229,14 +229,6 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.R
 				},
 			}
 
-			if metadata.ResourceData.HasChange("name") {
-				credential.Name = &data.Name
-			}
-
-			if metadata.ResourceData.HasChange("identity_id") {
-				credential.Properties.TypeProperties.ResourceId = &data.IdentityId
-			}
-
 			if metadata.ResourceData.HasChange("description") {
 				credential.Properties.Description = &data.Description
 			}
