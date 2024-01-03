@@ -91,7 +91,14 @@ func testAccWorkloadsSAPDiscoveryVirtualInstance_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -133,16 +140,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
-  name                = "%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  environment         = "NonProd"
-  sap_product         = "S4HANA"
-
-  discovery_configuration {
-    central_server_virtual_machine_id = "%s"
-    managed_storage_account_name      = "managedsa%s"
-  }
+  name                              = "%s"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  environment                       = "NonProd"
+  sap_product                       = "S4HANA"
+  central_server_virtual_machine_id = "%s"
+  managed_storage_account_name      = "managedsa%s"
 
   lifecycle {
     ignore_changes = [managed_resource_group_name]
@@ -156,16 +160,13 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) requiresImport(data accept
 %s
 
 resource "azurerm_workloads_sap_discovery_virtual_instance" "import" {
-  name                = azurerm_workloads_sap_discovery_virtual_instance.test.name
-  resource_group_name = azurerm_workloads_sap_discovery_virtual_instance.test.resource_group_name
-  location            = azurerm_workloads_sap_discovery_virtual_instance.test.location
-  environment         = azurerm_workloads_sap_discovery_virtual_instance.test.environment
-  sap_product         = azurerm_workloads_sap_discovery_virtual_instance.test.sap_product
-
-  discovery_configuration {
-    central_server_virtual_machine_id = "%s"
-    managed_storage_account_name      = "managedsa%s"
-  }
+  name                              = azurerm_workloads_sap_discovery_virtual_instance.test.name
+  resource_group_name               = azurerm_workloads_sap_discovery_virtual_instance.test.resource_group_name
+  location                          = azurerm_workloads_sap_discovery_virtual_instance.test.location
+  environment                       = azurerm_workloads_sap_discovery_virtual_instance.test.environment
+  sap_product                       = azurerm_workloads_sap_discovery_virtual_instance.test.sap_product
+  central_server_virtual_machine_id = "%s"
+  managed_storage_account_name      = "managedsa%s"
 }
 `, r.basic(data), os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString)
 }
@@ -186,17 +187,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
-  name                        = "%s"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  environment                 = "NonProd"
-  sap_product                 = "S4HANA"
-  managed_resource_group_name = "managedTestRG%d"
-
-  discovery_configuration {
-    central_server_virtual_machine_id = "%s"
-    managed_storage_account_name      = "managedsa%s"
-  }
+  name                              = "%s"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  environment                       = "NonProd"
+  sap_product                       = "S4HANA"
+  managed_resource_group_name       = "managedTestRG%d"
+  central_server_virtual_machine_id = "%s"
+  managed_storage_account_name      = "managedsa%s"
 
   identity {
     type = "UserAssigned"
@@ -208,49 +206,6 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
 
   tags = {
     env = "Test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME"), data.RandomInteger, os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString, os.Getenv("ARM_TEST_IDENTITY_ID"))
-}
-
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-sapvis-%d"
-  location = "%s"
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
-}
-
-resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
-  name                        = "%s"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  environment                 = "NonProd"
-  sap_product                 = "S4HANA"
-  managed_resource_group_name = "managedTestRG%d"
-
-  discovery_configuration {
-    central_server_virtual_machine_id = "%s"
-    managed_storage_account_name      = "managedsa%s"
-  }
-
-  identity {
-    type = "UserAssigned"
-
-    identity_ids = [
-      "%s",
-    ]
-  }
-
-  tags = {
-    env = "Test2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME"), data.RandomInteger, os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString, os.Getenv("ARM_TEST_IDENTITY_ID"))

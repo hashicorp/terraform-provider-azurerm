@@ -22,20 +22,16 @@ import (
 )
 
 type WorkloadsSAPDiscoveryVirtualInstanceModel struct {
-	Name                     string                       `tfschema:"name"`
-	ResourceGroupName        string                       `tfschema:"resource_group_name"`
-	Location                 string                       `tfschema:"location"`
-	DiscoveryConfiguration   []DiscoveryConfiguration     `tfschema:"discovery_configuration"`
-	Environment              string                       `tfschema:"environment"`
-	Identity                 []identity.ModelUserAssigned `tfschema:"identity"`
-	ManagedResourceGroupName string                       `tfschema:"managed_resource_group_name"`
-	SapProduct               string                       `tfschema:"sap_product"`
-	Tags                     map[string]string            `tfschema:"tags"`
-}
-
-type DiscoveryConfiguration struct {
-	CentralServerVmId         string `tfschema:"central_server_virtual_machine_id"`
-	ManagedStorageAccountName string `tfschema:"managed_storage_account_name"`
+	Name                      string                       `tfschema:"name"`
+	ResourceGroupName         string                       `tfschema:"resource_group_name"`
+	Location                  string                       `tfschema:"location"`
+	CentralServerVmId         string                       `tfschema:"central_server_virtual_machine_id"`
+	Environment               string                       `tfschema:"environment"`
+	Identity                  []identity.ModelUserAssigned `tfschema:"identity"`
+	ManagedResourceGroupName  string                       `tfschema:"managed_resource_group_name"`
+	ManagedStorageAccountName string                       `tfschema:"managed_storage_account_name"`
+	SapProduct                string                       `tfschema:"sap_product"`
+	Tags                      map[string]string            `tfschema:"tags"`
 }
 
 type WorkloadsSAPDiscoveryVirtualInstanceResource struct{}
@@ -67,49 +63,25 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Arguments() map[string]*pl
 
 		"location": commonschema.Location(),
 
-		"discovery_configuration": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"central_server_virtual_machine_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidateVirtualMachineID,
-					},
-
-					"managed_storage_account_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: storageValidate.StorageAccountName,
-					},
-				},
-			},
+		"central_server_virtual_machine_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateVirtualMachineID,
 		},
 
 		"environment": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sapvirtualinstances.SAPEnvironmentTypeNonProd),
-				string(sapvirtualinstances.SAPEnvironmentTypeProd),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPEnvironmentType(), false),
 		},
 
 		"sap_product": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sapvirtualinstances.SAPProductTypeECC),
-				string(sapvirtualinstances.SAPProductTypeOther),
-				string(sapvirtualinstances.SAPProductTypeSFourHANA),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPProductType(), false),
 		},
 
 		"managed_resource_group_name": {
@@ -117,6 +89,13 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Arguments() map[string]*pl
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: resourcegroups.ValidateName,
+		},
+
+		"managed_storage_account_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: storageValidate.StorageAccountName,
 		},
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
@@ -166,9 +145,15 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 				Tags: &model.Tags,
 			}
 
-			if v := model.DiscoveryConfiguration; v != nil {
-				parameters.Properties.Configuration = expandDiscoveryConfiguration(v)
+			discoveryConfiguration := &sapvirtualinstances.DiscoveryConfiguration{
+				CentralServerVMId: pointer.To(model.CentralServerVmId),
 			}
+
+			if v := model.ManagedStorageAccountName; v != "" {
+				discoveryConfiguration.ManagedRgStorageAccountName = pointer.To(v)
+			}
+
+			parameters.Properties.Configuration = discoveryConfiguration
 
 			if v := model.ManagedResourceGroupName; v != "" {
 				parameters.Properties.ManagedResourceGroupConfiguration = &sapvirtualinstances.ManagedRGConfiguration{
@@ -264,7 +249,8 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 				if config := props.Configuration; config != nil {
 					if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
-						state.DiscoveryConfiguration = flattenDiscoveryConfiguration(v)
+						state.CentralServerVmId = pointer.From(v.CentralServerVMId)
+						state.ManagedStorageAccountName = pointer.From(v.ManagedRgStorageAccountName)
 					}
 				}
 
@@ -296,27 +282,4 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Delete() sdk.ResourceFunc 
 			return nil
 		},
 	}
-}
-
-func expandDiscoveryConfiguration(input []DiscoveryConfiguration) *sapvirtualinstances.DiscoveryConfiguration {
-	configuration := input[0]
-
-	result := &sapvirtualinstances.DiscoveryConfiguration{
-		CentralServerVMId: utils.String(configuration.CentralServerVmId),
-	}
-
-	if v := configuration.ManagedStorageAccountName; v != "" {
-		result.ManagedRgStorageAccountName = utils.String(v)
-	}
-
-	return result
-}
-
-func flattenDiscoveryConfiguration(input sapvirtualinstances.DiscoveryConfiguration) []DiscoveryConfiguration {
-	result := make([]DiscoveryConfiguration, 0)
-
-	return append(result, DiscoveryConfiguration{
-		CentralServerVmId:         pointer.From(input.CentralServerVMId),
-		ManagedStorageAccountName: pointer.From(input.ManagedRgStorageAccountName),
-	})
 }
