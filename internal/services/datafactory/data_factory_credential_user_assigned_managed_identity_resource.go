@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -102,10 +103,8 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Read() sdk.Resou
 			var state DataFactoryCredentialUserAssignedManagedIdentityResourceSchema
 
 			existing, err := client.CredentialOperationsGet(ctx, *credentialId, credentials.CredentialOperationsGetOperationOptions{})
-			if err != nil {
-				if existing.HttpResponse.Status == "404" {
-					return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
-				}
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
 			}
 
 			state.Name = credentialId.CredentialName
@@ -152,12 +151,11 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 			}
 
 			existing, err := client.CredentialOperationsGet(ctx, id, credentials.CredentialOperationsGetOperationOptions{})
-			if err != nil {
-				if existing.HttpResponse.Status == "404" {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			if existing.HttpResponse.Status == "404" {
+
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
 			}
 
