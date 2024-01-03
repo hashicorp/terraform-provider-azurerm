@@ -133,10 +133,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-sapvis-%d"
   location = "%s"
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
@@ -180,10 +176,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-sapvis-%d"
   location = "%s"
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
