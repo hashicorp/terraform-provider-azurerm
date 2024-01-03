@@ -69,6 +69,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
+* `inbound_ip_address` - The Inbound IP Addresses for this Web App.
+
 * `kind` - The string representation of the Windows Web App Kind.
 
 * `location` - The Azure Region where the Windows Web App exists.
@@ -78,6 +80,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `outbound_ip_address_list` - The list of Outbound IP Addresses for this Windows Web App.
 
 * `outbound_ip_addresses` - A string representation of the list of Outbound IP Addresses for this Windows Web App.
+
+* `possible_inbound_ip_address_list` - The list of Possible Inbound IP Addresses that could be used by this Web App.
+
+* `possible_inbound_ip_addresses` - A comma separated list of possible inbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use.
 
 * `possible_outbound_ip_address_list` - The list of Possible Outbound IP Addresses that could be used by this Windows Web App.
 

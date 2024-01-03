@@ -44,6 +44,7 @@ type LinuxWebAppModel struct {
 	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                          bool                       `tfschema:"enabled"`
 	HttpsOnly                        bool                       `tfschema:"https_only"`
+	InboundIPAddress              	 string                     `tfschema:"inbound_ip_address"`
 	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
 	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                       []helpers.LogsConfig       `tfschema:"logs"`
@@ -58,6 +59,8 @@ type LinuxWebAppModel struct {
 	Kind                             string                     `tfschema:"kind"`
 	OutboundIPAddresses              string                     `tfschema:"outbound_ip_addresses"`
 	OutboundIPAddressList            []string                   `tfschema:"outbound_ip_address_list"`
+	PossibleInboundIPAddresses       string                     `tfschema:"possible_inbound_ip_addresses"`
+	PossibleInboundIPAddressList     []string                   `tfschema:"possible_inbound_ip_address_list"`
 	PossibleOutboundIPAddresses      string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList    []string                   `tfschema:"possible_outbound_ip_address_list"`
 	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
@@ -220,10 +223,15 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"kind": {
+		"inbound_ip_address": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},		
 
 		"outbound_ip_addresses": {
 			Type:     pluginsdk.TypeString,
@@ -238,6 +246,19 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"possible_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"possible_inbound_ip_address_list": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+		
 		"possible_outbound_ip_addresses": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -619,6 +640,9 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					Enabled:                       pointer.From(props.Enabled),
 					HttpsOnly:                     pointer.From(props.HTTPSOnly),
 					StickySettings:                helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+					InboundIPAddress:              pointer.From(props.InboundIPAddress),
+				    PossibleInboundIPAddresses:    pointer.From(props.PossibleInboundIPAddresses),
+					PossibleInboundIPAddressList:  strings.Split(pointer.From(props.PossibleInboundIPAddresses), ","),
 					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
 					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
 					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),

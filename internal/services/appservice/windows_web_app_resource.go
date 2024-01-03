@@ -44,6 +44,7 @@ type WindowsWebAppModel struct {
 	ClientCertExclusionPaths         string                      `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                          bool                        `tfschema:"enabled"`
 	HttpsOnly                        bool                        `tfschema:"https_only"`
+	InboundIPAddress              	 string                      `tfschema:"inbound_ip_address"`
 	KeyVaultReferenceIdentityID      string                      `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                       []helpers.LogsConfig        `tfschema:"logs"`
 	PublicNetworkAccess              bool                        `tfschema:"public_network_access_enabled"`
@@ -58,6 +59,8 @@ type WindowsWebAppModel struct {
 	Kind                             string                      `tfschema:"kind"`
 	OutboundIPAddresses              string                      `tfschema:"outbound_ip_addresses"`
 	OutboundIPAddressList            []string                    `tfschema:"outbound_ip_address_list"`
+	PossibleInboundIPAddresses       string                      `tfschema:"possible_inbound_ip_addresses"`
+	PossibleInboundIPAddressList     []string                    `tfschema:"possible_inbound_ip_address_list"`
 	PossibleOutboundIPAddresses      string                      `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList    []string                    `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials                  []helpers.SiteCredential    `tfschema:"site_credential"`
@@ -221,6 +224,11 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"inbound_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -232,6 +240,19 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"outbound_ip_address_list": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"possible_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"possible_inbound_ip_address_list": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -645,6 +666,9 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					SiteCredentials:               helpers.FlattenSiteCredentials(siteCredentials),
 					StorageAccounts:               helpers.FlattenStorageAccounts(storageAccounts),
 					StickySettings:                helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+					InboundIPAddress:              pointer.From(props.InboundIPAddress),
+					PossibleInboundIPAddresses:    pointer.From(props.PossibleInboundIPAddresses),
+					PossibleInboundIPAddressList:  strings.Split(pointer.From(props.PossibleInboundIPAddresses), ","),
 					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
 					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
 					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),

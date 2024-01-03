@@ -73,6 +73,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
+* `inbound_ip_address` - The Inbound IP Addresses for this Web App.
+
 * `kind` - The Kind value for this Linux Web App.
 
 * `location` - The Azure Region where the Linux Web App exists.
@@ -82,6 +84,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `outbound_ip_address_list` - A `outbound_ip_address_list` block as defined below.
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`.
+
+* `possible_inbound_ip_address_list` - The list of Possible Inbound IP Addresses that could be used by this Web App.
+
+* `possible_inbound_ip_addresses` - A comma separated list of possible inbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use.
 
 * `possible_outbound_ip_address_list` - A `possible_outbound_ip_address_list` block as defined below.
 
