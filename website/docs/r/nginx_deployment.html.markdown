@@ -115,9 +115,11 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values is `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
+* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values are `UserAssigned`, `SystemAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
