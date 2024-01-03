@@ -641,7 +641,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					HttpsOnly:                     pointer.From(props.HTTPSOnly),
 					StickySettings:                helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 					InboundIPAddress:              pointer.From(props.InboundIPAddress),
-				    PossibleInboundIPAddresses:    pointer.From(props.PossibleInboundIPAddresses),
+					PossibleInboundIPAddresses:    pointer.From(props.PossibleInboundIPAddresses),
 					PossibleInboundIPAddressList:  strings.Split(pointer.From(props.PossibleInboundIPAddresses), ","),
 					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
 					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
