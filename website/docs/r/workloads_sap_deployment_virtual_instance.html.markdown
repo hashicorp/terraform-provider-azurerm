@@ -211,7 +211,7 @@ An `os_sap_configuration` block supports the following:
 
 A `deployer_virtual_machine_packages` block supports the following:
 
-* `storage_account_id` - (Required) A `deployer_virtual_machine_packages` block as defined below. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) The ID of the deployer VM packages storage account. Changing this forces a new resource to be created.
 
 * `url` - (Required) The URL of the deployer VM packages file. Changing this forces a new resource to be created.
 
