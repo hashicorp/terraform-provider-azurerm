@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -969,6 +970,31 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of %q: %+v", id, err)
+	}
+
+	// When the `local_authentication_enabled` updated, GET on the resource is returned with 404 for a while.
+	// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/27183
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{"404"},
+		Target:  []string{"200"},
+		Refresh: func() (result interface{}, state string, err error) {
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return resp, strconv.Itoa(resp.StatusCode), nil
+				}
+				return resp, strconv.Itoa(resp.StatusCode), err
+			}
+			return resp, strconv.Itoa(resp.StatusCode), nil
+		},
+		Delay:        1 * time.Minute,
+		PollInterval: 1 * time.Minute,
+		Timeout:      time.Until(timeout),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
