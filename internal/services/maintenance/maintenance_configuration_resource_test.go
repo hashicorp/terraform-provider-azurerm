@@ -219,9 +219,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_maintenance_configuration" "test" {
-  name                = "acctest-MC%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                     = "acctest-MC%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   scope                    = "InGuestPatch"
   in_guest_user_patch_mode = "User"
   install_patches {
