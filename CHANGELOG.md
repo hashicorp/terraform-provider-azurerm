@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_logic_app_standard` - add support for `site_config.0.public_network_access_enabled` [GH-24257]
 * `azurerm_log_analytics_workspace_table` - support for the `plan` property [GH-24341]
 * `azurerm_linux_web_app` - add support for value `20-lts` for `node_version` for  [GH-24289]
+* `azurerm_recovery_services_vault` - support creation with immutability set to locked [GH-23806]
 * `azurerm_spring_cloud_service` - support for the `sku_tier` property [GH-24103]
 
 BUG FIXES:
