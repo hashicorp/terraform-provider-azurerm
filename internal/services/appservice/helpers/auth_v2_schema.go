@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -528,6 +529,64 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *web.Login {
 	return result
 }
 
+func expandAuthV2LoginSettingsLinuxWebApps(input []AuthV2Login) *webapps.Login {
+	if len(input) == 0 {
+		return nil
+	}
+	login := input[0]
+	result := &webapps.Login{
+		Routes: &webapps.LoginRoutes{},
+		TokenStore: &webapps.TokenStore{
+			Enabled:          pointer.To(login.TokenStoreEnabled),
+			FileSystem:       &webapps.FileSystemTokenStore{},
+			AzureBlobStorage: &webapps.BlobStorageTokenStore{},
+		},
+		PreserveUrlFragmentsForLogins: pointer.To(login.PreserveURLFragmentsForLogins),
+		Nonce: &webapps.Nonce{
+			ValidateNonce:           pointer.To(login.ValidateNonce),
+			NonceExpirationInterval: pointer.To(login.NonceExpirationTime),
+		},
+		CookieExpiration: &webapps.CookieExpiration{
+			Convention:       pointer.To(webapps.CookieExpirationConvention(login.CookieExpirationConvention)),
+			TimeToExpiration: pointer.To(login.CookieExpirationTime),
+		},
+	}
+
+	if login.TokenFilesystemPath != "" || login.TokenBlobStorageSAS != "" {
+		result.TokenStore.Enabled = pointer.To(true)
+		if login.TokenFilesystemPath != "" {
+			result.TokenStore.FileSystem = &webapps.FileSystemTokenStore{
+				Directory: pointer.To(login.TokenFilesystemPath),
+			}
+		}
+		if login.TokenBlobStorageSAS != "" {
+			result.TokenStore.AzureBlobStorage = &webapps.BlobStorageTokenStore{
+				SasUrlSettingName: pointer.To(login.TokenBlobStorageSAS),
+			}
+		}
+	}
+
+	if login.LogoutEndpoint != "" {
+		result.Routes = &webapps.LoginRoutes{
+			LogoutEndpoint: pointer.To(login.LogoutEndpoint),
+		}
+	}
+	result.TokenStore.TokenRefreshExtensionHours = pointer.To(login.TokenRefreshExtension)
+	if login.TokenFilesystemPath != "" {
+		result.TokenStore.FileSystem = &webapps.FileSystemTokenStore{
+			Directory: pointer.To(login.TokenFilesystemPath),
+		}
+	}
+	if login.TokenBlobStorageSAS != "" {
+		result.TokenStore.AzureBlobStorage = &webapps.BlobStorageTokenStore{
+			SasUrlSettingName: pointer.To(login.TokenBlobStorageSAS),
+		}
+	}
+	result.AllowedExternalRedirectUrls = pointer.To(login.AllowedExternalRedirectURLs)
+
+	return result
+}
+
 func flattenAuthV2LoginSettings(input *web.Login) []AuthV2Login {
 	if input == nil {
 		return []AuthV2Login{}
@@ -558,6 +617,43 @@ func flattenAuthV2LoginSettings(input *web.Login) []AuthV2Login {
 	if cookie := input.CookieExpiration; cookie != nil {
 		result.CookieExpirationConvention = string(cookie.Convention)
 		result.CookieExpirationTime = pointer.From(cookie.TimeToExpiration)
+	}
+
+	return []AuthV2Login{result}
+}
+
+func flattenAuthV2LoginSettingsLinuxWebApps(input *webapps.Login) []AuthV2Login {
+	if input == nil {
+		return []AuthV2Login{}
+	}
+	result := AuthV2Login{
+		PreserveURLFragmentsForLogins: pointer.From(input.PreserveUrlFragmentsForLogins),
+		AllowedExternalRedirectURLs:   pointer.From(input.AllowedExternalRedirectUrls),
+	}
+	if routes := input.Routes; routes != nil {
+		result.LogoutEndpoint = pointer.From(routes.LogoutEndpoint)
+	}
+	if token := input.TokenStore; token != nil {
+		result.TokenStoreEnabled = pointer.From(token.Enabled)
+		result.TokenRefreshExtension = pointer.From(token.TokenRefreshExtensionHours)
+		if fs := token.FileSystem; fs != nil {
+			result.TokenFilesystemPath = pointer.From(fs.Directory)
+		}
+		if bs := token.AzureBlobStorage; bs != nil {
+			result.TokenBlobStorageSAS = pointer.From(bs.SasUrlSettingName)
+		}
+	}
+
+	if nonce := input.Nonce; nonce != nil {
+		result.NonceExpirationTime = pointer.From(nonce.NonceExpirationInterval)
+		result.ValidateNonce = pointer.From(nonce.ValidateNonce)
+	}
+
+	if cookie := input.CookieExpiration; cookie != nil {
+		result.CookieExpirationTime = pointer.From(cookie.TimeToExpiration)
+		if cookie.Convention != nil {
+			result.CookieExpirationConvention = string(*cookie.Convention)
+		}
 	}
 
 	return []AuthV2Login{result}
@@ -664,6 +760,26 @@ func expandAppleAuthV2Settings(input []AppleAuthV2Settings) *web.Apple {
 	}
 }
 
+func expandAppleAuthV2SettingsLinuxWebApps(input []AppleAuthV2Settings) *webapps.Apple {
+	if len(input) == 1 {
+		apple := input[0]
+		return &webapps.Apple{
+			Enabled: pointer.To(true),
+			Registration: &webapps.AppleRegistration{
+				ClientId:                pointer.To(apple.ClientId),
+				ClientSecretSettingName: pointer.To(apple.ClientSecretSettingName),
+			},
+			Login: &webapps.LoginScopes{
+				Scopes: pointer.To(apple.LoginScopes),
+			},
+		}
+	}
+
+	return &webapps.Apple{
+		Enabled: pointer.To(false),
+	}
+}
+
 func flattenAppleAuthV2Settings(input *web.Apple) []AppleAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []AppleAuthV2Settings{}
@@ -673,6 +789,24 @@ func flattenAppleAuthV2Settings(input *web.Apple) []AppleAuthV2Settings {
 	props := *input
 	if reg := props.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
+		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
+	}
+	if loginScopes := props.Login; loginScopes != nil {
+		result.LoginScopes = pointer.From(loginScopes.Scopes)
+	}
+
+	return []AppleAuthV2Settings{result}
+}
+
+func flattenAppleAuthV2SettingsLinuxWebApps(input *webapps.Apple) []AppleAuthV2Settings {
+	if input == nil || !pointer.From(input.Enabled) {
+		return []AppleAuthV2Settings{}
+	}
+	result := AppleAuthV2Settings{}
+
+	props := *input
+	if reg := props.Registration; reg != nil {
+		result.ClientId = pointer.From(reg.ClientId)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
 	if loginScopes := props.Login; loginScopes != nil {
@@ -998,6 +1132,78 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 	return result
 }
 
+func expandAadAuthV2SettingsLinuxWebApps(input []AadAuthV2Settings) *webapps.AzureActiveDirectory {
+	result := &webapps.AzureActiveDirectory{
+		Enabled: pointer.To(false),
+	}
+
+	if len(input) == 1 {
+		aad := input[0]
+		result = &webapps.AzureActiveDirectory{
+			Enabled: pointer.To(true),
+			Registration: &webapps.AzureActiveDirectoryRegistration{
+				OpenIdIssuer: pointer.To(aad.TenantAuthURI),
+				ClientId:     pointer.To(aad.ClientId),
+			},
+			Login: &webapps.AzureActiveDirectoryLogin{
+				DisableWWWAuthenticate: pointer.To(aad.DisableWWWAuth),
+			},
+		}
+
+		if aad.ClientSecretSettingName != "" {
+			result.Registration.ClientSecretSettingName = pointer.To(aad.ClientSecretSettingName)
+		}
+
+		if aad.ClientSecretCertificateThumbprint != "" {
+			result.Registration.ClientSecretCertificateThumbprint = pointer.To(aad.ClientSecretCertificateThumbprint)
+		}
+
+		if len(aad.LoginParameters) > 0 {
+			params := make([]string, 0)
+			for k, v := range aad.LoginParameters {
+				params = append(params, fmt.Sprintf("%s=%s", k, v))
+			}
+			result.Login.LoginParameters = &params
+		}
+
+		if len(aad.JWTAllowedGroups) != 0 || len(aad.JWTAllowedClientApps) != 0 {
+			if result.Validation == nil {
+				result.Validation = &webapps.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.JwtClaimChecks = &webapps.JwtClaimChecks{}
+			if len(aad.JWTAllowedGroups) != 0 {
+				result.Validation.JwtClaimChecks.AllowedGroups = pointer.To(aad.JWTAllowedGroups)
+			}
+			if len(aad.JWTAllowedClientApps) != 0 {
+				result.Validation.JwtClaimChecks.AllowedClientApplications = pointer.To(aad.JWTAllowedClientApps)
+			}
+		}
+
+		if len(aad.AllowedGroups) > 0 || len(aad.AllowedIdentities) > 0 {
+			if result.Validation == nil {
+				result.Validation = &webapps.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.DefaultAuthorizationPolicy = &webapps.DefaultAuthorizationPolicy{
+				AllowedPrincipals: &webapps.AllowedPrincipals{},
+			}
+			if len(aad.AllowedGroups) > 0 {
+				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Groups = pointer.To(aad.AllowedGroups)
+			}
+			if len(aad.AllowedIdentities) > 0 {
+				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Identities = pointer.To(aad.AllowedIdentities)
+			}
+		}
+		if len(aad.AllowedAudiences) > 0 {
+			if result.Validation == nil {
+				result.Validation = &webapps.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.AllowedAudiences = pointer.To(aad.AllowedAudiences)
+		}
+	}
+
+	return result
+}
+
 func flattenAadAuthV2Settings(input *web.AzureActiveDirectory) []AadAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []AadAuthV2Settings{}
@@ -1008,6 +1214,54 @@ func flattenAadAuthV2Settings(input *web.AzureActiveDirectory) []AadAuthV2Settin
 	if reg := input.Registration; reg != nil {
 		result.TenantAuthURI = pointer.From(reg.OpenIDIssuer)
 		result.ClientId = pointer.From(reg.ClientID)
+		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
+		result.ClientSecretCertificateThumbprint = pointer.From(reg.ClientSecretCertificateThumbprint)
+	}
+
+	if login := input.Login; login != nil {
+		result.DisableWWWAuth = pointer.From(login.DisableWWWAuthenticate)
+		if loginParamsRaw := login.LoginParameters; loginParamsRaw != nil {
+			loginParams := make(map[string]string)
+			for _, v := range *loginParamsRaw {
+				parts := strings.Split(v, "=")
+				if len(parts) == 2 && parts[0] != "" {
+					loginParams[parts[0]] = parts[1]
+				}
+			}
+			result.LoginParameters = loginParams
+		}
+
+	}
+
+	if validation := input.Validation; validation != nil {
+		if validation.AllowedAudiences != nil {
+			result.AllowedAudiences = *validation.AllowedAudiences
+		}
+		if jwt := validation.JwtClaimChecks; jwt != nil {
+			result.JWTAllowedGroups = pointer.From(jwt.AllowedGroups)
+			result.JWTAllowedClientApps = pointer.From(jwt.AllowedClientApplications)
+		}
+		if defaultPolicy := validation.DefaultAuthorizationPolicy; defaultPolicy != nil {
+			result.AllowedApplications = pointer.From(defaultPolicy.AllowedApplications)
+			if defaultPolicy.AllowedPrincipals != nil {
+				result.AllowedGroups = pointer.From(defaultPolicy.AllowedPrincipals.Groups)
+				result.AllowedIdentities = pointer.From(defaultPolicy.AllowedPrincipals.Identities)
+			}
+		}
+	}
+
+	return []AadAuthV2Settings{result}
+}
+func flattenAadAuthV2SettingsLinuxWebApps(input *webapps.AzureActiveDirectory) []AadAuthV2Settings {
+	if input == nil || !pointer.From(input.Enabled) {
+		return []AadAuthV2Settings{}
+	}
+
+	result := AadAuthV2Settings{}
+
+	if reg := input.Registration; reg != nil {
+		result.TenantAuthURI = pointer.From(reg.OpenIdIssuer)
+		result.ClientId = pointer.From(reg.ClientId)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 		result.ClientSecretCertificateThumbprint = pointer.From(reg.ClientSecretCertificateThumbprint)
 	}
@@ -1112,6 +1366,22 @@ func expandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *web.A
 	}
 }
 
+func expandStaticWebAppAuthV2SettingsLinuxWebApps(input []StaticWebAppAuthV2Settings) *webapps.AzureStaticWebApps {
+	if len(input) == 1 {
+		swa := input[0]
+		return &webapps.AzureStaticWebApps{
+			Enabled: pointer.To(true),
+			Registration: &webapps.AzureStaticWebAppsRegistration{
+				ClientId: pointer.To(swa.ClientId),
+			},
+		}
+	}
+
+	return &webapps.AzureStaticWebApps{
+		Enabled: pointer.To(false),
+	}
+}
+
 func flattenStaticWebAppAuthV2Settings(input *web.AzureStaticWebApps) []StaticWebAppAuthV2Settings {
 	if input == nil || (input.Enabled != nil && !*input.Enabled) {
 		return []StaticWebAppAuthV2Settings{}
@@ -1122,6 +1392,22 @@ func flattenStaticWebAppAuthV2Settings(input *web.AzureStaticWebApps) []StaticWe
 	if props := input; props != nil && pointer.From(props.Enabled) {
 		if props.Registration != nil {
 			result.ClientId = pointer.From(props.Registration.ClientID)
+		}
+	}
+
+	return []StaticWebAppAuthV2Settings{result}
+}
+
+func flattenStaticWebAppAuthV2SettingsLinuxWebApps(input *webapps.AzureStaticWebApps) []StaticWebAppAuthV2Settings {
+	if input == nil || (input.Enabled != nil && !*input.Enabled) {
+		return []StaticWebAppAuthV2Settings{}
+	}
+
+	result := StaticWebAppAuthV2Settings{}
+
+	if props := input; props != nil && pointer.From(props.Enabled) {
+		if props.Registration != nil {
+			result.ClientId = pointer.From(props.Registration.ClientId)
 		}
 	}
 
@@ -1351,6 +1637,42 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 	return result
 }
 
+func expandCustomOIDCAuthV2SettingsLinuxWebApps(input []CustomOIDCAuthV2Settings) *map[string]webapps.CustomOpenIdConnectProvider {
+	if len(input) == 0 {
+		return nil
+	}
+	result := make(map[string]webapps.CustomOpenIdConnectProvider)
+	for _, v := range input {
+		if v.Name == "" {
+			continue
+		}
+		provider := webapps.CustomOpenIdConnectProvider{
+			Enabled: pointer.To(true),
+			Registration: &webapps.OpenIdConnectRegistration{
+				ClientId: pointer.To(v.ClientId),
+				ClientCredential: &webapps.OpenIdConnectClientCredential{
+					Method:                  pointer.To(webapps.ClientCredentialMethodClientSecretPost),
+					ClientSecretSettingName: pointer.To(fmt.Sprintf("%s_PROVIDER_AUTHENTICATION_SECRET", strings.ToUpper(v.Name))),
+				},
+				OpenIdConnectConfiguration: &webapps.OpenIdConnectConfig{
+					WellKnownOpenIdConfiguration: pointer.To(v.OpenIDConfigurationEndpoint),
+				},
+			},
+			Login: &webapps.OpenIdConnectLogin{
+				Scopes: pointer.To(v.Scopes),
+			},
+		}
+
+		if v.NameClaimType != "" {
+			provider.Login.NameClaimType = pointer.To(v.NameClaimType)
+		}
+
+		result[v.Name] = provider
+	}
+
+	return &result
+}
+
 func flattenCustomOIDCAuthV2Settings(input map[string]*web.CustomOpenIDConnectProvider) []CustomOIDCAuthV2Settings {
 	if len(input) == 0 {
 		return []CustomOIDCAuthV2Settings{}
@@ -1376,6 +1698,48 @@ func flattenCustomOIDCAuthV2Settings(input map[string]*web.CustomOpenIDConnectPr
 					provider.TokenEndpoint = pointer.From(config.TokenEndpoint)
 					provider.IssuerEndpoint = pointer.From(config.Issuer)
 					provider.CertificationURI = pointer.From(config.CertificationURI)
+				}
+			}
+			if login := v.Login; login != nil {
+				if login.Scopes != nil {
+					provider.Scopes = *login.Scopes
+				}
+				provider.NameClaimType = pointer.From(login.NameClaimType)
+			}
+			result = append(result, provider)
+		}
+	}
+
+	return result
+}
+
+func flattenCustomOIDCAuthV2SettingsLinuxWebApps(input *map[string]webapps.CustomOpenIdConnectProvider) []CustomOIDCAuthV2Settings {
+	if input == nil {
+		return []CustomOIDCAuthV2Settings{}
+	}
+
+	result := make([]CustomOIDCAuthV2Settings, 0)
+	for k, v := range *input {
+		if !pointer.From(v.Enabled) {
+			continue
+		} else {
+			provider := CustomOIDCAuthV2Settings{
+				Name: k,
+			}
+			if reg := v.Registration; reg != nil {
+				provider.ClientId = pointer.From(reg.ClientId)
+				if reg.ClientCredential != nil {
+					provider.ClientSecretSettingName = pointer.From(reg.ClientCredential.ClientSecretSettingName)
+					if reg.ClientCredential != nil && reg.ClientCredential.Method != nil {
+						provider.ClientCredentialMethod = string(*reg.ClientCredential.Method)
+					}
+				}
+				if config := reg.OpenIdConnectConfiguration; config != nil {
+					provider.OpenIDConfigurationEndpoint = pointer.From(config.WellKnownOpenIdConfiguration)
+					provider.AuthorizationEndpoint = pointer.From(config.AuthorizationEndpoint)
+					provider.TokenEndpoint = pointer.From(config.TokenEndpoint)
+					provider.IssuerEndpoint = pointer.From(config.Issuer)
+					provider.CertificationURI = pointer.From(config.CertificationUri)
 				}
 			}
 			if login := v.Login; login != nil {
@@ -1512,6 +1876,30 @@ func expandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *web.Facebook 
 	}
 }
 
+func expandFacebookAuthV2SettingsLinuxWebApps(input []FacebookAuthV2Settings) *webapps.Facebook {
+	if len(input) == 1 {
+		facebook := input[0]
+		result := &webapps.Facebook{
+			Enabled: pointer.To(true),
+			Registration: &webapps.AppRegistration{
+				AppId:                pointer.To(facebook.AppId),
+				AppSecretSettingName: pointer.To(facebook.AppSecretSettingName),
+			},
+		}
+
+		result.GraphApiVersion = pointer.To(facebook.GraphAPIVersion)
+		result.Login = &webapps.LoginScopes{
+			Scopes: pointer.To(facebook.LoginScopes),
+		}
+
+		return result
+	}
+
+	return &webapps.Facebook{
+		Enabled: pointer.To(false),
+	}
+}
+
 func flattenFacebookAuthV2Settings(input *web.Facebook) []FacebookAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []FacebookAuthV2Settings{}
@@ -1523,6 +1911,26 @@ func flattenFacebookAuthV2Settings(input *web.Facebook) []FacebookAuthV2Settings
 
 	if reg := input.Registration; reg != nil {
 		result.AppId = pointer.From(reg.AppID)
+		result.AppSecretSettingName = pointer.From(reg.AppSecretSettingName)
+	}
+	if login := input.Login; login != nil {
+		result.LoginScopes = pointer.From(login.Scopes)
+	}
+
+	return []FacebookAuthV2Settings{result}
+}
+
+func flattenFacebookAuthV2SettingsLinuxWebApps(input *webapps.Facebook) []FacebookAuthV2Settings {
+	if input == nil || !pointer.From(input.Enabled) {
+		return []FacebookAuthV2Settings{}
+	}
+
+	result := FacebookAuthV2Settings{
+		GraphAPIVersion: pointer.From(input.GraphApiVersion),
+	}
+
+	if reg := input.Registration; reg != nil {
+		result.AppId = pointer.From(reg.AppId)
 		result.AppSecretSettingName = pointer.From(reg.AppSecretSettingName)
 	}
 	if login := input.Login; login != nil {
@@ -1634,6 +2042,28 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *web.GitHub {
 	}
 }
 
+func expandGitHubAuthV2SettingsLinuxWebApps(input []GithubAuthV2Settings) *webapps.GitHub {
+	if len(input) == 1 {
+		github := input[0]
+		result := &webapps.GitHub{
+			Enabled: pointer.To(true),
+			Registration: &webapps.ClientRegistration{
+				ClientId:                pointer.To(github.ClientId),
+				ClientSecretSettingName: pointer.To(github.ClientSecretSettingName),
+			},
+			Login: &webapps.LoginScopes{
+				Scopes: pointer.To(github.LoginScopes),
+			},
+		}
+
+		return result
+	}
+
+	return &webapps.GitHub{
+		Enabled: pointer.To(false),
+	}
+}
+
 func flattenGitHubAuthV2Settings(input *web.GitHub) []GithubAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []GithubAuthV2Settings{}
@@ -1643,6 +2073,24 @@ func flattenGitHubAuthV2Settings(input *web.GitHub) []GithubAuthV2Settings {
 
 	if reg := input.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
+		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
+	}
+	if login := input.Login; login != nil && login.Scopes != nil {
+		result.LoginScopes = pointer.From(login.Scopes)
+	}
+
+	return []GithubAuthV2Settings{result}
+}
+
+func flattenGitHubAuthV2SettingsLinuxWebApps(input *webapps.GitHub) []GithubAuthV2Settings {
+	if input == nil || !pointer.From(input.Enabled) {
+		return []GithubAuthV2Settings{}
+	}
+
+	result := GithubAuthV2Settings{}
+
+	if reg := input.Registration; reg != nil {
+		result.ClientId = pointer.From(reg.ClientId)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
 	if login := input.Login; login != nil && login.Scopes != nil {
@@ -1779,6 +2227,30 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *web.Google {
 	}
 }
 
+func expandGoogleAuthV2SettingsLinuxWebApps(input []GoogleAuthV2Settings) *webapps.Google {
+	if len(input) == 1 {
+		google := input[0]
+		return &webapps.Google{
+			Enabled: pointer.To(true),
+			Registration: &webapps.ClientRegistration{
+				ClientId:                pointer.To(google.ClientId),
+				ClientSecretSettingName: pointer.To(google.ClientSecretSettingName),
+			},
+			Validation: &webapps.AllowedAudiencesValidation{
+				AllowedAudiences: pointer.To(google.AllowedAudiences),
+			},
+			Login: &webapps.LoginScopes{
+				Scopes: pointer.To(google.LoginScopes),
+			},
+		}
+
+	}
+
+	return &webapps.Google{
+		Enabled: pointer.To(false),
+	}
+}
+
 func flattenGoogleAuthV2Settings(input *web.Google) []GoogleAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []GoogleAuthV2Settings{}
@@ -1788,6 +2260,27 @@ func flattenGoogleAuthV2Settings(input *web.Google) []GoogleAuthV2Settings {
 
 	if reg := input.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
+		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
+	}
+	if login := input.Login; login != nil && login.Scopes != nil {
+		result.LoginScopes = *login.Scopes
+	}
+	if val := input.Validation; val != nil && val.AllowedAudiences != nil {
+		result.LoginScopes = *val.AllowedAudiences
+	}
+
+	return []GoogleAuthV2Settings{result}
+}
+
+func flattenGoogleAuthV2SettingsLinuxWebApps(input *webapps.Google) []GoogleAuthV2Settings {
+	if input == nil || !pointer.From(input.Enabled) {
+		return []GoogleAuthV2Settings{}
+	}
+
+	result := GoogleAuthV2Settings{}
+
+	if reg := input.Registration; reg != nil {
+		result.ClientId = pointer.From(reg.ClientId)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
 	if login := input.Login; login != nil && login.Scopes != nil {
@@ -1925,6 +2418,29 @@ func expandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *web.LegacyM
 	}
 }
 
+func expandMicrosoftAuthV2SettingsLinuxWebApps(input []MicrosoftAuthV2Settings) *webapps.LegacyMicrosoftAccount {
+	if len(input) == 1 {
+		msft := input[0]
+		return &webapps.LegacyMicrosoftAccount{
+			Enabled: pointer.To(true),
+			Registration: &webapps.ClientRegistration{
+				ClientId:                pointer.To(msft.ClientId),
+				ClientSecretSettingName: pointer.To(msft.ClientSecretSettingName),
+			},
+			Validation: &webapps.AllowedAudiencesValidation{
+				AllowedAudiences: pointer.To(msft.AllowedAudiences),
+			},
+			Login: &webapps.LoginScopes{
+				Scopes: pointer.To(msft.LoginScopes),
+			},
+		}
+	}
+
+	return &webapps.LegacyMicrosoftAccount{
+		Enabled: pointer.To(false),
+	}
+}
+
 func flattenMicrosoftAuthV2Settings(input *web.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []MicrosoftAuthV2Settings{}
@@ -1934,6 +2450,27 @@ func flattenMicrosoftAuthV2Settings(input *web.LegacyMicrosoftAccount) []Microso
 
 	if reg := input.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
+		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
+	}
+	if login := input.Login; login != nil && login.Scopes != nil {
+		result.LoginScopes = *login.Scopes
+	}
+	if val := input.Validation; val != nil && val.AllowedAudiences != nil {
+		result.LoginScopes = *val.AllowedAudiences
+	}
+
+	return []MicrosoftAuthV2Settings{result}
+}
+
+func flattenMicrosoftAuthV2SettingsLinuxWebApps(input *webapps.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
+	if input == nil || !pointer.From(input.Enabled) {
+		return []MicrosoftAuthV2Settings{}
+	}
+
+	result := MicrosoftAuthV2Settings{}
+
+	if reg := input.Registration; reg != nil {
+		result.ClientId = pointer.From(reg.ClientId)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
 	if login := input.Login; login != nil && login.Scopes != nil {
@@ -2026,7 +2563,43 @@ func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *web.Twitter {
 	}
 }
 
+func expandTwitterAuthV2SettingsLinuxWebApps(input []TwitterAuthV2Settings) *webapps.Twitter {
+	if len(input) == 1 {
+		twitter := input[0]
+		result := &webapps.Twitter{
+			Enabled: pointer.To(true),
+			Registration: &webapps.TwitterRegistration{
+				ConsumerKey:               pointer.To(twitter.ConsumerKey),
+				ConsumerSecretSettingName: pointer.To(twitter.ConsumerSecretSettingName),
+			},
+		}
+
+		return result
+	}
+
+	return &webapps.Twitter{
+		Enabled: pointer.To(false),
+	}
+}
+
 func flattenTwitterAuthV2Settings(input *web.Twitter) []TwitterAuthV2Settings {
+	if input == nil || !pointer.From(input.Enabled) {
+		return []TwitterAuthV2Settings{}
+	}
+
+	if pointer.From(input.Enabled) {
+		result := TwitterAuthV2Settings{}
+		if reg := input.Registration; reg != nil {
+			result.ConsumerKey = pointer.From(reg.ConsumerKey)
+			result.ConsumerSecretSettingName = pointer.From(reg.ConsumerSecretSettingName)
+		}
+		return []TwitterAuthV2Settings{result}
+	}
+
+	return nil
+}
+
+func flattenTwitterAuthV2SettingsLinuxWebApps(input *webapps.Twitter) []TwitterAuthV2Settings {
 	if input == nil || !pointer.From(input.Enabled) {
 		return []TwitterAuthV2Settings{}
 	}
@@ -2107,6 +2680,70 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *web.SiteAuthSettingsV2 {
 	return result
 }
 
+func ExpandAuthV2SettingsLinuxWebApps(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
+	result := &webapps.SiteAuthSettingsV2{}
+	if len(input) != 1 {
+		return result
+	}
+
+	settings := input[0]
+
+	props := &webapps.SiteAuthSettingsV2Properties{
+		Platform: &webapps.AuthPlatform{
+			Enabled:        pointer.To(settings.AuthEnabled),
+			RuntimeVersion: pointer.To(settings.RuntimeVersion),
+		},
+		GlobalValidation: &webapps.GlobalValidation{
+			RequireAuthentication:       pointer.To(settings.RequireAuth),
+			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(settings.UnauthenticatedAction)),
+			ExcludedPaths:               pointer.To(settings.ExcludedPaths),
+		},
+		IdentityProviders: &webapps.IdentityProviders{
+			AzureActiveDirectory:         expandAadAuthV2SettingsLinuxWebApps(settings.AzureActiveDirectoryAuth),
+			Facebook:                     expandFacebookAuthV2SettingsLinuxWebApps(settings.FacebookAuth),
+			GitHub:                       expandGitHubAuthV2SettingsLinuxWebApps(settings.GithubAuth),
+			Google:                       expandGoogleAuthV2SettingsLinuxWebApps(settings.GoogleAuth),
+			Twitter:                      expandTwitterAuthV2SettingsLinuxWebApps(settings.TwitterAuth),
+			CustomOpenIdConnectProviders: expandCustomOIDCAuthV2SettingsLinuxWebApps(settings.CustomOIDCAuth),
+			LegacyMicrosoftAccount:       expandMicrosoftAuthV2SettingsLinuxWebApps(settings.MicrosoftAuth),
+			Apple:                        expandAppleAuthV2SettingsLinuxWebApps(settings.AppleAuth),
+			AzureStaticWebApps:           expandStaticWebAppAuthV2SettingsLinuxWebApps(settings.AzureStaticWebAuth),
+		},
+		Login: expandAuthV2LoginSettingsLinuxWebApps(settings.Login),
+		HTTPSettings: &webapps.HTTPSettings{
+			RequireHTTPS: pointer.To(settings.RequireHTTPS),
+			Routes: &webapps.HTTPSettingsRoutes{
+				ApiPrefix: pointer.To(settings.HttpRoutesAPIPrefix),
+			},
+			ForwardProxy: &webapps.ForwardProxy{
+				Convention: pointer.To(webapps.ForwardProxyConvention(settings.ForwardProxyConvention)),
+			},
+		},
+	}
+
+	// Platform
+	if settings.ConfigFilePath != "" {
+		props.Platform.ConfigFilePath = pointer.To(settings.ConfigFilePath)
+	}
+
+	// Global
+	if settings.DefaultAuthProvider != "" {
+		props.GlobalValidation.RedirectToProvider = pointer.To(settings.DefaultAuthProvider)
+	}
+
+	// HTTP
+	if settings.ForwardProxyCustomHostHeaderName != "" {
+		props.HTTPSettings.ForwardProxy.CustomHostHeaderName = pointer.To(settings.ForwardProxyCustomHostHeaderName)
+	}
+	if settings.ForwardProxyCustomSchemeHeaderName != "" {
+		props.HTTPSettings.ForwardProxy.CustomProtoHeaderName = pointer.To(settings.ForwardProxyCustomSchemeHeaderName)
+	}
+
+	result.Properties = props
+
+	return result
+}
+
 func FlattenAuthV2Settings(input web.SiteAuthSettingsV2) []AuthV2Settings {
 	if input.SiteAuthSettingsV2Properties == nil {
 		return []AuthV2Settings{}
@@ -2155,6 +2792,63 @@ func FlattenAuthV2Settings(input web.SiteAuthSettingsV2) []AuthV2Settings {
 		result.GoogleAuth = flattenGoogleAuthV2Settings(authProviders.Google)
 		result.MicrosoftAuth = flattenMicrosoftAuthV2Settings(authProviders.LegacyMicrosoftAccount)
 		result.TwitterAuth = flattenTwitterAuthV2Settings(authProviders.Twitter)
+	}
+
+	return []AuthV2Settings{result}
+}
+
+func FlattenAuthV2SettingsLinuxWebApps(input *webapps.SiteAuthSettingsV2) []AuthV2Settings {
+	if input == nil || input.Properties == nil {
+		return []AuthV2Settings{}
+	}
+
+	settings := *input.Properties
+
+	result := AuthV2Settings{}
+
+	if platform := settings.Platform; platform != nil {
+		result.AuthEnabled = pointer.From(platform.Enabled)
+		result.RuntimeVersion = pointer.From(platform.RuntimeVersion)
+		result.ConfigFilePath = pointer.From(platform.ConfigFilePath)
+	}
+
+	if global := settings.GlobalValidation; global != nil {
+		result.RequireAuth = pointer.From(global.RequireAuthentication)
+		result.DefaultAuthProvider = pointer.From(global.RedirectToProvider)
+		result.ExcludedPaths = pointer.From(global.ExcludedPaths)
+		if global.UnauthenticatedClientAction != nil {
+			result.UnauthenticatedAction = string(*global.UnauthenticatedClientAction)
+		}
+	}
+
+	if http := settings.HTTPSettings; http != nil {
+		result.RequireHTTPS = pointer.From(http.RequireHTTPS)
+		if http.Routes != nil {
+			result.HttpRoutesAPIPrefix = pointer.From(http.Routes.ApiPrefix)
+		}
+		if fp := http.ForwardProxy; fp != nil {
+			result.ForwardProxyCustomHostHeaderName = pointer.From(fp.CustomHostHeaderName)
+			result.ForwardProxyCustomSchemeHeaderName = pointer.From(fp.CustomProtoHeaderName)
+			if fp.Convention != nil {
+				result.ForwardProxyConvention = string(*fp.Convention)
+			}
+		}
+	}
+
+	if login := settings.Login; login != nil {
+		result.Login = flattenAuthV2LoginSettingsLinuxWebApps(login)
+	}
+
+	if authProviders := settings.IdentityProviders; authProviders != nil {
+		result.AppleAuth = flattenAppleAuthV2SettingsLinuxWebApps(authProviders.Apple)
+		result.AzureActiveDirectoryAuth = flattenAadAuthV2SettingsLinuxWebApps(authProviders.AzureActiveDirectory)
+		result.AzureStaticWebAuth = flattenStaticWebAppAuthV2SettingsLinuxWebApps(authProviders.AzureStaticWebApps)
+		result.CustomOIDCAuth = flattenCustomOIDCAuthV2SettingsLinuxWebApps(authProviders.CustomOpenIdConnectProviders)
+		result.FacebookAuth = flattenFacebookAuthV2SettingsLinuxWebApps(authProviders.Facebook)
+		result.GithubAuth = flattenGitHubAuthV2SettingsLinuxWebApps(authProviders.GitHub)
+		result.GoogleAuth = flattenGoogleAuthV2SettingsLinuxWebApps(authProviders.Google)
+		result.MicrosoftAuth = flattenMicrosoftAuthV2SettingsLinuxWebApps(authProviders.LegacyMicrosoftAccount)
+		result.TwitterAuth = flattenTwitterAuthV2SettingsLinuxWebApps(authProviders.Twitter)
 	}
 
 	return []AuthV2Settings{result}

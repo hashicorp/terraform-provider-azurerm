@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -334,6 +335,22 @@ func FlattenCorsSettings(input *web.CorsSettings) []CorsSetting {
 	}}
 }
 
+func FlattenCorsSettingsLinuxWebApps(input *webapps.CorsSettings) []CorsSetting {
+	if input == nil {
+		return []CorsSetting{}
+	}
+
+	cors := *input
+	if len(pointer.From(cors.AllowedOrigins)) == 0 && !pointer.From(cors.SupportCredentials) {
+		return []CorsSetting{}
+	}
+
+	return []CorsSetting{{
+		SupportCredentials: pointer.From(cors.SupportCredentials),
+		AllowedOrigins:     pointer.From(cors.AllowedOrigins),
+	}}
+}
+
 func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
 	if len(input) != 1 {
 		return &web.CorsSettings{}
@@ -341,6 +358,18 @@ func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
 	cors := input[0]
 
 	return &web.CorsSettings{
+		AllowedOrigins:     pointer.To(cors.AllowedOrigins),
+		SupportCredentials: pointer.To(cors.SupportCredentials),
+	}
+}
+
+func ExpandCorsSettingsLinuxWebApps(input []CorsSetting) *webapps.CorsSettings {
+	if len(input) != 1 {
+		return &webapps.CorsSettings{}
+	}
+	cors := input[0]
+
+	return &webapps.CorsSettings{
 		AllowedOrigins:     pointer.To(cors.AllowedOrigins),
 		SupportCredentials: pointer.To(cors.SupportCredentials),
 	}
@@ -1167,6 +1196,47 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]web.IPSecurityRestri
 	return &expanded, nil
 }
 
+func ExpandIpRestrictionsLinuxWebApps(restrictions []IpRestriction) (*[]webapps.IPSecurityRestriction, error) {
+	expanded := make([]webapps.IPSecurityRestriction, 0)
+	if len(restrictions) == 0 {
+		return &expanded, nil
+	}
+
+	for _, v := range restrictions {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+
+		var restriction webapps.IPSecurityRestriction
+		if v.Name != "" {
+			restriction.Name = utils.String(v.Name)
+		}
+
+		if v.IpAddress != "" {
+			restriction.IPAddress = utils.String(v.IpAddress)
+		}
+
+		if v.ServiceTag != "" {
+			restriction.IPAddress = utils.String(v.ServiceTag)
+			restriction.Tag = pointer.To(webapps.IPFilterTagServiceTag)
+		}
+
+		if v.VnetSubnetId != "" {
+			restriction.VnetSubnetResourceId = utils.String(v.VnetSubnetId)
+		}
+
+		restriction.Priority = utils.Int64(int64(v.Priority))
+
+		restriction.Action = utils.String(v.Action)
+
+		restriction.Headers = pointer.To(expandIpRestrictionHeaders(v.Headers))
+
+		expanded = append(expanded, restriction)
+	}
+
+	return &expanded, nil
+}
+
 func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]string {
 	result := make(map[string][]string)
 	if len(headers) == 0 {
@@ -1287,6 +1357,106 @@ func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 	props.TwitterConsumerSecretSettingName = utils.String(t.ConsumerSecretSettingName)
 
 	result.SiteAuthSettingsProperties = props
+
+	return result
+}
+
+func ExpandAuthSettingsLinuxWebApps(auth []AuthSettings) webapps.SiteAuthSettings {
+	result := webapps.SiteAuthSettings{}
+	if len(auth) == 0 {
+		return result
+	}
+
+	props := &webapps.SiteAuthSettingsProperties{}
+
+	v := auth[0]
+
+	props.Enabled = utils.Bool(v.Enabled)
+
+	additionalLoginParams := make([]string, 0)
+	if len(v.AdditionalLoginParameters) > 0 {
+		for k, s := range v.AdditionalLoginParameters {
+			additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, s))
+		}
+		props.AdditionalLoginParams = &additionalLoginParams
+	}
+
+	props.AllowedExternalRedirectUrls = &v.AllowedExternalRedirectUrls
+
+	props.DefaultProvider = pointer.To(webapps.BuiltInAuthenticationProvider(v.DefaultProvider))
+
+	props.Issuer = utils.String(v.Issuer)
+
+	props.RuntimeVersion = utils.String(v.RuntimeVersion)
+
+	props.TokenStoreEnabled = utils.Bool(v.TokenStoreEnabled)
+
+	props.TokenRefreshExtensionHours = utils.Float(v.TokenRefreshExtensionHours)
+
+	props.UnauthenticatedClientAction = pointer.To(webapps.UnauthenticatedClientAction(v.UnauthenticatedClientAction))
+
+	a := AadAuthSettings{}
+	if len(v.AzureActiveDirectoryAuth) > 0 {
+		a = v.AzureActiveDirectoryAuth[0]
+	}
+	props.ClientId = utils.String(a.ClientId)
+
+	if a.ClientSecret != "" {
+		props.ClientSecret = utils.String(a.ClientSecret)
+	}
+
+	if a.ClientSecretSettingName != "" {
+		props.ClientSecretSettingName = utils.String(a.ClientSecretSettingName)
+	}
+
+	props.AllowedAudiences = &a.AllowedAudiences
+
+	f := FacebookAuthSettings{}
+	if len(v.FacebookAuth) > 0 {
+		f = v.FacebookAuth[0]
+	}
+	props.FacebookAppId = utils.String(f.AppId)
+	props.FacebookAppSecret = utils.String(f.AppSecret)
+	props.FacebookAppSecretSettingName = utils.String(f.AppSecretSettingName)
+	props.FacebookOAuthScopes = &f.OauthScopes
+
+	gh := GithubAuthSettings{}
+	if len(v.GithubAuth) > 0 {
+		gh = v.GithubAuth[0]
+	}
+	props.GitHubClientId = utils.String(gh.ClientId)
+	props.GitHubClientSecret = utils.String(gh.ClientSecret)
+	props.GitHubClientSecretSettingName = utils.String(gh.ClientSecretSettingName)
+	props.GitHubOAuthScopes = &gh.OAuthScopes
+
+	g := GoogleAuthSettings{}
+	if len(v.GoogleAuth) > 0 {
+		g = v.GoogleAuth[0]
+	}
+
+	props.GoogleClientId = utils.String(g.ClientId)
+	props.GoogleClientSecret = utils.String(g.ClientSecret)
+	props.GoogleClientSecretSettingName = utils.String(g.ClientSecretSettingName)
+	props.GoogleOAuthScopes = &g.OauthScopes
+
+	m := MicrosoftAuthSettings{}
+	if len(v.MicrosoftAuth) > 0 {
+		m = v.MicrosoftAuth[0]
+	}
+	props.MicrosoftAccountClientId = utils.String(m.ClientId)
+	props.MicrosoftAccountClientSecret = utils.String(m.ClientSecret)
+	props.MicrosoftAccountClientSecretSettingName = utils.String(m.ClientSecretSettingName)
+	props.MicrosoftAccountOAuthScopes = &m.OauthScopes
+
+	t := TwitterAuthSettings{}
+	if len(v.TwitterAuth) > 0 {
+		t = v.TwitterAuth[0]
+	}
+	props.TwitterConsumerKey = utils.String(t.ConsumerKey)
+	props.TwitterConsumerSecret = utils.String(t.ConsumerSecret)
+	props.TwitterConsumerSecretSettingName = utils.String(t.ConsumerSecretSettingName)
+
+	result.Properties = props
 
 	return result
 }
@@ -1455,6 +1625,174 @@ func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
 	return []AuthSettings{result}
 }
 
+func FlattenAuthSettingsLinuxWebApps(auth *webapps.SiteAuthSettings) []AuthSettings {
+	if auth == nil || auth.Properties == nil || !pointer.From(auth.Properties.Enabled) || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
+		return []AuthSettings{}
+	}
+
+	props := *auth.Properties
+
+	result := AuthSettings{}
+	if props.DefaultProvider != nil {
+		result.DefaultProvider = string(*props.DefaultProvider)
+	}
+
+	if props.UnauthenticatedClientAction != nil {
+		result.UnauthenticatedClientAction = string(*props.UnauthenticatedClientAction)
+	}
+
+	if props.Enabled != nil {
+		result.Enabled = *props.Enabled
+	}
+
+	if props.AdditionalLoginParams != nil {
+		params := make(map[string]string)
+		for _, v := range *props.AdditionalLoginParams {
+			parts := strings.Split(v, "=")
+			if len(parts) != 2 {
+				continue
+			}
+			params[parts[0]] = parts[1]
+		}
+		result.AdditionalLoginParameters = params
+	}
+
+	var allowedRedirectUrls []string
+	if props.AllowedExternalRedirectUrls != nil {
+		allowedRedirectUrls = *props.AllowedExternalRedirectUrls
+	}
+	result.AllowedExternalRedirectUrls = allowedRedirectUrls
+
+	if props.Issuer != nil {
+		result.Issuer = *props.Issuer
+	}
+
+	if props.RuntimeVersion != nil {
+		result.RuntimeVersion = *props.RuntimeVersion
+	}
+
+	if props.TokenRefreshExtensionHours != nil {
+		result.TokenRefreshExtensionHours = *props.TokenRefreshExtensionHours
+	}
+
+	if props.TokenStoreEnabled != nil {
+		result.TokenStoreEnabled = *props.TokenStoreEnabled
+	}
+
+	// AAD Auth
+	if props.ClientId != nil {
+		aadAuthSettings := AadAuthSettings{
+			ClientId: *props.ClientId,
+		}
+
+		if props.ClientSecret != nil {
+			aadAuthSettings.ClientSecret = *props.ClientSecret
+		}
+
+		if props.ClientSecretSettingName != nil {
+			aadAuthSettings.ClientSecretSettingName = *props.ClientSecretSettingName
+		}
+
+		if props.AllowedAudiences != nil {
+			aadAuthSettings.AllowedAudiences = *props.AllowedAudiences
+		}
+
+		result.AzureActiveDirectoryAuth = []AadAuthSettings{aadAuthSettings}
+	}
+
+	if props.FacebookAppId != nil {
+		facebookAuthSettings := FacebookAuthSettings{
+			AppId: *props.FacebookAppId,
+		}
+
+		if props.FacebookAppSecret != nil {
+			facebookAuthSettings.AppSecret = *props.FacebookAppSecret
+		}
+
+		if props.FacebookAppSecretSettingName != nil {
+			facebookAuthSettings.AppSecretSettingName = *props.FacebookAppSecretSettingName
+		}
+
+		if props.FacebookOAuthScopes != nil {
+			facebookAuthSettings.OauthScopes = *props.FacebookOAuthScopes
+		}
+
+		result.FacebookAuth = []FacebookAuthSettings{facebookAuthSettings}
+	}
+
+	if props.GitHubClientId != nil {
+		githubAuthSetting := GithubAuthSettings{
+			ClientId: *props.GitHubClientId,
+		}
+
+		if props.GitHubClientSecret != nil {
+			githubAuthSetting.ClientSecret = *props.GitHubClientSecret
+		}
+
+		if props.GitHubClientSecretSettingName != nil {
+			githubAuthSetting.ClientSecretSettingName = *props.GitHubClientSecretSettingName
+		}
+
+		result.GithubAuth = []GithubAuthSettings{githubAuthSetting}
+	}
+
+	if props.GoogleClientId != nil {
+		googleAuthSettings := GoogleAuthSettings{
+			ClientId: *props.GoogleClientId,
+		}
+
+		if props.GoogleClientSecret != nil {
+			googleAuthSettings.ClientSecret = *props.GoogleClientSecret
+		}
+
+		if props.GoogleClientSecretSettingName != nil {
+			googleAuthSettings.ClientSecretSettingName = *props.GoogleClientSecretSettingName
+		}
+
+		if props.GoogleOAuthScopes != nil {
+			googleAuthSettings.OauthScopes = *props.GoogleOAuthScopes
+		}
+
+		result.GoogleAuth = []GoogleAuthSettings{googleAuthSettings}
+	}
+
+	if props.MicrosoftAccountClientId != nil {
+		microsoftAuthSettings := MicrosoftAuthSettings{
+			ClientId: *props.MicrosoftAccountClientId,
+		}
+
+		if props.MicrosoftAccountClientSecret != nil {
+			microsoftAuthSettings.ClientSecret = *props.MicrosoftAccountClientSecret
+		}
+
+		if props.MicrosoftAccountClientSecretSettingName != nil {
+			microsoftAuthSettings.ClientSecretSettingName = *props.MicrosoftAccountClientSecretSettingName
+		}
+
+		if props.MicrosoftAccountOAuthScopes != nil {
+			microsoftAuthSettings.OauthScopes = *props.MicrosoftAccountOAuthScopes
+		}
+
+		result.MicrosoftAuth = []MicrosoftAuthSettings{microsoftAuthSettings}
+	}
+
+	if props.TwitterConsumerKey != nil {
+		twitterAuthSetting := TwitterAuthSettings{
+			ConsumerKey: *props.TwitterConsumerKey,
+		}
+		if props.TwitterConsumerSecret != nil {
+			twitterAuthSetting.ConsumerSecret = *props.TwitterConsumerSecret
+		}
+		if props.TwitterConsumerSecretSettingName != nil {
+			twitterAuthSetting.ConsumerSecretSettingName = *props.TwitterConsumerSecretSettingName
+		}
+
+		result.TwitterAuth = []TwitterAuthSettings{twitterAuthSetting}
+	}
+
+	return []AuthSettings{result}
+}
+
 func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []IpRestriction {
 	if ipRestrictionsList == nil {
 		return []IpRestriction{}
@@ -1500,6 +1838,55 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 	return ipRestrictions
 }
 
+func FlattenIpRestrictionsLinuxWebApps(ipRestrictionsList *[]webapps.IPSecurityRestriction) []IpRestriction {
+	if ipRestrictionsList == nil {
+		return []IpRestriction{}
+	}
+
+	var ipRestrictions []IpRestriction
+	for _, v := range *ipRestrictionsList {
+		ipRestriction := IpRestriction{}
+
+		if v.Name != nil {
+			ipRestriction.Name = *v.Name
+		}
+
+		if v.IPAddress != nil {
+			if *v.IPAddress == "Any" {
+				continue
+			}
+
+			if v.Tag != nil {
+				if *v.Tag == webapps.IPFilterTagServiceTag {
+					ipRestriction.ServiceTag = *v.IPAddress
+				} else {
+					ipRestriction.IpAddress = *v.IPAddress
+				}
+			}
+		}
+
+		if v.VnetSubnetResourceId != nil {
+			ipRestriction.VnetSubnetId = *v.VnetSubnetResourceId
+		}
+
+		if v.Priority != nil {
+			ipRestriction.Priority = int(*v.Priority)
+		}
+
+		if v.Action != nil {
+			ipRestriction.Action = *v.Action
+		}
+
+		if v.Headers != nil {
+			ipRestriction.Headers = flattenIpRestrictionHeaders(*v.Headers)
+		}
+
+		ipRestrictions = append(ipRestrictions, ipRestriction)
+	}
+
+	return ipRestrictions
+}
+
 func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHeaders {
 	if len(headers) == 0 {
 		return []IpRestrictionHeaders{}
@@ -1533,6 +1920,18 @@ func FlattenWebStringDictionary(input web.StringDictionary) map[string]string {
 	return result
 }
 
+func FlattenWebStringDictionaryLinuxWebApps(input *webapps.StringDictionary) map[string]string {
+	if input == nil || input.Properties == nil {
+		return nil
+	}
+	result := make(map[string]string)
+	for k, v := range *input.Properties {
+		result[k] = v
+	}
+
+	return result
+}
+
 func FlattenSiteCredentials(input web.User) []SiteCredential {
 	var result []SiteCredential
 	if input.UserProperties == nil {
@@ -1542,6 +1941,21 @@ func FlattenSiteCredentials(input web.User) []SiteCredential {
 	userProps := *input.UserProperties
 	result = append(result, SiteCredential{
 		Username: utils.NormalizeNilableString(userProps.PublishingUserName),
+		Password: utils.NormalizeNilableString(userProps.PublishingPassword),
+	})
+
+	return result
+}
+
+func FlattenSiteCredentialsLinuxWebApps(input webapps.User) []SiteCredential {
+	var result []SiteCredential
+	if input.Properties == nil {
+		return result
+	}
+
+	userProps := *input.Properties
+	result = append(result, SiteCredential{
+		Username: userProps.PublishingUserName,
 		Password: utils.NormalizeNilableString(userProps.PublishingPassword),
 	})
 
@@ -1629,6 +2043,17 @@ func ExpandStickySettings(input []StickySettings) *web.SlotConfigNames {
 	}
 }
 
+func ExpandStickySettingsLinuxWebApps(input []StickySettings) *webapps.SlotConfigNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &webapps.SlotConfigNames{
+		AppSettingNames:       &input[0].AppSettingNames,
+		ConnectionStringNames: &input[0].ConnectionStringNames,
+	}
+}
+
 func FlattenStickySettings(input *web.SlotConfigNames) []StickySettings {
 	result := StickySettings{}
 	if input == nil || (input.AppSettingNames == nil && input.ConnectionStringNames == nil) || (len(*input.AppSettingNames) == 0 && len(*input.ConnectionStringNames) == 0) {
@@ -1641,6 +2066,23 @@ func FlattenStickySettings(input *web.SlotConfigNames) []StickySettings {
 
 	if input.ConnectionStringNames != nil && len(*input.ConnectionStringNames) > 0 {
 		result.ConnectionStringNames = *input.ConnectionStringNames
+	}
+
+	return []StickySettings{result}
+}
+
+func FlattenStickySettingsLinuxWebApps(input *webapps.SlotConfigNamesResource) []StickySettings {
+	result := StickySettings{}
+	if input == nil || input.Properties == nil && (input.Properties.AppSettingNames == nil && input.Properties.ConnectionStringNames == nil) || (len(*input.Properties.AppSettingNames) == 0 && len(*input.Properties.ConnectionStringNames) == 0) {
+		return []StickySettings{}
+	}
+
+	if input.Properties.AppSettingNames != nil && len(*input.Properties.AppSettingNames) > 0 {
+		result.AppSettingNames = *input.Properties.AppSettingNames
+	}
+
+	if input.Properties.ConnectionStringNames != nil && len(*input.Properties.ConnectionStringNames) > 0 {
+		result.ConnectionStringNames = *input.Properties.ConnectionStringNames
 	}
 
 	return []StickySettings{result}

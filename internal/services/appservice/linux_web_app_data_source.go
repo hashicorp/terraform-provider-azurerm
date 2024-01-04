@@ -5,20 +5,22 @@ package appservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinuxWebAppDataSource struct{}
@@ -251,7 +253,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.WebAppsClient
+			client := metadata.Client.AppService.LinuxWebAppsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var webApp LinuxWebAppDataSourceModel
@@ -259,140 +261,153 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewWebAppID(subscriptionId, webApp.ResourceGroup, webApp.Name)
+			id := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("Linux %s not found", id)
 				}
 				return fmt.Errorf("retreiving Linux %s: %+v", id, err)
 			}
 
-			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			webAppSiteConfig, err := client.GetConfiguration(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
 			}
 
-			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
+			auth, err := client.GetAuthSettings(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
-			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			authV2, err := client.GetAuthSettingsV2(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
 			}
 
-			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			backup, err := client.GetBackupConfiguration(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(backup.Response) {
+				if !response.WasNotFound(backup.HttpResponse) {
 					return fmt.Errorf("reading Backup Settings for Linux %s: %+v", id, err)
 				}
 			}
 
-			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Diagnostic Logs information for Linux %s: %+v", id, err)
 			}
 
-			appSettings, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+			appSettings, err := client.ListApplicationSettings(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 			}
 
-			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
-			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+			connectionStrings, err := client.ListConnectionStrings(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
-			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
-			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if err := siteCredentialsFuture.Poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
-			siteCredentials, err := siteCredentialsFuture.Result(*client)
-			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
+
+			var siteCredentials webapps.User
+			if err := json.NewDecoder(siteCredentialsFuture.HttpResponse.Body).Decode(&siteCredentials); err != nil {
+				return fmt.Errorf("reading Site Publishing Credential information for %s : %+v", id, err)
 			}
 
-			webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
-			webApp.Kind = pointer.From(existing.Kind)
-			webApp.Location = location.NormalizeNilable(existing.Location)
-			webApp.Tags = tags.ToTypedObject(existing.Tags)
-			if props := existing.SiteProperties; props != nil {
-				webApp.Availability = string(props.AvailabilityState)
-				if props.ClientAffinityEnabled != nil {
-					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
+			webApp.AppSettings = helpers.FlattenWebStringDictionaryLinuxWebApps(appSettings.Model)
+			if model := existing.Model; model != nil {
+				webApp.Kind = pointer.From(existing.Model.Kind)
+				webApp.Location = model.Location
+				if model.Tags != nil {
+					webApp.Tags = *model.Tags
 				}
-				if props.ClientCertEnabled != nil {
-					webApp.ClientCertEnabled = *props.ClientCertEnabled
-				}
-				webApp.ClientCertMode = string(props.ClientCertMode)
-				webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
-				webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationID)
-				webApp.DefaultHostname = pointer.From(props.DefaultHostName)
-				if props.Enabled != nil {
-					webApp.Enabled = *props.Enabled
-				}
-				if props.HTTPSOnly != nil {
-					webApp.HttpsOnly = *props.HTTPSOnly
-				}
-				webApp.ServicePlanId = pointer.From(props.ServerFarmID)
-				webApp.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
-				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
-				webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
-				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
-				webApp.Usage = string(props.UsageState)
-				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
-				}
-				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-					webApp.VirtualNetworkSubnetID = subnetId
-				}
-				webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-			}
+				if props := model.Properties; props != nil {
+					if props.AvailabilityState != nil {
+						webApp.Availability = string(*props.AvailabilityState)
+					}
 
+					if props.ClientAffinityEnabled != nil {
+						webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
+					}
+					if props.ClientCertEnabled != nil {
+						webApp.ClientCertEnabled = *props.ClientCertEnabled
+					}
+					if props.ClientCertMode != nil {
+						webApp.ClientCertMode = string(*props.ClientCertMode)
+					}
+					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+					webApp.DefaultHostname = pointer.From(props.DefaultHostName)
+					if props.Enabled != nil {
+						webApp.Enabled = *props.Enabled
+					}
+					if props.HTTPSOnly != nil {
+						webApp.HttpsOnly = *props.HTTPSOnly
+					}
+					webApp.ServicePlanId = pointer.From(props.ServerFarmId)
+					webApp.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
+					webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
+					webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
+					webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+					if props.UsageState != nil {
+						webApp.Usage = string(*props.UsageState)
+					}
+					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+						webApp.HostingEnvId = pointer.From(hostingEnv.Id)
+					}
+					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
+						webApp.VirtualNetworkSubnetID = subnetId
+					}
+					webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+				}
+			}
 			basicAuthFTP := true
-			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id); err != nil {
 				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthFTP = pointer.From(csmProps.Allow)
+			} else if basicAuthFTPResp.Model != nil && basicAuthFTPResp.Model.Properties != nil {
+				basicAuthFTP = basicAuthFTPResp.Model.Properties.Allow
 			}
 
 			basicAuthWebDeploy := true
-			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id); err != nil {
 				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			} else if basicAuthWebDeployResp.Model != nil && basicAuthWebDeployResp.Model.Properties != nil {
+				basicAuthWebDeploy = basicAuthWebDeployResp.Model.Properties.Allow
 			}
 
 			webApp.PublishingFTPBasicAuthEnabled = basicAuthFTP
 			webApp.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
-			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
+			webApp.AuthSettings = helpers.FlattenAuthSettingsLinuxWebApps(auth.Model)
 
-			webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+			webApp.AuthV2Settings = helpers.FlattenAuthV2SettingsLinuxWebApps(authV2.Model)
 
-			webApp.Backup = helpers.FlattenBackupConfig(backup)
+			webApp.Backup = helpers.FlattenBackupConfigLinuxWebApps(backup.Model)
 
-			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
+			webApp.LogsConfig = helpers.FlattenLogsConfigLinuxWebApps(logsConfig.Model)
 
 			siteConfig := helpers.SiteConfigLinux{}
-			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
+			if webAppSiteConfig.Model != nil {
+				siteConfig.Flatten(webAppSiteConfig.Model.Properties)
+			}
 			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
 
 			if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
@@ -404,13 +419,13 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			// Filter out all settings we've consumed above
 			webApp.AppSettings = helpers.FilterManagedAppSettings(webApp.AppSettings)
 
-			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
+			webApp.StorageAccounts = helpers.FlattenStorageAccountsLinuxWebApps(storageAccounts.Model)
 
-			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+			webApp.ConnectionStrings = helpers.FlattenConnectionStringsLinuxWebApps(connectionStrings.Model)
 
-			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
+			webApp.StickySettings = helpers.FlattenStickySettingsLinuxWebApps(stickySettings.Model)
 
-			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+			webApp.SiteCredentials = helpers.FlattenSiteCredentialsLinuxWebApps(siteCredentials)
 
 			metadata.SetID(id)
 
@@ -418,11 +433,11 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("encoding: %+v", err)
 			}
 
-			flattenedIdentity, err := flattenIdentity(existing.Identity)
+			identity, err := identity.FlattenSystemAndUserAssignedMap(existing.Model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+			if err := metadata.ResourceData.Set("identity", identity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 

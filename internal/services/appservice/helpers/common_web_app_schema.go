@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
@@ -876,6 +877,67 @@ func ExpandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 	return result
 }
 
+func ExpandLogsConfigLinuxWebApps(config []LogsConfig) webapps.SiteLogsConfig {
+	result := webapps.SiteLogsConfig{}
+	if len(config) == 0 {
+		return result
+	}
+
+	result.Properties = &webapps.SiteLogsConfigProperties{}
+
+	logsConfig := config[0]
+
+	if len(logsConfig.ApplicationLogs) == 1 {
+		appLogs := logsConfig.ApplicationLogs[0]
+		result.Properties.ApplicationLogs = &webapps.ApplicationLogsConfig{
+			FileSystem: &webapps.FileSystemApplicationLogsConfig{
+				Level: pointer.To(webapps.LogLevel(appLogs.FileSystemLevel)),
+			},
+		}
+		if len(appLogs.AzureBlobStorage) == 1 {
+			appLogsBlobs := appLogs.AzureBlobStorage[0]
+			result.Properties.ApplicationLogs.AzureBlobStorage = &webapps.AzureBlobStorageApplicationLogsConfig{
+				Level:           pointer.To(webapps.LogLevel(appLogsBlobs.Level)),
+				SasUrl:          pointer.To(appLogsBlobs.SasUrl),
+				RetentionInDays: pointer.To(int64(appLogsBlobs.RetentionInDays)),
+			}
+		}
+	}
+
+	if len(logsConfig.HttpLogs) == 1 {
+		httpLogs := logsConfig.HttpLogs[0]
+		result.Properties.HTTPLogs = &webapps.HTTPLogsConfig{}
+
+		if len(httpLogs.FileSystems) == 1 {
+			httpLogFileSystem := httpLogs.FileSystems[0]
+			result.Properties.HTTPLogs.FileSystem = &webapps.FileSystemHTTPLogsConfig{
+				Enabled:         pointer.To(true),
+				RetentionInMb:   pointer.To(int64(httpLogFileSystem.RetentionMB)),
+				RetentionInDays: pointer.To(int64(httpLogFileSystem.RetentionDays)),
+			}
+		}
+
+		if len(httpLogs.AzureBlobStorage) == 1 {
+			httpLogsBlobStorage := httpLogs.AzureBlobStorage[0]
+			result.Properties.HTTPLogs.AzureBlobStorage = &webapps.AzureBlobStorageHTTPLogsConfig{
+				Enabled:         pointer.To(httpLogsBlobStorage.SasUrl != ""),
+				SasUrl:          pointer.To(httpLogsBlobStorage.SasUrl),
+				RetentionInDays: pointer.To(int64(httpLogsBlobStorage.RetentionInDays)),
+			}
+		}
+	}
+
+	result.Properties.DetailedErrorMessages = &webapps.EnabledConfig{
+		Enabled: pointer.To(logsConfig.DetailedErrorMessages),
+	}
+
+	result.Properties.FailedRequestsTracing = &webapps.EnabledConfig{
+		Enabled: pointer.To(logsConfig.FailedRequestTracing),
+	}
+
+	return result
+}
+
 func ExpandBackupConfig(backupConfigs []Backup) (*web.BackupRequest, error) {
 	result := &web.BackupRequest{}
 	if len(backupConfigs) == 0 {
@@ -907,6 +969,37 @@ func ExpandBackupConfig(backupConfigs []Backup) (*web.BackupRequest, error) {
 	return result, nil
 }
 
+func ExpandBackupConfigLinuxWebApps(backupConfigs []Backup) (*webapps.BackupRequest, error) {
+	result := &webapps.BackupRequest{}
+	if len(backupConfigs) == 0 {
+		return result, nil
+	}
+
+	backupConfig := backupConfigs[0]
+	backupSchedule := backupConfig.Schedule[0]
+	result.Properties = &webapps.BackupRequestProperties{
+		Enabled:           pointer.To(backupConfig.Enabled),
+		BackupName:        pointer.To(backupConfig.Name),
+		StorageAccountUrl: backupConfig.StorageAccountUrl,
+		BackupSchedule: &webapps.BackupSchedule{
+			FrequencyInterval:     int64(backupSchedule.FrequencyInterval),
+			FrequencyUnit:         webapps.FrequencyUnit(backupSchedule.FrequencyUnit),
+			KeepAtLeastOneBackup:  backupSchedule.KeepAtLeastOneBackup,
+			RetentionPeriodInDays: int64(backupSchedule.RetentionPeriodDays),
+		},
+	}
+
+	if backupSchedule.StartTime != "" {
+		dateTimeToStart, err := time.Parse(time.RFC3339, backupSchedule.StartTime)
+		if err != nil {
+			return nil, fmt.Errorf("parsing back up start_time: %+v", err)
+		}
+		result.Properties.BackupSchedule.StartTime = pointer.To(date.Time{Time: dateTimeToStart}.String())
+	}
+
+	return result, nil
+}
+
 func ExpandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePropertyDictionaryResource {
 	storageAccounts := make(map[string]*web.AzureStorageInfoValue)
 	result := &web.AzureStoragePropertyDictionaryResource{}
@@ -930,6 +1023,29 @@ func ExpandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePrope
 	return result
 }
 
+func ExpandStorageConfigLinuxWebApps(storageConfigs []StorageAccount) webapps.AzureStoragePropertyDictionaryResource {
+	storageAccounts := make(map[string]webapps.AzureStorageInfoValue)
+	result := webapps.AzureStoragePropertyDictionaryResource{}
+	if len(storageConfigs) == 0 {
+		result.Properties = &storageAccounts
+		return result
+	}
+
+	for _, v := range storageConfigs {
+		storageAccounts[v.Name] = webapps.AzureStorageInfoValue{
+			Type:        pointer.To(webapps.AzureStorageType(v.Type)),
+			AccountName: pointer.To(v.AccountName),
+			ShareName:   pointer.To(v.ShareName),
+			AccessKey:   pointer.To(v.AccessKey),
+			MountPath:   pointer.To(v.MountPath),
+		}
+	}
+
+	result.Properties = &storageAccounts
+
+	return result
+}
+
 func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *web.ConnectionStringDictionary {
 	result := &web.ConnectionStringDictionary{}
 	if len(connectionStringsConfig) == 0 {
@@ -944,6 +1060,24 @@ func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *web.Co
 		}
 	}
 	result.Properties = connectionStrings
+
+	return result
+}
+
+func ExpandConnectionStringsLinuxWebApps(connectionStringsConfig []ConnectionString) webapps.ConnectionStringDictionary {
+	result := webapps.ConnectionStringDictionary{}
+	if len(connectionStringsConfig) == 0 {
+		return result
+	}
+
+	connectionStrings := make(map[string]webapps.ConnStringValueTypePair)
+	for _, v := range connectionStringsConfig {
+		connectionStrings[v.Name] = webapps.ConnStringValueTypePair{
+			Value: v.Value,
+			Type:  webapps.ConnectionStringType(v.Type),
+		}
+	}
+	result.Properties = &connectionStrings
 
 	return result
 }
@@ -1061,6 +1195,44 @@ func FlattenBackupConfig(backupRequest web.BackupRequest) []Backup {
 	return []Backup{backup}
 }
 
+func FlattenBackupConfigLinuxWebApps(backupRequest *webapps.BackupRequest) []Backup {
+	if backupRequest == nil || backupRequest.Properties == nil {
+		return []Backup{}
+	}
+	props := *backupRequest.Properties
+	backup := Backup{}
+	if props.BackupName != nil {
+		backup.Name = *props.BackupName
+	}
+
+	backup.StorageAccountUrl = props.StorageAccountUrl
+
+	if props.Enabled != nil {
+		backup.Enabled = *props.Enabled
+	}
+
+	if schedule := props.BackupSchedule; schedule != nil {
+		backupSchedule := BackupSchedule{
+			FrequencyUnit:        string(schedule.FrequencyUnit),
+			FrequencyInterval:    int(schedule.FrequencyInterval),
+			KeepAtLeastOneBackup: schedule.KeepAtLeastOneBackup,
+			RetentionPeriodDays:  int(schedule.RetentionPeriodInDays),
+		}
+
+		if schedule.StartTime != nil {
+			backupSchedule.StartTime = *schedule.StartTime
+		}
+
+		if schedule.LastExecutionTime != nil {
+			backupSchedule.LastExecutionTime = *schedule.LastExecutionTime
+		}
+
+		backup.Schedule = []BackupSchedule{backupSchedule}
+	}
+
+	return []Backup{backup}
+}
+
 func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 	if logsConfig.SiteLogsConfigProperties == nil {
 		return []LogsConfig{}
@@ -1143,6 +1315,89 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 	return []LogsConfig{logs}
 }
 
+func FlattenLogsConfigLinuxWebApps(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
+	if logsConfig == nil || logsConfig.Properties == nil {
+		return []LogsConfig{}
+	}
+	props := *logsConfig.Properties
+	if onlyDefaultLoggingConfigLinuxWebApps(props) {
+		return nil
+	}
+
+	logs := LogsConfig{}
+
+	if props.ApplicationLogs != nil {
+		appLogs := *props.ApplicationLogs
+		applicationLog := ApplicationLog{}
+
+		if appLogs.FileSystem != nil && appLogs.FileSystem.Level != nil && *appLogs.FileSystem.Level != webapps.LogLevelOff {
+			applicationLog.FileSystemLevel = string(*appLogs.FileSystem.Level)
+			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.Level != nil && *appLogs.AzureBlobStorage.Level != webapps.LogLevelOff {
+				blobStorage := AzureBlobStorage{}
+				if appLogs.AzureTableStorage.Level != nil {
+					blobStorage.Level = string(*appLogs.AzureBlobStorage.Level)
+				}
+
+				blobStorage.SasUrl = pointer.From(appLogs.AzureBlobStorage.SasUrl)
+
+				blobStorage.RetentionInDays = int(pointer.From(appLogs.AzureBlobStorage.RetentionInDays))
+
+				applicationLog.AzureBlobStorage = []AzureBlobStorage{blobStorage}
+			}
+			logs.ApplicationLogs = []ApplicationLog{applicationLog}
+		}
+	}
+
+	if props.HTTPLogs != nil {
+		httpLogs := *props.HTTPLogs
+		httpLog := HttpLog{}
+
+		if httpLogs.FileSystem != nil && (httpLogs.FileSystem.Enabled != nil && *httpLogs.FileSystem.Enabled) {
+			fileSystem := LogsFileSystem{}
+			if httpLogs.FileSystem.RetentionInMb != nil {
+				fileSystem.RetentionMB = int(*httpLogs.FileSystem.RetentionInMb)
+			}
+
+			if httpLogs.FileSystem.RetentionInDays != nil {
+				fileSystem.RetentionDays = int(*httpLogs.FileSystem.RetentionInDays)
+			}
+
+			httpLog.FileSystems = []LogsFileSystem{fileSystem}
+		}
+
+		if httpLogs.AzureBlobStorage != nil && (httpLogs.AzureBlobStorage.Enabled != nil && *httpLogs.AzureBlobStorage.Enabled) {
+			blobStorage := AzureBlobStorageHttp{}
+			if httpLogs.AzureBlobStorage.SasUrl != nil {
+				blobStorage.SasUrl = *httpLogs.AzureBlobStorage.SasUrl
+			}
+
+			if httpLogs.AzureBlobStorage.RetentionInDays != nil {
+				blobStorage.RetentionInDays = int(*httpLogs.AzureBlobStorage.RetentionInDays)
+			}
+
+			if blobStorage.RetentionInDays != 0 || blobStorage.SasUrl != "" {
+				httpLog.AzureBlobStorage = []AzureBlobStorageHttp{blobStorage}
+			}
+		}
+
+		if httpLog.FileSystems != nil || httpLog.AzureBlobStorage != nil {
+			logs.HttpLogs = []HttpLog{httpLog}
+		}
+	}
+
+	// logs.DetailedErrorMessages = false
+	if props.DetailedErrorMessages != nil && props.DetailedErrorMessages.Enabled != nil {
+		logs.DetailedErrorMessages = *props.DetailedErrorMessages.Enabled
+	}
+
+	// logs.FailedRequestTracing = false
+	if props.FailedRequestsTracing != nil && props.FailedRequestsTracing.Enabled != nil {
+		logs.FailedRequestTracing = *props.FailedRequestsTracing.Enabled
+	}
+
+	return []LogsConfig{logs}
+}
+
 func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 	if props.ApplicationLogs == nil || props.HTTPLogs == nil || props.FailedRequestsTracing == nil || props.DetailedErrorMessages == nil {
 		return false
@@ -1151,6 +1406,31 @@ func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
 		return false
 	}
 	if props.ApplicationLogs.AzureBlobStorage != nil && props.ApplicationLogs.AzureBlobStorage.Level != web.LogLevelOff {
+		return false
+	}
+	if props.HTTPLogs.FileSystem != nil && props.HTTPLogs.FileSystem.Enabled != nil && (*props.HTTPLogs.FileSystem.Enabled) {
+		return false
+	}
+	if props.HTTPLogs.AzureBlobStorage != nil && props.HTTPLogs.AzureBlobStorage.Enabled != nil && (*props.HTTPLogs.AzureBlobStorage.Enabled) {
+		return false
+	}
+	if props.FailedRequestsTracing.Enabled == nil || *props.FailedRequestsTracing.Enabled {
+		return false
+	}
+	if props.DetailedErrorMessages.Enabled == nil || *props.DetailedErrorMessages.Enabled {
+		return false
+	}
+	return true
+}
+
+func onlyDefaultLoggingConfigLinuxWebApps(props webapps.SiteLogsConfigProperties) bool {
+	if props.ApplicationLogs == nil || props.HTTPLogs == nil || props.FailedRequestsTracing == nil || props.DetailedErrorMessages == nil {
+		return false
+	}
+	if props.ApplicationLogs.FileSystem != nil && props.ApplicationLogs.FileSystem.Level != nil && *props.ApplicationLogs.FileSystem.Level != webapps.LogLevelOff {
+		return false
+	}
+	if props.ApplicationLogs.AzureBlobStorage != nil && props.ApplicationLogs.AzureBlobStorage.Level != nil && *props.ApplicationLogs.AzureBlobStorage.Level != webapps.LogLevelOff {
 		return false
 	}
 	if props.HTTPLogs.FileSystem != nil && props.HTTPLogs.FileSystem.Enabled != nil && (*props.HTTPLogs.FileSystem.Enabled) {
@@ -1200,6 +1480,40 @@ func FlattenStorageAccounts(appStorageAccounts web.AzureStoragePropertyDictionar
 	return storageAccounts
 }
 
+func FlattenStorageAccountsLinuxWebApps(appStorageAccounts *webapps.AzureStoragePropertyDictionaryResource) []StorageAccount {
+	if appStorageAccounts.Properties == nil {
+		return []StorageAccount{}
+	}
+	var storageAccounts []StorageAccount
+	for k, v := range *appStorageAccounts.Properties {
+		storageAccount := StorageAccount{
+			Name: k,
+		}
+		if v.Type != nil {
+			storageAccount.Type = string(*v.Type)
+		}
+		if v.AccountName != nil {
+			storageAccount.AccountName = *v.AccountName
+		}
+
+		if v.ShareName != nil {
+			storageAccount.ShareName = *v.ShareName
+		}
+
+		if v.AccessKey != nil {
+			storageAccount.AccessKey = *v.AccessKey
+		}
+
+		if v.MountPath != nil {
+			storageAccount.MountPath = *v.MountPath
+		}
+
+		storageAccounts = append(storageAccounts, storageAccount)
+	}
+
+	return storageAccounts
+}
+
 func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionary) []ConnectionString {
 	if len(appConnectionStrings.Properties) == 0 {
 		return []ConnectionString{}
@@ -1213,6 +1527,24 @@ func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionar
 		if v.Value != nil {
 			connectionString.Value = *v.Value
 		}
+		connectionStrings = append(connectionStrings, connectionString)
+	}
+
+	return connectionStrings
+}
+
+func FlattenConnectionStringsLinuxWebApps(appConnectionStrings *webapps.ConnectionStringDictionary) []ConnectionString {
+	if appConnectionStrings.Properties == nil {
+		return []ConnectionString{}
+	}
+	var connectionStrings []ConnectionString
+	for k, v := range *appConnectionStrings.Properties {
+		connectionString := ConnectionString{
+			Name:  k,
+			Type:  string(v.Type),
+			Value: v.Value,
+		}
+
 		connectionStrings = append(connectionStrings, connectionString)
 	}
 
@@ -1238,11 +1570,44 @@ func ExpandAppSettingsForUpdate(siteConfigSettings *[]web.NameValuePair) *web.St
 	}
 }
 
+func ExpandAppSettingsForUpdateLinuxWebApps(siteConfigSettings *[]webapps.NameValuePair) *webapps.StringDictionary {
+	appSettings := make(map[string]string)
+	if siteConfigSettings == nil {
+		return &webapps.StringDictionary{
+			Properties: &appSettings,
+		}
+	}
+
+	for _, v := range *siteConfigSettings {
+		if name := pointer.From(v.Name); name != "" && pointer.From(v.Value) != "" {
+			appSettings[name] = *v.Value
+		}
+	}
+
+	return &webapps.StringDictionary{
+		Properties: &appSettings,
+	}
+}
+
 func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair {
 	if len(settings) > 0 {
 		result := make([]web.NameValuePair, 0)
 		for k, v := range settings {
 			result = append(result, web.NameValuePair{
+				Name:  pointer.To(k),
+				Value: pointer.To(v),
+			})
+		}
+		return &result
+	}
+	return nil
+}
+
+func ExpandAppSettingsForCreateLinuxWebApp(settings map[string]string) *[]webapps.NameValuePair {
+	if len(settings) > 0 {
+		result := make([]webapps.NameValuePair, 0)
+		for k, v := range settings {
+			result = append(result, webapps.NameValuePair{
 				Name:  pointer.To(k),
 				Value: pointer.To(v),
 			})
@@ -1365,6 +1730,35 @@ func DisabledLogsConfig() *web.SiteLogsConfig {
 					Enabled: pointer.To(false),
 				},
 				AzureBlobStorage: &web.AzureBlobStorageHTTPLogsConfig{
+					Enabled: pointer.To(false),
+				},
+			},
+		},
+	}
+}
+
+func DisabledLogsConfigLinuxWebApps() webapps.SiteLogsConfig {
+	return webapps.SiteLogsConfig{
+		Properties: &webapps.SiteLogsConfigProperties{
+			DetailedErrorMessages: &webapps.EnabledConfig{
+				Enabled: pointer.To(false),
+			},
+			FailedRequestsTracing: &webapps.EnabledConfig{
+				Enabled: pointer.To(false),
+			},
+			ApplicationLogs: &webapps.ApplicationLogsConfig{
+				FileSystem: &webapps.FileSystemApplicationLogsConfig{
+					Level: pointer.To(webapps.LogLevelOff),
+				},
+				AzureBlobStorage: &webapps.AzureBlobStorageApplicationLogsConfig{
+					Level: pointer.To(webapps.LogLevelOff),
+				},
+			},
+			HTTPLogs: &webapps.HTTPLogsConfig{
+				FileSystem: &webapps.FileSystemHTTPLogsConfig{
+					Enabled: pointer.To(false),
+				},
+				AzureBlobStorage: &webapps.AzureBlobStorageHTTPLogsConfig{
 					Enabled: pointer.To(false),
 				},
 			},

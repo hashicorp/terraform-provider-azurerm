@@ -155,10 +155,10 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"managed_pipeline_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(web.ManagedPipelineModeIntegrated),
+					Default:  string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedPipelineModeClassic),
-						string(web.ManagedPipelineModeIntegrated),
+						string(webapps.ManagedPipelineModeClassic),
+						string(webapps.ManagedPipelineModeIntegrated),
 					}, false),
 				},
 
@@ -198,11 +198,11 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"ftps_state": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(web.FtpsStateDisabled),
+					Default:  string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.FtpsStateAllAllowed),
-						string(web.FtpsStateDisabled),
-						string(web.FtpsStateFtpsOnly),
+						string(webapps.FtpsStateAllAllowed),
+						string(webapps.FtpsStateDisabled),
+						string(webapps.FtpsStateFtpsOnly),
 					}, false),
 				},
 
@@ -229,22 +229,22 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(web.SupportedTLSVersionsOneFullStopTwo),
+					Default:  string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.SupportedTLSVersionsOneFullStopZero),
-						string(web.SupportedTLSVersionsOneFullStopOne),
-						string(web.SupportedTLSVersionsOneFullStopTwo),
+						string(webapps.SupportedTlsVersionsOnePointZero),
+						string(webapps.SupportedTlsVersionsOnePointOne),
+						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
 
 				"scm_minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(web.SupportedTLSVersionsOneFullStopTwo),
+					Default:  string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.SupportedTLSVersionsOneFullStopZero),
-						string(web.SupportedTLSVersionsOneFullStopOne),
-						string(web.SupportedTLSVersionsOneFullStopTwo),
+						string(webapps.SupportedTlsVersionsOnePointZero),
+						string(webapps.SupportedTlsVersionsOnePointOne),
+						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
 
@@ -488,7 +488,7 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AutoHealActionTypeRecycle),
+						string(webapps.AutoHealActionTypeRecycle),
 					}, false),
 				},
 
@@ -727,34 +727,34 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 	}
 }
 
-func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*w.SiteConfig, error) {
+func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := &webapps.SiteConfig{}
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
-	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
-	expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
-	expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
+	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
+	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
-	expanded.FtpsState = web.FtpsState(s.FtpsState)
-	expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
-	expanded.ScmMinTLSVersion = web.SupportedTLSVersions(s.ScmMinTlsVersion)
+	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
+	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
+	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 
 	if s.ApiManagementConfigId != "" {
-		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: pointer.To(s.ApiManagementConfigId),
+		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
+			Id: pointer.To(s.ApiManagementConfigId),
 		}
 	}
 
 	if s.ApiDefinition != "" {
-		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: pointer.To(s.ApiDefinition),
+		expanded.ApiDefinition = &webapps.ApiDefinitionInfo{
+			Url: pointer.To(s.ApiDefinition),
 		}
 	}
 
@@ -813,7 +813,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*w.Sit
 		}
 	}
 
-	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
+	expanded.AppSettings = ExpandAppSettingsForCreateLinuxWebApp(appSettings)
 
 	if s.ContainerRegistryMSI != "" {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
@@ -824,7 +824,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*w.Sit
 	}
 
 	if len(s.IpRestriction) != 0 {
-		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictionsLinuxWebApps(s.IpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -833,7 +833,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*w.Sit
 	}
 
 	if len(s.ScmIpRestriction) != 0 {
-		ipRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
+		ipRestrictions, err := ExpandIpRestrictionsLinuxWebApps(s.ScmIpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -850,11 +850,11 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*w.Sit
 	}
 
 	if s.NumberOfWorkers != 0 {
-		expanded.NumberOfWorkers = pointer.To(int32(s.NumberOfWorkers))
+		expanded.NumberOfWorkers = pointer.To(int64(s.NumberOfWorkers))
 	}
 
 	if len(s.Cors) != 0 {
-		expanded.Cors = ExpandCorsSettings(s.Cors)
+		expanded.Cors = ExpandCorsSettingsLinuxWebApps(s.Cors)
 	}
 
 	if len(s.AutoHealSettings) == 1 {
@@ -864,13 +864,13 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*w.Sit
 	return expanded, nil
 }
 
-func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) (*web.SiteConfig, error) {
+func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := *existing
 
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
 	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
-	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
+	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
@@ -878,14 +878,14 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
-		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: pointer.To(s.ApiManagementConfigId),
+		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
+			Id: pointer.To(s.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
-		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: pointer.To(s.ApiDefinition),
+		expanded.ApiDefinition = &webapps.ApiDefinitionInfo{
+			Url: pointer.To(s.ApiDefinition),
 		}
 	}
 
@@ -948,7 +948,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		}
 	}
 
-	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
+	expanded.AppSettings = ExpandAppSettingsForCreateLinuxWebApp(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
@@ -959,7 +959,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
-		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictionsLinuxWebApps(s.IpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -967,7 +967,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
-		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictionsLinuxWebApps(s.ScmIpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -975,11 +975,11 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
+		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
+		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
@@ -987,7 +987,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = web.FtpsState(s.FtpsState)
+		expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
@@ -995,21 +995,21 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = pointer.To(int32(s.NumberOfWorkers))
+		expanded.NumberOfWorkers = pointer.To(int64(s.NumberOfWorkers))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
+		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(s.ScmMinTlsVersion)
+		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(s.Cors)
+		cors := ExpandCorsSettingsLinuxWebApps(s.Cors)
 		if cors == nil {
-			cors = &web.CorsSettings{
+			cors = &webapps.CorsSettings{
 				AllowedOrigins: &[]string{},
 			}
 		}
@@ -1023,7 +1023,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	return &expanded, nil
 }
 
-func (s *SiteConfigLinux) Flatten(appSiteConfig *web.SiteConfig) {
+func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 	if appSiteConfig != nil {
 		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
 		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
@@ -1033,32 +1033,45 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *web.SiteConfig) {
 		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)
 		s.DefaultDocuments = pointer.From(appSiteConfig.DefaultDocuments)
 		s.Http2Enabled = pointer.From(appSiteConfig.HTTP20Enabled)
-		s.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
-		s.ManagedPipelineMode = string(appSiteConfig.ManagedPipelineMode)
-		s.ScmType = string(appSiteConfig.ScmType)
-		s.FtpsState = string(appSiteConfig.FtpsState)
+		s.IpRestriction = FlattenIpRestrictionsLinuxWebApps(appSiteConfig.IPSecurityRestrictions)
 		s.HealthCheckPath = pointer.From(appSiteConfig.HealthCheckPath)
-		s.LoadBalancing = string(appSiteConfig.LoadBalancing)
-		s.LocalMysql = pointer.From(appSiteConfig.LocalMySQLEnabled)
-		s.MinTlsVersion = string(appSiteConfig.MinTLSVersion)
+		s.LocalMysql = pointer.From(appSiteConfig.LocalMySqlEnabled)
 		s.NumberOfWorkers = int(pointer.From(appSiteConfig.NumberOfWorkers))
 		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
 		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
-		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
-		s.ScmMinTlsVersion = string(appSiteConfig.ScmMinTLSVersion)
+		s.ScmIpRestriction = FlattenIpRestrictionsLinuxWebApps(appSiteConfig.ScmIPSecurityRestrictions)
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
-		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
+		s.Cors = FlattenCorsSettingsLinuxWebApps(appSiteConfig.Cors)
 
-		if appSiteConfig.APIManagementConfig != nil {
-			s.ApiManagementConfigId = pointer.From(appSiteConfig.APIManagementConfig.ID)
+		if appSiteConfig.ManagedPipelineMode != nil {
+			s.ManagedPipelineMode = string(*appSiteConfig.ManagedPipelineMode)
+		}
+		if appSiteConfig.ScmType != nil {
+			s.ScmType = string(*appSiteConfig.ScmType)
+		}
+		if appSiteConfig.FtpsState != nil {
+			s.FtpsState = string(*appSiteConfig.FtpsState)
+		}
+		if appSiteConfig.LoadBalancing != nil {
+			s.LoadBalancing = string(*appSiteConfig.LoadBalancing)
+		}
+		if appSiteConfig.MinTlsVersion != nil {
+			s.MinTlsVersion = string(*appSiteConfig.MinTlsVersion)
+		}
+		if appSiteConfig.ScmMinTlsVersion != nil {
+			s.ScmMinTlsVersion = string(*appSiteConfig.ScmMinTlsVersion)
 		}
 
-		if appSiteConfig.APIDefinition != nil {
-			s.ApiDefinition = pointer.From(appSiteConfig.APIDefinition.URL)
+		if appSiteConfig.ApiManagementConfig != nil {
+			s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
+		}
+
+		if appSiteConfig.ApiDefinition != nil {
+			s.ApiDefinition = pointer.From(appSiteConfig.ApiDefinition.Url)
 		}
 
 		if appSiteConfig.LinuxFxVersion != nil {
@@ -1135,21 +1148,21 @@ func (s *SiteConfigLinux) DecodeDockerDeprecatedAppStack(input map[string]string
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
-func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.AutoHealRules {
+func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webapps.AutoHealRules {
 	if len(autoHealSettings) == 0 {
 		return nil
 	}
 
-	result := &web.AutoHealRules{
-		Triggers: &web.AutoHealTriggers{},
-		Actions:  &web.AutoHealActions{},
+	result := &webapps.AutoHealRules{
+		Triggers: &webapps.AutoHealTriggers{},
+		Actions:  &webapps.AutoHealActions{},
 	}
 
 	autoHeal := autoHealSettings[0]
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
+		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 	}
 
@@ -1159,17 +1172,17 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
-		result.Triggers.Requests = &web.RequestsBasedTrigger{
-			Count:        pointer.To(int32(triggers.Requests[0].Count)),
+		result.Triggers.Requests = &webapps.RequestsBasedTrigger{
+			Count:        pointer.To(int64(triggers.Requests[0].Count)),
 			TimeInterval: pointer.To(triggers.Requests[0].Interval),
 		}
 	}
 
 	if len(triggers.SlowRequests) == 1 {
-		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
+		result.Triggers.SlowRequests = &webapps.SlowRequestsBasedTrigger{
 			TimeTaken:    pointer.To(triggers.SlowRequests[0].TimeTaken),
 			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
-			Count:        pointer.To(int32(triggers.SlowRequests[0].Count)),
+			Count:        pointer.To(int64(triggers.SlowRequests[0].Count)),
 		}
 		if triggers.SlowRequests[0].Path != "" {
 			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
@@ -1177,15 +1190,15 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 	}
 
 	if len(triggers.StatusCodes) > 0 {
-		statusCodeTriggers := make([]web.StatusCodesBasedTrigger, 0)
-		statusCodeRangeTriggers := make([]web.StatusCodesRangeBasedTrigger, 0)
+		statusCodeTriggers := make([]webapps.StatusCodesBasedTrigger, 0)
+		statusCodeRangeTriggers := make([]webapps.StatusCodesRangeBasedTrigger, 0)
 		for _, s := range triggers.StatusCodes {
-			statusCodeTrigger := web.StatusCodesBasedTrigger{}
-			statusCodeRangeTrigger := web.StatusCodesRangeBasedTrigger{}
+			statusCodeTrigger := webapps.StatusCodesBasedTrigger{}
+			statusCodeRangeTrigger := webapps.StatusCodesRangeBasedTrigger{}
 			parts := strings.Split(s.StatusCodeRange, "-")
 			if len(parts) == 2 {
 				statusCodeRangeTrigger.StatusCodes = pointer.To(s.StatusCodeRange)
-				statusCodeRangeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeRangeTrigger.Count = pointer.To(int64(s.Count))
 				statusCodeRangeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
 					statusCodeRangeTrigger.Path = pointer.To(s.Path)
@@ -1194,9 +1207,9 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 			} else {
 				statusCode, err := strconv.Atoi(s.StatusCodeRange)
 				if err == nil {
-					statusCodeTrigger.Status = pointer.To(int32(statusCode))
+					statusCodeTrigger.Status = pointer.To(int64(statusCode))
 				}
-				statusCodeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeTrigger.Count = pointer.To(int64(s.Count))
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
@@ -1211,7 +1224,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 	return result
 }
 
-func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSettingLinux {
+func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHealSettingLinux {
 	if autoHealRules == nil {
 		return []AutoHealSettingLinux{}
 	}
@@ -1289,9 +1302,12 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 	// Actions
 	if autoHealRules.Actions != nil {
 		actions := *autoHealRules.Actions
-
+		actionType := ""
+		if actions.ActionType != nil {
+			actionType = string(*actions.ActionType)
+		}
 		result.Actions = []AutoHealActionLinux{{
-			ActionType:         string(actions.ActionType),
+			ActionType:         actionType,
 			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}}
 	}

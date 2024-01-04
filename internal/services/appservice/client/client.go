@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
@@ -15,7 +16,9 @@ type Client struct {
 	AppServiceEnvironmentClient *web.AppServiceEnvironmentsClient
 	BaseClient                  *web.BaseClient
 	ServicePlanClient           *web.AppServicePlansClient
-	WebAppsClient               *webapps.WebAppsClient
+	WebAppsClient               *web.AppsClient
+	LinuxWebAppsClient          *webapps.WebAppsClient
+	AvailabilityClient          *resourceproviders.ResourceProvidersClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -25,11 +28,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	baseClient := web.NewWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&baseClient.Client, o.ResourceManagerAuthorizer)
 
-	webAppServiceClient, err := webapps.NewWebAppsClientWithBaseURI(o.Environment.ResourceManager)
+	webAppServiceClient := web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&webAppServiceClient.Client, o.ResourceManagerAuthorizer)
+
+	linuxWebAppServiceClient, err := webapps.NewWebAppsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building WebApps client: %+v", err)
 	}
-	o.Configure(webAppServiceClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(linuxWebAppServiceClient.Client, o.Authorizers.ResourceManager)
 
 	servicePlanClient := web.NewAppServicePlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicePlanClient.Client, o.ResourceManagerAuthorizer)
@@ -38,6 +44,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AppServiceEnvironmentClient: &appServiceEnvironmentClient,
 		BaseClient:                  &baseClient,
 		ServicePlanClient:           &servicePlanClient,
-		WebAppsClient:               webAppServiceClient,
+		LinuxWebAppsClient:          linuxWebAppServiceClient,
+		WebAppsClient:               &webAppServiceClient,
 	}, nil
 }
