@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: `azurerm_spring_cloud_api_portal` - update to use `hashicorp/go-azure-sdk` [GH-24321]
 * `azurerm_logic_app_standard` - add support for `site_config.0.public_network_access_enabled` [GH-24257]
 * `azurerm_linux_web_app` - add support for value `20-lts` for `node_version` for  [GH-24289]
+* `azurerm_spring_cloud_service` - support for the `sku_tier` property [GH-24103]
 
 BUG FIXES:
 
@@ -25,7 +26,7 @@ BUG FIXES:
 * `azurerm_windows_virtual_machine` - `additional_capabilities.0.ultra_ssd_enabled` can now be added during update [GH-24274]
 * `azurerm_scheduled_query_rules_alert` - `data_source_id` is now ForceNew [GH-24327]
 * `azurerm_scheduled_query_rules_log` - `data_source_id` is now ForceNew [GH-24327]
-  
+
 ## 3.85.0 (December 14, 2023)
 
 FEATURES:
