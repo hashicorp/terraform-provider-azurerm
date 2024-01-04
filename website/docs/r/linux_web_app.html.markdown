@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
-* `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
+* `https_only` - (Optional) Should the Linux Web App require HTTPS connections. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
 
@@ -170,7 +170,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, and `18-lts`. This property conflicts with `java_version`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, `18-lts` and `20-lts`. This property conflicts with `java_version`.
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 

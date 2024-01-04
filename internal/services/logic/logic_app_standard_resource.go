@@ -11,12 +11,15 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -175,7 +178,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "~3",
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return "~3"
+					}
+					return "~4"
+				}(),
 			},
 
 			"tags": tags.Schema(),
@@ -868,6 +876,12 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -1115,6 +1129,12 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
 
+	publicNetworkAccessEnabled := true
+	if input.PublicNetworkAccess != nil {
+		publicNetworkAccessEnabled = !strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+	}
+	result["public_network_access_enabled"] = publicNetworkAccessEnabled
+
 	results = append(results, result)
 	return results
 }
@@ -1340,6 +1360,14 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 
 	if v, ok := config["vnet_route_all_enabled"]; ok {
 		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["public_network_access_enabled"]; ok {
+		pna := helpers.PublicNetworkAccessEnabled
+		if !v.(bool) {
+			pna = helpers.PublicNetworkAccessDisabled
+		}
+		siteConfig.PublicNetworkAccess = pointer.To(pna)
 	}
 
 	return siteConfig, nil

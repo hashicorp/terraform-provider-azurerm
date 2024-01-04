@@ -686,6 +686,7 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 
 type ContainerTemplate struct {
 	Containers           []Container           `tfschema:"container"`
+	InitContainers       []BaseContainer       `tfschema:"init_container"`
 	Suffix               string                `tfschema:"revision_suffix"`
 	MinReplicas          int                   `tfschema:"min_replicas"`
 	MaxReplicas          int                   `tfschema:"max_replicas"`
@@ -704,6 +705,8 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"container": ContainerAppContainerSchema(),
+
+				"init_container": InitContainerAppContainerSchema(),
 
 				"min_replicas": {
 					Type:         pluginsdk.TypeInt,
@@ -750,6 +753,8 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"container": ContainerAppContainerSchemaComputed(),
 
+				"init_container": InitContainerAppContainerSchemaComputed(),
+
 				"min_replicas": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -788,8 +793,9 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 
 	config := input[0]
 	template := &containerapps.Template{
-		Containers: expandContainerAppContainers(config.Containers),
-		Volumes:    expandContainerAppVolumes(config.Volumes),
+		Containers:     expandContainerAppContainers(config.Containers),
+		InitContainers: expandInitContainerAppContainers(config.InitContainers),
+		Volumes:        expandContainerAppVolumes(config.Volumes),
 	}
 
 	if config.MaxReplicas != 0 {
@@ -828,9 +834,10 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 		return []ContainerTemplate{}
 	}
 	result := ContainerTemplate{
-		Containers: flattenContainerAppContainers(input.Containers),
-		Suffix:     pointer.From(input.RevisionSuffix),
-		Volumes:    flattenContainerAppVolumes(input.Volumes),
+		Containers:     flattenContainerAppContainers(input.Containers),
+		InitContainers: flattenInitContainerAppContainers(input.InitContainers),
+		Suffix:         pointer.From(input.RevisionSuffix),
+		Volumes:        flattenContainerAppVolumes(input.Volumes),
 	}
 
 	if scale := input.Scale; scale != nil {
@@ -1005,6 +1012,213 @@ func ContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+type BaseContainer struct {
+	Name             string                 `tfschema:"name"`
+	Image            string                 `tfschema:"image"`
+	CPU              float64                `tfschema:"cpu"`
+	Memory           string                 `tfschema:"memory"`
+	EphemeralStorage string                 `tfschema:"ephemeral_storage"`
+	Env              []ContainerEnvVar      `tfschema:"env"`
+	Args             []string               `tfschema:"args"`
+	Command          []string               `tfschema:"command"`
+	VolumeMounts     []ContainerVolumeMount `tfschema:"volume_mounts"`
+}
+
+func InitContainerAppContainerSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validate.ContainerAppContainerName,
+					Description:  "The name of the container.",
+				},
+
+				"image": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The image to use to create the container.",
+				},
+
+				"cpu": {
+					Type:         pluginsdk.TypeFloat,
+					Optional:     true,
+					ValidateFunc: validate.ContainerCpu,
+					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+				},
+
+				"memory": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"0.5Gi",
+						"1Gi",
+						"1.5Gi",
+						"2Gi",
+						"2.5Gi",
+						"3Gi",
+						"3.5Gi",
+						"4Gi",
+					}, false),
+					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+				},
+
+				"ephemeral_storage": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The amount of ephemeral storage available to the Container App.",
+				},
+
+				"env": ContainerEnvVarSchema(),
+
+				"args": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+					Description: "A list of args to pass to the container.",
+				},
+
+				"command": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+					Description: "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
+				},
+
+				"volume_mounts": ContainerVolumeMountSchema(),
+			},
+		},
+	}
+}
+
+func InitContainerAppContainerSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of the container.",
+				},
+
+				"image": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The image to use to create the container.",
+				},
+
+				"cpu": {
+					Type:        pluginsdk.TypeFloat,
+					Computed:    true,
+					Description: "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+				},
+
+				"memory": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+				},
+
+				"ephemeral_storage": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The amount of ephemeral storage available to the Container App.",
+				},
+
+				"env": ContainerEnvVarSchemaComputed(),
+
+				"args": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+					Description: "A list of args to pass to the container.",
+				},
+
+				"command": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+					Description: "A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.",
+				},
+
+				"volume_mounts": ContainerVolumeMountSchemaComputed(),
+			},
+		},
+	}
+}
+
+func expandInitContainerAppContainers(input []BaseContainer) *[]containerapps.BaseContainer {
+	if input == nil {
+		return nil
+	}
+
+	result := make([]containerapps.BaseContainer, 0)
+	for _, v := range input {
+		container := containerapps.BaseContainer{
+			Env:   expandInitContainerEnvVar(v),
+			Image: pointer.To(v.Image),
+			Name:  pointer.To(v.Name),
+			Resources: &containerapps.ContainerResources{
+				Cpu:              pointer.To(v.CPU),
+				EphemeralStorage: pointer.To(v.EphemeralStorage),
+				Memory:           pointer.To(v.Memory),
+			},
+			VolumeMounts: expandContainerVolumeMounts(v.VolumeMounts),
+		}
+		if len(v.Args) != 0 {
+			container.Args = pointer.To(v.Args)
+		}
+		if len(v.Command) != 0 {
+			container.Command = pointer.To(v.Command)
+		}
+
+		result = append(result, container)
+	}
+
+	return &result
+}
+
+func flattenInitContainerAppContainers(input *[]containerapps.BaseContainer) []BaseContainer {
+	if input == nil || len(*input) == 0 {
+		return []BaseContainer{}
+	}
+	result := make([]BaseContainer, 0)
+	for _, v := range *input {
+		container := BaseContainer{
+			Name:         pointer.From(v.Name),
+			Image:        pointer.From(v.Image),
+			Args:         pointer.From(v.Args),
+			Command:      pointer.From(v.Command),
+			Env:          flattenContainerEnvVar(v.Env),
+			VolumeMounts: flattenContainerVolumeMounts(v.VolumeMounts),
+		}
+
+		if resources := v.Resources; resources != nil {
+			container.CPU = pointer.From(resources.Cpu)
+			container.Memory = pointer.From(resources.Memory)
+			container.EphemeralStorage = pointer.From(resources.EphemeralStorage)
+		}
+
+		result = append(result, container)
+	}
+	return result
 }
 
 func expandContainerAppContainers(input []Container) *[]containerapps.Container {
@@ -1333,6 +1547,28 @@ func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.EnvironmentVar {
+	envs := make([]containerapps.EnvironmentVar, 0)
+	if input.Env == nil || len(input.Env) == 0 {
+		return &envs
+	}
+
+	for _, v := range input.Env {
+		env := containerapps.EnvironmentVar{
+			Name: pointer.To(v.Name),
+		}
+		if v.SecretReference != "" {
+			env.SecretRef = pointer.To(v.SecretReference)
+		} else {
+			env.Value = pointer.To(v.Value)
+		}
+
+		envs = append(envs, env)
+	}
+
+	return &envs
 }
 
 func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {

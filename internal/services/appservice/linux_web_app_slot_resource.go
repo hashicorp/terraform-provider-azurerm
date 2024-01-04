@@ -391,7 +391,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
 			}
@@ -813,7 +813,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			if metadata.ResourceData.HasChange("site_config") {
+			if metadata.ResourceData.HasChanges("site_config", "app_settings") {
 				sc := state.SiteConfig[0]
 				siteConfig, err := sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 				if err != nil {
@@ -856,8 +856,8 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+			if metadata.ResourceData.HasChanges("app_settings", "site_config") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(existing.SiteConfig.AppSettings)
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {

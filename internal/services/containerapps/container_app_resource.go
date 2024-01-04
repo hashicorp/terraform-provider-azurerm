@@ -40,9 +40,9 @@ type ContainerAppModel struct {
 	Dapr         []helpers.Dapr              `tfschema:"dapr"`
 	Template     []helpers.ContainerTemplate `tfschema:"template"`
 
-	Identity []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-
-	Tags map[string]interface{} `tfschema:"tags"`
+	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	WorkloadProfileName string                                     `tfschema:"workload_profile_name"`
+	Tags                map[string]interface{}                     `tfschema:"tags"`
 
 	OutboundIpAddresses        []string `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string   `tfschema:"latest_revision_name"`
@@ -106,6 +106,12 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"dapr": helpers.ContainerDaprSchema(),
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"workload_profile_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"tags": commonschema.Tags(),
 	}
@@ -196,6 +202,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
+					WorkloadProfileName:  pointer.To(app.WorkloadProfileName),
 				},
 				Tags: tags.Expand(app.Tags),
 			}
@@ -271,6 +278,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.LatestRevisionFqdn = pointer.From(props.LatestRevisionFqdn)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.OutboundIpAddresses = pointer.From(props.OutboundIPAddresses)
+					state.WorkloadProfileName = pointer.From(props.WorkloadProfileName)
 				}
 			}
 
@@ -389,6 +397,10 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 				}
 				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
+			}
+
+			if metadata.ResourceData.HasChange("workload_profile_name") {
+				model.Properties.WorkloadProfileName = pointer.To(state.WorkloadProfileName)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

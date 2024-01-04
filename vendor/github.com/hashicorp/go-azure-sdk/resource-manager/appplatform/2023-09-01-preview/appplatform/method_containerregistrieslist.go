@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ContainerRegistriesListCompleteResult struct {
 }
 
 // ContainerRegistriesList ...
-func (c AppPlatformClient) ContainerRegistriesList(ctx context.Context, id SpringId) (result ContainerRegistriesListOperationResponse, err error) {
+func (c AppPlatformClient) ContainerRegistriesList(ctx context.Context, id commonids.SpringCloudServiceId) (result ContainerRegistriesListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ContainerRegistriesList(ctx context.Context, id Sprin
 }
 
 // ContainerRegistriesListComplete retrieves all the results into a single object
-func (c AppPlatformClient) ContainerRegistriesListComplete(ctx context.Context, id SpringId) (ContainerRegistriesListCompleteResult, error) {
+func (c AppPlatformClient) ContainerRegistriesListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ContainerRegistriesListCompleteResult, error) {
 	return c.ContainerRegistriesListCompleteMatchingPredicate(ctx, id, ContainerRegistryResourceOperationPredicate{})
 }
 
 // ContainerRegistriesListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ContainerRegistriesListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate ContainerRegistryResourceOperationPredicate) (result ContainerRegistriesListCompleteResult, err error) {
+func (c AppPlatformClient) ContainerRegistriesListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate ContainerRegistryResourceOperationPredicate) (result ContainerRegistriesListCompleteResult, err error) {
 	items := make([]ContainerRegistryResource, 0)
 
 	resp, err := c.ContainerRegistriesList(ctx, id)

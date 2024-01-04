@@ -10,6 +10,8 @@ description: |-
 
 Manages a NetApp Volume.
 
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+
 ## NetApp Volume Usage
 
 ```hcl
@@ -57,10 +59,6 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
-  lifecycle {
-    prevent_destroy = true
-  }
-
   name                       = "example-netappvolume"
   location                   = azurerm_resource_group.example.location
   zone                       = "1"
@@ -92,6 +90,11 @@ resource "azurerm_netapp_volume" "example" {
   # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is dst
   data_protection_snapshot_policy {
     snapshot_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1"
+  }
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
   }
 }
 ```

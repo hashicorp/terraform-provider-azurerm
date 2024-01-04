@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ConfigServersValidateOperationResponse struct {
 }
 
 // ConfigServersValidate ...
-func (c AppPlatformClient) ConfigServersValidate(ctx context.Context, id SpringId, input ConfigServerSettings) (result ConfigServersValidateOperationResponse, err error) {
+func (c AppPlatformClient) ConfigServersValidate(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerSettings) (result ConfigServersValidateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c AppPlatformClient) ConfigServersValidate(ctx context.Context, id SpringI
 }
 
 // ConfigServersValidateThenPoll performs ConfigServersValidate then polls until it's completed
-func (c AppPlatformClient) ConfigServersValidateThenPoll(ctx context.Context, id SpringId, input ConfigServerSettings) error {
+func (c AppPlatformClient) ConfigServersValidateThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerSettings) error {
 	result, err := c.ConfigServersValidate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigServersValidate: %+v", err)

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -156,7 +155,6 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			defId := config.RoleDefinitionId
 
 			// search by name
-			var id parse.RoleDefinitionID
 			var role authorization.RoleDefinition
 			if config.Name != "" {
 				// Accounting for eventual consistency
@@ -195,8 +193,9 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope:            id.Scope,
-				RoleDefinitionId: id.RoleID,
+				Scope: config.Scope,
+				// Though the property is called "Name", it's UUID in fact.
+				RoleDefinitionId: pointer.From(role.Name),
 			}
 
 			state.Name = pointer.From(role.RoleName)

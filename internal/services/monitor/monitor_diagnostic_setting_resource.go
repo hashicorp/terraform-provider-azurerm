@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
+	kustoClusters "github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	kustoParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -493,10 +493,6 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if v, err := kustoParse.ClusterIDInsensitively(id.ResourceUri); err == nil {
-		id.ResourceUri = v.ID()
-	}
-
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -509,7 +505,11 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.Set("name", id.DiagnosticSettingName)
-	d.Set("target_resource_id", id.ResourceUri)
+	resourceUri := id.ResourceUri
+	if v, err := kustoClusters.ParseClusterIDInsensitively(resourceUri); err == nil {
+		resourceUri = v.ID()
+	}
+	d.Set("target_resource_id", resourceUri)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

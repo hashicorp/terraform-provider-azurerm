@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type BuildpackBindingListForClusterCompleteResult struct {
 }
 
 // BuildpackBindingListForCluster ...
-func (c AppPlatformClient) BuildpackBindingListForCluster(ctx context.Context, id SpringId) (result BuildpackBindingListForClusterOperationResponse, err error) {
+func (c AppPlatformClient) BuildpackBindingListForCluster(ctx context.Context, id commonids.SpringCloudServiceId) (result BuildpackBindingListForClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) BuildpackBindingListForCluster(ctx context.Context, i
 }
 
 // BuildpackBindingListForClusterComplete retrieves all the results into a single object
-func (c AppPlatformClient) BuildpackBindingListForClusterComplete(ctx context.Context, id SpringId) (BuildpackBindingListForClusterCompleteResult, error) {
+func (c AppPlatformClient) BuildpackBindingListForClusterComplete(ctx context.Context, id commonids.SpringCloudServiceId) (BuildpackBindingListForClusterCompleteResult, error) {
 	return c.BuildpackBindingListForClusterCompleteMatchingPredicate(ctx, id, BuildpackBindingResourceOperationPredicate{})
 }
 
 // BuildpackBindingListForClusterCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) BuildpackBindingListForClusterCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate BuildpackBindingResourceOperationPredicate) (result BuildpackBindingListForClusterCompleteResult, err error) {
+func (c AppPlatformClient) BuildpackBindingListForClusterCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate BuildpackBindingResourceOperationPredicate) (result BuildpackBindingListForClusterCompleteResult, err error) {
 	items := make([]BuildpackBindingResource, 0)
 
 	resp, err := c.BuildpackBindingListForCluster(ctx, id)

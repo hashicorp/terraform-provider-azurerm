@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ConfigServersUpdatePutOperationResponse struct {
 }
 
 // ConfigServersUpdatePut ...
-func (c AppPlatformClient) ConfigServersUpdatePut(ctx context.Context, id SpringId, input ConfigServerResource) (result ConfigServersUpdatePutOperationResponse, err error) {
+func (c AppPlatformClient) ConfigServersUpdatePut(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerResource) (result ConfigServersUpdatePutOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c AppPlatformClient) ConfigServersUpdatePut(ctx context.Context, id Spring
 }
 
 // ConfigServersUpdatePutThenPoll performs ConfigServersUpdatePut then polls until it's completed
-func (c AppPlatformClient) ConfigServersUpdatePutThenPoll(ctx context.Context, id SpringId, input ConfigServerResource) error {
+func (c AppPlatformClient) ConfigServersUpdatePutThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerResource) error {
 	result, err := c.ConfigServersUpdatePut(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigServersUpdatePut: %+v", err)

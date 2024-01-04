@@ -376,7 +376,7 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `enable_host_encryption`, `enable_node_public_ip`, `fips_enabled`, `kubelet_config`, `linux_os_config`, `max_pods`, `node_taints`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `enable_host_encryption`, `enable_node_public_ip`, `fips_enabled`, `kubelet_config`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
@@ -421,8 +421,6 @@ A `default_node_pool` block supports the following:
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool.
-
-* `node_taints` - (Optional) A list of the taints added to new nodes during node pool create and scale. `temporary_name_for_rotation` must be specified when changing this property.
 
 * `only_critical_addons_enabled` - (Optional) Enabling this option will taint default node pool with `CriticalAddonsOnly=true:NoSchedule` taint. `temporary_name_for_rotation` must be specified when changing this property.
 

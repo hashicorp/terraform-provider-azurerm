@@ -1496,18 +1496,33 @@ func TestAccStorageAccount_isSftpEnabled(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_emptyShareProperties(t *testing.T) {
+func TestAccStorageAccount_minimalShareProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.emptyShareProperties(data),
+			Config: r.minimalShareProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_minimalSharePropertiesPremiumFileStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.minimalSharePropertiesPremiumFileStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("share_properties.0.smb"),
 	})
 }
 
@@ -4329,7 +4344,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, scope)
 }
 
-func (r StorageAccountResource) emptyShareProperties(data acceptance.TestData) string {
+func (r StorageAccountResource) minimalShareProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4349,7 +4364,44 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
 
-  share_properties {}
+  share_properties {
+    retention_policy {
+      days = 5
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) minimalSharePropertiesPremiumFileStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  account_kind             = "FileStorage"
+
+  share_properties {
+    retention_policy {
+      days = 5
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [share_properties.0.smb]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
