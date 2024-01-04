@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic`. Defaults to `Analytics`.
 
--> **Note:** The `name` of tables currently support `Basic` plan can be found in [this article](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/basic-logs-configure?tabs=portal-1#supported-tables) for further details.
+-> **Note:** The `name` of tables currently supported by the `Basic` plan can be found [here](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/basic-logs-configure?tabs=portal-1#supported-tables).
 
 * `retention_in_days` - (Optional) The table's retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
 
