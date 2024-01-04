@@ -343,10 +343,12 @@ func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networ
 
 func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *networkmanagers.NetworkManagersClient, managerDeploymentId *parse.ManagerDeploymentId, d time.Duration) error {
 	state := &pluginsdk.StateChangeConf{
-		MinTimeout: 30 * time.Second,
-		Delay:      10 * time.Second,
-		Pending:    []string{"NotStarted", "Deploying"},
-		Target:     []string{"Deployed"},
+		MinTimeout:     30 * time.Second,
+		Delay:          10 * time.Second,
+		Pending:        []string{"NotStarted", "Deploying"},
+		Target:         []string{"Deployed"},
+		NotFoundChecks: 20,
+		Timeout:        d,
 		Refresh: func() (interface{}, string, error) {
 			result, state, err := resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId)()
 			if state == "NotFound" {
@@ -355,8 +357,6 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 			}
 			return result, state, err
 		},
-		NotFoundChecks: 20,
-		Timeout:        d,
 	}
 
 	_, err := state.WaitForStateContext(ctx)
