@@ -392,9 +392,18 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		}
 	}
 
-	purgedId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
-	if err := hsmClient.PurgeDeletedThenPoll(ctx, purgedId); err != nil {
+	// the polling operation of purge can not terminate correctly, so we use the custom polling operation of polling delete
+	// try to purge again if managed HSM still exists after 1 minute
+	// for API issue: https://github.com/Azure/azure-rest-api-specs/issues/27138
+	purgeId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
+	if _, err := hsmClient.PurgeDeleted(ctx, purgeId); err != nil {
 		return fmt.Errorf("purging %s: %+v", id, err)
+	}
+
+	purgePoller := custompollers.NewHSMPurgePoller(hsmClient, purgeId)
+	poller := pollers.NewPoller(purgePoller, time.Second*30, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be purged: %+v", id, err)
 	}
 
 	return nil

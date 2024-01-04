@@ -38,16 +38,11 @@ locals {
   assignmentTestName = "1e243909-064c-6ac3-84e9-1c8bf8d6ad52"
 }
 
-data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
-  name           = azurerm_key_vault_managed_hardware_security_module_role_definition.test.name
-  vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
-}
-
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
   vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
   name               = local.assignmentTestName
   scope              = "/keys"
-  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.test.resource_manager_id
+  role_definition_id = azurerm_key_vault_managed_hardware_security_module_role_definition.test.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 }
 `, roleDef)
