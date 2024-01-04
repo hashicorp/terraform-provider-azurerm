@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_data_protection_backup_policy_disk` - support for the `time_zone` property [GH-24312]
 * `azurerm_key_vault_managed_hardware_security_module` -the `tags` property can now be updated [GH-24333]
 * `azurerm_logic_app_standard` - add support for `site_config.0.public_network_access_enabled` [GH-24257]
+* `azurerm_log_analytics_workspace_table` - support for the `plan` property [GH-24341]
 * `azurerm_linux_web_app` - add support for value `20-lts` for `node_version` for  [GH-24289]
 * `azurerm_spring_cloud_service` - support for the `sku_tier` property [GH-24103]
 
