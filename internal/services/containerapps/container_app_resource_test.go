@@ -699,12 +699,6 @@ resource "azurerm_container_app" "test" {
   depends_on = [
     azurerm_role_assignment.user_mi_key_vault_secrets
   ]
-
-  lifecycle {
-    ignore_changes = [
-      secret[0].value
-    ]
-  }
 }
 `, r.templateNoProvider(data), data.RandomInteger, data.RandomString)
 }
@@ -794,12 +788,6 @@ resource "azurerm_container_app" "test" {
   depends_on = [
     azurerm_role_assignment.mi_key_vault_secrets
   ]
-
-  lifecycle {
-    ignore_changes = [
-      secret[0].value
-    ]
-  }
 }
 `, r.templateNoProvider(data), data.RandomInteger, data.RandomString)
 }
@@ -895,12 +883,6 @@ resource "azurerm_container_app" "test" {
   depends_on = [
     azurerm_role_assignment.user_mi_key_vault_secrets
   ]
-
-  lifecycle {
-    ignore_changes = [
-      secret[0].value
-    ]
-  }
 }
 `, r.templateNoProvider(data), data.RandomInteger, data.RandomString)
 }
@@ -1006,13 +988,6 @@ resource "azurerm_container_app" "test" {
   depends_on = [
     azurerm_role_assignment.user_mi_key_vault_secrets
   ]
-
-  lifecycle {
-    ignore_changes = [
-      secret[0].value,
-      secret[1].value
-    ]
-  }
 }
 `, r.templateNoProvider(data), data.RandomInteger, data.RandomString)
 }
@@ -1090,12 +1065,6 @@ resource "azurerm_container_app" "test" {
     name                = "key-vault-secret"
     identity            = "System"
     key_vault_secret_id = azurerm_key_vault_secret.test.id
-  }
-
-  lifecycle {
-    ignore_changes = [
-      secret[0].value
-    ]
   }
 }
 `, r.templateNoProvider(data), data.RandomInteger, data.RandomString)

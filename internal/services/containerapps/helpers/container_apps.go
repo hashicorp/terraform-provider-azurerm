@@ -2213,7 +2213,7 @@ type Secret struct {
 
 func SecretsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:      pluginsdk.TypeList,
+		Type:      pluginsdk.TypeSet,
 		Optional:  true,
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
@@ -2255,7 +2255,7 @@ func SecretsSchema() *pluginsdk.Schema {
 
 func SecretsDataSourceSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:      pluginsdk.TypeList,
+		Type:      pluginsdk.TypeSet,
 		Computed:  true,
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
@@ -2468,12 +2468,15 @@ func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret
 	}
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
-		result = append(result, Secret{
+		secret := Secret{
 			Identity:         pointer.From(v.Identity),
 			KeyVaultSecretId: pointer.From(v.KeyVaultUrl),
 			Name:             pointer.From(v.Name),
-			Value:            pointer.From(v.Value),
-		})
+		}
+		if v.KeyVaultUrl == nil {
+			secret.Value = pointer.From(v.Value)
+		}
+		result = append(result, secret)
 	}
 
 	return result
