@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20231215.1114251` of `hashicorp/go-azure-sdk` [GH-24251]
 * dependencies: `azurerm_spring_cloud_api_portal` - update to use `hashicorp/go-azure-sdk` [GH-24321]
+* Data Source: `azurerm_kusto_cluster` - now exports the `identity` block [GH-24314]
 * `azurerm_data_protection_backup_policy_postgresql` - support for the `time_zone` property [GH-24312]
 * `azurerm_data_protection_backup_policy_disk` - support for the `time_zone` property [GH-24312]
 * `azurerm_logic_app_standard` - add support for `site_config.0.public_network_access_enabled` [GH-24257]
