@@ -5,6 +5,7 @@ FEATURES:
 * New Data Source: `azurerm_dashboard_grafana` [GH-24243]
 * New Resource: `azurerm_log_analytics_workspace_table` [GH-24229]
 * New Resource: `azurerm_automation_powershell72_module` [GH-23980]
+* New Resource: `azurerm_data_factory_credential_user_managed_identity` [GH-24307]
 
 ENHANCEMENTS:
 
