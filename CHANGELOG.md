@@ -1,41 +1,41 @@
-## 3.86.0 (Unreleased)
+## 3.86.0 (January 04, 2024)
 
 FEATURES:
 
-* New Data Source: `azurerm_dashboard_grafana` [GH-24243]
-* New Resource: `azurerm_log_analytics_workspace_table` [GH-24229]
-* New Resource: `azurerm_automation_powershell72_module` [GH-23980]
-* New Resource: `azurerm_data_factory_credential_user_managed_identity` [GH-24307]
+* New Data Source: `azurerm_dashboard_grafana` ([#24243](https://github.com/hashicorp/terraform-provider-azurerm/issues/24243))
+* New Resource: `azurerm_log_analytics_workspace_table` ([#24229](https://github.com/hashicorp/terraform-provider-azurerm/issues/24229))
+* New Resource: `azurerm_automation_powershell72_module` ([#23980](https://github.com/hashicorp/terraform-provider-azurerm/issues/23980))
+* New Resource: `azurerm_data_factory_credential_user_managed_identity` ([#24307](https://github.com/hashicorp/terraform-provider-azurerm/issues/24307))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20231215.1114251` of `hashicorp/go-azure-sdk` [GH-24251]
-* dependencies: `azurerm_spring_cloud_api_portal` - update to use `hashicorp/go-azure-sdk` [GH-24321]
-* Data Source: `azurerm_kusto_cluster` - now exports the `identity` block [GH-24314]
-* `azurerm_data_protection_backup_policy_postgresql` - support for the `time_zone` property [GH-24312]
-* `azurerm_data_protection_backup_policy_disk` - support for the `time_zone` property [GH-24312]
-* `azurerm_key_vault_managed_hardware_security_module` -the `tags` property can now be updated [GH-24333]
-* `azurerm_logic_app_standard` - support for the `site_config.0.public_network_access_enabled` property [GH-24257]
-* `azurerm_log_analytics_workspace_table` - support for the `plan` property [GH-24341]
-* `azurerm_linux_web_app` - support the value `20-lts` for the `node_version` property  [GH-24289]
-* `azurerm_recovery_services_vault` - support creation with immutability set to locked [GH-23806]
-* `azurerm_spring_cloud_service` - support for the `sku_tier` property [GH-24103]
+* dependencies: updating to `v0.20231215.1114251` of `hashicorp/go-azure-sdk` ([#24251](https://github.com/hashicorp/terraform-provider-azurerm/issues/24251))
+* dependencies: `azurerm_spring_cloud_api_portal` - update to use `hashicorp/go-azure-sdk` ([#24321](https://github.com/hashicorp/terraform-provider-azurerm/issues/24321))
+* Data Source: `azurerm_kusto_cluster` - now exports the `identity` block ([#24314](https://github.com/hashicorp/terraform-provider-azurerm/issues/24314))
+* `azurerm_data_protection_backup_policy_postgresql` - support for the `time_zone` property ([#24312](https://github.com/hashicorp/terraform-provider-azurerm/issues/24312))
+* `azurerm_data_protection_backup_policy_disk` - support for the `time_zone` property ([#24312](https://github.com/hashicorp/terraform-provider-azurerm/issues/24312))
+* `azurerm_key_vault_managed_hardware_security_module` -the `tags` property can now be updated ([#24333](https://github.com/hashicorp/terraform-provider-azurerm/issues/24333))
+* `azurerm_logic_app_standard` - support for the `site_config.0.public_network_access_enabled` property ([#24257](https://github.com/hashicorp/terraform-provider-azurerm/issues/24257))
+* `azurerm_log_analytics_workspace_table` - support for the `plan` property ([#24341](https://github.com/hashicorp/terraform-provider-azurerm/issues/24341))
+* `azurerm_linux_web_app` - support the value `20-lts` for the `node_version` property  ([#24289](https://github.com/hashicorp/terraform-provider-azurerm/issues/24289))
+* `azurerm_recovery_services_vault` - support creation with immutability set to locked ([#23806](https://github.com/hashicorp/terraform-provider-azurerm/issues/23806))
+* `azurerm_spring_cloud_service` - support for the `sku_tier` property ([#24103](https://github.com/hashicorp/terraform-provider-azurerm/issues/24103))
 
 BUG FIXES:
 
-* Data Source: `azurerm_role_definition` - correctly export the `role_definition_id` attribute [GH-24320]
-* `azurerm_bot_service` - fixing a bug where `public_network_access_enabled` was always set to `true` [GH-24255]
-* `azurerm_bot_service_azure_bot` - `tags` can now be updated [GH-24332]
-* `azurerm_cosmosdb_account` - fix validation for the `ip_range_filter` property [GH-24306]
-* `azurerm_linux_virtual_machine` - the `additional_capabilities.0.ultra_ssd_enabled` can now be changed during the update [GH-24274]
-* `azurerm_logic_app_standard` - update the default value of `version` from `~3` which is no longer supported to `~4` [GH-24134]
-* `azurerm_logic_app_standard` - fix a crash when setting the default `version` 4.0 flag [GH-24322]
-* `azurerm_iothub_device_update_account` - changing the `sku` property now creates a new resource [GH-24324]
-* `azurerm_iothub` - prevent an inconsistant value after an apply [GH-24326]
-* `azurerm_orchestrated_virtual_machine_scale_set` - correctly update the resource when hotpatch is enabled [GH-24335]
-* `azurerm_windows_virtual_machine` - the `additional_capabilities.0.ultra_ssd_enabled` can now be changed during the update [GH-24274]
-* `azurerm_scheduled_query_rules_alert` - changing the `data_source_id` now creates a new resource [GH-24327]
-* `azurerm_scheduled_query_rules_log` - changing the `data_source_id` now creates a new resource [GH-24327]
+* Data Source: `azurerm_role_definition` - correctly export the `role_definition_id` attribute ([#24320](https://github.com/hashicorp/terraform-provider-azurerm/issues/24320))
+* `azurerm_bot_service` - fixing a bug where `public_network_access_enabled` was always set to `true` ([#24255](https://github.com/hashicorp/terraform-provider-azurerm/issues/24255))
+* `azurerm_bot_service_azure_bot` - `tags` can now be updated ([#24332](https://github.com/hashicorp/terraform-provider-azurerm/issues/24332))
+* `azurerm_cosmosdb_account` - fix validation for the `ip_range_filter` property ([#24306](https://github.com/hashicorp/terraform-provider-azurerm/issues/24306))
+* `azurerm_linux_virtual_machine` - the `additional_capabilities.0.ultra_ssd_enabled` can now be changed during the update ([#24274](https://github.com/hashicorp/terraform-provider-azurerm/issues/24274))
+* `azurerm_logic_app_standard` - update the default value of `version` from `~3` which is no longer supported to `~4` ([#24134](https://github.com/hashicorp/terraform-provider-azurerm/issues/24134))
+* `azurerm_logic_app_standard` - fix a crash when setting the default `version` 4.0 flag ([#24322](https://github.com/hashicorp/terraform-provider-azurerm/issues/24322))
+* `azurerm_iothub_device_update_account` - changing the `sku` property now creates a new resource ([#24324](https://github.com/hashicorp/terraform-provider-azurerm/issues/24324))
+* `azurerm_iothub` - prevent an inconsistant value after an apply ([#24326](https://github.com/hashicorp/terraform-provider-azurerm/issues/24326))
+* `azurerm_orchestrated_virtual_machine_scale_set` - correctly update the resource when hotpatch is enabled ([#24335](https://github.com/hashicorp/terraform-provider-azurerm/issues/24335))
+* `azurerm_windows_virtual_machine` - the `additional_capabilities.0.ultra_ssd_enabled` can now be changed during the update ([#24274](https://github.com/hashicorp/terraform-provider-azurerm/issues/24274))
+* `azurerm_scheduled_query_rules_alert` - changing the `data_source_id` now creates a new resource ([#24327](https://github.com/hashicorp/terraform-provider-azurerm/issues/24327))
+* `azurerm_scheduled_query_rules_log` - changing the `data_source_id` now creates a new resource ([#24327](https://github.com/hashicorp/terraform-provider-azurerm/issues/24327))
 
 ## 3.85.0 (December 14, 2023)
 
