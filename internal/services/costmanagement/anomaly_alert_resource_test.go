@@ -30,6 +30,17 @@ func TestAccResourceAnomalyAlert_update(t *testing.T) {
 	})
 }
 
+func TestAccResourceAnomalyAlert_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
+	testResource := AnomalyAlertResource{}
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		data.ApplyStep(testResource.completeConfig, testResource),
+		data.ImportStep("subscription_id"),
+		data.ApplyStep(testResource.updateConfig, testResource),
+		data.ImportStep("subscription_id"),
+	})
+}
+
 func TestAccResourceAnomalyAlert_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
@@ -59,6 +70,22 @@ provider "azurerm" {
   features {}
 }
 
+resource "azurerm_cost_anomaly_alert" "test" {
+  name            = "-acctest-%d"
+  display_name    = "acctest %d"
+  email_subject   = "Hi"
+  email_addresses = ["test@test.com", "test@hashicorp.developer"]
+  message         = "Oops, cost anomaly"
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (AnomalyAlertResource) completeConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_cost_anomaly_alert" "test" {
@@ -67,7 +94,7 @@ resource "azurerm_cost_anomaly_alert" "test" {
   subscription_id = data.azurerm_subscription.test.id
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
-  message         = "Oops, cost anomaly"
+  message         = "Cost anomaly complete test"
 }
 `, data.RandomInteger, data.RandomInteger)
 }
@@ -80,7 +107,6 @@ func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) str
 resource "azurerm_cost_anomaly_alert" "import" {
   name            = azurerm_cost_anomaly_alert.test.name
   display_name    = azurerm_cost_anomaly_alert.test.display_name
-  subscription_id = azurerm_cost_anomaly_alert.test.subscription_id
   email_subject   = azurerm_cost_anomaly_alert.test.email_subject
   email_addresses = azurerm_cost_anomaly_alert.test.email_addresses
   message         = azurerm_cost_anomaly_alert.test.message
@@ -94,12 +120,9 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "test" {}
-
 resource "azurerm_cost_anomaly_alert" "test" {
   name            = "-acctest-%d"
   display_name    = "acctest name update %d"
-  subscription_id = data.azurerm_subscription.test.id
   email_subject   = "Hi you!"
   email_addresses = ["tester@test.com", "test2@hashicorp.developer"]
   message         = "An updated cost anomaly for you"

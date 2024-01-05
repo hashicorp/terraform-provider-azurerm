@@ -42,7 +42,7 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"subscription_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
@@ -88,7 +88,13 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ScheduledActionsClient
-			subscriptionId := metadata.ResourceData.Get("subscription_id").(string)
+
+			var subscriptionId string
+			if v, ok := metadata.ResourceData.GetOk("subscription_id"); ok {
+				subscriptionId = v.(string)
+			} else {
+				subscriptionId = fmt.Sprint("/subscriptions/", metadata.Client.Account.SubscriptionId)
+			}
 			id := scheduledactions.NewScopedScheduledActionID(subscriptionId, metadata.ResourceData.Get("name").(string))
 
 			existing, err := client.GetByScope(ctx, id)
@@ -162,7 +168,12 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()
 			emailAddresses := utils.ExpandStringSlice(emailAddressesRaw)
 
-			subscriptionId := metadata.ResourceData.Get("subscription_id").(string)
+			var subscriptionId string
+			if v, ok := metadata.ResourceData.GetOk("subscription_id"); ok {
+				subscriptionId = v.(string)
+			} else {
+				subscriptionId = fmt.Sprint("/subscriptions/", metadata.Client.Account.SubscriptionId)
+			}
 			viewId := views.NewScopedViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
 			schedule := scheduledactions.ScheduleProperties{
@@ -220,7 +231,11 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 				metadata.ResourceData.Set("name", model.Name)
 				if props := model.Properties; props != nil {
 					metadata.ResourceData.Set("display_name", props.DisplayName)
-					metadata.ResourceData.Set("subscription_id", id.Scope)
+					
+					if _, ok := metadata.ResourceData.GetOk("subscription_id"); ok {
+						metadata.ResourceData.Set("subscription_id", fmt.Sprint("/", *props.Scope))
+					} 
+					
 					metadata.ResourceData.Set("email_subject", props.Notification.Subject)
 					metadata.ResourceData.Set("email_addresses", props.Notification.To)
 					metadata.ResourceData.Set("message", props.Notification.Message)
