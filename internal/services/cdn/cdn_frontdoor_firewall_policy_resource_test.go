@@ -56,6 +56,7 @@ func TestAccCdnFrontDoorFirewallPolicy_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("request_body_check").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -333,6 +334,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   custom_rule {
     name                           = "Rule1"
     enabled                        = true
+    request_body_check             = false
     priority                       = 1
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
