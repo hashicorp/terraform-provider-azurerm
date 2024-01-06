@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
@@ -29,6 +30,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -280,6 +283,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
+			EncryptionProtectorAutoRotation:  pointer.To(d.Get("auto_key_rotation_enabled").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -377,6 +381,25 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.RestorableDroppedDatabaseId = pointer.To(v.(string))
 	}
 
+	if v, ok := d.GetOk("identity"); ok {
+		expandedIdentity, err := identity.ExpandUserAssignedMap(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		input.Identity = expandedIdentity
+	}
+
+	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
+		keyVaultKeyId := v.(string)
+
+		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+		}
+
+		input.Properties.EncryptionProtector = pointer.To(keyId.ID())
+	}
+
 	err = client.CreateOrUpdateThenPoll(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -431,34 +454,51 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			state = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 		}
 
-		input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
-			Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
-				State: state,
-			},
-		}
-
-		err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
+		tde, err := transparentEncryptionClient.Get(ctx, id)
 		if err != nil {
-			return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
+			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, err)
 		}
 
-		// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-			c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
-			if err != nil {
-				return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err))
+		currentState := transparentdataencryptions.TransparentDataEncryptionStateDisabled
+		if model := tde.Model; model != nil {
+			if props := model.Properties; props != nil {
+				currentState = props.State
 			}
-			if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
-				if c.Model.Properties.Status == pointer.To(databases.DatabaseStatusScaling) {
-					return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
-				}
-			} else {
-				return pluginsdk.RetryableError(fmt.Errorf("retrieving database status %s: Model, Properties or Status is nil", id.String()))
+		}
+
+		// Submit TDE selector only when state is being changed, otherwise it can cause unwanted detection of state changes from the cloud side
+		if !strings.EqualFold(string(currentState), string(state)) {
+			input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+				Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
+					State: state,
+				},
 			}
 
-			return nil
-		}); err != nil {
-			return nil
+			err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
+			if err != nil {
+				return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
+			}
+
+			// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
+			if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+				c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
+				if err != nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err))
+				}
+				if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
+					if c.Model.Properties.Status == pointer.To(databases.DatabaseStatusScaling) {
+						return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
+					}
+				} else {
+					return pluginsdk.RetryableError(fmt.Errorf("retrieving database status %s: Model, Properties or Status is nil", id.String()))
+				}
+
+				return nil
+			}); err != nil {
+				return nil
+			}
+		} else {
+			log.Print("[DEBUG] Skipping re-writing of Transparent Data Encryption, since encryption state is not changing ...")
 		}
 	}
 
@@ -639,6 +679,17 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
 			d.Set("enclave_type", enclaveType)
+			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
+			d.Set("auto_key_rotation_enabled", pointer.From(props.EncryptionProtectorAutoRotation))
+
+			identity, err := identity.FlattenUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			if err := d.Set("identity", identity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
 
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
@@ -959,6 +1010,29 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("identity") {
+		expanded, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = expanded
+	}
+
+	if d.HasChange("transparent_data_encryption_key_vault_key_id") {
+		keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
+
+		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+		}
+
+		props.EncryptionProtector = pointer.To(keyId.ID())
+	}
+
+	if d.HasChange("auto_key_rotation_enabled") {
+		props.EncryptionProtectorAutoRotation = pointer.To(d.Get("auto_key_rotation_enabled").(bool))
 	}
 
 	payload.Properties = pointer.To(props)
@@ -1601,10 +1675,25 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"identity": commonschema.UserAssignedIdentityOptional(),
+
 		"transparent_data_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"transparent_data_encryption_key_vault_key_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyVaultValidate.NestedItemId,
+		},
+
+		"auto_key_rotation_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Default:      false,
+			RequiredWith: []string{"transparent_data_encryption_key_vault_key_id"},
 		},
 
 		"tags": commonschema.Tags(),

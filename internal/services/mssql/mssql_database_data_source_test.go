@@ -44,6 +44,7 @@ func TestAccDataSourceMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 			),
 		},
 	})
