@@ -17,6 +17,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management` - the `sku_name` property can now be updated [GH-24431]
 * `azurerm_arc_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
 * `azurerm_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
 * `azurerm_virtual_machine_data_disk_attachment` - do not update applications profile with disks [GH-24145]
