@@ -13,6 +13,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_virtual_machine_data_disk_attachment` - do not update applications profile with disks [GH-24145]
+
 ## 3.86.0 (January 04, 2024)
 
 FEATURES:
