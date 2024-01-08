@@ -38,23 +38,9 @@ func ParseExecutionID(input string) (*ExecutionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExecutionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "jobName", *parsed)
-	}
-
-	if id.ExecutionName, ok = parsed.Parsed["executionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "executionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseExecutionIDInsensitively(input string) (*ExecutionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExecutionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "jobName", *parsed)
-	}
-
-	if id.ExecutionName, ok = parsed.Parsed["executionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "executionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ExecutionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.JobName, ok = input.Parsed["jobName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "jobName", input)
+	}
+
+	if id.ExecutionName, ok = input.Parsed["executionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "executionName", input)
+	}
+
+	return nil
 }
 
 // ValidateExecutionID checks that 'input' can be parsed as a Execution ID

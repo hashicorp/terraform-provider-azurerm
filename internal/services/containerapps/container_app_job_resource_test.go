@@ -738,6 +738,17 @@ resource "azurerm_container_app_job" "test" {
         path = "/appsettings"
       }
     }
+
+    init_container {
+      name   = "init-cont-%[2]d"
+      image  = "repo/testcontainerAppsJob0:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      volume_mounts {
+        name = "appsettings-volume"
+        path = "/appsettings"
+      }
+    }
   }
   tags = {
     ENV = "test"
