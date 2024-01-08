@@ -240,7 +240,9 @@ service/event-hubs:
     - internal/services/eventhub/**/*
 
 service/extended-location:
-  - internal/services/extendedlocation/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/extendedlocation/**/*
 
 service/firewall:
 - changed-files:
