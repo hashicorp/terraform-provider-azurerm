@@ -130,7 +130,7 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "te
   name                    = "acctest-apm-%[2]d"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
   tenant                  = "test-tenant"
-  tenant_token            = "test-tenant-token"
+  tenant_token            = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
   connection_point        = "test-connection-endpoint"
 }
 `, template, data.RandomInteger)
@@ -145,7 +145,7 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "im
   name                    = azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.name
   spring_cloud_service_id = azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.spring_cloud_service_id
   tenant                  = "test-tenant"
-  tenant_token            = "test-tenant-token"
+  tenant_token            = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
   connection_point        = "test-connection-endpoint"
 }
 `, config)
@@ -161,10 +161,10 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "te
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
   globally_enabled        = true
   api_url                 = "https://test-api-url.com"
-  api_token               = "test-api-token"
+  api_token               = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
   environment_id          = "test-environment-id"
   tenant                  = "test-tenant"
-  tenant_token            = "test-tenant-token"
+  tenant_token            = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
   connection_point        = "test-connection-endpoint"
 }
 `, template, data.RandomInteger)

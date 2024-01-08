@@ -77,7 +77,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments(
 		"api_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"api_token": {
