@@ -8,6 +8,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies `paloaltonetworks`: updating to API Version `2023-09-01` [GH-24290]
+* `azurerm_container_app` - Add create time validations for `ingress.0.traffic_weight` [GH-24042]
 * `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
 * `azurerm_postgres_flexible_server` - `sku_name` now supports being set to `MO_Standard_E96ds_v5` [GH-24367]
 * `azurerm_windows_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
