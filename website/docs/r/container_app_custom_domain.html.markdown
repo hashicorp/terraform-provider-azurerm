@@ -97,11 +97,11 @@ The following arguments are supported:
 
 * `name` - (Required) The fully qualified name of the Custom Domain. Must be the CN or a named SAN in the certificate specified by the `container_app_environment_certificate_id`. Changing this forces a new resource to be created.
 
-~> **Note:** The Custom Domain verification TXT record requires a prefix of `asuid.`, however, this must be trimmed from the `name` property here.
+~> **Note:** The Custom Domain verification TXT record requires a prefix of `asuid.`, however, this must be trimmed from the `name` property here. See the [official docs](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates) for more information.
 
-* `container_app_id` - (Required) The ID of the Container App to which this Custom Domain belongs. Changing this forces a new resource to be created. 
+* `container_app_id` - (Required) The ID of the Container App to which this Custom Domain should be bound. Changing this forces a new resource to be created. 
 
-* `container_app_environment_certificate_id` - (Required) . Changing this forces a new resource to be created.
+* `container_app_environment_certificate_id` - (Required) The ID of the Container App Environment Certificate to use. Changing this forces a new resource to be created.
 
 * `certificate_binding_type` - (Required) The Certificate Binding type. Possible values include `Disabled` and `SniEnabled`. Changing this forces a new resource to be created. 
 
@@ -116,7 +116,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-A Container App can be imported using the `resource id`, e.g.
+A Container App Custom Domain can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_container_app_custom_domain.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/containerApps/myContainerApp/customDomainName/mycustomdomain.example.com"
