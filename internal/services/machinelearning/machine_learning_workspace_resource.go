@@ -387,7 +387,7 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
-	future, err := client.Delete(ctx, *id, workspaces.DeleteOperationOptions{})
+	future, err := client.Delete(ctx, *id, workspaces.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
