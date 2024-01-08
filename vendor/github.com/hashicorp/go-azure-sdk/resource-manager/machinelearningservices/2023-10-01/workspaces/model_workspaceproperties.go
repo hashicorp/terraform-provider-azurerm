@@ -10,10 +10,12 @@ type WorkspaceProperties struct {
 	Description                     *string                          `json:"description,omitempty"`
 	DiscoveryUrl                    *string                          `json:"discoveryUrl,omitempty"`
 	Encryption                      *EncryptionProperty              `json:"encryption,omitempty"`
+	FeatureStoreSettings            *FeatureStoreSettings            `json:"featureStoreSettings,omitempty"`
 	FriendlyName                    *string                          `json:"friendlyName,omitempty"`
 	HbiWorkspace                    *bool                            `json:"hbiWorkspace,omitempty"`
 	ImageBuildCompute               *string                          `json:"imageBuildCompute,omitempty"`
 	KeyVault                        *string                          `json:"keyVault,omitempty"`
+	ManagedNetwork                  *ManagedNetworkSettings          `json:"managedNetwork,omitempty"`
 	MlFlowTrackingUri               *string                          `json:"mlFlowTrackingUri,omitempty"`
 	NotebookInfo                    *NotebookResourceInfo            `json:"notebookInfo,omitempty"`
 	PrimaryUserAssignedIdentity     *string                          `json:"primaryUserAssignedIdentity,omitempty"`
@@ -21,6 +23,7 @@ type WorkspaceProperties struct {
 	PrivateLinkCount                *int64                           `json:"privateLinkCount,omitempty"`
 	ProvisioningState               *ProvisioningState               `json:"provisioningState,omitempty"`
 	PublicNetworkAccess             *PublicNetworkAccess             `json:"publicNetworkAccess,omitempty"`
+	ServerlessComputeSettings       *ServerlessComputeSettings       `json:"serverlessComputeSettings,omitempty"`
 	ServiceManagedResourcesSettings *ServiceManagedResourcesSettings `json:"serviceManagedResourcesSettings,omitempty"`
 	ServiceProvisionedResourceGroup *string                          `json:"serviceProvisionedResourceGroup,omitempty"`
 	SharedPrivateLinkResources      *[]SharedPrivateLinkResource     `json:"sharedPrivateLinkResources,omitempty"`

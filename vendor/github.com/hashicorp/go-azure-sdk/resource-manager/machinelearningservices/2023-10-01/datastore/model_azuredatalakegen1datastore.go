@@ -11,8 +11,10 @@ import (
 var _ Datastore = AzureDataLakeGen1Datastore{}
 
 type AzureDataLakeGen1Datastore struct {
+	ResourceGroup                 *string                        `json:"resourceGroup,omitempty"`
 	ServiceDataAccessAuthIdentity *ServiceDataAccessAuthIdentity `json:"serviceDataAccessAuthIdentity,omitempty"`
 	StoreName                     string                         `json:"storeName"`
+	SubscriptionId                *string                        `json:"subscriptionId,omitempty"`
 
 	// Fields inherited from Datastore
 	Credentials DatastoreCredentials `json:"credentials"`
@@ -58,8 +60,10 @@ func (s *AzureDataLakeGen1Datastore) UnmarshalJSON(bytes []byte) error {
 	s.Description = decoded.Description
 	s.IsDefault = decoded.IsDefault
 	s.Properties = decoded.Properties
+	s.ResourceGroup = decoded.ResourceGroup
 	s.ServiceDataAccessAuthIdentity = decoded.ServiceDataAccessAuthIdentity
 	s.StoreName = decoded.StoreName
+	s.SubscriptionId = decoded.SubscriptionId
 	s.Tags = decoded.Tags
 
 	var temp map[string]json.RawMessage

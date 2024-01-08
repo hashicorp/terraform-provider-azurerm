@@ -382,6 +382,97 @@ func parseComputePowerAction(input string) (*ComputePowerAction, error) {
 	return &out, nil
 }
 
+type ComputeRecurrenceFrequency string
+
+const (
+	ComputeRecurrenceFrequencyDay    ComputeRecurrenceFrequency = "Day"
+	ComputeRecurrenceFrequencyHour   ComputeRecurrenceFrequency = "Hour"
+	ComputeRecurrenceFrequencyMinute ComputeRecurrenceFrequency = "Minute"
+	ComputeRecurrenceFrequencyMonth  ComputeRecurrenceFrequency = "Month"
+	ComputeRecurrenceFrequencyWeek   ComputeRecurrenceFrequency = "Week"
+)
+
+func PossibleValuesForComputeRecurrenceFrequency() []string {
+	return []string{
+		string(ComputeRecurrenceFrequencyDay),
+		string(ComputeRecurrenceFrequencyHour),
+		string(ComputeRecurrenceFrequencyMinute),
+		string(ComputeRecurrenceFrequencyMonth),
+		string(ComputeRecurrenceFrequencyWeek),
+	}
+}
+
+func (s *ComputeRecurrenceFrequency) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseComputeRecurrenceFrequency(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseComputeRecurrenceFrequency(input string) (*ComputeRecurrenceFrequency, error) {
+	vals := map[string]ComputeRecurrenceFrequency{
+		"day":    ComputeRecurrenceFrequencyDay,
+		"hour":   ComputeRecurrenceFrequencyHour,
+		"minute": ComputeRecurrenceFrequencyMinute,
+		"month":  ComputeRecurrenceFrequencyMonth,
+		"week":   ComputeRecurrenceFrequencyWeek,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ComputeRecurrenceFrequency(input)
+	return &out, nil
+}
+
+type ComputeTriggerType string
+
+const (
+	ComputeTriggerTypeCron       ComputeTriggerType = "Cron"
+	ComputeTriggerTypeRecurrence ComputeTriggerType = "Recurrence"
+)
+
+func PossibleValuesForComputeTriggerType() []string {
+	return []string{
+		string(ComputeTriggerTypeCron),
+		string(ComputeTriggerTypeRecurrence),
+	}
+}
+
+func (s *ComputeTriggerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseComputeTriggerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseComputeTriggerType(input string) (*ComputeTriggerType, error) {
+	vals := map[string]ComputeTriggerType{
+		"cron":       ComputeTriggerTypeCron,
+		"recurrence": ComputeTriggerTypeRecurrence,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ComputeTriggerType(input)
+	return &out, nil
+}
+
 type ComputeType string
 
 const (
@@ -444,6 +535,62 @@ func parseComputeType(input string) (*ComputeType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ComputeType(input)
+	return &out, nil
+}
+
+type ComputeWeekDay string
+
+const (
+	ComputeWeekDayFriday    ComputeWeekDay = "Friday"
+	ComputeWeekDayMonday    ComputeWeekDay = "Monday"
+	ComputeWeekDaySaturday  ComputeWeekDay = "Saturday"
+	ComputeWeekDaySunday    ComputeWeekDay = "Sunday"
+	ComputeWeekDayThursday  ComputeWeekDay = "Thursday"
+	ComputeWeekDayTuesday   ComputeWeekDay = "Tuesday"
+	ComputeWeekDayWednesday ComputeWeekDay = "Wednesday"
+)
+
+func PossibleValuesForComputeWeekDay() []string {
+	return []string{
+		string(ComputeWeekDayFriday),
+		string(ComputeWeekDayMonday),
+		string(ComputeWeekDaySaturday),
+		string(ComputeWeekDaySunday),
+		string(ComputeWeekDayThursday),
+		string(ComputeWeekDayTuesday),
+		string(ComputeWeekDayWednesday),
+	}
+}
+
+func (s *ComputeWeekDay) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseComputeWeekDay(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseComputeWeekDay(input string) (*ComputeWeekDay, error) {
+	vals := map[string]ComputeWeekDay{
+		"friday":    ComputeWeekDayFriday,
+		"monday":    ComputeWeekDayMonday,
+		"saturday":  ComputeWeekDaySaturday,
+		"sunday":    ComputeWeekDaySunday,
+		"thursday":  ComputeWeekDayThursday,
+		"tuesday":   ComputeWeekDayTuesday,
+		"wednesday": ComputeWeekDayWednesday,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ComputeWeekDay(input)
 	return &out, nil
 }
 
@@ -1096,56 +1243,6 @@ func parseProvisioningStatus(input string) (*ProvisioningStatus, error) {
 	return &out, nil
 }
 
-type RecurrenceFrequency string
-
-const (
-	RecurrenceFrequencyDay    RecurrenceFrequency = "Day"
-	RecurrenceFrequencyHour   RecurrenceFrequency = "Hour"
-	RecurrenceFrequencyMinute RecurrenceFrequency = "Minute"
-	RecurrenceFrequencyMonth  RecurrenceFrequency = "Month"
-	RecurrenceFrequencyWeek   RecurrenceFrequency = "Week"
-)
-
-func PossibleValuesForRecurrenceFrequency() []string {
-	return []string{
-		string(RecurrenceFrequencyDay),
-		string(RecurrenceFrequencyHour),
-		string(RecurrenceFrequencyMinute),
-		string(RecurrenceFrequencyMonth),
-		string(RecurrenceFrequencyWeek),
-	}
-}
-
-func (s *RecurrenceFrequency) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseRecurrenceFrequency(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseRecurrenceFrequency(input string) (*RecurrenceFrequency, error) {
-	vals := map[string]RecurrenceFrequency{
-		"day":    RecurrenceFrequencyDay,
-		"hour":   RecurrenceFrequencyHour,
-		"minute": RecurrenceFrequencyMinute,
-		"month":  RecurrenceFrequencyMonth,
-		"week":   RecurrenceFrequencyWeek,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := RecurrenceFrequency(input)
-	return &out, nil
-}
-
 type RemoteLoginPortPublicAccess string
 
 const (
@@ -1492,47 +1589,6 @@ func parseStorageAccountType(input string) (*StorageAccountType, error) {
 	return &out, nil
 }
 
-type TriggerType string
-
-const (
-	TriggerTypeCron       TriggerType = "Cron"
-	TriggerTypeRecurrence TriggerType = "Recurrence"
-)
-
-func PossibleValuesForTriggerType() []string {
-	return []string{
-		string(TriggerTypeCron),
-		string(TriggerTypeRecurrence),
-	}
-}
-
-func (s *TriggerType) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseTriggerType(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseTriggerType(input string) (*TriggerType, error) {
-	vals := map[string]TriggerType{
-		"cron":       TriggerTypeCron,
-		"recurrence": TriggerTypeRecurrence,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := TriggerType(input)
-	return &out, nil
-}
-
 type UnderlyingResourceAction string
 
 const (
@@ -1659,61 +1715,5 @@ func parseVolumeDefinitionType(input string) (*VolumeDefinitionType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := VolumeDefinitionType(input)
-	return &out, nil
-}
-
-type WeekDay string
-
-const (
-	WeekDayFriday    WeekDay = "Friday"
-	WeekDayMonday    WeekDay = "Monday"
-	WeekDaySaturday  WeekDay = "Saturday"
-	WeekDaySunday    WeekDay = "Sunday"
-	WeekDayThursday  WeekDay = "Thursday"
-	WeekDayTuesday   WeekDay = "Tuesday"
-	WeekDayWednesday WeekDay = "Wednesday"
-)
-
-func PossibleValuesForWeekDay() []string {
-	return []string{
-		string(WeekDayFriday),
-		string(WeekDayMonday),
-		string(WeekDaySaturday),
-		string(WeekDaySunday),
-		string(WeekDayThursday),
-		string(WeekDayTuesday),
-		string(WeekDayWednesday),
-	}
-}
-
-func (s *WeekDay) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseWeekDay(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseWeekDay(input string) (*WeekDay, error) {
-	vals := map[string]WeekDay{
-		"friday":    WeekDayFriday,
-		"monday":    WeekDayMonday,
-		"saturday":  WeekDaySaturday,
-		"sunday":    WeekDaySunday,
-		"thursday":  WeekDayThursday,
-		"tuesday":   WeekDayTuesday,
-		"wednesday": WeekDayWednesday,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := WeekDay(input)
 	return &out, nil
 }
