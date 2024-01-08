@@ -40,11 +40,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	servicePlanClient := web.NewAppServicePlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicePlanClient.Client, o.ResourceManagerAuthorizer)
 
+	availabilityClient, err := resourceproviders.NewResourceProvidersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building WebApps operation client: %+v", err)
+	}
+	o.Configure(availabilityClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AppServiceEnvironmentClient: &appServiceEnvironmentClient,
 		BaseClient:                  &baseClient,
 		ServicePlanClient:           &servicePlanClient,
 		LinuxWebAppsClient:          linuxWebAppServiceClient,
 		WebAppsClient:               &webAppServiceClient,
+		AvailabilityClient:          availabilityClient,
 	}, nil
 }

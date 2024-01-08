@@ -2073,7 +2073,7 @@ func FlattenStickySettings(input *web.SlotConfigNames) []StickySettings {
 
 func FlattenStickySettingsLinuxWebApps(input *webapps.SlotConfigNamesResource) []StickySettings {
 	result := StickySettings{}
-	if input == nil || input.Properties == nil && (input.Properties.AppSettingNames == nil && input.Properties.ConnectionStringNames == nil) || (len(*input.Properties.AppSettingNames) == 0 && len(*input.Properties.ConnectionStringNames) == 0) {
+	if (input == nil && input.Properties == nil) || (input.Properties.AppSettingNames == nil && input.Properties.ConnectionStringNames == nil) || (len(*input.Properties.AppSettingNames) == 0 && len(*input.Properties.ConnectionStringNames) == 0) {
 		return []StickySettings{}
 	}
 
