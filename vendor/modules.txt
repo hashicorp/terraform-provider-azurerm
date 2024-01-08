@@ -73,7 +73,7 @@ github.com/ProtonMail/go-crypto/openpgp/s2k
 # github.com/agext/levenshtein v1.2.3
 ## explicit
 github.com/agext/levenshtein
-# github.com/agiledragon/gomonkey/v2 v2.10.1
+# github.com/agiledragon/gomonkey/v2 v2.11.0
 ## explicit; go 1.14
 github.com/agiledragon/gomonkey/v2
 github.com/agiledragon/gomonkey/v2/creflect
