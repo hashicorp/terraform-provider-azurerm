@@ -194,7 +194,7 @@ func (r ContactProfileResource) Read() sdk.ResourceFunc {
 					NetworkConfigurationSubnetId:   props.NetworkConfiguration.SubnetId,
 				}
 				if model.Tags != nil {
-					state.Tags = *model.Tags
+					state.Tags = pointer.From(model.Tags)
 				}
 				links, err := flattenContactProfileLinks(props.Links)
 				if err != nil {
