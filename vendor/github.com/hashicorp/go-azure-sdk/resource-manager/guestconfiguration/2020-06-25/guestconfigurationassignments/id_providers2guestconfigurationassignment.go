@@ -38,23 +38,9 @@ func ParseProviders2GuestConfigurationAssignmentID(input string) (*Providers2Gue
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := Providers2GuestConfigurationAssignmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineName, ok = parsed.Parsed["virtualMachineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineName", *parsed)
-	}
-
-	if id.GuestConfigurationAssignmentName, ok = parsed.Parsed["guestConfigurationAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "guestConfigurationAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseProviders2GuestConfigurationAssignmentIDInsensitively(input string) (*
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := Providers2GuestConfigurationAssignmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineName, ok = parsed.Parsed["virtualMachineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineName", *parsed)
-	}
-
-	if id.GuestConfigurationAssignmentName, ok = parsed.Parsed["guestConfigurationAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "guestConfigurationAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *Providers2GuestConfigurationAssignmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualMachineName, ok = input.Parsed["virtualMachineName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineName", input)
+	}
+
+	if id.GuestConfigurationAssignmentName, ok = input.Parsed["guestConfigurationAssignmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "guestConfigurationAssignmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateProviders2GuestConfigurationAssignmentID checks that 'input' can be parsed as a Providers 2 Guest Configuration Assignment ID

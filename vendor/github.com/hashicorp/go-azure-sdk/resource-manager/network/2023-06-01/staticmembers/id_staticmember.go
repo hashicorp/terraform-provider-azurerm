@@ -40,27 +40,9 @@ func ParseStaticMemberID(input string) (*StaticMemberId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StaticMemberId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.NetworkGroupName, ok = parsed.Parsed["networkGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkGroupName", *parsed)
-	}
-
-	if id.StaticMemberName, ok = parsed.Parsed["staticMemberName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "staticMemberName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseStaticMemberIDInsensitively(input string) (*StaticMemberId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StaticMemberId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.NetworkGroupName, ok = parsed.Parsed["networkGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkGroupName", *parsed)
-	}
-
-	if id.StaticMemberName, ok = parsed.Parsed["staticMemberName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "staticMemberName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *StaticMemberId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkManagerName, ok = input.Parsed["networkManagerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", input)
+	}
+
+	if id.NetworkGroupName, ok = input.Parsed["networkGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkGroupName", input)
+	}
+
+	if id.StaticMemberName, ok = input.Parsed["staticMemberName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "staticMemberName", input)
+	}
+
+	return nil
 }
 
 // ValidateStaticMemberID checks that 'input' can be parsed as a Static Member ID

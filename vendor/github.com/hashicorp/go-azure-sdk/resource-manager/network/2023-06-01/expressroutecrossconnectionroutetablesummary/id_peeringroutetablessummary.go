@@ -40,27 +40,9 @@ func ParsePeeringRouteTablesSummaryID(input string) (*PeeringRouteTablesSummaryI
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PeeringRouteTablesSummaryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ExpressRouteCrossConnectionName, ok = parsed.Parsed["expressRouteCrossConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCrossConnectionName", *parsed)
-	}
-
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "peeringName", *parsed)
-	}
-
-	if id.RouteTablesSummaryName, ok = parsed.Parsed["routeTablesSummaryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeTablesSummaryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParsePeeringRouteTablesSummaryIDInsensitively(input string) (*PeeringRouteT
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PeeringRouteTablesSummaryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ExpressRouteCrossConnectionName, ok = parsed.Parsed["expressRouteCrossConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCrossConnectionName", *parsed)
-	}
-
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "peeringName", *parsed)
-	}
-
-	if id.RouteTablesSummaryName, ok = parsed.Parsed["routeTablesSummaryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeTablesSummaryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PeeringRouteTablesSummaryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ExpressRouteCrossConnectionName, ok = input.Parsed["expressRouteCrossConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCrossConnectionName", input)
+	}
+
+	if id.PeeringName, ok = input.Parsed["peeringName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "peeringName", input)
+	}
+
+	if id.RouteTablesSummaryName, ok = input.Parsed["routeTablesSummaryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "routeTablesSummaryName", input)
+	}
+
+	return nil
 }
 
 // ValidatePeeringRouteTablesSummaryID checks that 'input' can be parsed as a Peering Route Tables Summary ID

@@ -1,6 +1,10 @@
 package blobservice
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -35,6 +39,19 @@ func PossibleValuesForAllowedMethods() []string {
 	}
 }
 
+func (s *AllowedMethods) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAllowedMethods(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAllowedMethods(input string) (*AllowedMethods, error) {
 	vals := map[string]AllowedMethods{
 		"connect": AllowedMethodsCONNECT,
@@ -67,6 +84,19 @@ func PossibleValuesForName() []string {
 	return []string{
 		string(NameAccessTimeTracking),
 	}
+}
+
+func (s *Name) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseName(input string) (*Name, error) {
@@ -108,6 +138,19 @@ func PossibleValuesForSkuName() []string {
 	}
 }
 
+func (s *SkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSkuName(input string) (*SkuName, error) {
 	vals := map[string]SkuName{
 		"premium_lrs":     SkuNamePremiumLRS,
@@ -140,6 +183,19 @@ func PossibleValuesForSkuTier() []string {
 		string(SkuTierPremium),
 		string(SkuTierStandard),
 	}
+}
+
+func (s *SkuTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSkuTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSkuTier(input string) (*SkuTier, error) {

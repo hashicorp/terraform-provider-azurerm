@@ -34,15 +34,9 @@ func ParseScopedPolicyAssignmentID(input string) (*ScopedPolicyAssignmentId, err
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPolicyAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PolicyAssignmentName, ok = parsed.Parsed["policyAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedPolicyAssignmentIDInsensitively(input string) (*ScopedPolicyAssi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPolicyAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PolicyAssignmentName, ok = parsed.Parsed["policyAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedPolicyAssignmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.PolicyAssignmentName, ok = input.Parsed["policyAssignmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedPolicyAssignmentID checks that 'input' can be parsed as a Scoped Policy Assignment ID

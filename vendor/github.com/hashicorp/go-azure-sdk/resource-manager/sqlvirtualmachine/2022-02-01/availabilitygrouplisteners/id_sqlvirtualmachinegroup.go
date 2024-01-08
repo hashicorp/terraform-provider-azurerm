@@ -36,19 +36,9 @@ func ParseSqlVirtualMachineGroupID(input string) (*SqlVirtualMachineGroupId, err
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SqlVirtualMachineGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseSqlVirtualMachineGroupIDInsensitively(input string) (*SqlVirtualMachin
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SqlVirtualMachineGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SqlVirtualMachineGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SqlVirtualMachineGroupName, ok = input.Parsed["sqlVirtualMachineGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateSqlVirtualMachineGroupID checks that 'input' can be parsed as a Sql Virtual Machine Group ID

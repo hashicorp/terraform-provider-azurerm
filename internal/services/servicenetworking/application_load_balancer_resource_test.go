@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicenetworking_test
 
 import (
@@ -153,11 +156,6 @@ resource "azurerm_application_load_balancer" "test" {
 
 func (r ApplicationLoadBalancerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-  }
-}
-
 	%s
 
 resource "azurerm_application_load_balancer" "import" {

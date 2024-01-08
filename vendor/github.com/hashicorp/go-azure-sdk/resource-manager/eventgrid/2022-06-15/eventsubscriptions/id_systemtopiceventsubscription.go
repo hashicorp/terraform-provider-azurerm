@@ -38,23 +38,9 @@ func ParseSystemTopicEventSubscriptionID(input string) (*SystemTopicEventSubscri
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SystemTopicEventSubscriptionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SystemTopicName, ok = parsed.Parsed["systemTopicName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "systemTopicName", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseSystemTopicEventSubscriptionIDInsensitively(input string) (*SystemTopi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SystemTopicEventSubscriptionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SystemTopicName, ok = parsed.Parsed["systemTopicName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "systemTopicName", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SystemTopicEventSubscriptionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SystemTopicName, ok = input.Parsed["systemTopicName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "systemTopicName", input)
+	}
+
+	if id.EventSubscriptionName, ok = input.Parsed["eventSubscriptionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", input)
+	}
+
+	return nil
 }
 
 // ValidateSystemTopicEventSubscriptionID checks that 'input' can be parsed as a System Topic Event Subscription ID

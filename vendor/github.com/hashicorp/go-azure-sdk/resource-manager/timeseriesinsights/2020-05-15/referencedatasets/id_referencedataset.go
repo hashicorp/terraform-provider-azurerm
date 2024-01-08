@@ -38,23 +38,9 @@ func ParseReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReferenceDataSetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
-	}
-
-	if id.ReferenceDataSetName, ok = parsed.Parsed["referenceDataSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseReferenceDataSetIDInsensitively(input string) (*ReferenceDataSetId, er
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReferenceDataSetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
-	}
-
-	if id.ReferenceDataSetName, ok = parsed.Parsed["referenceDataSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ReferenceDataSetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.EnvironmentName, ok = input.Parsed["environmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "environmentName", input)
+	}
+
+	if id.ReferenceDataSetName, ok = input.Parsed["referenceDataSetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", input)
+	}
+
+	return nil
 }
 
 // ValidateReferenceDataSetID checks that 'input' can be parsed as a Reference Data Set ID

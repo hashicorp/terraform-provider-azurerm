@@ -3,8 +3,8 @@
 
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "${var.prefix}-vmss"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -29,7 +29,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
     ip_configuration {
       name                                   = "internal"
-      subnet_id                              = "${azurerm_subnet.example.id}"
+      subnet_id                              = azurerm_subnet.example.id
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.example.id}"]
       primary                                = true
     }

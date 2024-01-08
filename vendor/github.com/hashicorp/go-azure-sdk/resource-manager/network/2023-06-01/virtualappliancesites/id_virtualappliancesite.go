@@ -38,23 +38,9 @@ func ParseVirtualApplianceSiteID(input string) (*VirtualApplianceSiteId, error) 
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualApplianceSiteId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceName, ok = parsed.Parsed["networkVirtualApplianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", *parsed)
-	}
-
-	if id.VirtualApplianceSiteName, ok = parsed.Parsed["virtualApplianceSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualApplianceSiteName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseVirtualApplianceSiteIDInsensitively(input string) (*VirtualApplianceSi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualApplianceSiteId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceName, ok = parsed.Parsed["networkVirtualApplianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", *parsed)
-	}
-
-	if id.VirtualApplianceSiteName, ok = parsed.Parsed["virtualApplianceSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualApplianceSiteName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualApplianceSiteId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkVirtualApplianceName, ok = input.Parsed["networkVirtualApplianceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", input)
+	}
+
+	if id.VirtualApplianceSiteName, ok = input.Parsed["virtualApplianceSiteName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualApplianceSiteName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualApplianceSiteID checks that 'input' can be parsed as a Virtual Appliance Site ID

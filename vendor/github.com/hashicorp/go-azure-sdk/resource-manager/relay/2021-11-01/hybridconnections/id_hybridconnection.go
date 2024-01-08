@@ -38,23 +38,9 @@ func ParseHybridConnectionID(input string) (*HybridConnectionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HybridConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseHybridConnectionIDInsensitively(input string) (*HybridConnectionId, er
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HybridConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *HybridConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NamespaceName, ok = input.Parsed["namespaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", input)
+	}
+
+	if id.HybridConnectionName, ok = input.Parsed["hybridConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateHybridConnectionID checks that 'input' can be parsed as a Hybrid Connection ID

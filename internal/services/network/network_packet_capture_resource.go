@@ -41,7 +41,6 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 

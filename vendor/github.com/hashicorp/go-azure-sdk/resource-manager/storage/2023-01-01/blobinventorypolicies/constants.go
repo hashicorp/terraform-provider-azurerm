@@ -1,6 +1,10 @@
 package blobinventorypolicies
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForFormat() []string {
 		string(FormatCsv),
 		string(FormatParquet),
 	}
+}
+
+func (s *Format) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseFormat(input string) (*Format, error) {
@@ -43,6 +60,19 @@ func PossibleValuesForInventoryRuleType() []string {
 	return []string{
 		string(InventoryRuleTypeInventory),
 	}
+}
+
+func (s *InventoryRuleType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInventoryRuleType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseInventoryRuleType(input string) (*InventoryRuleType, error) {
@@ -72,6 +102,19 @@ func PossibleValuesForObjectType() []string {
 	}
 }
 
+func (s *ObjectType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseObjectType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseObjectType(input string) (*ObjectType, error) {
 	vals := map[string]ObjectType{
 		"blob":      ObjectTypeBlob,
@@ -98,6 +141,19 @@ func PossibleValuesForSchedule() []string {
 		string(ScheduleDaily),
 		string(ScheduleWeekly),
 	}
+}
+
+func (s *Schedule) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSchedule(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSchedule(input string) (*Schedule, error) {

@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Container Deployment.
 
+* `application_performance_monitoring_ids` - (Optional) Specifies a list of Spring Cloud Application Performance Monitoring IDs.
+
 * `arguments` - (Optional) Specifies the arguments to the entrypoint. The docker image's `CMD` is used if not specified.
 
 * `commands` - (Optional) Specifies the entrypoint array. It will not be executed within a shell. The docker image's `ENTRYPOINT` is used if not specified.

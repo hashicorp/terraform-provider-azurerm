@@ -177,7 +177,6 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,7 +238,8 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 
 	var keyVaultId *string
 	if baseUrl != "" {
-		keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, baseUrl)
+		subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+		keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, baseUrl)
 		if err != nil {
 			return err
 		}

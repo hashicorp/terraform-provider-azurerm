@@ -38,23 +38,9 @@ func ParseFrontendEndpointID(input string) (*FrontendEndpointId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FrontendEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", *parsed)
-	}
-
-	if id.FrontendEndpointName, ok = parsed.Parsed["frontendEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontendEndpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseFrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, er
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FrontendEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", *parsed)
-	}
-
-	if id.FrontendEndpointName, ok = parsed.Parsed["frontendEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontendEndpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *FrontendEndpointId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.FrontDoorName, ok = input.Parsed["frontDoorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", input)
+	}
+
+	if id.FrontendEndpointName, ok = input.Parsed["frontendEndpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "frontendEndpointName", input)
+	}
+
+	return nil
 }
 
 // ValidateFrontendEndpointID checks that 'input' can be parsed as a Frontend Endpoint ID

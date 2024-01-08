@@ -32,11 +32,9 @@ func ParseScheduledActionID(input string) (*ScheduledActionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScheduledActionId{}
-
-	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseScheduledActionIDInsensitively(input string) (*ScheduledActionId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScheduledActionId{}
-
-	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScheduledActionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ScheduledActionName, ok = input.Parsed["scheduledActionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScheduledActionID checks that 'input' can be parsed as a Scheduled Action ID

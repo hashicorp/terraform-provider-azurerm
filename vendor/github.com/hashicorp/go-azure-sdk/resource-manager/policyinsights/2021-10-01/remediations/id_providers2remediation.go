@@ -34,15 +34,9 @@ func ParseProviders2RemediationID(input string) (*Providers2RemediationId, error
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := Providers2RemediationId{}
-
-	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
-	}
-
-	if id.RemediationName, ok = parsed.Parsed["remediationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remediationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseProviders2RemediationIDInsensitively(input string) (*Providers2Remedia
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := Providers2RemediationId{}
-
-	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
-	}
-
-	if id.RemediationName, ok = parsed.Parsed["remediationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remediationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *Providers2RemediationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ManagementGroupId, ok = input.Parsed["managementGroupId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", input)
+	}
+
+	if id.RemediationName, ok = input.Parsed["remediationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "remediationName", input)
+	}
+
+	return nil
 }
 
 // ValidateProviders2RemediationID checks that 'input' can be parsed as a Providers 2 Remediation ID

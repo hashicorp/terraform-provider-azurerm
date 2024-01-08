@@ -36,19 +36,9 @@ func ParseVirtualNetworkTapID(input string) (*VirtualNetworkTapId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualNetworkTapId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualNetworkTapName, ok = parsed.Parsed["virtualNetworkTapName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkTapName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseVirtualNetworkTapIDInsensitively(input string) (*VirtualNetworkTapId, 
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualNetworkTapId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualNetworkTapName, ok = parsed.Parsed["virtualNetworkTapName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkTapName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualNetworkTapId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualNetworkTapName, ok = input.Parsed["virtualNetworkTapName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkTapName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualNetworkTapID checks that 'input' can be parsed as a Virtual Network Tap ID

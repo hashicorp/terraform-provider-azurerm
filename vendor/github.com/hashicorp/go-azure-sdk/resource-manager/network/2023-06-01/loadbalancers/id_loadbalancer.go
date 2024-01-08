@@ -36,19 +36,9 @@ func ParseLoadBalancerID(input string) (*LoadBalancerId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LoadBalancerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseLoadBalancerIDInsensitively(input string) (*LoadBalancerId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LoadBalancerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LoadBalancerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LoadBalancerName, ok = input.Parsed["loadBalancerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", input)
+	}
+
+	return nil
 }
 
 // ValidateLoadBalancerID checks that 'input' can be parsed as a Load Balancer ID

@@ -38,23 +38,9 @@ func ParseInboundSecurityRuleID(input string) (*InboundSecurityRuleId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := InboundSecurityRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceName, ok = parsed.Parsed["networkVirtualApplianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", *parsed)
-	}
-
-	if id.InboundSecurityRuleName, ok = parsed.Parsed["inboundSecurityRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "inboundSecurityRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseInboundSecurityRuleIDInsensitively(input string) (*InboundSecurityRule
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := InboundSecurityRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceName, ok = parsed.Parsed["networkVirtualApplianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", *parsed)
-	}
-
-	if id.InboundSecurityRuleName, ok = parsed.Parsed["inboundSecurityRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "inboundSecurityRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *InboundSecurityRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkVirtualApplianceName, ok = input.Parsed["networkVirtualApplianceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", input)
+	}
+
+	if id.InboundSecurityRuleName, ok = input.Parsed["inboundSecurityRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "inboundSecurityRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateInboundSecurityRuleID checks that 'input' can be parsed as a Inbound Security Rule ID

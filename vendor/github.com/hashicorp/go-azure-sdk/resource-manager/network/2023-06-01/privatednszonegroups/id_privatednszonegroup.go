@@ -38,23 +38,9 @@ func ParsePrivateDnsZoneGroupID(input string) (*PrivateDnsZoneGroupId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateDnsZoneGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateEndpointName, ok = parsed.Parsed["privateEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointName", *parsed)
-	}
-
-	if id.PrivateDnsZoneGroupName, ok = parsed.Parsed["privateDnsZoneGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParsePrivateDnsZoneGroupIDInsensitively(input string) (*PrivateDnsZoneGroup
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateDnsZoneGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateEndpointName, ok = parsed.Parsed["privateEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointName", *parsed)
-	}
-
-	if id.PrivateDnsZoneGroupName, ok = parsed.Parsed["privateDnsZoneGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateDnsZoneGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrivateEndpointName, ok = input.Parsed["privateEndpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointName", input)
+	}
+
+	if id.PrivateDnsZoneGroupName, ok = input.Parsed["privateDnsZoneGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateDnsZoneGroupID checks that 'input' can be parsed as a Private Dns Zone Group ID

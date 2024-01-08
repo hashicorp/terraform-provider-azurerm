@@ -34,15 +34,9 @@ func ParseScopedPrivateLinkResourceID(input string) (*ScopedPrivateLinkResourceI
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPrivateLinkResourceId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PrivateLinkResourceName, ok = parsed.Parsed["privateLinkResourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkResourceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedPrivateLinkResourceIDInsensitively(input string) (*ScopedPrivate
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPrivateLinkResourceId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PrivateLinkResourceName, ok = parsed.Parsed["privateLinkResourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkResourceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedPrivateLinkResourceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.PrivateLinkResourceName, ok = input.Parsed["privateLinkResourceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateLinkResourceName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedPrivateLinkResourceID checks that 'input' can be parsed as a Scoped Private Link Resource ID

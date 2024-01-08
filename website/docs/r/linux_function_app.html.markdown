@@ -103,6 +103,8 @@ The following arguments are supported:
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
+* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`. 
+
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
@@ -137,8 +139,12 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+
+~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
+
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
-			
+
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
 
 ---
@@ -161,7 +167,7 @@ A `application_stack` block supports the following:
 
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6.0` and `7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6.0`, `7.0` and `8.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
@@ -305,7 +311,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 

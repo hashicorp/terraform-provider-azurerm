@@ -210,7 +210,6 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -275,7 +274,8 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 	// we can't look up the ID when using federated identity as the key will be under different tenant
 	keyVaultID := ""
 	if federatedIdentityClientID == "" {
-		tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultURI)
+		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+		tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
 		if err != nil {
 			return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
 		}

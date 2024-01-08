@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
-	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
+	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -463,7 +463,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		// make sure the key vault exists
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
 		if err != nil || keyVaultIdRaw == nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 		}
@@ -488,7 +489,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		// make sure the key vault exists
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
 		if err != nil || keyVaultIdRaw == nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 		}

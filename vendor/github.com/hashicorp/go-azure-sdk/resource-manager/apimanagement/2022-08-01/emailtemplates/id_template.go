@@ -38,31 +38,9 @@ func ParseTemplateID(input string) (*TemplateId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TemplateId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if v, ok := parsed.Parsed["templateName"]; true {
-		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "templateName", *parsed)
-		}
-
-		templateName, err := parseTemplateName(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.TemplateName = *templateName
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -77,34 +55,42 @@ func ParseTemplateIDInsensitively(input string) (*TemplateId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TemplateId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
+	return &id, nil
+}
+
+func (id *TemplateId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
 
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
 
-	if v, ok := parsed.Parsed["templateName"]; true {
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if v, ok := input.Parsed["templateName"]; true {
 		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "templateName", *parsed)
+			return resourceids.NewSegmentNotSpecifiedError(id, "templateName", input)
 		}
 
 		templateName, err := parseTemplateName(v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+			return fmt.Errorf("parsing %q: %+v", v, err)
 		}
 		id.TemplateName = *templateName
 	}
 
-	return &id, nil
+	return nil
 }
 
 // ValidateTemplateID checks that 'input' can be parsed as a Template ID

@@ -36,19 +36,9 @@ func ParseDeletedManagedHSMID(input string) (*DeletedManagedHSMId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedManagedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedManagedHSMName, ok = parsed.Parsed["deletedManagedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedManagedHSMName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseDeletedManagedHSMIDInsensitively(input string) (*DeletedManagedHSMId, 
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedManagedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedManagedHSMName, ok = parsed.Parsed["deletedManagedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedManagedHSMName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeletedManagedHSMId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.DeletedManagedHSMName, ok = input.Parsed["deletedManagedHSMName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deletedManagedHSMName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeletedManagedHSMID checks that 'input' can be parsed as a Deleted Managed H S M ID

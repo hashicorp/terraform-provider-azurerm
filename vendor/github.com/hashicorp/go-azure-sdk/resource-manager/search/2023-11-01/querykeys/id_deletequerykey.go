@@ -38,23 +38,9 @@ func ParseDeleteQueryKeyID(input string) (*DeleteQueryKeyId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeleteQueryKeyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
-	}
-
-	if id.DeleteQueryKeyName, ok = parsed.Parsed["deleteQueryKeyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteQueryKeyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseDeleteQueryKeyIDInsensitively(input string) (*DeleteQueryKeyId, error)
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeleteQueryKeyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
-	}
-
-	if id.DeleteQueryKeyName, ok = parsed.Parsed["deleteQueryKeyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteQueryKeyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeleteQueryKeyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SearchServiceName, ok = input.Parsed["searchServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", input)
+	}
+
+	if id.DeleteQueryKeyName, ok = input.Parsed["deleteQueryKeyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deleteQueryKeyName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeleteQueryKeyID checks that 'input' can be parsed as a Delete Query Key ID

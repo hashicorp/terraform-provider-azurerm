@@ -36,19 +36,9 @@ func ParseServiceEndpointPolicyID(input string) (*ServiceEndpointPolicyId, error
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ServiceEndpointPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceEndpointPolicyName, ok = parsed.Parsed["serviceEndpointPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceEndpointPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseServiceEndpointPolicyIDInsensitively(input string) (*ServiceEndpointPo
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ServiceEndpointPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceEndpointPolicyName, ok = parsed.Parsed["serviceEndpointPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceEndpointPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ServiceEndpointPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceEndpointPolicyName, ok = input.Parsed["serviceEndpointPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceEndpointPolicyName", input)
+	}
+
+	return nil
 }
 
 // ValidateServiceEndpointPolicyID checks that 'input' can be parsed as a Service Endpoint Policy ID

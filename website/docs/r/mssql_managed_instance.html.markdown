@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with. Changing this forces a new resource to be created.
 
-* `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `8`, `16`, `24`, `32`, `40`, `64`, or `80` for Gen5 SKUs.
+* `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `6`, `8`, `10`, `12`, `16`, `20`, `24`, `32`, `40`, `48`, `56`, `64`, `80`, `96` or `128` for Gen5 SKUs.
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 

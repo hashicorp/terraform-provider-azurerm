@@ -34,15 +34,9 @@ func ParseProviders2ID(input string) (*Providers2Id, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := Providers2Id{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseProviders2IDInsensitively(input string) (*Providers2Id, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := Providers2Id{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *Providers2Id) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ProviderName, ok = input.Parsed["providerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "providerName", input)
+	}
+
+	return nil
 }
 
 // ValidateProviders2ID checks that 'input' can be parsed as a Providers 2 ID

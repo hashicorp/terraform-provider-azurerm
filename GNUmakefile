@@ -127,6 +127,9 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=azurerm
 
+document-lint:
+	go run $(CURDIR)/internal/tools/document-lint/main.go check
+
 scaffold-website:
 	./scripts/scaffold-website.sh
 

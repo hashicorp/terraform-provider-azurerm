@@ -156,7 +156,7 @@ A `compute_isolation` block supports the following:
 
 A `head_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
 
 * `username` - (Required) The Username of the local administrator for the Head Nodes. Changing this forces a new resource to be created.
 
@@ -234,7 +234,7 @@ A `storage_account_gen2` block supports the following:
 
 A `worker_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
 
 * `number_of_disks_per_node` - (Required) The number of Data Disks which should be assigned to each Worker Node, which can be between 1 and 8. Changing this forces a new resource to be created.
 
@@ -260,7 +260,7 @@ A `worker_node` block supports the following:
 
 A `zookeeper_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
 
 * `username` - (Required) The Username of the local administrator for the Zookeeper Nodes. Changing this forces a new resource to be created.
 
@@ -294,7 +294,7 @@ A `disk_encryption` block supports the following:
 
 A `kafka_management_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
 
 * `username` - (Required) The Username of the local administrator for the Kafka Management Nodes. Changing this forces a new resource to be created.
 

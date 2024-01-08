@@ -36,19 +36,9 @@ func ParseApplicationGroupID(input string) (*ApplicationGroupId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplicationGroupName, ok = parsed.Parsed["applicationGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseApplicationGroupIDInsensitively(input string) (*ApplicationGroupId, er
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplicationGroupName, ok = parsed.Parsed["applicationGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApplicationGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ApplicationGroupName, ok = input.Parsed["applicationGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateApplicationGroupID checks that 'input' can be parsed as a Application Group ID

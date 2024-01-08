@@ -36,19 +36,9 @@ func ParseFluidRelayServerID(input string) (*FluidRelayServerId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FluidRelayServerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.FluidRelayServerName, ok = parsed.Parsed["fluidRelayServerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluidRelayServerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseFluidRelayServerIDInsensitively(input string) (*FluidRelayServerId, er
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FluidRelayServerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.FluidRelayServerName, ok = parsed.Parsed["fluidRelayServerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluidRelayServerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *FluidRelayServerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroup, ok = input.Parsed["resourceGroup"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", input)
+	}
+
+	if id.FluidRelayServerName, ok = input.Parsed["fluidRelayServerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "fluidRelayServerName", input)
+	}
+
+	return nil
 }
 
 // ValidateFluidRelayServerID checks that 'input' can be parsed as a Fluid Relay Server ID

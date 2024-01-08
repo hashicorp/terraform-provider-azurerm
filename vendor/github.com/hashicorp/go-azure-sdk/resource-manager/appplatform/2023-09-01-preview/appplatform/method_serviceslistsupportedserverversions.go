@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ServicesListSupportedServerVersionsCompleteResult struct {
 }
 
 // ServicesListSupportedServerVersions ...
-func (c AppPlatformClient) ServicesListSupportedServerVersions(ctx context.Context, id SpringId) (result ServicesListSupportedServerVersionsOperationResponse, err error) {
+func (c AppPlatformClient) ServicesListSupportedServerVersions(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesListSupportedServerVersionsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ServicesListSupportedServerVersions(ctx context.Conte
 }
 
 // ServicesListSupportedServerVersionsComplete retrieves all the results into a single object
-func (c AppPlatformClient) ServicesListSupportedServerVersionsComplete(ctx context.Context, id SpringId) (ServicesListSupportedServerVersionsCompleteResult, error) {
+func (c AppPlatformClient) ServicesListSupportedServerVersionsComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ServicesListSupportedServerVersionsCompleteResult, error) {
 	return c.ServicesListSupportedServerVersionsCompleteMatchingPredicate(ctx, id, SupportedServerVersionOperationPredicate{})
 }
 
 // ServicesListSupportedServerVersionsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ServicesListSupportedServerVersionsCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate SupportedServerVersionOperationPredicate) (result ServicesListSupportedServerVersionsCompleteResult, err error) {
+func (c AppPlatformClient) ServicesListSupportedServerVersionsCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate SupportedServerVersionOperationPredicate) (result ServicesListSupportedServerVersionsCompleteResult, err error) {
 	items := make([]SupportedServerVersion, 0)
 
 	resp, err := c.ServicesListSupportedServerVersions(ctx, id)

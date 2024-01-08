@@ -38,23 +38,9 @@ func ParseOpenidConnectProviderID(input string) (*OpenidConnectProviderId, error
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OpenidConnectProviderId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.OpenidConnectProviderName, ok = parsed.Parsed["openidConnectProviderName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "openidConnectProviderName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseOpenidConnectProviderIDInsensitively(input string) (*OpenidConnectProv
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OpenidConnectProviderId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.OpenidConnectProviderName, ok = parsed.Parsed["openidConnectProviderName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "openidConnectProviderName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *OpenidConnectProviderId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.OpenidConnectProviderName, ok = input.Parsed["openidConnectProviderName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "openidConnectProviderName", input)
+	}
+
+	return nil
 }
 
 // ValidateOpenidConnectProviderID checks that 'input' can be parsed as a Openid Connect Provider ID

@@ -36,19 +36,9 @@ func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConfigurationStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConfigurationStoreName, ok = parsed.Parsed["configurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationStoreName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConfigurationStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConfigurationStoreName, ok = parsed.Parsed["configurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationStoreName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ConfigurationStoreId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ConfigurationStoreName, ok = input.Parsed["configurationStoreName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "configurationStoreName", input)
+	}
+
+	return nil
 }
 
 // ValidateConfigurationStoreID checks that 'input' can be parsed as a Configuration Store ID

@@ -30,8 +30,8 @@ func NewSqlDatabaseID(subscriptionId string, resourceGroupName string, serverNam
 	}
 }
 
-// ParseDatabaseID parses 'input' into a SqlDatabaseId
-func ParseDatabaseID(input string) (*SqlDatabaseId, error) {
+// ParseSqlDatabaseID parses 'input' into a SqlDatabaseId
+func ParseSqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	parser := resourceids.NewParserFromResourceIdType(SqlDatabaseId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
@@ -99,7 +99,7 @@ func ValidateSqlDatabaseID(input interface{}, key string) (warnings []string, er
 		return
 	}
 
-	if _, err := ParseDatabaseID(v); err != nil {
+	if _, err := ParseSqlDatabaseID(v); err != nil {
 		errors = append(errors, err)
 	}
 

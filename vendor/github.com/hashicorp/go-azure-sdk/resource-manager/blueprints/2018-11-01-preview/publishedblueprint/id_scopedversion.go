@@ -36,19 +36,9 @@ func ParseScopedVersionID(input string) (*ScopedVersionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedVersionId{}
-
-	if id.ResourceScope, ok = parsed.Parsed["resourceScope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", *parsed)
-	}
-
-	if id.BlueprintName, ok = parsed.Parsed["blueprintName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", *parsed)
-	}
-
-	if id.VersionId, ok = parsed.Parsed["versionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseScopedVersionIDInsensitively(input string) (*ScopedVersionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedVersionId{}
-
-	if id.ResourceScope, ok = parsed.Parsed["resourceScope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", *parsed)
-	}
-
-	if id.BlueprintName, ok = parsed.Parsed["blueprintName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", *parsed)
-	}
-
-	if id.VersionId, ok = parsed.Parsed["versionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedVersionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceScope, ok = input.Parsed["resourceScope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", input)
+	}
+
+	if id.BlueprintName, ok = input.Parsed["blueprintName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", input)
+	}
+
+	if id.VersionId, ok = input.Parsed["versionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "versionId", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedVersionID checks that 'input' can be parsed as a Scoped Version ID

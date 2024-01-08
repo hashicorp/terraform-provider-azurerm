@@ -3,12 +3,12 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_elasticpool"
 description: |-
-  Manages a SQL Elastic Pool.
+  Manages an Azure SQL Elastic Pool.
 ---
 
 # azurerm_mssql_elasticpool
 
-Allows you to manage an Azure SQL Elastic Pool via the `v3.0` API which allows for `vCore` and `DTU` based configurations.
+Allows you to manage an Azure SQL Elastic Pool.
 
 ## Example Usage
 
@@ -71,7 +71,13 @@ The following arguments are supported:
 
 * `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
 
--> **Note:** One of either `max_size_gb` or `max_size_bytes` must be specified.
+-> **NOTE:** One of either `max_size_gb` or `max_size_bytes` must be specified.
+
+* `enclave_type` - (Optional) Specifies the type of enclave to be used by the elastic pool. Possible value `VBS`.
+
+~> **NOTE:** All databases that are added to the elastic pool must have the same `enclave_type` as the elastic pool.
+
+~> **NOTE:** `enclave_type` is not supported for DC-series SKUs.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -83,7 +89,7 @@ The following arguments are supported:
 
 The `sku` block supports the following:
 
-* `name` - (Required) Specifies the SKU Name for this Elasticpool. The name of the SKU, will be either `vCore` based `tier` + `family` pattern (e.g. GP_Gen4, BC_Gen5) or the `DTU` based `BasicPool`, `StandardPool`, or `PremiumPool` pattern. Possible values are `BasicPool`, `StandardPool`, `PremiumPool`, `GP_Gen4`, `GP_Gen5`, `GP_Fsv2`, `GP_DC`, `BC_Gen4`, `BC_Gen5`, `BC_DC`, or `HS_Gen5`.
+* `name` - (Required) Specifies the SKU Name for this Elasticpool. The name of the SKU, will be either `vCore` based or `DTU` based. Possible `DTU` based values are `BasicPool`, `StandardPool`, `PremiumPool` while possible `vCore` based values are `GP_Gen4`, `GP_Gen5`, `GP_Fsv2`, `GP_DC`, `BC_Gen4`, `BC_Gen5`, `BC_DC`, or `HS_Gen5`.
 
 * `capacity` - (Required) The scale up/out capacity, representing server's compute units. For more information see the documentation for your Elasticpool configuration: [vCore-based](https://docs.microsoft.com/azure/sql-database/sql-database-vcore-resource-limits-elastic-pools) or [DTU-based](https://docs.microsoft.com/azure/sql-database/sql-database-dtu-resource-limits-elastic-pools).
 

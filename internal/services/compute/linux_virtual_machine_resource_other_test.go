@@ -624,6 +624,28 @@ func TestAccLinuxVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherUltraSsdEmptyToUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherUltraSsdEmpty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherUltraSsd(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -2484,6 +2506,41 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, ultraSsdEnabled)
+}
+
+func (r LinuxVirtualMachineResource) otherUltraSsdEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled bool) string {

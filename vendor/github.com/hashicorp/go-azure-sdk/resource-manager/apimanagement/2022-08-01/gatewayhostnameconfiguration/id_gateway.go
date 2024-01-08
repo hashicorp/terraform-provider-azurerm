@@ -38,23 +38,9 @@ func ParseGatewayID(input string) (*GatewayId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := GatewayId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseGatewayIDInsensitively(input string) (*GatewayId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := GatewayId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *GatewayId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.GatewayId, ok = input.Parsed["gatewayId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", input)
+	}
+
+	return nil
 }
 
 // ValidateGatewayID checks that 'input' can be parsed as a Gateway ID

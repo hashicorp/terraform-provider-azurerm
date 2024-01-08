@@ -40,27 +40,9 @@ func ParseRoleInstanceNetworkInterfaceID(input string) (*RoleInstanceNetworkInte
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RoleInstanceNetworkInterfaceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CloudServiceName, ok = parsed.Parsed["cloudServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", *parsed)
-	}
-
-	if id.RoleInstanceName, ok = parsed.Parsed["roleInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", *parsed)
-	}
-
-	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseRoleInstanceNetworkInterfaceIDInsensitively(input string) (*RoleInstan
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RoleInstanceNetworkInterfaceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CloudServiceName, ok = parsed.Parsed["cloudServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", *parsed)
-	}
-
-	if id.RoleInstanceName, ok = parsed.Parsed["roleInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", *parsed)
-	}
-
-	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RoleInstanceNetworkInterfaceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.CloudServiceName, ok = input.Parsed["cloudServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", input)
+	}
+
+	if id.RoleInstanceName, ok = input.Parsed["roleInstanceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", input)
+	}
+
+	if id.NetworkInterfaceName, ok = input.Parsed["networkInterfaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", input)
+	}
+
+	return nil
 }
 
 // ValidateRoleInstanceNetworkInterfaceID checks that 'input' can be parsed as a Role Instance Network Interface ID

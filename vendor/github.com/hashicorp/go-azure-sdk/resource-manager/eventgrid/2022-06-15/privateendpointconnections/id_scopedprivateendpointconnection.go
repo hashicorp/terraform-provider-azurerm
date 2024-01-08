@@ -34,15 +34,9 @@ func ParseScopedPrivateEndpointConnectionID(input string) (*ScopedPrivateEndpoin
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPrivateEndpointConnectionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedPrivateEndpointConnectionIDInsensitively(input string) (*ScopedP
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPrivateEndpointConnectionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedPrivateEndpointConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.PrivateEndpointConnectionName, ok = input.Parsed["privateEndpointConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedPrivateEndpointConnectionID checks that 'input' can be parsed as a Scoped Private Endpoint Connection ID

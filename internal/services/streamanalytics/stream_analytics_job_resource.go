@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -261,14 +262,14 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &streamingjobs.StreamingJobProperties{
 			Sku: &streamingjobs.Sku{
-				Name: utils.ToPtr(streamingjobs.SkuNameStandard),
+				Name: pointer.To(streamingjobs.SkuNameStandard),
 			},
-			ContentStoragePolicy:               utils.ToPtr(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
-			EventsLateArrivalMaxDelayInSeconds: utils.Int64(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
-			EventsOutOfOrderMaxDelayInSeconds:  utils.Int64(int64(d.Get("events_out_of_order_max_delay_in_seconds").(int))),
-			EventsOutOfOrderPolicy:             utils.ToPtr(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string))),
-			OutputErrorPolicy:                  utils.ToPtr(streamingjobs.OutputErrorPolicy(d.Get("output_error_policy").(string))),
-			JobType:                            utils.ToPtr(streamingjobs.JobType(jobType)),
+			ContentStoragePolicy:               pointer.To(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
+			EventsLateArrivalMaxDelayInSeconds: pointer.To(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
+			EventsOutOfOrderMaxDelayInSeconds:  pointer.To(int64(d.Get("events_out_of_order_max_delay_in_seconds").(int))),
+			EventsOutOfOrderPolicy:             pointer.To(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string))),
+			OutputErrorPolicy:                  pointer.To(streamingjobs.OutputErrorPolicy(d.Get("output_error_policy").(string))),
+			JobType:                            pointer.To(streamingjobs.JobType(jobType)),
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -276,7 +277,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if _, ok := d.GetOk("compatibility_level"); ok {
 		compatibilityLevel := d.Get("compatibility_level").(string)
-		props.Properties.CompatibilityLevel = utils.ToPtr(streamingjobs.CompatibilityLevel(compatibilityLevel))
+		props.Properties.CompatibilityLevel = pointer.To(streamingjobs.CompatibilityLevel(compatibilityLevel))
 	}
 
 	if contentStoragePolicy == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
@@ -365,7 +366,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	opts := streamingjobs.GetOperationOptions{
-		Expand: utils.ToPtr("transformation"),
+		Expand: pointer.To("transformation"),
 	}
 	resp, err := client.Get(ctx, *id, opts)
 	if err != nil {
@@ -546,7 +547,7 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 	accountKey := v["account_key"].(string)
 
 	return &streamingjobs.JobStorageAccount{
-		AuthenticationMode: utils.ToPtr(streamingjobs.AuthenticationMode(authenticationMode)),
+		AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(authenticationMode)),
 		AccountName:        utils.String(accountName),
 		AccountKey:         utils.String(accountKey),
 	}

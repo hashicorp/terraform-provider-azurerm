@@ -40,27 +40,9 @@ func ParseProviderShareSubscriptionID(input string) (*ProviderShareSubscriptionI
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderShareSubscriptionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountName", *parsed)
-	}
-
-	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "shareName", *parsed)
-	}
-
-	if id.ProviderShareSubscriptionId, ok = parsed.Parsed["providerShareSubscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerShareSubscriptionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseProviderShareSubscriptionIDInsensitively(input string) (*ProviderShare
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderShareSubscriptionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountName", *parsed)
-	}
-
-	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "shareName", *parsed)
-	}
-
-	if id.ProviderShareSubscriptionId, ok = parsed.Parsed["providerShareSubscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerShareSubscriptionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProviderShareSubscriptionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AccountName, ok = input.Parsed["accountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "accountName", input)
+	}
+
+	if id.ShareName, ok = input.Parsed["shareName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "shareName", input)
+	}
+
+	if id.ProviderShareSubscriptionId, ok = input.Parsed["providerShareSubscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "providerShareSubscriptionId", input)
+	}
+
+	return nil
 }
 
 // ValidateProviderShareSubscriptionID checks that 'input' can be parsed as a Provider Share Subscription ID

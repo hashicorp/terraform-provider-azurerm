@@ -140,7 +140,6 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
 			keyVaultClient := metadata.Client.KeyVault
-			resourcesClient := metadata.Client.Resource
 			id, err := webpubsub.ParseCustomCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -161,7 +160,8 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
 			certName := resp.Model.Properties.KeyVaultSecretName
 
-			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, vaultBasedUri)
+			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, vaultBasedUri)
 			if err != nil {
 				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
 			}

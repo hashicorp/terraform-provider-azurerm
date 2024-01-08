@@ -38,23 +38,9 @@ func ParseEnvironmentTypeID(input string) (*EnvironmentTypeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EnvironmentTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.EnvironmentTypeName, ok = parsed.Parsed["environmentTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentTypeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseEnvironmentTypeIDInsensitively(input string) (*EnvironmentTypeId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EnvironmentTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.EnvironmentTypeName, ok = parsed.Parsed["environmentTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentTypeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EnvironmentTypeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ProjectName, ok = input.Parsed["projectName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "projectName", input)
+	}
+
+	if id.EnvironmentTypeName, ok = input.Parsed["environmentTypeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "environmentTypeName", input)
+	}
+
+	return nil
 }
 
 // ValidateEnvironmentTypeID checks that 'input' can be parsed as a Environment Type ID

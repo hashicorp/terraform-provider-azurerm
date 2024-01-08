@@ -51,6 +51,8 @@ The following arguments are supported:
 
 * `source` - (Optional) An absolute path to a file on the local system. Changing this forces a new resource to be created.
 
+~> **Note** The file specified with `source` can not be empty.
+
 * `content_type` - (Optional) The content type of the share file. Defaults to `application/octet-stream`.
 
 * `content_md5` - (Optional) The MD5 sum of the file contents. Changing this forces a new resource to be created.

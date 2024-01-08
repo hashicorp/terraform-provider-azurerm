@@ -23,7 +23,7 @@ var packagesToSkip = map[string]struct{}{
 	"devspace": {},
 
 	// force-deprecated and will be removed by Azure on 2021-04-28
-	// new clusters cannot be cretaed - so there's no point trying to run the tests
+	// new clusters cannot be created - so there's no point trying to run the tests
 	"servicefabricmesh": {},
 }
 
@@ -59,15 +59,23 @@ type generator interface {
 
 const githubLabelsTemplate = `# NOTE: this file is generated via 'make generate'
 dependencies:
-  - go.mod
-  - go.sum
-  - vendor/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - go.mod
+    - go.sum
+    - vendor/**/*
 documentation:
-  - website/**/*
+- changed-files:
+  - any-glob-to-any-file: 
+    - website/**/*
 tooling:
-  - internal/tools/**/*
+- changed-files:
+  - any-glob-to-any-file: 
+    - internal/tools/**/*
 state-migration:
-  - internal/services/**/migration/**/*
+- changed-files:
+  - any-glob-to-any-file: 
+    - internal/services/**/migration/**/*
 `
 
 type githubLabelsGenerator struct{}
@@ -131,9 +139,12 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 
 		out := []string{
 			fmt.Sprintf("%[1]s:", labelName),
+			"- changed-files:",
+			"  - any-glob-to-any-file:",
 		}
+
 		for _, pkg := range pkgs {
-			out = append(out, fmt.Sprintf("  - internal/services/%[1]s/**/*", pkg))
+			out = append(out, fmt.Sprintf("    - internal/services/%[1]s/**/*", pkg))
 		}
 
 		out = append(out, "")

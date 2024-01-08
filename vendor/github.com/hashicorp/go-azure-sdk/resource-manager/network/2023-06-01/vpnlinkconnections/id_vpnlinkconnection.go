@@ -40,27 +40,9 @@ func ParseVpnLinkConnectionID(input string) (*VpnLinkConnectionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VpnLinkConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VpnGatewayName, ok = parsed.Parsed["vpnGatewayName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnGatewayName", *parsed)
-	}
-
-	if id.VpnConnectionName, ok = parsed.Parsed["vpnConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnConnectionName", *parsed)
-	}
-
-	if id.VpnLinkConnectionName, ok = parsed.Parsed["vpnLinkConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnLinkConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseVpnLinkConnectionIDInsensitively(input string) (*VpnLinkConnectionId, 
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VpnLinkConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VpnGatewayName, ok = parsed.Parsed["vpnGatewayName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnGatewayName", *parsed)
-	}
-
-	if id.VpnConnectionName, ok = parsed.Parsed["vpnConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnConnectionName", *parsed)
-	}
-
-	if id.VpnLinkConnectionName, ok = parsed.Parsed["vpnLinkConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnLinkConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VpnLinkConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VpnGatewayName, ok = input.Parsed["vpnGatewayName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vpnGatewayName", input)
+	}
+
+	if id.VpnConnectionName, ok = input.Parsed["vpnConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vpnConnectionName", input)
+	}
+
+	if id.VpnLinkConnectionName, ok = input.Parsed["vpnLinkConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vpnLinkConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateVpnLinkConnectionID checks that 'input' can be parsed as a Vpn Link Connection ID

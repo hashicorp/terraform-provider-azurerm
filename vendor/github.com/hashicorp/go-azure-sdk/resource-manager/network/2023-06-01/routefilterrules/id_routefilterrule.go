@@ -38,23 +38,9 @@ func ParseRouteFilterRuleID(input string) (*RouteFilterRuleId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RouteFilterRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RouteFilterName, ok = parsed.Parsed["routeFilterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeFilterName", *parsed)
-	}
-
-	if id.RouteFilterRuleName, ok = parsed.Parsed["routeFilterRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeFilterRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseRouteFilterRuleIDInsensitively(input string) (*RouteFilterRuleId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RouteFilterRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RouteFilterName, ok = parsed.Parsed["routeFilterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeFilterName", *parsed)
-	}
-
-	if id.RouteFilterRuleName, ok = parsed.Parsed["routeFilterRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeFilterRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RouteFilterRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RouteFilterName, ok = input.Parsed["routeFilterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "routeFilterName", input)
+	}
+
+	if id.RouteFilterRuleName, ok = input.Parsed["routeFilterRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "routeFilterRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateRouteFilterRuleID checks that 'input' can be parsed as a Route Filter Rule ID

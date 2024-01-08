@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ApplicationLiveViewsListCompleteResult struct {
 }
 
 // ApplicationLiveViewsList ...
-func (c AppPlatformClient) ApplicationLiveViewsList(ctx context.Context, id SpringId) (result ApplicationLiveViewsListOperationResponse, err error) {
+func (c AppPlatformClient) ApplicationLiveViewsList(ctx context.Context, id commonids.SpringCloudServiceId) (result ApplicationLiveViewsListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ApplicationLiveViewsList(ctx context.Context, id Spri
 }
 
 // ApplicationLiveViewsListComplete retrieves all the results into a single object
-func (c AppPlatformClient) ApplicationLiveViewsListComplete(ctx context.Context, id SpringId) (ApplicationLiveViewsListCompleteResult, error) {
+func (c AppPlatformClient) ApplicationLiveViewsListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ApplicationLiveViewsListCompleteResult, error) {
 	return c.ApplicationLiveViewsListCompleteMatchingPredicate(ctx, id, ApplicationLiveViewResourceOperationPredicate{})
 }
 
 // ApplicationLiveViewsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ApplicationLiveViewsListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate ApplicationLiveViewResourceOperationPredicate) (result ApplicationLiveViewsListCompleteResult, err error) {
+func (c AppPlatformClient) ApplicationLiveViewsListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate ApplicationLiveViewResourceOperationPredicate) (result ApplicationLiveViewsListCompleteResult, err error) {
 	items := make([]ApplicationLiveViewResource, 0)
 
 	resp, err := c.ApplicationLiveViewsList(ctx, id)

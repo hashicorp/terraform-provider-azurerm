@@ -180,6 +180,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -479,10 +480,14 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
-
 	if len(s.ApplicationStack) == 1 {
 		winAppStack := s.ApplicationStack[0]
+		if winAppStack.NodeVersion != "" {
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
+		}
 		if winAppStack.NetFrameworkVersion != "" {
 			expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
 		}
@@ -513,6 +518,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 				expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
 			}
 		}
+
 		if !features.FourPointOhBeta() {
 			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
 				if winAppStack.DockerContainerRegistry != "" {
@@ -534,6 +540,8 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	} else {
 		expanded.WindowsFxVersion = pointer.To("")
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if s.ContainerRegistryUserMSI != "" {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryUserMSI)
@@ -617,34 +625,52 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(s.ApplicationStack) == 1 {
 			winAppStack := s.ApplicationStack[0]
-			if winAppStack.NetFrameworkVersion != "" {
-				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+				if appSettings == nil {
+					appSettings = make(map[string]string)
+				}
+				appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
 			}
-			if winAppStack.NetCoreVersion != "" {
-				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
+			if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.dotnet_version", "site_config.0.application_stack.0.dotnet_core_version") {
+				switch {
+				case winAppStack.NetFrameworkVersion != "":
+					expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+				case winAppStack.NetCoreVersion != "":
+					expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
+				default:
+					expanded.NetFrameworkVersion = nil
+				}
 			}
-			if winAppStack.PhpVersion != "" {
-				if winAppStack.PhpVersion != PhpVersionOff {
-					expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
-				} else {
-					expanded.PhpVersion = pointer.To("")
+			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.php_version") {
+				if winAppStack.PhpVersion != "" {
+					if winAppStack.PhpVersion != PhpVersionOff {
+						expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
+					} else {
+						expanded.PhpVersion = pointer.To("")
+					}
 				}
 			}
 			if winAppStack.PythonVersion != "" || winAppStack.Python {
 				expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
 			}
-			if winAppStack.JavaVersion != "" {
-				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
-				switch {
-				case winAppStack.JavaEmbeddedServer:
-					expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
-					expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
-				case winAppStack.TomcatVersion != "":
-					expanded.JavaContainer = pointer.To(JavaContainerTomcat)
-					expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
-				case winAppStack.JavaContainer != "":
-					expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
-					expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
+			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.java_version") {
+				if winAppStack.JavaVersion != "" {
+					expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
+					switch {
+					case winAppStack.JavaEmbeddedServer:
+						expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
+						expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
+					case winAppStack.TomcatVersion != "":
+						expanded.JavaContainer = pointer.To(JavaContainerTomcat)
+						expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
+					case winAppStack.JavaContainer != "":
+						expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
+						expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
+					}
+				} else {
+					expanded.JavaVersion = nil
+					expanded.JavaContainer = nil
+					expanded.JavaContainerVersion = nil
 				}
 			}
 			if !features.FourPointOhBeta() {
@@ -669,6 +695,8 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 			expanded.WindowsFxVersion = pointer.To("")
 		}
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
 		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(s.VirtualApplications)
@@ -807,22 +835,28 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *web.SiteConfig, currentStack 
 	var winAppStack ApplicationStackWindows
 	if currentStack == CurrentStackDotNetCore {
 		winAppStack.NetCoreVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
-	}
-	if currentStack == CurrentStackDotNet {
+	} else {
 		winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
 	}
+
 	winAppStack.PhpVersion = pointer.From(appSiteConfig.PhpVersion)
 	if winAppStack.PhpVersion == "" {
 		winAppStack.PhpVersion = PhpVersionOff
 	}
 	winAppStack.PythonVersion = pointer.From(appSiteConfig.PythonVersion) // This _should_ always be `""`
 	winAppStack.Python = currentStack == CurrentStackPython
-	winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
+
+	// we should only set JavaVersion when  currentStack is java since the API will return the value of JavaVersion that was once set
+	if currentStack == "java" {
+		winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
+	}
 	switch pointer.From(appSiteConfig.JavaContainer) {
 	case JavaContainerTomcat:
-		winAppStack.TomcatVersion = *appSiteConfig.JavaContainerVersion
+		winAppStack.TomcatVersion = pointer.From(appSiteConfig.JavaContainerVersion)
+		winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
 	case JavaContainerEmbeddedServer:
 		winAppStack.JavaEmbeddedServer = true
+		winAppStack.JavaVersion = pointer.From(appSiteConfig.JavaVersion)
 	}
 
 	s.WindowsFxVersion = pointer.From(appSiteConfig.WindowsFxVersion)

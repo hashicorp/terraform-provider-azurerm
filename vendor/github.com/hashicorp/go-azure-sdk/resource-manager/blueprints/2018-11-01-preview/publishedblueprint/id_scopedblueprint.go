@@ -34,15 +34,9 @@ func ParseScopedBlueprintID(input string) (*ScopedBlueprintId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedBlueprintId{}
-
-	if id.ResourceScope, ok = parsed.Parsed["resourceScope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", *parsed)
-	}
-
-	if id.BlueprintName, ok = parsed.Parsed["blueprintName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedBlueprintIDInsensitively(input string) (*ScopedBlueprintId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedBlueprintId{}
-
-	if id.ResourceScope, ok = parsed.Parsed["resourceScope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", *parsed)
-	}
-
-	if id.BlueprintName, ok = parsed.Parsed["blueprintName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedBlueprintId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceScope, ok = input.Parsed["resourceScope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", input)
+	}
+
+	if id.BlueprintName, ok = input.Parsed["blueprintName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedBlueprintID checks that 'input' can be parsed as a Scoped Blueprint ID

@@ -973,7 +973,7 @@ Terraform can automatically recover the soft-deleted Key Vault when this behavio
 enabled within the "features" block (located within the "provider" block) - more
 information can be found here:
 
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 
 Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
 this into Terraform via "terraform import", or pick a different name/location.

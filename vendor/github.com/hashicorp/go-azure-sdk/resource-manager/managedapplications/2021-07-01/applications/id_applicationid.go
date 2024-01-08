@@ -32,11 +32,9 @@ func ParseApplicationIdID(input string) (*ApplicationIdId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationIdId{}
-
-	if id.ApplicationId, ok = parsed.Parsed["applicationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseApplicationIdIDInsensitively(input string) (*ApplicationIdId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationIdId{}
-
-	if id.ApplicationId, ok = parsed.Parsed["applicationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApplicationIdId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ApplicationId, ok = input.Parsed["applicationId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationId", input)
+	}
+
+	return nil
 }
 
 // ValidateApplicationIdID checks that 'input' can be parsed as a Application Id ID

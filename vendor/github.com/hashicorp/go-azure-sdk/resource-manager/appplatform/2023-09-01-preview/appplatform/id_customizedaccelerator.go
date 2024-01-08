@@ -40,27 +40,9 @@ func ParseCustomizedAcceleratorID(input string) (*CustomizedAcceleratorId, error
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CustomizedAcceleratorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SpringName, ok = parsed.Parsed["springName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "springName", *parsed)
-	}
-
-	if id.ApplicationAcceleratorName, ok = parsed.Parsed["applicationAcceleratorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationAcceleratorName", *parsed)
-	}
-
-	if id.CustomizedAcceleratorName, ok = parsed.Parsed["customizedAcceleratorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "customizedAcceleratorName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseCustomizedAcceleratorIDInsensitively(input string) (*CustomizedAcceler
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CustomizedAcceleratorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SpringName, ok = parsed.Parsed["springName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "springName", *parsed)
-	}
-
-	if id.ApplicationAcceleratorName, ok = parsed.Parsed["applicationAcceleratorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationAcceleratorName", *parsed)
-	}
-
-	if id.CustomizedAcceleratorName, ok = parsed.Parsed["customizedAcceleratorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "customizedAcceleratorName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CustomizedAcceleratorId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SpringName, ok = input.Parsed["springName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "springName", input)
+	}
+
+	if id.ApplicationAcceleratorName, ok = input.Parsed["applicationAcceleratorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationAcceleratorName", input)
+	}
+
+	if id.CustomizedAcceleratorName, ok = input.Parsed["customizedAcceleratorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "customizedAcceleratorName", input)
+	}
+
+	return nil
 }
 
 // ValidateCustomizedAcceleratorID checks that 'input' can be parsed as a Customized Accelerator ID

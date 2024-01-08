@@ -38,23 +38,9 @@ func ParseEventSourceID(input string) (*EventSourceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EventSourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
-	}
-
-	if id.EventSourceName, ok = parsed.Parsed["eventSourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSourceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseEventSourceIDInsensitively(input string) (*EventSourceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EventSourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
-	}
-
-	if id.EventSourceName, ok = parsed.Parsed["eventSourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSourceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EventSourceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.EnvironmentName, ok = input.Parsed["environmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "environmentName", input)
+	}
+
+	if id.EventSourceName, ok = input.Parsed["eventSourceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "eventSourceName", input)
+	}
+
+	return nil
 }
 
 // ValidateEventSourceID checks that 'input' can be parsed as a Event Source ID

@@ -38,23 +38,9 @@ func ParseAppID(input string) (*AppId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AppId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SpringName, ok = parsed.Parsed["springName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "springName", *parsed)
-	}
-
-	if id.AppName, ok = parsed.Parsed["appName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "appName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseAppIDInsensitively(input string) (*AppId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AppId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SpringName, ok = parsed.Parsed["springName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "springName", *parsed)
-	}
-
-	if id.AppName, ok = parsed.Parsed["appName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "appName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AppId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SpringName, ok = input.Parsed["springName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "springName", input)
+	}
+
+	if id.AppName, ok = input.Parsed["appName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "appName", input)
+	}
+
+	return nil
 }
 
 // ValidateAppID checks that 'input' can be parsed as a App ID

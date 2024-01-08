@@ -82,7 +82,9 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Linux Web App be enabled? Defaults to `true`.
 
-* `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
+* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
+
+* `https_only` - (Optional) Should the Linux Web App require HTTPS connections. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
 
@@ -94,6 +96,8 @@ The following arguments are supported:
 
 * `service_plan_id` - (Optional) The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Linux Web App will be used.
 
+~> **Note:** `service_plan_id` should only be specified if it differs from the Service Plan of the associated Linux Web App.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -101,6 +105,10 @@ The following arguments are supported:
 ~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the web app slot configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+
+* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+
+~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
 
@@ -152,7 +160,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0` and `8.0`.
 
 * `go_version` - (Optional) The version of Go to use. Possible values include `1.18`, and `1.19`.
 
@@ -298,7 +306,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 

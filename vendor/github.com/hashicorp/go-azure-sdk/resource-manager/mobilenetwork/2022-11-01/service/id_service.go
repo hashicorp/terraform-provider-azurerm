@@ -38,23 +38,9 @@ func ParseServiceID(input string) (*ServiceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseServiceIDInsensitively(input string) (*ServiceId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ServiceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MobileNetworkName, ok = input.Parsed["mobileNetworkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	return nil
 }
 
 // ValidateServiceID checks that 'input' can be parsed as a Service ID

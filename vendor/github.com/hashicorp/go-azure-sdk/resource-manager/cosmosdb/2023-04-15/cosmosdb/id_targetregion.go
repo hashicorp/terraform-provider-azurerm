@@ -38,23 +38,9 @@ func ParseTargetRegionID(input string) (*TargetRegionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TargetRegionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.TargetRegionName, ok = parsed.Parsed["targetRegionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "targetRegionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseTargetRegionIDInsensitively(input string) (*TargetRegionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TargetRegionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.TargetRegionName, ok = parsed.Parsed["targetRegionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "targetRegionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TargetRegionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DatabaseAccountName, ok = input.Parsed["databaseAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", input)
+	}
+
+	if id.TargetRegionName, ok = input.Parsed["targetRegionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "targetRegionName", input)
+	}
+
+	return nil
 }
 
 // ValidateTargetRegionID checks that 'input' can be parsed as a Target Region ID

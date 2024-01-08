@@ -38,23 +38,9 @@ func ParseIntelligencePackID(input string) (*IntelligencePackId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntelligencePackId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.IntelligencePackName, ok = parsed.Parsed["intelligencePackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "intelligencePackName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseIntelligencePackIDInsensitively(input string) (*IntelligencePackId, er
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntelligencePackId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.IntelligencePackName, ok = parsed.Parsed["intelligencePackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "intelligencePackName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *IntelligencePackId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkspaceName, ok = input.Parsed["workspaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", input)
+	}
+
+	if id.IntelligencePackName, ok = input.Parsed["intelligencePackName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "intelligencePackName", input)
+	}
+
+	return nil
 }
 
 // ValidateIntelligencePackID checks that 'input' can be parsed as a Intelligence Pack ID

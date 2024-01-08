@@ -38,23 +38,9 @@ func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionI
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "signalRName", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParsePrivateEndpointConnectionIDInsensitively(input string) (*PrivateEndpoi
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "signalRName", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateEndpointConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SignalRName, ok = input.Parsed["signalRName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "signalRName", input)
+	}
+
+	if id.PrivateEndpointConnectionName, ok = input.Parsed["privateEndpointConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateEndpointConnectionID checks that 'input' can be parsed as a Private Endpoint Connection ID

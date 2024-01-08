@@ -32,11 +32,9 @@ func ParseManagementGroupID(input string) (*ManagementGroupId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagementGroupId{}
-
-	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,14 +49,22 @@ func ParseManagementGroupIDInsensitively(input string) (*ManagementGroupId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagementGroupId{}
-
-	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ManagementGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ManagementGroupId, ok = input.Parsed["managementGroupId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", input)
+	}
+
+	return nil
 }
 
 // ValidateManagementGroupID checks that 'input' can be parsed as a Management Group ID

@@ -28,6 +28,7 @@ func (r Registration) Resources() []sdk.Resource {
 		SourceControlResource{},
 		WatcherResource{},
 		Python3PackageResource{},
+		PowerShell72ModuleResource{},
 	}
 }
 

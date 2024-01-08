@@ -36,19 +36,9 @@ func ParseSecurityPartnerProviderID(input string) (*SecurityPartnerProviderId, e
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SecurityPartnerProviderId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SecurityPartnerProviderName, ok = parsed.Parsed["securityPartnerProviderName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "securityPartnerProviderName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseSecurityPartnerProviderIDInsensitively(input string) (*SecurityPartner
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SecurityPartnerProviderId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SecurityPartnerProviderName, ok = parsed.Parsed["securityPartnerProviderName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "securityPartnerProviderName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SecurityPartnerProviderId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SecurityPartnerProviderName, ok = input.Parsed["securityPartnerProviderName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "securityPartnerProviderName", input)
+	}
+
+	return nil
 }
 
 // ValidateSecurityPartnerProviderID checks that 'input' can be parsed as a Security Partner Provider ID

@@ -38,23 +38,9 @@ func ParseEncryptionScopeID(input string) (*EncryptionScopeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EncryptionScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.EncryptionScopeName, ok = parsed.Parsed["encryptionScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "encryptionScopeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseEncryptionScopeIDInsensitively(input string) (*EncryptionScopeId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EncryptionScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.EncryptionScopeName, ok = parsed.Parsed["encryptionScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "encryptionScopeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EncryptionScopeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StorageAccountName, ok = input.Parsed["storageAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", input)
+	}
+
+	if id.EncryptionScopeName, ok = input.Parsed["encryptionScopeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "encryptionScopeName", input)
+	}
+
+	return nil
 }
 
 // ValidateEncryptionScopeID checks that 'input' can be parsed as a Encryption Scope ID

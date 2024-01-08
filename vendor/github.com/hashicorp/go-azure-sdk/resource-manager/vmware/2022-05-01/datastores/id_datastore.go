@@ -40,27 +40,9 @@ func ParseDataStoreID(input string) (*DataStoreId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.DataStoreName, ok = parsed.Parsed["dataStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataStoreName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,30 +57,38 @@ func ParseDataStoreIDInsensitively(input string) (*DataStoreId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.DataStoreName, ok = parsed.Parsed["dataStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataStoreName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DataStoreId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrivateCloudName, ok = input.Parsed["privateCloudName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", input)
+	}
+
+	if id.ClusterName, ok = input.Parsed["clusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "clusterName", input)
+	}
+
+	if id.DataStoreName, ok = input.Parsed["dataStoreName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataStoreName", input)
+	}
+
+	return nil
 }
 
 // ValidateDataStoreID checks that 'input' can be parsed as a Data Store ID

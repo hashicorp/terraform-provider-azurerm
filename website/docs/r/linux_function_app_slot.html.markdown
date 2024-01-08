@@ -94,9 +94,11 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Linux Function App Slot enabled. Defaults to `true`.
 
+* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.
 
-* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
+* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
@@ -129,6 +131,8 @@ The following arguments are supported:
 ~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app slot configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+ 
+* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
 
 ---
 
@@ -250,7 +254,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
@@ -622,7 +626,7 @@ An `application_stack` block supports the following:
 
 * `docker` - (Optional) a `docker` block as detailed below.
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0` and `7.0`.
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0`, `7.0` and `8.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 

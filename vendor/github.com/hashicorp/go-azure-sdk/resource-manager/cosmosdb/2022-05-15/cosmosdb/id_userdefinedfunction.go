@@ -42,31 +42,9 @@ func ParseUserDefinedFunctionID(input string) (*UserDefinedFunctionId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UserDefinedFunctionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlDatabaseName", *parsed)
-	}
-
-	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "containerName", *parsed)
-	}
-
-	if id.UserDefinedFunctionName, ok = parsed.Parsed["userDefinedFunctionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userDefinedFunctionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -81,34 +59,42 @@ func ParseUserDefinedFunctionIDInsensitively(input string) (*UserDefinedFunction
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UserDefinedFunctionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlDatabaseName", *parsed)
-	}
-
-	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "containerName", *parsed)
-	}
-
-	if id.UserDefinedFunctionName, ok = parsed.Parsed["userDefinedFunctionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userDefinedFunctionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *UserDefinedFunctionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DatabaseAccountName, ok = input.Parsed["databaseAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", input)
+	}
+
+	if id.SqlDatabaseName, ok = input.Parsed["sqlDatabaseName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "sqlDatabaseName", input)
+	}
+
+	if id.ContainerName, ok = input.Parsed["containerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "containerName", input)
+	}
+
+	if id.UserDefinedFunctionName, ok = input.Parsed["userDefinedFunctionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "userDefinedFunctionName", input)
+	}
+
+	return nil
 }
 
 // ValidateUserDefinedFunctionID checks that 'input' can be parsed as a User Defined Function ID

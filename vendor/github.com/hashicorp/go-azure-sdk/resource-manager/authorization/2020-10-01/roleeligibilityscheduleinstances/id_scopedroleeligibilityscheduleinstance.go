@@ -34,15 +34,9 @@ func ParseScopedRoleEligibilityScheduleInstanceID(input string) (*ScopedRoleElig
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRoleEligibilityScheduleInstanceId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RoleEligibilityScheduleInstanceName, ok = parsed.Parsed["roleEligibilityScheduleInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleEligibilityScheduleInstanceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,18 +51,26 @@ func ParseScopedRoleEligibilityScheduleInstanceIDInsensitively(input string) (*S
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRoleEligibilityScheduleInstanceId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RoleEligibilityScheduleInstanceName, ok = parsed.Parsed["roleEligibilityScheduleInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleEligibilityScheduleInstanceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRoleEligibilityScheduleInstanceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.RoleEligibilityScheduleInstanceName, ok = input.Parsed["roleEligibilityScheduleInstanceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "roleEligibilityScheduleInstanceName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRoleEligibilityScheduleInstanceID checks that 'input' can be parsed as a Scoped Role Eligibility Schedule Instance ID

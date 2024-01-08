@@ -38,23 +38,9 @@ func ParseAgreementID(input string) (*AgreementId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AgreementId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IntegrationAccountName, ok = parsed.Parsed["integrationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", *parsed)
-	}
-
-	if id.AgreementName, ok = parsed.Parsed["agreementName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agreementName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseAgreementIDInsensitively(input string) (*AgreementId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AgreementId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IntegrationAccountName, ok = parsed.Parsed["integrationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", *parsed)
-	}
-
-	if id.AgreementName, ok = parsed.Parsed["agreementName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agreementName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AgreementId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.IntegrationAccountName, ok = input.Parsed["integrationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "integrationAccountName", input)
+	}
+
+	if id.AgreementName, ok = input.Parsed["agreementName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "agreementName", input)
+	}
+
+	return nil
 }
 
 // ValidateAgreementID checks that 'input' can be parsed as a Agreement ID
