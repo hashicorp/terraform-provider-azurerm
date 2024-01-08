@@ -20,8 +20,35 @@ type DeleteOperationResponse struct {
 	OData        *odata.OData
 }
 
+type DeleteOperationOptions struct {
+	ForceToPurge *bool
+}
+
+func DefaultDeleteOperationOptions() DeleteOperationOptions {
+	return DeleteOperationOptions{}
+}
+
+func (o DeleteOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+
+	return &out
+}
+
+func (o DeleteOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+	return &out
+}
+
+func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+	if o.ForceToPurge != nil {
+		out.Append("forceToPurge", fmt.Sprintf("%v", *o.ForceToPurge))
+	}
+	return &out
+}
+
 // Delete ...
-func (c WorkspacesClient) Delete(ctx context.Context, id WorkspaceId) (result DeleteOperationResponse, err error) {
+func (c WorkspacesClient) Delete(ctx context.Context, id WorkspaceId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -29,8 +56,9 @@ func (c WorkspacesClient) Delete(ctx context.Context, id WorkspaceId) (result De
 			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodDelete,
+		Path:          id.ID(),
+		OptionsObject: options,
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -57,8 +85,8 @@ func (c WorkspacesClient) Delete(ctx context.Context, id WorkspaceId) (result De
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c WorkspacesClient) DeleteThenPoll(ctx context.Context, id WorkspaceId) error {
-	result, err := c.Delete(ctx, id)
+func (c WorkspacesClient) DeleteThenPoll(ctx context.Context, id WorkspaceId, options DeleteOperationOptions) error {
+	result, err := c.Delete(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)
 	}

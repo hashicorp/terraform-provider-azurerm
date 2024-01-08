@@ -28,6 +28,7 @@ func (p AmlUserFeatureOperationPredicate) Matches(input AmlUserFeature) bool {
 
 type WorkspaceOperationPredicate struct {
 	Id       *string
+	Kind     *string
 	Location *string
 	Name     *string
 	Type     *string
@@ -36,6 +37,10 @@ type WorkspaceOperationPredicate struct {
 func (p WorkspaceOperationPredicate) Matches(input Workspace) bool {
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.Kind != nil && (input.Kind == nil || *p.Kind != *input.Kind) {
 		return false
 	}
 

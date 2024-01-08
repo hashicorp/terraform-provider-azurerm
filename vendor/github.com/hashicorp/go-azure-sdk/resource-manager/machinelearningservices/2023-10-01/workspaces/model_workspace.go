@@ -11,6 +11,7 @@ import (
 type Workspace struct {
 	Id         *string                                  `json:"id,omitempty"`
 	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
+	Kind       *string                                  `json:"kind,omitempty"`
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
 	Properties *WorkspaceProperties                     `json:"properties,omitempty"`

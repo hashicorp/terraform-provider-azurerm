@@ -11,5 +11,5 @@ type ComputeStartStopSchedule struct {
 	Recurrence         *Recurrence         `json:"recurrence,omitempty"`
 	Schedule           *ScheduleBase       `json:"schedule,omitempty"`
 	Status             *ScheduleStatus     `json:"status,omitempty"`
-	TriggerType        *TriggerType        `json:"triggerType,omitempty"`
+	TriggerType        *ComputeTriggerType `json:"triggerType,omitempty"`
 }
