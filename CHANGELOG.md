@@ -1,3 +1,14 @@
+## 3.87.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+* `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
+* `azurerm_windows_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
+
+BUG FIXES:
+
 ## 3.86.0 (January 04, 2024)
 
 FEATURES:
