@@ -14,6 +14,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_arc_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
+* `azurerm_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
 * `azurerm_virtual_machine_data_disk_attachment` - do not update applications profile with disks [GH-24145]
 
 ## 3.86.0 (January 04, 2024)
