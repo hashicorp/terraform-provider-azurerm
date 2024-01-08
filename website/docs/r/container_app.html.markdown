@@ -377,9 +377,7 @@ An `ingress` block supports the following:
 
 ~> **Note:** `exposed_port` can only be specified when `transport` is set to `tcp`.
 
-* `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
-
-~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
+* `traffic_weight` - (Required) One or more `traffic_weight` blocks as detailed below.
 
 * `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
@@ -401,9 +399,11 @@ A `traffic_weight` block supports the following:
 
 * `label` - (Optional) The label to apply to the revision as a name prefix for routing traffic.
 
-* `latest_revision` - (Optional) This traffic Weight relates to the latest stable Container Revision.
+* `latest_revision` - (Optional) This traffic Weight applies to the latest stable Container Revision. At most only one `traffic_weight` block can have the `latest_revision` set to `true`.
 
 * `revision_suffix` - (Optional) The suffix string to which this `traffic_weight` applies.
+
+~> **Note:** `latest_revision` conflicts with `revision_suffix`, which means you shall either set `latest_revision` to `true` or specify `revision_suffix`. Especially for creation, there shall only be one `traffic_weight`, with the `latest_revision` set to `true`, and leave the `revision_suffix` empty.
 
 * `percentage` - (Required) The percentage of traffic which should be sent this revision.
 
