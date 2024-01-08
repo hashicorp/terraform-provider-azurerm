@@ -3,6 +3,7 @@
 FEATURES:
 
 * New Data Source: `azurerm_network_manager` [GH-24398]
+* New Resource: `azurerm_security_center_server_vulnerability_assessments_setting` [GH-24299]
 
 ENHANCEMENTS:
 
