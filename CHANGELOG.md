@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* New Data Source: `azurerm_network_manager` [GH-24398]
+
 ENHANCEMENTS:
 
 * `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
