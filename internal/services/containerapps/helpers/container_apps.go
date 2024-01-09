@@ -147,14 +147,15 @@ func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) [
 }
 
 type Ingress struct {
-	AllowInsecure  bool            `tfschema:"allow_insecure_connections"`
-	CustomDomains  []CustomDomain  `tfschema:"custom_domain"`
-	IsExternal     bool            `tfschema:"external_enabled"`
-	FQDN           string          `tfschema:"fqdn"`
-	TargetPort     int             `tfschema:"target_port"`
-	ExposedPort    int             `tfschema:"exposed_port"`
-	TrafficWeights []TrafficWeight `tfschema:"traffic_weight"`
-	Transport      string          `tfschema:"transport"`
+	AllowInsecure          bool                    `tfschema:"allow_insecure_connections"`
+	CustomDomains          []CustomDomain          `tfschema:"custom_domain"`
+	IsExternal             bool                    `tfschema:"external_enabled"`
+	FQDN                   string                  `tfschema:"fqdn"`
+	TargetPort             int                     `tfschema:"target_port"`
+	ExposedPort            int                     `tfschema:"exposed_port"`
+	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
+	Transport              string                  `tfschema:"transport"`
+	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -185,6 +186,8 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The FQDN of the ingress.",
 				},
+
+				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
 
 				"target_port": {
 					Type:         pluginsdk.TypeInt,
@@ -271,13 +274,14 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 
 	ingress := input[0]
 	result := &containerapps.Ingress{
-		AllowInsecure: pointer.To(ingress.AllowInsecure),
-		CustomDomains: expandContainerAppIngressCustomDomain(ingress.CustomDomains),
-		External:      pointer.To(ingress.IsExternal),
-		Fqdn:          pointer.To(ingress.FQDN),
-		TargetPort:    pointer.To(int64(ingress.TargetPort)),
-		ExposedPort:   pointer.To(int64(ingress.ExposedPort)),
-		Traffic:       expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
+		AllowInsecure:          pointer.To(ingress.AllowInsecure),
+		CustomDomains:          expandContainerAppIngressCustomDomain(ingress.CustomDomains),
+		External:               pointer.To(ingress.IsExternal),
+		Fqdn:                   pointer.To(ingress.FQDN),
+		TargetPort:             pointer.To(int64(ingress.TargetPort)),
+		ExposedPort:            pointer.To(int64(ingress.ExposedPort)),
+		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
+		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
@@ -292,13 +296,14 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	ingress := *input
 	result := Ingress{
-		AllowInsecure:  pointer.From(ingress.AllowInsecure),
-		CustomDomains:  flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
-		IsExternal:     pointer.From(ingress.External),
-		FQDN:           pointer.From(ingress.Fqdn),
-		TargetPort:     int(pointer.From(ingress.TargetPort)),
-		ExposedPort:    int(pointer.From(ingress.ExposedPort)),
-		TrafficWeights: flattenContainerAppIngressTraffic(ingress.Traffic, appName),
+		AllowInsecure:          pointer.From(ingress.AllowInsecure),
+		CustomDomains:          flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
+		IsExternal:             pointer.From(ingress.External),
+		FQDN:                   pointer.From(ingress.Fqdn),
+		TargetPort:             int(pointer.From(ingress.TargetPort)),
+		ExposedPort:            int(pointer.From(ingress.ExposedPort)),
+		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
+		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
 	}
 
 	if ingress.Transport != nil {
@@ -417,11 +422,75 @@ func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain)
 	return result
 }
 
+func flattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPSecurityRestrictionRule) []IpSecurityRestriction {
+	if input == nil {
+		return []IpSecurityRestriction{}
+	}
+
+	result := make([]IpSecurityRestriction, 0)
+	for _, v := range *input {
+		ipSecurityRestriction := IpSecurityRestriction{
+			Description:    pointer.From(v.Description),
+			IpAddressRange: v.IPAddressRange,
+			Action:         string(v.Action),
+			Name:           v.Name,
+		}
+
+		result = append(result, ipSecurityRestriction)
+	}
+
+	return result
+}
+
 type TrafficWeight struct {
 	Label          string `tfschema:"label"`
 	LatestRevision bool   `tfschema:"latest_revision"`
 	RevisionSuffix string `tfschema:"revision_suffix"`
 	Weight         int    `tfschema:"percentage"`
+}
+
+type IpSecurityRestriction struct {
+	Action         string `tfschema:"action"`
+	Description    string `tfschema:"description"`
+	IpAddressRange string `tfschema:"ip_address_range"`
+	Name           string `tfschema:"name"`
+}
+
+func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAction(), false),
+					Description:  "The action. Allow or Deny.",
+				},
+
+				"description": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "Describe the IP restriction rule that is being sent to the container-app.",
+				},
+
+				"ip_address_range": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsCIDR,
+					Description:  "CIDR notation to match incoming IP address.",
+				},
+
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Name for the IP restriction rule.",
+				},
+			},
+		},
+	}
 }
 
 func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
@@ -540,6 +609,25 @@ func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, app
 	}
 
 	return result
+}
+
+func expandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapps.IPSecurityRestrictionRule {
+	if input == nil {
+		return &[]containerapps.IPSecurityRestrictionRule{}
+	}
+
+	result := make([]containerapps.IPSecurityRestrictionRule, 0)
+	for _, v := range input {
+		ipSecurityRestrictionRule := containerapps.IPSecurityRestrictionRule{
+			Action:         containerapps.Action(v.Action),
+			Name:           v.Name,
+			IPAddressRange: v.IpAddressRange,
+			Description:    pointer.To(v.Description),
+		}
+		result = append(result, ipSecurityRestrictionRule)
+	}
+
+	return &result
 }
 
 type Dapr struct {

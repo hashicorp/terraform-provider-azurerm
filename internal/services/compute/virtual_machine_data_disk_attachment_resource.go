@@ -175,6 +175,8 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
+	// fixes #24145
+	virtualMachine.ApplicationProfile = nil
 
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
@@ -284,6 +286,8 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
+	// fixes #24145
+	virtualMachine.ApplicationProfile = nil
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, virtualMachine)
 	if err != nil {

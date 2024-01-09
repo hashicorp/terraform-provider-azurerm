@@ -74,8 +74,8 @@ func ContainerAppName(i interface{}, k string) (warnings []string, errors []erro
 		return
 	}
 
-	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,58}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 60 characters", k))
+	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,58}[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
+		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters", k))
 		return
 	}
 

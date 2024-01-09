@@ -116,23 +116,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"enable_auto_scaling": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"enable_host_encryption": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-
-		"enable_node_public_ip": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-
 		"eviction_policy": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -396,6 +379,42 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			string(agentpools.OSSKUWindowsTwoZeroOneNine),
 			string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 		}, false)
+
+		s["enable_auto_scaling"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
+
+		s["enable_node_public_ip"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+
+		s["enable_host_encryption"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+	}
+
+	if features.FourPointOhBeta() {
+		s["auto_scaling_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
+
+		s["node_public_ip_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+
+		s["host_encryption_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
 	}
 
 	return s
@@ -454,6 +473,17 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
+	if features.FourPointOhBeta() {
+		enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
+	}
+	hostEncryption := d.Get("enable_host_encryption").(bool)
+	if features.FourPointOhBeta() {
+		hostEncryption = d.Get("host_encryption_enabled").(bool)
+	}
+	nodeIp := d.Get("enable_node_public_ip").(bool)
+	if features.FourPointOhBeta() {
+		nodeIp = d.Get("node_public_ip_enabled").(bool)
+	}
 	evictionPolicy := d.Get("eviction_policy").(string)
 	mode := agentpools.AgentPoolMode(d.Get("mode").(string))
 	osType := d.Get("os_type").(string)
@@ -466,9 +496,9 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		EnableAutoScaling:      pointer.To(enableAutoScaling),
 		EnableCustomCATrust:    pointer.To(d.Get("custom_ca_trust_enabled").(bool)),
 		EnableFIPS:             pointer.To(d.Get("fips_enabled").(bool)),
-		EnableEncryptionAtHost: pointer.To(d.Get("enable_host_encryption").(bool)),
+		EnableEncryptionAtHost: pointer.To(hostEncryption),
 		EnableUltraSSD:         pointer.To(d.Get("ultra_ssd_enabled").(bool)),
-		EnableNodePublicIP:     pointer.To(d.Get("enable_node_public_ip").(bool)),
+		EnableNodePublicIP:     pointer.To(nodeIp),
 		KubeletDiskType:        pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string))),
 		Mode:                   pointer.To(mode),
 		ScaleSetPriority:       pointer.To(agentpools.ScaleSetPriority(d.Get("priority").(string))),
@@ -688,21 +718,20 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	log.Printf("[DEBUG] Determining delta for existing %s..", *id)
 
 	// delta patching
-	if d.HasChange("enable_auto_scaling") {
-		enableAutoScaling = d.Get("enable_auto_scaling").(bool)
-		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
-	}
-
-	if d.HasChange("enable_host_encryption") {
-		props.EnableEncryptionAtHost = utils.Bool(d.Get("enable_host_encryption").(bool))
+	if features.FourPointOhBeta() {
+		if d.HasChange("auto_scaling_enabled") {
+			enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
+			props.EnableAutoScaling = utils.Bool(enableAutoScaling)
+		}
+	} else {
+		if d.HasChange("enable_auto_scaling") {
+			enableAutoScaling = d.Get("enable_auto_scaling").(bool)
+			props.EnableAutoScaling = utils.Bool(enableAutoScaling)
+		}
 	}
 
 	if d.HasChange("custom_ca_trust_enabled") {
 		props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
-	}
-
-	if d.HasChange("enable_node_public_ip") {
-		props.EnableNodePublicIP = utils.Bool(d.Get("enable_node_public_ip").(bool))
 	}
 
 	if d.HasChange("max_count") || d.Get("enable_auto_scaling").(bool) {
@@ -852,9 +881,15 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	if model := resp.Model; model != nil && model.Properties != nil {
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
-		d.Set("enable_auto_scaling", props.EnableAutoScaling)
-		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
-		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+		if features.FourPointOhBeta() {
+			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
+			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
+			d.Set("host_encryption_enabled", props.EnableEncryptionAtHost)
+		} else {
+			d.Set("enable_auto_scaling", props.EnableAutoScaling)
+			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+			d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+		}
 		d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)

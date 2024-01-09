@@ -6,7 +6,7 @@
 function runGraduallyDeprecatedFunctions {
   echo "==> Checking for use of gradually deprecated functions..."
 
-  IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only)
+  IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only --merge-base)
 
   for f in "${flist[@]}"; do
     # require resources to be imported is now hard-coded on - but only checking for additions

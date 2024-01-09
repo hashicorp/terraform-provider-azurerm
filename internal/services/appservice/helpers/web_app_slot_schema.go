@@ -710,62 +710,61 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		if len(s.ApplicationStack) == 1 {
-			linuxAppStack := s.ApplicationStack[0]
-			if linuxAppStack.NetFrameworkVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
-			}
-
-			if linuxAppStack.GoVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
-			}
-
-			if linuxAppStack.PhpVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
-			}
-
-			if linuxAppStack.NodeVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
-			}
-
-			if linuxAppStack.RubyVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
-			}
-
-			if linuxAppStack.PythonVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
-			}
-
-			if linuxAppStack.JavaServer != "" {
-				javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
-				if err != nil {
-					return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
-				}
-				expanded.LinuxFxVersion = javaString
-			}
-
-			if !features.FourPointOhBeta() {
-				if linuxAppStack.DockerImage != "" {
-					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
-				}
-			}
-
-			if linuxAppStack.DockerImageName != "" {
-				expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
-
-				if appSettings == nil {
-					appSettings = make(map[string]string)
-				}
-
-				appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
-				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
-				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
-			}
-		} else {
-			expanded.LinuxFxVersion = pointer.To("")
+	if len(s.ApplicationStack) == 1 {
+		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.NetFrameworkVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 		}
+
+		if linuxAppStack.GoVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
+		}
+
+		if linuxAppStack.PhpVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
+		}
+
+		if linuxAppStack.NodeVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+		}
+
+		if linuxAppStack.RubyVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+		}
+
+		if linuxAppStack.PythonVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+		}
+
+		if linuxAppStack.JavaServer != "" {
+			javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
+			if err != nil {
+				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
+			}
+			expanded.LinuxFxVersion = javaString
+		}
+
+		if !features.FourPointOhBeta() {
+			if linuxAppStack.DockerImage != "" {
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			}
+		}
+
+		if linuxAppStack.DockerImageName != "" {
+			expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+
+			appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
+			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
+			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
+		}
+	} else {
+		expanded.LinuxFxVersion = pointer.To("")
 	}
+
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
@@ -1141,70 +1140,68 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		if len(s.ApplicationStack) == 1 {
-			winAppStack := s.ApplicationStack[0]
-			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
-				if appSettings == nil {
-					appSettings = make(map[string]string)
-				}
-				appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
+	if len(s.ApplicationStack) == 1 {
+		winAppStack := s.ApplicationStack[0]
+		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+			if appSettings == nil {
+				appSettings = make(map[string]string)
 			}
-			if winAppStack.NetFrameworkVersion != "" {
-				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
-			}
-			if winAppStack.NetCoreVersion != "" {
-				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
-			}
-			if winAppStack.PhpVersion != "" {
-				if winAppStack.PhpVersion != PhpVersionOff {
-					expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
-				} else {
-					expanded.PhpVersion = pointer.To("")
-				}
-			}
-			if winAppStack.PythonVersion != "" || winAppStack.Python {
-				expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
-			}
-			if winAppStack.JavaVersion != "" {
-				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
-				switch {
-				case winAppStack.JavaEmbeddedServer:
-					expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
-					expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
-				case winAppStack.TomcatVersion != "":
-					expanded.JavaContainer = pointer.To(JavaContainerTomcat)
-					expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
-				case winAppStack.JavaContainer != "":
-					expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
-					expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
-				}
-			}
-			if !features.FourPointOhBeta() {
-				if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
-					if winAppStack.DockerContainerRegistry != "" {
-						expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-					} else {
-						expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-					}
-				}
-			}
-
-			if winAppStack.DockerImageName != "" {
-				expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
-
-				if appSettings == nil {
-					appSettings = make(map[string]string)
-				}
-
-				appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
-				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
-				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-			}
-
-		} else {
-			expanded.WindowsFxVersion = pointer.To("")
+			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
 		}
+		if winAppStack.NetFrameworkVersion != "" {
+			expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+		}
+		if winAppStack.NetCoreVersion != "" {
+			expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
+		}
+		if winAppStack.PhpVersion != "" {
+			if winAppStack.PhpVersion != PhpVersionOff {
+				expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
+			} else {
+				expanded.PhpVersion = pointer.To("")
+			}
+		}
+		if winAppStack.PythonVersion != "" || winAppStack.Python {
+			expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
+		}
+		if winAppStack.JavaVersion != "" {
+			expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
+			switch {
+			case winAppStack.JavaEmbeddedServer:
+				expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
+				expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
+			case winAppStack.TomcatVersion != "":
+				expanded.JavaContainer = pointer.To(JavaContainerTomcat)
+				expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
+			case winAppStack.JavaContainer != "":
+				expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
+				expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
+			}
+		}
+		if !features.FourPointOhBeta() {
+			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
+				if winAppStack.DockerContainerRegistry != "" {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				} else {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				}
+			}
+		}
+
+		if winAppStack.DockerImageName != "" {
+			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+
+			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
+			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
+			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
+		}
+
+	} else {
+		expanded.WindowsFxVersion = pointer.To("")
 	}
 
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
