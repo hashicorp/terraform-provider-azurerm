@@ -66,8 +66,6 @@ A `model` block supports the following:
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
-* `source` - (Optional) Deployment model source ARM resource ID.
-
 * `version` - (Optional) The version of Cognitive Services Account Deployment model. If `version` is not specified, a default version will be assigned. The default version is different for different models and might change when there is new version available for a model.
 
 ---
