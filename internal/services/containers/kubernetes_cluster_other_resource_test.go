@@ -110,7 +110,36 @@ func TestAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+	})
+}
+
+func TestAccKubernetesCluster_kubeletAndLinuxOSConfigUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kubeletAndLinuxOSConfigPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.kubeletAndLinuxOSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.kubeletAndLinuxOSConfigPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -125,7 +154,7 @@ func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -1421,9 +1450,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_DS2_v2"
+    temporary_name_for_rotation = "temp"
     kubelet_config {
       cpu_manager_policy        = "static"
       cpu_cfs_quota_enabled     = true
@@ -1501,9 +1531,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_DS2_v2"
+    temporary_name_for_rotation = "temp"
     kubelet_config {
       cpu_manager_policy    = "static"
       cpu_cfs_quota_enabled = true
