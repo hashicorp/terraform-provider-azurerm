@@ -3,12 +3,12 @@ subcategory: "Workloads"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_workloads_sap_single_node_virtual_instance"
 description: |-
-  Manages a SAP Single Node Virtual Instance with new SAP System.
+  Manages an SAP Single Node Virtual Instance with new SAP System.
 ---
 
 # azurerm_workloads_sap_single_node_virtual_instance
 
-Manages a SAP Single Node Virtual Instance with new SAP System.
+Manages an SAP Single Node Virtual Instance with new SAP System.
 
 -> **Note:** Before using this resource, it's required to submit the request of registering the Resource Provider with Azure CLI `az provider register --namespace "Microsoft.Workloads"`. The Resource Provider can take a while to register, you can check the status by running `az provider show --namespace "Microsoft.Workloads" --query "registrationState"`. Once this outputs "Registered" the Resource Provider is available for use.
 
@@ -145,7 +145,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "example" {
       sku_name        = "StandardSSD_LRS"
     }
 
-    virtual_machine_full_resource_names {
+    virtual_machine_resource_names {
       host_name               = "apphostName0"
       os_disk_name            = "app0osdisk"
       virtual_machine_name    = "appvm0"
@@ -175,7 +175,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this SAP Single Node Virtual Instance. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of this SAP Single Node Virtual Instance. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the SAP Single Node Virtual Instance should exist. Changing this forces a new resource to be created.
 
@@ -219,7 +219,7 @@ A `single_server_configuration` block supports the following:
 
 * `app_resource_group_name` - (Required) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
 
-~> **Note:** While creating SAP Single Node Virtual Instance, service would provision the extra SAP system/component in `app_resource_group_name` which aren't defined in tf config. At this time, when `app_resource_group_name` is different with the Resource Group where SAP Single Node Virtual Instance exists, we can set `prevent_deletion_if_contains_resources` to `false` to delete all resources defined in tf config and the resources created in `app_resource_group_name` with `tf destroy`. But when `app_resource_group_name` is same with the Resource Group where SAP Single Node Virtual Instance exists, some resources like the subnet defined in tf config cannot be deleted with `tf destroy` since the resources defined in tf config are being referenced by the SAP system/component created in `app_resource_group_name`. So it has to manually delete the resources in `app_resource_group_name` first after the SAP Single Node Virtual Instance is deleted, and then the resources in tf config can be deleted successfully for this situation.
+~> **Note:** While creating an SAP Single Node Virtual Instance, the service would provision the extra SAP system/component in the `app_resource_group_name` that isn't defined in the HCL Configurations. At this time, if the `app_resource_group_name` is different from the Resource Group where SAP Single Node Virtual Instance exists, you can set `prevent_deletion_if_contains_resources` to `false` to delete all resources defined in the HCL Configurations and the resources created in the `app_resource_group_name` with `terraform destroy`. However, if the `app_resource_group_name` is the same with the Resource Group where SAP Single Node Virtual Instance exists, some resources such as the subnet defined in the HCL Configurations cannot be deleted with `terraform destroy` since the resources defined in the HCL Configurations are being referenced by the SAP system/component. In this case, you have to manually delete the SAP system/component before deleting the resources in the HCL Configurations.
 
 * `subnet_id` - (Required) The resource ID of the Subnet for the SAP Single Node Virtual Instance. Changing this forces a new resource to be created.
 
@@ -229,15 +229,15 @@ A `single_server_configuration` block supports the following:
 
 * `disk_volume_configuration` - (Optional) One or more `disk_volume_configuration` blocks as defined below. Changing this forces a new resource to be created.
 
-* `secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Defaults to `false`. Changing this forces a new resource to be created.
+* `secondary_ip_enabled` - (Optional) Specifies whether a secondary IP address should be added to the network interface on all VMs of the SAP system being deployed. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `virtual_machine_full_resource_names` - (Optional) A `virtual_machine_full_resource_names` block as defined below. Changing this forces a new resource to be created.
+* `virtual_machine_resource_names` - (Optional) A `virtual_machine_resource_names` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
 A `disk_volume_configuration` block supports the following:
 
-* `volume_name` - (Required) The name of the DB volume of the disk configuration. Possible values are `backup`, `hana/data`, `hana/log`, `hana/shared`, `os` and `usr/sap`. Changing this forces a new resource to be created.
+* `volume_name` - (Required) Specifies the volumn name of the database disk. Possible values are `backup`, `hana/data`, `hana/log`, `hana/shared`, `os` and `usr/sap`. Changing this forces a new resource to be created.
 
 * `number_of_disks` - (Required) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
 
@@ -259,13 +259,13 @@ A `virtual_machine_configuration` block supports the following:
 
 An `image` block supports the following:
 
-* `offer` - (Required) The offer of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
+* `offer` - (Required) Specifies the offer of the platform image or marketplace image used to create the virtual machine. Changing this forces a new resource to be created.
 
 * `publisher` - (Required) The publisher of the Image. Possible values are `RedHat` and `SUSE`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU of the Image. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of the platform image or marketplace image used to create the virtual machine. Changing this forces a new resource to be created.
 
 ---
 
@@ -273,21 +273,21 @@ An `os_profile` block supports the following:
 
 * `admin_username` - (Required) The name of the administrator account. Changing this forces a new resource to be created.
 
-* `ssh_private_key` - (Required) The SSH public key that is used to authenticate with the VM. Changing this forces a new resource to be created.
+* `ssh_private_key` - (Required) The SSH public key that is used to authenticate with the Virtual Machine. Changing this forces a new resource to be created.
 
-* `ssh_public_key` - (Required) The SSH private key that is used to authenticate with the VM. Changing this forces a new resource to be created.
+* `ssh_public_key` - (Required) The SSH private key that is used to authenticate with the Virtual Machine. Changing this forces a new resource to be created.
 
 ---
 
-A `virtual_machine_full_resource_names` block supports the following:
+A `virtual_machine_resource_names` block supports the following:
 
-* `data_disk_names` - (Optional) A mapping of Data Disk names to pass to the backend host. The keys are Volume names and the values are a comma separated string of full names for Data Disks belonging to the specific Volume. This is converted to a list before being passed to the API. Changing this forces a new resource to be created.
+* `data_disk_names` - (Optional) A mapping of Data Disk names passed to the backend host. The keys are volume names, and the values are a comma separated list of full names of Data Disks per volume. Changing this forces a new resource to be created.
 
 * `host_name` - (Optional) The full name of the host of the Virtual Machine. Changing this forces a new resource to be created.
 
 * `network_interface_names` - (Optional) A list of full names for the Network Interface of the Virtual Machine. Changing this forces a new resource to be created.
 
-* `os_disk_name` - (Optional) The full name of the OS Disk attached to the VM. Changing this forces a new resource to be created.
+* `os_disk_name` - (Optional) The full name of the OS Disk attached to the Virtual Machine. Changing this forces a new resource to be created.
 
 * `virtual_machine_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
 

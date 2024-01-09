@@ -387,7 +387,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
       sku_name        = "StandardSSD_LRS"
     }
 
-    virtual_machine_full_resource_names {
+    virtual_machine_resource_names {
       host_name               = "apphostName0"
       os_disk_name            = "app0osdisk"
       virtual_machine_name    = "appvm0"
@@ -522,7 +522,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
       sku_name        = "StandardSSD_LRS"
     }
 
-    virtual_machine_full_resource_names {
+    virtual_machine_resource_names {
       host_name               = "apphostName0"
       os_disk_name            = "app0osdisk"
       virtual_machine_name    = "appvm0"
