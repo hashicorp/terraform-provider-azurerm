@@ -334,7 +334,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   custom_rule {
     name                           = "Rule1"
-    enabled                        = true    
+    enabled                        = true
     priority                       = 1
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
