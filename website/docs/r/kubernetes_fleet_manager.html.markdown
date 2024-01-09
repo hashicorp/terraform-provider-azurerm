@@ -12,6 +12,9 @@ description: |-
 
 Manages a Kubernetes Fleet Manager
 
+~> **Note:** This Resource is in **Preview** to use this you must be opted into the Preview. You can do this by running `az feature register --namespace Microsoft.ContainerService --name FleetResourcePreview` and then `az provider register -n Microsoft.ContainerService`
+.
+
 ## Example Usage
 
 ```hcl
@@ -55,12 +58,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `hub_profile` block supports the following arguments:
 
-* `dns_prefix` - (Required)
+* `dns_prefix` - (Required) 
 
 
 In addition to the arguments defined above, the `hub_profile` block exports the following attributes:
 
-* `fqdn` -
+* `fqdn` - 
 * `kubernetes_version` -
 
 ## Timeouts
