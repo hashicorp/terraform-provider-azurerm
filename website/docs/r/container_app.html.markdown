@@ -371,6 +371,8 @@ An `ingress` block supports the following:
 
 * `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
 
+* `ip_security_restriction` - (Optional) IP-filtering rules.
+
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
  
 * `exposed_port` - (Optional) The exposed port on the container for the Ingress traffic.
@@ -390,6 +392,20 @@ A `custom_domain` block supports the following:
 * `certificate_id` - (Required) The ID of the Container App Environment Certificate.
 
 * `name` - (Required) The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
+
+---
+
+A `ip_security_restriction` block supports the following:
+
+* `action` - (Required) The IP-filter action. `Allow` or `Deny`.
+
+~> **NOTE:** The `action` types in an all `ip_security_restriction` blocks must be the same for the `ingress`, mixing `Allow` and `Deny` rules is not currently supported by the service.
+
+* `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
+
+* `ip_address_range` - (Required) CIDR notation to match incoming IP address.
+
+* `name` - (Required) Name for the IP restriction rule.
 
 ---
 
