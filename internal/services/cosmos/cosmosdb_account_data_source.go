@@ -200,6 +200,64 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"connection_strings": {
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
+				Elem: &pluginsdk.Schema{
+					Type:      pluginsdk.TypeString,
+					Sensitive: true,
+				},
+			},
+
+			"primary_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_sql_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_mongodb_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_mongodb_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_mongodb_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_mongodb_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -327,7 +385,27 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 		d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}
+	connStringResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(keys.Response) {
+			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", id.Name, id.ResourceGroup)
+		} else {
+			log.Printf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", id.Name, err)
+		}
+	} else {
+		var connStrings []string
+		if connStringResp.ConnectionStrings != nil {
+			connStrings = make([]string, len(*connStringResp.ConnectionStrings))
+			for i, v := range *connStringResp.ConnectionStrings {
+				connStrings[i] = *v.ConnectionString
+				if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
+					d.Set(propertyName, v.ConnectionString) // lintignore:R001
+				}
+			}
+		}
 
+		d.Set("connection_strings", connStrings)
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

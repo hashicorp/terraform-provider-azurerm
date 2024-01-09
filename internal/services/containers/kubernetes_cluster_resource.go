@@ -1396,6 +1396,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
 					string(managedclusters.ManagedClusterSKUTierStandard),
+					string(managedclusters.ManagedClusterSKUTierPremium),
 				}, false),
 			},
 
@@ -1437,6 +1438,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"support_plan": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
+					string(managedclusters.KubernetesSupportPlanAKSLongTermSupport),
+				}, false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -1738,8 +1749,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
-			Name: utils.ToPtr(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
-			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
+			Name: pointer.To(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
+			Tier: pointer.To(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
 			ApiServerAccessProfile:    apiAccessProfile,
@@ -1813,6 +1824,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("disk_encryption_set_id"); ok && v.(string) != "" {
 		parameters.Properties.DiskEncryptionSetID = utils.String(v.(string))
+	}
+
+	if v := d.Get("support_plan").(string); v != "" {
+		parameters.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(v))
 	}
 
 	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
@@ -2314,6 +2329,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
 	}
 
+	if d.HasChange("support_plan") {
+		updateCluster = true
+		existing.Model.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(d.Get("support_plan").(string)))
+	}
+
 	if updateCluster {
 		// If Defender was explicitly disabled in a prior update then we should strip SecurityProfile.AzureDefender from the request
 		// body to prevent errors in cases where Defender is disabled for the entire subscription
@@ -2395,7 +2415,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.kubelet_config",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
-			"default_node_pool.0.node_taints",
 			"default_node_pool.0.only_critical_addons_enabled",
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
@@ -2822,6 +2841,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
+
+			d.Set("support_plan", pointer.From(props.SupportPlan))
 		}
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
@@ -3248,19 +3269,19 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	}
 
 	networkProfile := managedclusters.ContainerServiceNetworkProfile{
-		NetworkPlugin:   utils.ToPtr(managedclusters.NetworkPlugin(networkPlugin)),
-		NetworkMode:     utils.ToPtr(managedclusters.NetworkMode(networkMode)),
-		NetworkPolicy:   utils.ToPtr(managedclusters.NetworkPolicy(networkPolicy)),
-		LoadBalancerSku: utils.ToPtr(managedclusters.LoadBalancerSku(loadBalancerSku)),
-		OutboundType:    utils.ToPtr(managedclusters.OutboundType(outboundType)),
+		NetworkPlugin:   pointer.To(managedclusters.NetworkPlugin(networkPlugin)),
+		NetworkMode:     pointer.To(managedclusters.NetworkMode(networkMode)),
+		NetworkPolicy:   pointer.To(managedclusters.NetworkPolicy(networkPolicy)),
+		LoadBalancerSku: pointer.To(managedclusters.LoadBalancerSku(loadBalancerSku)),
+		OutboundType:    pointer.To(managedclusters.OutboundType(outboundType)),
 		IPFamilies:      ipVersions,
 	}
 
 	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
-		networkProfile.NetworkDataplane = utils.ToPtr(managedclusters.NetworkDataplane(ebpfDataPlane))
+		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 	}
 	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
-		networkProfile.NetworkPluginMode = utils.ToPtr(managedclusters.NetworkPluginMode(networkPluginMode))
+		networkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -3907,7 +3928,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 
 	return &managedclusters.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
-		Expander:                      utils.ToPtr(managedclusters.Expander(expander)),
+		Expander:                      pointer.To(managedclusters.Expander(expander)),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		MaxNodeProvisionTime:          utils.String(maxNodeProvisionTime),
 		MaxTotalUnreadyPercentage:     utils.String(maxUnreadyPercentage),
@@ -4108,8 +4129,8 @@ func expandKubernetesClusterMaintenanceConfigurationTimeSpans(input []interface{
 		start, _ := time.Parse(time.RFC3339, v["start"].(string))
 		end, _ := time.Parse(time.RFC3339, v["end"].(string))
 		results = append(results, maintenanceconfigurations.TimeSpan{
-			Start: utils.ToPtr(start.Format("2006-01-02T15:04:05Z07:00")),
-			End:   utils.ToPtr(end.Format("2006-01-02T15:04:05Z07:00")),
+			Start: pointer.To(start.Format("2006-01-02T15:04:05Z07:00")),
+			End:   pointer.To(end.Format("2006-01-02T15:04:05Z07:00")),
 		})
 	}
 	return &results
@@ -4134,7 +4155,7 @@ func expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(input []interfac
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, maintenanceconfigurations.TimeInWeek{
-			Day:       utils.ToPtr(maintenanceconfigurations.WeekDay(v["day"].(string))),
+			Day:       pointer.To(maintenanceconfigurations.WeekDay(v["day"].(string))),
 			HourSlots: utils.ExpandInt64Slice(v["hours"].(*pluginsdk.Set).List()),
 		})
 	}

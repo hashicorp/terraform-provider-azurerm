@@ -188,13 +188,43 @@ func TestAccRecoveryServicesVault_UserAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccRecoveryServicesVault_immutabilityLocked(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// To test creation with `Locked`, it is irreversible.
+			Config: r.basicWithImmutability(data, "Locked"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithImmutability(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithImmutability(data, "Locked"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccRecoveryServicesVault_immutability(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithImmutability(data, true),
+			Config: r.basicWithImmutability(data, "Unlocked"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -208,7 +238,21 @@ func TestAccRecoveryServicesVault_immutability(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithImmutability(data, false),
+			Config: r.basicWithImmutability(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithImmutability(data, "Unlocked"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithImmutability(data, "Locked"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -694,12 +738,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (RecoveryServicesVaultResource) basicWithImmutability(data acceptance.TestData, enabled bool) string {
-	immutability := `Disabled`
-	if enabled {
-		immutability = `Unlocked`
-	}
-
+func (RecoveryServicesVaultResource) basicWithImmutability(data acceptance.TestData, immutability string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1185,7 +1224,6 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 func (RecoveryServicesVaultResource) crossRegionRestoreEnabledWithEncryption(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

@@ -113,20 +113,20 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 		WeekOfYear:       pointer.To(int64(1)),
 	}
 
-	if v, ok := policy["weekly_retention"]; ok {
-		output.WeeklyRetention = pointer.To(v.(string))
+	if v, ok := policy["weekly_retention"].(string); ok && v != "" {
+		output.WeeklyRetention = pointer.To(v)
 	}
 
-	if v, ok := policy["monthly_retention"]; ok {
-		output.MonthlyRetention = pointer.To(v.(string))
+	if v, ok := policy["monthly_retention"].(string); ok && v != "" {
+		output.MonthlyRetention = pointer.To(v)
 	}
 
-	if v, ok := policy["yearly_retention"]; ok {
-		output.YearlyRetention = pointer.To(v.(string))
+	if v, ok := policy["yearly_retention"].(string); ok && v != "" {
+		output.YearlyRetention = pointer.To(v)
 	}
 
-	if v, ok := policy["week_of_year"]; ok {
-		output.WeekOfYear = pointer.To(int64(v.(int)))
+	if v, ok := policy["week_of_year"].(int); ok && v != 0 {
+		output.WeekOfYear = pointer.To(int64(v))
 	}
 
 	return pointer.To(output)

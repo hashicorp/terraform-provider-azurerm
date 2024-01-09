@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevicePropertiesModel struct {
@@ -299,8 +299,8 @@ func expandDeviceSku(input string) *devices.Sku {
 	}
 
 	return &devices.Sku{
-		Name: utils.ToPtr(devices.SkuName(v.Name)),
-		Tier: utils.ToPtr(devices.SkuTier(v.Tier)),
+		Name: pointer.To(devices.SkuName(v.Name)),
+		Tier: pointer.To(devices.SkuTier(v.Tier)),
 	}
 }
 

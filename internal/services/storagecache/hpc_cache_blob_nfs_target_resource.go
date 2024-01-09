@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
@@ -94,6 +95,18 @@ func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 				Default:      "default",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"verification_timer_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 31536000),
+			},
+
+			"write_back_timer_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 31536000),
+			},
 		},
 	}
 }
@@ -145,6 +158,14 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
+	if v, ok := d.GetOk("verification_timer_in_seconds"); ok {
+		param.Properties.BlobNfs.VerificationTimer = utils.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("write_back_timer_in_seconds"); ok {
+		param.Properties.BlobNfs.WriteBackTimer = utils.Int64(int64(v.(int)))
+	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -190,6 +211,8 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 			if b := props.BlobNfs; b != nil {
 				storageContainerId = pointer.From(b.Target)
 				usageModel = pointer.From(b.UsageModel)
+				d.Set("verification_timer_in_seconds", pointer.From(b.VerificationTimer))
+				d.Set("write_back_timer_in_seconds", pointer.From(b.WriteBackTimer))
 			}
 			d.Set("storage_container_id", storageContainerId)
 			d.Set("usage_model", usageModel)

@@ -870,7 +870,7 @@ func TestAccLinuxWebApp_withNode18LTS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "18-lts"),
+			Config: r.node(data, "20-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1735,7 +1735,7 @@ resource "azurerm_linux_web_app" "test" {
     local_mysql_enabled         = true
     managed_pipeline_mode       = "Integrated"
     remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
+    remote_debugging_version    = "VS2022"
     use_32_bit_worker           = false
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"

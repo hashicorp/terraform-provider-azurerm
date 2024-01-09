@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -23,7 +24,7 @@ type ApplicationAcceleratorsListCompleteResult struct {
 }
 
 // ApplicationAcceleratorsList ...
-func (c AppPlatformClient) ApplicationAcceleratorsList(ctx context.Context, id SpringId) (result ApplicationAcceleratorsListOperationResponse, err error) {
+func (c AppPlatformClient) ApplicationAcceleratorsList(ctx context.Context, id commonids.SpringCloudServiceId) (result ApplicationAcceleratorsListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,12 +62,12 @@ func (c AppPlatformClient) ApplicationAcceleratorsList(ctx context.Context, id S
 }
 
 // ApplicationAcceleratorsListComplete retrieves all the results into a single object
-func (c AppPlatformClient) ApplicationAcceleratorsListComplete(ctx context.Context, id SpringId) (ApplicationAcceleratorsListCompleteResult, error) {
+func (c AppPlatformClient) ApplicationAcceleratorsListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (ApplicationAcceleratorsListCompleteResult, error) {
 	return c.ApplicationAcceleratorsListCompleteMatchingPredicate(ctx, id, ApplicationAcceleratorResourceOperationPredicate{})
 }
 
 // ApplicationAcceleratorsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppPlatformClient) ApplicationAcceleratorsListCompleteMatchingPredicate(ctx context.Context, id SpringId, predicate ApplicationAcceleratorResourceOperationPredicate) (result ApplicationAcceleratorsListCompleteResult, err error) {
+func (c AppPlatformClient) ApplicationAcceleratorsListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate ApplicationAcceleratorResourceOperationPredicate) (result ApplicationAcceleratorsListCompleteResult, err error) {
 	items := make([]ApplicationAcceleratorResource, 0)
 
 	resp, err := c.ApplicationAcceleratorsList(ctx, id)

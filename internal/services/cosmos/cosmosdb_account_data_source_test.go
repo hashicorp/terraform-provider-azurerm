@@ -48,7 +48,54 @@ func TestAccDataSourceCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
-func (CosmosDBAccountDataSourceResource) basic(data acceptance.TestData) string {
+func TestAccDataSourceCosmosDBAccount_globalDocumentDBConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountDataSourceResource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.globalDocumentDB(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_sql(data),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceCosmosDBAccount_mongoDBConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountDataSourceResource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.mongoDB(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("primary_mongodb_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_mongodb_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_readonly_mongodb_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_readonly_mongodb_connection_string").Exists(),
+			),
+		},
+	})
+}
+
+func (c CosmosDBAccountDataSourceResource) basic(data acceptance.TestData) string {
+	return c.dataConfig(CosmosDBAccountResource{}.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness))
+}
+
+func (c CosmosDBAccountDataSourceResource) complete(data acceptance.TestData) string {
+	return c.dataConfig(CosmosDBAccountResource{}.complete(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness))
+}
+
+func (c CosmosDBAccountDataSourceResource) globalDocumentDB(data acceptance.TestData) string {
+	return c.dataConfig(CosmosDBAccountResource{}.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness))
+}
+
+func (c CosmosDBAccountDataSourceResource) mongoDB(data acceptance.TestData) string {
+	return c.dataConfig(CosmosDBAccountResource{}.basicMongoDB(data, documentdb.DefaultConsistencyLevelStrong))
+}
+
+func (c CosmosDBAccountDataSourceResource) dataConfig(baseConfig string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -56,16 +103,5 @@ data "azurerm_cosmosdb_account" "test" {
   name                = azurerm_cosmosdb_account.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, CosmosDBAccountResource{}.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness))
-}
-
-func (CosmosDBAccountDataSourceResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_cosmosdb_account" "test" {
-  name                = azurerm_cosmosdb_account.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, CosmosDBAccountResource{}.complete(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness))
+`, baseConfig)
 }

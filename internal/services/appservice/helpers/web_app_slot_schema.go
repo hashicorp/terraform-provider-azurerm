@@ -993,10 +993,14 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
-
 	if len(s.ApplicationStack) == 1 {
 		winAppStack := s.ApplicationStack[0]
+		if winAppStack.NodeVersion != "" {
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
+		}
 		if winAppStack.NetFrameworkVersion != "" {
 			expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
 		}
@@ -1027,6 +1031,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 				expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
 			}
 		}
+
 		if !features.FourPointOhBeta() {
 			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
 				if winAppStack.DockerContainerRegistry != "" {
@@ -1051,6 +1056,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	} else {
 		expanded.WindowsFxVersion = pointer.To("")
 	}
+
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if s.AutoSwapSlotName != "" {
@@ -1138,6 +1144,12 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		if len(s.ApplicationStack) == 1 {
 			winAppStack := s.ApplicationStack[0]
+			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+				if appSettings == nil {
+					appSettings = make(map[string]string)
+				}
+				appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
+			}
 			if winAppStack.NetFrameworkVersion != "" {
 				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
 			}

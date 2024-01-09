@@ -78,7 +78,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ClusterID,
+				ValidateFunc: clusters.ValidateClusterID,
 			},
 
 			"attached_database_names": {

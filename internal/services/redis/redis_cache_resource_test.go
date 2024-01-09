@@ -851,13 +851,14 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    rdb_backup_enabled            = true
-    rdb_backup_frequency          = 60
-    rdb_backup_max_snapshot_count = 1
-    rdb_storage_connection_string = azurerm_storage_account.test.primary_connection_string
+    rdb_backup_enabled              = true
+    rdb_backup_frequency            = 60
+    rdb_backup_max_snapshot_count   = 1
+    rdb_storage_connection_string   = azurerm_storage_account.test.primary_connection_string
+    storage_account_subscription_id = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Client().SubscriptionID)
 }
 
 func (RedisCacheResource) aofBackupDisabled(data acceptance.TestData) string {

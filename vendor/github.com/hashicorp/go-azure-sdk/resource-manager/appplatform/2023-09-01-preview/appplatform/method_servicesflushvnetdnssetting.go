@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type ServicesFlushVnetDnsSettingOperationResponse struct {
 }
 
 // ServicesFlushVnetDnsSetting ...
-func (c AppPlatformClient) ServicesFlushVnetDnsSetting(ctx context.Context, id SpringId) (result ServicesFlushVnetDnsSettingOperationResponse, err error) {
+func (c AppPlatformClient) ServicesFlushVnetDnsSetting(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesFlushVnetDnsSettingOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -56,7 +57,7 @@ func (c AppPlatformClient) ServicesFlushVnetDnsSetting(ctx context.Context, id S
 }
 
 // ServicesFlushVnetDnsSettingThenPoll performs ServicesFlushVnetDnsSetting then polls until it's completed
-func (c AppPlatformClient) ServicesFlushVnetDnsSettingThenPoll(ctx context.Context, id SpringId) error {
+func (c AppPlatformClient) ServicesFlushVnetDnsSettingThenPoll(ctx context.Context, id commonids.SpringCloudServiceId) error {
 	result, err := c.ServicesFlushVnetDnsSetting(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServicesFlushVnetDnsSetting: %+v", err)
