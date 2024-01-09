@@ -575,7 +575,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if *props.AdminUserEnabled {
 				credsResp, errList := client.ListCredentials(ctx, *id)
 				if errList != nil {
-					return fmt.Errorf("retrieving redentials for %s: %s", *id, errList)
+					return fmt.Errorf("retrieving credentials for %s: %s", *id, errList)
 				}
 
 				if credsModel := credsResp.Model; credsModel != nil {
