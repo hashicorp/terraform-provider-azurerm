@@ -330,11 +330,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   redirect_url                      = "https://www.contoso.com"
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+  request_body_check_enabled        = false
 
   custom_rule {
     name                           = "Rule1"
-    enabled                        = true
-    request_body_check_enabled     = false
+    enabled                        = true    
     priority                       = 1
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
