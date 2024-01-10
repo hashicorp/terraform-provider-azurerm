@@ -3,6 +3,7 @@ package redhatopenshift_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
@@ -104,6 +105,27 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 	})
 }
 
+func TestAccOpenShiftCluster_pullSecret(t *testing.T) {
+	// the pull secret can be generated from https://console.redhat.com/openshift/install/pull-secret
+	pullSecret := os.Getenv("ARM_TEST_ARO_PULL_SECRET")
+	if pullSecret == "" {
+		t.Skip("skip the test due to missing environment variable ARM_TEST_ARO_PULL_SECRET")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pullSecret(data, pullSecret),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret", "cluster_profile.0.pull_secret"),
+	})
+}
+
 func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
@@ -140,7 +162,7 @@ func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.RedHatOpenshift.OpenShiftClustersClient.Get(ctx, *id)
+	resp, err := clients.RedHatOpenShift.OpenShiftClustersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Red Hat Openshift Cluster (%s): %+v", id.String(), err)
 	}
@@ -325,6 +347,61 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r OpenShiftClusterResource) pullSecret(data acceptance.TestData, pullSecret string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain      = "aro-%[3]s.com"
+    version     = "4.13.23"
+    pull_secret = <<SECRET
+%[4]s
+SECRET
+  }
+
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  service_principal {
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
+}
+  `, r.template(data), data.RandomInteger, data.RandomString, pullSecret)
 }
 
 func (r OpenShiftClusterResource) userDefinedRouting(data acceptance.TestData) string {
@@ -656,7 +733,7 @@ resource "azuread_service_principal_password" "test" {
 }
 
 data "azuread_service_principal" "redhatopenshift" {
-  // This is the Azure Red Hat OpenShift RP service principal id, do NOT use resource to reference it
+  // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
   application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 

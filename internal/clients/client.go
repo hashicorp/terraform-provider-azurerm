@@ -252,7 +252,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	RedHatOpenshift       *redhatopenshift.Client
+	RedHatOpenShift       *redhatopenshift.Client
 	Redis                 *redis_2023_08_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
@@ -554,8 +554,8 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
 	}
-	if client.RedHatOpenshift, err = redhatopenshift.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for RedHatOpenshift: %+v", err)
+	if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
 	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)

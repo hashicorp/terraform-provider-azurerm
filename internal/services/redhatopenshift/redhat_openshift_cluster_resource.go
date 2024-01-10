@@ -3,7 +3,6 @@ package redhatopenshift
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
@@ -28,6 +26,7 @@ var _ sdk.ResourceWithUpdate = RedHatOpenShiftCluster{}
 type RedHatOpenShiftCluster struct{}
 
 type RedHatOpenShiftClusterModel struct {
+	Tags             map[string]string  `tfschema:"tags"`
 	Name             string             `tfschema:"name"`
 	Location         string             `tfschema:"location"`
 	ResourceGroup    string             `tfschema:"resource_group_name"`
@@ -39,7 +38,6 @@ type RedHatOpenShiftClusterModel struct {
 	WorkerProfile    []WorkerProfile    `tfschema:"worker_profile"`
 	ApiServerProfile []ApiServerProfile `tfschema:"api_server_profile"`
 	IngressProfile   []IngressProfile   `tfschema:"ingress_profile"`
-	Tags             map[string]string  `tfschema:"tags"`
 }
 
 type ServicePrincipal struct {
@@ -50,9 +48,9 @@ type ServicePrincipal struct {
 type ClusterProfile struct {
 	PullSecret      string `tfschema:"pull_secret"`
 	Domain          string `tfschema:"domain"`
-	FipsEnabled     bool   `tfschema:"fips_enabled"`
 	ResourceGroupId string `tfschema:"resource_group_id"`
 	Version         string `tfschema:"version"`
+	FipsEnabled     bool   `tfschema:"fips_enabled"`
 }
 
 type NetworkProfile struct {
@@ -64,17 +62,17 @@ type NetworkProfile struct {
 type MainProfile struct {
 	SubnetId                string `tfschema:"subnet_id"`
 	VmSize                  string `tfschema:"vm_size"`
-	EncryptionAtHostEnabled bool   `tfschema:"encryption_at_host_enabled"`
 	DiskEncryptionSetId     string `tfschema:"disk_encryption_set_id"`
+	EncryptionAtHostEnabled bool   `tfschema:"encryption_at_host_enabled"`
 }
 
 type WorkerProfile struct {
 	VmSize                  string `tfschema:"vm_size"`
-	DiskSizeGb              int64  `tfschema:"disk_size_gb"`
-	NodeCount               int64  `tfschema:"node_count"`
 	SubnetId                string `tfschema:"subnet_id"`
-	EncryptionAtHostEnabled bool   `tfschema:"encryption_at_host_enabled"`
 	DiskEncryptionSetId     string `tfschema:"disk_encryption_set_id"`
+	DiskSizeGb              int    `tfschema:"disk_size_gb"`
+	NodeCount               int    `tfschema:"node_count"`
+	EncryptionAtHostEnabled bool   `tfschema:"encryption_at_host_enabled"`
 }
 
 type IngressProfile struct {
@@ -131,6 +129,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
+						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"resource_group_id": {
@@ -144,7 +143,6 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"service_principal": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -359,7 +357,7 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
+			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config RedHatOpenShiftClusterModel
@@ -372,17 +370,17 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id.ID(), err)
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 				}
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			parameters := openshiftclusters.OpenShiftCluster{
 				Name:     pointer.To(id.OpenShiftClusterName),
-				Location: azure.NormalizeLocation(config.Location),
+				Location: location.Normalize(config.Location),
 				Properties: &openshiftclusters.OpenShiftClusterProperties{
 					ClusterProfile:          expandOpenshiftClusterProfile(config.ClusterProfile, id.SubscriptionId),
 					ServicePrincipalProfile: expandOpenshiftServicePrincipalProfile(config.ServicePrincipal),
@@ -396,7 +394,7 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating %s: %+v", id.ID(), err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -410,7 +408,7 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
+			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
 
 			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -447,7 +445,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
+			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
 
 			id, err := openshiftclusters.ParseProviderOpenShiftClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -457,11 +455,10 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[DEBUG] %s was not found - removing from state!", id.ID())
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			var config RedHatOpenShiftClusterModel
@@ -479,7 +476,7 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
-					state.ClusterProfile = flattenOpenShiftClusterProfile(props.ClusterProfile)
+					state.ClusterProfile = flattenOpenShiftClusterProfile(props.ClusterProfile, config)
 					state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
 					state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
 					state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
@@ -512,7 +509,7 @@ func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client := metadata.Client.RedHatOpenshift.OpenShiftClustersClient
+			client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -544,9 +541,15 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 	}
 }
 
-func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) []ClusterProfile {
+func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, config RedHatOpenShiftClusterModel) []ClusterProfile {
 	if profile == nil {
 		return []ClusterProfile{}
+	}
+
+	// pull secret isn't returned by the API so pass the existing value along
+	pullSecret := ""
+	if len(config.ClusterProfile) != 0 {
+		pullSecret = config.ClusterProfile[0].PullSecret
 	}
 
 	fipsEnabled := false
@@ -556,7 +559,7 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) [
 
 	return []ClusterProfile{
 		{
-			PullSecret:      pointer.From(profile.PullSecret),
+			PullSecret:      pullSecret,
 			Domain:          pointer.From(profile.Domain),
 			FipsEnabled:     fipsEnabled,
 			ResourceGroupId: pointer.From(profile.ResourceGroupId),
@@ -674,9 +677,9 @@ func expandOpenshiftWorkerProfiles(input []WorkerProfile) *[]openshiftclusters.W
 	profile := openshiftclusters.WorkerProfile{
 		Name:                pointer.To("worker"),
 		VMSize:              pointer.To(input[0].VmSize),
-		DiskSizeGB:          pointer.To(input[0].DiskSizeGb),
+		DiskSizeGB:          pointer.To(int64(input[0].DiskSizeGb)),
 		SubnetId:            pointer.To(input[0].SubnetId),
-		Count:               pointer.To(input[0].NodeCount),
+		Count:               pointer.To(int64(input[0].NodeCount)),
 		EncryptionAtHost:    pointer.To(encryptionAtHost),
 		DiskEncryptionSetId: pointer.To(input[0].DiskEncryptionSetId),
 	}
@@ -710,9 +713,9 @@ func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile)
 
 	return []WorkerProfile{
 		{
-			NodeCount:               pointer.From(profile.Count),
+			NodeCount:               int(pointer.From(profile.Count)),
 			VmSize:                  pointer.From(profile.VMSize),
-			DiskSizeGb:              pointer.From(profile.DiskSizeGB),
+			DiskSizeGb:              int(pointer.From(profile.DiskSizeGB)),
 			SubnetId:                subnetIdString,
 			EncryptionAtHostEnabled: encryptionAtHostEnabled,
 			DiskEncryptionSetId:     pointer.From(profile.DiskEncryptionSetId),

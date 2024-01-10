@@ -15,7 +15,6 @@ Manages a fully managed Azure Red Hat OpenShift Cluster (also known as ARO).
 ## Example Usage
 
 ```hcl
-
 data "azurerm_client_config" "example" {}
 
 data "azuread_client_config" "example" {}
@@ -33,7 +32,7 @@ resource "azuread_service_principal_password" "example" {
 }
 
 data "azuread_service_principal" "redhatopenshift" {
-  // This is the Azure Red Hat OpenShift RP service principal id, do NOT use resource to reference it
+  // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
   application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
@@ -149,7 +148,7 @@ The following arguments are supported:
 
 * `ingress_profile` - (Required) An `ingress_profile` block as defined below.
 
-* `network_profile` - (Optional) A `network_profile` block as defined below.
+* `network_profile` - (Required) A `network_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -157,9 +156,9 @@ The following arguments are supported:
 
 A `service_principal` block supports the following:
 
-* `client_id` - (Required) The Client ID for the Service Principal. Changing this forces a new resource to be created.
+* `client_id` - (Required) The Client ID for the Service Principal.
 
-* `client_secret` - (Required) The Client Secret for the Service Principal. Changing this forces a new resource to be created.
+* `client_secret` - (Required) The Client Secret for the Service Principal.
 
 ~> **Note:** Currently a service principal cannot be associated with more than one ARO clusters on the Azure subscription.
 
@@ -173,7 +172,7 @@ A `main_profile` block supports the following:
 
 * `encryption_at_host_enabled` - (Optional) Whether main virtual machines are encrypted at host. Defaults to `false`. Changing this forces a new resource to be created.
 
-**NOTE:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/en-us/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
+**NOTE:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
 
 * `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. Changing this forces a new resource to be created.
 
@@ -191,7 +190,7 @@ A `worker_profile` block supports the following:
 
 * `encryption_at_host_enabled` - (Optional) Whether worker virtual machines are encrypted at host. Defaults to `false`. Changing this forces a new resource to be created.
 
-**NOTE:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/en-us/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
+**NOTE:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
 
 * `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. Changing this forces a new resource to be created.
 
@@ -203,7 +202,7 @@ A `cluster_profile` block supports the following:
 
 * `domain` - (Required) The custom domain for the cluster. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional). Changing this forces a new resource to be created.
 
-* `pull_secret` - (Optional) The Red Hat pull secret for the cluster. Changing this forces a new resource to be created.
+* `pull_secret` - (Optional) The Red Hat pull secret for the cluster. For more info, see [Get a Red Hat pull secret](https://learn.microsoft.com/azure/openshift/tutorial-create-cluster#get-a-red-hat-pull-secret-optional). Changing this forces a new resource to be created.
 
 * `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -221,13 +220,13 @@ A `network_profile` block supports the following:
 
 A `api_server_profile` block supports the following:
 
-* `visibility` - (Optional) Cluster API server visibility. Supported values are `Public` and `Private`. Defaults to `Public`. Changing this forces a new resource to be created.
+* `visibility` - (Required) Cluster API server visibility. Supported values are `Public` and `Private`. Defaults to `Public`. Changing this forces a new resource to be created.
 
 ---
 
 A `ingress_profile` block supports the following:
 
-* `visibility` - (Optional) Cluster Ingress visibility. Supported values are `Public` and `Private`. Defaults to `Public`. Changing this forces a new resource to be created.
+* `visibility` - (Required) Cluster Ingress visibility. Supported values are `Public` and `Private`. Defaults to `Public`. Changing this forces a new resource to be created.
 
 ---
 
