@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -272,7 +273,10 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	}
 	if hasUpdate {
 		if err := hsmClient.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-			return fmt.Errorf("updating %s tags: %+v", id, err)
+			// remove the condition when use a new base layer SDK: https://github.com/hashicorp/pandora/issues/3229
+			if !strings.Contains(err.Error(), "the response did not contain a body") {
+				return fmt.Errorf("updating %s tags: %+v", id, err)
+			}
 		}
 	}
 
