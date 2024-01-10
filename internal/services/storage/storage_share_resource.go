@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -163,6 +164,15 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
+	protocol := shares.ShareProtocol(d.Get("enabled_protocol").(string))
+	if protocol == shares.NFS {
+		// Only FileStorage (whose sku tier is Premium only) storage account is able to have NFS file shares.
+		// See: https://learn.microsoft.com/en-us/azure/storage/files/storage-files-quick-create-use-linux#applies-to
+		if account.Kind != storage.KindFileStorage {
+			return fmt.Errorf("NFS File Share is only supported for Storage Account with kind `FileStorage`, got `%s`", account.Kind)
+		}
+	}
+
 	client, err := storageClient.FileSharesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("building File Share Client: %s", err)
@@ -182,7 +192,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	input := shares.CreateInput{
 		QuotaInGB:       quota,
 		MetaData:        metaData,
-		EnabledProtocol: shares.ShareProtocol(d.Get("enabled_protocol").(string)),
+		EnabledProtocol: protocol,
 	}
 
 	if accessTier := d.Get("access_tier").(string); accessTier != "" {
