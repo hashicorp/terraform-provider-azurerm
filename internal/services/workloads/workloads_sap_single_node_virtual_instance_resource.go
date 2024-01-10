@@ -797,19 +797,13 @@ func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguratio
 
 	for k, v := range *input.DiskVolumeConfigurations {
 		diskVolumeConfiguration := DiskVolumeConfiguration{
-			VolumeName: k,
+			NumberOfDisks: int(pointer.From(v.Count)),
+			SizeGb:        int(pointer.From(v.SizeGB)),
+			VolumeName:    k,
 		}
 
-		if count := v.Count; count != nil {
-			diskVolumeConfiguration.NumberOfDisks = int(*count)
-		}
-
-		if sizeGb := v.SizeGB; sizeGb != nil {
-			diskVolumeConfiguration.SizeGb = int(*sizeGb)
-		}
-
-		if sku := v.Sku; sku != nil && sku.Name != nil {
-			diskVolumeConfiguration.SkuName = string(*sku.Name)
+		if sku := v.Sku; sku != nil {
+			diskVolumeConfiguration.SkuName = string(pointer.From(sku.Name))
 		}
 
 		result = append(result, diskVolumeConfiguration)
