@@ -227,11 +227,11 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	personalDesktopAssignmentType := hostpool.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string))
-	vmTemplate := utils.String(d.Get("vm_template").(string))
-	if *vmTemplate != "" {
+	vmTemplate := d.Get("vm_template").(string)
+	if vmTemplate != "" {
 		// we have no use with the json object as azure accepts string only
 		// merely here for validation
-		_, err := pluginsdk.ExpandJsonFromString(*vmTemplate)
+		_, err := pluginsdk.ExpandJsonFromString(vmTemplate)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `vm_template`: %+v", err)
 		}
