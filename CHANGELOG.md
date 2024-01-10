@@ -20,15 +20,16 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24418]
 * `azurerm_api_management` - the `sku_name` property can now be updated [GH-24431]
 * `azurerm_arc_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
 * `azurerm_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
 * `azure_linux_web_app` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
 * `azure_linux_web_app_slot` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
+* `azurerm_network_manager_deployment` - update creation wait logic to better tolerate the api returning not found [GH-24330]
 * `azurerm_virtual_machine_data_disk_attachment` - do not update applications profile with disks [GH-24145]
 * `azure_windows_web_app` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
 * `azure_windows_web_app_slot` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
-* Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24418]
 * `azurerm_maintenance_configuration` - set `reboot` property in flatten from `AlwaysReboot` to `Always` [GH-24376]
 * `azurerm_container_app_environment` - `workload_profile` can now be updated [GH-24409]
 
