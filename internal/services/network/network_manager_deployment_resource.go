@@ -352,8 +352,9 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 		Refresh: func() (interface{}, string, error) {
 			result, state, err := resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId)()
 			if state == "NotFound" {
+				// the deployment might not found after initial commit, https://github.com/Azure/azure-rest-api-specs/issues/27327
 				// to serve NotFoundChecks, return nil result
-				return nil, "NotFound", err
+				return nil, state, err
 			}
 			return result, state, err
 		},
