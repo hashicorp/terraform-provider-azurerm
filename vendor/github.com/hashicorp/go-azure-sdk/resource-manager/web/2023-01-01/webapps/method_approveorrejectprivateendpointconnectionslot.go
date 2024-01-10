@@ -21,7 +21,7 @@ type ApproveOrRejectPrivateEndpointConnectionSlotOperationResponse struct {
 }
 
 // ApproveOrRejectPrivateEndpointConnectionSlot ...
-func (c WebAppsClient) ApproveOrRejectPrivateEndpointConnectionSlot(ctx context.Context, id SlotPrivateEndpointConnectionId, input PrivateLinkConnectionApprovalRequestResource) (result ApproveOrRejectPrivateEndpointConnectionSlotOperationResponse, err error) {
+func (c WebAppsClient) ApproveOrRejectPrivateEndpointConnectionSlot(ctx context.Context, id SlotPrivateEndpointConnectionId, input RemotePrivateEndpointConnectionARMResource) (result ApproveOrRejectPrivateEndpointConnectionSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +60,7 @@ func (c WebAppsClient) ApproveOrRejectPrivateEndpointConnectionSlot(ctx context.
 }
 
 // ApproveOrRejectPrivateEndpointConnectionSlotThenPoll performs ApproveOrRejectPrivateEndpointConnectionSlot then polls until it's completed
-func (c WebAppsClient) ApproveOrRejectPrivateEndpointConnectionSlotThenPoll(ctx context.Context, id SlotPrivateEndpointConnectionId, input PrivateLinkConnectionApprovalRequestResource) error {
+func (c WebAppsClient) ApproveOrRejectPrivateEndpointConnectionSlotThenPoll(ctx context.Context, id SlotPrivateEndpointConnectionId, input RemotePrivateEndpointConnectionARMResource) error {
 	result, err := c.ApproveOrRejectPrivateEndpointConnectionSlot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApproveOrRejectPrivateEndpointConnectionSlot: %+v", err)

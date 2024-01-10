@@ -142,7 +142,7 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := webapps.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "privateEndpointConnectionValue")
 
-payload := webapps.PrivateLinkConnectionApprovalRequestResource{
+payload := webapps.RemotePrivateEndpointConnectionARMResource{
 	// ...
 }
 
@@ -159,7 +159,7 @@ if err := client.ApproveOrRejectPrivateEndpointConnectionThenPoll(ctx, id, paylo
 ctx := context.TODO()
 id := webapps.NewSlotPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "slotValue", "privateEndpointConnectionValue")
 
-payload := webapps.PrivateLinkConnectionApprovalRequestResource{
+payload := webapps.RemotePrivateEndpointConnectionARMResource{
 	// ...
 }
 
