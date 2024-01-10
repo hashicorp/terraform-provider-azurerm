@@ -30,6 +30,7 @@ BUG FIXES:
 * `azure_windows_web_app_slot` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
 * Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24418]
 * `azurerm_maintenance_configuration` - set `reboot` property in flatten from `AlwaysReboot` to `Always` [GH-24376]
+* `azurerm_container_app_environment` - `workload_profile` can now be updated [GH-24409]
 
 ## 3.86.0 (January 04, 2024)
 
