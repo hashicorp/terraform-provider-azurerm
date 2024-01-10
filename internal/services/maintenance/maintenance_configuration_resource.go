@@ -448,7 +448,7 @@ func flattenMaintenanceConfigurationInstallPatches(input *maintenanceconfigurati
 
 		if rebootSetting := v.RebootSetting; rebootSetting != nil {
 			// https://github.com/Azure/azure-rest-api-specs/issues/27222
-			if strings.EqualFold(*rebootSetting, "AlwaysReboot") {
+			if strings.EqualFold(string(*rebootSetting), "AlwaysReboot") {
 				output["reboot"] = "Always"
 			} else {
 				output["reboot"] = *rebootSetting
