@@ -107,6 +107,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 16),
 			},
 
+			"user_assigned_identity_credential_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"edition": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -564,6 +570,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 			return fmt.Errorf("setting `catalog_info`: %+v", err)
 		}
 
+		if err := d.Set("user_assigned_identity_credential_name", ssisProps.Credential.ReferenceName); err != nil {
+			return fmt.Errorf("setting `user_assigned_identity_credential_name`: %+v", err)
+		}
+
 		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
 			return fmt.Errorf("setting `custom_setup_script`: %+v", err)
 		}
@@ -646,6 +656,13 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 		Edition:                      datafactory.IntegrationRuntimeEdition(d.Get("edition").(string)),
 		ExpressCustomSetupProperties: expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(d.Get("express_custom_setup").([]interface{})),
 		PackageStores:                expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]interface{})),
+	}
+
+	if credentialName := d.Get("user_assigned_identity_credential_name"); credentialName.(string) != "" {
+		ssisProperties.Credential = &datafactory.CredentialReference{
+			ReferenceName: utils.String(credentialName.(string)),
+			Type:          utils.String("CredentialReference"),
+		}
 	}
 
 	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
