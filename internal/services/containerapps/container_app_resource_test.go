@@ -344,39 +344,24 @@ func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppResource_secretRemoveShouldFail(t *testing.T) {
+func TestAccContainerAppResource_secretFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeUpdate(data, "rev1"),
+			Config: r.secretBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.complete(data, "rev2"),
+			Config:      r.secretRemove(data),
 			ExpectError: regexp.MustCompile("cannot remove secrets from Container Apps at this time"),
 		},
-	})
-}
-
-func TestAccContainerAppResource_secretRemoveWithAddShouldFail(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
-	r := ContainerAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeUpdate(data, "rev1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:      r.completeChangedSecret(data, "rev2"),
+			Config:      r.secretChangeName(data),
 			ExpectError: regexp.MustCompile("previously configured secret"),
 		},
 	})
@@ -430,6 +415,62 @@ func TestAccContainerAppResource_scaleRulesUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_ipSecurityRulesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressSecurityRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressSecurityRestrictionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_ingressTrafficValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.ingressTrafficValidation(data, r.trafficBlockMoreThanOne()),
+			ExpectError: regexp.MustCompile(fmt.Sprintf(`at most one %s can be specified during creation`, "`ingress.0.traffic_weight`")),
+		},
+		{
+			Config:      r.ingressTrafficValidation(data, r.trafficBlockLatestRevisionNotSet()),
+			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must be set to true during creation`, "`ingress.0.traffic_weight.0.latest_revision`")),
+		},
+		{
+			Config:      r.ingressTrafficValidation(data, r.trafficBlockRevisionSuffixSet()),
+			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must not be set during creation`, "`ingress.0.traffic_weight.0.revision_suffix`")),
+		},
 	})
 }
 
@@ -1330,114 +1371,6 @@ resource "azurerm_container_app" "test" {
 `, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
 }
 
-func (r ContainerAppResource) completeChangedSecret(data acceptance.TestData, revisionSuffix string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_container_app" "test" {
-  name                         = "acctest-capp-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  container_app_environment_id = azurerm_container_app_environment.test.id
-  revision_mode                = "Multiple"
-
-  template {
-    container {
-      name  = "acctest-cont-%[2]d"
-      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-
-      cpu    = 0.5
-      memory = "1Gi"
-
-      readiness_probe {
-        transport               = "HTTP"
-        port                    = 5000
-        path                    = "/uptime"
-        timeout                 = 2
-        failure_count_threshold = 1
-        success_count_threshold = 1
-
-        header {
-          name  = "Cache-Control"
-          value = "no-cache"
-        }
-      }
-
-      liveness_probe {
-        transport = "HTTP"
-        port      = 5000
-        path      = "/health"
-
-        header {
-          name  = "Cache-Control"
-          value = "no-cache"
-        }
-
-        initial_delay           = 5
-        timeout                 = 2
-        failure_count_threshold = 3
-      }
-
-      startup_probe {
-        transport               = "TCP"
-        port                    = 5000
-        timeout                 = 5
-        failure_count_threshold = 1
-      }
-    }
-
-    min_replicas = 1
-    max_replicas = 4
-
-    revision_suffix = "%[3]s"
-  }
-
-  ingress {
-    allow_insecure_connections = true
-    external_enabled           = true
-    target_port                = 5000
-    transport                  = "auto"
-
-    traffic_weight {
-      latest_revision = true
-      percentage      = 20
-    }
-
-    traffic_weight {
-      revision_suffix = "rev1"
-      percentage      = 80
-    }
-  }
-
-  registry {
-    server               = azurerm_container_registry.test.login_server
-    username             = azurerm_container_registry.test.admin_username
-    password_secret_name = "registry-password"
-  }
-
-  secret {
-    name  = "registry-password"
-    value = azurerm_container_registry.test.admin_password
-  }
-
-  secret {
-    name  = "pickle"
-    value = "morty"
-  }
-
-  dapr {
-    app_id       = "acctest-cont-%[2]d"
-    app_port     = 5000
-    app_protocol = "http"
-  }
-
-  tags = {
-    foo     = "Bar"
-    accTest = "1"
-  }
-}
-`, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
-}
-
 func (r ContainerAppResource) completeUpdate(data acceptance.TestData, revisionSuffix string) string {
 	return fmt.Sprintf(`
 %s
@@ -1637,12 +1570,7 @@ resource "azurerm_container_app" "test" {
 
     traffic_weight {
       latest_revision = true
-      percentage      = 20
-    }
-
-    traffic_weight {
-      revision_suffix = "rev1"
-      percentage      = 80
+      percentage      = 100
     }
   }
 
@@ -1758,6 +1686,87 @@ resource "azurerm_container_app" "test" {
     tcp_scale_rule {
       name                = "tcp-1"
       concurrent_requests = "1000"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) ingressSecurityRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    target_port = 5000
+    ip_security_restriction {
+      name             = "test"
+      description      = "test"
+      action           = "Allow"
+      ip_address_range = "0.0.0.0/0"
+    }
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) ingressSecurityRestrictionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    target_port = 5000
+    ip_security_restriction {
+      name             = "test"
+      description      = "test"
+      action           = "Allow"
+      ip_address_range = "10.1.0.0/16"
+    }
+
+    ip_security_restriction {
+      name             = "test2"
+      description      = "test2"
+      action           = "Allow"
+      ip_address_range = "10.2.0.0/16"
+    }
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
     }
   }
 }
@@ -1927,4 +1936,154 @@ resource "azurerm_container_app_environment_storage" "test" {
   access_mode                  = "ReadWrite"
 }
 `, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
+}
+
+func (r ContainerAppResource) ingressTrafficValidation(data acceptance.TestData, trafficBlock string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    target_port                = 5000
+    transport                  = "http"
+	%s
+  }
+}
+`, r.template(data), data.RandomInteger, trafficBlock)
+}
+
+func (r ContainerAppResource) secretBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  secret {
+    name  = "foo"
+    value = "bar"
+  }
+
+  secret {
+    name  = "rick"
+    value = "morty"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) secretRemove(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  secret {
+    name  = "foo"
+    value = "bar"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) secretChangeName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  secret {
+    name  = "foo"
+    value = "bar"
+  }
+
+  secret {
+    name  = "pickle"
+    value = "morty"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) trafficBlockMoreThanOne() string {
+	return `
+    traffic_weight {
+      percentage      = 50
+    }
+    traffic_weight {
+      percentage      = 50
+    }
+`
+}
+
+func (r ContainerAppResource) trafficBlockLatestRevisionNotSet() string {
+	return `
+    traffic_weight {
+      percentage      = 100
+    }
+`
+}
+
+func (r ContainerAppResource) trafficBlockRevisionSuffixSet() string {
+	return `
+    traffic_weight {
+      percentage      = 100
+	  latest_revision = true
+	  revision_suffix = "foo"
+    }
+`
 }

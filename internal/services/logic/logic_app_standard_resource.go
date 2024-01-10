@@ -183,7 +183,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 						return "~3"
 					}
 					return "~4"
-				},
+				}(),
 			},
 
 			"tags": tags.Schema(),
