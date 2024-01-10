@@ -19,7 +19,8 @@ type UsagesListOperationResponse struct {
 }
 
 type UsagesListCompleteResult struct {
-	Items []SignalRServiceUsage
+	LatestHttpResponse *http.Response
+	Items              []SignalRServiceUsage
 }
 
 // UsagesList ...
@@ -83,7 +84,8 @@ func (c WebPubSubClient) UsagesListCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = UsagesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

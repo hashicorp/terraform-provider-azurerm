@@ -19,7 +19,8 @@ type ListByLocalRulestacksOperationResponse struct {
 }
 
 type ListByLocalRulestacksCompleteResult struct {
-	Items []PrefixListResource
+	LatestHttpResponse *http.Response
+	Items              []PrefixListResource
 }
 
 // ListByLocalRulestacks ...
@@ -83,7 +84,8 @@ func (c PrefixListLocalRulestackClient) ListByLocalRulestacksCompleteMatchingPre
 	}
 
 	result = ListByLocalRulestacksCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

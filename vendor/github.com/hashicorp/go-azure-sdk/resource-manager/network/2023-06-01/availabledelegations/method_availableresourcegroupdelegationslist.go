@@ -19,7 +19,8 @@ type AvailableResourceGroupDelegationsListOperationResponse struct {
 }
 
 type AvailableResourceGroupDelegationsListCompleteResult struct {
-	Items []AvailableDelegation
+	LatestHttpResponse *http.Response
+	Items              []AvailableDelegation
 }
 
 // AvailableResourceGroupDelegationsList ...
@@ -83,7 +84,8 @@ func (c AvailableDelegationsClient) AvailableResourceGroupDelegationsListComplet
 	}
 
 	result = AvailableResourceGroupDelegationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayOperationResponse s
 }
 
 type VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayCompleteResult struct {
-	Items []VirtualNetworkGatewayNatRule
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetworkGatewayNatRule
 }
 
 // VirtualNetworkGatewayNatRulesListByVirtualNetworkGateway ...
@@ -83,7 +84,8 @@ func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesListByVirtual
 	}
 
 	result = VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

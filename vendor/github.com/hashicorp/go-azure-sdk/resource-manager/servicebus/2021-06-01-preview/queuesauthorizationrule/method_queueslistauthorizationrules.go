@@ -19,7 +19,8 @@ type QueuesListAuthorizationRulesOperationResponse struct {
 }
 
 type QueuesListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
 }
 
 // QueuesListAuthorizationRules ...
@@ -83,7 +84,8 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesCompleteMatch
 	}
 
 	result = QueuesListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

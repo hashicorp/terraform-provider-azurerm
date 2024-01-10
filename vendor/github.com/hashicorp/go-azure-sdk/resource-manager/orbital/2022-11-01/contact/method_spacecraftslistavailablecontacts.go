@@ -22,7 +22,8 @@ type SpacecraftsListAvailableContactsOperationResponse struct {
 }
 
 type SpacecraftsListAvailableContactsCompleteResult struct {
-	Items []AvailableContacts
+	LatestHttpResponse *http.Response
+	Items              []AvailableContacts
 }
 
 // SpacecraftsListAvailableContacts ...

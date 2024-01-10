@@ -19,7 +19,8 @@ type ListAppIdsOperationResponse struct {
 }
 
 type ListAppIdsCompleteResult struct {
-	Items []string
+	LatestHttpResponse *http.Response
+	Items              []string
 }
 
 type ListAppIdsOperationOptions struct {
@@ -116,7 +117,8 @@ func (c LocalRulestacksClient) ListAppIdsComplete(ctx context.Context, id LocalR
 	}
 
 	result = ListAppIdsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type BuildpackBindingListForClusterOperationResponse struct {
 }
 
 type BuildpackBindingListForClusterCompleteResult struct {
-	Items []BuildpackBindingResource
+	LatestHttpResponse *http.Response
+	Items              []BuildpackBindingResource
 }
 
 // BuildpackBindingListForCluster ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) BuildpackBindingListForClusterCompleteMatchingPredica
 	}
 
 	result = BuildpackBindingListForClusterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

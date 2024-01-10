@@ -23,7 +23,8 @@ type VirtualNetworksListDdosProtectionStatusOperationResponse struct {
 }
 
 type VirtualNetworksListDdosProtectionStatusCompleteResult struct {
-	Items []PublicIPDdosProtectionStatusResult
+	LatestHttpResponse *http.Response
+	Items              []PublicIPDdosProtectionStatusResult
 }
 
 type VirtualNetworksListDdosProtectionStatusOperationOptions struct {

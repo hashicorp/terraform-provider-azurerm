@@ -20,7 +20,8 @@ type DeploymentsListOperationResponse struct {
 }
 
 type DeploymentsListCompleteResult struct {
-	Items []NginxDeployment
+	LatestHttpResponse *http.Response
+	Items              []NginxDeployment
 }
 
 // DeploymentsList ...
@@ -84,7 +85,8 @@ func (c NginxDeploymentClient) DeploymentsListCompleteMatchingPredicate(ctx cont
 	}
 
 	result = DeploymentsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

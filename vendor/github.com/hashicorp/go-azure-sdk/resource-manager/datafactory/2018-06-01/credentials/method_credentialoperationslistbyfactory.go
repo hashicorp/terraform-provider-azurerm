@@ -19,7 +19,8 @@ type CredentialOperationsListByFactoryOperationResponse struct {
 }
 
 type CredentialOperationsListByFactoryCompleteResult struct {
-	Items []ManagedIdentityCredentialResource
+	LatestHttpResponse *http.Response
+	Items              []ManagedIdentityCredentialResource
 }
 
 // CredentialOperationsListByFactory ...
@@ -83,7 +84,8 @@ func (c CredentialsClient) CredentialOperationsListByFactoryCompleteMatchingPred
 	}
 
 	result = CredentialOperationsListByFactoryCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []WorkflowRunAction
+	LatestHttpResponse *http.Response
+	Items              []WorkflowRunAction
 }
 
 type ListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c WorkflowRunActionsClient) ListCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

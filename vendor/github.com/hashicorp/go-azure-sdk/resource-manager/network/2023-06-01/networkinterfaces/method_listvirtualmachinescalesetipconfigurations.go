@@ -20,7 +20,8 @@ type ListVirtualMachineScaleSetIPConfigurationsOperationResponse struct {
 }
 
 type ListVirtualMachineScaleSetIPConfigurationsCompleteResult struct {
-	Items []NetworkInterfaceIPConfiguration
+	LatestHttpResponse *http.Response
+	Items              []NetworkInterfaceIPConfiguration
 }
 
 type ListVirtualMachineScaleSetIPConfigurationsOperationOptions struct {
@@ -112,7 +113,8 @@ func (c NetworkInterfacesClient) ListVirtualMachineScaleSetIPConfigurationsCompl
 	}
 
 	result = ListVirtualMachineScaleSetIPConfigurationsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

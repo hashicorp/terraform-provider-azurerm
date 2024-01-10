@@ -20,7 +20,8 @@ type ListByScopeOperationResponse struct {
 }
 
 type ListByScopeCompleteResult struct {
-	Items []View
+	LatestHttpResponse *http.Response
+	Items              []View
 }
 
 // ListByScope ...
@@ -84,7 +85,8 @@ func (c ViewsClient) ListByScopeCompleteMatchingPredicate(ctx context.Context, i
 	}
 
 	result = ListByScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

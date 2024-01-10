@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []LocalRulestackResource
+	LatestHttpResponse *http.Response
+	Items              []LocalRulestackResource
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c LocalRulestacksClient) ListBySubscriptionCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

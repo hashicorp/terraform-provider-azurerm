@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -257,7 +257,7 @@ func TestAccDiskEncryptionSet_disablePurgeProtection(t *testing.T) {
 }
 
 func (DiskEncryptionSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := diskencryptionsets.ParseDiskEncryptionSetID(state.ID)
+	id, err := commonids.ParseDiskEncryptionSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}

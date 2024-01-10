@@ -19,7 +19,8 @@ type AvailableEndpointServicesListOperationResponse struct {
 }
 
 type AvailableEndpointServicesListCompleteResult struct {
-	Items []EndpointServiceResult
+	LatestHttpResponse *http.Response
+	Items              []EndpointServiceResult
 }
 
 // AvailableEndpointServicesList ...
@@ -83,7 +84,8 @@ func (c EndpointServicesClient) AvailableEndpointServicesListCompleteMatchingPre
 	}
 
 	result = AvailableEndpointServicesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

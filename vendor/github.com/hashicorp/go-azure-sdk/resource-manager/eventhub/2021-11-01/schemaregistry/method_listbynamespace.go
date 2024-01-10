@@ -19,7 +19,8 @@ type ListByNamespaceOperationResponse struct {
 }
 
 type ListByNamespaceCompleteResult struct {
-	Items []SchemaGroup
+	LatestHttpResponse *http.Response
+	Items              []SchemaGroup
 }
 
 type ListByNamespaceOperationOptions struct {
@@ -115,7 +116,8 @@ func (c SchemaRegistryClient) ListByNamespaceCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByNamespaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

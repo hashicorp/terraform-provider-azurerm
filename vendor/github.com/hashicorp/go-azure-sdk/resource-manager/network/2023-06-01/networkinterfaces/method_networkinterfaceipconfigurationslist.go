@@ -20,7 +20,8 @@ type NetworkInterfaceIPConfigurationsListOperationResponse struct {
 }
 
 type NetworkInterfaceIPConfigurationsListCompleteResult struct {
-	Items []NetworkInterfaceIPConfiguration
+	LatestHttpResponse *http.Response
+	Items              []NetworkInterfaceIPConfiguration
 }
 
 // NetworkInterfaceIPConfigurationsList ...
@@ -84,7 +85,8 @@ func (c NetworkInterfacesClient) NetworkInterfaceIPConfigurationsListCompleteMat
 	}
 
 	result = NetworkInterfaceIPConfigurationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

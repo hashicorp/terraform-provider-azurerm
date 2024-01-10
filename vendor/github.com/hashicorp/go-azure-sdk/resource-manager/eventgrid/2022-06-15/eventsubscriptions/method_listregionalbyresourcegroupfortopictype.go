@@ -19,7 +19,8 @@ type ListRegionalByResourceGroupForTopicTypeOperationResponse struct {
 }
 
 type ListRegionalByResourceGroupForTopicTypeCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type ListRegionalByResourceGroupForTopicTypeOperationOptions struct {
@@ -115,7 +116,8 @@ func (c EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypeComplet
 	}
 
 	result = ListRegionalByResourceGroupForTopicTypeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

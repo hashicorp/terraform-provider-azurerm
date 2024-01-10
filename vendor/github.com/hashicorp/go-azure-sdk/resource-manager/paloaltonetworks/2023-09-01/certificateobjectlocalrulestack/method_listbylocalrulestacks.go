@@ -19,7 +19,8 @@ type ListByLocalRulestacksOperationResponse struct {
 }
 
 type ListByLocalRulestacksCompleteResult struct {
-	Items []CertificateObjectLocalRulestackResource
+	LatestHttpResponse *http.Response
+	Items              []CertificateObjectLocalRulestackResource
 }
 
 // ListByLocalRulestacks ...
@@ -83,7 +84,8 @@ func (c CertificateObjectLocalRulestackClient) ListByLocalRulestacksCompleteMatc
 	}
 
 	result = ListByLocalRulestacksCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

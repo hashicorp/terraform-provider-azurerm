@@ -20,7 +20,8 @@ type DevToolPortalsListOperationResponse struct {
 }
 
 type DevToolPortalsListCompleteResult struct {
-	Items []DevToolPortalResource
+	LatestHttpResponse *http.Response
+	Items              []DevToolPortalResource
 }
 
 // DevToolPortalsList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) DevToolPortalsListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = DevToolPortalsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

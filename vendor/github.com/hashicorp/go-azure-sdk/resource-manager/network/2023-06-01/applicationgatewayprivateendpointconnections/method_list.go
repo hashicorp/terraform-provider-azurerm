@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ApplicationGatewayPrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []ApplicationGatewayPrivateEndpointConnection
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c ApplicationGatewayPrivateEndpointConnectionsClient) ListCompleteMatching
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
