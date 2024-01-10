@@ -871,16 +871,6 @@ func (IntegrationRuntimeManagedSsisResource) userAssignedManagedCredentials(data
     name     = "acctestRG-df-%d"
     location = "%s"
   }
-  
-  resource "azurerm_data_factory" "test" {
-    name                = "acctestdfirm%d"
-    location            = azurerm_resource_group.test.location
-    resource_group_name = azurerm_resource_group.test.name
-  
-    identity {
-      type = "SystemAssigned"
-    }
-  }
 
   resource "azurerm_user_assigned_identity" "test" {
     location            = azurerm_resource_group.test.location
@@ -888,9 +878,19 @@ func (IntegrationRuntimeManagedSsisResource) userAssignedManagedCredentials(data
     resource_group_name = azurerm_resource_group.test.name
   }
   
+  resource "azurerm_data_factory" "test" {
+    name                = "acctestdfirm%d"
+    location            = azurerm_resource_group.test.location
+    resource_group_name = azurerm_resource_group.test.name
   
+    identity {
+      type         = "UserAssigned"
+      identity_ids = [azurerm_user_assigned_identity.test.id]
+    }
+  }
+
   resource "azurerm_data_factory_credential_user_managed_identity" "test" {
-    name            = "credential1"
+    name            = "credential%d"
     data_factory_id = azurerm_data_factory.test.id
     identity_id     = azurerm_user_assigned_identity.test.id  
   }
@@ -913,7 +913,7 @@ func (IntegrationRuntimeManagedSsisResource) userAssignedManagedCredentials(data
   }
   
   resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-    name            = "managed-integration-runtime"
+    name            = "managed-integration-runtime-%d"
     data_factory_id = azurerm_data_factory.test.id
     location        = azurerm_resource_group.test.location
     node_size       = "Standard_D8_v3"
@@ -926,7 +926,7 @@ func (IntegrationRuntimeManagedSsisResource) userAssignedManagedCredentials(data
   
     depends_on = [azurerm_sql_active_directory_administrator.test]
   }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
