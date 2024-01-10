@@ -47,7 +47,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     disks.ValidateDiskID,
+				ValidateFunc:     commonids.ValidateManagedDiskID,
 			},
 
 			"virtual_machine_id": {
@@ -306,7 +306,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedId, err := disks.ParseDiskID(id)
+	parsedId, err := commonids.ParseManagedDiskID(id)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", id, err)
 	}

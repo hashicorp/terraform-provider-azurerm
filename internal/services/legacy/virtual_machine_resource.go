@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1079,7 +1078,7 @@ func resourceVirtualMachineDeleteManagedDisk(d *pluginsdk.ResourceData, disk *co
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disks.ParseDiskID(managedDiskID)
+	id, err := commonids.ParseManagedDiskIDInsensitively(managedDiskID)
 	if err != nil {
 		return err
 	}
@@ -1967,7 +1966,7 @@ func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *c
 	}
 
 	diskId := *disk.ID
-	id, err := disks.ParseDiskIDInsensitively(diskId)
+	id, err := commonids.ParseManagedDiskIDInsensitively(diskId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Disk ID %q: %+v", diskId, err)
 	}
