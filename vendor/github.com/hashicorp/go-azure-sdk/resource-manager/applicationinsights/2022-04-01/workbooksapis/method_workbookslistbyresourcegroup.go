@@ -20,7 +20,8 @@ type WorkbooksListByResourceGroupOperationResponse struct {
 }
 
 type WorkbooksListByResourceGroupCompleteResult struct {
-	Items []Workbook
+	LatestHttpResponse *http.Response
+	Items              []Workbook
 }
 
 type WorkbooksListByResourceGroupOperationOptions struct {
@@ -124,7 +125,8 @@ func (c WorkbooksAPIsClient) WorkbooksListByResourceGroupCompleteMatchingPredica
 	}
 
 	result = WorkbooksListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type BuildpackBindingListOperationResponse struct {
 }
 
 type BuildpackBindingListCompleteResult struct {
-	Items []BuildpackBindingResource
+	LatestHttpResponse *http.Response
+	Items              []BuildpackBindingResource
 }
 
 // BuildpackBindingList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) BuildpackBindingListCompleteMatchingPredicate(ctx con
 	}
 
 	result = BuildpackBindingListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

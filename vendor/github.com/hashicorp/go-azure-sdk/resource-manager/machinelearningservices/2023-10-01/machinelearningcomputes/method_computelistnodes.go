@@ -19,7 +19,8 @@ type ComputeListNodesOperationResponse struct {
 }
 
 type ComputeListNodesCompleteResult struct {
-	Items []AmlComputeNodesInformation
+	LatestHttpResponse *http.Response
+	Items              []AmlComputeNodesInformation
 }
 
 // ComputeListNodes ...
@@ -83,7 +84,8 @@ func (c MachineLearningComputesClient) ComputeListNodesCompleteMatchingPredicate
 	}
 
 	result = ComputeListNodesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

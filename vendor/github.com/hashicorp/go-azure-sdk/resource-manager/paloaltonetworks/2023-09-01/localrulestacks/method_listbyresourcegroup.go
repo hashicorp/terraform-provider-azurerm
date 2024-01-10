@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []LocalRulestackResource
+	LatestHttpResponse *http.Response
+	Items              []LocalRulestackResource
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c LocalRulestacksClient) ListByResourceGroupCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

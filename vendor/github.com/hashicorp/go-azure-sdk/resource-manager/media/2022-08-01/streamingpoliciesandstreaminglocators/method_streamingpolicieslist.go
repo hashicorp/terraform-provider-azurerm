@@ -19,7 +19,8 @@ type StreamingPoliciesListOperationResponse struct {
 }
 
 type StreamingPoliciesListCompleteResult struct {
-	Items []StreamingPolicy
+	LatestHttpResponse *http.Response
+	Items              []StreamingPolicy
 }
 
 type StreamingPoliciesListOperationOptions struct {
@@ -119,7 +120,8 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesListComple
 	}
 
 	result = StreamingPoliciesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListAutoApprovedPrivateLinkServicesOperationResponse struct {
 }
 
 type ListAutoApprovedPrivateLinkServicesCompleteResult struct {
-	Items []AutoApprovedPrivateLinkService
+	LatestHttpResponse *http.Response
+	Items              []AutoApprovedPrivateLinkService
 }
 
 // ListAutoApprovedPrivateLinkServices ...
@@ -83,7 +84,8 @@ func (c PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServicesCompleteMa
 	}
 
 	result = ListAutoApprovedPrivateLinkServicesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

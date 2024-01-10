@@ -19,7 +19,8 @@ type LoadBalancerLoadBalancingRulesListOperationResponse struct {
 }
 
 type LoadBalancerLoadBalancingRulesListCompleteResult struct {
-	Items []LoadBalancingRule
+	LatestHttpResponse *http.Response
+	Items              []LoadBalancingRule
 }
 
 // LoadBalancerLoadBalancingRulesList ...
@@ -83,7 +84,8 @@ func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesListCompleteMatchingP
 	}
 
 	result = LoadBalancerLoadBalancingRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

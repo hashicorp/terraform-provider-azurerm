@@ -20,7 +20,8 @@ type ApiPortalsListOperationResponse struct {
 }
 
 type ApiPortalsListCompleteResult struct {
-	Items []ApiPortalResource
+	LatestHttpResponse *http.Response
+	Items              []ApiPortalResource
 }
 
 // ApiPortalsList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ApiPortalsListCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ApiPortalsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

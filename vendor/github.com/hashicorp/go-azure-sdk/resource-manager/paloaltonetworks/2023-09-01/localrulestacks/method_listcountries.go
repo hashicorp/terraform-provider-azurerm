@@ -19,7 +19,8 @@ type ListCountriesOperationResponse struct {
 }
 
 type ListCountriesCompleteResult struct {
-	Items []Country
+	LatestHttpResponse *http.Response
+	Items              []Country
 }
 
 type ListCountriesOperationOptions struct {
@@ -115,7 +116,8 @@ func (c LocalRulestacksClient) ListCountriesCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListCountriesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

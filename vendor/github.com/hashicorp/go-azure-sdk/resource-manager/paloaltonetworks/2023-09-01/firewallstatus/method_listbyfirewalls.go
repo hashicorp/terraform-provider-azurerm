@@ -19,7 +19,8 @@ type ListByFirewallsOperationResponse struct {
 }
 
 type ListByFirewallsCompleteResult struct {
-	Items []FirewallStatusResource
+	LatestHttpResponse *http.Response
+	Items              []FirewallStatusResource
 }
 
 // ListByFirewalls ...
@@ -83,7 +84,8 @@ func (c FirewallStatusClient) ListByFirewallsCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByFirewallsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type WorkspaceFeaturesListOperationResponse struct {
 }
 
 type WorkspaceFeaturesListCompleteResult struct {
-	Items []AmlUserFeature
+	LatestHttpResponse *http.Response
+	Items              []AmlUserFeature
 }
 
 // WorkspaceFeaturesList ...
@@ -83,7 +84,8 @@ func (c WorkspacesClient) WorkspaceFeaturesListCompleteMatchingPredicate(ctx con
 	}
 
 	result = WorkspaceFeaturesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

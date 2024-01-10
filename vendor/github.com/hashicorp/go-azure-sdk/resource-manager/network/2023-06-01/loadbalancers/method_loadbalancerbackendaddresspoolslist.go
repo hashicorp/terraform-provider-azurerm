@@ -19,7 +19,8 @@ type LoadBalancerBackendAddressPoolsListOperationResponse struct {
 }
 
 type LoadBalancerBackendAddressPoolsListCompleteResult struct {
-	Items []BackendAddressPool
+	LatestHttpResponse *http.Response
+	Items              []BackendAddressPool
 }
 
 // LoadBalancerBackendAddressPoolsList ...
@@ -83,7 +84,8 @@ func (c LoadBalancersClient) LoadBalancerBackendAddressPoolsListCompleteMatching
 	}
 
 	result = LoadBalancerBackendAddressPoolsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

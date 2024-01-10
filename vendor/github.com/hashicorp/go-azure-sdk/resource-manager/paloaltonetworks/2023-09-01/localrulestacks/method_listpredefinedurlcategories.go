@@ -19,7 +19,8 @@ type ListPredefinedUrlCategoriesOperationResponse struct {
 }
 
 type ListPredefinedUrlCategoriesCompleteResult struct {
-	Items []PredefinedUrlCategory
+	LatestHttpResponse *http.Response
+	Items              []PredefinedUrlCategory
 }
 
 type ListPredefinedUrlCategoriesOperationOptions struct {
@@ -115,7 +116,8 @@ func (c LocalRulestacksClient) ListPredefinedUrlCategoriesCompleteMatchingPredic
 	}
 
 	result = ListPredefinedUrlCategoriesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

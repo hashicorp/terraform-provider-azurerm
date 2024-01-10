@@ -20,7 +20,8 @@ type ListAllOperationResponse struct {
 }
 
 type ListAllCompleteResult struct {
-	Items []WebApplicationFirewallPolicy
+	LatestHttpResponse *http.Response
+	Items              []WebApplicationFirewallPolicy
 }
 
 // ListAll ...
@@ -84,7 +85,8 @@ func (c WebApplicationFirewallPoliciesClient) ListAllCompleteMatchingPredicate(c
 	}
 
 	result = ListAllCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

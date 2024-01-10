@@ -19,7 +19,8 @@ type GetBackupSecurityPINRequestsObjectsOperationResponse struct {
 }
 
 type GetBackupSecurityPINRequestsObjectsCompleteResult struct {
-	Items []DppBaseResource
+	LatestHttpResponse *http.Response
+	Items              []DppBaseResource
 }
 
 // GetBackupSecurityPINRequestsObjects ...
@@ -83,7 +84,8 @@ func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjectsCompleteMatchin
 	}
 
 	result = GetBackupSecurityPINRequestsObjectsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

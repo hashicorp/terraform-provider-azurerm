@@ -20,7 +20,8 @@ type NetworkInterfaceLoadBalancersListOperationResponse struct {
 }
 
 type NetworkInterfaceLoadBalancersListCompleteResult struct {
-	Items []LoadBalancer
+	LatestHttpResponse *http.Response
+	Items              []LoadBalancer
 }
 
 // NetworkInterfaceLoadBalancersList ...
@@ -84,7 +85,8 @@ func (c NetworkInterfacesClient) NetworkInterfaceLoadBalancersListCompleteMatchi
 	}
 
 	result = NetworkInterfaceLoadBalancersListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

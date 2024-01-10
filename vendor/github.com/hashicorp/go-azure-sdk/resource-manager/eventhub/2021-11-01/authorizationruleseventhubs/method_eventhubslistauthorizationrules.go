@@ -19,7 +19,8 @@ type EventHubsListAuthorizationRulesOperationResponse struct {
 }
 
 type EventHubsListAuthorizationRulesCompleteResult struct {
-	Items []AuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []AuthorizationRule
 }
 
 // EventHubsListAuthorizationRules ...
@@ -83,7 +84,8 @@ func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesComple
 	}
 
 	result = EventHubsListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

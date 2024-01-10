@@ -19,7 +19,8 @@ type PredefinedAcceleratorsListOperationResponse struct {
 }
 
 type PredefinedAcceleratorsListCompleteResult struct {
-	Items []PredefinedAcceleratorResource
+	LatestHttpResponse *http.Response
+	Items              []PredefinedAcceleratorResource
 }
 
 // PredefinedAcceleratorsList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) PredefinedAcceleratorsListCompleteMatchingPredicate(c
 	}
 
 	result = PredefinedAcceleratorsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

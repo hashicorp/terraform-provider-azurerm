@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []CertificateObjectGlobalRulestackResource
+	LatestHttpResponse *http.Response
+	Items              []CertificateObjectGlobalRulestackResource
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c CertificateObjectGlobalRulestackClient) ListCompleteMatchingPredicate(ct
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

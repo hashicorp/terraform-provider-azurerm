@@ -20,7 +20,8 @@ type GetInSubscriptionOperationResponse struct {
 }
 
 type GetInSubscriptionCompleteResult struct {
-	Items []BackupVaultResource
+	LatestHttpResponse *http.Response
+	Items              []BackupVaultResource
 }
 
 // GetInSubscription ...
@@ -84,7 +85,8 @@ func (c BackupVaultsClient) GetInSubscriptionCompleteMatchingPredicate(ctx conte
 	}
 
 	result = GetInSubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
