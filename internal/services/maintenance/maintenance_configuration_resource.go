@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -447,9 +448,8 @@ func flattenMaintenanceConfigurationInstallPatches(input *maintenanceconfigurati
 
 		if rebootSetting := v.RebootSetting; rebootSetting != nil {
 			// https://github.com/Azure/azure-rest-api-specs/issues/27222
-			if *rebootSetting == "AlwaysReboot" {
+			if strings.EqualFold(*rebootSetting, "AlwaysReboot") {
 				output["reboot"] = "Always"
-
 			} else {
 				output["reboot"] = *rebootSetting
 			}
