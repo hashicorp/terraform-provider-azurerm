@@ -30,6 +30,7 @@ func TestAccRedisCache_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("minimum_tls_version").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("redis_configuration.0.preferred_data_persistence_auth_method").HasValue("SAS"),
 			),
 		},
 		data.ImportStep(),
