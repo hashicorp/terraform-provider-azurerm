@@ -36,11 +36,11 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "ex
   spring_cloud_service_id = azurerm_spring_cloud_service.example.id
   globally_enabled        = true
   api_url                 = "https://example-api-url.com"
-  api_token               = "example-api-token"
+  api_token               = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
   environment_id          = "example-environment-id"
   tenant                  = "example-tenant"
-  tenant_token            = "example-tenant-token"
-  connection_point        = "example-connection-endpoint"
+  tenant_token            = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+  connection_point        = "https://example.live.dynatrace.com:443"
 }
 ```
 

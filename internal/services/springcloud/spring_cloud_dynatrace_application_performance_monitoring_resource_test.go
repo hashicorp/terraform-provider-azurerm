@@ -130,8 +130,8 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "te
   name                    = "acctest-apm-%[2]d"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
   tenant                  = "test-tenant"
-  tenant_token            = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
-  connection_point        = "test-connection-endpoint"
+  tenant_token            = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+  connection_point        = "https://example.live.dynatrace.com:443"
 }
 `, template, data.RandomInteger)
 }
@@ -146,7 +146,7 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "im
   spring_cloud_service_id = azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.spring_cloud_service_id
   tenant                  = "test-tenant"
   tenant_token            = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
-  connection_point        = "test-connection-endpoint"
+  connection_point        = "https://example.live.dynatrace.com:443"
 }
 `, config)
 }
@@ -161,11 +161,11 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "te
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
   globally_enabled        = true
   api_url                 = "https://test-api-url.com"
-  api_token               = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
+  api_token               = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
   environment_id          = "test-environment-id"
   tenant                  = "test-tenant"
-  tenant_token            = "dt0s01.ST2EY72KQINMH574WMNVI7YN.G3DFPBEJYMODIDAEX454M7YWBUVEFOWKPRVMWFASS64NFH52PX6BNDVFFM572RZM"
-  connection_point        = "test-connection-endpoint"
+  tenant_token            = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+  connection_point        = "https://example.live.dynatrace.com:443"
 }
 `, template, data.RandomInteger)
 }
