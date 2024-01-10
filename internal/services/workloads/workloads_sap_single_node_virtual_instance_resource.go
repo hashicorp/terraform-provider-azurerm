@@ -333,9 +333,10 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"data_disk_names": {
-									Type:     pluginsdk.TypeMap,
-									Optional: true,
-									ForceNew: true,
+									Type:         pluginsdk.TypeMap,
+									Optional:     true,
+									ForceNew:     true,
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk_names", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringLenBetween(1, 80),
@@ -346,13 +347,15 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk_names", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: validation.StringLenBetween(1, 13),
 								},
 
 								"network_interface_names": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
+									Type:         pluginsdk.TypeList,
+									Optional:     true,
+									ForceNew:     true,
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk_names", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: networkValidate.NetworkInterfaceName,
@@ -363,6 +366,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk_names", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: validation.StringLenBetween(1, 80),
 								},
 
@@ -370,6 +374,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ForceNew:     true,
+									AtLeastOneOf: []string{"single_server_configuration.0.virtual_machine_resource_names.0.data_disk_names", "single_server_configuration.0.virtual_machine_resource_names.0.host_name", "single_server_configuration.0.virtual_machine_resource_names.0.network_interface_names", "single_server_configuration.0.virtual_machine_resource_names.0.os_disk_name", "single_server_configuration.0.virtual_machine_resource_names.0.virtual_machine_name"},
 									ValidateFunc: computeValidate.VirtualMachineName,
 								},
 							},
