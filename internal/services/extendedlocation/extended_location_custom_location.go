@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomLocationResource struct{}
@@ -48,12 +47,7 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
+		"location": commonschema.Location(),
 
 		"namespace": {
 			Type:         pluginsdk.TypeString,
@@ -79,6 +73,7 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 		"authentication": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -148,40 +143,40 @@ func (r CustomLocationResource) Create() sdk.ResourceFunc {
 
 			customLocationProps := customlocations.CustomLocationProperties{}
 
-			if model.Authentication != nil {
+			if model.Authentication != nil && len(model.Authentication) > 0 {
 				auth := model.Authentication[0]
 				customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
-					Type:  &auth.Type,
-					Value: &auth.Value,
+					Type:  pointer.To(auth.Type),
+					Value: pointer.To(auth.Value),
 				}
 			}
 
 			if model.ClusterExtensionIds != nil {
-				customLocationProps.ClusterExtensionIds = &model.ClusterExtensionIds
+				customLocationProps.ClusterExtensionIds = pointer.To(model.ClusterExtensionIds)
 			}
 
 			if model.DisplayName != "" {
-				customLocationProps.DisplayName = &model.DisplayName
+				customLocationProps.DisplayName = pointer.To(model.DisplayName)
 			}
 
 			if model.HostResourceId != "" {
-				customLocationProps.HostResourceId = &model.HostResourceId
+				customLocationProps.HostResourceId = pointer.To(model.HostResourceId)
 			}
 
 			if model.HostType != "" {
 				hostType := customlocations.HostType(model.HostType)
-				customLocationProps.HostType = &hostType
+				customLocationProps.HostType = pointer.To(hostType)
 			}
 
 			if model.Namespace != "" {
-				customLocationProps.Namespace = &model.Namespace
+				customLocationProps.Namespace = pointer.To(model.Namespace)
 			}
 
 			props := customlocations.CustomLocation{
-				Id:         utils.String(id.ID()),
+				Id:         pointer.To(id.ID()),
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
-				Properties: &customLocationProps,
+				Name:       pointer.To(model.Name),
+				Properties: pointer.To(customLocationProps),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
@@ -216,40 +211,23 @@ func (r CustomLocationResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 
 				state := CustomLocationResourceModel{
-					Name:              id.CustomLocationName,
-					ResourceGroupName: id.ResourceGroupName,
-					Location:          model.Location,
+					Name:                id.CustomLocationName,
+					ResourceGroupName:   id.ResourceGroupName,
+					Location:            model.Location,
+					ClusterExtensionIds: pointer.From(props.ClusterExtensionIds),
+					DisplayName:         pointer.From(props.DisplayName),
+					HostResourceId:      pointer.From(props.HostResourceId),
+					HostType:            string(pointer.From(props.HostType)),
+					Namespace:           pointer.From(props.Namespace),
 				}
 
 				if props != nil && props.Authentication != nil {
-					authType := pointer.From(props.Authentication.Type)
-					authValue := pointer.From(props.Authentication.Value)
 					state.Authentication = []AuthModel{
 						{
-							Type:  authType,
-							Value: authValue,
+							Type:  pointer.From(props.Authentication.Type),
+							Value: pointer.From(props.Authentication.Value),
 						},
 					}
-				}
-
-				if props.ClusterExtensionIds != nil {
-					state.ClusterExtensionIds = *props.ClusterExtensionIds
-				}
-
-				if props.DisplayName != nil {
-					state.DisplayName = *props.DisplayName
-				}
-
-				if props.HostResourceId != nil {
-					state.HostResourceId = *props.HostResourceId
-				}
-
-				if props.HostType != nil {
-					state.HostType = string(*props.HostType)
-				}
-
-				if props.Namespace != nil {
-					state.Namespace = *props.Namespace
 				}
 
 				return metadata.Encode(&state)
@@ -301,38 +279,38 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 			d := metadata.ResourceData
 
 			if d.HasChanges("authentication") {
-				if state.Authentication != nil {
+				if state.Authentication != nil && len(state.Authentication) > 0 {
 					auth := state.Authentication[0]
 					customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
-						Type:  &auth.Type,
-						Value: &auth.Value,
+						Type:  pointer.To(auth.Type),
+						Value: pointer.To(auth.Value),
 					}
 				}
 			}
 
 			if d.HasChange("cluster_extension_ids") {
-				customLocationProps.ClusterExtensionIds = &state.ClusterExtensionIds
+				customLocationProps.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
 			}
 
 			if d.HasChange("display_name") {
-				customLocationProps.DisplayName = &state.DisplayName
+				customLocationProps.DisplayName = pointer.To(state.DisplayName)
 			}
 
 			if d.HasChange("host_resource_id") {
-				customLocationProps.HostResourceId = &state.HostResourceId
+				customLocationProps.HostResourceId = pointer.To(state.HostResourceId)
 			}
 
 			if d.HasChange("host_type") {
 				hostType := customlocations.HostType(state.HostType)
-				customLocationProps.HostType = &hostType
+				customLocationProps.HostType = pointer.To(hostType)
 			}
 
 			if d.HasChange("namespace") {
-				customLocationProps.Namespace = &state.Namespace
+				customLocationProps.Namespace = pointer.To(state.Namespace)
 			}
 
 			props := customlocations.PatchableCustomLocations{
-				Properties: &customLocationProps,
+				Properties: pointer.To(customLocationProps),
 			}
 
 			if _, err := client.Update(ctx, *id, props); err != nil {

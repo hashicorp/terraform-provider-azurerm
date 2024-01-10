@@ -79,6 +79,13 @@ func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data, credential, privateKey, publicKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -88,13 +95,12 @@ func (r CustomLocationResource) basic(data acceptance.TestData, credential strin
 %s
 
 resource "azurerm_extended_custom_location" "test" {
-  name                = "acctestcustomlocation%d"
+  name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_extension_ids = [
-    "${azurerm_arc_kubernetes_cluster_extension.test.id}"
+    azurerm_arc_kubernetes_cluster_extension.test.id
   ]
-  display_name     = "customlocation%[2]d"
   namespace        = "namespace%[2]d"
   host_resource_id = azurerm_arc_kubernetes_cluster.test.id
 }
@@ -107,11 +113,11 @@ func (r CustomLocationResource) update(data acceptance.TestData, credential stri
 %s
 
 resource "azurerm_extended_custom_location" "test" {
-  name                = "acctestcustomlocation%d"
+  name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_extension_ids = [
-    "${azurerm_arc_kubernetes_cluster_extension.test.id}",
+    azurerm_arc_kubernetes_cluster_extension.test.id
   ]
 
   display_name     = "customlocationupdate%[2]d"
@@ -172,7 +178,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_network_security_group" "my_terraform_nsg" {
-  name                = "myNetworkSecurityGroup"
+  name                = "myNetworkSG-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   security_rule {
@@ -222,13 +228,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
-
-  lifecycle {
-    ignore_changes = [
-      identity,
-      tags,
-    ]
-  }
 }
 
 resource "azurerm_arc_kubernetes_cluster" "test" {
@@ -248,7 +247,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_arc_kubernetes_cluster_extension" "test" {
-  name              = "extension4"
+  name              = "extension-%[1]d"
   cluster_id        = azurerm_arc_kubernetes_cluster.test.id
   extension_type    = "microsoft.vmware"
   release_namespace = "vmware-extension"
