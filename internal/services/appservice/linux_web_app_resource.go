@@ -325,6 +325,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					}
 				}
 
+				availabilityRequest.Name = fmt.Sprintf("%s.%s", webApp.Name, nameSuffix)
 				availabilityRequest.IsFqdn = pointer.To(true)
 			}
 
@@ -585,10 +586,6 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s : %+v", id, err)
 			}
-
-			//if err := result.Poller.PollUntilDone(ctx); err != nil {
-			//	return fmt.Errorf("polling after ListPublishingCredentials: %+v", err)
-			//}
 
 			var siteCredentials webapps.User
 			if err := json.NewDecoder(result.HttpResponse.Body).Decode(&siteCredentials); err != nil {
