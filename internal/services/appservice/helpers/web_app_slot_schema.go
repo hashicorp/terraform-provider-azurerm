@@ -18,39 +18,41 @@ import (
 )
 
 type SiteConfigLinuxWebAppSlot struct {
-	AlwaysOn                bool                    `tfschema:"always_on"`
-	ApiManagementConfigId   string                  `tfschema:"api_management_api_id"`
-	ApiDefinition           string                  `tfschema:"api_definition_url"`
-	AppCommandLine          string                  `tfschema:"app_command_line"`
-	AutoHeal                bool                    `tfschema:"auto_heal_enabled"`
-	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
-	AutoSwapSlotName        string                  `tfschema:"auto_swap_slot_name"`
-	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_client_id"`
-	DefaultDocuments        []string                `tfschema:"default_documents"`
-	Http2Enabled            bool                    `tfschema:"http2_enabled"`
-	IpRestriction           []IpRestriction         `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
-	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
-	LocalMysql              bool                    `tfschema:"local_mysql_enabled"`
-	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging         bool                    `tfschema:"remote_debugging_enabled"`
-	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
-	ScmType                 string                  `tfschema:"scm_type"`
-	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
-	WebSockets              bool                    `tfschema:"websockets_enabled"`
-	FtpsState               string                  `tfschema:"ftps_state"`
-	HealthCheckPath         string                  `tfschema:"health_check_path"`
-	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time_in_min"`
-	WorkerCount             int                     `tfschema:"worker_count"`
-	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
-	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
-	Cors                    []CorsSetting           `tfschema:"cors"`
-	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging_enabled"`
-	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
-	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
+	AlwaysOn                               bool                    `tfschema:"always_on"`
+	ApiManagementConfigId                  string                  `tfschema:"api_management_api_id"`
+	ApiDefinition                          string                  `tfschema:"api_definition_url"`
+	AppCommandLine                         string                  `tfschema:"app_command_line"`
+	AutoHeal                               bool                    `tfschema:"auto_heal_enabled"`
+	AutoHealSettings                       []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
+	AutoSwapSlotName                       string                  `tfschema:"auto_swap_slot_name"`
+	UseManagedIdentityACR                  bool                    `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryMSI                   string                  `tfschema:"container_registry_managed_identity_client_id"`
+	DefaultDocuments                       []string                `tfschema:"default_documents"`
+	Http2Enabled                           bool                    `tfschema:"http2_enabled"`
+	IpRestriction                          []IpRestriction         `tfschema:"ip_restriction"`
+	IpSecurityRestrictionsDefaultAction    string                  `tfschema:"ip_security_restrictions_default_action"`
+	ScmIpSecurityRestrictionsDefaultAction string                  `tfschema:"scm_ip_security_restrictions_default_action"`
+	ScmUseMainIpRestriction                bool                    `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction                       []IpRestriction         `tfschema:"scm_ip_restriction"`
+	LoadBalancing                          string                  `tfschema:"load_balancing_mode"`
+	LocalMysql                             bool                    `tfschema:"local_mysql_enabled"`
+	ManagedPipelineMode                    string                  `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging                        bool                    `tfschema:"remote_debugging_enabled"`
+	RemoteDebuggingVersion                 string                  `tfschema:"remote_debugging_version"`
+	ScmType                                string                  `tfschema:"scm_type"`
+	Use32BitWorker                         bool                    `tfschema:"use_32_bit_worker"`
+	WebSockets                             bool                    `tfschema:"websockets_enabled"`
+	FtpsState                              string                  `tfschema:"ftps_state"`
+	HealthCheckPath                        string                  `tfschema:"health_check_path"`
+	HealthCheckEvictionTime                int                     `tfschema:"health_check_eviction_time_in_min"`
+	WorkerCount                            int                     `tfschema:"worker_count"`
+	ApplicationStack                       []ApplicationStackLinux `tfschema:"application_stack"`
+	MinTlsVersion                          string                  `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion                       string                  `tfschema:"scm_minimum_tls_version"`
+	Cors                                   []CorsSetting           `tfschema:"cors"`
+	DetailedErrorLogging                   bool                    `tfschema:"detailed_error_logging_enabled"`
+	LinuxFxVersion                         string                  `tfschema:"linux_fx_version"`
+	VnetRouteAllEnabled                    bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
@@ -126,10 +128,28 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 
 				"ip_restriction": IpRestrictionSchema(),
 
+				"ip_security_restrictions_default_action": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Allow",
+						"Deny",
+					}, false),
+				},
+
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+
+				"scm_ip_security_restrictions_default_action": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Allow",
+						"Deny",
+					}, false),
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -653,6 +673,14 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	if s.IpSecurityRestrictionsDefaultAction != "" {
+		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultAction(s.IpSecurityRestrictionsDefaultAction)
+	}
+
+	if s.ScmIpSecurityRestrictionsDefaultAction != "" {
+		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultAction(s.ScmIpSecurityRestrictionsDefaultAction)
+	}
+
 	if len(s.ScmIpRestriction) != 0 {
 		ipRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
@@ -693,6 +721,8 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+	expanded.IPSecurityRestrictionsDefaultAction = web.DefaultAction(s.IpSecurityRestrictionsDefaultAction)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultAction(s.ScmIpSecurityRestrictionsDefaultAction)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
@@ -851,6 +881,8 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig) {
 	s.DetailedErrorLogging = pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled)
 	s.Http2Enabled = pointer.From(appSiteSlotConfig.HTTP20Enabled)
 	s.IpRestriction = FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions)
+	s.IpSecurityRestrictionsDefaultAction = string(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction)
+	s.ScmIpSecurityRestrictionsDefaultAction = string(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction)
 	s.ManagedPipelineMode = string(appSiteSlotConfig.ManagedPipelineMode)
 	s.ScmType = string(appSiteSlotConfig.ScmType)
 	s.FtpsState = string(appSiteSlotConfig.FtpsState)

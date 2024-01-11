@@ -370,6 +370,50 @@ func TestAccLinuxWebAppSlot_withIPRestrictionsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withIPRestrictionsDefaultAction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictionsDefaultAction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withIPRestrictionsDefaultActionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictionsDefaultAction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withIPRestrictionsDefaultActionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withIPRestrictionsDefaultAction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -1631,19 +1675,21 @@ resource "azurerm_linux_web_app_slot" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
-    use_32_bit_worker           = true
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                               = true
+    scm_use_main_ip_restriction                 = true
+    local_mysql_enabled                         = true
+    managed_pipeline_mode                       = "Integrated"
+    remote_debugging_enabled                    = true
+    remote_debugging_version                    = "VS2019"
+    use_32_bit_worker                           = true
+    websockets_enabled                          = true
+    ftps_state                                  = "FtpsOnly"
+    health_check_path                           = "/health"
+    worker_count                                = 1
+    minimum_tls_version                         = "1.1"
+    scm_minimum_tls_version                     = "1.1"
+    ip_security_restrictions_default_action     = "Allow"
+    scm_ip_security_restrictions_default_action = "Allow"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -2071,6 +2117,46 @@ resource "azurerm_linux_web_app_slot" "test" {
         x_forwarded_host  = ["example.com", "anotherexample.com"]
       }
     }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) withIPRestrictionsDefaultAction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    ip_security_restrictions_default_action     = "Deny"
+    scm_ip_security_restrictions_default_action = "Deny"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) withIPRestrictionsDefaultActionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    ip_security_restrictions_default_action     = "Allow"
+    scm_ip_security_restrictions_default_action = "Allow"
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
