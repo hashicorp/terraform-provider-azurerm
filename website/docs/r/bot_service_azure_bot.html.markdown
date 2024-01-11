@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `luis_key` - (Optional) The LUIS key to associate with this Azure Bot Service.
 
+* `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to `true`.
+
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
