@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -43,7 +44,7 @@ func (o CreateOrUpdateOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // CreateOrUpdate ...
-func (c DatabasesClient) CreateOrUpdate(ctx context.Context, id DatabaseId, input Database, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
+func (c DatabasesClient) CreateOrUpdate(ctx context.Context, id commonids.KustoDatabaseId, input Database, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databases.DatabasesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c DatabasesClient) CreateOrUpdate(ctx context.Context, id DatabaseId, inpu
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c DatabasesClient) CreateOrUpdateThenPoll(ctx context.Context, id DatabaseId, input Database, options CreateOrUpdateOperationOptions) error {
+func (c DatabasesClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.KustoDatabaseId, input Database, options CreateOrUpdateOperationOptions) error {
 	result, err := c.CreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
@@ -74,7 +75,7 @@ func (c DatabasesClient) CreateOrUpdateThenPoll(ctx context.Context, id Database
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c DatabasesClient) preparerForCreateOrUpdate(ctx context.Context, id DatabaseId, input Database, options CreateOrUpdateOperationOptions) (*http.Request, error) {
+func (c DatabasesClient) preparerForCreateOrUpdate(ctx context.Context, id commonids.KustoDatabaseId, input Database, options CreateOrUpdateOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

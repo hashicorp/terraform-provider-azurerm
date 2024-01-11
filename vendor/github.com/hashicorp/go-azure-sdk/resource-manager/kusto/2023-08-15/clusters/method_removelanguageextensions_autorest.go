@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type RemoveLanguageExtensionsOperationResponse struct {
 }
 
 // RemoveLanguageExtensions ...
-func (c ClustersClient) RemoveLanguageExtensions(ctx context.Context, id ClusterId, input LanguageExtensionsList) (result RemoveLanguageExtensionsOperationResponse, err error) {
+func (c ClustersClient) RemoveLanguageExtensions(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList) (result RemoveLanguageExtensionsOperationResponse, err error) {
 	req, err := c.preparerForRemoveLanguageExtensions(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "RemoveLanguageExtensions", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ClustersClient) RemoveLanguageExtensions(ctx context.Context, id Cluster
 }
 
 // RemoveLanguageExtensionsThenPoll performs RemoveLanguageExtensions then polls until it's completed
-func (c ClustersClient) RemoveLanguageExtensionsThenPoll(ctx context.Context, id ClusterId, input LanguageExtensionsList) error {
+func (c ClustersClient) RemoveLanguageExtensionsThenPoll(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList) error {
 	result, err := c.RemoveLanguageExtensions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RemoveLanguageExtensions: %+v", err)
@@ -50,7 +51,7 @@ func (c ClustersClient) RemoveLanguageExtensionsThenPoll(ctx context.Context, id
 }
 
 // preparerForRemoveLanguageExtensions prepares the RemoveLanguageExtensions request.
-func (c ClustersClient) preparerForRemoveLanguageExtensions(ctx context.Context, id ClusterId, input LanguageExtensionsList) (*http.Request, error) {
+func (c ClustersClient) preparerForRemoveLanguageExtensions(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

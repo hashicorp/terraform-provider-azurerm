@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type ListPrincipalsOperationResponse struct {
 }
 
 // ListPrincipals ...
-func (c DatabasesClient) ListPrincipals(ctx context.Context, id DatabaseId) (result ListPrincipalsOperationResponse, err error) {
+func (c DatabasesClient) ListPrincipals(ctx context.Context, id commonids.KustoDatabaseId) (result ListPrincipalsOperationResponse, err error) {
 	req, err := c.preparerForListPrincipals(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databases.DatabasesClient", "ListPrincipals", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c DatabasesClient) ListPrincipals(ctx context.Context, id DatabaseId) (res
 }
 
 // preparerForListPrincipals prepares the ListPrincipals request.
-func (c DatabasesClient) preparerForListPrincipals(ctx context.Context, id DatabaseId) (*http.Request, error) {
+func (c DatabasesClient) preparerForListPrincipals(ctx context.Context, id commonids.KustoDatabaseId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

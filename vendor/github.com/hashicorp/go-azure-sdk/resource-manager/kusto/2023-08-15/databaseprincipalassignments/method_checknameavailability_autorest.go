@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type CheckNameAvailabilityOperationResponse struct {
 }
 
 // CheckNameAvailability ...
-func (c DatabasePrincipalAssignmentsClient) CheckNameAvailability(ctx context.Context, id DatabaseId, input DatabasePrincipalAssignmentCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
+func (c DatabasePrincipalAssignmentsClient) CheckNameAvailability(ctx context.Context, id commonids.KustoDatabaseId, input DatabasePrincipalAssignmentCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
 	req, err := c.preparerForCheckNameAvailability(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databaseprincipalassignments.DatabasePrincipalAssignmentsClient", "CheckNameAvailability", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c DatabasePrincipalAssignmentsClient) CheckNameAvailability(ctx context.Co
 }
 
 // preparerForCheckNameAvailability prepares the CheckNameAvailability request.
-func (c DatabasePrincipalAssignmentsClient) preparerForCheckNameAvailability(ctx context.Context, id DatabaseId, input DatabasePrincipalAssignmentCheckNameRequest) (*http.Request, error) {
+func (c DatabasePrincipalAssignmentsClient) preparerForCheckNameAvailability(ctx context.Context, id commonids.KustoDatabaseId, input DatabasePrincipalAssignmentCheckNameRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

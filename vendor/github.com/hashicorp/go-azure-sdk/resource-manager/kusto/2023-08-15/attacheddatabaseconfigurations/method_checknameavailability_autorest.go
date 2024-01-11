@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type CheckNameAvailabilityOperationResponse struct {
 }
 
 // CheckNameAvailability ...
-func (c AttachedDatabaseConfigurationsClient) CheckNameAvailability(ctx context.Context, id ClusterId, input AttachedDatabaseConfigurationsCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
+func (c AttachedDatabaseConfigurationsClient) CheckNameAvailability(ctx context.Context, id commonids.KustoClusterId, input AttachedDatabaseConfigurationsCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
 	req, err := c.preparerForCheckNameAvailability(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attacheddatabaseconfigurations.AttachedDatabaseConfigurationsClient", "CheckNameAvailability", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c AttachedDatabaseConfigurationsClient) CheckNameAvailability(ctx context.
 }
 
 // preparerForCheckNameAvailability prepares the CheckNameAvailability request.
-func (c AttachedDatabaseConfigurationsClient) preparerForCheckNameAvailability(ctx context.Context, id ClusterId, input AttachedDatabaseConfigurationsCheckNameRequest) (*http.Request, error) {
+func (c AttachedDatabaseConfigurationsClient) preparerForCheckNameAvailability(ctx context.Context, id commonids.KustoClusterId, input AttachedDatabaseConfigurationsCheckNameRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

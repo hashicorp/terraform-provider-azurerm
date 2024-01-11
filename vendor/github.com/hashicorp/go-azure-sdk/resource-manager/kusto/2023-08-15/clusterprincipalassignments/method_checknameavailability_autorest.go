@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type CheckNameAvailabilityOperationResponse struct {
 }
 
 // CheckNameAvailability ...
-func (c ClusterPrincipalAssignmentsClient) CheckNameAvailability(ctx context.Context, id ClusterId, input ClusterPrincipalAssignmentCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
+func (c ClusterPrincipalAssignmentsClient) CheckNameAvailability(ctx context.Context, id commonids.KustoClusterId, input ClusterPrincipalAssignmentCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
 	req, err := c.preparerForCheckNameAvailability(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusterprincipalassignments.ClusterPrincipalAssignmentsClient", "CheckNameAvailability", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c ClusterPrincipalAssignmentsClient) CheckNameAvailability(ctx context.Con
 }
 
 // preparerForCheckNameAvailability prepares the CheckNameAvailability request.
-func (c ClusterPrincipalAssignmentsClient) preparerForCheckNameAvailability(ctx context.Context, id ClusterId, input ClusterPrincipalAssignmentCheckNameRequest) (*http.Request, error) {
+func (c ClusterPrincipalAssignmentsClient) preparerForCheckNameAvailability(ctx context.Context, id commonids.KustoClusterId, input ClusterPrincipalAssignmentCheckNameRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

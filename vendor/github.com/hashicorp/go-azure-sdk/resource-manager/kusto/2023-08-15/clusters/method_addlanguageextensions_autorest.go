@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type AddLanguageExtensionsOperationResponse struct {
 }
 
 // AddLanguageExtensions ...
-func (c ClustersClient) AddLanguageExtensions(ctx context.Context, id ClusterId, input LanguageExtensionsList) (result AddLanguageExtensionsOperationResponse, err error) {
+func (c ClustersClient) AddLanguageExtensions(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList) (result AddLanguageExtensionsOperationResponse, err error) {
 	req, err := c.preparerForAddLanguageExtensions(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "AddLanguageExtensions", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ClustersClient) AddLanguageExtensions(ctx context.Context, id ClusterId,
 }
 
 // AddLanguageExtensionsThenPoll performs AddLanguageExtensions then polls until it's completed
-func (c ClustersClient) AddLanguageExtensionsThenPoll(ctx context.Context, id ClusterId, input LanguageExtensionsList) error {
+func (c ClustersClient) AddLanguageExtensionsThenPoll(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList) error {
 	result, err := c.AddLanguageExtensions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AddLanguageExtensions: %+v", err)
@@ -50,7 +51,7 @@ func (c ClustersClient) AddLanguageExtensionsThenPoll(ctx context.Context, id Cl
 }
 
 // preparerForAddLanguageExtensions prepares the AddLanguageExtensions request.
-func (c ClustersClient) preparerForAddLanguageExtensions(ctx context.Context, id ClusterId, input LanguageExtensionsList) (*http.Request, error) {
+func (c ClustersClient) preparerForAddLanguageExtensions(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type DiagnoseVirtualNetworkOperationResponse struct {
 }
 
 // DiagnoseVirtualNetwork ...
-func (c ClustersClient) DiagnoseVirtualNetwork(ctx context.Context, id ClusterId) (result DiagnoseVirtualNetworkOperationResponse, err error) {
+func (c ClustersClient) DiagnoseVirtualNetwork(ctx context.Context, id commonids.KustoClusterId) (result DiagnoseVirtualNetworkOperationResponse, err error) {
 	req, err := c.preparerForDiagnoseVirtualNetwork(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "DiagnoseVirtualNetwork", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ClustersClient) DiagnoseVirtualNetwork(ctx context.Context, id ClusterId
 }
 
 // DiagnoseVirtualNetworkThenPoll performs DiagnoseVirtualNetwork then polls until it's completed
-func (c ClustersClient) DiagnoseVirtualNetworkThenPoll(ctx context.Context, id ClusterId) error {
+func (c ClustersClient) DiagnoseVirtualNetworkThenPoll(ctx context.Context, id commonids.KustoClusterId) error {
 	result, err := c.DiagnoseVirtualNetwork(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DiagnoseVirtualNetwork: %+v", err)
@@ -50,7 +51,7 @@ func (c ClustersClient) DiagnoseVirtualNetworkThenPoll(ctx context.Context, id C
 }
 
 // preparerForDiagnoseVirtualNetwork prepares the DiagnoseVirtualNetwork request.
-func (c ClustersClient) preparerForDiagnoseVirtualNetwork(ctx context.Context, id ClusterId) (*http.Request, error) {
+func (c ClustersClient) preparerForDiagnoseVirtualNetwork(ctx context.Context, id commonids.KustoClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

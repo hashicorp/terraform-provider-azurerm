@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -43,7 +44,7 @@ func (o UpdateOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // Update ...
-func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterUpdate, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
+func (c ClustersClient) Update(ctx context.Context, id commonids.KustoClusterId, input ClusterUpdate, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "Update", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterU
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c ClustersClient) UpdateThenPoll(ctx context.Context, id ClusterId, input ClusterUpdate, options UpdateOperationOptions) error {
+func (c ClustersClient) UpdateThenPoll(ctx context.Context, id commonids.KustoClusterId, input ClusterUpdate, options UpdateOperationOptions) error {
 	result, err := c.Update(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
@@ -74,7 +75,7 @@ func (c ClustersClient) UpdateThenPoll(ctx context.Context, id ClusterId, input 
 }
 
 // preparerForUpdate prepares the Update request.
-func (c ClustersClient) preparerForUpdate(ctx context.Context, id ClusterId, input ClusterUpdate, options UpdateOperationOptions) (*http.Request, error) {
+func (c ClustersClient) preparerForUpdate(ctx context.Context, id commonids.KustoClusterId, input ClusterUpdate, options UpdateOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type RemovePrincipalsOperationResponse struct {
 }
 
 // RemovePrincipals ...
-func (c DatabasesClient) RemovePrincipals(ctx context.Context, id DatabaseId, input DatabasePrincipalListRequest) (result RemovePrincipalsOperationResponse, err error) {
+func (c DatabasesClient) RemovePrincipals(ctx context.Context, id commonids.KustoDatabaseId, input DatabasePrincipalListRequest) (result RemovePrincipalsOperationResponse, err error) {
 	req, err := c.preparerForRemovePrincipals(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databases.DatabasesClient", "RemovePrincipals", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c DatabasesClient) RemovePrincipals(ctx context.Context, id DatabaseId, in
 }
 
 // preparerForRemovePrincipals prepares the RemovePrincipals request.
-func (c DatabasesClient) preparerForRemovePrincipals(ctx context.Context, id DatabaseId, input DatabasePrincipalListRequest) (*http.Request, error) {
+func (c DatabasesClient) preparerForRemovePrincipals(ctx context.Context, id commonids.KustoDatabaseId, input DatabasePrincipalListRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

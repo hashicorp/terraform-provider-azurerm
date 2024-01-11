@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -43,7 +44,7 @@ func (o UpdateOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // Update ...
-func (c DatabasesClient) Update(ctx context.Context, id DatabaseId, input Database, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
+func (c DatabasesClient) Update(ctx context.Context, id commonids.KustoDatabaseId, input Database, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databases.DatabasesClient", "Update", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c DatabasesClient) Update(ctx context.Context, id DatabaseId, input Databa
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c DatabasesClient) UpdateThenPoll(ctx context.Context, id DatabaseId, input Database, options UpdateOperationOptions) error {
+func (c DatabasesClient) UpdateThenPoll(ctx context.Context, id commonids.KustoDatabaseId, input Database, options UpdateOperationOptions) error {
 	result, err := c.Update(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
@@ -74,7 +75,7 @@ func (c DatabasesClient) UpdateThenPoll(ctx context.Context, id DatabaseId, inpu
 }
 
 // preparerForUpdate prepares the Update request.
-func (c DatabasesClient) preparerForUpdate(ctx context.Context, id DatabaseId, input Database, options UpdateOperationOptions) (*http.Request, error) {
+func (c DatabasesClient) preparerForUpdate(ctx context.Context, id commonids.KustoDatabaseId, input Database, options UpdateOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

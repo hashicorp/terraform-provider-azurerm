@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type DatabaseInviteFollowerOperationResponse struct {
 }
 
 // DatabaseInviteFollower ...
-func (c DatabasesClient) DatabaseInviteFollower(ctx context.Context, id DatabaseId, input DatabaseInviteFollowerRequest) (result DatabaseInviteFollowerOperationResponse, err error) {
+func (c DatabasesClient) DatabaseInviteFollower(ctx context.Context, id commonids.KustoDatabaseId, input DatabaseInviteFollowerRequest) (result DatabaseInviteFollowerOperationResponse, err error) {
 	req, err := c.preparerForDatabaseInviteFollower(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databases.DatabasesClient", "DatabaseInviteFollower", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c DatabasesClient) DatabaseInviteFollower(ctx context.Context, id Database
 }
 
 // preparerForDatabaseInviteFollower prepares the DatabaseInviteFollower request.
-func (c DatabasesClient) preparerForDatabaseInviteFollower(ctx context.Context, id DatabaseId, input DatabaseInviteFollowerRequest) (*http.Request, error) {
+func (c DatabasesClient) preparerForDatabaseInviteFollower(ctx context.Context, id commonids.KustoDatabaseId, input DatabaseInviteFollowerRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

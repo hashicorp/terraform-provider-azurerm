@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := clusters.LanguageExtensionsList{
 	// ...
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := clusters.Cluster{
 	// ...
@@ -79,7 +79,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, clusters.DefaultCreate
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -91,7 +91,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := clusters.FollowerDatabaseDefinition{
 	// ...
@@ -108,7 +108,7 @@ if err := client.DetachFollowerDatabasesThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.DiagnoseVirtualNetworkThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -120,7 +120,7 @@ if err := client.DiagnoseVirtualNetworkThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -168,7 +168,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.ListFollowerDatabases(ctx, id)
 if err != nil {
@@ -184,7 +184,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.ListLanguageExtensions(ctx, id)
 if err != nil {
@@ -200,7 +200,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.ListSkusByResource(ctx, id)
 if err != nil {
@@ -216,7 +216,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := clusters.ClusterMigrateRequest{
 	// ...
@@ -233,7 +233,7 @@ if err := client.MigrateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := clusters.LanguageExtensionsList{
 	// ...
@@ -250,7 +250,7 @@ if err := client.RemoveLanguageExtensionsThenPoll(ctx, id, payload); err != nil 
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -262,7 +262,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -274,7 +274,7 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := clusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := clusters.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := clusters.ClusterUpdate{
 	// ...

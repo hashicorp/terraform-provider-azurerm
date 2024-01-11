@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type DataConnectionValidationOperationResponse struct {
 }
 
 // DataConnectionValidation ...
-func (c DataConnectionsClient) DataConnectionValidation(ctx context.Context, id DatabaseId, input DataConnectionValidation) (result DataConnectionValidationOperationResponse, err error) {
+func (c DataConnectionsClient) DataConnectionValidation(ctx context.Context, id commonids.KustoDatabaseId, input DataConnectionValidation) (result DataConnectionValidationOperationResponse, err error) {
 	req, err := c.preparerForDataConnectionValidation(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dataconnections.DataConnectionsClient", "DataConnectionValidation", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c DataConnectionsClient) DataConnectionValidation(ctx context.Context, id 
 }
 
 // DataConnectionValidationThenPoll performs DataConnectionValidation then polls until it's completed
-func (c DataConnectionsClient) DataConnectionValidationThenPoll(ctx context.Context, id DatabaseId, input DataConnectionValidation) error {
+func (c DataConnectionsClient) DataConnectionValidationThenPoll(ctx context.Context, id commonids.KustoDatabaseId, input DataConnectionValidation) error {
 	result, err := c.DataConnectionValidation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DataConnectionValidation: %+v", err)
@@ -50,7 +51,7 @@ func (c DataConnectionsClient) DataConnectionValidationThenPoll(ctx context.Cont
 }
 
 // preparerForDataConnectionValidation prepares the DataConnectionValidation request.
-func (c DataConnectionsClient) preparerForDataConnectionValidation(ctx context.Context, id DatabaseId, input DataConnectionValidation) (*http.Request, error) {
+func (c DataConnectionsClient) preparerForDataConnectionValidation(ctx context.Context, id commonids.KustoDatabaseId, input DataConnectionValidation) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
