@@ -466,7 +466,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		// Submit TDE selector only when state is being changed, otherwise it can cause unwanted detection of state changes from the cloud side
+		// Submit TDE state only when state is being changed, otherwise it can cause unwanted detection of state changes from the cloud side
 		if !strings.EqualFold(string(currentState), string(state)) {
 			input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
 				Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
