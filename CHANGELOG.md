@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `paloaltonetworks`: updating to API Version `2023-09-01` [GH-24290]
 * `azurerm_container_app` - update create time validations for `ingress.0.traffic_weight` [GH-24042]
 * `azurerm_container_app`- support for the `ip_security_restriction` block [GH-23870]
+* `azurerm_kubernetes_cluster` - properties in `default_node_pool.linux_os_config.sysctl_config` are now updateable via node pool cycling [GH-24397]
 * `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
 * `azurerm_postgres_flexible_server` - `sku_name` now supports being set to `MO_Standard_E96ds_v5` [GH-24367]
 * `azurerm_role_assignment` - support for the `principal_type` property [GH-24271]
