@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type MigrateOperationResponse struct {
 }
 
 // Migrate ...
-func (c ClustersClient) Migrate(ctx context.Context, id ClusterId, input ClusterMigrateRequest) (result MigrateOperationResponse, err error) {
+func (c ClustersClient) Migrate(ctx context.Context, id commonids.KustoClusterId, input ClusterMigrateRequest) (result MigrateOperationResponse, err error) {
 	req, err := c.preparerForMigrate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "Migrate", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ClustersClient) Migrate(ctx context.Context, id ClusterId, input Cluster
 }
 
 // MigrateThenPoll performs Migrate then polls until it's completed
-func (c ClustersClient) MigrateThenPoll(ctx context.Context, id ClusterId, input ClusterMigrateRequest) error {
+func (c ClustersClient) MigrateThenPoll(ctx context.Context, id commonids.KustoClusterId, input ClusterMigrateRequest) error {
 	result, err := c.Migrate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Migrate: %+v", err)
@@ -50,7 +51,7 @@ func (c ClustersClient) MigrateThenPoll(ctx context.Context, id ClusterId, input
 }
 
 // preparerForMigrate prepares the Migrate request.
-func (c ClustersClient) preparerForMigrate(ctx context.Context, id ClusterId, input ClusterMigrateRequest) (*http.Request, error) {
+func (c ClustersClient) preparerForMigrate(ctx context.Context, id commonids.KustoClusterId, input ClusterMigrateRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

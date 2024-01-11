@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -63,7 +64,7 @@ func (o ListByClusterOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // ListByCluster ...
-func (c DatabasesClient) ListByCluster(ctx context.Context, id ClusterId, options ListByClusterOperationOptions) (resp ListByClusterOperationResponse, err error) {
+func (c DatabasesClient) ListByCluster(ctx context.Context, id commonids.KustoClusterId, options ListByClusterOperationOptions) (resp ListByClusterOperationResponse, err error) {
 	req, err := c.preparerForListByCluster(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databases.DatabasesClient", "ListByCluster", nil, "Failure preparing request")
@@ -85,7 +86,7 @@ func (c DatabasesClient) ListByCluster(ctx context.Context, id ClusterId, option
 }
 
 // preparerForListByCluster prepares the ListByCluster request.
-func (c DatabasesClient) preparerForListByCluster(ctx context.Context, id ClusterId, options ListByClusterOperationOptions) (*http.Request, error) {
+func (c DatabasesClient) preparerForListByCluster(ctx context.Context, id commonids.KustoClusterId, options ListByClusterOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -181,12 +182,12 @@ func (c DatabasesClient) responderForListByCluster(resp *http.Response) (result 
 }
 
 // ListByClusterComplete retrieves all of the results into a single object
-func (c DatabasesClient) ListByClusterComplete(ctx context.Context, id ClusterId, options ListByClusterOperationOptions) (ListByClusterCompleteResult, error) {
+func (c DatabasesClient) ListByClusterComplete(ctx context.Context, id commonids.KustoClusterId, options ListByClusterOperationOptions) (ListByClusterCompleteResult, error) {
 	return c.ListByClusterCompleteMatchingPredicate(ctx, id, options, DatabaseOperationPredicate{})
 }
 
 // ListByClusterCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DatabasesClient) ListByClusterCompleteMatchingPredicate(ctx context.Context, id ClusterId, options ListByClusterOperationOptions, predicate DatabaseOperationPredicate) (resp ListByClusterCompleteResult, err error) {
+func (c DatabasesClient) ListByClusterCompleteMatchingPredicate(ctx context.Context, id commonids.KustoClusterId, options ListByClusterOperationOptions, predicate DatabaseOperationPredicate) (resp ListByClusterCompleteResult, err error) {
 	items := make([]Database, 0)
 
 	page, err := c.ListByCluster(ctx, id, options)

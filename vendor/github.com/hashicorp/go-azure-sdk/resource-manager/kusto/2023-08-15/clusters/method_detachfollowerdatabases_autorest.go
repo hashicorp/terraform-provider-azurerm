@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type DetachFollowerDatabasesOperationResponse struct {
 }
 
 // DetachFollowerDatabases ...
-func (c ClustersClient) DetachFollowerDatabases(ctx context.Context, id ClusterId, input FollowerDatabaseDefinition) (result DetachFollowerDatabasesOperationResponse, err error) {
+func (c ClustersClient) DetachFollowerDatabases(ctx context.Context, id commonids.KustoClusterId, input FollowerDatabaseDefinition) (result DetachFollowerDatabasesOperationResponse, err error) {
 	req, err := c.preparerForDetachFollowerDatabases(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "DetachFollowerDatabases", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ClustersClient) DetachFollowerDatabases(ctx context.Context, id ClusterI
 }
 
 // DetachFollowerDatabasesThenPoll performs DetachFollowerDatabases then polls until it's completed
-func (c ClustersClient) DetachFollowerDatabasesThenPoll(ctx context.Context, id ClusterId, input FollowerDatabaseDefinition) error {
+func (c ClustersClient) DetachFollowerDatabasesThenPoll(ctx context.Context, id commonids.KustoClusterId, input FollowerDatabaseDefinition) error {
 	result, err := c.DetachFollowerDatabases(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DetachFollowerDatabases: %+v", err)
@@ -50,7 +51,7 @@ func (c ClustersClient) DetachFollowerDatabasesThenPoll(ctx context.Context, id 
 }
 
 // preparerForDetachFollowerDatabases prepares the DetachFollowerDatabases request.
-func (c ClustersClient) preparerForDetachFollowerDatabases(ctx context.Context, id ClusterId, input FollowerDatabaseDefinition) (*http.Request, error) {
+func (c ClustersClient) preparerForDetachFollowerDatabases(ctx context.Context, id commonids.KustoClusterId, input FollowerDatabaseDefinition) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type CheckNameAvailabilityOperationResponse struct {
 }
 
 // CheckNameAvailability ...
-func (c DataConnectionsClient) CheckNameAvailability(ctx context.Context, id DatabaseId, input DataConnectionCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
+func (c DataConnectionsClient) CheckNameAvailability(ctx context.Context, id commonids.KustoDatabaseId, input DataConnectionCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
 	req, err := c.preparerForCheckNameAvailability(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dataconnections.DataConnectionsClient", "CheckNameAvailability", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c DataConnectionsClient) CheckNameAvailability(ctx context.Context, id Dat
 }
 
 // preparerForCheckNameAvailability prepares the CheckNameAvailability request.
-func (c DataConnectionsClient) preparerForCheckNameAvailability(ctx context.Context, id DatabaseId, input DataConnectionCheckNameRequest) (*http.Request, error) {
+func (c DataConnectionsClient) preparerForCheckNameAvailability(ctx context.Context, id commonids.KustoDatabaseId, input DataConnectionCheckNameRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

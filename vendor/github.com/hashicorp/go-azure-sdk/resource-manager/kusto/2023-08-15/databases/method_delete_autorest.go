@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c DatabasesClient) Delete(ctx context.Context, id DatabaseId) (result DeleteOperationResponse, err error) {
+func (c DatabasesClient) Delete(ctx context.Context, id commonids.KustoDatabaseId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databases.DatabasesClient", "Delete", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c DatabasesClient) Delete(ctx context.Context, id DatabaseId) (result Dele
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c DatabasesClient) DeleteThenPoll(ctx context.Context, id DatabaseId) error {
+func (c DatabasesClient) DeleteThenPoll(ctx context.Context, id commonids.KustoDatabaseId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)
@@ -50,7 +51,7 @@ func (c DatabasesClient) DeleteThenPoll(ctx context.Context, id DatabaseId) erro
 }
 
 // preparerForDelete prepares the Delete request.
-func (c DatabasesClient) preparerForDelete(ctx context.Context, id DatabaseId) (*http.Request, error) {
+func (c DatabasesClient) preparerForDelete(ctx context.Context, id commonids.KustoDatabaseId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

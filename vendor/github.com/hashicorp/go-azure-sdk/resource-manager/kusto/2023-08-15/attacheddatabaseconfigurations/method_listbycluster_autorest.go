@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type ListByClusterOperationResponse struct {
 }
 
 // ListByCluster ...
-func (c AttachedDatabaseConfigurationsClient) ListByCluster(ctx context.Context, id ClusterId) (result ListByClusterOperationResponse, err error) {
+func (c AttachedDatabaseConfigurationsClient) ListByCluster(ctx context.Context, id commonids.KustoClusterId) (result ListByClusterOperationResponse, err error) {
 	req, err := c.preparerForListByCluster(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attacheddatabaseconfigurations.AttachedDatabaseConfigurationsClient", "ListByCluster", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c AttachedDatabaseConfigurationsClient) ListByCluster(ctx context.Context,
 }
 
 // preparerForListByCluster prepares the ListByCluster request.
-func (c AttachedDatabaseConfigurationsClient) preparerForListByCluster(ctx context.Context, id ClusterId) (*http.Request, error) {
+func (c AttachedDatabaseConfigurationsClient) preparerForListByCluster(ctx context.Context, id commonids.KustoClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

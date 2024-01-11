@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type StartOperationResponse struct {
 }
 
 // Start ...
-func (c ClustersClient) Start(ctx context.Context, id ClusterId) (result StartOperationResponse, err error) {
+func (c ClustersClient) Start(ctx context.Context, id commonids.KustoClusterId) (result StartOperationResponse, err error) {
 	req, err := c.preparerForStart(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "Start", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ClustersClient) Start(ctx context.Context, id ClusterId) (result StartOp
 }
 
 // StartThenPoll performs Start then polls until it's completed
-func (c ClustersClient) StartThenPoll(ctx context.Context, id ClusterId) error {
+func (c ClustersClient) StartThenPoll(ctx context.Context, id commonids.KustoClusterId) error {
 	result, err := c.Start(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
@@ -50,7 +51,7 @@ func (c ClustersClient) StartThenPoll(ctx context.Context, id ClusterId) error {
 }
 
 // preparerForStart prepares the Start request.
-func (c ClustersClient) preparerForStart(ctx context.Context, id ClusterId) (*http.Request, error) {
+func (c ClustersClient) preparerForStart(ctx context.Context, id commonids.KustoClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

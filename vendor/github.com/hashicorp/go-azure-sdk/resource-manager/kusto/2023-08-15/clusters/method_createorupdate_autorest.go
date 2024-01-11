@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -48,7 +49,7 @@ func (o CreateOrUpdateOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // CreateOrUpdate ...
-func (c ClustersClient) CreateOrUpdate(ctx context.Context, id ClusterId, input Cluster, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
+func (c ClustersClient) CreateOrUpdate(ctx context.Context, id commonids.KustoClusterId, input Cluster, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -65,7 +66,7 @@ func (c ClustersClient) CreateOrUpdate(ctx context.Context, id ClusterId, input 
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c ClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id ClusterId, input Cluster, options CreateOrUpdateOperationOptions) error {
+func (c ClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.KustoClusterId, input Cluster, options CreateOrUpdateOperationOptions) error {
 	result, err := c.CreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
@@ -79,7 +80,7 @@ func (c ClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id ClusterId
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c ClustersClient) preparerForCreateOrUpdate(ctx context.Context, id ClusterId, input Cluster, options CreateOrUpdateOperationOptions) (*http.Request, error) {
+func (c ClustersClient) preparerForCreateOrUpdate(ctx context.Context, id commonids.KustoClusterId, input Cluster, options CreateOrUpdateOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

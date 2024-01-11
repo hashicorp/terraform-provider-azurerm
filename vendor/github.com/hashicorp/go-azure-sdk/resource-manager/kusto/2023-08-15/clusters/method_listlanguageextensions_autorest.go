@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type ListLanguageExtensionsOperationResponse struct {
 }
 
 // ListLanguageExtensions ...
-func (c ClustersClient) ListLanguageExtensions(ctx context.Context, id ClusterId) (result ListLanguageExtensionsOperationResponse, err error) {
+func (c ClustersClient) ListLanguageExtensions(ctx context.Context, id commonids.KustoClusterId) (result ListLanguageExtensionsOperationResponse, err error) {
 	req, err := c.preparerForListLanguageExtensions(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "ListLanguageExtensions", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c ClustersClient) ListLanguageExtensions(ctx context.Context, id ClusterId
 }
 
 // preparerForListLanguageExtensions prepares the ListLanguageExtensions request.
-func (c ClustersClient) preparerForListLanguageExtensions(ctx context.Context, id ClusterId) (*http.Request, error) {
+func (c ClustersClient) preparerForListLanguageExtensions(ctx context.Context, id commonids.KustoClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

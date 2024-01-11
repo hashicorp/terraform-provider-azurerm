@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type CheckNameAvailabilityOperationResponse struct {
 }
 
 // CheckNameAvailability ...
-func (c ManagedPrivateEndpointsClient) CheckNameAvailability(ctx context.Context, id ClusterId, input ManagedPrivateEndpointsCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
+func (c ManagedPrivateEndpointsClient) CheckNameAvailability(ctx context.Context, id commonids.KustoClusterId, input ManagedPrivateEndpointsCheckNameRequest) (result CheckNameAvailabilityOperationResponse, err error) {
 	req, err := c.preparerForCheckNameAvailability(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedprivateendpoints.ManagedPrivateEndpointsClient", "CheckNameAvailability", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c ManagedPrivateEndpointsClient) CheckNameAvailability(ctx context.Context
 }
 
 // preparerForCheckNameAvailability prepares the CheckNameAvailability request.
-func (c ManagedPrivateEndpointsClient) preparerForCheckNameAvailability(ctx context.Context, id ClusterId, input ManagedPrivateEndpointsCheckNameRequest) (*http.Request, error) {
+func (c ManagedPrivateEndpointsClient) preparerForCheckNameAvailability(ctx context.Context, id commonids.KustoClusterId, input ManagedPrivateEndpointsCheckNameRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

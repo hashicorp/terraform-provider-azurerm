@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type StopOperationResponse struct {
 }
 
 // Stop ...
-func (c ClustersClient) Stop(ctx context.Context, id ClusterId) (result StopOperationResponse, err error) {
+func (c ClustersClient) Stop(ctx context.Context, id commonids.KustoClusterId) (result StopOperationResponse, err error) {
 	req, err := c.preparerForStop(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "clusters.ClustersClient", "Stop", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ClustersClient) Stop(ctx context.Context, id ClusterId) (result StopOper
 }
 
 // StopThenPoll performs Stop then polls until it's completed
-func (c ClustersClient) StopThenPoll(ctx context.Context, id ClusterId) error {
+func (c ClustersClient) StopThenPoll(ctx context.Context, id commonids.KustoClusterId) error {
 	result, err := c.Stop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Stop: %+v", err)
@@ -50,7 +51,7 @@ func (c ClustersClient) StopThenPoll(ctx context.Context, id ClusterId) error {
 }
 
 // preparerForStop prepares the Stop request.
-func (c ClustersClient) preparerForStop(ctx context.Context, id ClusterId) (*http.Request, error) {
+func (c ClustersClient) preparerForStop(ctx context.Context, id commonids.KustoClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
