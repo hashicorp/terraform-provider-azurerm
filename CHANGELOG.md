@@ -7,7 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240110.1102249` of `github.com/hashicorp/go-azure-sdk` [GH-24453]
+* dependencies: updating to `v0.20240111.1094251` of `github.com/hashicorp/go-azure-sdk` [GH-24463]
 * `machinelearning`: updating to API Version `2023-10-01` [GH-24416]
 * `paloaltonetworks`: updating to API Version `2023-09-01` [GH-24290]
 * `azurerm_container_app` - update create time validations for `ingress.0.traffic_weight` [GH-24042]
