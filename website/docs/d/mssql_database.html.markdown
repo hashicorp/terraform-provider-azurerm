@@ -73,7 +73,7 @@ output "database_id" {
 
 * `transparent_data_encryption_key_vault_key_id` - The Key Vault key URI to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.
 
-* `auto_key_rotation_enabled` - Whether or not TDE automatically rotates the encryption Key to latest version.
+* `transparent_data_encryption_key_automatic_rotation_enabled` - Whether or not TDE automatically rotates the encryption Key to latest version.
 
 * `tags` -  A mapping of tags to assign to the resource.
 

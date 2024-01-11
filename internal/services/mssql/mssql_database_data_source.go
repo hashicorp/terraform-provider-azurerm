@@ -104,7 +104,7 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"auto_key_rotation_enabled": {
+			"transparent_data_encryption_key_automatic_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -151,7 +151,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("sku_name", props.CurrentServiceObjectiveName)
 			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
-			d.Set("auto_key_rotation_enabled", props.EncryptionProtectorAutoRotation)
+			d.Set("transparent_data_encryption_key_automatic_rotation_enabled", props.EncryptionProtectorAutoRotation)
 
 			maxSizeGb := int64(0)
 			if props.MaxSizeBytes != nil {

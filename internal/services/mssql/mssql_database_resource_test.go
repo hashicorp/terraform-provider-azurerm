@@ -997,7 +997,7 @@ resource "azurerm_mssql_database" "test" {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, configName, data.RandomString)
+`, r.template(data), data.RandomInteger, configName)
 }
 
 func (r MsSqlDatabaseResource) update(data acceptance.TestData) string {
@@ -2029,12 +2029,12 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_mssql_database" "test" {
-  name                                         = "acctest-db-%[2]d"
-  server_id                                    = azurerm_mssql_server.test.id
-  sku_name                                     = "S0"
-  transparent_data_encryption_enabled          = true
-  transparent_data_encryption_key_vault_key_id = azurerm_key_vault_key.test.id
-  auto_key_rotation_enabled                    = true
+  name                                                       = "acctest-db-%[2]d"
+  server_id                                                  = azurerm_mssql_server.test.id
+  sku_name                                                   = "S0"
+  transparent_data_encryption_enabled                        = true
+  transparent_data_encryption_key_vault_key_id               = azurerm_key_vault_key.test.id
+  transparent_data_encryption_key_automatic_rotation_enabled = true
 
   identity {
     type         = "UserAssigned"

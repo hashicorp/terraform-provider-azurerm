@@ -283,7 +283,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
-			EncryptionProtectorAutoRotation:  pointer.To(d.Get("auto_key_rotation_enabled").(bool)),
+			EncryptionProtectorAutoRotation:  pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -680,7 +680,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("ledger_enabled", ledgerEnabled)
 			d.Set("enclave_type", enclaveType)
 			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
-			d.Set("auto_key_rotation_enabled", pointer.From(props.EncryptionProtectorAutoRotation))
+			d.Set("transparent_data_encryption_key_automatic_rotation_enabled", pointer.From(props.EncryptionProtectorAutoRotation))
 
 			identity, err := identity.FlattenUserAssignedMap(model.Identity)
 			if err != nil {
@@ -1031,8 +1031,8 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		props.EncryptionProtector = pointer.To(keyId.ID())
 	}
 
-	if d.HasChange("auto_key_rotation_enabled") {
-		props.EncryptionProtectorAutoRotation = pointer.To(d.Get("auto_key_rotation_enabled").(bool))
+	if d.HasChange("transparent_data_encryption_key_automatic_rotation_enabled") {
+		props.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
 	}
 
 	payload.Properties = pointer.To(props)
@@ -1689,7 +1689,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: keyVaultValidate.NestedItemId,
 		},
 
-		"auto_key_rotation_enabled": {
+		"transparent_data_encryption_key_automatic_rotation_enabled": {
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			Default:      false,
