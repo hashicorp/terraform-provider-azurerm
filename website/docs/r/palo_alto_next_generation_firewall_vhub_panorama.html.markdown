@@ -137,6 +137,8 @@ A `network_profile` block supports the following:
 
 * `egress_nat_ip_address_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
 
+* `trusted_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
