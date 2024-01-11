@@ -19,7 +19,8 @@ type ListByNewRelicMonitorResourceOperationResponse struct {
 }
 
 type ListByNewRelicMonitorResourceCompleteResult struct {
-	Items []TagRule
+	LatestHttpResponse *http.Response
+	Items              []TagRule
 }
 
 // ListByNewRelicMonitorResource ...
@@ -83,7 +84,8 @@ func (c TagRulesClient) ListByNewRelicMonitorResourceCompleteMatchingPredicate(c
 	}
 
 	result = ListByNewRelicMonitorResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

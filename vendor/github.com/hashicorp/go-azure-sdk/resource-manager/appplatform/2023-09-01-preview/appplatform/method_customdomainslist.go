@@ -19,7 +19,8 @@ type CustomDomainsListOperationResponse struct {
 }
 
 type CustomDomainsListCompleteResult struct {
-	Items []CustomDomainResource
+	LatestHttpResponse *http.Response
+	Items              []CustomDomainResource
 }
 
 // CustomDomainsList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) CustomDomainsListCompleteMatchingPredicate(ctx contex
 	}
 
 	result = CustomDomainsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

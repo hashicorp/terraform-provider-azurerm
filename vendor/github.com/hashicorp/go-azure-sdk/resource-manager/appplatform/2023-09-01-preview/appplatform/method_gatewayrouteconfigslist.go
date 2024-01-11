@@ -19,7 +19,8 @@ type GatewayRouteConfigsListOperationResponse struct {
 }
 
 type GatewayRouteConfigsListCompleteResult struct {
-	Items []GatewayRouteConfigResource
+	LatestHttpResponse *http.Response
+	Items              []GatewayRouteConfigResource
 }
 
 // GatewayRouteConfigsList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) GatewayRouteConfigsListCompleteMatchingPredicate(ctx 
 	}
 
 	result = GatewayRouteConfigsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

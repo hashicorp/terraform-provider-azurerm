@@ -19,7 +19,8 @@ type DeploymentsListOperationResponse struct {
 }
 
 type DeploymentsListCompleteResult struct {
-	Items []DeploymentResource
+	LatestHttpResponse *http.Response
+	Items              []DeploymentResource
 }
 
 type DeploymentsListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c AppPlatformClient) DeploymentsListCompleteMatchingPredicate(ctx context.
 	}
 
 	result = DeploymentsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

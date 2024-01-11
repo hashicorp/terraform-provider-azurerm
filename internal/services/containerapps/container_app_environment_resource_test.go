@@ -102,6 +102,7 @@ func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workload_profile.0.maximum_count").HasValue("3"),
 			),
 		},
 		data.ImportStep("log_analytics_workspace_id"),
@@ -303,6 +304,13 @@ resource "azurerm_container_app_environment" "test" {
   infrastructure_subnet_id = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
+
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "My-GP-01"
+    workload_profile_type = "D4"
+  }
 
   tags = {
     Foo = "test"

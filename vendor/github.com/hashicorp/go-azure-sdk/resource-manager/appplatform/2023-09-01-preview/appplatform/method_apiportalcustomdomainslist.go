@@ -19,7 +19,8 @@ type ApiPortalCustomDomainsListOperationResponse struct {
 }
 
 type ApiPortalCustomDomainsListCompleteResult struct {
-	Items []ApiPortalCustomDomainResource
+	LatestHttpResponse *http.Response
+	Items              []ApiPortalCustomDomainResource
 }
 
 // ApiPortalCustomDomainsList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) ApiPortalCustomDomainsListCompleteMatchingPredicate(c
 	}
 
 	result = ApiPortalCustomDomainsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

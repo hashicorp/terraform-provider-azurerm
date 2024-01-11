@@ -20,7 +20,8 @@ type AppsListOperationResponse struct {
 }
 
 type AppsListCompleteResult struct {
-	Items []AppResource
+	LatestHttpResponse *http.Response
+	Items              []AppResource
 }
 
 // AppsList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) AppsListCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = AppsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

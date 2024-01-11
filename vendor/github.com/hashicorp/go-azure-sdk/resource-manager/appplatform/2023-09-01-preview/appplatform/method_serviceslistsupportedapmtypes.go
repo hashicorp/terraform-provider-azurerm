@@ -20,7 +20,8 @@ type ServicesListSupportedApmTypesOperationResponse struct {
 }
 
 type ServicesListSupportedApmTypesCompleteResult struct {
-	Items []SupportedApmType
+	LatestHttpResponse *http.Response
+	Items              []SupportedApmType
 }
 
 // ServicesListSupportedApmTypes ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ServicesListSupportedApmTypesCompleteMatchingPredicat
 	}
 
 	result = ServicesListSupportedApmTypesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

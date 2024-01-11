@@ -19,7 +19,8 @@ type GetUpdateProtectedItemRequestsObjectsOperationResponse struct {
 }
 
 type GetUpdateProtectedItemRequestsObjectsCompleteResult struct {
-	Items []DppBaseResource
+	LatestHttpResponse *http.Response
+	Items              []DppBaseResource
 }
 
 // GetUpdateProtectedItemRequestsObjects ...
@@ -83,7 +84,8 @@ func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjectsCompleteMatch
 	}
 
 	result = GetUpdateProtectedItemRequestsObjectsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

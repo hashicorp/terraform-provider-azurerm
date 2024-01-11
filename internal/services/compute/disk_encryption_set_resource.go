@@ -119,7 +119,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := diskencryptionsets.NewDiskEncryptionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewDiskEncryptionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -223,7 +223,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := diskencryptionsets.ParseDiskEncryptionSetID(d.Id())
+	id, err := commonids.ParseDiskEncryptionSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := diskencryptionsets.ParseDiskEncryptionSetID(d.Id())
+	id, err := commonids.ParseDiskEncryptionSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -431,7 +431,7 @@ func resourceDiskEncryptionSetDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := diskencryptionsets.ParseDiskEncryptionSetID(d.Id())
+	id, err := commonids.ParseDiskEncryptionSetID(d.Id())
 	if err != nil {
 		return err
 	}

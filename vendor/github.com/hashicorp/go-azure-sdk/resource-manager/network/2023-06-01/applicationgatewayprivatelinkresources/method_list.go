@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ApplicationGatewayPrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []ApplicationGatewayPrivateLinkResource
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c ApplicationGatewayPrivateLinkResourcesClient) ListCompleteMatchingPredic
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

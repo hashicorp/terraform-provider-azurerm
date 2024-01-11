@@ -20,7 +20,8 @@ type PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesOperationResp
 }
 
 type PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesCompleteResult struct {
-	Items []PublicIPAddress
+	LatestHttpResponse *http.Response
+	Items              []PublicIPAddress
 }
 
 // PublicIPAddressesListCloudServiceRoleInstancePublicIPAddresses ...
@@ -84,7 +85,8 @@ func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServiceRo
 	}
 
 	result = PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

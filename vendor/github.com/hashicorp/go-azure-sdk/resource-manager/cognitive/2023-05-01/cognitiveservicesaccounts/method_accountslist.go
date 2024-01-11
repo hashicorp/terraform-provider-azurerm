@@ -20,7 +20,8 @@ type AccountsListOperationResponse struct {
 }
 
 type AccountsListCompleteResult struct {
-	Items []Account
+	LatestHttpResponse *http.Response
+	Items              []Account
 }
 
 // AccountsList ...
@@ -84,7 +85,8 @@ func (c CognitiveServicesAccountsClient) AccountsListCompleteMatchingPredicate(c
 	}
 
 	result = AccountsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []SharedPrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []SharedPrivateLinkResource
 }
 
 type ListByServiceOperationOptions struct {
@@ -111,7 +112,8 @@ func (c SharedPrivateLinkResourcesClient) ListByServiceCompleteMatchingPredicate
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

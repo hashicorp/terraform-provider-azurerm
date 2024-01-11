@@ -19,7 +19,8 @@ type ListBySyncJobOperationResponse struct {
 }
 
 type ListBySyncJobCompleteResult struct {
-	Items []SourceControlSyncJobStream
+	LatestHttpResponse *http.Response
+	Items              []SourceControlSyncJobStream
 }
 
 type ListBySyncJobOperationOptions struct {
@@ -111,7 +112,8 @@ func (c SourceControlSyncJobStreamsClient) ListBySyncJobCompleteMatchingPredicat
 	}
 
 	result = ListBySyncJobCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

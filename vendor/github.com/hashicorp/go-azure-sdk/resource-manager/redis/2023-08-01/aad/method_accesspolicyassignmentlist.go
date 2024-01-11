@@ -19,7 +19,8 @@ type AccessPolicyAssignmentListOperationResponse struct {
 }
 
 type AccessPolicyAssignmentListCompleteResult struct {
-	Items []RedisCacheAccessPolicyAssignment
+	LatestHttpResponse *http.Response
+	Items              []RedisCacheAccessPolicyAssignment
 }
 
 // AccessPolicyAssignmentList ...
@@ -83,7 +84,8 @@ func (c AADClient) AccessPolicyAssignmentListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = AccessPolicyAssignmentListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

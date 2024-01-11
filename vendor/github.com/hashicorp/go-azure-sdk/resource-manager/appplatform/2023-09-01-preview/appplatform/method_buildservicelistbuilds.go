@@ -19,7 +19,8 @@ type BuildServiceListBuildsOperationResponse struct {
 }
 
 type BuildServiceListBuildsCompleteResult struct {
-	Items []Build
+	LatestHttpResponse *http.Response
+	Items              []Build
 }
 
 // BuildServiceListBuilds ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) BuildServiceListBuildsCompleteMatchingPredicate(ctx c
 	}
 
 	result = BuildServiceListBuildsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
@@ -36,6 +37,8 @@ func dataSourceKustoCluster() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": commonschema.LocationComputed(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"uri": {
 				Type:     pluginsdk.TypeString,
@@ -75,6 +78,14 @@ func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&resp.Model.Location))
+
+		identityMap, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityMap); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
+		}
 
 		if clusterProperties := model.Properties; clusterProperties != nil {
 			d.Set("uri", clusterProperties.Uri)

@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `immutability` - (Optional) Immutability Settings of vault, possible values include: `Locked`, `Unlocked` and `Disabled`.
 
+-> **Note:** Once `immutability` is set to `Locked`, changing it to other values forces a new Recovery Services Vault to be created.
+
 * `storage_mode_type` - (Optional) The storage type of the Recovery Services Vault. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Defaults to `GeoRedundant`.
 
 * `cross_region_restore_enabled` - (Optional) Is cross region restore enabled for this Vault? Only can be `true`, when `storage_mode_type` is `GeoRedundant`. Defaults to `false`.

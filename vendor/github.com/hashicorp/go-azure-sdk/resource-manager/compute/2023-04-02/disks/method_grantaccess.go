@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type GrantAccessOperationResponse struct {
 }
 
 // GrantAccess ...
-func (c DisksClient) GrantAccess(ctx context.Context, id DiskId, input GrantAccessData) (result GrantAccessOperationResponse, err error) {
+func (c DisksClient) GrantAccess(ctx context.Context, id commonids.ManagedDiskId, input GrantAccessData) (result GrantAccessOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c DisksClient) GrantAccess(ctx context.Context, id DiskId, input GrantAcce
 }
 
 // GrantAccessThenPoll performs GrantAccess then polls until it's completed
-func (c DisksClient) GrantAccessThenPoll(ctx context.Context, id DiskId, input GrantAccessData) error {
+func (c DisksClient) GrantAccessThenPoll(ctx context.Context, id commonids.ManagedDiskId, input GrantAccessData) error {
 	result, err := c.GrantAccess(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GrantAccess: %+v", err)

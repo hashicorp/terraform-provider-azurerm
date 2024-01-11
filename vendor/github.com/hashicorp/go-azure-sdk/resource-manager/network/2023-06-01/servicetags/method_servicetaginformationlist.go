@@ -19,7 +19,8 @@ type ServiceTagInformationListOperationResponse struct {
 }
 
 type ServiceTagInformationListCompleteResult struct {
-	Items []ServiceTagInformation
+	LatestHttpResponse *http.Response
+	Items              []ServiceTagInformation
 }
 
 type ServiceTagInformationListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c ServiceTagsClient) ServiceTagInformationListCompleteMatchingPredicate(ct
 	}
 
 	result = ServiceTagInformationListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ScopeConnection
+	LatestHttpResponse *http.Response
+	Items              []ScopeConnection
 }
 
 type ListOperationOptions struct {
@@ -111,7 +112,8 @@ func (c ScopeConnectionsClient) ListCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

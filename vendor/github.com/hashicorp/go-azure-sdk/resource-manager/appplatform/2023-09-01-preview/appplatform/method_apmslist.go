@@ -20,7 +20,8 @@ type ApmsListOperationResponse struct {
 }
 
 type ApmsListCompleteResult struct {
-	Items []ApmResource
+	LatestHttpResponse *http.Response
+	Items              []ApmResource
 }
 
 // ApmsList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ApmsListCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = ApmsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
