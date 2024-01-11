@@ -63,7 +63,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below.
 
--> **NOTE:** To enable the `automatic_instance_repair`, the Virtual Machine Scale Set must have [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
+-> **NOTE:** To enable the `automatic_instance_repair`, the Virtual Machine Scale Set must have an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
