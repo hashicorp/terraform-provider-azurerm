@@ -330,7 +330,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				if props.HTTPSOnly != nil {
 					webApp.HttpsOnly = *props.HTTPSOnly
 				}
-				servicePlanId, err := commonids.ParseAppServicePlanID(pointer.From(props.ServerFarmID))
+				servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
 				if err != nil {
 					return fmt.Errorf("parsing Service Plan ID for %s, %+v", id, err)
 				}

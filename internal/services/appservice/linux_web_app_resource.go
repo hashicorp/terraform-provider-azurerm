@@ -1022,7 +1022,7 @@ func (r LinuxWebAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if props.ServerFarmID == nil {
 			return fmt.Errorf("determining Service Plan ID for Linux %s: %+v", id, err)
 		}
-		servicePlanId, err := commonids.ParseAppServicePlanID(*props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
 		if err != nil {
 			return err
 		}

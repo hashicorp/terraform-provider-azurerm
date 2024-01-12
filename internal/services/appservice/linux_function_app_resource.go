@@ -891,13 +891,6 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			// Some service plan updates are allowed - see customiseDiff for exceptions
-			var serviceFarmId string
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				serviceFarmId = state.ServicePlanId
-				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
-			}
-
 			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
 			if err != nil {
 				return err
@@ -1210,7 +1203,7 @@ func (r LinuxFunctionAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if props.ServerFarmID == nil {
 			return fmt.Errorf("determining Service Plan ID for Linux %s: %+v", id, err)
 		}
-		servicePlanId, err := commonids.ParseAppServicePlanID(*props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
 		if err != nil {
 			return err
 		}

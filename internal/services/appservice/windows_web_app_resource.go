@@ -800,7 +800,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = pointer.To(serviceFarmId)
 				servicePlanChange = true
 			}
-			servicePlanId, err := commonids.ParseAppServicePlanID(serviceFarmId)
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(serviceFarmId)
 			if err != nil {
 				return err
 			}
@@ -1064,7 +1064,7 @@ func (r WindowsWebAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if props.ServerFarmID == nil {
 			return fmt.Errorf("determining Service Plan ID for Windows %s: %+v", id, err)
 		}
-		servicePlanId, err := commonids.ParseAppServicePlanID(*props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
 		if err != nil {
 			return err
 		}

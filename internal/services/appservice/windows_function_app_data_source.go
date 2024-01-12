@@ -293,7 +293,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			functionApp.Name = id.SiteName
 			functionApp.ResourceGroup = id.ResourceGroup
-			servicePlanId, err := commonids.ParseAppServicePlanID(pointer.From(props.ServerFarmID))
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
 			if err != nil {
 				return fmt.Errorf("reading Service Plan Id for %s: %+v", id, err)
 			}

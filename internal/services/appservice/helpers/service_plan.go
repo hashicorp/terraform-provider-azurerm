@@ -170,7 +170,7 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 	if props.ServerFarmID == nil {
 		return nil, nil, fmt.Errorf("determining Service Plan ID for %s: %+v", id, err)
 	}
-	servicePlanId, err := commonids.ParseAppServicePlanID(*props.ServerFarmID)
+	servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
 	if err != nil {
 		return nil, nil, err
 	}

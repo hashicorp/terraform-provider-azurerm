@@ -770,7 +770,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
 					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
 				}
-				parentServicePlanId, err := commonids.ParseAppServicePlanID(*webApp.SiteProperties.ServerFarmID)
+				parentServicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
 					return err
 				}
