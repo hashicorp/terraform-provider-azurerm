@@ -191,10 +191,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
   sap_product                 = "S4HANA"
   app_location                = azurerm_resource_group.app.location
   managed_resource_group_name = "managedTestRG%d"
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-  }
+  sap_fqdn                    = "sap.bpaas.com"
 
   single_server_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -245,10 +242,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "import" {
   sap_product                 = azurerm_workloads_sap_single_node_virtual_instance.test.sap_product
   app_location                = azurerm_workloads_sap_single_node_virtual_instance.test.app_location
   managed_resource_group_name = azurerm_workloads_sap_single_node_virtual_instance.test.managed_resource_group_name
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-  }
+  sap_fqdn                    = "sap.bpaas.com"
 
   single_server_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -310,17 +304,8 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
-
-  app_location = azurerm_resource_group.app.location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-
-    deployer_virtual_machine_packages {
-      storage_account_id = azurerm_storage_account.test.id
-      url                = "https://www.bing.com"
-    }
-  }
+  app_location                = azurerm_resource_group.app.location
+  sap_fqdn                    = "sap.bpaas.com"
 
   single_server_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -445,17 +430,8 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
-
-  app_location = azurerm_resource_group.app.location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-
-    deployer_virtual_machine_packages {
-      storage_account_id = azurerm_storage_account.test.id
-      url                = "https://www.bing.com"
-    }
-  }
+  app_location                = azurerm_resource_group.app.location
+  sap_fqdn                    = "sap.bpaas.com"
 
   single_server_configuration {
     app_resource_group_name = azurerm_resource_group.app.name

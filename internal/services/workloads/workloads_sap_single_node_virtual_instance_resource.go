@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -29,17 +28,12 @@ type WorkloadsSAPSingleNodeVirtualInstanceModel struct {
 	Location                  string                       `tfschema:"location"`
 	AppLocation               string                       `tfschema:"app_location"`
 	Environment               string                       `tfschema:"environment"`
-	OsSapConfiguration        []OsSapConfiguration         `tfschema:"os_sap_configuration"`
+	SapFqdn                   string                       `tfschema:"sap_fqdn"`
 	SapProduct                string                       `tfschema:"sap_product"`
 	SingleServerConfiguration []SingleServerConfiguration  `tfschema:"single_server_configuration"`
 	Identity                  []identity.ModelUserAssigned `tfschema:"identity"`
 	ManagedResourceGroupName  string                       `tfschema:"managed_resource_group_name"`
 	Tags                      map[string]string            `tfschema:"tags"`
-}
-
-type OsSapConfiguration struct {
-	DeployerVmPackages []DeployerVmPackages `tfschema:"deployer_virtual_machine_packages"`
-	SapFqdn            string               `tfschema:"sap_fqdn"`
 }
 
 type DeployerVmPackages struct {
@@ -122,45 +116,11 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 
 		"app_location": commonschema.Location(),
 
-		"os_sap_configuration": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"sap_fqdn": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringLenBetween(2, 34),
-					},
-
-					"deployer_virtual_machine_packages": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"storage_account_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: commonids.ValidateStorageAccountID,
-								},
-
-								"url": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-								},
-							},
-						},
-					},
-				},
-			},
+		"sap_fqdn": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(2, 34),
 		},
 
 		"single_server_configuration": {
@@ -449,7 +409,9 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 					Configuration: sapvirtualinstances.DeploymentWithOSConfiguration{
 						AppLocation:                 utils.String(location.Normalize(model.AppLocation)),
 						InfrastructureConfiguration: expandSingleServerConfiguration(model.SingleServerConfiguration),
-						OsSapConfiguration:          expandOsSapConfiguration(model.OsSapConfiguration),
+						OsSapConfiguration: &sapvirtualinstances.OsSapConfiguration{
+							SapFqdn: utils.String(model.SapFqdn),
+						},
 					},
 					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
 					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
@@ -556,7 +518,12 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Read() sdk.ResourceFunc {
 							appLocation = *v.AppLocation
 						}
 						state.AppLocation = location.Normalize(appLocation)
-						state.OsSapConfiguration = flattenOsSapConfiguration(v.OsSapConfiguration)
+
+						sapFqdn := ""
+						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+							sapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+						}
+						state.SapFqdn = sapFqdn
 
 						if configuration := v.InfrastructureConfiguration; configuration != nil {
 							if singleServerConfiguration, singleServerConfigurationExists := configuration.(sapvirtualinstances.SingleServerConfiguration); singleServerConfigurationExists {
@@ -759,36 +726,6 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 	return result
 }
 
-func expandOsSapConfiguration(input []OsSapConfiguration) *sapvirtualinstances.OsSapConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
-	osSapConfiguration := input[0]
-
-	result := &sapvirtualinstances.OsSapConfiguration{
-		DeployerVMPackages: expandDeployerVmPackages(osSapConfiguration.DeployerVmPackages),
-		SapFqdn:            utils.String(osSapConfiguration.SapFqdn),
-	}
-
-	return result
-}
-
-func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.DeployerVMPackages {
-	if len(input) == 0 {
-		return nil
-	}
-
-	deployerVmPackages := input[0]
-
-	result := &sapvirtualinstances.DeployerVMPackages{
-		StorageAccountId: utils.String(deployerVmPackages.StorageAccountId),
-		Url:              utils.String(deployerVmPackages.Url),
-	}
-
-	return result
-}
-
 func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguration) []DiskVolumeConfiguration {
 	result := make([]DiskVolumeConfiguration, 0)
 	if input == nil || input.DiskVolumeConfigurations == nil {
@@ -918,28 +855,4 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 	}
 
 	return append(result, singleServerConfig)
-}
-
-func flattenOsSapConfiguration(input *sapvirtualinstances.OsSapConfiguration) []OsSapConfiguration {
-	result := make([]OsSapConfiguration, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, OsSapConfiguration{
-		DeployerVmPackages: flattenDeployerVMPackages(input.DeployerVMPackages),
-		SapFqdn:            pointer.From(input.SapFqdn),
-	})
-}
-
-func flattenDeployerVMPackages(input *sapvirtualinstances.DeployerVMPackages) []DeployerVmPackages {
-	result := make([]DeployerVmPackages, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, DeployerVmPackages{
-		StorageAccountId: pointer.From(input.StorageAccountId),
-		Url:              pointer.From(input.Url),
-	})
 }
