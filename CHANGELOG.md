@@ -17,7 +17,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - properties in `default_node_pool.linux_os_config.sysctl_config` are now updateable via node pool cycling [GH-24397]
 * `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
 * `azurerm_mssql_database` - support for `identity`, `transparent_data_encryption_key_vault_key_id` and `transparent_data_encryption_key_automatic_rotation_enabled` [GH-24412]
-* `azurerm_postgres_flexible_server` - `sku_name` now supports being set to `MO_Standard_E96ds_v5` [GH-24367]
+* `azurerm_postgres_flexible_server` - the `sku_name` property now supports being set to `MO_Standard_E96ds_v5` [GH-24367]
 * `azurerm_role_assignment` - support for the `principal_type` property [GH-24271]
 * `azurerm_windows_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
 * `azurerm_cdn_frontdoor_firewall_policy` - support for `request_body_check_enabled` property [GH-24406]
@@ -26,16 +26,16 @@ BUG FIXES:
 
 * Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24418]
 * `azurerm_api_management` - the `sku_name` property can now be updated [GH-24431]
-* `azurerm_arc_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
-* `azurerm_kubernetes_flux_configuration` - fix bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
-* `azure_linux_web_app` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
+* `azurerm_arc_kubernetes_flux_configuration` - prevent a bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
+* `azurerm_kubernetes_flux_configuration` - prevent a bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
+* `azure_linux_web_app` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
 * `azure_linux_web_app_slot` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
 * `azurerm_network_manager_deployment` - update creation wait logic to better tolerate the api returning not found [GH-24330]
 * `azurerm_virtual_machine_data_disk_attachment` - do not update applications profile with disks [GH-24145]
-* `azure_windows_web_app` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
-* `azure_windows_web_app_slot` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
-* `azurerm_maintenance_configuration` - set `reboot` property in flatten from `AlwaysReboot` to `Always` [GH-24376]
-* `azurerm_container_app_environment` - `workload_profile` can now be updated [GH-24409]
+* `azure_windows_web_app` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
+* `azure_windows_web_app_slot` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
+* `azurerm_maintenance_configuration` - set the `reboot` property in flatten from `AlwaysReboot` to `Always` [GH-24376]
+* `azurerm_container_app_environment` - the `workload_profile` property can now be updated [GH-24409]
 
 ## 3.86.0 (January 04, 2024)
 
