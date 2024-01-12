@@ -19,7 +19,8 @@ type ListWebAppsByHybridConnectionOperationResponse struct {
 }
 
 type ListWebAppsByHybridConnectionCompleteResult struct {
-	Items []string
+	LatestHttpResponse *http.Response
+	Items              []string
 }
 
 // ListWebAppsByHybridConnection ...
@@ -76,7 +77,8 @@ func (c AppServicePlansClient) ListWebAppsByHybridConnectionComplete(ctx context
 	}
 
 	result = ListWebAppsByHybridConnectionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

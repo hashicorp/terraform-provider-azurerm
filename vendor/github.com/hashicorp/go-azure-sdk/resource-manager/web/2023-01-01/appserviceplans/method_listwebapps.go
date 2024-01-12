@@ -20,7 +20,8 @@ type ListWebAppsOperationResponse struct {
 }
 
 type ListWebAppsCompleteResult struct {
-	Items []Site
+	LatestHttpResponse *http.Response
+	Items              []Site
 }
 
 type ListWebAppsOperationOptions struct {
@@ -116,7 +117,8 @@ func (c AppServicePlansClient) ListWebAppsCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListWebAppsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

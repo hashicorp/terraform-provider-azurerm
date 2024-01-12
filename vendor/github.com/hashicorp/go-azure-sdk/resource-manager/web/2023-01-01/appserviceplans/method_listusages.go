@@ -20,7 +20,8 @@ type ListUsagesOperationResponse struct {
 }
 
 type ListUsagesCompleteResult struct {
-	Items []CsmUsageQuota
+	LatestHttpResponse *http.Response
+	Items              []CsmUsageQuota
 }
 
 type ListUsagesOperationOptions struct {
@@ -112,7 +113,8 @@ func (c AppServicePlansClient) ListUsagesCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListUsagesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

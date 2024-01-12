@@ -20,7 +20,8 @@ type ListHybridConnectionsOperationResponse struct {
 }
 
 type ListHybridConnectionsCompleteResult struct {
-	Items []HybridConnection
+	LatestHttpResponse *http.Response
+	Items              []HybridConnection
 }
 
 // ListHybridConnections ...
@@ -84,7 +85,8 @@ func (c AppServicePlansClient) ListHybridConnectionsCompleteMatchingPredicate(ct
 	}
 
 	result = ListHybridConnectionsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
