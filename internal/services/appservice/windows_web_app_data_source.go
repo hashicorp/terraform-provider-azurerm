@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -329,7 +330,11 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				if props.HTTPSOnly != nil {
 					webApp.HttpsOnly = *props.HTTPSOnly
 				}
-				webApp.ServicePlanId = utils.NormalizeNilableString(props.ServerFarmID)
+				servicePlanId, err := commonids.ParseAppServicePlanID(pointer.From(props.ServerFarmID))
+				if err != nil {
+					return fmt.Errorf("parsing Service Plan ID for %s, %+v", id, err)
+				}
+				webApp.ServicePlanId = servicePlanId.ID()
 				webApp.OutboundIPAddresses = utils.NormalizeNilableString(props.OutboundIPAddresses)
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)

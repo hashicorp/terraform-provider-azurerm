@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -68,6 +69,8 @@ type WindowsWebAppModel struct {
 
 var _ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
 
+var _ sdk.ResourceWithStateMigration = WindowsWebAppResource{}
+
 func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -84,7 +87,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		// Optional
@@ -200,9 +203,6 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-// TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights?
-
 func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
@@ -288,41 +288,52 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			sc := webApp.SiteConfig[0]
+
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
 				Name: pointer.To(webApp.Name),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
-			servicePlanId, err := parse.ServicePlanID(webApp.ServicePlanId)
+			servicePlanId, err := commonids.ParseAppServicePlanID(webApp.ServicePlanId)
 			if err != nil {
 				return err
 			}
 
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
 				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
 			}
-			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
-				// Attempt to check the ASE for the appropriate suffix for the name availability request. Not convinced
-				// the `DNSSuffix` field is still valid and possibly should have been deprecated / removed as is legacy
-				// setting from ASEv1? Hence the non-fatal approach here.
-				nameSuffix := "appserviceenvironment.net"
-				if ase.ID != nil {
-					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
-					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
-					if err != nil {
-						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
-					} else {
-						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+			if servicePlan.Model != nil && servicePlan.Model.Properties != nil {
+				if ase := servicePlan.Model.Properties.HostingEnvironmentProfile; ase != nil {
+					// Attempt to check the ASE for the appropriate suffix for the name availability request. Not convinced
+					// the `DNSSuffix` field is still valid and possibly should have been deprecated / removed as is legacy
+					// setting from ASEv1? Hence the non-fatal approach here.
+					nameSuffix := "appserviceenvironment.net"
+					if ase.Id != nil {
+						aseId, err := parse.AppServiceEnvironmentID(*ase.Id)
+						nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
 						if err != nil {
-							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
-						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
-							nameSuffix = *props.DNSSuffix
+							metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
+						} else {
+							existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+							if err != nil {
+								metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
+							} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
+								nameSuffix = *props.DNSSuffix
+							}
+						}
+					}
+					availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
+					availabilityRequest.IsFqdn = pointer.To(true)
+				}
+				if servicePlan.Model.Sku != nil && servicePlan.Model.Sku.Name != nil {
+					if helpers.IsFreeOrSharedServicePlan(*servicePlan.Model.Sku.Name) {
+						if sc.AlwaysOn {
+							return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 						}
 					}
 				}
-				availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
-				availabilityRequest.IsFqdn = pointer.To(true)
 			}
 
 			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -331,16 +342,6 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			}
 			if !*checkName.NameAvailable {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
-			}
-
-			sc := webApp.SiteConfig[0]
-
-			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
-				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-					if sc.AlwaysOn {
-						return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
-					}
-				}
 			}
 
 			siteConfig, err := sc.ExpandForCreate(webApp.AppSettings)
@@ -653,7 +654,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					Tags:                          tags.ToTypedObject(webApp.Tags),
 				}
 
-				serverFarmId, err := parse.ServicePlanID(pointer.From(props.ServerFarmID))
+				serverFarmId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
 				if err != nil {
 					return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
 				}
@@ -799,12 +800,12 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = pointer.To(serviceFarmId)
 				servicePlanChange = true
 			}
-			servicePlanId, err := parse.ServicePlanID(serviceFarmId)
+			servicePlanId, err := commonids.ParseAppServicePlanID(serviceFarmId)
 			if err != nil {
 				return err
 			}
 
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
 				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
 			}
@@ -860,8 +861,8 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			currentStack := ""
 			sc := state.SiteConfig[0]
 
-			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
-				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if servicePlan.Model != nil && servicePlan.Model.Sku != nil && servicePlan.Model.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Model.Sku.Name) {
 					if sc.AlwaysOn {
 						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 					}
@@ -1063,19 +1064,28 @@ func (r WindowsWebAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if props.ServerFarmID == nil {
 			return fmt.Errorf("determining Service Plan ID for Windows %s: %+v", id, err)
 		}
-		servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanID(*props.ServerFarmID)
 		if err != nil {
 			return err
 		}
 
-		sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-		if err != nil || sp.Kind == nil {
+		sp, err := servicePlanClient.Get(ctx, *servicePlanId)
+		if err != nil || sp.Model == nil || sp.Model.Kind == nil {
 			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
 		}
-		if strings.Contains(*sp.Kind, "linux") || strings.Contains(*sp.Kind, "Linux") {
+		if strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
 			return fmt.Errorf("specified Service Plan is not a Windows plan")
 		}
 
 		return nil
+	}
+}
+
+func (r WindowsWebAppResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.WindowsWebAppV0toV1{},
+		},
 	}
 }

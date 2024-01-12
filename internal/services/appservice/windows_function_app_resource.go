@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -85,6 +86,8 @@ var _ sdk.ResourceWithCustomImporter = WindowsFunctionAppResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = WindowsFunctionAppResource{}
 
+var _ sdk.ResourceWithStateMigration = WindowsFunctionAppResource{}
+
 func (r WindowsFunctionAppResource) ModelObject() interface{} {
 	return &WindowsFunctionAppModel{}
 }
@@ -114,7 +117,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 			Description:  "The ID of the App Service Plan within which to create this Function App",
 		},
 
@@ -375,19 +378,51 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewFunctionAppID(subscriptionId, functionApp.ResourceGroup, functionApp.Name)
 
-			servicePlanId, err := parse.ServicePlanID(functionApp.ServicePlanId)
+			servicePlanId, err := commonids.ParseAppServicePlanID(functionApp.ServicePlanId)
 			if err != nil {
 				return err
 			}
 
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
+			availabilityRequest := web.ResourceNameAvailabilityRequest{
+				Name: utils.String(functionApp.Name),
+				Type: web.CheckNameResourceTypesMicrosoftWebsites,
+			}
+
 			var planSKU *string
-			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
-				planSKU = sku.Name
+			if model := servicePlan.Model; model != nil {
+				if sku := model.Sku; sku != nil && sku.Name != nil {
+					planSKU = sku.Name
+				}
+				if model.Properties != nil {
+					if ase := model.Properties.HostingEnvironmentProfile; ase != nil {
+						// Attempt to check the ASE for the appropriate suffix for the name availability request.
+						// This varies between internal and external ASE Types, and potentially has other names in other clouds
+						// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
+						nameSuffix := "appserviceenvironment.net"
+						if ase.Id != nil {
+							aseId, err := parse.AppServiceEnvironmentID(*ase.Id)
+							nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
+							if err != nil {
+								metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
+							} else {
+								existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+								if err != nil {
+									metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
+								} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
+									nameSuffix = *props.DNSSuffix
+								}
+							}
+						}
+
+						availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix))
+						availabilityRequest.IsFqdn = utils.Bool(true)
+					}
+				}
 			}
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionApp.ForceDisableContentShare
@@ -399,35 +434,6 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(functionApp.Name),
-				Type: web.CheckNameResourceTypesMicrosoftWebsites,
-			}
-
-			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
-				// Attempt to check the ASE for the appropriate suffix for the name availability request.
-				// This varies between internal and external ASE Types, and potentially has other names in other clouds
-				// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
-				nameSuffix := "appserviceenvironment.net"
-				if ase.ID != nil {
-					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
-					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
-					if err != nil {
-						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
-					} else {
-						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
-						if err != nil {
-							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
-						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
-							nameSuffix = *props.DNSSuffix
-						}
-					}
-				}
-
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix))
-				availabilityRequest.IsFqdn = utils.Bool(true)
 			}
 
 			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -739,7 +745,6 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			state := WindowsFunctionAppModel{
 				Name:                        id.SiteName,
 				ResourceGroup:               id.ResourceGroup,
-				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
 				Location:                    location.NormalizeNilable(functionApp.Location),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
@@ -753,6 +758,12 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
+
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
+			if err != nil {
+				return err
+			}
+			state.ServicePlanId = servicePlanId.ID()
 
 			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
 			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
@@ -894,19 +905,21 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
-				servicePlanId, err := parse.ServicePlanID(state.ServicePlanId)
+				servicePlanId, err := commonids.ParseAppServicePlanID(state.ServicePlanId)
 				if err != nil {
 					return err
 				}
 
 				servicePlanClient := metadata.Client.AppService.ServicePlanClient
-				servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+				servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 				if err != nil {
 					return fmt.Errorf("reading new service plan (%s) for Windows %s: %+v", servicePlanId, id, err)
 				}
 
-				if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
-					planSKU = sku.Name
+				if servicePlan.Model != nil {
+					if sku := servicePlan.Model.Sku; sku != nil && sku.Name != nil {
+						planSKU = sku.Name
+					}
 				}
 			}
 
@@ -1201,17 +1214,17 @@ func (r WindowsFunctionAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if props.ServerFarmID == nil {
 			return fmt.Errorf("determining Service Plan ID for Windows %s: %+v", id, err)
 		}
-		servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanID(*props.ServerFarmID)
 		if err != nil {
 			return err
 		}
 
-		sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-		if err != nil || sp.Kind == nil {
+		sp, err := servicePlanClient.Get(ctx, *servicePlanId)
+		if err != nil || sp.Model == nil || sp.Model.Kind == nil {
 			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
 		}
 
-		if strings.Contains(strings.ToLower(*sp.Kind), "Windows") {
+		if strings.Contains(strings.ToLower(*sp.Model.Kind), "Windows") {
 			return fmt.Errorf("specified Service Plan is not a Windows Functionapp plan")
 		}
 
@@ -1228,22 +1241,27 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
+				if strings.EqualFold(currentPlanIdRaw.(string), newPlanIdRaw.(string)) || currentPlanIdRaw == "" {
+					// State migration escape for correcting case in serverFarms
+					// change of case here will not move the app to a new Service Plan
+					return nil
+				}
 				if newPlanIdRaw.(string) == "" {
 					// Plans creating a new service_plan inline will be empty as `Computed` known after apply
 					return nil
 				}
-				newPlanId, err := parse.ServicePlanID(newPlanIdRaw.(string))
+				newPlanId, err := commonids.ParseAppServicePlanID(newPlanIdRaw.(string))
 				if err != nil {
 					return fmt.Errorf("reading new plan id %+v", err)
 				}
 
 				var currentTierIsDynamic, newTierIsDynamic, newTierIsBasic bool
 
-				newPlan, err := client.Get(ctx, newPlanId.ResourceGroup, newPlanId.ServerfarmName)
-				if err != nil {
+				newPlan, err := client.Get(ctx, *newPlanId)
+				if err != nil || newPlan.Model == nil {
 					return fmt.Errorf("could not read new Service Plan to check tier %s: %+v", newPlanId, err)
 				}
-				if planSku := newPlan.Sku; planSku != nil {
+				if planSku := newPlan.Model.Sku; planSku != nil {
 					if tier := planSku.Tier; tier != nil {
 						newTierIsDynamic = strings.EqualFold(*tier, "dynamic")
 						newTierIsBasic = strings.EqualFold(*tier, "basic")
@@ -1252,17 +1270,17 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 				// Service Plans can only be updated in place when both New and Existing are not Dynamic
 				if currentPlanIdRaw.(string) != "" {
-					currentPlanId, err := parse.ServicePlanID(currentPlanIdRaw.(string))
+					currentPlanId, err := commonids.ParseAppServicePlanID(currentPlanIdRaw.(string))
 					if err != nil {
 						return fmt.Errorf("reading existing plan id %+v", err)
 					}
 
-					currentPlan, err := client.Get(ctx, currentPlanId.ResourceGroup, currentPlanId.ServerfarmName)
-					if err != nil {
+					currentPlan, err := client.Get(ctx, *currentPlanId)
+					if err != nil || currentPlan.Model == nil {
 						return fmt.Errorf("could not read current Service Plan to check tier %s: %+v", currentPlanId, err)
 					}
 
-					if planSku := currentPlan.Sku; planSku != nil {
+					if planSku := currentPlan.Model.Sku; planSku != nil {
 						if tier := planSku.Tier; tier != nil {
 							currentTierIsDynamic = strings.EqualFold(*tier, "dynamic")
 						}
@@ -1374,4 +1392,13 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 	}
 
 	m.AppSettings = appSettings
+}
+
+func (r WindowsFunctionAppResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.WindowsFunctionAppV0toV1{},
+		},
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -169,23 +170,23 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 	if props.ServerFarmID == nil {
 		return nil, nil, fmt.Errorf("determining Service Plan ID for %s: %+v", id, err)
 	}
-	servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+	servicePlanId, err := commonids.ParseAppServicePlanID(*props.ServerFarmID)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-	if err != nil || sp.Kind == nil {
+	sp, err := servicePlanClient.Get(ctx, *servicePlanId)
+	if err != nil || sp.Model.Kind == nil {
 		return nil, nil, fmt.Errorf("reading Service Plan for %s: %+v", id, err)
 	}
 
 	osType = utils.String("windows")
-	if strings.Contains(strings.ToLower(*sp.Kind), "linux") {
+	if strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
 		osType = utils.String("linux")
 	}
 
 	planSku = utils.String("")
-	if sku := sp.Sku; sku != nil {
+	if sku := sp.Model.Sku; sku != nil {
 		planSku = sku.Name
 	}
 

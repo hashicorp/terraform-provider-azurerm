@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -67,6 +68,8 @@ type LinuxWebAppSlotModel struct {
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
 
+var _ sdk.ResourceWithStateMigration = LinuxWebAppSlotResource{}
+
 func (r LinuxWebAppSlotResource) ModelObject() interface{} {
 	return &LinuxWebAppSlotModel{}
 }
@@ -99,7 +102,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"app_settings": {
@@ -298,18 +301,18 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("could not determine location for %s: %+v", id, err)
 			}
 
-			var servicePlanId *parse.ServicePlanId
+			var servicePlanId *commonids.AppServicePlanId
 			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
 				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
 			}
 
-			servicePlanId, err = parse.ServicePlanID(*webApp.SiteProperties.ServerFarmID)
+			servicePlanId, err = commonids.ParseAppServicePlanID(*webApp.SiteProperties.ServerFarmID)
 			if err != nil {
 				return err
 			}
 
 			if webAppSlot.ServicePlanID != "" {
-				newServicePlanId, err := parse.ServicePlanID(webAppSlot.ServicePlanID)
+				newServicePlanId, err := commonids.ParseAppServicePlanID(webAppSlot.ServicePlanID)
 				if err != nil {
 					return err
 				}
@@ -614,12 +617,16 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetID = subnetId
 				}
 
-				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
+				parentAppFarmId, err := commonids.ParseAppServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
-					return err
+					return fmt.Errorf("reading parent Service Plan ID: %+v", err)
 				}
-				if slotPlanId := props.ServerFarmID; slotPlanId != nil && !strings.EqualFold(parentAppFarmId.ID(), *slotPlanId) {
-					state.ServicePlanID = *slotPlanId
+				if slotPlanIdRaw := props.ServerFarmID; slotPlanIdRaw != nil && *slotPlanIdRaw != "" && !strings.EqualFold(parentAppFarmId.ID(), *slotPlanIdRaw) {
+					slotPlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(slotPlanIdRaw))
+					if err != nil {
+						return fmt.Errorf("reading Slot Service Plan ID: %+v", err)
+					}
+					state.ServicePlanID = slotPlanId.ID()
 				}
 
 				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
@@ -746,18 +753,18 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
 					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
 				}
-				parentServicePlanId, err := parse.ServicePlanID(*webApp.SiteProperties.ServerFarmID)
+				parentServicePlanId, err := commonids.ParseAppServicePlanID(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
 					return err
 				}
 
 				o, n := metadata.ResourceData.GetChange("service_plan_id")
-				oldPlan, err := parse.ServicePlanID(o.(string))
+				oldPlan, err := commonids.ParseAppServicePlanID(o.(string))
 				if err != nil {
 					return err
 				}
 
-				newPlan, err := parse.ServicePlanID(n.(string))
+				newPlan, err := commonids.ParseAppServicePlanID(n.(string))
 				if err != nil {
 					return err
 				}
@@ -968,6 +975,15 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			return nil
+		},
+	}
+}
+
+func (r LinuxWebAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.LinuxWebAppSlotV0toV1{},
 		},
 	}
 }
