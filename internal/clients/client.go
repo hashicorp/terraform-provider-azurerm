@@ -399,7 +399,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataProtection: %+v", err)
 	}
-	client.DataShare = datashare.NewClient(o)
+	if client.DataShare, err = datashare.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataShare: %+v", err)
+	}
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
 	}
