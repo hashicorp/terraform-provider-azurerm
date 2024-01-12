@@ -455,11 +455,12 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	// NOTE: You need to always pass these two on update else you will
-	// disable your cache and disassociate your custom domains...
+	// NOTE: You need to always pass these three on update else you will
+	// disable your cache, disassociate your custom domains or remove your origin path...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
 		CustomDomains:      existing.RouteProperties.CustomDomains,
 		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
+		OriginPath:         existing.RouteProperties.OriginPath,
 	}
 
 	if d.HasChange("cache") {
