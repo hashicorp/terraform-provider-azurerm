@@ -32,13 +32,10 @@ func ParseScopeID(input string) (*ScopeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
-
 	return &id, nil
 }
 
@@ -51,11 +48,9 @@ func ParseScopeIDInsensitively(input string) (*ScopeId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -74,6 +69,16 @@ func ValidateScopeID(input interface{}, key string) (warnings []string, errors [
 	}
 
 	return
+}
+
+func (id *ScopeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	return nil
 }
 
 // ID returns the formatted Scope ID
