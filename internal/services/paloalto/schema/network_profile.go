@@ -77,7 +77,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
 							validation.IsCIDR,
-							validation.IsIPv4Range,
+							validation.IsIPv4Address,
 						),
 					},
 				},
@@ -262,7 +262,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.Any(
 							validation.IsCIDR,
-							validation.IsIPv4Range,
+							validation.IsIPv4Address,
 						),
 					},
 				},
