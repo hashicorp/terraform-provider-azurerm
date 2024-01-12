@@ -306,7 +306,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
 			}
 
-			servicePlanId, err = commonids.ParseAppServicePlanID(*webApp.SiteProperties.ServerFarmID)
+			servicePlanId, err = commonids.ParseAppServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 			if err != nil {
 				return err
 			}
