@@ -1,3 +1,9 @@
+## 3.88.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_container_group` - support for the `priority` property [GH-24374]
+
 ## 3.87.0 (January 11, 2024)
 
 FEATURES:
