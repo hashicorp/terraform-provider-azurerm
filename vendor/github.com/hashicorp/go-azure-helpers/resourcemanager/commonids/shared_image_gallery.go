@@ -36,19 +36,9 @@ func ParseSharedImageGalleryID(input string) (*SharedImageGalleryId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SharedImageGalleryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseSharedImageGalleryIDInsensitively(input string) (*SharedImageGalleryId
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SharedImageGalleryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SharedImageGalleryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.GalleryName, ok = input.Parsed["galleryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "galleryName", input)
+	}
+
+	return nil
 }
 
 // ValidateSharedImageGalleryID validates the ID of a Shared Image Gallery

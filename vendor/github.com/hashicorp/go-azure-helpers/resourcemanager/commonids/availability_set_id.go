@@ -36,19 +36,9 @@ func ParseAvailabilitySetID(input string) (*AvailabilitySetId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AvailabilitySetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AvailabilitySetName, ok = parsed.Parsed["availabilitySetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "availabilitySetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,22 +53,30 @@ func ParseAvailabilitySetIDInsensitively(input string) (*AvailabilitySetId, erro
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AvailabilitySetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AvailabilitySetName, ok = parsed.Parsed["availabilitySetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "availabilitySetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AvailabilitySetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AvailabilitySetName, ok = input.Parsed["availabilitySetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "availabilitySetName", input)
+	}
+
+	return nil
 }
 
 // ValidateAvailabilitySetID checks that 'input' can be parsed as a Availability Set ID
