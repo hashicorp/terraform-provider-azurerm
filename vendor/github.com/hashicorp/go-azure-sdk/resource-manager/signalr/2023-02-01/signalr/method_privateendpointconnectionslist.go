@@ -19,7 +19,8 @@ type PrivateEndpointConnectionsListOperationResponse struct {
 }
 
 type PrivateEndpointConnectionsListCompleteResult struct {
-	Items []PrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
 }
 
 // PrivateEndpointConnectionsList ...
@@ -83,7 +84,8 @@ func (c SignalRClient) PrivateEndpointConnectionsListCompleteMatchingPredicate(c
 	}
 
 	result = PrivateEndpointConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

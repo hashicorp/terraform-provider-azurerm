@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []DiskPool
+	LatestHttpResponse *http.Response
+	Items              []DiskPool
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c DiskPoolsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

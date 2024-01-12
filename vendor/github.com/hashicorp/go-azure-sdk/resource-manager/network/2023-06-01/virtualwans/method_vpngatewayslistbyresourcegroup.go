@@ -20,7 +20,8 @@ type VpnGatewaysListByResourceGroupOperationResponse struct {
 }
 
 type VpnGatewaysListByResourceGroupCompleteResult struct {
-	Items []VpnGateway
+	LatestHttpResponse *http.Response
+	Items              []VpnGateway
 }
 
 // VpnGatewaysListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) VpnGatewaysListByResourceGroupCompleteMatchingPredica
 	}
 
 	result = VpnGatewaysListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

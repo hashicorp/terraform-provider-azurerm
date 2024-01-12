@@ -19,7 +19,8 @@ type CertificatesListOperationResponse struct {
 }
 
 type CertificatesListCompleteResult struct {
-	Items []NginxCertificate
+	LatestHttpResponse *http.Response
+	Items              []NginxCertificate
 }
 
 // CertificatesList ...
@@ -83,7 +84,8 @@ func (c NginxCertificateClient) CertificatesListCompleteMatchingPredicate(ctx co
 	}
 
 	result = CertificatesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

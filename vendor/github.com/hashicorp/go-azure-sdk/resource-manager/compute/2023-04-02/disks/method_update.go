@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c DisksClient) Update(ctx context.Context, id DiskId, input DiskUpdate) (result UpdateOperationResponse, err error) {
+func (c DisksClient) Update(ctx context.Context, id commonids.ManagedDiskId, input DiskUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c DisksClient) Update(ctx context.Context, id DiskId, input DiskUpdate) (r
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c DisksClient) UpdateThenPoll(ctx context.Context, id DiskId, input DiskUpdate) error {
+func (c DisksClient) UpdateThenPoll(ctx context.Context, id commonids.ManagedDiskId, input DiskUpdate) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)

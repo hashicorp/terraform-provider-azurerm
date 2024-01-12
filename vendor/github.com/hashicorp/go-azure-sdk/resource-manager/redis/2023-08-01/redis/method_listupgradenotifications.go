@@ -19,7 +19,8 @@ type ListUpgradeNotificationsOperationResponse struct {
 }
 
 type ListUpgradeNotificationsCompleteResult struct {
-	Items []UpgradeNotification
+	LatestHttpResponse *http.Response
+	Items              []UpgradeNotification
 }
 
 type ListUpgradeNotificationsOperationOptions struct {
@@ -111,7 +112,8 @@ func (c RedisClient) ListUpgradeNotificationsCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListUpgradeNotificationsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

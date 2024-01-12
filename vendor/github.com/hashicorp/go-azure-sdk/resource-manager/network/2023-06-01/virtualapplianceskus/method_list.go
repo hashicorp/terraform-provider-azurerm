@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []NetworkVirtualApplianceSku
+	LatestHttpResponse *http.Response
+	Items              []NetworkVirtualApplianceSku
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c VirtualApplianceSkusClient) ListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

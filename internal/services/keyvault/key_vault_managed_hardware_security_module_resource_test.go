@@ -25,7 +25,7 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 		"resource": {
 			"data_source": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
 			"basic":       testAccKeyVaultManagedHardwareSecurityModule_basic,
-			"update":      testAccKeyVaultManagedHardwareSecurityModule_requiresImport,
+			"update":      testAccKeyVaultManagedHardwareSecurityModule_updateAndRequiresImport,
 			"complete":    testAccKeyVaultManagedHardwareSecurityModule_complete,
 			"download":    testAccKeyVaultManagedHardwareSecurityModule_download,
 			"role_define": testAccKeyVaultManagedHardwareSecurityModule_roleDefinition,
@@ -122,7 +122,7 @@ func testAccKeyVaultManagedHardwareSecurityModule_roleAssignment(t *testing.T) {
 	})
 }
 
-func testAccKeyVaultManagedHardwareSecurityModule_requiresImport(t *testing.T) {
+func testAccKeyVaultManagedHardwareSecurityModule_updateAndRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 
@@ -133,6 +133,14 @@ func testAccKeyVaultManagedHardwareSecurityModule_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
@@ -183,6 +191,37 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
+}
+`, template, data.RandomInteger)
+}
+
+func (r KeyVaultManagedHardwareSecurityModuleResource) basicUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_managed_hardware_security_module" "test" {
+  name                     = "kvHsm%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku_name                 = "Standard_B1"
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  admin_object_ids         = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled = false
+
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+  }
+
+  tags = {
+    Env = "Test"
+    App = "TF"
+  }
 }
 `, template, data.RandomInteger)
 }

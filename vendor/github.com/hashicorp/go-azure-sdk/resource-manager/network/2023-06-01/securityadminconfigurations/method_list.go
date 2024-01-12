@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []SecurityAdminConfiguration
+	LatestHttpResponse *http.Response
+	Items              []SecurityAdminConfiguration
 }
 
 type ListOperationOptions struct {
@@ -111,7 +112,8 @@ func (c SecurityAdminConfigurationsClient) ListCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

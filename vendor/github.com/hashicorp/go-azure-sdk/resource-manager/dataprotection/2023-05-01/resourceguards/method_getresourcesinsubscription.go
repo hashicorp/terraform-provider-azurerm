@@ -20,7 +20,8 @@ type GetResourcesInSubscriptionOperationResponse struct {
 }
 
 type GetResourcesInSubscriptionCompleteResult struct {
-	Items []ResourceGuardResource
+	LatestHttpResponse *http.Response
+	Items              []ResourceGuardResource
 }
 
 // GetResourcesInSubscription ...
@@ -84,7 +85,8 @@ func (c ResourceGuardsClient) GetResourcesInSubscriptionCompleteMatchingPredicat
 	}
 
 	result = GetResourcesInSubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

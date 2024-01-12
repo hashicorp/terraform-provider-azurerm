@@ -180,6 +180,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -621,78 +622,76 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		if len(s.ApplicationStack) == 1 {
-			winAppStack := s.ApplicationStack[0]
-			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
-				if appSettings == nil {
-					appSettings = make(map[string]string)
-				}
-				appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
+	if len(s.ApplicationStack) == 1 {
+		winAppStack := s.ApplicationStack[0]
+		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+			if appSettings == nil {
+				appSettings = make(map[string]string)
 			}
-			if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.dotnet_version", "site_config.0.application_stack.0.dotnet_core_version") {
-				switch {
-				case winAppStack.NetFrameworkVersion != "":
-					expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
-				case winAppStack.NetCoreVersion != "":
-					expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
-				default:
-					expanded.NetFrameworkVersion = nil
-				}
-			}
-			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.php_version") {
-				if winAppStack.PhpVersion != "" {
-					if winAppStack.PhpVersion != PhpVersionOff {
-						expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
-					} else {
-						expanded.PhpVersion = pointer.To("")
-					}
-				}
-			}
-			if winAppStack.PythonVersion != "" || winAppStack.Python {
-				expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
-			}
-			if metadata.ResourceData.HasChange("site_config.0.application_stack.0.java_version") {
-				if winAppStack.JavaVersion != "" {
-					expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
-					switch {
-					case winAppStack.JavaEmbeddedServer:
-						expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
-						expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
-					case winAppStack.TomcatVersion != "":
-						expanded.JavaContainer = pointer.To(JavaContainerTomcat)
-						expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
-					case winAppStack.JavaContainer != "":
-						expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
-						expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
-					}
-				} else {
-					expanded.JavaVersion = nil
-					expanded.JavaContainer = nil
-					expanded.JavaContainerVersion = nil
-				}
-			}
-			if !features.FourPointOhBeta() {
-				if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
-					if winAppStack.DockerContainerRegistry != "" {
-						expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-					} else {
-						expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-					}
-				}
-			}
-
-			if winAppStack.DockerImageName != "" {
-				expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
-				appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
-				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
-				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-
-			}
-
-		} else {
-			expanded.WindowsFxVersion = pointer.To("")
+			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
 		}
+		if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.dotnet_version", "site_config.0.application_stack.0.dotnet_core_version") {
+			switch {
+			case winAppStack.NetFrameworkVersion != "":
+				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+			case winAppStack.NetCoreVersion != "":
+				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
+			default:
+				expanded.NetFrameworkVersion = nil
+			}
+		}
+		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.php_version") {
+			if winAppStack.PhpVersion != "" {
+				if winAppStack.PhpVersion != PhpVersionOff {
+					expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
+				} else {
+					expanded.PhpVersion = pointer.To("")
+				}
+			}
+		}
+		if winAppStack.PythonVersion != "" || winAppStack.Python {
+			expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
+		}
+		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.java_version") {
+			if winAppStack.JavaVersion != "" {
+				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
+				switch {
+				case winAppStack.JavaEmbeddedServer:
+					expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
+					expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
+				case winAppStack.TomcatVersion != "":
+					expanded.JavaContainer = pointer.To(JavaContainerTomcat)
+					expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
+				case winAppStack.JavaContainer != "":
+					expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
+					expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
+				}
+			} else {
+				expanded.JavaVersion = nil
+				expanded.JavaContainer = nil
+				expanded.JavaContainerVersion = nil
+			}
+		}
+		if !features.FourPointOhBeta() {
+			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
+				if winAppStack.DockerContainerRegistry != "" {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				} else {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				}
+			}
+		}
+
+		if winAppStack.DockerImageName != "" {
+			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
+			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
+			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
+
+		}
+
+	} else {
+		expanded.WindowsFxVersion = pointer.To("")
 	}
 
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)

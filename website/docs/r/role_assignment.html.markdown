@@ -143,6 +143,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
+* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created.
+
 * `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
 
 * `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`. Changing this forces a new resource to be created.
@@ -152,7 +154,7 @@ The following arguments are supported:
 ~> **NOTE:** this field is only used in cross tenant scenario.
 
 * `description` - (Optional) The description for this Role Assignment. Changing this forces a new resource to be created.
-  
+
 * `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. Defaults to `false`.
 
 ~> **NOTE:** If it is not a `Service Principal` identity it will cause the role assignment to fail.
@@ -162,8 +164,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Role Assignment ID.
-
-* `principal_type` - The type of the `principal_id`, e.g. User, Group, Service Principal, Application, etc.
 
 ## Timeouts
 

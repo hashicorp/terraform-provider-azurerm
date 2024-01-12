@@ -20,7 +20,8 @@ type ListValidSkusOperationResponse struct {
 }
 
 type ListValidSkusCompleteResult struct {
-	Items []IotDpsSkuDefinition
+	LatestHttpResponse *http.Response
+	Items              []IotDpsSkuDefinition
 }
 
 // ListValidSkus ...
@@ -84,7 +85,8 @@ func (c IotDpsResourceClient) ListValidSkusCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListValidSkusCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

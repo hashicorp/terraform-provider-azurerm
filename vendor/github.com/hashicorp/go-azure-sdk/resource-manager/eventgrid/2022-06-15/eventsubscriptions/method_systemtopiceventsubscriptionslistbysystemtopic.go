@@ -19,7 +19,8 @@ type SystemTopicEventSubscriptionsListBySystemTopicOperationResponse struct {
 }
 
 type SystemTopicEventSubscriptionsListBySystemTopicCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type SystemTopicEventSubscriptionsListBySystemTopicOperationOptions struct {
@@ -115,7 +116,8 @@ func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsListBySystemTopic
 	}
 
 	result = SystemTopicEventSubscriptionsListBySystemTopicCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []AmlFilesystem
+	LatestHttpResponse *http.Response
+	Items              []AmlFilesystem
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c AmlFilesystemsClient) ListCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

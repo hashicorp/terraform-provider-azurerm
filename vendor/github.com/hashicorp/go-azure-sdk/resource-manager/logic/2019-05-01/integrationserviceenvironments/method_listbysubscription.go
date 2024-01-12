@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []IntegrationServiceEnvironment
+	LatestHttpResponse *http.Response
+	Items              []IntegrationServiceEnvironment
 }
 
 type ListBySubscriptionOperationOptions struct {
@@ -112,7 +113,8 @@ func (c IntegrationServiceEnvironmentsClient) ListBySubscriptionCompleteMatching
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

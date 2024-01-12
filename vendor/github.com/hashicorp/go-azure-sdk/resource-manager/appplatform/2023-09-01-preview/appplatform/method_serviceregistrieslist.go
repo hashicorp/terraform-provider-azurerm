@@ -20,7 +20,8 @@ type ServiceRegistriesListOperationResponse struct {
 }
 
 type ServiceRegistriesListCompleteResult struct {
-	Items []ServiceRegistryResource
+	LatestHttpResponse *http.Response
+	Items              []ServiceRegistryResource
 }
 
 // ServiceRegistriesList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ServiceRegistriesListCompleteMatchingPredicate(ctx co
 	}
 
 	result = ServiceRegistriesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

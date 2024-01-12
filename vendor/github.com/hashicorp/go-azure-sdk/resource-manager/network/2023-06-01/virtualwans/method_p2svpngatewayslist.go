@@ -20,7 +20,8 @@ type P2sVpnGatewaysListOperationResponse struct {
 }
 
 type P2sVpnGatewaysListCompleteResult struct {
-	Items []P2SVpnGateway
+	LatestHttpResponse *http.Response
+	Items              []P2SVpnGateway
 }
 
 // P2sVpnGatewaysList ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) P2sVpnGatewaysListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = P2sVpnGatewaysListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
