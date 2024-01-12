@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []SAPVirtualInstance
+	LatestHttpResponse *http.Response
+	Items              []SAPVirtualInstance
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c SAPVirtualInstancesClient) ListBySubscriptionCompleteMatchingPredicate(c
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
