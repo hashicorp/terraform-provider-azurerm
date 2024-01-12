@@ -2,6 +2,8 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20240112.1095456` of `github.com/hashicorp/go-azure-sdk` [GH-24477]
+* `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
 * `azurerm_container_group` - support for the `priority` property [GH-24374]
 
 ## 3.87.0 (January 11, 2024)
