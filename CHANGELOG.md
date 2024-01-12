@@ -1,41 +1,41 @@
-## 3.87.0 (Unreleased)
+## 3.87.0 (January 11, 2024)
 
 FEATURES:
 
-* New Data Source: `azurerm_network_manager` [GH-24398]
-* New Resource: `azurerm_security_center_server_vulnerability_assessments_setting` [GH-24299]
+* New Data Source: `azurerm_network_manager` ([#24398](https://github.com/hashicorp/terraform-provider-azurerm/issues/24398))
+* New Resource: `azurerm_security_center_server_vulnerability_assessments_setting` ([#24299](https://github.com/hashicorp/terraform-provider-azurerm/issues/24299))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240111.1094251` of `github.com/hashicorp/go-azure-sdk` [GH-24463]
-* Data Source: `azurerm_mssql_database` - support for `identity`, `transparent_data_encryption_enabled`, `transparent_data_encryption_key_vault_key_id` and `transparent_data_encryption_key_automatic_rotation_enabled` [GH-24412]
-* Data Source: `azurerm_mssql_server` - support for `transparent_data_encryption_key_vault_key_id` [GH-24412]
-* `machinelearning`: updating to API Version `2023-10-01` [GH-24416]
-* `paloaltonetworks`: updating to API Version `2023-09-01` [GH-24290]
-* `azurerm_container_app` - update create time validations for `ingress.0.traffic_weight` [GH-24042]
-* `azurerm_container_app`- support for the `ip_security_restriction` block [GH-23870]
-* `azurerm_kubernetes_cluster` - properties in `default_node_pool.linux_os_config.sysctl_config` are now updateable via node pool cycling [GH-24397]
-* `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
-* `azurerm_mssql_database` - support for `identity`, `transparent_data_encryption_key_vault_key_id` and `transparent_data_encryption_key_automatic_rotation_enabled` [GH-24412]
-* `azurerm_postgres_flexible_server` - the `sku_name` property now supports being set to `MO_Standard_E96ds_v5` [GH-24367]
-* `azurerm_role_assignment` - support for the `principal_type` property [GH-24271]
-* `azurerm_windows_web_app` - support the `VS2022` value for the `remote_debugging_version` property [GH-24407]
-* `azurerm_cdn_frontdoor_firewall_policy` - support for `request_body_check_enabled` property [GH-24406]
+* dependencies: updating to `v0.20240111.1094251` of `github.com/hashicorp/go-azure-sdk` ([#24463](https://github.com/hashicorp/terraform-provider-azurerm/issues/24463))
+* Data Source: `azurerm_mssql_database` - support for `identity`, `transparent_data_encryption_enabled`, `transparent_data_encryption_key_vault_key_id` and `transparent_data_encryption_key_automatic_rotation_enabled` ([#24412](https://github.com/hashicorp/terraform-provider-azurerm/issues/24412))
+* Data Source: `azurerm_mssql_server` - support for `transparent_data_encryption_key_vault_key_id` ([#24412](https://github.com/hashicorp/terraform-provider-azurerm/issues/24412))
+* `machinelearning`: updating to API Version `2023-10-01` ([#24416](https://github.com/hashicorp/terraform-provider-azurerm/issues/24416))
+* `paloaltonetworks`: updating to API Version `2023-09-01` ([#24290](https://github.com/hashicorp/terraform-provider-azurerm/issues/24290))
+* `azurerm_container_app` - update create time validations for `ingress.0.traffic_weight` ([#24042](https://github.com/hashicorp/terraform-provider-azurerm/issues/24042))
+* `azurerm_container_app`- support for the `ip_security_restriction` block ([#23870](https://github.com/hashicorp/terraform-provider-azurerm/issues/23870))
+* `azurerm_kubernetes_cluster` - properties in `default_node_pool.linux_os_config.sysctl_config` are now updateable via node pool cycling ([#24397](https://github.com/hashicorp/terraform-provider-azurerm/issues/24397))
+* `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property ([#24407](https://github.com/hashicorp/terraform-provider-azurerm/issues/24407))
+* `azurerm_mssql_database` - support for `identity`, `transparent_data_encryption_key_vault_key_id` and `transparent_data_encryption_key_automatic_rotation_enabled` ([#24412](https://github.com/hashicorp/terraform-provider-azurerm/issues/24412))
+* `azurerm_postgres_flexible_server` - the `sku_name` property now supports being set to `MO_Standard_E96ds_v5` ([#24367](https://github.com/hashicorp/terraform-provider-azurerm/issues/24367))
+* `azurerm_role_assignment` - support for the `principal_type` property ([#24271](https://github.com/hashicorp/terraform-provider-azurerm/issues/24271))
+* `azurerm_windows_web_app` - support the `VS2022` value for the `remote_debugging_version` property ([#24407](https://github.com/hashicorp/terraform-provider-azurerm/issues/24407))
+* `azurerm_cdn_frontdoor_firewall_policy` - support for `request_body_check_enabled` property ([#24406](https://github.com/hashicorp/terraform-provider-azurerm/issues/24406))
 
 BUG FIXES:
 
-* Data Source: `azurerm_role_definition` - fix `role_definition_id` [GH-24418]
-* `azurerm_api_management` - the `sku_name` property can now be updated [GH-24431]
-* `azurerm_arc_kubernetes_flux_configuration` - prevent a bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
-* `azurerm_kubernetes_flux_configuration` - prevent a bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made [GH-24066]
-* `azure_linux_web_app` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
-* `azure_linux_web_app_slot` - Fix bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
-* `azurerm_network_manager_deployment` - update creation wait logic to better tolerate the api returning not found [GH-24330]
-* `azurerm_virtual_machine_data_disk_attachment` - do not update applications profile with disks [GH-24145]
-* `azure_windows_web_app` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
-* `azure_windows_web_app_slot` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` [GH-24424]
-* `azurerm_maintenance_configuration` - set the `reboot` property in flatten from `AlwaysReboot` to `Always` [GH-24376]
-* `azurerm_container_app_environment` - the `workload_profile` property can now be updated [GH-24409]
+* Data Source: `azurerm_role_definition` - fix `role_definition_id` ([#24418](https://github.com/hashicorp/terraform-provider-azurerm/issues/24418))
+* `azurerm_api_management` - the `sku_name` property can now be updated ([#24431](https://github.com/hashicorp/terraform-provider-azurerm/issues/24431))
+* `azurerm_arc_kubernetes_flux_configuration` - prevent a bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made ([#24066](https://github.com/hashicorp/terraform-provider-azurerm/issues/24066))
+* `azurerm_kubernetes_flux_configuration` - prevent a bug where certain sensitive properties for `bucket` and `git_repository` were being overwritten after an update to the resource is made ([#24066](https://github.com/hashicorp/terraform-provider-azurerm/issues/24066))
+* `azure_linux_web_app` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` ([#24424](https://github.com/hashicorp/terraform-provider-azurerm/issues/24424))
+* `azure_linux_web_app_slot` - Fix bug in App Service processing of `application_stack` in updates to `site_config` ([#24424](https://github.com/hashicorp/terraform-provider-azurerm/issues/24424))
+* `azurerm_network_manager_deployment` - update creation wait logic to better tolerate the api returning not found ([#24330](https://github.com/hashicorp/terraform-provider-azurerm/issues/24330))
+* `azurerm_virtual_machine_data_disk_attachment` - do not update applications profile with disks ([#24145](https://github.com/hashicorp/terraform-provider-azurerm/issues/24145))
+* `azure_windows_web_app` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` ([#24424](https://github.com/hashicorp/terraform-provider-azurerm/issues/24424))
+* `azure_windows_web_app_slot` - prevent a bug in App Service processing of `application_stack` in updates to `site_config` ([#24424](https://github.com/hashicorp/terraform-provider-azurerm/issues/24424))
+* `azurerm_maintenance_configuration` - set the `reboot` property in flatten from `AlwaysReboot` to `Always` ([#24376](https://github.com/hashicorp/terraform-provider-azurerm/issues/24376))
+* `azurerm_container_app_environment` - the `workload_profile` property can now be updated ([#24409](https://github.com/hashicorp/terraform-provider-azurerm/issues/24409))
 
 ## 3.86.0 (January 04, 2024)
 
