@@ -1,0 +1,52 @@
+2024-01-12T11:24:01.136+0800 [ERROR] sdk.proto: Response contains error diagnostic: tf_resource_type=azurerm_container_app_job tf_proto_version=5.4 tf_req_id=cdd34249-b918-1b80-4cad-21794a18756a tf_rpc=ApplyResourceChange diagnostic_severity=ERROR
+  diagnostic_summary=
+  | creating Job (Subscription: "85b3dbca-5974-4067-9669-67a141095a76"
+  | Resource Group Name: "acctest-CAJob240112112211785819"
+  | Job Name: "acctest-cajob240112112211785819"): performing CreateOrUpdate: jobs.JobsClient#CreateOrUpdate: Failure sending request: StatusCode=0 -- Original Error: Code="ContainerAppsJobCreateMustContainContainer" Message="Error creating container apps job 'acctest-cajob240112112211785819'. Must specify atleast one container to create a container apps job"
+  
+  diagnostic_detail=
+  | creating Job (Subscription: "85b3dbca-5974-4067-9669-67a141095a76"
+  | Resource Group Name: "acctest-CAJob240112112211785819"
+  | Job Name: "acctest-cajob240112112211785819"): performing CreateOrUpdate: jobs.JobsClient#CreateOrUpdate: Failure sending request: StatusCode=0 -- Original Error: Code="ContainerAppsJobCreateMustContainContainer" Message="Error creating container apps job 'acctest-cajob240112112211785819'. Must specify atleast one container to create a container apps job"
+   tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2024-01-12T11:24:01.161+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_terraform_path=C:\ProgramData\chocolatey\bin\terraform.exe
+  error=
+  | exit status 1
+  | 
+  | Error: creating Job (Subscription: "85b3dbca-5974-4067-9669-67a141095a76"
+  | Resource Group Name: "acctest-CAJob240112112211785819"
+  | Job Name: "acctest-cajob240112112211785819"): performing CreateOrUpdate: jobs.JobsClient#CreateOrUpdate: Failure sending request: StatusCode=0 -- Original Error: Code="ContainerAppsJobCreateMustContainContainer" Message="Error creating container apps job 'acctest-cajob240112112211785819'. Must specify atleast one container to create a container apps job"
+  | 
+  |   with azurerm_container_app_job.test,
+  |   on terraform_plugin_test.tf line 43, in resource "azurerm_container_app_job" "test":
+  |   43: resource "azurerm_container_app_job" "test" {
+  | 
+  | creating Job (Subscription: "85b3dbca-5974-4067-9669-67a141095a76"
+  | Resource Group Name: "acctest-CAJob240112112211785819"
+  | Job Name: "acctest-cajob240112112211785819"): performing CreateOrUpdate:
+  | jobs.JobsClient#CreateOrUpdate: Failure sending request: StatusCode=0 --
+  | Original Error: Code="ContainerAppsJobCreateMustContainContainer"
+  | Message="Error creating container apps job 'acctest-cajob240112112211785819'.
+  | Must specify atleast one container to create a container apps job"
+   test_working_directory=C:\Users\JIAWEI~1\AppData\Local\Temp\plugintest3861059596 test_step_number=1 test_name=TestAccContainerAppJob_Update
+2024-01-12T11:24:01.161+0800 [ERROR] sdk.helper_resource: Unexpected error: test_step_number=1
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Job (Subscription: "85b3dbca-5974-4067-9669-67a141095a76"
+  | Resource Group Name: "acctest-CAJob240112112211785819"
+  | Job Name: "acctest-cajob240112112211785819"): performing CreateOrUpdate: jobs.JobsClient#CreateOrUpdate: Failure sending request: StatusCode=0 -- Original Error: Code="ContainerAppsJobCreateMustContainContainer" Message="Error creating container apps job 'acctest-cajob240112112211785819'. Must specify atleast one container to create a container apps job"
+  | 
+  |   with azurerm_container_app_job.test,
+  |   on terraform_plugin_test.tf line 43, in resource "azurerm_container_app_job" "test":
+  |   43: resource "azurerm_container_app_job" "test" {
+  | 
+  | creating Job (Subscription: "85b3dbca-5974-4067-9669-67a141095a76"
+  | Resource Group Name: "acctest-CAJob240112112211785819"
+  | Job Name: "acctest-cajob240112112211785819"): performing CreateOrUpdate:
+  | jobs.JobsClient#CreateOrUpdate: Failure sending request: StatusCode=0 --
+  | Original Error: Code="ContainerAppsJobCreateMustContainContainer"
+  | Message="Error creating container apps job 'acctest-cajob240112112211785819'.
+  | Must specify atleast one container to create a container apps job"
+   test_name=TestAccContainerAppJob_Update test_terraform_path=C:\ProgramData\chocolatey\bin\terraform.exe test_working_directory=C:\Users\JIAWEI~1\AppData\Local\Temp\plugintest3861059596
+2024-01-12T11:24:05.596+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=f082873f-7358-c152-c145-b8d349938462 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=Configure
