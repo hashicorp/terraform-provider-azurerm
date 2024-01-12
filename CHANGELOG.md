@@ -1,14 +1,4 @@
-## 3.88.0 (Unreleased)
-
-ENHANCEMENTS:
-
-* dependencies: updating to `v0.20240112.1095456` of `github.com/hashicorp/go-azure-sdk` [GH-24477]
-* dependencies: updating to `v0.65.1` of `github.com/hashicorp/go-azure-helpers` [GH-24479]
-* `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
-* `azurerm_container_group` - support for the `priority` property [GH-24374]
-* Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
-
-## 3.87.0 (January 11, 2024)
+## 3.87.0 (Unreleased)
 
 FEATURES:
 
@@ -18,12 +8,17 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240111.1094251` of `github.com/hashicorp/go-azure-sdk` ([#24463](https://github.com/hashicorp/terraform-provider-azurerm/issues/24463))
+* dependencies: updating to `v0.20240112.1095456` of `github.com/hashicorp/go-azure-sdk` [GH-24477]
+* dependencies: updating to `v0.65.1` of `github.com/hashicorp/go-azure-helpers` [GH-24479]
+* Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
 * Data Source: `azurerm_mssql_database` - support for `identity`, `transparent_data_encryption_enabled`, `transparent_data_encryption_key_vault_key_id` and `transparent_data_encryption_key_automatic_rotation_enabled` ([#24412](https://github.com/hashicorp/terraform-provider-azurerm/issues/24412))
 * Data Source: `azurerm_mssql_server` - support for `transparent_data_encryption_key_vault_key_id` ([#24412](https://github.com/hashicorp/terraform-provider-azurerm/issues/24412))
+* `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
 * `machinelearning`: updating to API Version `2023-10-01` ([#24416](https://github.com/hashicorp/terraform-provider-azurerm/issues/24416))
 * `paloaltonetworks`: updating to API Version `2023-09-01` ([#24290](https://github.com/hashicorp/terraform-provider-azurerm/issues/24290))
 * `azurerm_container_app` - update create time validations for `ingress.0.traffic_weight` ([#24042](https://github.com/hashicorp/terraform-provider-azurerm/issues/24042))
 * `azurerm_container_app`- support for the `ip_security_restriction` block ([#23870](https://github.com/hashicorp/terraform-provider-azurerm/issues/23870))
+* `azurerm_container_group` - support for the `priority` property [GH-24374]
 * `azurerm_kubernetes_cluster` - properties in `default_node_pool.linux_os_config.sysctl_config` are now updateable via node pool cycling ([#24397](https://github.com/hashicorp/terraform-provider-azurerm/issues/24397))
 * `azurerm_linux_web_app` - support the `VS2022` value for the `remote_debugging_version` property ([#24407](https://github.com/hashicorp/terraform-provider-azurerm/issues/24407))
 * `azurerm_mssql_database` - support for `identity`, `transparent_data_encryption_key_vault_key_id` and `transparent_data_encryption_key_automatic_rotation_enabled` ([#24412](https://github.com/hashicorp/terraform-provider-azurerm/issues/24412))
