@@ -1124,7 +1124,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 												"components": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Computed: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														"path_only",
 														"query_string_only",
