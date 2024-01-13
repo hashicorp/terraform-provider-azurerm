@@ -14,7 +14,7 @@ BUG FIXES:
 
 * `azurerm_cdn_frontdoor_route` - fix issue where `cdn_frontdoor_origin_path` gets removed on update if unchanged. [GH-24488]
 
-## 3.87.0 (January 12, 2024)
+## 3.87.0 (January 11, 2024)
 
 FEATURES:
 
