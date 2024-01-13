@@ -1078,6 +1078,10 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 				},
+				"drain_timeout_in_minutes": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
 			},
 		},
 	}

@@ -455,6 +455,10 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
+					"drain_timeout_in_minutes": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
 				},
 			},
 		},
