@@ -2037,12 +2037,14 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string, drainTimeoutInMinutes int) string {
 	template := r.templateConfig(data)
 	if maxSurge != "" {
 		maxSurge = fmt.Sprintf(`upgrade_settings {
     max_surge = %q
-  }`, maxSurge)
+	drain_timeout_in_minutes = %d
+
+  }`, maxSurge, drainTimeoutInMinutes)
 	}
 
 	return fmt.Sprintf(`
