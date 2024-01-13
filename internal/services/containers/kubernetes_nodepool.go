@@ -2214,7 +2214,7 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
 		fmt.Println("Setting drain timeout in minutes to", drainTimeoutInMinutesRaw)
 	}
-	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int64); drainTimeoutInMinutesRaw != int64(0) {
+	if drainTimeoutInMinutesRaw := int64(v["drain_timeout_in_minutes"].(int)); drainTimeoutInMinutesRaw != int64(0) {
 		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
 	}
 	return setting
