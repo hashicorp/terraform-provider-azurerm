@@ -1174,6 +1174,9 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = utils.String(maxSurgeRaw)
 	}
+	if drainTimeoutInMinutesRaw := int64(v["drain_timeout_in_minutes"].(int)); drainTimeoutInMinutesRaw != int64(0) {
+		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
+	}
 	return setting
 }
 
