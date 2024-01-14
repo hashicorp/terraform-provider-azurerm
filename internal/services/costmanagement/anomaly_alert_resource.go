@@ -44,7 +44,7 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:    true,
+			Computed:     true,
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 

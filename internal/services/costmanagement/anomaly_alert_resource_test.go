@@ -35,9 +35,9 @@ func TestAccResourceAnomalyAlert_complete(t *testing.T) {
 	testResource := AnomalyAlertResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.completeConfig, testResource),
-		data.ImportStep("subscription_id"),
+		data.ImportStep(),
 		data.ApplyStep(testResource.updateConfig, testResource),
-		data.ImportStep("subscription_id"),
+		data.ImportStep(),
 	})
 }
 
