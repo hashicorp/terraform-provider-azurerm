@@ -44,6 +44,7 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
+			Computed:    true,
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 
@@ -231,11 +232,7 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 				metadata.ResourceData.Set("name", model.Name)
 				if props := model.Properties; props != nil {
 					metadata.ResourceData.Set("display_name", props.DisplayName)
-					
-					if _, ok := metadata.ResourceData.GetOk("subscription_id"); ok {
-						metadata.ResourceData.Set("subscription_id", fmt.Sprint("/", *props.Scope))
-					} 
-					
+					metadata.ResourceData.Set("subscription_id", fmt.Sprint("/", *props.Scope))
 					metadata.ResourceData.Set("email_subject", props.Notification.Subject)
 					metadata.ResourceData.Set("email_addresses", props.Notification.To)
 					metadata.ResourceData.Set("message", props.Notification.Message)
