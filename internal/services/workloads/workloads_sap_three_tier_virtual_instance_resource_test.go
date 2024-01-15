@@ -231,10 +231,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
   app_location                = azurerm_resource_group.app.location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-  }
+  sap_fqdn                    = "sap.bpaas.com"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -333,10 +330,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
   sap_product                 = azurerm_workloads_sap_three_tier_virtual_instance.test.sap_product
   managed_resource_group_name = azurerm_workloads_sap_three_tier_virtual_instance.test.managed_resource_group_name
   app_location                = azurerm_workloads_sap_three_tier_virtual_instance.test.app_location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-  }
+  sap_fqdn                    = "sap.bpaas.com"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -451,15 +445,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
   app_location                = azurerm_resource_group.app.location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-
-    deployer_virtual_machine_packages {
-      storage_account_id = azurerm_storage_account.test.id
-      url                = "https://www.bing.com"
-    }
-  }
+  sap_fqdn                    = "sap.bpaas.com"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -696,15 +682,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
   app_location                = azurerm_resource_group.app.location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-
-    deployer_virtual_machine_packages {
-      storage_account_id = azurerm_storage_account.test.id
-      url                = "https://www.bing.com"
-    }
-  }
+  sap_fqdn                    = "sap.bpaas.com"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -961,17 +939,8 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
   managed_resource_group_name = "managedTestRG%d"
-
-  app_location = azurerm_resource_group.app.location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-
-    deployer_virtual_machine_packages {
-      storage_account_id = azurerm_storage_account.test.id
-      url                = "https://www.bing.com"
-    }
-  }
+  app_location                = azurerm_resource_group.app.location
+  sap_fqdn                    = "sap.bpaas.com"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name

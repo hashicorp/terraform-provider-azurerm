@@ -81,17 +81,8 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "example" {
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
   managed_resource_group_name = "exampleManagedRG"
-
-  app_location = azurerm_resource_group.app.location
-
-  os_sap_configuration {
-    sap_fqdn = "sap.bpaas.com"
-
-    deployer_virtual_machine_packages {
-      storage_account_id = azurerm_storage_account.example.id
-      url                = "https://www.bing.com"
-    }
-  }
+  app_location                = azurerm_resource_group.app.location
+  sap_fqdn                    = "sap.bpaas.com"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -313,7 +304,7 @@ The following arguments are supported:
 
 * `environment` - (Required) The environment type for the SAP Three Tier Virtual Instance. Possible values are `NonProd` and `Prod`. Changing this forces a new resource to be created.
 
-* `os_sap_configuration` - (Required) An `os_sap_configuration` block as defined below. Changing this forces a new resource to be created.
+* `sap_fqdn` - (Required) The FQDN of the SAP system. Changing this forces a new resource to be created.
 
 * `sap_product` - (Required) The SAP Product type for the SAP Three Tier Virtual Instance. Possible values are `ECC`, `Other` and `S4HANA`. Changing this forces a new resource to be created.
 
@@ -324,14 +315,6 @@ The following arguments are supported:
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Three Tier Virtual Instance. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Three Tier Virtual Instance.
-
----
-
-An `os_sap_configuration` block supports the following:
-
-* `sap_fqdn` - (Required) The FQDN of the SAP system. Changing this forces a new resource to be created.
-
-* `deployer_virtual_machine_packages` - (Optional) A `deployer_virtual_machine_packages` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

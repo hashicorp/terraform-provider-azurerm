@@ -31,18 +31,13 @@ type WorkloadsSAPThreeTierVirtualInstanceModel struct {
 	ResourceGroupName        string                       `tfschema:"resource_group_name"`
 	Location                 string                       `tfschema:"location"`
 	AppLocation              string                       `tfschema:"app_location"`
-	OsSapConfiguration       []OsSapConfiguration         `tfschema:"os_sap_configuration"`
-	ThreeTierConfiguration   []ThreeTierConfiguration     `tfschema:"three_tier_configuration"`
 	Environment              string                       `tfschema:"environment"`
 	Identity                 []identity.ModelUserAssigned `tfschema:"identity"`
 	ManagedResourceGroupName string                       `tfschema:"managed_resource_group_name"`
+	SapFqdn                  string                       `tfschema:"sap_fqdn"`
 	SapProduct               string                       `tfschema:"sap_product"`
+	ThreeTierConfiguration   []ThreeTierConfiguration     `tfschema:"three_tier_configuration"`
 	Tags                     map[string]string            `tfschema:"tags"`
-}
-
-type OsSapConfiguration struct {
-	DeployerVmPackages []DeployerVmPackages `tfschema:"deployer_virtual_machine_packages"`
-	SapFqdn            string               `tfschema:"sap_fqdn"`
 }
 
 type DeployerVmPackages struct {
@@ -193,45 +188,27 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 
 		"app_location": commonschema.Location(),
 
-		"os_sap_configuration": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"sap_fqdn": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.SAPFQDN,
-					},
+		"environment": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPEnvironmentType(), false),
+		},
 
-					"deployer_virtual_machine_packages": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"storage_account_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: commonids.ValidateStorageAccountID,
-								},
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
-								"url": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-								},
-							},
-						},
-					},
-				},
-			},
+		"sap_fqdn": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SAPFQDN,
+		},
+
+		"sap_product": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPProductType(), false),
 		},
 
 		"three_tier_configuration": {
@@ -1025,29 +1002,6 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 			},
 		},
 
-		"environment": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sapvirtualinstances.SAPEnvironmentTypeNonProd),
-				string(sapvirtualinstances.SAPEnvironmentTypeProd),
-			}, false),
-		},
-
-		"identity": commonschema.UserAssignedIdentityOptional(),
-
-		"sap_product": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sapvirtualinstances.SAPProductTypeECC),
-				string(sapvirtualinstances.SAPProductTypeOther),
-				string(sapvirtualinstances.SAPProductTypeSFourHANA),
-			}, false),
-		},
-
 		"managed_resource_group_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -1101,8 +1055,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			}
 
 			deploymentWithOSConfiguration := &sapvirtualinstances.DeploymentWithOSConfiguration{
-				AppLocation:        utils.String(model.AppLocation),
-				OsSapConfiguration: expandOsSapConfiguration(model.OsSapConfiguration),
+				AppLocation: utils.String(model.AppLocation),
+				OsSapConfiguration: &sapvirtualinstances.OsSapConfiguration{
+					SapFqdn: utils.String(model.SapFqdn),
+				},
 			}
 
 			threeTierConfiguration, err := expandThreeTierConfiguration(model.ThreeTierConfiguration)
@@ -1209,7 +1165,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 				if config := props.Configuration; config != nil {
 					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
 						state.AppLocation = pointer.From(v.AppLocation)
-						state.OsSapConfiguration = flattenOsSapConfiguration(v.OsSapConfiguration)
+
+						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+							state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+						}
 
 						if configuration := v.InfrastructureConfiguration; configuration != nil {
 							if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
@@ -1667,36 +1626,6 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) (*sapvirtualin
 	return result, nil
 }
 
-func expandOsSapConfiguration(input []OsSapConfiguration) *sapvirtualinstances.OsSapConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
-	osSapConfiguration := input[0]
-
-	result := &sapvirtualinstances.OsSapConfiguration{
-		DeployerVMPackages: expandDeployerVmPackages(osSapConfiguration.DeployerVmPackages),
-		SapFqdn:            utils.String(osSapConfiguration.SapFqdn),
-	}
-
-	return result
-}
-
-func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.DeployerVMPackages {
-	if len(input) == 0 {
-		return nil
-	}
-
-	deployerVmPackages := input[0]
-
-	result := &sapvirtualinstances.DeployerVMPackages{
-		StorageAccountId: utils.String(deployerVmPackages.StorageAccountId),
-		Url:              utils.String(deployerVmPackages.Url),
-	}
-
-	return result
-}
-
 func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfiguration, d *pluginsdk.ResourceData, basePath string) []ApplicationServerConfiguration {
 	result := make([]ApplicationServerConfiguration, 0)
 
@@ -2002,28 +1931,4 @@ func flattenTransportMount(input sapvirtualinstances.MountFileShareConfiguration
 		FileShareId:       storageParse.NewStorageShareResourceManagerID(legacyStorageShareResourceManagerId.SubscriptionId, legacyStorageShareResourceManagerId.ResourceGroup, legacyStorageShareResourceManagerId.StorageAccountName, legacyStorageShareResourceManagerId.FileServiceName, legacyStorageShareResourceManagerId.ShareName).ID(),
 		PrivateEndpointId: input.PrivateEndpointId,
 	}), nil
-}
-
-func flattenOsSapConfiguration(input *sapvirtualinstances.OsSapConfiguration) []OsSapConfiguration {
-	result := make([]OsSapConfiguration, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, OsSapConfiguration{
-		DeployerVmPackages: flattenDeployerVMPackages(input.DeployerVMPackages),
-		SapFqdn:            pointer.From(input.SapFqdn),
-	})
-}
-
-func flattenDeployerVMPackages(input *sapvirtualinstances.DeployerVMPackages) []DeployerVmPackages {
-	result := make([]DeployerVmPackages, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, DeployerVmPackages{
-		StorageAccountId: pointer.From(input.StorageAccountId),
-		Url:              pointer.From(input.Url),
-	})
 }
