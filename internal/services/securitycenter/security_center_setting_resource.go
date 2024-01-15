@@ -78,7 +78,7 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 		settingName = "Sentinel"
 	}
 
-	id := settings.NewSettingID(subscriptionId, settings.SettingName(d.Get("setting_name").(string)))
+	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
