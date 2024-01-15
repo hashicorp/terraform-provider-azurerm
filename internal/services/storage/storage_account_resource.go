@@ -1246,6 +1246,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
 					}
 				}
+
+				if d.Get("access_tier") != "" {
+					if accountKind := d.Get("account_kind").(string); !(accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage)) {
+						return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
+					}
+				}
+
 				return nil
 			}),
 			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1383,16 +1390,21 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	accessTier, ok := d.GetOk("access_tier")
 	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
 	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage) {
-		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
 			accessTier = string(storage.AccessTierHot)
 		}
-
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
+	} else {
+		if ok {
+			return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
+		}
+	}
+
+	if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
 		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
 	}
 
