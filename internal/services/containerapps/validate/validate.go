@@ -159,3 +159,31 @@ func ContainerAppScaleRuleConcurrentRequests(i interface{}, k string) (warnings 
 
 	return
 }
+
+func SecretManagedIdentity(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if matched := regexp.MustCompile(`^/subscriptions/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/resourcegroups/([a-zA-Z0-9-_]+)/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/([a-zA-Z0-9-_]{3,128})$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q must be follow user-managed identity identifier format", k))
+		return
+	}
+	return
+}
+
+func SecretKeyVaultUrl(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if matched := regexp.MustCompile(`^https:\/\/[^/]+\.vault\.azure\.net/secrets\/[0-9a-zA-Z-]+\/?([0-9a-z]*)$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q must be in Azure Key Vault secret identifier format URL", k))
+		return
+	}
+	return
+}

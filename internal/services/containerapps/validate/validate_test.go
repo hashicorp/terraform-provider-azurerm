@@ -320,3 +320,71 @@ func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
 		}
 	}
 }
+
+func TestSecretManagedIdentity(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/random-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity-name",
+			Valid: true,
+		},
+		{
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/random-rg/random-value",
+			Valid: false,
+		},
+		{
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/random-rg",
+			Valid: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := SecretManagedIdentity(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s", tc.Valid, valid, tc.Input)
+		}
+	}
+}
+
+func TestSecretKeyVaultUrl(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "https://myvault.vault.azure.net/secrets/mysecret/ec96f02080254f109c51a1f14cdb1931",
+			Valid: true,
+		},
+		{
+			Input: "https://myvault.vault.azure.net/secrets/mysecret",
+			Valid: true,
+		},
+		{
+			Input: "https://vault.azure.net/secrets/mysecret",
+			Valid: false,
+		},
+		{
+			Input: "https://baddomain.vault/no_secrets",
+			Valid: false,
+		},
+		{
+			Input: "https://myvault.vault.azure.net/secrets/mysecret/ec96f02080254f109c51a1f14cdb1931/ec96f02080254f109c51a1f14cdb1931",
+			Valid: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := SecretKeyVaultUrl(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s", tc.Valid, valid, tc.Input)
+		}
+	}
+}
