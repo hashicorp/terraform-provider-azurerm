@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* New Resource: `azurerm_spring_cloud_dynatrace_application_performance_monitoring` [GH-23889]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240112.1095456` of `github.com/hashicorp/go-azure-sdk` [GH-24477]
