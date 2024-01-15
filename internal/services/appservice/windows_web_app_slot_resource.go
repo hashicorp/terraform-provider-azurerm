@@ -314,7 +314,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				if strings.EqualFold(newServicePlanId.ID(), servicePlanId.ID()) {
 					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
-
+				differentServicePlanToParent = true
 				servicePlanId = newServicePlanId
 			}
 

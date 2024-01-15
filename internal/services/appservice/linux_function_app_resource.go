@@ -1226,15 +1226,8 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			rd := metadata.ResourceDiff
-
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
-				if strings.EqualFold(currentPlanIdRaw.(string), newPlanIdRaw.(string)) || currentPlanIdRaw == "" {
-					// State migration escape for correcting case in serverFarms
-					// change of case here will not move the app to a new Service Plan
-					// also if the current Service Plan is empty, this is a new resource, so can skip this
-					return nil
-				}
 				if newPlanIdRaw.(string) == "" {
 					// Plans creating a new service_plan inline will be empty as `Computed` known after apply
 					return nil
@@ -1257,6 +1250,19 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 							newTierIsBasic = strings.EqualFold(*tier, "basic")
 						}
 					}
+				}
+				if _, ok := rd.GetOk("backup"); ok && newTierIsDynamic {
+					return fmt.Errorf("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
+				}
+				if _, ok := rd.GetOk("backup"); ok && newTierIsBasic {
+					return fmt.Errorf("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
+				}
+
+				if strings.EqualFold(currentPlanIdRaw.(string), newPlanIdRaw.(string)) || currentPlanIdRaw.(string) == "" {
+					// State migration escape for correcting case in serverFarms
+					// change of case here will not move the app to a new Service Plan
+					// also if the current Service Plan is empty, this is a new resource, so can skip this
+					return nil
 				}
 
 				// Service Plans can only be updated in place when both New and Existing are not Dynamic
@@ -1283,12 +1289,7 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-				if _, ok := rd.GetOk("backup"); ok && newTierIsDynamic {
-					return fmt.Errorf("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
-				}
-				if _, ok := rd.GetOk("backup"); ok && newTierIsBasic {
-					return fmt.Errorf("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
-				}
+
 			}
 			return nil
 		},

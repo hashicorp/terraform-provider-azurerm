@@ -1241,11 +1241,6 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
-				if strings.EqualFold(currentPlanIdRaw.(string), newPlanIdRaw.(string)) || currentPlanIdRaw == "" {
-					// State migration escape for correcting case in serverFarms
-					// change of case here will not move the app to a new Service Plan
-					return nil
-				}
 				if newPlanIdRaw.(string) == "" {
 					// Plans creating a new service_plan inline will be empty as `Computed` known after apply
 					return nil
@@ -1268,6 +1263,18 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 
+				if _, ok := rd.GetOk("backup"); ok && newTierIsDynamic {
+					return fmt.Errorf("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
+				}
+				if _, ok := rd.GetOk("backup"); ok && newTierIsBasic {
+					return fmt.Errorf("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
+				}
+
+				if strings.EqualFold(currentPlanIdRaw.(string), newPlanIdRaw.(string)) || currentPlanIdRaw == "" {
+					// State migration escape for correcting case in serverFarms
+					// change of case here will not move the app to a new Service Plan
+					return nil
+				}
 				// Service Plans can only be updated in place when both New and Existing are not Dynamic
 				if currentPlanIdRaw.(string) != "" {
 					currentPlanId, err := commonids.ParseAppServicePlanID(currentPlanIdRaw.(string))
@@ -1291,12 +1298,6 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 							return err
 						}
 					}
-				}
-				if _, ok := rd.GetOk("backup"); ok && newTierIsDynamic {
-					return fmt.Errorf("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
-				}
-				if _, ok := rd.GetOk("backup"); ok && newTierIsBasic {
-					return fmt.Errorf("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
 				}
 			}
 			return nil
