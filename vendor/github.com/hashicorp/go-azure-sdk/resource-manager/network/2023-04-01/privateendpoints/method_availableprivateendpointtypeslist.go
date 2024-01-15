@@ -19,7 +19,8 @@ type AvailablePrivateEndpointTypesListOperationResponse struct {
 }
 
 type AvailablePrivateEndpointTypesListCompleteResult struct {
-	Items []AvailablePrivateEndpointType
+	LatestHttpResponse *http.Response
+	Items              []AvailablePrivateEndpointType
 }
 
 // AvailablePrivateEndpointTypesList ...
@@ -83,7 +84,8 @@ func (c PrivateEndpointsClient) AvailablePrivateEndpointTypesListCompleteMatchin
 	}
 
 	result = AvailablePrivateEndpointTypesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

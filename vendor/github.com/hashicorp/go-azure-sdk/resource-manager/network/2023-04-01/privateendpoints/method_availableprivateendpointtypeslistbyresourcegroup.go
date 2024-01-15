@@ -19,7 +19,8 @@ type AvailablePrivateEndpointTypesListByResourceGroupOperationResponse struct {
 }
 
 type AvailablePrivateEndpointTypesListByResourceGroupCompleteResult struct {
-	Items []AvailablePrivateEndpointType
+	LatestHttpResponse *http.Response
+	Items              []AvailablePrivateEndpointType
 }
 
 // AvailablePrivateEndpointTypesListByResourceGroup ...
@@ -83,7 +84,8 @@ func (c PrivateEndpointsClient) AvailablePrivateEndpointTypesListByResourceGroup
 	}
 
 	result = AvailablePrivateEndpointTypesListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
