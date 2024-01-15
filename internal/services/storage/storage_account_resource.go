@@ -1398,10 +1398,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			accessTier = string(storage.AccessTierHot)
 		}
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else {
-		if ok {
-			return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
-		}
+	} else if ok {
+		return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
 	}
 
 	if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
