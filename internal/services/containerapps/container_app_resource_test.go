@@ -344,13 +344,36 @@ func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppResource_secretFail(t *testing.T) {
+func TestAccContainerAppResource_secretBasicFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.secretBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.secretRemove(data),
+			ExpectError: regexp.MustCompile("cannot remove secrets from Container Apps at this time"),
+		},
+		{
+			Config:      r.secretChangeName(data),
+			ExpectError: regexp.MustCompile("previously configured secret"),
+		},
+	})
+}
+
+func TestAccContainerAppResource_secretVaultFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.secretVault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1995,6 +2018,70 @@ resource "azurerm_container_app" "test" {
   secret {
     name  = "rick"
     value = "morty"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) secretVault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "standard"
+}
+
+resource "azurerm_key_vault_secret" "foo" {
+  key_vault_id = azurerm_key_vault.test.id
+  name                = "foo"
+  value               = "foo_value"
+}
+
+resource "azurerm_key_vault_secret" "rick" {
+  key_vault_id = azurerm_key_vault.test.id
+  name                = "rick"
+  value               = "rick_value"
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  secret {
+    identity = azurerm_user_assigned_identity.test.id
+    keyVaultUrl = azurerm_key_vault.foo.resource_versionless_id
+    name  = "foo"
+  }
+
+  secret {
+    identity = azurerm_user_assigned_identity.test.id
+    keyVaultUrl = azurerm_key_vault.rick.resource_versionless_id
+    name  = "rick"
   }
 }
 `, r.template(data), data.RandomInteger)
