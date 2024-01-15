@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -46,6 +47,11 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(10 * time.Minute),
 		},
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SecurityCenterSettingsV0ToV1{},
+		}),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"setting_name": {
 				Type:         pluginsdk.TypeString,
@@ -66,6 +72,11 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	settingName := d.Get("setting_name").(string)
+	if settingName == "SENTINEL" {
+		settingName = "Sentinel"
+	}
 
 	id := settings.NewSettingID(subscriptionId, settings.SettingName(d.Get("setting_name").(string)))
 
