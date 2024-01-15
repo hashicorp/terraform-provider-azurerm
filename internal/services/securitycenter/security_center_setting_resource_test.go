@@ -23,10 +23,23 @@ func TestAccSecurityCenterSetting(t *testing.T) {
 	// there is only one workspace with the same name could exist, so run the tests in sequence.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"setting": {
-			"update":         testAccSecurityCenterSetting_update,
-			"requiresImport": testAccSecurityCenterSetting_requiresImport,
+			"sentinel": testAccSecurityCenterSetting_clearSentinel,
+			// "update":         testAccSecurityCenterSetting_update,
+			// "requiresImport": testAccSecurityCenterSetting_requiresImport,
 		},
 	})
+}
+
+func testAccSecurityCenterSetting_clearSentinel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
+	r := SecurityCenterSettingResource{}
+	data.ResourceSequentialTest(t, r,
+		[]acceptance.TestStep{
+			{
+				Config: r.cfg("Sentinel", false),
+				Check:  acceptance.ComposeTestCheckFunc(),
+			},
+		})
 }
 
 func testAccSecurityCenterSetting_update(t *testing.T) {

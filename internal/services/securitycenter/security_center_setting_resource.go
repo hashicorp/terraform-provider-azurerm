@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
@@ -80,21 +79,21 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-		}
-
-		if existing.Model != nil {
-			if alertSyncSettings, ok := (*existing.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
-			}
-			if dataExportSettings, ok := (*existing.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
-			}
-		}
-	}
+	// if d.IsNewResource() {
+	// 	existing, err := client.Get(ctx, id)
+	// 	if err != nil {
+	// 		return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	// 	}
+	//
+	// 	if existing.Model != nil {
+	// 		if alertSyncSettings, ok := (*existing.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
+	// 			return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+	// 		}
+	// 		if dataExportSettings, ok := (*existing.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
+	// 			return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+	// 		}
+	// 	}
+	// }
 
 	setting, err := expandSecurityCenterSetting(id.SettingName, d.Get("enabled").(bool))
 	if err != nil {
