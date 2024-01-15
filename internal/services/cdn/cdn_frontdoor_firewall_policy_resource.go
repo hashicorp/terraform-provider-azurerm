@@ -83,6 +83,12 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 			},
 
+			"request_body_check_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"custom_block_response_status_code": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -475,6 +481,12 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		enabled = frontdoor.PolicyEnabledStateEnabled
 	}
 
+	requestBodyCheck := frontdoor.PolicyRequestBodyCheckDisabled
+
+	if d.Get("request_body_check_enabled").(bool) {
+		requestBodyCheck = frontdoor.PolicyRequestBodyCheckEnabled
+	}
+
 	sku := d.Get("sku_name").(string)
 	mode := frontdoor.PolicyMode(d.Get("mode").(string))
 	redirectUrl := d.Get("redirect_url").(string)
@@ -499,8 +511,9 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		},
 		WebApplicationFirewallPolicyProperties: &frontdoor.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &frontdoor.PolicySettings{
-				EnabledState: enabled,
-				Mode:         mode,
+				EnabledState:     enabled,
+				Mode:             mode,
+				RequestBodyCheck: requestBodyCheck,
 			},
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
@@ -561,14 +574,19 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *existing.WebApplicationFirewallPolicyProperties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url") {
+	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled") {
 		enabled := frontdoor.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = frontdoor.PolicyEnabledStateEnabled
 		}
+		requestBodyCheck := frontdoor.PolicyRequestBodyCheckDisabled
+		if d.Get("request_body_check_enabled").(bool) {
+			requestBodyCheck = frontdoor.PolicyRequestBodyCheckEnabled
+		}
 		props.PolicySettings = &frontdoor.PolicySettings{
-			EnabledState: enabled,
-			Mode:         frontdoor.PolicyMode(d.Get("mode").(string)),
+			EnabledState:     enabled,
+			Mode:             frontdoor.PolicyMode(d.Get("mode").(string)),
+			RequestBodyCheck: requestBodyCheck,
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -653,6 +671,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 		if policy := properties.PolicySettings; policy != nil {
 			d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
 			d.Set("mode", string(policy.Mode))
+			d.Set("request_body_check_enabled", policy.RequestBodyCheck == frontdoor.PolicyRequestBodyCheckEnabled)
 			d.Set("redirect_url", policy.RedirectURL)
 			d.Set("custom_block_response_status_code", policy.CustomBlockResponseStatusCode)
 			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)

@@ -20,7 +20,8 @@ type ListForSubscriptionOperationResponse struct {
 }
 
 type ListForSubscriptionCompleteResult struct {
-	Items []Remediation
+	LatestHttpResponse *http.Response
+	Items              []Remediation
 }
 
 type ListForSubscriptionOperationOptions struct {
@@ -116,7 +117,8 @@ func (c RemediationsClient) ListForSubscriptionCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListForSubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

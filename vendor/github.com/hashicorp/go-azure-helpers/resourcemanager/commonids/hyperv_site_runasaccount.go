@@ -38,23 +38,9 @@ func ParseHyperVSiteRunAsAccountID(input string) (*HyperVSiteRunAsAccountId, err
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HyperVSiteRunAsAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HyperVSiteName, ok = parsed.Parsed["hyperVSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", *parsed)
-	}
-
-	if id.RunAsAccountName, ok = parsed.Parsed["runAsAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runAsAccountName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,26 +55,34 @@ func ParseHyperVSiteRunAsAccountIDInsensitively(input string) (*HyperVSiteRunAsA
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HyperVSiteRunAsAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HyperVSiteName, ok = parsed.Parsed["hyperVSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", *parsed)
-	}
-
-	if id.RunAsAccountName, ok = parsed.Parsed["runAsAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runAsAccountName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *HyperVSiteRunAsAccountId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.HyperVSiteName, ok = input.Parsed["hyperVSiteName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", input)
+	}
+
+	if id.RunAsAccountName, ok = input.Parsed["runAsAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "runAsAccountName", input)
+	}
+
+	return nil
 }
 
 // ValidateHyperVSiteRunAsAccountID checks that 'input' can be parsed as a Hyper V Site Run As Account ID

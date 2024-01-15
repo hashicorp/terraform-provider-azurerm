@@ -32,6 +32,7 @@ resource "azurerm_data_protection_backup_policy_disk" "example" {
 
   backup_repeating_time_intervals = ["R/2021-05-19T06:33:16+00:00/PT4H"]
   default_retention_duration      = "P7D"
+  time_zone                       = "W. Europe Standard Time"
 
   retention_rule {
     name     = "Daily"
@@ -65,9 +66,9 @@ The following arguments are supported:
 
 * `default_retention_duration` - (Required) The duration of default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Disk to be created.
 
----
-
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy Disk to be created.
+
+* `time_zone` - (Optional) Specifies the Time Zone which should be used by the backup schedule. Changing this forces a new Backup Policy Disk to be created.
 
 ---
 

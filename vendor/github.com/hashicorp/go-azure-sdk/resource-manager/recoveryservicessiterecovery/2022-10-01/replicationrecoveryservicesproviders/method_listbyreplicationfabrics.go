@@ -19,7 +19,8 @@ type ListByReplicationFabricsOperationResponse struct {
 }
 
 type ListByReplicationFabricsCompleteResult struct {
-	Items []RecoveryServicesProvider
+	LatestHttpResponse *http.Response
+	Items              []RecoveryServicesProvider
 }
 
 // ListByReplicationFabrics ...
@@ -83,7 +84,8 @@ func (c ReplicationRecoveryServicesProvidersClient) ListByReplicationFabricsComp
 	}
 
 	result = ListByReplicationFabricsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

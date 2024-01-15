@@ -19,7 +19,8 @@ type ConfigurationsListOperationResponse struct {
 }
 
 type ConfigurationsListCompleteResult struct {
-	Items []NginxConfiguration
+	LatestHttpResponse *http.Response
+	Items              []NginxConfiguration
 }
 
 // ConfigurationsList ...
@@ -83,7 +84,8 @@ func (c NginxConfigurationClient) ConfigurationsListCompleteMatchingPredicate(ct
 	}
 
 	result = ConfigurationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -116,7 +115,7 @@ func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Clien
 
 func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := disks.ParseDiskID(*diskId)
+		id, err := commonids.ParseManagedDiskID(*diskId)
 		if err != nil {
 			return err
 		}
@@ -144,7 +143,7 @@ func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.Clien
 
 func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := disks.ParseDiskID(*diskId)
+		id, err := commonids.ParseManagedDiskID(*diskId)
 		if err != nil {
 			return err
 		}

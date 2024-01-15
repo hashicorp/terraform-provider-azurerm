@@ -20,7 +20,8 @@ type SkusListOperationResponse struct {
 }
 
 type SkusListCompleteResult struct {
-	Items []ResourceSku
+	LatestHttpResponse *http.Response
+	Items              []ResourceSku
 }
 
 // SkusList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) SkusListCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = SkusListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

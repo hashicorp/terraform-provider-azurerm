@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -46,7 +47,7 @@ func (o GetOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // Get ...
-func (c DedicatedHostGroupsClient) Get(ctx context.Context, id HostGroupId, options GetOperationOptions) (result GetOperationResponse, err error) {
+func (c DedicatedHostGroupsClient) Get(ctx context.Context, id commonids.DedicatedHostGroupId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

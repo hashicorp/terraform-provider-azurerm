@@ -193,9 +193,8 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope: config.Scope,
-				// Though the property is called "Name", it's UUID in fact.
-				RoleDefinitionId: pointer.From(role.Name),
+				Scope:            config.Scope,
+				RoleDefinitionId: defId,
 			}
 
 			state.Name = pointer.From(role.RoleName)

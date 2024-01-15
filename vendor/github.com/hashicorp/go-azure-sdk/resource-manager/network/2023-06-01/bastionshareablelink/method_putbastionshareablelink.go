@@ -22,7 +22,8 @@ type PutBastionShareableLinkOperationResponse struct {
 }
 
 type PutBastionShareableLinkCompleteResult struct {
-	Items []BastionShareableLink
+	LatestHttpResponse *http.Response
+	Items              []BastionShareableLink
 }
 
 // PutBastionShareableLink ...

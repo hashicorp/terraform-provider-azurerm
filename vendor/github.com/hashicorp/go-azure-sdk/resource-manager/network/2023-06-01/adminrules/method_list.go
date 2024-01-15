@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []BaseAdminRule
+	LatestHttpResponse *http.Response
+	Items              []BaseAdminRule
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c AdminRulesClient) ListCompleteMatchingPredicate(ctx context.Context, id 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

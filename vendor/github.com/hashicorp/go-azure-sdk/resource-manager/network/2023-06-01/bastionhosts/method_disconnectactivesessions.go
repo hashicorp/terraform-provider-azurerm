@@ -19,7 +19,8 @@ type DisconnectActiveSessionsOperationResponse struct {
 }
 
 type DisconnectActiveSessionsCompleteResult struct {
-	Items []BastionSessionState
+	LatestHttpResponse *http.Response
+	Items              []BastionSessionState
 }
 
 // DisconnectActiveSessions ...
@@ -83,7 +84,8 @@ func (c BastionHostsClient) DisconnectActiveSessionsCompleteMatchingPredicate(ct
 	}
 
 	result = DisconnectActiveSessionsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

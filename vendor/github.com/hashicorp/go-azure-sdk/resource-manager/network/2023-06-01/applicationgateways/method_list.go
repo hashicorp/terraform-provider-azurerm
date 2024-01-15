@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ApplicationGateway
+	LatestHttpResponse *http.Response
+	Items              []ApplicationGateway
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c ApplicationGatewaysClient) ListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type TagListByApiOperationResponse struct {
 }
 
 type TagListByApiCompleteResult struct {
-	Items []TagContract
+	LatestHttpResponse *http.Response
+	Items              []TagContract
 }
 
 type TagListByApiOperationOptions struct {
@@ -119,7 +120,8 @@ func (c ApiTagClient) TagListByApiCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = TagListByApiCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListPrivateLinkResourcesOperationResponse struct {
 }
 
 type ListPrivateLinkResourcesCompleteResult struct {
-	Items []PrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
 }
 
 // ListPrivateLinkResources ...
@@ -83,7 +84,8 @@ func (c RegistriesClient) ListPrivateLinkResourcesCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListPrivateLinkResourcesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []PrivateDnsZoneGroup
+	LatestHttpResponse *http.Response
+	Items              []PrivateDnsZoneGroup
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c PrivateDnsZoneGroupsClient) ListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

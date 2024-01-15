@@ -5,6 +5,7 @@ package containers
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -559,6 +560,21 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
+
+			"priority": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupPriority(), false),
+			},
+		},
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if p := d.Get("priority").(string); p == string(containerinstance.ContainerGroupPrioritySpot) {
+				if d.Get("ip_address_type").(string) != "None" {
+					return fmt.Errorf("`ip_address_type` has to be `None` when `priority` is set to `Spot`")
+				}
+			}
+			return nil
 		},
 	}
 }
@@ -789,6 +805,10 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if priority := d.Get("priority").(string); priority != "" {
+		containerGroup.Properties.Priority = pointer.To(containerinstance.ContainerGroupPriority(priority))
+	}
+
 	// Avoid parallel provisioning if "subnet_ids" are given.
 	if subnets != nil && len(*subnets) != 0 {
 		for _, item := range *subnets {
@@ -879,6 +899,12 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			sku = string(*v)
 		}
 		d.Set("sku", sku)
+
+		var priority string
+		if v := props.Priority; v != nil {
+			priority = string(*v)
+		}
+		d.Set("priority", priority)
 
 		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {

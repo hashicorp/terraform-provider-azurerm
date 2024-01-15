@@ -20,7 +20,8 @@ type RemoteRenderingAccountsListByResourceGroupOperationResponse struct {
 }
 
 type RemoteRenderingAccountsListByResourceGroupCompleteResult struct {
-	Items []RemoteRenderingAccount
+	LatestHttpResponse *http.Response
+	Items              []RemoteRenderingAccount
 }
 
 // RemoteRenderingAccountsListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ResourceClient) RemoteRenderingAccountsListByResourceGroupCompleteMatchi
 	}
 
 	result = RemoteRenderingAccountsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

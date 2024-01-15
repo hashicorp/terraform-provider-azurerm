@@ -22,7 +22,8 @@ type GetActiveSessionsOperationResponse struct {
 }
 
 type GetActiveSessionsCompleteResult struct {
-	Items []BastionActiveSession
+	LatestHttpResponse *http.Response
+	Items              []BastionActiveSession
 }
 
 // GetActiveSessions ...

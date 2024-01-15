@@ -19,7 +19,8 @@ type ListByGalleryOperationResponse struct {
 }
 
 type ListByGalleryCompleteResult struct {
-	Items []Image
+	LatestHttpResponse *http.Response
+	Items              []Image
 }
 
 type ListByGalleryOperationOptions struct {
@@ -111,7 +112,8 @@ func (c ImagesClient) ListByGalleryCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = ListByGalleryCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

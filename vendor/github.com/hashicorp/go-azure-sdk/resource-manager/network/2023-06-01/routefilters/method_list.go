@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []RouteFilter
+	LatestHttpResponse *http.Response
+	Items              []RouteFilter
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c RouteFiltersClient) ListCompleteMatchingPredicate(ctx context.Context, i
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

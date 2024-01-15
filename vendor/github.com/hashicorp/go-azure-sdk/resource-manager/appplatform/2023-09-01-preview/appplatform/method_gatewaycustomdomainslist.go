@@ -19,7 +19,8 @@ type GatewayCustomDomainsListOperationResponse struct {
 }
 
 type GatewayCustomDomainsListCompleteResult struct {
-	Items []GatewayCustomDomainResource
+	LatestHttpResponse *http.Response
+	Items              []GatewayCustomDomainResource
 }
 
 // GatewayCustomDomainsList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) GatewayCustomDomainsListCompleteMatchingPredicate(ctx
 	}
 
 	result = GatewayCustomDomainsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
