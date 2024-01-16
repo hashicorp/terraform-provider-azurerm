@@ -981,7 +981,7 @@ type ApplicationStackLinuxFunctionApp struct {
 	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0` and `8.0`.
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS`
-	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.12`, `3.11`, `3.10`, `3.9`, `3.8`
+	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
 	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
 	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`, `17`
 	CustomHandler         bool                     `tfschema:"use_custom_runtime"`          // Supported values `true`
@@ -1057,6 +1057,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"3.10",
 						"3.9",
 						"3.8",
+						"3.7",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1067,7 +1068,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Python to use. Possible values include `3.12`, `3.11`, `3.10`, `3.9`, and `3.8`.",
+					Description: "The version of Python to use. Possible values include `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, and `3.7`.",
 				},
 
 				"node_version": {

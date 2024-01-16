@@ -494,6 +494,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"3.7",
 					"3.8",
 					"3.9",
 					"3.10",
