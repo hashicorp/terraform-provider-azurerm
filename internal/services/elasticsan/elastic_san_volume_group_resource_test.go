@@ -68,7 +68,7 @@ func TestAccElasticSANVolumeGroup_encryptionWithSystemAssignedIdentity(t *testin
 	})
 }
 
-func TestAccElasticSANVolumeGroup_identity(t *testing.T) {
+func TestAccElasticSANVolumeGroup_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume_group", "test")
 	r := ElasticSANVolumeGroupTestResource{}
 
@@ -183,8 +183,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name   = "acctestesvg-${var.random_string}"
-  san_id = azurerm_elastic_san.test.id
+  name           = "acctestesvg-${var.random_string}"
+  elastic_san_id = azurerm_elastic_san.test.id
 }
 `, r.template(data))
 }
@@ -194,8 +194,8 @@ func (r ElasticSANVolumeGroupTestResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_elastic_san_volume_group" "import" {
-  name   = azurerm_elastic_san_volume_group.test.name
-  san_id = azurerm_elastic_san.test.id
+  name           = azurerm_elastic_san_volume_group.test.name
+  elastic_san_id = azurerm_elastic_san.test.id
 }
 `, r.basic(data))
 }
@@ -215,8 +215,8 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name   = "acctestesvg-${var.random_string}"
-  san_id = azurerm_elastic_san.test.id
+  name           = "acctestesvg-${var.random_string}"
+  elastic_san_id = azurerm_elastic_san.test.id
 
   identity {
     type         = "UserAssigned"
@@ -235,8 +235,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name   = "acctestesvg-${var.random_string}"
-  san_id = azurerm_elastic_san.test.id
+  name           = "acctestesvg-${var.random_string}"
+  elastic_san_id = azurerm_elastic_san.test.id
 
   identity {
     type = "SystemAssigned"
@@ -303,8 +303,8 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name   = "acctestesvg-${var.random_string}"
-  san_id = azurerm_elastic_san.test.id
+  name           = "acctestesvg-${var.random_string}"
+  elastic_san_id = azurerm_elastic_san.test.id
 
   identity {
     type = "SystemAssigned"
@@ -372,7 +372,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  san_id          = azurerm_elastic_san.test.id
+  elastic_san_id  = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
 
   encryption {
@@ -467,7 +467,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  san_id          = azurerm_elastic_san.test.id
+  elastic_san_id  = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithPlatformKey"
 
   encryption {
@@ -569,7 +569,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  san_id          = azurerm_elastic_san.test.id
+  elastic_san_id  = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
 
   encryption {
@@ -680,7 +680,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_elastic_san_volume_group" "test" {
   name            = "acctestesvg-${var.random_string}"
-  san_id          = azurerm_elastic_san.test.id
+  elastic_san_id  = azurerm_elastic_san.test.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
   protocol_type   = "Iscsi"
 
@@ -708,7 +708,7 @@ resource "azurerm_elastic_san_volume_group" "test" {
 }
 
 func (r ElasticSANVolumeGroupTestResource) template(data acceptance.TestData) string {
-	// some of the features are supported in limited regions, see https://learn.microsoft.com/en-us/azure/storage/elastic-san/elastic-san-networking-concepts#regional-availability
+	// some of the features are supported in limited regions, see https://learn.microsoft.com/azure/storage/elastic-san/elastic-san-networking-concepts#regional-availability
 	volumeGroupTestLocation := "westus2"
 	return fmt.Sprintf(`
 variable "primary_location" {

@@ -38,7 +38,7 @@ func (r ElasticSANVolumeGroupResource) ModelObject() interface{} {
 }
 
 type ElasticSANVolumeGroupResourceModel struct {
-	SanId          string                                          `tfschema:"san_id"`
+	SanId          string                                          `tfschema:"elastic_san_id"`
 	EncryptionType string                                          `tfschema:"encryption_type"`
 	Encryption     []ElasticSANVolumeGroupResourceEncryptionModel  `tfschema:"encryption"`
 	Identity       []identity.ModelSystemAssignedUserAssigned      `tfschema:"identity"`
@@ -66,10 +66,10 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ElasticSanVolumnGroupName,
+			ValidateFunc: validate.ElasticSanVolumeGroupName,
 		},
 
-		"san_id": commonschema.ResourceIDReferenceRequiredForceNew(volumegroups.ElasticSanId{}),
+		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(volumegroups.ElasticSanId{}),
 
 		"encryption_type": {
 			Type:         pluginsdk.TypeString,
@@ -156,6 +156,10 @@ func (k ElasticSANVolumeGroupResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if len(config.Encryption) > 0 && config.EncryptionType != string(volumegroups.EncryptionTypeEncryptionAtRestWithCustomerManagedKey) {
 				return fmt.Errorf("encryption can only be set if encryption_type is EncryptionAtRestWithCustomerManagedKey")
+			}
+
+			if len(config.Encryption) == 0 && config.EncryptionType == string(volumegroups.EncryptionTypeEncryptionAtRestWithCustomerManagedKey) {
+				return fmt.Errorf("encryption must be set if encryption_type is EncryptionAtRestWithCustomerManagedKey")
 			}
 
 			return nil
@@ -390,7 +394,7 @@ func FlattenVolumeGroupEncryption(input *volumegroups.EncryptionProperties) ([]E
 		return []ElasticSANVolumeGroupResourceEncryptionModel{}, nil
 	}
 
-	var keyVaultKeyId string
+	var keyVaultKeyId, currentVersionedKeyExpirationTimestamp, currentVersionedKeyId, lastKeyRotationTimestamp string
 	if kv := input.KeyVaultProperties; kv != nil {
 		id, err := keyVaultParse.NewNestedItemID(pointer.From(kv.KeyVaultUri), keyVaultParse.NestedItemTypeKey, pointer.From(kv.KeyName), pointer.From(kv.KeyVersion))
 		if err != nil {
@@ -398,6 +402,10 @@ func FlattenVolumeGroupEncryption(input *volumegroups.EncryptionProperties) ([]E
 		}
 
 		keyVaultKeyId = id.ID()
+
+		currentVersionedKeyExpirationTimestamp = pointer.From(input.KeyVaultProperties.CurrentVersionedKeyExpirationTimestamp)
+		currentVersionedKeyId = pointer.From(input.KeyVaultProperties.CurrentVersionedKeyIdentifier)
+		lastKeyRotationTimestamp = pointer.From(input.KeyVaultProperties.LastKeyRotationTimestamp)
 	}
 
 	var userAssignedIdentityId string
@@ -414,9 +422,9 @@ func FlattenVolumeGroupEncryption(input *volumegroups.EncryptionProperties) ([]E
 		{
 			KeyVaultKeyId:                          keyVaultKeyId,
 			UserAssignedIdentityId:                 userAssignedIdentityId,
-			CurrentVersionedKeyExpirationTimestamp: pointer.From(input.KeyVaultProperties.CurrentVersionedKeyExpirationTimestamp),
-			CurrentVersionedKeyId:                  pointer.From(input.KeyVaultProperties.CurrentVersionedKeyIdentifier),
-			LastKeyRotationTimestamp:               pointer.From(input.KeyVaultProperties.LastKeyRotationTimestamp),
+			CurrentVersionedKeyExpirationTimestamp: currentVersionedKeyExpirationTimestamp,
+			CurrentVersionedKeyId:                  currentVersionedKeyId,
+			LastKeyRotationTimestamp:               lastKeyRotationTimestamp,
 		},
 	}, nil
 }
@@ -447,7 +455,7 @@ func FlattenVolumeGroupNetworkRules(input *volumegroups.NetworkRuleSet) []Elasti
 		return []ElasticSANVolumeGroupResourceNetworkRuleModel{}
 	}
 
-	var networkRules []ElasticSANVolumeGroupResourceNetworkRuleModel
+	networkRules := make([]ElasticSANVolumeGroupResourceNetworkRuleModel, 0)
 	for _, rule := range *input.VirtualNetworkRules {
 		networkRules = append(networkRules, ElasticSANVolumeGroupResourceNetworkRuleModel{
 			SubnetId: rule.Id,

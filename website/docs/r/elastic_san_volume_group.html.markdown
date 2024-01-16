@@ -101,7 +101,7 @@ resource "azurerm_key_vault_key" "example" {
 
 resource "azurerm_elastic_san_volume_group" "example" {
   name            = "example-esvg"
-  san_id          = azurerm_elastic_san.example.id
+  elastic_san_id  = azurerm_elastic_san.example.id
   encryption_type = "EncryptionAtRestWithCustomerManagedKey"
 
   encryption {
@@ -127,13 +127,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of this Elastic SAN Volume Group. Changing this forces a new resource to be created.
 
-* `san_id` - (Required) Specifies the Elastic SAN ID within which this Elastic SAN Volume Group should exist. Changing this forces a new resource to be created.
+* `elastic_san_id` - (Required) Specifies the Elastic SAN ID within which this Elastic SAN Volume Group should exist. Changing this forces a new resource to be created.
 
 * `encryption_type` - (Optional) Specifies the type of the key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerManagedKey` and `EncryptionAtRestWithPlatformKey`. Defaults to `EncryptionAtRestWithPlatformKey`.
 
 * `encryption` - (Optional) An `encryption` block as defined below.
 
-**NOTE:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
+-> **NOTE:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Elastic SAN Volume Group.
 

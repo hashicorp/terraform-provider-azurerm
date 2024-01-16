@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestElasticSanVolumnGroupName(t *testing.T) {
+func TestElasticSanVolumeGroupName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -92,7 +92,7 @@ func TestElasticSanVolumnGroupName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ElasticSanVolumnGroupName(v.input, "name")
+		_, errors := ElasticSanVolumeGroupName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			if len(errors) > 0 {
