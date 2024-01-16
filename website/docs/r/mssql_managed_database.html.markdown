@@ -1,4 +1,4 @@
----
+`---
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_managed_database"
@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `short_term_retention_days` - (Optional) The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 
+* `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below.
+
 ---
 
 A `long_term_retention_policy` block supports the following:
@@ -80,6 +82,14 @@ A `long_term_retention_policy` block supports the following:
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`.
 * `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+
+---
+
+A `point_in_time_restore` block supports the following:
+
+* `restore_point_in_time` - (Required) The point in time for the restore from `source_database_id`. Changing this forces a new resource to be created.
+
+* `source_database_id` - The source database id that will be used to restore from. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -103,3 +113,4 @@ SQL Managed Databases can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_managed_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/managedInstances/myserver/databases/mydatabase
 ```
+`
