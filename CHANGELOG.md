@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240112.1095456` of `github.com/hashicorp/go-azure-sdk` [GH-24477]
 * dependencies: updating to `v0.65.1` of `github.com/hashicorp/go-azure-helpers` [GH-24479]
+* dependencies: `azurerm_service_plan` - update to use `hashicorp/go-azure-sdk` [GH-24483]
 * Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
 * `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
 * `azurerm_container_group` - support for the `priority` property [GH-24374]
