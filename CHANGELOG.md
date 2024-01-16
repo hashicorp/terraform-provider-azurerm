@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
 * `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
 * `azurerm_container_group` - support for the `priority` property [GH-24374]
+* `azurerm_mssql_managed_instance` - support computed property `dns_zone` [GH-24435]
 
 BUG FIXES:
 
