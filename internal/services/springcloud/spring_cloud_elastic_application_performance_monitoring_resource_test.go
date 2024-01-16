@@ -162,7 +162,7 @@ resource "azurerm_spring_cloud_elastic_application_performance_monitoring" "test
   application_packages    = "org.example,org.another.example"
   service_name            = "test-service-name"
   server_url              = "http://127.0.0.1:8200"
-  globally_enabled 	      = true
+  globally_enabled        = true
 }
 `, template, data.RandomInteger)
 }
