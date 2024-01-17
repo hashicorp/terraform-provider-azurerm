@@ -30,7 +30,7 @@ func TestAccContainerAppDataSource_complete(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, "rev1"),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
@@ -47,7 +47,7 @@ data "azurerm_container_app" "test" {
 `, ContainerAppResource{}.basic(data))
 }
 
-func (d ContainerAppDataSource) complete(data acceptance.TestData) string {
+func (d ContainerAppDataSource) complete(data acceptance.TestData, revisionSuffix string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -55,5 +55,5 @@ data "azurerm_container_app" "test" {
   name                = azurerm_container_app.test.name
   resource_group_name = azurerm_container_app.test.resource_group_name
 }
-`, ContainerAppResource{}.complete(data, "rev1"))
+`, ContainerAppResource{}.complete(data, revisionSuffix))
 }
