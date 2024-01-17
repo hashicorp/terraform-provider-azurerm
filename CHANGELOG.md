@@ -20,6 +20,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_gateway` - `components` within the `url` block is no longer computed [GH-24480]
 * `azurerm_cdn_frontdoor_route` - fix issue where `cdn_frontdoor_origin_path` gets removed on update if unchanged. [GH-24488]
 
 ## 3.87.0 (January 11, 2024)
