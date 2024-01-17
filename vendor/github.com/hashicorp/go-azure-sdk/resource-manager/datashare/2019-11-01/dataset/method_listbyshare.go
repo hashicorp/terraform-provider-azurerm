@@ -2,6 +2,7 @@ package dataset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -82,13 +83,24 @@ func (c DataSetClient) ListByShare(ctx context.Context, id ShareId, options List
 	}
 
 	var values struct {
-		Values *[]DataSet `json:"value"`
+		Values *[]json.RawMessage `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
-	result.Model = values.Values
+	temp := make([]DataSet, 0)
+	if values.Values != nil {
+		for i, v := range *values.Values {
+			val, err := unmarshalDataSetImplementation(v)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling item %d for DataSet (%q): %+v", i, v, err)
+				return result, err
+			}
+			temp = append(temp, val)
+		}
+	}
+	result.Model = &temp
 
 	return
 }
