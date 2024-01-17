@@ -1,0 +1,95 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package network_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+)
+
+type IPGroupsDataSource struct{}
+
+func TestAccDataSourceIPGroups_noResults(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_ip_groups", "test")
+	r := IPGroupsDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.noResults(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("ids.#").HasValue("0"),
+				check.That(data.ResourceName).Key("names.#").HasValue("0"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceIPGroups_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_ip_groups", "test")
+	r := IPGroupsDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("names.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceIPGroups_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_ip_groups", "test")
+	r := IPGroupsDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("ids.#").HasValue("2"),
+				check.That(data.ResourceName).Key("names.#").HasValue("2"),
+			),
+		},
+	})
+}
+
+// Find IP group which doesn't exist
+func (IPGroupsDataSource) noResults(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_ip_groups" "test" {
+  name                = "doesNotExist"
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, IPGroupResource{}.basic(data))
+}
+
+// Find single IP group
+func (IPGroupsDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_ip_groups" "test" {
+  name                = "acceptanceTestIpGroup1"
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, IPGroupResource{}.basic(data))
+}
+
+// Find multiple IP Groups, filtered by name substring
+func (IPGroupsDataSource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_ip_groups" "test" {
+  name                = "acceptanceTestIpGroup"
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, IPGroupResource{}.complete(data))
+}
