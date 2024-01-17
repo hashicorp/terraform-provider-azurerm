@@ -225,8 +225,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-previe
 github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests
+github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests
+github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedules
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook

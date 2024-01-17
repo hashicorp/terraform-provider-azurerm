@@ -95,6 +95,22 @@ func TestAccPimActiveRoleAssignment_update(t *testing.T) {
 	})
 }
 
+func TestAccPimActiveRoleAssignment_pending(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
+	r := PimActiveRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pending(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").Exists(),
+			),
+		},
+		data.ImportStep("schedule.0.start_date_time"),
+	})
+}
+
 func TestAccPimActiveRoleAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
 
@@ -402,6 +418,40 @@ resource "azurerm_pim_active_role_assignment" "test" {
 
   schedule {
     start_date_time = time_static.test.rfc3339
+    expiration {
+      duration_hours = 8
+    }
+  }
+
+  justification = "Expiration Duration Set"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`
+}
+
+func (PimActiveRoleAssignmentResource) pending() string {
+	return `
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "Billing Reader"
+}
+
+resource "time_offset" "test" {}
+
+resource "azurerm_pim_active_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = data.azurerm_client_config.test.object_id
+
+  schedule {
+    start_date_time = time_offset.test.rfc3339
     expiration {
       duration_hours = 8
     }

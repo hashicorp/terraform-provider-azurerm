@@ -9,8 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -21,8 +23,10 @@ type Client struct {
 	RoleDefinitionsClient                  *authorization.RoleDefinitionsClient
 	RoleAssignmentScheduleRequestClient    *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient
 	RoleAssignmentScheduleInstancesClient  *roleassignmentscheduleinstances.RoleAssignmentScheduleInstancesClient
+	RoleAssignmentSchedulesClient          *roleassignmentschedules.RoleAssignmentSchedulesClient
 	RoleEligibilityScheduleRequestClient   *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient
 	RoleEligibilityScheduleInstancesClient *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient
+	RoleEligibilitySchedulesClient         *roleeligibilityschedules.RoleEligibilitySchedulesClient
 	ScopedRoleAssignmentsClient            *roleassignments.RoleAssignmentsClient
 	ScopedRoleDefinitionsClient            *roledefinitions.RoleDefinitionsClient
 }
@@ -47,6 +51,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(roleAssignmentScheduleInstancesClient.Client, o.Authorizers.ResourceManager)
 
+	roleAssignmentSchedulesClient, err := roleassignmentschedules.NewRoleAssignmentSchedulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating roleAssignmentSchedulesClient: %+v", err)
+	}
+	o.Configure(roleAssignmentSchedulesClient.Client, o.Authorizers.ResourceManager)
+
 	roleEligibilityScheduleRequestClient, err := roleeligibilityschedulerequests.NewRoleEligibilityScheduleRequestsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("creating roleEligibilityScheduleRequestClient: %+v", err)
@@ -58,6 +68,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("creating roleEligibilityScheduleInstancesClient: %+v", err)
 	}
 	o.Configure(roleEligibilityScheduleInstancesClient.Client, o.Authorizers.ResourceManager)
+
+	roleEligibilitySchedulesClient, err := roleeligibilityschedules.NewRoleEligibilitySchedulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating roleEligibilitySchedulesClient: %+v", err)
+	}
+	o.Configure(roleEligibilitySchedulesClient.Client, o.Authorizers.ResourceManager)
 
 	scopedRoleAssignmentsClient, err := roleassignments.NewRoleAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -76,8 +92,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		RoleDefinitionsClient:                  &roleDefinitionsClient,
 		RoleAssignmentScheduleRequestClient:    roleAssignmentScheduleRequestsClient,
 		RoleAssignmentScheduleInstancesClient:  roleAssignmentScheduleInstancesClient,
+		RoleAssignmentSchedulesClient:          roleAssignmentSchedulesClient,
 		RoleEligibilityScheduleRequestClient:   roleEligibilityScheduleRequestClient,
 		RoleEligibilityScheduleInstancesClient: roleEligibilityScheduleInstancesClient,
+		RoleEligibilitySchedulesClient:         roleEligibilitySchedulesClient,
 		ScopedRoleAssignmentsClient:            scopedRoleAssignmentsClient,
 		ScopedRoleDefinitionsClient:            scopedRoleDefinitionsClient,
 	}, nil
