@@ -1,8 +1,7 @@
-package deploymentscripts
+package account
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -17,23 +16,23 @@ import (
 type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]DeploymentScript
+	Model        *[]Account
 }
 
 type ListByResourceGroupCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []DeploymentScript
+	Items              []Account
 }
 
 // ListByResourceGroup ...
-func (c DeploymentScriptsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
+func (c AccountClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.Resources/deploymentScripts", id.ID()),
+		Path:       fmt.Sprintf("%s/providers/Microsoft.DataShare/accounts", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -52,36 +51,25 @@ func (c DeploymentScriptsClient) ListByResourceGroup(ctx context.Context, id com
 	}
 
 	var values struct {
-		Values *[]json.RawMessage `json:"value"`
+		Values *[]Account `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
-	temp := make([]DeploymentScript, 0)
-	if values.Values != nil {
-		for i, v := range *values.Values {
-			val, err := unmarshalDeploymentScriptImplementation(v)
-			if err != nil {
-				err = fmt.Errorf("unmarshalling item %d for DeploymentScript (%q): %+v", i, v, err)
-				return result, err
-			}
-			temp = append(temp, val)
-		}
-	}
-	result.Model = &temp
+	result.Model = values.Values
 
 	return
 }
 
 // ListByResourceGroupComplete retrieves all the results into a single object
-func (c DeploymentScriptsClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, DeploymentScriptOperationPredicate{})
+func (c AccountClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
 }
 
 // ListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c DeploymentScriptsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate DeploymentScriptOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
-	items := make([]DeploymentScript, 0)
+func (c AccountClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate AccountOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
+	items := make([]Account, 0)
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {

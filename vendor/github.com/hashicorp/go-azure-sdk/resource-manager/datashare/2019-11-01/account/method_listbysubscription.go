@@ -1,8 +1,7 @@
-package deploymentscripts
+package account
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -17,23 +16,23 @@ import (
 type ListBySubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]DeploymentScript
+	Model        *[]Account
 }
 
 type ListBySubscriptionCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []DeploymentScript
+	Items              []Account
 }
 
 // ListBySubscription ...
-func (c DeploymentScriptsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
+func (c AccountClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.Resources/deploymentScripts", id.ID()),
+		Path:       fmt.Sprintf("%s/providers/Microsoft.DataShare/accounts", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -52,36 +51,25 @@ func (c DeploymentScriptsClient) ListBySubscription(ctx context.Context, id comm
 	}
 
 	var values struct {
-		Values *[]json.RawMessage `json:"value"`
+		Values *[]Account `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
-	temp := make([]DeploymentScript, 0)
-	if values.Values != nil {
-		for i, v := range *values.Values {
-			val, err := unmarshalDeploymentScriptImplementation(v)
-			if err != nil {
-				err = fmt.Errorf("unmarshalling item %d for DeploymentScript (%q): %+v", i, v, err)
-				return result, err
-			}
-			temp = append(temp, val)
-		}
-	}
-	result.Model = &temp
+	result.Model = values.Values
 
 	return
 }
 
 // ListBySubscriptionComplete retrieves all the results into a single object
-func (c DeploymentScriptsClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
-	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, DeploymentScriptOperationPredicate{})
+func (c AccountClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
+	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, AccountOperationPredicate{})
 }
 
 // ListBySubscriptionCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c DeploymentScriptsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate DeploymentScriptOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
-	items := make([]DeploymentScript, 0)
+func (c AccountClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AccountOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
+	items := make([]Account, 0)
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {

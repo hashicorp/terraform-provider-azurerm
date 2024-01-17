@@ -1,4 +1,4 @@
-package adminrules
+package synchronizationsetting
 
 import (
 	"context"
@@ -13,26 +13,26 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListOperationResponse struct {
+type ListByShareOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]BaseAdminRule
+	Model        *[]SynchronizationSetting
 }
 
-type ListCompleteResult struct {
+type ListByShareCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []BaseAdminRule
+	Items              []SynchronizationSetting
 }
 
-// List ...
-func (c AdminRulesClient) List(ctx context.Context, id RuleCollectionId) (result ListOperationResponse, err error) {
+// ListByShare ...
+func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareId) (result ListByShareOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/rules", id.ID()),
+		Path:       fmt.Sprintf("%s/synchronizationSettings", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -57,12 +57,12 @@ func (c AdminRulesClient) List(ctx context.Context, id RuleCollectionId) (result
 		return
 	}
 
-	temp := make([]BaseAdminRule, 0)
+	temp := make([]SynchronizationSetting, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalBaseAdminRuleImplementation(v)
+			val, err := unmarshalSynchronizationSettingImplementation(v)
 			if err != nil {
-				err = fmt.Errorf("unmarshalling item %d for BaseAdminRule (%q): %+v", i, v, err)
+				err = fmt.Errorf("unmarshalling item %d for SynchronizationSetting (%q): %+v", i, v, err)
 				return result, err
 			}
 			temp = append(temp, val)
@@ -73,16 +73,16 @@ func (c AdminRulesClient) List(ctx context.Context, id RuleCollectionId) (result
 	return
 }
 
-// ListComplete retrieves all the results into a single object
-func (c AdminRulesClient) ListComplete(ctx context.Context, id RuleCollectionId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, BaseAdminRuleOperationPredicate{})
+// ListByShareComplete retrieves all the results into a single object
+func (c SynchronizationSettingClient) ListByShareComplete(ctx context.Context, id ShareId) (ListByShareCompleteResult, error) {
+	return c.ListByShareCompleteMatchingPredicate(ctx, id, SynchronizationSettingOperationPredicate{})
 }
 
-// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AdminRulesClient) ListCompleteMatchingPredicate(ctx context.Context, id RuleCollectionId, predicate BaseAdminRuleOperationPredicate) (result ListCompleteResult, err error) {
-	items := make([]BaseAdminRule, 0)
+// ListByShareCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c SynchronizationSettingClient) ListByShareCompleteMatchingPredicate(ctx context.Context, id ShareId, predicate SynchronizationSettingOperationPredicate) (result ListByShareCompleteResult, err error) {
+	items := make([]SynchronizationSetting, 0)
 
-	resp, err := c.List(ctx, id)
+	resp, err := c.ListByShare(ctx, id)
 	if err != nil {
 		err = fmt.Errorf("loading results: %+v", err)
 		return
@@ -95,7 +95,7 @@ func (c AdminRulesClient) ListCompleteMatchingPredicate(ctx context.Context, id 
 		}
 	}
 
-	result = ListCompleteResult{
+	result = ListByShareCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}
