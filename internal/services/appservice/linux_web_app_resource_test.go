@@ -2553,27 +2553,6 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppResource) withScmIPAccessEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  site_config {
-    scm_ip_access_enabled = false
-  }
-}
-`, r.baseTemplate(data), data.RandomInteger)
-}
-
 func (r LinuxWebAppResource) withIPRestrictionsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
