@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
 * `azurerm_service_plan`: refactoring to use `hashicorp/go-azure-sdk` [GH-24483]
 * `azurerm_container_group` - support for the `priority` property [GH-24374]
+* `azurerm_mssql_managed_database` - add support for `point_in_time_restore` [GH-24535]
 * `azurerm_mssql_managed_instance` - support computed property `dns_zone` [GH-24435]
 * `azurerm_linux_web_app_slot`, `azurerm_linux_web_app`, `azurerm_linux_function_app_slot`, `azurerm_linux_function_app` - support for setting `python_version` to `3.12` [GH-24363]
 
