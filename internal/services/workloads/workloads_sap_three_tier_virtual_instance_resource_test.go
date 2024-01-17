@@ -560,7 +560,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
       }
     }
 
-    full_resource_names {
+    resource_names {
       application_server {
         availability_set_name = "appAvSet"
 
@@ -797,7 +797,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
       }
     }
 
-    full_resource_names {
+    resource_names {
       application_server {
         availability_set_name = "appAvSet"
 
@@ -1055,7 +1055,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
       }
     }
 
-    full_resource_names {
+    resource_names {
       application_server {
         availability_set_name = "appAvSet"
 

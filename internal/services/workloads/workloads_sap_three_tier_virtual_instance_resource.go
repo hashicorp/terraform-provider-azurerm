@@ -40,11 +40,6 @@ type WorkloadsSAPThreeTierVirtualInstanceModel struct {
 	Tags                     map[string]string            `tfschema:"tags"`
 }
 
-type DeployerVmPackages struct {
-	StorageAccountId string `tfschema:"storage_account_id"`
-	Url              string `tfschema:"url"`
-}
-
 type DiskVolumeConfiguration struct {
 	VolumeName    string `tfschema:"volume_name"`
 	NumberOfDisks int    `tfschema:"number_of_disks"`
@@ -71,7 +66,7 @@ type OSProfile struct {
 	SshPublicKey  string `tfschema:"ssh_public_key"`
 }
 
-type VirtualMachineFullResourceNames struct {
+type VirtualMachineResourceNames struct {
 	DataDiskNames         map[string]interface{} `tfschema:"data_disk_names"`
 	HostName              string                 `tfschema:"host_name"`
 	NetworkInterfaceNames []string               `tfschema:"network_interface_names"`
@@ -84,7 +79,7 @@ type ThreeTierConfiguration struct {
 	AppResourceGroupName           string                           `tfschema:"app_resource_group_name"`
 	CentralServerConfiguration     []CentralServerConfiguration     `tfschema:"central_server_configuration"`
 	DatabaseServerConfiguration    []DatabaseServerConfiguration    `tfschema:"database_server_configuration"`
-	FullResourceNames              []FullResourceNames              `tfschema:"full_resource_names"`
+	ResourceNames                  []ResourceNames                  `tfschema:"resource_names"`
 	HighAvailabilityType           string                           `tfschema:"high_availability_type"`
 	IsSecondaryIpEnabled           bool                             `tfschema:"secondary_ip_enabled"`
 	TransportCreateAndMount        []TransportCreateAndMount        `tfschema:"transport_create_and_mount"`
@@ -121,28 +116,28 @@ type DatabaseServerConfiguration struct {
 	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
 }
 
-type FullResourceNames struct {
-	ApplicationServer []ApplicationServerFullResourceNames `tfschema:"application_server"`
-	CentralServer     []CentralServerFullResourceNames     `tfschema:"central_server"`
-	DatabaseServer    []DatabaseServerFullResourceNames    `tfschema:"database_server"`
-	SharedStorage     []SharedStorage                      `tfschema:"shared_storage"`
+type ResourceNames struct {
+	ApplicationServer []ApplicationServerResourceNames `tfschema:"application_server"`
+	CentralServer     []CentralServerResourceNames     `tfschema:"central_server"`
+	DatabaseServer    []DatabaseServerResourceNames    `tfschema:"database_server"`
+	SharedStorage     []SharedStorage                  `tfschema:"shared_storage"`
 }
 
-type ApplicationServerFullResourceNames struct {
-	AvailabilitySetName string                            `tfschema:"availability_set_name"`
-	VirtualMachines     []VirtualMachineFullResourceNames `tfschema:"virtual_machine"`
+type ApplicationServerResourceNames struct {
+	AvailabilitySetName string                        `tfschema:"availability_set_name"`
+	VirtualMachines     []VirtualMachineResourceNames `tfschema:"virtual_machine"`
 }
 
-type CentralServerFullResourceNames struct {
-	AvailabilitySetName string                            `tfschema:"availability_set_name"`
-	LoadBalancer        []LoadBalancer                    `tfschema:"load_balancer"`
-	VirtualMachines     []VirtualMachineFullResourceNames `tfschema:"virtual_machine"`
+type CentralServerResourceNames struct {
+	AvailabilitySetName string                        `tfschema:"availability_set_name"`
+	LoadBalancer        []LoadBalancer                `tfschema:"load_balancer"`
+	VirtualMachines     []VirtualMachineResourceNames `tfschema:"virtual_machine"`
 }
 
-type DatabaseServerFullResourceNames struct {
-	AvailabilitySetName string                            `tfschema:"availability_set_name"`
-	LoadBalancer        []LoadBalancer                    `tfschema:"load_balancer"`
-	VirtualMachines     []VirtualMachineFullResourceNames `tfschema:"virtual_machine"`
+type DatabaseServerResourceNames struct {
+	AvailabilitySetName string                        `tfschema:"availability_set_name"`
+	LoadBalancer        []LoadBalancer                `tfschema:"load_balancer"`
+	VirtualMachines     []VirtualMachineResourceNames `tfschema:"virtual_machine"`
 }
 
 type LoadBalancer struct {
@@ -201,7 +196,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SAPFQDN,
+			ValidateFunc: validation.StringLenBetween(2, 34),
 		},
 
 		"sap_product": {
@@ -299,7 +294,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Required:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.AdminUsername,
+															ValidateFunc: validation.StringLenBetween(1, 64),
 														},
 
 														"ssh_private_key": {
@@ -412,7 +407,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Required:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.AdminUsername,
+															ValidateFunc: validation.StringLenBetween(1, 64),
 														},
 
 														"ssh_private_key": {
@@ -525,7 +520,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Required:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.AdminUsername,
+															ValidateFunc: validation.StringLenBetween(1, 64),
 														},
 
 														"ssh_private_key": {
@@ -608,7 +603,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 						},
 					},
 
-					"full_resource_names": {
+					"resource_names": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						ForceNew: true,
@@ -626,7 +621,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ForceNew:     true,
-												ValidateFunc: validate.AvailabilitySetName,
+												ValidateFunc: validation.StringLenBetween(1, 80),
 											},
 
 											"virtual_machine": {
@@ -641,7 +636,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															ForceNew: true,
 															Elem: &pluginsdk.Schema{
 																Type:         pluginsdk.TypeString,
-																ValidateFunc: validate.DiskName,
+																ValidateFunc: validation.StringLenBetween(1, 80),
 															},
 														},
 
@@ -649,7 +644,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.HostName,
+															ValidateFunc: validation.StringLenBetween(1, 13),
 														},
 
 														"network_interface_names": {
@@ -666,7 +661,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.DiskName,
+															ValidateFunc: validation.StringLenBetween(1, 80),
 														},
 
 														"virtual_machine_name": {
@@ -693,7 +688,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ForceNew:     true,
-												ValidateFunc: validate.AvailabilitySetName,
+												ValidateFunc: validation.StringLenBetween(1, 80),
 											},
 
 											"load_balancer": {
@@ -755,7 +750,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															ForceNew: true,
 															Elem: &pluginsdk.Schema{
 																Type:         pluginsdk.TypeString,
-																ValidateFunc: validate.DiskName,
+																ValidateFunc: validation.StringLenBetween(1, 80),
 															},
 														},
 
@@ -763,7 +758,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.HostName,
+															ValidateFunc: validation.StringLenBetween(1, 13),
 														},
 
 														"network_interface_names": {
@@ -780,7 +775,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.DiskName,
+															ValidateFunc: validation.StringLenBetween(1, 80),
 														},
 
 														"virtual_machine_name": {
@@ -807,7 +802,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
 												ForceNew:     true,
-												ValidateFunc: validate.AvailabilitySetName,
+												ValidateFunc: validation.StringLenBetween(1, 80),
 											},
 
 											"load_balancer": {
@@ -869,7 +864,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															ForceNew: true,
 															Elem: &pluginsdk.Schema{
 																Type:         pluginsdk.TypeString,
-																ValidateFunc: validate.DiskName,
+																ValidateFunc: validation.StringLenBetween(1, 80),
 															},
 														},
 
@@ -877,7 +872,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.HostName,
+															ValidateFunc: validation.StringLenBetween(1, 13),
 														},
 
 														"network_interface_names": {
@@ -894,7 +889,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Type:         pluginsdk.TypeString,
 															Optional:     true,
 															ForceNew:     true,
-															ValidateFunc: validate.DiskName,
+															ValidateFunc: validation.StringLenBetween(1, 80),
 														},
 
 														"virtual_machine_name": {
@@ -1055,7 +1050,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			}
 
 			deploymentWithOSConfiguration := &sapvirtualinstances.DeploymentWithOSConfiguration{
-				AppLocation: utils.String(model.AppLocation),
+				AppLocation: utils.String(location.Normalize(model.AppLocation)),
 				OsSapConfiguration: &sapvirtualinstances.OsSapConfiguration{
 					SapFqdn: utils.String(model.SapFqdn),
 				},
@@ -1164,7 +1159,11 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 				if config := props.Configuration; config != nil {
 					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-						state.AppLocation = pointer.From(v.AppLocation)
+						appLocation := ""
+						if appLocationVal := v.AppLocation; appLocationVal != nil {
+							appLocation = *v.AppLocation
+						}
+						state.AppLocation = location.Normalize(appLocation)
 
 						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
 							state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
@@ -1448,42 +1447,42 @@ func expandTransportMount(input []TransportMount) (*sapvirtualinstances.MountFil
 	return result, nil
 }
 
-func expandFullResourceNames(input []FullResourceNames) *sapvirtualinstances.ThreeTierFullResourceNames {
+func expandResourceNames(input []ResourceNames) *sapvirtualinstances.ThreeTierFullResourceNames {
 	if len(input) == 0 {
 		return nil
 	}
 
-	fullResourceNames := input[0]
+	resourceNames := input[0]
 
 	result := &sapvirtualinstances.ThreeTierFullResourceNames{
-		ApplicationServer: expandApplicationServerFullResourceNames(fullResourceNames.ApplicationServer),
-		CentralServer:     expandCentralServerFullResourceNames(fullResourceNames.CentralServer),
-		DatabaseServer:    expandDatabaseServerFullResourceNames(fullResourceNames.DatabaseServer),
-		SharedStorage:     expandSharedStorage(fullResourceNames.SharedStorage),
+		ApplicationServer: expandApplicationServerResourceNames(resourceNames.ApplicationServer),
+		CentralServer:     expandCentralServerResourceNames(resourceNames.CentralServer),
+		DatabaseServer:    expandDatabaseServerResourceNames(resourceNames.DatabaseServer),
+		SharedStorage:     expandSharedStorage(resourceNames.SharedStorage),
 	}
 
 	return result
 }
 
-func expandApplicationServerFullResourceNames(input []ApplicationServerFullResourceNames) *sapvirtualinstances.ApplicationServerFullResourceNames {
+func expandApplicationServerResourceNames(input []ApplicationServerResourceNames) *sapvirtualinstances.ApplicationServerFullResourceNames {
 	if len(input) == 0 {
 		return nil
 	}
 
-	applicationServerFullResourceNames := input[0]
+	applicationServerResourceNames := input[0]
 
 	result := &sapvirtualinstances.ApplicationServerFullResourceNames{
-		VirtualMachines: expandVirtualMachinesFullResourceNames(applicationServerFullResourceNames.VirtualMachines),
+		VirtualMachines: expandVirtualMachinesResourceNames(applicationServerResourceNames.VirtualMachines),
 	}
 
-	if v := applicationServerFullResourceNames.AvailabilitySetName; v != "" {
+	if v := applicationServerResourceNames.AvailabilitySetName; v != "" {
 		result.AvailabilitySetName = utils.String(v)
 	}
 
 	return result
 }
 
-func expandVirtualMachinesFullResourceNames(input []VirtualMachineFullResourceNames) *[]sapvirtualinstances.VirtualMachineResourceNames {
+func expandVirtualMachinesResourceNames(input []VirtualMachineResourceNames) *[]sapvirtualinstances.VirtualMachineResourceNames {
 	result := make([]sapvirtualinstances.VirtualMachineResourceNames, 0)
 	if len(input) == 0 {
 		return &result
@@ -1513,65 +1512,65 @@ func expandVirtualMachinesFullResourceNames(input []VirtualMachineFullResourceNa
 	return &result
 }
 
-func expandCentralServerFullResourceNames(input []CentralServerFullResourceNames) *sapvirtualinstances.CentralServerFullResourceNames {
+func expandCentralServerResourceNames(input []CentralServerResourceNames) *sapvirtualinstances.CentralServerFullResourceNames {
 	if len(input) == 0 {
 		return nil
 	}
 
-	centralServerFullResourceNames := input[0]
+	centralServerResourceNames := input[0]
 
 	result := &sapvirtualinstances.CentralServerFullResourceNames{
-		LoadBalancer:    expandLoadBalancerFullResourceNames(centralServerFullResourceNames.LoadBalancer),
-		VirtualMachines: expandVirtualMachinesFullResourceNames(centralServerFullResourceNames.VirtualMachines),
+		LoadBalancer:    expandLoadBalancerResourceNames(centralServerResourceNames.LoadBalancer),
+		VirtualMachines: expandVirtualMachinesResourceNames(centralServerResourceNames.VirtualMachines),
 	}
 
-	if v := centralServerFullResourceNames.AvailabilitySetName; v != "" {
+	if v := centralServerResourceNames.AvailabilitySetName; v != "" {
 		result.AvailabilitySetName = utils.String(v)
 	}
 
 	return result
 }
 
-func expandLoadBalancerFullResourceNames(input []LoadBalancer) *sapvirtualinstances.LoadBalancerResourceNames {
+func expandLoadBalancerResourceNames(input []LoadBalancer) *sapvirtualinstances.LoadBalancerResourceNames {
 	result := &sapvirtualinstances.LoadBalancerResourceNames{}
 	if len(input) == 0 {
 		return result
 	}
 
-	loadBalancerFullResourceNames := input[0]
+	loadBalancerResourceNames := input[0]
 
-	if v := loadBalancerFullResourceNames.Name; v != "" {
+	if v := loadBalancerResourceNames.Name; v != "" {
 		result.LoadBalancerName = utils.String(v)
 	}
 
-	if v := loadBalancerFullResourceNames.BackendPoolNames; v != nil {
+	if v := loadBalancerResourceNames.BackendPoolNames; v != nil {
 		result.BackendPoolNames = &v
 	}
 
-	if v := loadBalancerFullResourceNames.FrontendIpConfigurationNames; v != nil {
+	if v := loadBalancerResourceNames.FrontendIpConfigurationNames; v != nil {
 		result.FrontendIPConfigurationNames = &v
 	}
 
-	if v := loadBalancerFullResourceNames.HealthProbeNames; v != nil {
+	if v := loadBalancerResourceNames.HealthProbeNames; v != nil {
 		result.HealthProbeNames = &v
 	}
 
 	return result
 }
 
-func expandDatabaseServerFullResourceNames(input []DatabaseServerFullResourceNames) *sapvirtualinstances.DatabaseServerFullResourceNames {
+func expandDatabaseServerResourceNames(input []DatabaseServerResourceNames) *sapvirtualinstances.DatabaseServerFullResourceNames {
 	if len(input) == 0 {
 		return nil
 	}
 
-	databaseServerFullResourceNames := input[0]
+	databaseServerResourceNames := input[0]
 
 	result := &sapvirtualinstances.DatabaseServerFullResourceNames{
-		LoadBalancer:    expandLoadBalancerFullResourceNames(databaseServerFullResourceNames.LoadBalancer),
-		VirtualMachines: expandVirtualMachinesFullResourceNames(databaseServerFullResourceNames.VirtualMachines),
+		LoadBalancer:    expandLoadBalancerResourceNames(databaseServerResourceNames.LoadBalancer),
+		VirtualMachines: expandVirtualMachinesResourceNames(databaseServerResourceNames.VirtualMachines),
 	}
 
-	if v := databaseServerFullResourceNames.AvailabilitySetName; v != "" {
+	if v := databaseServerResourceNames.AvailabilitySetName; v != "" {
 		result.AvailabilitySetName = utils.String(v)
 	}
 
@@ -1604,7 +1603,7 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) (*sapvirtualin
 		ApplicationServer:   pointer.From(expandApplicationServer(threeTierConfiguration.ApplicationServerConfiguration)),
 		AppResourceGroup:    threeTierConfiguration.AppResourceGroupName,
 		CentralServer:       pointer.From(expandCentralServer(threeTierConfiguration.CentralServerConfiguration)),
-		CustomResourceNames: expandFullResourceNames(threeTierConfiguration.FullResourceNames),
+		CustomResourceNames: expandResourceNames(threeTierConfiguration.ResourceNames),
 		DatabaseServer:      pointer.From(expandDatabaseServer(threeTierConfiguration.DatabaseServerConfiguration)),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled),
@@ -1667,39 +1666,39 @@ func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration, d *p
 	return append(result, databaseServerConfig)
 }
 
-func flattenFullResourceNames(input sapvirtualinstances.ThreeTierFullResourceNames) []FullResourceNames {
-	result := make([]FullResourceNames, 0)
+func flattenResourceNames(input sapvirtualinstances.ThreeTierFullResourceNames) []ResourceNames {
+	result := make([]ResourceNames, 0)
 
-	fullResourceNames := FullResourceNames{
-		ApplicationServer: flattenApplicationServerFullResourceNames(input.ApplicationServer),
-		CentralServer:     flattenCentralServerFullResourceNames(input.CentralServer),
-		DatabaseServer:    flattenDatabaseServerFullResourceNames(input.DatabaseServer),
+	resourceNames := ResourceNames{
+		ApplicationServer: flattenApplicationServerResourceNames(input.ApplicationServer),
+		CentralServer:     flattenCentralServerResourceNames(input.CentralServer),
+		DatabaseServer:    flattenDatabaseServerResourceNames(input.DatabaseServer),
 		SharedStorage:     flattenSharedStorage(input.SharedStorage),
 	}
 
-	return append(result, fullResourceNames)
+	return append(result, resourceNames)
 }
 
-func flattenApplicationServerFullResourceNames(input *sapvirtualinstances.ApplicationServerFullResourceNames) []ApplicationServerFullResourceNames {
-	result := make([]ApplicationServerFullResourceNames, 0)
+func flattenApplicationServerResourceNames(input *sapvirtualinstances.ApplicationServerFullResourceNames) []ApplicationServerResourceNames {
+	result := make([]ApplicationServerResourceNames, 0)
 	if input == nil {
 		return result
 	}
 
-	return append(result, ApplicationServerFullResourceNames{
+	return append(result, ApplicationServerResourceNames{
 		AvailabilitySetName: pointer.From(input.AvailabilitySetName),
-		VirtualMachines:     flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+		VirtualMachines:     flattenVirtualMachinesResourceNames(input.VirtualMachines),
 	})
 }
 
-func flattenVirtualMachinesFullResourceNames(input *[]sapvirtualinstances.VirtualMachineResourceNames) []VirtualMachineFullResourceNames {
-	result := make([]VirtualMachineFullResourceNames, 0)
+func flattenVirtualMachinesResourceNames(input *[]sapvirtualinstances.VirtualMachineResourceNames) []VirtualMachineResourceNames {
+	result := make([]VirtualMachineResourceNames, 0)
 	if input == nil {
 		return result
 	}
 
 	for _, item := range *input {
-		result = append(result, VirtualMachineFullResourceNames{
+		result = append(result, VirtualMachineResourceNames{
 			HostName:              pointer.From(item.HostName),
 			OSDiskName:            pointer.From(item.OsDiskName),
 			VMName:                pointer.From(item.VirtualMachineName),
@@ -1711,22 +1710,22 @@ func flattenVirtualMachinesFullResourceNames(input *[]sapvirtualinstances.Virtua
 	return result
 }
 
-func flattenCentralServerFullResourceNames(input *sapvirtualinstances.CentralServerFullResourceNames) []CentralServerFullResourceNames {
-	result := make([]CentralServerFullResourceNames, 0)
+func flattenCentralServerResourceNames(input *sapvirtualinstances.CentralServerFullResourceNames) []CentralServerResourceNames {
+	result := make([]CentralServerResourceNames, 0)
 	if input == nil {
 		return result
 	}
 
-	centralServerFullResourceNames := CentralServerFullResourceNames{
+	centralServerResourceNames := CentralServerResourceNames{
 		AvailabilitySetName: pointer.From(input.AvailabilitySetName),
-		LoadBalancer:        flattenLoadBalancerFullResourceNames(input.LoadBalancer),
-		VirtualMachines:     flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+		LoadBalancer:        flattenLoadBalancerResourceNames(input.LoadBalancer),
+		VirtualMachines:     flattenVirtualMachinesResourceNames(input.VirtualMachines),
 	}
 
-	return append(result, centralServerFullResourceNames)
+	return append(result, centralServerResourceNames)
 }
 
-func flattenLoadBalancerFullResourceNames(input *sapvirtualinstances.LoadBalancerResourceNames) []LoadBalancer {
+func flattenLoadBalancerResourceNames(input *sapvirtualinstances.LoadBalancerResourceNames) []LoadBalancer {
 	result := make([]LoadBalancer, 0)
 	if input == nil {
 		return result
@@ -1740,16 +1739,16 @@ func flattenLoadBalancerFullResourceNames(input *sapvirtualinstances.LoadBalance
 	})
 }
 
-func flattenDatabaseServerFullResourceNames(input *sapvirtualinstances.DatabaseServerFullResourceNames) []DatabaseServerFullResourceNames {
-	result := make([]DatabaseServerFullResourceNames, 0)
+func flattenDatabaseServerResourceNames(input *sapvirtualinstances.DatabaseServerFullResourceNames) []DatabaseServerResourceNames {
+	result := make([]DatabaseServerResourceNames, 0)
 	if input == nil {
 		return result
 	}
 
-	return append(result, DatabaseServerFullResourceNames{
+	return append(result, DatabaseServerResourceNames{
 		AvailabilitySetName: pointer.From(input.AvailabilitySetName),
-		LoadBalancer:        flattenLoadBalancerFullResourceNames(input.LoadBalancer),
-		VirtualMachines:     flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+		LoadBalancer:        flattenLoadBalancerResourceNames(input.LoadBalancer),
+		VirtualMachines:     flattenVirtualMachinesResourceNames(input.VirtualMachines),
 	})
 }
 
@@ -1773,19 +1772,13 @@ func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguratio
 
 	for k, v := range *input.DiskVolumeConfigurations {
 		diskVolumeConfiguration := DiskVolumeConfiguration{
-			VolumeName: k,
+			NumberOfDisks: int(pointer.From(v.Count)),
+			SizeGb:        int(pointer.From(v.SizeGB)),
+			VolumeName:    k,
 		}
 
-		if count := v.Count; count != nil {
-			diskVolumeConfiguration.NumberOfDisks = int(*count)
-		}
-
-		if sizeGb := v.SizeGB; sizeGb != nil {
-			diskVolumeConfiguration.SizeGb = int(*sizeGb)
-		}
-
-		if sku := v.Sku; sku != nil && sku.Name != nil {
-			diskVolumeConfiguration.SkuName = string(*sku.Name)
+		if sku := v.Sku; sku != nil {
+			diskVolumeConfiguration.SkuName = string(pointer.From(sku.Name))
 		}
 
 		result = append(result, diskVolumeConfiguration)
@@ -1833,14 +1826,12 @@ func flattenVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachine
 func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageReference {
 	result := make([]ImageReference, 0)
 
-	imageReference := ImageReference{
+	return append(result, ImageReference{
 		Offer:     pointer.From(input.Offer),
 		Publisher: pointer.From(input.Publisher),
 		Sku:       pointer.From(input.Sku),
 		Version:   pointer.From(input.Version),
-	}
-
-	return append(result, imageReference)
+	})
 }
 
 func flattenOSProfile(input sapvirtualinstances.OSProfile, d *pluginsdk.ResourceData, basePath string) []OSProfile {
@@ -1874,7 +1865,7 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 
 	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
 		if v, ok := customResourceNames.(sapvirtualinstances.ThreeTierFullResourceNames); ok {
-			threeTierConfig.FullResourceNames = flattenFullResourceNames(v)
+			threeTierConfig.ResourceNames = flattenResourceNames(v)
 		}
 	}
 
