@@ -1,12 +1,22 @@
 ## 3.88.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_spring_cloud_dynatrace_application_performance_monitoring` [GH-23889]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240112.1095456` of `github.com/hashicorp/go-azure-sdk` [GH-24477]
 * dependencies: updating to `v0.65.1` of `github.com/hashicorp/go-azure-helpers` [GH-24479]
+* dependencies: `azurerm_service_plan` - update to use `hashicorp/go-azure-sdk` [GH-24483]
+* Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
 * `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
 * `azurerm_container_group` - support for the `priority` property [GH-24374]
-* Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
+* `azurerm_mssql_managed_instance` - support computed property `dns_zone` [GH-24435]
+
+BUG FIXES:
+
+* `azurerm_cdn_frontdoor_route` - fix issue where `cdn_frontdoor_origin_path` gets removed on update if unchanged. [GH-24488]
 
 ## 3.87.0 (January 11, 2024)
 
