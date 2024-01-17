@@ -1,4 +1,4 @@
-`---
+---
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_managed_database"
@@ -89,7 +89,7 @@ A `point_in_time_restore` block supports the following:
 
 * `restore_point_in_time` - (Required) The point in time for the restore from `source_database_id`. Changing this forces a new resource to be created.
 
-* `source_database_id` - The source database id that will be used to restore from. Changing this forces a new resource to be created.
+* `source_database_id` - (Required) The source database id that will be used to restore from. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -113,4 +113,3 @@ SQL Managed Databases can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_managed_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/managedInstances/myserver/databases/mydatabase
 ```
-`

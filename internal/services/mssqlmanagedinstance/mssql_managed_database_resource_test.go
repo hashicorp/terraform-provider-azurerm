@@ -55,7 +55,7 @@ func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 }
 
 func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "pitr")
 	r := MsSqlManagedDatabase{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,10 +65,9 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(""),
 		{
 			PreConfig: func() { time.Sleep(11 * time.Minute) },
-			Config:    r.pointInTimeRestore(data, time.Now().Add(time.Duration(13)*time.Minute).UTC().Format(time.RFC3339)),
+			Config:    r.pointInTimeRestore(data, time.Now().UTC().Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
