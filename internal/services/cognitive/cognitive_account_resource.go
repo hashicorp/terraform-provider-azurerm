@@ -659,7 +659,9 @@ func expandAccountSkuName(skuName string) (*cognitiveservicesaccounts.Sku, error
 	case "E":
 		tier = cognitiveservicesaccounts.SkuTierEnterprise
 	default:
-		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName[0:1])
+		return &cognitiveservicesaccounts.Sku{
+			Name: skuName,
+		}, nil
 	}
 
 	return &cognitiveservicesaccounts.Sku{
