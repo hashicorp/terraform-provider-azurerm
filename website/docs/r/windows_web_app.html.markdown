@@ -731,6 +731,8 @@ A `site_config` block supports the following:
 
 * `http2_enabled` - (Optional) Should the HTTP2 be enabled?
 
+* `ip_access_enabled` - (Optional)  Should the ip access be enabled for the main site of the Web App. Defaults to `true`.
+
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
@@ -742,6 +744,8 @@ A `site_config` block supports the following:
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
+
+* `scm_ip_access_enabled` - (Optional)  Should the ip access be enabled for the scm site of the Web App. Defaults to `true`.
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`.
 

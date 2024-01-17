@@ -307,8 +307,10 @@ type SiteConfigWindowsWebAppSlot struct {
 	DefaultDocuments         []string                  `tfschema:"default_documents"`
 	Http2Enabled             bool                      `tfschema:"http2_enabled"`
 	IpRestriction            []IpRestriction           `tfschema:"ip_restriction"`
+	IpAccessEnabled          bool                      `tfschema:"ip_access_enabled"`
 	ScmUseMainIpRestriction  bool                      `tfschema:"scm_use_main_ip_restriction"`
 	ScmIpRestriction         []IpRestriction           `tfschema:"scm_ip_restriction"`
+	ScmIpAccessEnabled       bool                      `tfschema:"scm_ip_access_enabled"`
 	LoadBalancing            string                    `tfschema:"load_balancing_mode"`
 	LocalMysql               bool                      `tfschema:"local_mysql_enabled"`
 	ManagedPipelineMode      string                    `tfschema:"managed_pipeline_mode"`
@@ -406,12 +408,24 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					Default:  false,
 				},
 
+				"ip_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
 				"ip_restriction": IpRestrictionSchema(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+
+				"scm_ip_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
@@ -1012,6 +1026,8 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.FtpsState = web.FtpsState(s.FtpsState)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
+	expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+	expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
 	expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
 	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
 	expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
@@ -1116,6 +1132,14 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 
 	if len(s.DefaultDocuments) != 0 {
 		expanded.DefaultDocuments = pointer.To(s.DefaultDocuments)
+	}
+
+	if !s.IpAccessEnabled {
+		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+	}
+
+	if !s.ScmIpAccessEnabled {
+		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
 	}
 
 	if len(s.IpRestriction) != 0 {
@@ -1358,6 +1382,8 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig,
 	s.FtpsState = string(appSiteSlotConfig.FtpsState)
 	s.HealthCheckPath = pointer.From(appSiteSlotConfig.HealthCheckPath)
 	s.Http2Enabled = pointer.From(appSiteSlotConfig.HTTP20Enabled)
+	s.IpAccessEnabled = true
+	s.ScmIpAccessEnabled = true
 	s.IpRestriction = FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions)
 	s.LoadBalancing = string(appSiteSlotConfig.LoadBalancing)
 	s.LocalMysql = pointer.From(appSiteSlotConfig.LocalMySQLEnabled)
@@ -1375,6 +1401,14 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig,
 	s.VirtualApplications = flattenVirtualApplications(appSiteSlotConfig.VirtualApplications)
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
+
+	if strings.EqualFold(string(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+		s.IpAccessEnabled = false
+	}
+
+	if strings.EqualFold(string(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+		s.ScmIpAccessEnabled = false
+	}
 
 	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
 		s.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
