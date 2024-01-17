@@ -2230,6 +2230,7 @@ resource "azurerm_windows_function_app" "test" {
         x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
         x_forwarded_host  = ["example.com"]
       }
+      description = "Allow ip address 10.10.10.10/32"
     }
 
     load_balancing_mode       = "LeastResponseTime"

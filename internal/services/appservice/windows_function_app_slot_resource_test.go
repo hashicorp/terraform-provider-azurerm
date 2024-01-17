@@ -1250,6 +1250,7 @@ resource "azurerm_windows_function_app_slot" "test" {
         x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
         x_forwarded_host  = ["example.com"]
       }
+      description = "Allow ip address windows function app slot"
     }
   }
 }
