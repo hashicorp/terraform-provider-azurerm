@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
 * `azurerm_container_group` - support for the `priority` property [GH-24374]
 * `azurerm_mssql_managed_instance` - support computed property `dns_zone` [GH-24435]
+* `azurerm_service_plan` - refactoring to use `hashicorp/go-azure-sdk` [GH-24483]
 
 BUG FIXES:
 
