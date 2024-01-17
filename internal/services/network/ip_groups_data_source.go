@@ -91,14 +91,12 @@ func dataSourceIpGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error setting names: %+v", err)
 	}
-	//fmt.Println("Names set as: ", d.Get("names").(*schema.Set).List())
 
 	// Set IDs
 	err = d.Set("ids", ids)
 	if err != nil {
 		return fmt.Errorf("error setting ids: %+v", err)
 	}
-	//fmt.Println("IDs set as: ", d.Get("ids").(*schema.Set).List())
 
 	// Return nil error
 	return nil

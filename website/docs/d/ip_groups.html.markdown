@@ -14,7 +14,7 @@ Use this data source to access information about existing IP Groups.
 
 ```hcl
 data "azurerm_ip_groups" "example" {
-  name = "existing" # Can be a substring to match multiple IP Groups
+  name = "existing"
   resource_group_name = "existing"
 }
 
