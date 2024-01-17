@@ -156,7 +156,7 @@ resource "azurerm_mssql_managed_database" "pitr" {
 
   point_in_time_restore {
     restore_point_in_time = "%[3]s"
-    source_database_id = azurerm_mssql_managed_database.test.id
+    source_database_id    = azurerm_mssql_managed_database.test.id
   }
 }
 `, MsSqlManagedDatabase{}.basic(data), data.RandomInteger, restorePointInTime)
