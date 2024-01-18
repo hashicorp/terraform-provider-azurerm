@@ -337,7 +337,7 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_role_definition" "test" {
-  name = "Workbook Reader"
+  name = "Workbook Contributor"
 }
 
 resource "time_static" "test" {}
