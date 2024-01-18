@@ -19,7 +19,8 @@ type ListByVirtualMachineOperationResponse struct {
 }
 
 type ListByVirtualMachineCompleteResult struct {
-	Items []VirtualMachineRunCommand
+	LatestHttpResponse *http.Response
+	Items              []VirtualMachineRunCommand
 }
 
 type ListByVirtualMachineOperationOptions struct {
@@ -111,7 +112,8 @@ func (c VirtualMachineRunCommandsClient) ListByVirtualMachineCompleteMatchingPre
 	}
 
 	result = ListByVirtualMachineCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
