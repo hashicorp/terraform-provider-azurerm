@@ -131,44 +131,52 @@ func (r StackHCIExtensionResource) Exists(ctx context.Context, client *clients.C
 }
 
 func (r StackHCIExtensionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	workspaceKey := os.Getenv("ARM_TEST_HCI_WORKSPACE_KEY")
-	workspaceID := os.Getenv("ARM_TEST_HCI_WORKSPACE_ID")
-
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%s"
+  location            = data.azurerm_resource_group.test.location
+  resource_group_name = data.azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_stack_hci_extension" "test" {
-  name           = "acctest-shce-%s"
+  name           = "acctest-shce-%[2]s"
   arc_setting_id = data.azurerm_stack_hci_cluster_arc_setting.test.id
   publisher      = "Microsoft.EnterpriseCloud.Monitoring"
   type           = "MicrosoftMonitoringAgent"
 
   protected_setting = <<PROTECTED_SETTING
 {
-	"workspaceKey": "%s"
+	"workspaceKey": "${azurerm_log_analytics_workspace.test.primary_shared_key}"
 }
 PROTECTED_SETTING
 
   setting = <<SETTING
 {
-	"workspaceId": "%s"
+	"workspaceId": "${azurerm_log_analytics_workspace.test.workspace_id}"
 }
 SETTING
 }
-`, template, data.RandomString, workspaceKey, workspaceID)
+`, r.template(data), data.RandomString)
 }
 
 func (r StackHCIExtensionResource) update(data acceptance.TestData) string {
-	template := r.template(data)
-	workspaceKey := os.Getenv("ARM_TEST_HCI_WORKSPACE_KEY")
-	workspaceID := os.Getenv("ARM_TEST_HCI_WORKSPACE_ID")
-
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%s"
+  location            = data.azurerm_resource_group.test.location
+  resource_group_name = data.azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_stack_hci_extension" "test" {
-  name                       = "acctest-shce-%s"
+  name                       = "acctest-shce-%[2]s"
   arc_setting_id             = data.azurerm_stack_hci_cluster_arc_setting.test.id
   publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
   type                       = "MicrosoftMonitoringAgent"
@@ -178,29 +186,33 @@ resource "azurerm_stack_hci_extension" "test" {
 
   protected_setting = <<PROTECTED_SETTING
 {
-	"workspaceKey": "%s"
+	"workspaceKey": "${azurerm_log_analytics_workspace.test.primary_shared_key}"
 }
 PROTECTED_SETTING
 
   setting = <<SETTING
 {
-	"workspaceId": "%s"
+	"workspaceId": "${azurerm_log_analytics_workspace.test.workspace_id}"
 }
 SETTING
 }
-`, template, data.RandomString, workspaceKey, workspaceID)
+`, r.template(data), data.RandomString)
 }
 
 func (r StackHCIExtensionResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
-	workspaceKey := os.Getenv("ARM_TEST_HCI_WORKSPACE_KEY")
-	workspaceID := os.Getenv("ARM_TEST_HCI_WORKSPACE_ID")
-
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%s"
+  location            = data.azurerm_resource_group.test.location
+  resource_group_name = data.azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_stack_hci_extension" "test" {
-  name                       = "acctest-shce-%s"
+  name                       = "acctest-shce-%[2]s"
   arc_setting_id             = data.azurerm_stack_hci_cluster_arc_setting.test.id
   publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
   type                       = "MicrosoftMonitoringAgent"
@@ -211,17 +223,17 @@ resource "azurerm_stack_hci_extension" "test" {
 
   protected_setting = <<PROTECTED_SETTING
 {
-	"workspaceKey": "%s"
+	"workspaceKey": "${azurerm_log_analytics_workspace.test.primary_shared_key}"
 }
 PROTECTED_SETTING
 
   setting = <<SETTING
 {
-	"workspaceId": "%s"
+	"workspaceId": "${azurerm_log_analytics_workspace.test.workspace_id}"
 }
 SETTING
 }
-`, template, data.RandomString, workspaceKey, workspaceID)
+`, r.template(data), data.RandomString)
 }
 
 func (r StackHCIExtensionResource) requiresImport(data acceptance.TestData) string {
@@ -260,6 +272,10 @@ data "azurerm_stack_hci_cluster" "test" {
 data "azurerm_stack_hci_cluster_arc_setting" "test" {
   name                 = "%s"
   stack_hci_cluster_id = data.azurerm_stack_hci_cluster.test.id
+}
+
+data "azurerm_resource_group" "test" {
+  name = "%[2]s"
 }
 `, stackHCIClusterName, resourceGroupName, arcSettingName)
 }
