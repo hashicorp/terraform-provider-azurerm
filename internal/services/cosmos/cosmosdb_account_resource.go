@@ -1912,29 +1912,24 @@ func flattenCosmosdbAccountBackup(input cosmosdb.BackupPolicy) ([]interface{}, e
 		return []interface{}{}, nil
 	}
 
-	switch input.(type) {
+	switch backupPolicy := input.(type) {
 	case cosmosdb.ContinuousModeBackupPolicy:
 		return []interface{}{
 			map[string]interface{}{
 				"type": string(cosmosdb.BackupPolicyTypeContinuous),
 			},
 		}, nil
-
 	case cosmosdb.PeriodicModeBackupPolicy:
-		policy, ok := input.(cosmosdb.PeriodicModeBackupPolicy)
-		if !ok {
-			return nil, fmt.Errorf("can not transit %+v into `backup` of `type` `Periodic`", input)
-		}
 		var interval, retention int
-		if v := policy.PeriodicModeProperties.BackupIntervalInMinutes; v != nil {
+		if v := backupPolicy.PeriodicModeProperties.BackupIntervalInMinutes; v != nil {
 			interval = int(*v)
 		}
-		if v := policy.PeriodicModeProperties.BackupRetentionIntervalInHours; v != nil {
+		if v := backupPolicy.PeriodicModeProperties.BackupRetentionIntervalInHours; v != nil {
 			retention = int(*v)
 		}
 		var storageRedundancy cosmosdb.BackupStorageRedundancy
-		if policy.PeriodicModeProperties.BackupStorageRedundancy != nil {
-			storageRedundancy = pointer.From(policy.PeriodicModeProperties.BackupStorageRedundancy)
+		if backupPolicy.PeriodicModeProperties.BackupStorageRedundancy != nil {
+			storageRedundancy = pointer.From(backupPolicy.PeriodicModeProperties.BackupStorageRedundancy)
 		}
 		return []interface{}{
 			map[string]interface{}{
@@ -1944,7 +1939,6 @@ func flattenCosmosdbAccountBackup(input cosmosdb.BackupPolicy) ([]interface{}, e
 				"storage_redundancy":  storageRedundancy,
 			},
 		}, nil
-
 	default:
 		return nil, fmt.Errorf("unknown `type` in `backup`: %+v", input)
 	}
