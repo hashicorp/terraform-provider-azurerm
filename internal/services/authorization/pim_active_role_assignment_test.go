@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -152,11 +152,11 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 		return utils.Bool(false), err
 	}
 
-	filter := &roleassignmentscheduleinstances.ListForScopeOperationOptions{
+	filter := &roleassignmentschedules.ListForScopeOperationOptions{
 		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
 	}
 
-	items, err := client.Authorization.RoleAssignmentScheduleInstancesClient.ListForScopeComplete(ctx, id.ScopeID(), *filter)
+	items, err := client.Authorization.RoleAssignmentSchedulesClient.ListForScopeComplete(ctx, id.ScopeID(), *filter)
 	if err != nil {
 		return nil, fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
 	}
@@ -164,7 +164,7 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 	foundDirectAssignment := false
 
 	for _, i := range items.Items {
-		if *i.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect {
+		if *i.Properties.MemberType == roleassignmentschedules.MemberTypeDirect {
 			foundDirectAssignment = true
 			break
 		}
@@ -443,7 +443,9 @@ data "azurerm_role_definition" "test" {
   name = "Billing Reader"
 }
 
-resource "time_offset" "test" {}
+resource "time_offset" "test" {
+  offset_days = 1
+}
 
 resource "azurerm_pim_active_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,7 +102,7 @@ func TestAccPimEligibleRoleAssignment_pending(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.pending(data),
+			Config: r.pending(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -151,18 +151,18 @@ func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *c
 		return utils.Bool(false), err
 	}
 
-	filter := &roleeligibilityscheduleinstances.ListForScopeOperationOptions{
+	filter := &roleeligibilityschedules.ListForScopeOperationOptions{
 		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
 	}
 
-	items, err := client.Authorization.RoleEligibilityScheduleInstancesClient.ListForScopeComplete(ctx, id.ScopeID(), *filter)
+	items, err := client.Authorization.RoleEligibilitySchedulesClient.ListForScopeComplete(ctx, id.ScopeID(), *filter)
 	if err != nil {
 		return nil, fmt.Errorf("listing role eligibility on scope %s: %+v", id, err)
 	}
 	foundDirectAssignment := false
 
 	for _, i := range items.Items {
-		if *i.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect {
+		if *i.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect {
 			foundDirectAssignment = true
 			break
 		}
@@ -486,8 +486,8 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
 `, aadGroup(data))
 }
 
-func (PimEligibleRoleAssignmentResource) pending(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (PimEligibleRoleAssignmentResource) pending() string {
+	return `
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -496,8 +496,6 @@ data "azurerm_role_definition" "test" {
   name = "Billing Reader"
 }
 
-%s
-
 resource "time_offset" "test" {
   offset_days = 1
 }
@@ -505,7 +503,7 @@ resource "time_offset" "test" {
 resource "azurerm_pim_eligible_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-  principal_id       = azuread_user.test.object_id
+  principal_id       = data.azurerm_client_config.test.object_id
 
   schedule {
     start_date_time = time_offset.test.rfc3339
@@ -521,5 +519,5 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
     system = "example ticket system"
   }
 }
-`, aadGroup(data))
+`
 }
