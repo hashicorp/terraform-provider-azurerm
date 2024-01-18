@@ -447,11 +447,6 @@ resource "azurerm_logic_app_workflow" "test" {
       foo = "foo"
     })
     "$connections" : jsonencode({
-      "smtp" : {
-        "connectionId" : "/subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/connections/zzz",
-        "connectionName" : "smtp",
-        "id" : "/subscriptions/xxx/providers/Microsoft.Web/locations/yyy/managedApis/smtp"
-      }
     })
   }
 }
