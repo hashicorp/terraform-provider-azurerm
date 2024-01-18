@@ -28,13 +28,13 @@ func TestAccDataSourceIPGroups_noResults(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceIPGroups_basic(t *testing.T) {
+func TestAccDataSourceIPGroups_single(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_ip_groups", "test")
 	r := IPGroupsDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.single(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("names.#").HasValue("1"),
@@ -43,13 +43,13 @@ func TestAccDataSourceIPGroups_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceIPGroups_complete(t *testing.T) {
+func TestAccDataSourceIPGroups_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_ip_groups", "test")
 	r := IPGroupsDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.multiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("ids.#").HasValue("2"),
 				check.That(data.ResourceName).Key("names.#").HasValue("2"),
@@ -71,7 +71,7 @@ data "azurerm_ip_groups" "test" {
 }
 
 // Find single IP group
-func (IPGroupsDataSource) basic(data acceptance.TestData) string {
+func (IPGroupsDataSource) single(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -83,7 +83,7 @@ data "azurerm_ip_groups" "test" {
 }
 
 // Find multiple IP Groups, filtered by name substring
-func (IPGroupsDataSource) complete(data acceptance.TestData) string {
+func (IPGroupsDataSource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

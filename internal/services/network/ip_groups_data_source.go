@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -63,8 +64,11 @@ func dataSourceIpGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// Get resource group name from data source
+	resourceGroupName := d.Get("resource_group_name").(string)
+
 	// Make the request to the API to download all IP groups in the resource group
-	allGroups, err := client.ListByResourceGroup(ctx, d.Get("resource_group_name").(string))
+	allGroups, err := client.ListByResourceGroup(ctx, resourceGroupName)
 	if err != nil {
 		return fmt.Errorf("error listing IP groups: %+v", err)
 	}
@@ -85,6 +89,13 @@ func dataSourceIpGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	// Sort lists of strings alphabetically
 	slices.Sort(names)
 	slices.Sort(ids)
+
+	// Set resource ID, required for Terraform state
+	// Since this is a multi-resource data source, we need to create a unique ID
+	// Using the internal ID of the resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id := commonids.NewResourceGroupID(subscriptionId, resourceGroupName)
+	d.SetId(id.ID())
 
 	// Set names
 	err = d.Set("names", names)
