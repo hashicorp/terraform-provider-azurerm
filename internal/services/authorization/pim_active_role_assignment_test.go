@@ -442,7 +442,7 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_role_definition" "test" {
-  name = "Billing Reader"
+  name = "Key Vault Reader"
 }
 
 resource "time_offset" "test" {

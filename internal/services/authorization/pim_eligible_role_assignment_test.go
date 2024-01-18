@@ -103,7 +103,7 @@ func TestAccPimEligibleRoleAssignment_pending(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.pending(),
+			Config: r.pending(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -488,15 +488,17 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
 `, aadGroup(data))
 }
 
-func (PimEligibleRoleAssignmentResource) pending() string {
-	return `
+func (PimEligibleRoleAssignmentResource) pending(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
 
 data "azurerm_role_definition" "test" {
-  name = "Billing Reader"
+  name = "Key Vault Contributor"
 }
+
+%s
 
 resource "time_offset" "test" {
   offset_days = 1
@@ -505,7 +507,7 @@ resource "time_offset" "test" {
 resource "azurerm_pim_eligible_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-  principal_id       = data.azurerm_client_config.test.object_id
+  principal_id       = azuread_user.test.object_id
 
   schedule {
     start_date_time = time_offset.test.rfc3339
@@ -521,5 +523,5 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
     system = "example ticket system"
   }
 }
-`
+`, aadGroup(data))
 }
