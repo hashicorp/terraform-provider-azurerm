@@ -35,7 +35,7 @@ resource "azurerm_spring_cloud_elastic_application_performance_monitoring" "exam
   name                    = "example"
   spring_cloud_service_id = azurerm_spring_cloud_service.example.id
   globally_enabled        = true
-  application_packages    = "org.example,org.another.example"
+  application_packages    = ["org.example", "org.another.example"]
   service_name            = "example-service-name"
   server_url              = "http://127.0.0.1:8200"
 }
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new resource to be created.
 
-* `application_packages` - (Required) Specifies the packages which should be used to determine whether a stack trace frame is an in-app frame or a library frame. This is a comma separated list of package names.
+* `application_packages` - (Required) Specifies a list of the packages which should be used to determine whether a stack trace frame is an in-app frame or a library frame. This is a comma separated list of package names.
 
 * `service_name` - (Required) Specifies the service name which is used to keep all the errors and transactions of your service together and is the primary filter in the Elastic APM user interface.
 

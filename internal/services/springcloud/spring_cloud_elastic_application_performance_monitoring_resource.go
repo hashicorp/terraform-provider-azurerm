@@ -3,6 +3,7 @@ package springcloud
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,12 +17,12 @@ import (
 )
 
 type SpringCloudElasticApplicationPerformanceMonitoringModel struct {
-	Name                 string `tfschema:"name"`
-	SpringCloudServiceId string `tfschema:"spring_cloud_service_id"`
-	GloballyEnabled      bool   `tfschema:"globally_enabled"`
-	ServiceName          string `tfschema:"service_name"`
-	ApplicationPackages  string `tfschema:"application_packages"`
-	ServerUrl            string `tfschema:"server_url"`
+	Name                 string   `tfschema:"name"`
+	SpringCloudServiceId string   `tfschema:"spring_cloud_service_id"`
+	GloballyEnabled      bool     `tfschema:"globally_enabled"`
+	ServiceName          string   `tfschema:"service_name"`
+	ApplicationPackages  []string `tfschema:"application_packages"`
+	ServerUrl            string   `tfschema:"server_url"`
 }
 
 type SpringCloudElasticApplicationPerformanceMonitoringResource struct{}
@@ -52,9 +53,13 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Arguments() 
 		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.SpringCloudServiceId{}),
 
 		"application_packages": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 
 		"service_name": {
@@ -110,7 +115,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Create() sdk
 					Type: "ElasticAPM",
 					Properties: pointer.To(map[string]string{
 						"service_name":         model.ServiceName,
-						"application_packages": model.ApplicationPackages,
+						"application_packages": strings.Join(model.ApplicationPackages, ","),
 						"server_url":           model.ServerUrl,
 					}),
 					Secrets: pointer.To(map[string]string{}),
@@ -175,7 +180,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Update() sdk
 			}
 
 			if metadata.ResourceData.HasChange("application_packages") {
-				(*properties.Properties)["application_packages"] = model.ApplicationPackages
+				(*properties.Properties)["application_packages"] = strings.Join(model.ApplicationPackages, ",")
 			}
 
 			if metadata.ResourceData.HasChange("server_url") {
@@ -270,7 +275,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Read() sdk.R
 						state.ServiceName = value
 					}
 					if value, ok := (*props.Properties)["application_packages"]; ok {
-						state.ApplicationPackages = value
+						state.ApplicationPackages = strings.Split(value, ",")
 					}
 					if value, ok := (*props.Properties)["server_url"]; ok {
 						state.ServerUrl = value

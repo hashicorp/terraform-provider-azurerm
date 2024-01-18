@@ -129,7 +129,7 @@ func (r SpringCloudElasticApplicationPerformanceMonitoringResource) basic(data a
 resource "azurerm_spring_cloud_elastic_application_performance_monitoring" "test" {
   name                    = "acctest-apm-%[2]d"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  application_packages    = "org.example,org.another.example"
+  application_packages    = ["org.example", "org.another.example"]
   service_name            = "test-service-name"
   server_url              = "http://127.0.0.1:8200"
 }
@@ -144,7 +144,7 @@ func (r SpringCloudElasticApplicationPerformanceMonitoringResource) requiresImpo
 resource "azurerm_spring_cloud_elastic_application_performance_monitoring" "import" {
   name                    = azurerm_spring_cloud_elastic_application_performance_monitoring.test.name
   spring_cloud_service_id = azurerm_spring_cloud_elastic_application_performance_monitoring.test.spring_cloud_service_id
-  application_packages    = "org.example,org.another.example"
+  application_packages    = ["org.example", "org.another.example"]
   service_name            = "test-service-name"
   server_url              = "http://127.0.0.1:8200"
 }
@@ -159,7 +159,7 @@ func (r SpringCloudElasticApplicationPerformanceMonitoringResource) complete(dat
 resource "azurerm_spring_cloud_elastic_application_performance_monitoring" "test" {
   name                    = "acctest-apm-%[2]d"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  application_packages    = "org.example,org.another.example"
+  application_packages    = ["org.example", "org.another.example"]
   service_name            = "test-service-name"
   server_url              = "http://127.0.0.1:8200"
   globally_enabled        = true
