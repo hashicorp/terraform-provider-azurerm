@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []RunCommandDocumentBase
+	LatestHttpResponse *http.Response
+	Items              []RunCommandDocumentBase
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c VirtualMachineRunCommandsClient) ListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
