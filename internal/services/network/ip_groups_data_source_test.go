@@ -13,13 +13,14 @@ import (
 
 type IPGroupsDataSource struct{}
 
-func TestAccDataSourceIPGroups_noResults(t *testing.T) {
+// Basic == No results, returns empty list
+func TestAccDataSourceIPGroups_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_ip_groups", "test")
 	r := IPGroupsDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.noResults(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("ids.#").HasValue("0"),
 				check.That(data.ResourceName).Key("names.#").HasValue("0"),
@@ -51,15 +52,15 @@ func TestAccDataSourceIPGroups_multiple(t *testing.T) {
 		{
 			Config: r.multiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("ids.#").HasValue("2"),
-				check.That(data.ResourceName).Key("names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("ids.#").HasValue("3"),
+				check.That(data.ResourceName).Key("names.#").HasValue("3"),
 			),
 		},
 	})
 }
 
 // Find IP group which doesn't exist
-func (IPGroupsDataSource) noResults(data acceptance.TestData) string {
+func (IPGroupsDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

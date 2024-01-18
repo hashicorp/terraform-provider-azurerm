@@ -92,7 +92,7 @@ func dataSourceIpGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	// Set resource ID, required for Terraform state
 	// Since this is a multi-resource data source, we need to create a unique ID
-	// Using the internal ID of the resource
+	// Using the ID of the resource group
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := commonids.NewResourceGroupID(subscriptionId, resourceGroupName)
 	d.SetId(id.ID())
