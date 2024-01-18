@@ -2,6 +2,7 @@ package databases
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -79,13 +80,24 @@ func (c DatabasesClient) ListByCluster(ctx context.Context, id commonids.KustoCl
 	}
 
 	var values struct {
-		Values *[]Database `json:"value"`
+		Values *[]json.RawMessage `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
-	result.Model = values.Values
+	temp := make([]Database, 0)
+	if values.Values != nil {
+		for i, v := range *values.Values {
+			val, err := unmarshalDatabaseImplementation(v)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling item %d for Database (%q): %+v", i, v, err)
+				return result, err
+			}
+			temp = append(temp, val)
+		}
+	}
+	result.Model = &temp
 
 	return
 }

@@ -2,17 +2,30 @@
 
 FEATURES:
 
+* New Data Source: `azurerm_nginx_deployment` [GH-24492]
+* New Resource: `azurerm_spring_cloud_dynatrace_application_performance_monitoring` [GH-23889]
+* New Resource: `azurerm_virtual_machine_run_command` [GH-23377]
+
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240112.1095456` of `github.com/hashicorp/go-azure-sdk` [GH-24477]
+* dependencies: updating to `v0.20240117.1163544` of `github.com/hashicorp/go-azure-sdk` [GH-24481]
 * dependencies: updating to `v0.65.1` of `github.com/hashicorp/go-azure-helpers` [GH-24479]
-* Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
+* `datashare`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24481]
 * `kusto`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24477]
+* Data Source: `azurerm_application_gateway` - support for the `trusted_client_certificate.data` property [GH-24474]
+* `azurerm_service_plan`: refactoring to use `hashicorp/go-azure-sdk` [GH-24483]
 * `azurerm_container_group` - support for the `priority` property [GH-24374]
+* `azurerm_mssql_managed_database` - support for the `point_in_time_restore` property [GH-24535]
+* `azurerm_mssql_managed_instance` - now exports the `dns_zone` attribute [GH-24435]
+* `azurerm_linux_web_app_slot` - support for setting `python_version` to `3.12` [GH-24363]
+* `azurerm_linux_web_app` - support for setting `python_version` to `3.12` [GH-24363]
+* `azurerm_linux_function_app_slot` - support for setting `python_version` to `3.12` [GH-24363]
+*  `azurerm_linux_function_app` - support for setting `python_version` to `3.12` [GH-24363]
 
 BUG FIXES:
 
-* `azurerm_cdn_frontdoor_route` - fix issue where `cdn_frontdoor_origin_path` gets removed on update if unchanged. [GH-24488]
+* `azurerm_application_gateway` - the `components` property within the `url` block is no longer computed [GH-24480]
+* `azurerm_cdn_frontdoor_route` - prevent an issue where `cdn_frontdoor_origin_path` gets removed on update if unchanged. [GH-24488]
 
 ## 3.87.0 (January 11, 2024)
 
