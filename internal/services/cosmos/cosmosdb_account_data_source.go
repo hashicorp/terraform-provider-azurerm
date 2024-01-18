@@ -9,16 +9,16 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCosmosDbAccount() *pluginsdk.Resource {
@@ -39,7 +39,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 
 			"offer_type": {
 				Type:     pluginsdk.TypeString,
@@ -263,16 +263,16 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 }
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := cosmosdb.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.DatabaseAccountsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -280,136 +280,150 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("kind", string(resp.Kind))
+	if model := resp.Model; model != nil {
+		d.Set("name", model.Name)
+		d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.DatabaseAccountGetProperties; props != nil {
-		d.Set("offer_type", string(props.DatabaseAccountOfferType))
-		d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
-		d.Set("endpoint", props.DocumentEndpoint)
-		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
-		d.Set("enable_free_tier", resp.EnableFreeTier)
-		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("kind", string(pointer.From(model.Kind)))
 
-		if v := props.KeyVaultKeyURI; v != nil {
-			d.Set("key_vault_key_id", resp.KeyVaultKeyURI)
-		}
+		if props := model.Properties; props != nil {
+			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
+			d.Set("endpoint", props.DocumentEndpoint)
+			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
+			d.Set("enable_free_tier", props.EnableFreeTier)
+			d.Set("enable_automatic_failover", props.EnableAutomaticFailover)
 
-		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
-			return fmt.Errorf("setting `consistency_policy`: %+v", err)
-		}
+			if v := props.KeyVaultKeyUri; v != nil {
+				d.Set("key_vault_key_id", v)
+			}
 
-		locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
+			if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(props.ConsistencyPolicy)); err != nil {
+				return fmt.Errorf("setting `consistency_policy`: %+v", err)
+			}
 
-		// the original procedure leads to a sorted locations slice by using failover priority as index
-		// sort `geo_locations` by failover priority if we found priorities were not within limitation.
-		if anyUnexpectedFailoverPriority(*props.FailoverPolicies) {
-			policies := *props.FailoverPolicies
-			sort.Slice(policies, func(i, j int) bool {
-				return *policies[i].FailoverPriority < *policies[j].FailoverPriority
-			})
-			for i, l := range policies {
-				locations[i] = map[string]interface{}{
-					"id":                *l.ID,
-					"location":          location.NormalizeNilable(l.LocationName),
-					"failover_priority": int(*l.FailoverPriority),
+			locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
+
+			// the original procedure leads to a sorted locations slice by using failover priority as index
+			// sort `geo_locations` by failover priority if we found priorities were not within limitation.
+			if anyUnexpectedFailoverPriority(*props.FailoverPolicies) {
+				policies := *props.FailoverPolicies
+				sort.Slice(policies, func(i, j int) bool {
+					return *policies[i].FailoverPriority < *policies[j].FailoverPriority
+				})
+				for i, l := range policies {
+					locations[i] = map[string]interface{}{
+						"id":                *l.Id,
+						"location":          location.NormalizeNilable(l.LocationName),
+						"failover_priority": int(*l.FailoverPriority),
+					}
+				}
+			} else {
+				for _, l := range *props.FailoverPolicies {
+					locations[*l.FailoverPriority] = map[string]interface{}{
+						"id":                *l.Id,
+						"location":          location.NormalizeNilable(l.LocationName),
+						"failover_priority": int(*l.FailoverPriority),
+					}
 				}
 			}
-		} else {
-			for _, l := range *props.FailoverPolicies {
-				locations[*l.FailoverPriority] = map[string]interface{}{
-					"id":                *l.ID,
-					"location":          location.NormalizeNilable(l.LocationName),
-					"failover_priority": int(*l.FailoverPriority),
+			if err = d.Set("geo_location", locations); err != nil {
+				return fmt.Errorf("setting `geo_location`: %+v", err)
+			}
+
+			if err = d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(props.Capabilities)); err != nil {
+				return fmt.Errorf("setting `capabilities`: %+v", err)
+			}
+
+			if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
+				return fmt.Errorf("setting `virtual_network_rule`: %+v", err)
+			}
+
+			readEndpoints := make([]string, 0)
+			if locations := props.ReadLocations; locations != nil {
+				for _, l := range *locations {
+					if l.DocumentEndpoint == nil {
+						continue
+					}
+
+					readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
 				}
 			}
-		}
-		if err = d.Set("geo_location", locations); err != nil {
-			return fmt.Errorf("setting `geo_location`: %+v", err)
-		}
-
-		if err = d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
-			return fmt.Errorf("setting `capabilities`: %+v", err)
-		}
-
-		if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
-			return fmt.Errorf("setting `virtual_network_rule`: %+v", err)
-		}
-
-		readEndpoints := make([]string, 0)
-		if locations := props.ReadLocations; locations != nil {
-			for _, l := range *locations {
-				if l.DocumentEndpoint == nil {
-					continue
-				}
-
-				readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
+			if err := d.Set("read_endpoints", readEndpoints); err != nil {
+				return fmt.Errorf("setting `read_endpoints`: %s", err)
 			}
-		}
-		if err := d.Set("read_endpoints", readEndpoints); err != nil {
-			return fmt.Errorf("setting `read_endpoints`: %s", err)
-		}
 
-		writeEndpoints := make([]string, 0)
-		if locations := props.WriteLocations; locations != nil {
-			for _, l := range *locations {
-				if l.DocumentEndpoint == nil {
-					continue
+			writeEndpoints := make([]string, 0)
+			if locations := props.WriteLocations; locations != nil {
+				for _, l := range *locations {
+					if l.DocumentEndpoint == nil {
+						continue
+					}
+
+					writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 				}
-
-				writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 			}
-		}
-		if err := d.Set("write_endpoints", writeEndpoints); err != nil {
-			return fmt.Errorf("setting `write_endpoints`: %s", err)
+			if err := d.Set("write_endpoints", writeEndpoints); err != nil {
+				return fmt.Errorf("setting `write_endpoints`: %s", err)
+			}
+
+			d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
 		}
 
-		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keys, err := client.DatabaseAccountsListKeys(ctx, id)
 	if err != nil {
 		log.Printf("[ERROR] Unable to List Write keys for %s: %s", id, err)
 	} else {
-		d.Set("primary_key", keys.PrimaryMasterKey)
-		d.Set("secondary_key", keys.SecondaryMasterKey)
+		if model := keys.Model; model != nil {
+			d.Set("primary_key", model.PrimaryMasterKey)
+			d.Set("secondary_key", model.SecondaryMasterKey)
+		}
 	}
 
-	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
+	readonlyKeys, err := client.DatabaseAccountsListReadOnlyKeys(ctx, id)
 	if err != nil {
 		log.Printf("[ERROR] Unable to List read-only keys for %s: %s", id, err)
 	} else {
-		d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
-		d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
+		if model := readonlyKeys.Model; model != nil {
+			d.Set("primary_readonly_key", model.PrimaryReadonlyMasterKey)
+			d.Set("secondary_readonly_key", model.SecondaryReadonlyMasterKey)
+		}
 	}
-	connStringResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
+
+	connStringResp, err := client.DatabaseAccountsListConnectionStrings(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(keys.Response) {
-			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(keys.HttpResponse) {
+			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", id.DatabaseAccountName, id.ResourceGroupName)
 		} else {
-			log.Printf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", id.Name, err)
+			log.Printf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", id.DatabaseAccountName, err)
 		}
 	} else {
-		var connStrings []string
-		if connStringResp.ConnectionStrings != nil {
-			connStrings = make([]string, len(*connStringResp.ConnectionStrings))
-			for i, v := range *connStringResp.ConnectionStrings {
-				connStrings[i] = *v.ConnectionString
-				if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
-					d.Set(propertyName, v.ConnectionString) // lintignore:R001
+		if model := connStringResp.Model; model != nil {
+			var connStrings []string
+			if model.ConnectionStrings != nil {
+				connStrings = make([]string, len(*model.ConnectionStrings))
+				for i, v := range *model.ConnectionStrings {
+					connStrings[i] = *v.ConnectionString
+					if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
+						d.Set(propertyName, v.ConnectionString) // lintignore:R001
+					}
 				}
 			}
-		}
 
-		d.Set("connection_strings", connStrings)
+			d.Set("connection_strings", connStrings)
+		}
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func anyUnexpectedFailoverPriority(failoverPolicies []documentdb.FailoverPolicy) bool {
+func anyUnexpectedFailoverPriority(failoverPolicies []cosmosdb.FailoverPolicy) bool {
 	size := len(failoverPolicies)
 	for _, policy := range failoverPolicies {
 		if int(*policy.FailoverPriority) > size-1 {
@@ -419,7 +433,7 @@ func anyUnexpectedFailoverPriority(failoverPolicies []documentdb.FailoverPolicy)
 	return false
 }
 
-func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.Capability) *[]map[string]interface{} {
+func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]interface{} {
 	slice := make([]map[string]interface{}, 0)
 
 	for _, c := range *capabilities {
@@ -434,7 +448,7 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.
 	return &slice
 }
 
-func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]documentdb.VirtualNetworkRule) []map[string]interface{} {
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]interface{} {
 	if rules == nil {
 		return []map[string]interface{}{}
 	}
@@ -442,7 +456,7 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]documentdb.
 	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
 	for i, r := range *rules {
 		virtualNetworkRules[i] = map[string]interface{}{
-			"id": *r.ID,
+			"id": *r.Id,
 		}
 	}
 	return virtualNetworkRules
