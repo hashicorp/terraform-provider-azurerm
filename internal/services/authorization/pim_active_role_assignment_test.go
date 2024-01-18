@@ -6,6 +6,7 @@ package authorization_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -153,7 +154,7 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 	}
 
 	filter := &roleassignmentschedules.ListForScopeOperationOptions{
-		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
+		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 	}
 
 	items, err := client.Authorization.RoleAssignmentSchedulesClient.ListForScopeComplete(ctx, id.ScopeID(), *filter)
@@ -164,7 +165,8 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 	foundDirectAssignment := false
 
 	for _, i := range items.Items {
-		if *i.Properties.MemberType == roleassignmentschedules.MemberTypeDirect {
+		if *i.Properties.MemberType == roleassignmentschedules.MemberTypeDirect &&
+			strings.EqualFold(*i.Properties.RoleDefinitionId, id.RoleDefinitionId) {
 			foundDirectAssignment = true
 			break
 		}

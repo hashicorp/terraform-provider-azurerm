@@ -176,7 +176,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 			id := parse.NewPimRoleAssignmentID(scope, roleDefinitionId, principalId)
 
 			filter := &roleeligibilityschedules.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
+				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 			}
 
 			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
@@ -185,6 +185,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 			}
 			for _, item := range items.Items {
 				if *item.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.RoleDefinitionId, roleDefinitionId) &&
 					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
@@ -258,7 +259,7 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 			}
 
 			filter := &roleeligibilityschedules.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
+				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 			}
 
 			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
@@ -268,6 +269,7 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 			var schedule *roleeligibilityschedules.RoleEligibilitySchedule
 			for _, item := range items.Items {
 				if *item.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.RoleDefinitionId, id.RoleDefinitionId) &&
 					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					schedule = &item
 					break
@@ -337,7 +339,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 
 			// remove pending role assignment by cancel API
 			filter := &roleeligibilityschedules.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
+				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 			}
 
 			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
@@ -347,6 +349,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			var schedule *roleeligibilityschedules.RoleEligibilitySchedule
 			for _, item := range items.Items {
 				if *item.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.RoleDefinitionId, id.RoleDefinitionId) &&
 					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					schedule = &item
 					break
