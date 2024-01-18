@@ -18,7 +18,7 @@ type NetworkProfileVnet struct {
 
 	// Optional
 	EgressNatIPIDs    []string            `tfschema:"egress_nat_ip_address_ids"`
-	TrustedRanges     []string            `tfschema:"trusted_addresses_ranges"`
+	TrustedRanges     []string            `tfschema:"trusted_address_ranges"`
 	VnetConfiguration []VnetConfiguration `tfschema:"vnet_configuration"`
 
 	// Computed
@@ -32,7 +32,7 @@ type NetworkProfileVHub struct {
 
 	// Optional
 	EgressNatIPIDs []string `tfschema:"egress_nat_ip_address_ids"`
-	TrustedRanges  []string `tfschema:"trusted_addresses_ranges"`
+	TrustedRanges  []string `tfschema:"trusted_address_ranges"`
 
 	// Computed
 	PublicIPs       []string `tfschema:"public_ip_addresses"`
@@ -70,7 +70,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"trusted_addresses_ranges": {
+				"trusted_address_ranges": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -255,7 +255,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"trusted_addresses_ranges": {
+				"trusted_address_ranges": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
