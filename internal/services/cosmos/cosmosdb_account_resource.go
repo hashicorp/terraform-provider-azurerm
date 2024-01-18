@@ -752,11 +752,9 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
-	r, err := client.DatabaseAccountsCheckNameExists(ctx, cosmosdb.NewDatabaseAccountNameID(id.DatabaseAccountName))
-	if err != nil {
-		if !response.WasNotFound(r.HttpResponse) {
-			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", id.DatabaseAccountName)
-		}
+	r, _ := client.DatabaseAccountsCheckNameExists(ctx, cosmosdb.NewDatabaseAccountNameID(id.DatabaseAccountName))
+	if !response.WasNotFound(r.HttpResponse) {
+		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", id.DatabaseAccountName)
 	}
 
 	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
