@@ -754,15 +754,11 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	r, err := client.DatabaseAccountsCheckNameExists(ctx, cosmosdb.NewDatabaseAccountNameID(id.DatabaseAccountName))
 	if err != nil {
-		// TODO: remove when https://github.com/Azure/azure-sdk-for-go/issues/9891 is fixed
-		if r.HttpResponse == nil || r.HttpResponse.StatusCode != http.StatusInternalServerError {
-			return fmt.Errorf("checking if CosmosDB Account %s: %+v", id, err)
-		}
-	} else {
-		if r.HttpResponse == nil || r.HttpResponse.StatusCode != http.StatusNotFound {
+		if !response.WasNotFound(r.HttpResponse) {
 			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", id.DatabaseAccountName)
 		}
 	}
+
 	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
 		return fmt.Errorf("expanding %s geo locations: %+v", id, err)
