@@ -309,6 +309,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
