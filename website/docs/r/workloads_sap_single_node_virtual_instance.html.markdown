@@ -195,14 +195,6 @@ The following arguments are supported:
 
 ---
 
-A `deployer_virtual_machine_packages` block supports the following:
-
-* `storage_account_id` - (Required) The ID of the deployer VM packages storage account. Changing this forces a new resource to be created.
-
-* `url` - (Required) The URL of the deployer VM packages file. Changing this forces a new resource to be created.
-
----
-
 A `single_server_configuration` block supports the following:
 
 * `app_resource_group_name` - (Required) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
