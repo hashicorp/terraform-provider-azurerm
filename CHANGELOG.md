@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* New Data Source: `azurerm_nginx_deployment` [GH-24492]
 * New Resource: `azurerm_spring_cloud_dynatrace_application_performance_monitoring` [GH-23889]
 
 ENHANCEMENTS:
