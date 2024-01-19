@@ -1413,7 +1413,7 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		}
 	} else {
 		if err := resp.Poller.PollUntilDone(ctx); err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
+			if !strings.Contains(err.Error(), "404") {
 				return fmt.Errorf("polling after deleting %s: %+v", *id, err)
 			}
 		}
