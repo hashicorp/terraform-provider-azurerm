@@ -31,22 +31,23 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 		Delete: resourceStorageDataLakeGen2FileSystemDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := filesystems.ParseResourceID(id)
+			_, err := filesystems.ParseFileSystemID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			storageClients := meta.(*clients.Client).Storage
-			id, err := filesystems.ParseResourceID(d.Id())
+			domainSuffix := storageClients.Environment.StorageEndpointSuffix
+			id, err := filesystems.ParseFileSystemID(d.Id(), domainSuffix)
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
 			}
 
 			// we then need to look up the Storage Account ID
-			account, err := storageClients.FindAccount(ctx, id.AccountName)
+			account, err := storageClients.FindAccount(ctx, id.AccountId.AccountName)
 			if err != nil {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountId.AccountName, id.FileSystemName, err)
 			}
 			if account == nil {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountId.AccountName)
 			}
 
 			d.Set("storage_account_id", account.ID)
