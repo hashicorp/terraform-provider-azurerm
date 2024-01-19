@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* New Resource: `azurerm_netapp_account_encryption` [GH-23733]
 * New Resource: `azurerm_redhat_openshift_cluster` [GH-24375]
 
 ENHANCEMENTS:
