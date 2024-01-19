@@ -41,7 +41,7 @@ The following arguments are supported:
 
 -> **Note:** The `SnapshotStore` will be removed in version 4.0 as it has been replaced by `OperationalStore`.
 
-* `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant` and `LocallyRedundant`. Changing this forces a new Backup Vault to be created.
+* `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
 ---
 
