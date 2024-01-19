@@ -1,5 +1,9 @@
 ## 3.89.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_redhat_openshift_cluster` [GH-24375]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.66.1` of `github.com/hashicorp/go-azure-helpers` [GH-24561]
