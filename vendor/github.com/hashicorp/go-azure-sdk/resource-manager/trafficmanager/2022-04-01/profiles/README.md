@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles` Documentation
 
-The `profiles` SDK allows for interaction with the Azure Resource Manager Service `trafficmanager` (API Version `2018-08-01`).
+The `profiles` SDK allows for interaction with the Azure Resource Manager Service `trafficmanager` (API Version `2022-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 ```
 
 
@@ -17,6 +17,27 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-0
 ```go
 client := profiles.NewProfilesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `ProfilesClient.CheckTrafficManagerNameAvailabilityV2`
+
+```go
+ctx := context.TODO()
+id := profiles.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+payload := profiles.CheckTrafficManagerRelativeDnsNameAvailabilityParameters{
+	// ...
+}
+
+
+read, err := client.CheckTrafficManagerNameAvailabilityV2(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
 ```
 
 

@@ -4,6 +4,7 @@ package endpoints
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EndpointProperties struct {
+	AlwaysServe           *AlwaysServe                              `json:"alwaysServe,omitempty"`
 	CustomHeaders         *[]EndpointPropertiesCustomHeadersInlined `json:"customHeaders,omitempty"`
 	EndpointLocation      *string                                   `json:"endpointLocation,omitempty"`
 	EndpointMonitorStatus *EndpointMonitorStatus                    `json:"endpointMonitorStatus,omitempty"`
