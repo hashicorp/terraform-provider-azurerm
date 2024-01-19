@@ -13,7 +13,7 @@ type AutoClient struct {
 func NewClient(o *common.ClientOptions) (*AutoClient, error) {
 
 	v20221201Client := loadtestserviceV20221201.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
 	})
 
 	return &AutoClient{
