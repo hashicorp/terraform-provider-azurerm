@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ScopeId{}
+var _ resourceids.ResourceId = &ScopeId{}
 
 // ScopeId is a struct representing the Resource ID for a Scope
 type ScopeId struct {
@@ -26,7 +26,7 @@ func NewScopeID(scope string) ScopeId {
 
 // ParseScopeID parses 'input' into a ScopeId
 func ParseScopeID(input string) (*ScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -42,14 +42,14 @@ func ParseScopeID(input string) (*ScopeId, error) {
 // ParseScopeIDInsensitively parses 'input' case-insensitively into a ScopeId
 // note: this method should only be used for API response data and not user input
 func ParseScopeIDInsensitively(input string) (*ScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := ScopeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

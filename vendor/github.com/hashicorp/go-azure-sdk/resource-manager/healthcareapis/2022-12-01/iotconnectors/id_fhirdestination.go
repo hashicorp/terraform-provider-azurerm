@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FhirDestinationId{}
+var _ resourceids.ResourceId = &FhirDestinationId{}
 
 // FhirDestinationId is a struct representing the Resource ID for a Fhir Destination
 type FhirDestinationId struct {
@@ -34,7 +34,7 @@ func NewFhirDestinationID(subscriptionId string, resourceGroupName string, works
 
 // ParseFhirDestinationID parses 'input' into a FhirDestinationId
 func ParseFhirDestinationID(input string) (*FhirDestinationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FhirDestinationId{})
+	parser := resourceids.NewParserFromResourceIdType(&FhirDestinationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseFhirDestinationID(input string) (*FhirDestinationId, error) {
 // ParseFhirDestinationIDInsensitively parses 'input' case-insensitively into a FhirDestinationId
 // note: this method should only be used for API response data and not user input
 func ParseFhirDestinationIDInsensitively(input string) (*FhirDestinationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FhirDestinationId{})
+	parser := resourceids.NewParserFromResourceIdType(&FhirDestinationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

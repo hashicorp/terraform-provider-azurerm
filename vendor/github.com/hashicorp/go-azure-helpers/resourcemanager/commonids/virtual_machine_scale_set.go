@@ -28,7 +28,7 @@ func NewVirtualMachineScaleSetID(subscriptionId string, resourceGroupName string
 
 // ParseVirtualMachineScaleSetID parses 'input' into a VirtualMachineScaleSetId
 func ParseVirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,14 +45,14 @@ func ParseVirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, err
 // ParseVirtualMachineScaleSetIDInsensitively parses 'input' case-insensitively into a VirtualMachineScaleSetId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualMachineScaleSetIDInsensitively(input string) (*VirtualMachineScaleSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := VirtualMachineScaleSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

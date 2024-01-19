@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CommunicationsGatewayId{}
+var _ resourceids.ResourceId = &CommunicationsGatewayId{}
 
 // CommunicationsGatewayId is a struct representing the Resource ID for a Communications Gateway
 type CommunicationsGatewayId struct {
@@ -30,7 +30,7 @@ func NewCommunicationsGatewayID(subscriptionId string, resourceGroupName string,
 
 // ParseCommunicationsGatewayID parses 'input' into a CommunicationsGatewayId
 func ParseCommunicationsGatewayID(input string) (*CommunicationsGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommunicationsGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommunicationsGatewayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseCommunicationsGatewayID(input string) (*CommunicationsGatewayId, error
 // ParseCommunicationsGatewayIDInsensitively parses 'input' case-insensitively into a CommunicationsGatewayId
 // note: this method should only be used for API response data and not user input
 func ParseCommunicationsGatewayIDInsensitively(input string) (*CommunicationsGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommunicationsGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommunicationsGatewayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = DedicatedHostGroupId{}
+var _ resourceids.ResourceId = &DedicatedHostGroupId{}
 
 // DedicatedHostGroupId is a struct representing the Resource ID for a Dedicated Host Group
 type DedicatedHostGroupId struct {
@@ -30,7 +30,7 @@ func NewDedicatedHostGroupID(subscriptionId string, resourceGroupName string, ho
 
 // ParseDedicatedHostGroupID parses 'input' into a DedicatedHostGroupId
 func ParseDedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHostGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHostGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseDedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 // ParseDedicatedHostGroupIDInsensitively parses 'input' case-insensitively into a DedicatedHostGroupId
 // note: this method should only be used for API response data and not user input
 func ParseDedicatedHostGroupIDInsensitively(input string) (*DedicatedHostGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHostGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHostGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := DedicatedHostGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

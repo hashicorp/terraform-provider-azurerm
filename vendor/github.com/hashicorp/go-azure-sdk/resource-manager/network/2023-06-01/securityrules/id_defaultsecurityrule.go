@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DefaultSecurityRuleId{}
+var _ resourceids.ResourceId = &DefaultSecurityRuleId{}
 
 // DefaultSecurityRuleId is a struct representing the Resource ID for a Default Security Rule
 type DefaultSecurityRuleId struct {
@@ -32,7 +32,7 @@ func NewDefaultSecurityRuleID(subscriptionId string, resourceGroupName string, n
 
 // ParseDefaultSecurityRuleID parses 'input' into a DefaultSecurityRuleId
 func ParseDefaultSecurityRuleID(input string) (*DefaultSecurityRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DefaultSecurityRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&DefaultSecurityRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDefaultSecurityRuleID(input string) (*DefaultSecurityRuleId, error) {
 // ParseDefaultSecurityRuleIDInsensitively parses 'input' case-insensitively into a DefaultSecurityRuleId
 // note: this method should only be used for API response data and not user input
 func ParseDefaultSecurityRuleIDInsensitively(input string) (*DefaultSecurityRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DefaultSecurityRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&DefaultSecurityRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AppServiceEnvironmentId{}
+var _ resourceids.ResourceId = &AppServiceEnvironmentId{}
 
 // AppServiceEnvironmentId is a struct representing the Resource ID for a App Service Environment
 type AppServiceEnvironmentId struct {
@@ -30,7 +30,7 @@ func NewAppServiceEnvironmentID(subscriptionId string, resourceGroupName string,
 
 // ParseAppServiceEnvironmentID parses 'input' into a AppServiceEnvironmentId
 func ParseAppServiceEnvironmentID(input string) (*AppServiceEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceEnvironmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseAppServiceEnvironmentID(input string) (*AppServiceEnvironmentId, error
 // ParseAppServiceEnvironmentIDInsensitively parses 'input' case-insensitively into a AppServiceEnvironmentId
 // note: this method should only be used for API response data and not user input
 func ParseAppServiceEnvironmentIDInsensitively(input string) (*AppServiceEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceEnvironmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := AppServiceEnvironmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

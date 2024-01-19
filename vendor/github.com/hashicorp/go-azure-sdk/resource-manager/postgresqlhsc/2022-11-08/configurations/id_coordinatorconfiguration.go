@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CoordinatorConfigurationId{}
+var _ resourceids.ResourceId = &CoordinatorConfigurationId{}
 
 // CoordinatorConfigurationId is a struct representing the Resource ID for a Coordinator Configuration
 type CoordinatorConfigurationId struct {
@@ -32,7 +32,7 @@ func NewCoordinatorConfigurationID(subscriptionId string, resourceGroupName stri
 
 // ParseCoordinatorConfigurationID parses 'input' into a CoordinatorConfigurationId
 func ParseCoordinatorConfigurationID(input string) (*CoordinatorConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CoordinatorConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&CoordinatorConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCoordinatorConfigurationID(input string) (*CoordinatorConfigurationId,
 // ParseCoordinatorConfigurationIDInsensitively parses 'input' case-insensitively into a CoordinatorConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseCoordinatorConfigurationIDInsensitively(input string) (*CoordinatorConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CoordinatorConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&CoordinatorConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

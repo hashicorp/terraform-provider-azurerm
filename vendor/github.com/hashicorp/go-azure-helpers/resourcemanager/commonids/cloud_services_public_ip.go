@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = CloudServicesPublicIPAddressId{}
+var _ resourceids.ResourceId = &CloudServicesPublicIPAddressId{}
 
 // CloudServicesPublicIPAddressId is a struct representing the Resource ID for a Cloud Services Public I P Address
 type CloudServicesPublicIPAddressId struct {
@@ -38,7 +38,7 @@ func NewCloudServicesPublicIPAddressID(subscriptionId string, resourceGroupName 
 
 // ParseCloudServicesPublicIPAddressID parses 'input' into a CloudServicesPublicIPAddressId
 func ParseCloudServicesPublicIPAddressID(input string) (*CloudServicesPublicIPAddressId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CloudServicesPublicIPAddressId{})
+	parser := resourceids.NewParserFromResourceIdType(&CloudServicesPublicIPAddressId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -55,14 +55,14 @@ func ParseCloudServicesPublicIPAddressID(input string) (*CloudServicesPublicIPAd
 // ParseCloudServicesPublicIPAddressIDInsensitively parses 'input' case-insensitively into a CloudServicesPublicIPAddressId
 // note: this method should only be used for API response data and not user input
 func ParseCloudServicesPublicIPAddressIDInsensitively(input string) (*CloudServicesPublicIPAddressId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CloudServicesPublicIPAddressId{})
+	parser := resourceids.NewParserFromResourceIdType(&CloudServicesPublicIPAddressId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := CloudServicesPublicIPAddressId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

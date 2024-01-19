@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataBoxEdgeDeviceId{}
+var _ resourceids.ResourceId = &DataBoxEdgeDeviceId{}
 
 // DataBoxEdgeDeviceId is a struct representing the Resource ID for a Data Box Edge Device
 type DataBoxEdgeDeviceId struct {
@@ -30,7 +30,7 @@ func NewDataBoxEdgeDeviceID(subscriptionId string, resourceGroupName string, dat
 
 // ParseDataBoxEdgeDeviceID parses 'input' into a DataBoxEdgeDeviceId
 func ParseDataBoxEdgeDeviceID(input string) (*DataBoxEdgeDeviceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataBoxEdgeDeviceId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataBoxEdgeDeviceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseDataBoxEdgeDeviceID(input string) (*DataBoxEdgeDeviceId, error) {
 // ParseDataBoxEdgeDeviceIDInsensitively parses 'input' case-insensitively into a DataBoxEdgeDeviceId
 // note: this method should only be used for API response data and not user input
 func ParseDataBoxEdgeDeviceIDInsensitively(input string) (*DataBoxEdgeDeviceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataBoxEdgeDeviceId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataBoxEdgeDeviceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
