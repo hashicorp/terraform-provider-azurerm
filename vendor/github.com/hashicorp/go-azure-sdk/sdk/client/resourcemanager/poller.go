@@ -54,15 +54,33 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 		return pollers.NewPoller(provisioningState, provisioningState.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
 	}
 
-	// finally, if it was a Delete that returned a 200/204
-	statusCodesToCheckDelete := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted || response.StatusCode == http.StatusNoContent
-	if methodIsDelete && statusCodesToCheckDelete {
-		deletePoller, deletePollerErr := deletePollerFromResponse(response, client, DefaultPollingInterval)
-		if deletePollerErr != nil {
-			err = deletePollerErr
-			return pollers.Poller{}, fmt.Errorf("building delete poller: %+v", deletePollerErr)
+	statusCodesToCheckDelete := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusNoContent
+	statusCodesToCheckLroDelete := response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
+	if methodIsDelete {
+		// finally, if it was a Delete that returned a 200/204
+		if statusCodesToCheckDelete {
+			deletePoller, deletePollerErr := deletePollerFromResponse(response, client, DefaultPollingInterval)
+			if deletePollerErr != nil {
+				err = deletePollerErr
+				return pollers.Poller{}, fmt.Errorf("building delete poller: %+v", deletePollerErr)
+			}
+			return pollers.NewPoller(deletePoller, deletePoller.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
+		}else {
+			// finally, if it was a Delete that returned a 201/202
+			// For APIM servcie, even if Get API returns 404, deletion is still in progress.
+			// This leads Terraform to believe that the deletion has been completed but is actually still being deleted.
+			// This will cause the resource group deletion to fail because the APIM servcie still exists.
+			// Feedback from the service team that
+			// for long-running-operation deletion, track asynchronous Azure operations instead of whether the get api returns 404 can more accurately determine whether the operation is actually completed.
+			if statusCodesToCheckLroDelete{
+				lro, lroErr := longRunningOperationPollerFromResponse(response, client.Client)
+				if lroErr != nil {
+					err = lroErr
+					return pollers.Poller{}, fmt.Errorf("building long-running-operation poller: %+v", lroErr)
+				}
+				return pollers.NewPoller(lro, lro.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
+			}
 		}
-		return pollers.NewPoller(deletePoller, deletePoller.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
 	}
 
 	return pollers.Poller{}, fmt.Errorf("no applicable pollers were found for the response")
