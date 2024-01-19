@@ -9,6 +9,10 @@ ENHANCEMENTS:
 * `managedidentity`: the SDK Clients now support logging [GH-24564]
 * `azurerm_data_protection_backup_vault`: `redundancy` can now be set to `ZoneRedundant` [GH-24556]
 
+BUG FIXES:
+
+* `azurerm_network_interface` - all `ip_configuration` are no longer added to a Load Balancer Backend if one of those `ip_configurations` is associated with a backend [GH-24470]
+
 ## 3.88.0 (January 18, 2024)
 
 FEATURES:
