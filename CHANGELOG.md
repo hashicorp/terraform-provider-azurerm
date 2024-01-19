@@ -4,6 +4,9 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.66.1` of `github.com/hashicorp/go-azure-helpers` [GH-24561]
 * dependencies: updating to `v0.20240118.1175416` of `github.com/hashicorp/go-azure-sdk` [GH-24561]
+* `containerservice`: the SDK Clients now support logging [GH-24564]
+* `loadtestservice`: the SDK Clients now support logging [GH-24564]
+* `managedidentity`: the SDK Clients now support logging [GH-24564]
 * `azurerm_data_protection_backup_vault`: `redundancy` can now be set to `ZoneRedundant` [GH-24556]
 
 ## 3.88.0 (January 18, 2024)
