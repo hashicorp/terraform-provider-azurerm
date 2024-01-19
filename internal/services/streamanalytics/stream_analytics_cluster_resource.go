@@ -26,6 +26,7 @@ type ClusterModel struct {
 	ResourceGroup     string                 `tfschema:"resource_group_name"`
 	Location          string                 `tfschema:"location"`
 	StreamingCapacity int64                  `tfschema:"streaming_capacity"`
+	Sku               string                 `tfschema:"sku"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
@@ -68,6 +69,15 @@ func (r ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			Default:  clusters.ClusterSkuNameDefault,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(clusters.ClusterSkuNameDefault),
+			}, false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -102,7 +112,7 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 				Name:     pointer.To(model.Name),
 				Location: pointer.To(model.Location),
 				Sku: &clusters.ClusterSku{
-					Name:     pointer.To(clusters.ClusterSkuNameDefault),
+					Name:     pointer.To(clusters.ClusterSkuName(model.Sku)),
 					Capacity: pointer.To(model.StreamingCapacity),
 				},
 				Tags: tags.Expand(model.Tags),
@@ -153,6 +163,10 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 					capacity = *v
 				}
 				state.StreamingCapacity = capacity
+
+				if v := model.Sku.Name; v != nil {
+					state.Sku = string(*v)
+				}
 			}
 
 			return metadata.Encode(&state)
