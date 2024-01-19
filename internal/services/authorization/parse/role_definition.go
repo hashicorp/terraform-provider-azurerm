@@ -16,7 +16,7 @@ type RoleDefinitionID struct {
 	RoleID     string
 }
 
-var _ resourceids.ResourceId = &RoleDefinitionID{}
+var _ resourceids.Id = RoleDefinitionID{}
 
 func (r RoleDefinitionID) ID() string {
 	return fmt.Sprintf("%s|%s", r.ResourceID, r.Scope)
@@ -67,22 +67,4 @@ func RoleDefinitionId(input string) (*RoleDefinitionID, error) {
 	}
 
 	return &roleDefinitionID, nil
-}
-
-func (id *RoleDefinitionID) FromParseResult(input resourceids.ParseResult) error {
-	var ok bool
-
-	if id.ResourceID, ok = input.Parsed["scope"]; !ok {
-		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
-	}
-
-	if id.Scope, ok = input.Parsed["scope"]; !ok {
-		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
-	}
-
-	if id.RoleID, ok = input.Parsed["version"]; !ok {
-		return resourceids.NewSegmentNotSpecifiedError(id, "imageName", input)
-	}
-
-	return nil
 }
