@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -1248,7 +1249,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 
 				if d.Get("access_tier") != "" {
-					if accountKind := d.Get("account_kind").(string); !(accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage)) {
+					if accountKind := d.Get("account_kind").(string); !slices.Contains(
+						[]storage.Kind{
+							storage.KindBlobStorage,
+							storage.KindStorageV2,
+							storage.KindFileStorage,
+						},
+						storage.Kind(accountKind),
+					) {
 						return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
 					}
 				}
@@ -1392,7 +1400,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	accessTier, ok := d.GetOk("access_tier")
 	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
-	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage) {
+	if slices.Contains(
+		[]storage.Kind{
+			storage.KindBlobStorage,
+			storage.KindStorageV2,
+			storage.KindFileStorage,
+		},
+		storage.Kind(accountKind),
+	) {
 		if !ok {
 			// default to "Hot"
 			accessTier = string(storage.AccessTierHot)
@@ -1402,7 +1417,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
 	}
 
-	if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
+	if isHnsEnabled && !slices.Contains(
+		[]storage.Kind{
+			storage.KindStorageV2,
+			storage.KindBlobStorage,
+			storage.KindBlockBlobStorage,
+		},
+		storage.Kind(accountKind),
+	) {
 		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
 	}
 
