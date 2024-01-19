@@ -70,8 +70,8 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 			// For APIM servcie, even if Get API returns 404, deletion is still in progress.
 			// This leads Terraform to believe that the deletion has been completed but is actually still being deleted.
 			// This will cause the resource group deletion to fail because the APIM servcie still exists.
-			// Feedback from the service team that
-			// for long-running-operation deletion, track asynchronous Azure operations instead of whether the get api returns 404 can more accurately determine whether the operation is actually completed.
+			// Feedback from the service team that for long-running-operation deletion, track asynchronous Azure operations(https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/async-operations)
+			// instead of whether the get api returns 404 can more accurately determine whether the operation is actually completed.
 			if statusCodesToCheckLroDelete{
 				lro, lroErr := longRunningOperationPollerFromResponse(response, client.Client)
 				if lroErr != nil {

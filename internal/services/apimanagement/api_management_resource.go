@@ -1406,8 +1406,17 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	log.Printf("[DEBUG] Deleting %s", *id)
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	resp, err := client.Delete(ctx, *id)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
+		}
+	} else {
+		if err := resp.Poller.PollUntilDone(ctx); err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("polling after deleting %s: %+v", *id, err)
+			}
+		}
 	}
 
 	if model := existing.Model; model != nil {
