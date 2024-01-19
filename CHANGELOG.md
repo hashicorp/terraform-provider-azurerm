@@ -17,6 +17,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_mssql_managed_instance_security_alert_policy` - fix error when updating with empty storage attributes [GH-24553]
 * `azurerm_network_interface` - all `ip_configuration` are no longer added to a Load Balancer Backend if one of those `ip_configurations` is associated with a backend [GH-24470]
 
 ## 3.88.0 (January 18, 2024)
