@@ -56,7 +56,7 @@ func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
 				ValidateFunc: factories.ValidateFactoryID,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 
 			"description": {
 				Type:         pluginsdk.TypeString,

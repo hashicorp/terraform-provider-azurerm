@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NginxDeploymentId{}
+var _ resourceids.ResourceId = &NginxDeploymentId{}
 
 // NginxDeploymentId is a struct representing the Resource ID for a Nginx Deployment
 type NginxDeploymentId struct {
@@ -30,7 +30,7 @@ func NewNginxDeploymentID(subscriptionId string, resourceGroupName string, nginx
 
 // ParseNginxDeploymentID parses 'input' into a NginxDeploymentId
 func ParseNginxDeploymentID(input string) (*NginxDeploymentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NginxDeploymentId{})
+	parser := resourceids.NewParserFromResourceIdType(&NginxDeploymentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseNginxDeploymentID(input string) (*NginxDeploymentId, error) {
 // ParseNginxDeploymentIDInsensitively parses 'input' case-insensitively into a NginxDeploymentId
 // note: this method should only be used for API response data and not user input
 func ParseNginxDeploymentIDInsensitively(input string) (*NginxDeploymentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NginxDeploymentId{})
+	parser := resourceids.NewParserFromResourceIdType(&NginxDeploymentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

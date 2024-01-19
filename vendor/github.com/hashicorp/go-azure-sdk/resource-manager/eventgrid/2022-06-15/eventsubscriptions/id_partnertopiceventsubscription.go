@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PartnerTopicEventSubscriptionId{}
+var _ resourceids.ResourceId = &PartnerTopicEventSubscriptionId{}
 
 // PartnerTopicEventSubscriptionId is a struct representing the Resource ID for a Partner Topic Event Subscription
 type PartnerTopicEventSubscriptionId struct {
@@ -32,7 +32,7 @@ func NewPartnerTopicEventSubscriptionID(subscriptionId string, resourceGroupName
 
 // ParsePartnerTopicEventSubscriptionID parses 'input' into a PartnerTopicEventSubscriptionId
 func ParsePartnerTopicEventSubscriptionID(input string) (*PartnerTopicEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerTopicEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerTopicEventSubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParsePartnerTopicEventSubscriptionID(input string) (*PartnerTopicEventSubsc
 // ParsePartnerTopicEventSubscriptionIDInsensitively parses 'input' case-insensitively into a PartnerTopicEventSubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParsePartnerTopicEventSubscriptionIDInsensitively(input string) (*PartnerTopicEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerTopicEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerTopicEventSubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

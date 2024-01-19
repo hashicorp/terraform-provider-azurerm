@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = KeyVaultPrivateEndpointConnectionId{}
+var _ resourceids.ResourceId = &KeyVaultPrivateEndpointConnectionId{}
 
 // KeyVaultPrivateEndpointConnectionId is a struct representing the Resource ID for a Key Vault Private Endpoint Connection
 type KeyVaultPrivateEndpointConnectionId struct {
@@ -32,7 +32,7 @@ func NewKeyVaultPrivateEndpointConnectionID(subscriptionId string, resourceGroup
 
 // ParseKeyVaultPrivateEndpointConnectionID parses 'input' into a KeyVaultPrivateEndpointConnectionId
 func ParseKeyVaultPrivateEndpointConnectionID(input string) (*KeyVaultPrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultPrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultPrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseKeyVaultPrivateEndpointConnectionID(input string) (*KeyVaultPrivateEnd
 // ParseKeyVaultPrivateEndpointConnectionIDInsensitively parses 'input' case-insensitively into a KeyVaultPrivateEndpointConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseKeyVaultPrivateEndpointConnectionIDInsensitively(input string) (*KeyVaultPrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultPrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultPrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := KeyVaultPrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

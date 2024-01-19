@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TemplateId{}
+var _ resourceids.ResourceId = &TemplateId{}
 
 // TemplateId is a struct representing the Resource ID for a Template
 type TemplateId struct {
@@ -32,7 +32,7 @@ func NewTemplateID(subscriptionId string, resourceGroupName string, serviceName 
 
 // ParseTemplateID parses 'input' into a TemplateId
 func ParseTemplateID(input string) (*TemplateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TemplateId{})
+	parser := resourceids.NewParserFromResourceIdType(&TemplateId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseTemplateID(input string) (*TemplateId, error) {
 // ParseTemplateIDInsensitively parses 'input' case-insensitively into a TemplateId
 // note: this method should only be used for API response data and not user input
 func ParseTemplateIDInsensitively(input string) (*TemplateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TemplateId{})
+	parser := resourceids.NewParserFromResourceIdType(&TemplateId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

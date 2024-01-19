@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AppServicePlanId{}
+var _ resourceids.ResourceId = &AppServicePlanId{}
 
 // AppServicePlanId is a struct representing the Resource ID for an App Service Plan
 type AppServicePlanId struct {
@@ -30,7 +30,7 @@ func NewAppServicePlanID(subscriptionId string, resourceGroupName string, server
 
 // ParseAppServicePlanID parses 'input' into a AppServicePlanId
 func ParseAppServicePlanID(input string) (*AppServicePlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServicePlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServicePlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseAppServicePlanID(input string) (*AppServicePlanId, error) {
 // ParseAppServicePlanIDInsensitively parses 'input' case-insensitively into a AppServicePlanId
 // note: this method should only be used for API response data and not user input
 func ParseAppServicePlanIDInsensitively(input string) (*AppServicePlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServicePlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServicePlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := AppServicePlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

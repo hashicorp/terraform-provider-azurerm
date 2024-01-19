@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedFluxConfigurationId{}
+var _ resourceids.ResourceId = &ScopedFluxConfigurationId{}
 
 // ScopedFluxConfigurationId is a struct representing the Resource ID for a Scoped Flux Configuration
 type ScopedFluxConfigurationId struct {
@@ -28,7 +28,7 @@ func NewScopedFluxConfigurationID(scope string, fluxConfigurationName string) Sc
 
 // ParseScopedFluxConfigurationID parses 'input' into a ScopedFluxConfigurationId
 func ParseScopedFluxConfigurationID(input string) (*ScopedFluxConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedFluxConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedFluxConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseScopedFluxConfigurationID(input string) (*ScopedFluxConfigurationId, e
 // ParseScopedFluxConfigurationIDInsensitively parses 'input' case-insensitively into a ScopedFluxConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseScopedFluxConfigurationIDInsensitively(input string) (*ScopedFluxConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedFluxConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedFluxConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

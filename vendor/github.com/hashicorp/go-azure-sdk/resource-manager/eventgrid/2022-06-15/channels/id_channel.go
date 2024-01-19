@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ChannelId{}
+var _ resourceids.ResourceId = &ChannelId{}
 
 // ChannelId is a struct representing the Resource ID for a Channel
 type ChannelId struct {
@@ -32,7 +32,7 @@ func NewChannelID(subscriptionId string, resourceGroupName string, partnerNamesp
 
 // ParseChannelID parses 'input' into a ChannelId
 func ParseChannelID(input string) (*ChannelId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ChannelId{})
+	parser := resourceids.NewParserFromResourceIdType(&ChannelId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseChannelID(input string) (*ChannelId, error) {
 // ParseChannelIDInsensitively parses 'input' case-insensitively into a ChannelId
 // note: this method should only be used for API response data and not user input
 func ParseChannelIDInsensitively(input string) (*ChannelId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ChannelId{})
+	parser := resourceids.NewParserFromResourceIdType(&ChannelId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OutboundRuleId{}
+var _ resourceids.ResourceId = &OutboundRuleId{}
 
 // OutboundRuleId is a struct representing the Resource ID for a Outbound Rule
 type OutboundRuleId struct {
@@ -32,7 +32,7 @@ func NewOutboundRuleID(subscriptionId string, resourceGroupName string, loadBala
 
 // ParseOutboundRuleID parses 'input' into a OutboundRuleId
 func ParseOutboundRuleID(input string) (*OutboundRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OutboundRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&OutboundRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseOutboundRuleID(input string) (*OutboundRuleId, error) {
 // ParseOutboundRuleIDInsensitively parses 'input' case-insensitively into a OutboundRuleId
 // note: this method should only be used for API response data and not user input
 func ParseOutboundRuleIDInsensitively(input string) (*OutboundRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OutboundRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&OutboundRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

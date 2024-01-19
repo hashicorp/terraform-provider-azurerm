@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ServerFarmVirtualNetworkConnectionId{}
+var _ resourceids.ResourceId = &ServerFarmVirtualNetworkConnectionId{}
 
 // ServerFarmVirtualNetworkConnectionId is a struct representing the Resource ID for a Server Farm Virtual Network Connection
 type ServerFarmVirtualNetworkConnectionId struct {
@@ -32,7 +32,7 @@ func NewServerFarmVirtualNetworkConnectionID(subscriptionId string, resourceGrou
 
 // ParseServerFarmVirtualNetworkConnectionID parses 'input' into a ServerFarmVirtualNetworkConnectionId
 func ParseServerFarmVirtualNetworkConnectionID(input string) (*ServerFarmVirtualNetworkConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServerFarmVirtualNetworkConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServerFarmVirtualNetworkConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseServerFarmVirtualNetworkConnectionID(input string) (*ServerFarmVirtual
 // ParseServerFarmVirtualNetworkConnectionIDInsensitively parses 'input' case-insensitively into a ServerFarmVirtualNetworkConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseServerFarmVirtualNetworkConnectionIDInsensitively(input string) (*ServerFarmVirtualNetworkConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServerFarmVirtualNetworkConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServerFarmVirtualNetworkConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

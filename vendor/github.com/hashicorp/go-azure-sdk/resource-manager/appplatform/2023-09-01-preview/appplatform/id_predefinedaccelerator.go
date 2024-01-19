@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PredefinedAcceleratorId{}
+var _ resourceids.ResourceId = &PredefinedAcceleratorId{}
 
 // PredefinedAcceleratorId is a struct representing the Resource ID for a Predefined Accelerator
 type PredefinedAcceleratorId struct {
@@ -34,7 +34,7 @@ func NewPredefinedAcceleratorID(subscriptionId string, resourceGroupName string,
 
 // ParsePredefinedAcceleratorID parses 'input' into a PredefinedAcceleratorId
 func ParsePredefinedAcceleratorID(input string) (*PredefinedAcceleratorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PredefinedAcceleratorId{})
+	parser := resourceids.NewParserFromResourceIdType(&PredefinedAcceleratorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParsePredefinedAcceleratorID(input string) (*PredefinedAcceleratorId, error
 // ParsePredefinedAcceleratorIDInsensitively parses 'input' case-insensitively into a PredefinedAcceleratorId
 // note: this method should only be used for API response data and not user input
 func ParsePredefinedAcceleratorIDInsensitively(input string) (*PredefinedAcceleratorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PredefinedAcceleratorId{})
+	parser := resourceids.NewParserFromResourceIdType(&PredefinedAcceleratorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

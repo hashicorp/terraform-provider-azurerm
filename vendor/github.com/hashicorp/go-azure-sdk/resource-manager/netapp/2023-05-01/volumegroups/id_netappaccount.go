@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetAppAccountId{}
+var _ resourceids.ResourceId = &NetAppAccountId{}
 
 // NetAppAccountId is a struct representing the Resource ID for a Net App Account
 type NetAppAccountId struct {
@@ -30,7 +30,7 @@ func NewNetAppAccountID(subscriptionId string, resourceGroupName string, netAppA
 
 // ParseNetAppAccountID parses 'input' into a NetAppAccountId
 func ParseNetAppAccountID(input string) (*NetAppAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetAppAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetAppAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseNetAppAccountID(input string) (*NetAppAccountId, error) {
 // ParseNetAppAccountIDInsensitively parses 'input' case-insensitively into a NetAppAccountId
 // note: this method should only be used for API response data and not user input
 func ParseNetAppAccountIDInsensitively(input string) (*NetAppAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetAppAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetAppAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

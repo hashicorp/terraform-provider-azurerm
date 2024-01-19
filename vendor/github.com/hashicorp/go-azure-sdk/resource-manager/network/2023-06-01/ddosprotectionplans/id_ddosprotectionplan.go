@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DdosProtectionPlanId{}
+var _ resourceids.ResourceId = &DdosProtectionPlanId{}
 
 // DdosProtectionPlanId is a struct representing the Resource ID for a Ddos Protection Plan
 type DdosProtectionPlanId struct {
@@ -30,7 +30,7 @@ func NewDdosProtectionPlanID(subscriptionId string, resourceGroupName string, dd
 
 // ParseDdosProtectionPlanID parses 'input' into a DdosProtectionPlanId
 func ParseDdosProtectionPlanID(input string) (*DdosProtectionPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DdosProtectionPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&DdosProtectionPlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseDdosProtectionPlanID(input string) (*DdosProtectionPlanId, error) {
 // ParseDdosProtectionPlanIDInsensitively parses 'input' case-insensitively into a DdosProtectionPlanId
 // note: this method should only be used for API response data and not user input
 func ParseDdosProtectionPlanIDInsensitively(input string) (*DdosProtectionPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DdosProtectionPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&DdosProtectionPlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
