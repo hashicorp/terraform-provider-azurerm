@@ -68,10 +68,9 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 			},
 
 			"app_service_plan_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: webValidate.AppServicePlanID,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"version": {
