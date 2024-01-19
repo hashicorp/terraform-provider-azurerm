@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `containerservice`: the SDK Clients now support logging [GH-24564]
 * `loadtestservice`: the SDK Clients now support logging [GH-24564]
 * `managedidentity`: the SDK Clients now support logging [GH-24564]
+* `azurerm_api_management_api` - change `id` format so specific `revision`s can be managed by Terraform [GH-23031]
 * `azurerm_data_protection_backup_vault`: `redundancy` can now be set to `ZoneRedundant` [GH-24556]
 
 BUG FIXES:
