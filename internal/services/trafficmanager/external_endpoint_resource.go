@@ -82,6 +82,13 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"always_serve": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(endpoints.PossibleValuesForAlwaysServe(), false),
+				Default:      endpoints.AlwaysServeDisabled,
+			},
+
 			"custom_header": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -178,10 +185,13 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 		status = endpoints.EndpointStatusDisabled
 	}
 
+	alwaysServe := endpoints.AlwaysServe(d.Get("always_serve").(string))
+
 	params := endpoints.Endpoint{
 		Name: utils.String(id.EndpointName),
 		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
 		Properties: &endpoints.EndpointProperties{
+			AlwaysServe:    &alwaysServe,
 			CustomHeaders:  expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus: &status,
 			Target:         utils.String(d.Get("target").(string)),
@@ -247,6 +257,7 @@ func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) e
 				enabled = false
 			}
 			d.Set("enabled", enabled)
+			d.Set("always_serve", props.AlwaysServe)
 			d.Set("target", props.Target)
 			d.Set("weight", props.Weight)
 			d.Set("priority", props.Priority)
@@ -294,6 +305,11 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 			status = endpoints.EndpointStatusDisabled
 		}
 		params.Properties.EndpointStatus = pointer.To(status)
+	}
+
+	if d.HasChange("always_serve") {
+		alwaysServe := endpoints.AlwaysServe(d.Get("always_serve").(string))
+		params.Properties.AlwaysServe = &alwaysServe
 	}
 
 	if d.HasChange("custom_header") {
