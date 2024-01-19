@@ -4034,7 +4034,7 @@ resource "azurerm_cosmosdb_account" "test1" {
   }
 
   consistency_policy {
-    consistency_level = "Eventual"
+    consistency_level = "Session"
   }
 
   geo_location {
