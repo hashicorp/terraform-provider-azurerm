@@ -689,10 +689,10 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanID, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerfarmName, id.ResourceGroup)
+	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
 
 	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanID, err)
 	}
