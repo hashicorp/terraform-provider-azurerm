@@ -1326,7 +1326,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cosmosdb.PublicNetworkAccessEnabled)
 		d.Set("default_identity_type", props.DefaultIdentity)
-		d.Set("create_mode", props.CreateMode)
+		d.Set("create_mode", pointer.From(props.CreateMode))
 
 		if v := existing.Model.Properties.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
@@ -1374,7 +1374,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		d.Set("access_key_metadata_writes_enabled", !*props.DisableKeyBasedMetadataWriteAccess)
 		if apiProps := props.ApiProperties; apiProps != nil {
-			d.Set("mongo_server_version", apiProps.ServerVersion)
+			d.Set("mongo_server_version", pointer.From(apiProps.ServerVersion))
 		}
 		d.Set("network_acl_bypass_for_azure_services", pointer.From(props.NetworkAclBypass) == cosmosdb.NetworkAclBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkAclBypassResourceIds))
