@@ -166,7 +166,7 @@ resource "azurerm_virtual_machine_run_command" "example" {
   }
 }
 
-# authurize to storage blob using user assigned identity
+# authorize to storage blob using user assigned identity
 resource "azurerm_virtual_machine_run_command" "example2" {
   location           = azurerm_resource_group.example.location
   name               = "example2-vmrc"
@@ -211,7 +211,7 @@ resource "azurerm_virtual_machine_run_command" "example2" {
   ]
 }
 
-# authurize to storage blob using SAS token
+# authorize to storage blob using SAS token
 resource "azurerm_virtual_machine_run_command" "example3" {
   location           = azurerm_resource_group.example.location
   name               = "example3-vmrc"
