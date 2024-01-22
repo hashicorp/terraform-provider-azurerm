@@ -75,16 +75,18 @@ func (d TriggerSchedulesDataSource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("fetching trigger list from Azure Data Factory %s", dataFactoryId.ID())
 					}
 				} else {
-					return fmt.Errorf("fetching triggers list from Azure Data Factory %q existence: %+v", dataFactoryId.ID(), err)
+					return fmt.Errorf("fetching triggers list from Azure Data Factory %q: %+v", dataFactoryId.ID(), err)
 				}
-				return fmt.Errorf("fetching triggers list from Azure Data Factory %q existence: %+v", dataFactoryId.ID(), err)
+				return fmt.Errorf("fetching triggers list from Azure Data Factory %q: %+v", dataFactoryId.ID(), err)
 			}
 
 			triggers := []string{}
 			for iter.NotDone() {
 				trigger := iter.Value()
 				triggers = append(triggers, *trigger.Name)
-				iter.NextWithContext(ctx)
+				if err := iter.NextWithContext(ctx); err != nil {
+					return fmt.Errorf("fetching triggers list from Azure Data Factory %q, advancing iterator failed: %+v", dataFactoryId.ID(), err)
+				}
 			}
 
 			metadata.SetID(dataFactoryId)
