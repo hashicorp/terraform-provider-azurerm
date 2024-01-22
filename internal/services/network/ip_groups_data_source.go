@@ -36,17 +36,15 @@ func dataSourceIpGroups() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"ids": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
 			},
 
 			"names": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
 			},
 
 			"tags": tags.SchemaDataSource(),
