@@ -18,6 +18,7 @@ type PlannedFailoverOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ReplicationProtectedItem
 }
 
 // PlannedFailover ...
@@ -48,6 +49,10 @@ func (c ReplicationProtectedItemsClient) PlannedFailover(ctx context.Context, id
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

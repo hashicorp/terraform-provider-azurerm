@@ -18,6 +18,7 @@ type LedgerUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConfidentialLedger
 }
 
 // LedgerUpdate ...
@@ -48,6 +49,10 @@ func (c ConfidentialLedgerClient) LedgerUpdate(ctx context.Context, id LedgerId,
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

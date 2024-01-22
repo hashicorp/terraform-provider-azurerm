@@ -18,6 +18,7 @@ type InboundSecurityRuleCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *InboundSecurityRule
 }
 
 // InboundSecurityRuleCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c NetworkVirtualAppliancesClient) InboundSecurityRuleCreateOrUpdate(ctx co
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

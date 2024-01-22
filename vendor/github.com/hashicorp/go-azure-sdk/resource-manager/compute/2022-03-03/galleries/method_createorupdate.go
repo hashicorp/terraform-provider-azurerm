@@ -19,6 +19,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Gallery
 }
 
 // CreateOrUpdate ...
@@ -50,6 +51,10 @@ func (c GalleriesClient) CreateOrUpdate(ctx context.Context, id commonids.Shared
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

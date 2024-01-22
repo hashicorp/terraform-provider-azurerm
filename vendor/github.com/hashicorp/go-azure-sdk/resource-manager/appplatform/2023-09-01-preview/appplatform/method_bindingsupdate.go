@@ -18,6 +18,7 @@ type BindingsUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *BindingResource
 }
 
 // BindingsUpdate ...
@@ -48,6 +49,10 @@ func (c AppPlatformClient) BindingsUpdate(ctx context.Context, id BindingId, inp
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

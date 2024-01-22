@@ -18,6 +18,7 @@ type DeletePrivateEndpointConnectionOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PrivateEndpointConnection
 }
 
 // DeletePrivateEndpointConnection ...
@@ -45,6 +46,10 @@ func (c IotDpsResourceClient) DeletePrivateEndpointConnection(ctx context.Contex
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -18,6 +18,7 @@ type HubRouteTablesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *HubRouteTable
 }
 
 // HubRouteTablesCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c VirtualWANsClient) HubRouteTablesCreateOrUpdate(ctx context.Context, id 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

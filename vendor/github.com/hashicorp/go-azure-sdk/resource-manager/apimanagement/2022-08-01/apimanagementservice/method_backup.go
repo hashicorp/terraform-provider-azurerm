@@ -18,6 +18,7 @@ type BackupOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApiManagementServiceResource
 }
 
 // Backup ...
@@ -48,6 +49,10 @@ func (c ApiManagementServiceClient) Backup(ctx context.Context, id ServiceId, in
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

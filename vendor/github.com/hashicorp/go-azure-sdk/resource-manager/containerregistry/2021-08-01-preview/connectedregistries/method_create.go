@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConnectedRegistry
 }
 
 // Create ...
@@ -48,6 +49,10 @@ func (c ConnectedRegistriesClient) Create(ctx context.Context, id ConnectedRegis
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

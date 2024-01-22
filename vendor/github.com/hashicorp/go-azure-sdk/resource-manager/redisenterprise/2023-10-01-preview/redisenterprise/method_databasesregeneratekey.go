@@ -18,6 +18,7 @@ type DatabasesRegenerateKeyOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AccessKeys
 }
 
 // DatabasesRegenerateKey ...
@@ -48,6 +49,10 @@ func (c RedisEnterpriseClient) DatabasesRegenerateKey(ctx context.Context, id Da
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

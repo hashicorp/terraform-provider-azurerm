@@ -18,6 +18,7 @@ type AccountsCreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Account
 }
 
 // AccountsCreate ...
@@ -47,6 +48,10 @@ func (c DeviceupdatesClient) AccountsCreate(ctx context.Context, id AccountId, i
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

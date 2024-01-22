@@ -18,6 +18,7 @@ type SimPoliciesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *SimPolicy
 }
 
 // SimPoliciesCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c SIMPolicyClient) SimPoliciesCreateOrUpdate(ctx context.Context, id SimPo
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

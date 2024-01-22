@@ -18,6 +18,7 @@ type ReassociateGatewayOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Fabric
 }
 
 // ReassociateGateway ...
@@ -48,6 +49,10 @@ func (c ReplicationFabricsClient) ReassociateGateway(ctx context.Context, id Rep
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

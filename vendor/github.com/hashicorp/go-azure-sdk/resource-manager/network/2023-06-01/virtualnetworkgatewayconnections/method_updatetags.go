@@ -18,6 +18,7 @@ type UpdateTagsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VirtualNetworkGatewayConnection
 }
 
 // UpdateTags ...
@@ -48,6 +49,10 @@ func (c VirtualNetworkGatewayConnectionsClient) UpdateTags(ctx context.Context, 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

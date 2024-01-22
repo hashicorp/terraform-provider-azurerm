@@ -18,6 +18,7 @@ type RegenerateKeyOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *SignalRKeys
 }
 
 // RegenerateKey ...
@@ -47,6 +48,10 @@ func (c SignalRClient) RegenerateKey(ctx context.Context, id SignalRId, input Re
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 
