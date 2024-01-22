@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SpringCloudServiceId{}
+var _ resourceids.ResourceId = &SpringCloudServiceId{}
 
 // SpringCloudServiceId is a struct representing the Resource ID for a Spring Cloud Service
 type SpringCloudServiceId struct {
@@ -30,7 +30,7 @@ func NewSpringCloudServiceID(subscriptionId string, resourceGroupName string, se
 
 // ParseSpringCloudServiceID parses 'input' into a SpringCloudServiceId
 func ParseSpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpringCloudServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpringCloudServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseSpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
 // ParseSpringCloudServiceIDInsensitively parses 'input' case-insensitively into a SpringCloudServiceId
 // note: this method should only be used for API response data and not user input
 func ParseSpringCloudServiceIDInsensitively(input string) (*SpringCloudServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpringCloudServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpringCloudServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := SpringCloudServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

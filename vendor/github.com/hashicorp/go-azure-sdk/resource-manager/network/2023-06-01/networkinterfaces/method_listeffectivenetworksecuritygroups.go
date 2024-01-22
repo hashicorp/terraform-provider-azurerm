@@ -19,6 +19,7 @@ type ListEffectiveNetworkSecurityGroupsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *EffectiveNetworkSecurityGroupListResult
 }
 
 // ListEffectiveNetworkSecurityGroups ...
@@ -45,6 +46,10 @@ func (c NetworkInterfacesClient) ListEffectiveNetworkSecurityGroups(ctx context.
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

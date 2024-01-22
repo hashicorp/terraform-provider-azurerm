@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -292,7 +293,11 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			functionApp.Name = id.SiteName
 			functionApp.ResourceGroup = id.ResourceGroup
-			functionApp.ServicePlanId = utils.NormalizeNilableString(props.ServerFarmID)
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
+			if err != nil {
+				return fmt.Errorf("reading Service Plan Id for %s: %+v", id, err)
+			}
+			functionApp.ServicePlanId = servicePlanId.ID()
 			functionApp.Location = location.NormalizeNilable(existing.Location)
 			functionApp.Enabled = utils.NormaliseNilableBool(existing.Enabled)
 			functionApp.ClientCertMode = string(existing.ClientCertMode)

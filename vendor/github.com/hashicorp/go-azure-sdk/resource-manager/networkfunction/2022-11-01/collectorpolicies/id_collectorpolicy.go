@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CollectorPolicyId{}
+var _ resourceids.ResourceId = &CollectorPolicyId{}
 
 // CollectorPolicyId is a struct representing the Resource ID for a Collector Policy
 type CollectorPolicyId struct {
@@ -32,7 +32,7 @@ func NewCollectorPolicyID(subscriptionId string, resourceGroupName string, azure
 
 // ParseCollectorPolicyID parses 'input' into a CollectorPolicyId
 func ParseCollectorPolicyID(input string) (*CollectorPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CollectorPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&CollectorPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCollectorPolicyID(input string) (*CollectorPolicyId, error) {
 // ParseCollectorPolicyIDInsensitively parses 'input' case-insensitively into a CollectorPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseCollectorPolicyIDInsensitively(input string) (*CollectorPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CollectorPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&CollectorPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

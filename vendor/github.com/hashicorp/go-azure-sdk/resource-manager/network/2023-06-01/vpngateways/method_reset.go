@@ -18,6 +18,7 @@ type ResetOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VpnGateway
 }
 
 type ResetOperationOptions struct {
@@ -72,6 +73,10 @@ func (c VpnGatewaysClient) Reset(ctx context.Context, id VpnGatewayId, options R
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

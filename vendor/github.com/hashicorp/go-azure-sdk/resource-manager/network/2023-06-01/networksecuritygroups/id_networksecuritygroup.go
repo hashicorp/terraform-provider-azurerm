@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkSecurityGroupId{}
+var _ resourceids.ResourceId = &NetworkSecurityGroupId{}
 
 // NetworkSecurityGroupId is a struct representing the Resource ID for a Network Security Group
 type NetworkSecurityGroupId struct {
@@ -30,7 +30,7 @@ func NewNetworkSecurityGroupID(subscriptionId string, resourceGroupName string, 
 
 // ParseNetworkSecurityGroupID parses 'input' into a NetworkSecurityGroupId
 func ParseNetworkSecurityGroupID(input string) (*NetworkSecurityGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkSecurityGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkSecurityGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseNetworkSecurityGroupID(input string) (*NetworkSecurityGroupId, error) 
 // ParseNetworkSecurityGroupIDInsensitively parses 'input' case-insensitively into a NetworkSecurityGroupId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkSecurityGroupIDInsensitively(input string) (*NetworkSecurityGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkSecurityGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkSecurityGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -119,6 +119,7 @@ import (
 	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
+	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
@@ -253,6 +254,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
+	RedHatOpenShift       *redhatopenshift.Client
 	Redis                 *redis_2023_08_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
@@ -318,7 +320,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.AppPlatform, err = appPlatform.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AppPlatform: %+v", err)
 	}
-	client.AppService = appService.NewClient(o)
+	if client.AppService, err = appService.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AppService: %+v", err)
+	}
 	if client.ArcKubernetes, err = arckubernetes.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ArcKubernetes: %+v", err)
 	}
@@ -400,7 +404,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataProtection: %+v", err)
 	}
-	client.DataShare = datashare.NewClient(o)
+	if client.DataShare, err = datashare.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataShare: %+v", err)
+	}
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
 	}
@@ -556,6 +562,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
+	if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
 	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)

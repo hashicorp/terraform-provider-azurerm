@@ -18,6 +18,7 @@ type MigrateToStv2OperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApiManagementServiceResource
 }
 
 // MigrateToStv2 ...
@@ -44,6 +45,10 @@ func (c ApiManagementServiceClient) MigrateToStv2(ctx context.Context, id Servic
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -18,6 +18,7 @@ type MonitorsUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DatadogMonitorResource
 }
 
 // MonitorsUpdate ...
@@ -48,6 +49,10 @@ func (c MonitorsResourceClient) MonitorsUpdate(ctx context.Context, id MonitorId
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -19,6 +19,7 @@ type GetEffectiveRouteTableOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *EffectiveRouteListResult
 }
 
 // GetEffectiveRouteTable ...
@@ -45,6 +46,10 @@ func (c NetworkInterfacesClient) GetEffectiveRouteTable(ctx context.Context, id 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

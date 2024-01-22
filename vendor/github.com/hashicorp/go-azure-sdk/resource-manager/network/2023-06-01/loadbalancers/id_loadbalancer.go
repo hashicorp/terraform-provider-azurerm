@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LoadBalancerId{}
+var _ resourceids.ResourceId = &LoadBalancerId{}
 
 // LoadBalancerId is a struct representing the Resource ID for a Load Balancer
 type LoadBalancerId struct {
@@ -30,7 +30,7 @@ func NewLoadBalancerID(subscriptionId string, resourceGroupName string, loadBala
 
 // ParseLoadBalancerID parses 'input' into a LoadBalancerId
 func ParseLoadBalancerID(input string) (*LoadBalancerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LoadBalancerId{})
+	parser := resourceids.NewParserFromResourceIdType(&LoadBalancerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseLoadBalancerID(input string) (*LoadBalancerId, error) {
 // ParseLoadBalancerIDInsensitively parses 'input' case-insensitively into a LoadBalancerId
 // note: this method should only be used for API response data and not user input
 func ParseLoadBalancerIDInsensitively(input string) (*LoadBalancerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LoadBalancerId{})
+	parser := resourceids.NewParserFromResourceIdType(&LoadBalancerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

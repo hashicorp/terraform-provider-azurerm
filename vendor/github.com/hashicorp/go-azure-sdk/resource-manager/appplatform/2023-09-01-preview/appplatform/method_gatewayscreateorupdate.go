@@ -18,6 +18,7 @@ type GatewaysCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *GatewayResource
 }
 
 // GatewaysCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c AppPlatformClient) GatewaysCreateOrUpdate(ctx context.Context, id Gatewa
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

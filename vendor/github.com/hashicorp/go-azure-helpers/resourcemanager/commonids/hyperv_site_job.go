@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = HyperVSiteJobId{}
+var _ resourceids.ResourceId = &HyperVSiteJobId{}
 
 // HyperVSiteJobId is a struct representing the Resource ID for a Hyper V Site Job
 type HyperVSiteJobId struct {
@@ -32,7 +32,7 @@ func NewHyperVSiteJobID(subscriptionId string, resourceGroupName string, hyperVS
 
 // ParseHyperVSiteJobID parses 'input' into a HyperVSiteJobId
 func ParseHyperVSiteJobID(input string) (*HyperVSiteJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HyperVSiteJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&HyperVSiteJobId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseHyperVSiteJobID(input string) (*HyperVSiteJobId, error) {
 // ParseHyperVSiteJobIDInsensitively parses 'input' case-insensitively into a HyperVSiteJobId
 // note: this method should only be used for API response data and not user input
 func ParseHyperVSiteJobIDInsensitively(input string) (*HyperVSiteJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HyperVSiteJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&HyperVSiteJobId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := HyperVSiteJobId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

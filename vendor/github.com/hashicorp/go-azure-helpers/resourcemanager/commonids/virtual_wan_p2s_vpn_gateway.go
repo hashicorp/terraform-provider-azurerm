@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualWANP2SVPNGatewayId{}
+var _ resourceids.ResourceId = &VirtualWANP2SVPNGatewayId{}
 
 // VirtualWANP2SVPNGatewayId is a struct representing the Resource ID for a Virtual WAN P2S VPN Gateway
 type VirtualWANP2SVPNGatewayId struct {
@@ -30,7 +30,7 @@ func NewVirtualWANP2SVPNGatewayID(subscriptionId string, resourceGroupName strin
 
 // ParseVirtualWANP2SVPNGatewayID parses 'input' into a VirtualWANP2SVPNGatewayId
 func ParseVirtualWANP2SVPNGatewayID(input string) (*VirtualWANP2SVPNGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualWANP2SVPNGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualWANP2SVPNGatewayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseVirtualWANP2SVPNGatewayID(input string) (*VirtualWANP2SVPNGatewayId, e
 // ParseVirtualWANP2SVPNGatewayIDInsensitively parses 'input' case-insensitively into a VirtualWANP2SVPNGatewayId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualWANP2SVPNGatewayIDInsensitively(input string) (*VirtualWANP2SVPNGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualWANP2SVPNGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualWANP2SVPNGatewayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := VirtualWANP2SVPNGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

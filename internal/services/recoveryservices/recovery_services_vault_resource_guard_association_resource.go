@@ -58,9 +58,9 @@ func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(vaults.VaultId{}),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}),
 
-		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(resourceguards.ResourceGuardId{}),
+		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguards.ResourceGuardId{}),
 	}
 }
 

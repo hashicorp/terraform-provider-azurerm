@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *LiveEvent
 }
 
 type CreateOperationOptions struct {
@@ -76,6 +77,10 @@ func (c LiveEventsClient) Create(ctx context.Context, id LiveEventId, input Live
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -18,6 +18,7 @@ type GetNetworkConfigurationDiagnosticOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *NetworkConfigurationDiagnosticResponse
 }
 
 // GetNetworkConfigurationDiagnostic ...
@@ -48,6 +49,10 @@ func (c NetworkWatchersClient) GetNetworkConfigurationDiagnostic(ctx context.Con
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

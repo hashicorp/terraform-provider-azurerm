@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ComputeId{}
+var _ resourceids.ResourceId = &ComputeId{}
 
 // ComputeId is a struct representing the Resource ID for a Compute
 type ComputeId struct {
@@ -32,7 +32,7 @@ func NewComputeID(subscriptionId string, resourceGroupName string, workspaceName
 
 // ParseComputeID parses 'input' into a ComputeId
 func ParseComputeID(input string) (*ComputeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ComputeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ComputeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseComputeID(input string) (*ComputeId, error) {
 // ParseComputeIDInsensitively parses 'input' case-insensitively into a ComputeId
 // note: this method should only be used for API response data and not user input
 func ParseComputeIDInsensitively(input string) (*ComputeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ComputeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ComputeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

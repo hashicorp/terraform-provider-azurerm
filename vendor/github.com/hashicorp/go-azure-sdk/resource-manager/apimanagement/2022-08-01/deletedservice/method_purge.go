@@ -18,6 +18,7 @@ type PurgeOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DeletedServiceContract
 }
 
 // Purge ...
@@ -45,6 +46,10 @@ func (c DeletedServiceClient) Purge(ctx context.Context, id DeletedServiceId) (r
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

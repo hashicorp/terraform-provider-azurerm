@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = JobId{}
+var _ resourceids.ResourceId = &JobId{}
 
 // JobId is a struct representing the Resource ID for a Job
 type JobId struct {
@@ -32,7 +32,7 @@ func NewJobID(subscriptionId string, resourceGroupName string, automationAccount
 
 // ParseJobID parses 'input' into a JobId
 func ParseJobID(input string) (*JobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(JobId{})
+	parser := resourceids.NewParserFromResourceIdType(&JobId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseJobID(input string) (*JobId, error) {
 // ParseJobIDInsensitively parses 'input' case-insensitively into a JobId
 // note: this method should only be used for API response data and not user input
 func ParseJobIDInsensitively(input string) (*JobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(JobId{})
+	parser := resourceids.NewParserFromResourceIdType(&JobId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LocalUserId{}
+var _ resourceids.ResourceId = &LocalUserId{}
 
 // LocalUserId is a struct representing the Resource ID for a Local User
 type LocalUserId struct {
@@ -32,7 +32,7 @@ func NewLocalUserID(subscriptionId string, resourceGroupName string, storageAcco
 
 // ParseLocalUserID parses 'input' into a LocalUserId
 func ParseLocalUserID(input string) (*LocalUserId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalUserId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalUserId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseLocalUserID(input string) (*LocalUserId, error) {
 // ParseLocalUserIDInsensitively parses 'input' case-insensitively into a LocalUserId
 // note: this method should only be used for API response data and not user input
 func ParseLocalUserIDInsensitively(input string) (*LocalUserId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalUserId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalUserId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

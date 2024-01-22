@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VpnSiteLinkId{}
+var _ resourceids.ResourceId = &VpnSiteLinkId{}
 
 // VpnSiteLinkId is a struct representing the Resource ID for a Vpn Site Link
 type VpnSiteLinkId struct {
@@ -32,7 +32,7 @@ func NewVpnSiteLinkID(subscriptionId string, resourceGroupName string, vpnSiteNa
 
 // ParseVpnSiteLinkID parses 'input' into a VpnSiteLinkId
 func ParseVpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VpnSiteLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VpnSiteLinkId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseVpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
 // ParseVpnSiteLinkIDInsensitively parses 'input' case-insensitively into a VpnSiteLinkId
 // note: this method should only be used for API response data and not user input
 func ParseVpnSiteLinkIDInsensitively(input string) (*VpnSiteLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VpnSiteLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VpnSiteLinkId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

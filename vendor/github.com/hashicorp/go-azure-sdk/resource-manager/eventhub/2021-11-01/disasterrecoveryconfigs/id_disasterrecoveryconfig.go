@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DisasterRecoveryConfigId{}
+var _ resourceids.ResourceId = &DisasterRecoveryConfigId{}
 
 // DisasterRecoveryConfigId is a struct representing the Resource ID for a Disaster Recovery Config
 type DisasterRecoveryConfigId struct {
@@ -32,7 +32,7 @@ func NewDisasterRecoveryConfigID(subscriptionId string, resourceGroupName string
 
 // ParseDisasterRecoveryConfigID parses 'input' into a DisasterRecoveryConfigId
 func ParseDisasterRecoveryConfigID(input string) (*DisasterRecoveryConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisasterRecoveryConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisasterRecoveryConfigId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDisasterRecoveryConfigID(input string) (*DisasterRecoveryConfigId, err
 // ParseDisasterRecoveryConfigIDInsensitively parses 'input' case-insensitively into a DisasterRecoveryConfigId
 // note: this method should only be used for API response data and not user input
 func ParseDisasterRecoveryConfigIDInsensitively(input string) (*DisasterRecoveryConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisasterRecoveryConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisasterRecoveryConfigId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

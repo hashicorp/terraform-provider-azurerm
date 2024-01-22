@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *StreamingEndpoint
 }
 
 type CreateOperationOptions struct {
@@ -76,6 +77,10 @@ func (c StreamingEndpointsClient) Create(ctx context.Context, id StreamingEndpoi
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

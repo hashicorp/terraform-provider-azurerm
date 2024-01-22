@@ -19,6 +19,7 @@ type UpdateTagsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *P2SVpnGateway
 }
 
 // UpdateTags ...
@@ -49,6 +50,10 @@ func (c P2sVpnGatewaysClient) UpdateTags(ctx context.Context, id commonids.Virtu
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

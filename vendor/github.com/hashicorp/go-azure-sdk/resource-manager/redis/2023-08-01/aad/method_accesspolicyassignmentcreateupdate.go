@@ -18,6 +18,7 @@ type AccessPolicyAssignmentCreateUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *RedisCacheAccessPolicyAssignment
 }
 
 // AccessPolicyAssignmentCreateUpdate ...
@@ -48,6 +49,10 @@ func (c AADClient) AccessPolicyAssignmentCreateUpdate(ctx context.Context, id Ac
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

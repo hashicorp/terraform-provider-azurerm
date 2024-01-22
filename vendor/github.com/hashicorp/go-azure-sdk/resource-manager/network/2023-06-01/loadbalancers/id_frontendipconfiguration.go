@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FrontendIPConfigurationId{}
+var _ resourceids.ResourceId = &FrontendIPConfigurationId{}
 
 // FrontendIPConfigurationId is a struct representing the Resource ID for a Frontend I P Configuration
 type FrontendIPConfigurationId struct {
@@ -32,7 +32,7 @@ func NewFrontendIPConfigurationID(subscriptionId string, resourceGroupName strin
 
 // ParseFrontendIPConfigurationID parses 'input' into a FrontendIPConfigurationId
 func ParseFrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendIPConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, e
 // ParseFrontendIPConfigurationIDInsensitively parses 'input' case-insensitively into a FrontendIPConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseFrontendIPConfigurationIDInsensitively(input string) (*FrontendIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendIPConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

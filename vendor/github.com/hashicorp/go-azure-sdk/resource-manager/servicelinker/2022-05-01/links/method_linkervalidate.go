@@ -18,6 +18,7 @@ type LinkerValidateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ValidateOperationResult
 }
 
 // LinkerValidate ...
@@ -44,6 +45,10 @@ func (c LinksClient) LinkerValidate(ctx context.Context, id ScopedLinkerId) (res
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

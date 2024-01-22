@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicationRecoveryServicesProviderId{}
+var _ resourceids.ResourceId = &ReplicationRecoveryServicesProviderId{}
 
 // ReplicationRecoveryServicesProviderId is a struct representing the Resource ID for a Replication Recovery Services Provider
 type ReplicationRecoveryServicesProviderId struct {
@@ -34,7 +34,7 @@ func NewReplicationRecoveryServicesProviderID(subscriptionId string, resourceGro
 
 // ParseReplicationRecoveryServicesProviderID parses 'input' into a ReplicationRecoveryServicesProviderId
 func ParseReplicationRecoveryServicesProviderID(input string) (*ReplicationRecoveryServicesProviderId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationRecoveryServicesProviderId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationRecoveryServicesProviderId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseReplicationRecoveryServicesProviderID(input string) (*ReplicationRecov
 // ParseReplicationRecoveryServicesProviderIDInsensitively parses 'input' case-insensitively into a ReplicationRecoveryServicesProviderId
 // note: this method should only be used for API response data and not user input
 func ParseReplicationRecoveryServicesProviderIDInsensitively(input string) (*ReplicationRecoveryServicesProviderId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationRecoveryServicesProviderId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationRecoveryServicesProviderId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

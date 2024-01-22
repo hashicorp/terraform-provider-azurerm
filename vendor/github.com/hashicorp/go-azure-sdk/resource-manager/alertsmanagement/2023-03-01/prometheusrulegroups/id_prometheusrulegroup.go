@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrometheusRuleGroupId{}
+var _ resourceids.ResourceId = &PrometheusRuleGroupId{}
 
 // PrometheusRuleGroupId is a struct representing the Resource ID for a Prometheus Rule Group
 type PrometheusRuleGroupId struct {
@@ -30,7 +30,7 @@ func NewPrometheusRuleGroupID(subscriptionId string, resourceGroupName string, p
 
 // ParsePrometheusRuleGroupID parses 'input' into a PrometheusRuleGroupId
 func ParsePrometheusRuleGroupID(input string) (*PrometheusRuleGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrometheusRuleGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrometheusRuleGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParsePrometheusRuleGroupID(input string) (*PrometheusRuleGroupId, error) {
 // ParsePrometheusRuleGroupIDInsensitively parses 'input' case-insensitively into a PrometheusRuleGroupId
 // note: this method should only be used for API response data and not user input
 func ParsePrometheusRuleGroupIDInsensitively(input string) (*PrometheusRuleGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrometheusRuleGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrometheusRuleGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

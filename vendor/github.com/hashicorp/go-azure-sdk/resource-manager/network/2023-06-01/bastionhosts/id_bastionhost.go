@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BastionHostId{}
+var _ resourceids.ResourceId = &BastionHostId{}
 
 // BastionHostId is a struct representing the Resource ID for a Bastion Host
 type BastionHostId struct {
@@ -30,7 +30,7 @@ func NewBastionHostID(subscriptionId string, resourceGroupName string, bastionHo
 
 // ParseBastionHostID parses 'input' into a BastionHostId
 func ParseBastionHostID(input string) (*BastionHostId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BastionHostId{})
+	parser := resourceids.NewParserFromResourceIdType(&BastionHostId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseBastionHostID(input string) (*BastionHostId, error) {
 // ParseBastionHostIDInsensitively parses 'input' case-insensitively into a BastionHostId
 // note: this method should only be used for API response data and not user input
 func ParseBastionHostIDInsensitively(input string) (*BastionHostId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BastionHostId{})
+	parser := resourceids.NewParserFromResourceIdType(&BastionHostId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

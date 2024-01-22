@@ -16,6 +16,7 @@ import (
 type MongoDBResourcesCreateUpdateMongoRoleDefinitionOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *MongoRoleDefinitionGetResults
 }
 
 // MongoDBResourcesCreateUpdateMongoRoleDefinition ...

@@ -18,6 +18,7 @@ type CheckConsistencyOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Fabric
 }
 
 // CheckConsistency ...
@@ -44,6 +45,10 @@ func (c ReplicationFabricsClient) CheckConsistency(ctx context.Context, id Repli
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

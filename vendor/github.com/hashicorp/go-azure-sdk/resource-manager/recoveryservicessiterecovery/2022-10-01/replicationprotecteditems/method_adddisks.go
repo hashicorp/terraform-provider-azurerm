@@ -18,6 +18,7 @@ type AddDisksOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ReplicationProtectedItem
 }
 
 // AddDisks ...
@@ -48,6 +49,10 @@ func (c ReplicationProtectedItemsClient) AddDisks(ctx context.Context, id Replic
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

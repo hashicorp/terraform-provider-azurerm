@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = GatewayDomainId{}
+var _ resourceids.ResourceId = &GatewayDomainId{}
 
 // GatewayDomainId is a struct representing the Resource ID for a Gateway Domain
 type GatewayDomainId struct {
@@ -34,7 +34,7 @@ func NewGatewayDomainID(subscriptionId string, resourceGroupName string, springN
 
 // ParseGatewayDomainID parses 'input' into a GatewayDomainId
 func ParseGatewayDomainID(input string) (*GatewayDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GatewayDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&GatewayDomainId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseGatewayDomainID(input string) (*GatewayDomainId, error) {
 // ParseGatewayDomainIDInsensitively parses 'input' case-insensitively into a GatewayDomainId
 // note: this method should only be used for API response data and not user input
 func ParseGatewayDomainIDInsensitively(input string) (*GatewayDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GatewayDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&GatewayDomainId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

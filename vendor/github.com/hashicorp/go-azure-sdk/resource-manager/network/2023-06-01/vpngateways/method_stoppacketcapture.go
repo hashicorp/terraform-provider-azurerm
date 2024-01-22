@@ -18,6 +18,7 @@ type StopPacketCaptureOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *string
 }
 
 // StopPacketCapture ...
@@ -48,6 +49,10 @@ func (c VpnGatewaysClient) StopPacketCapture(ctx context.Context, id VpnGatewayI
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 
