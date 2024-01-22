@@ -4,6 +4,7 @@ package clients
 
 import (
 	"fmt"
+	chaosstudio "github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/client"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	containers "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
@@ -13,6 +14,7 @@ import (
 )
 
 type autoClient struct {
+	ChaosStudio      *chaosstudio.AutoClient
 	ContainerService *containers.AutoClient
 	DevCenter        *devcenter.AutoClient
 	LoadTestService  *loadtestservice.AutoClient
@@ -20,6 +22,9 @@ type autoClient struct {
 }
 
 func buildAutoClients(client *autoClient, o *common.ClientOptions) (err error) {
+	if client.ChaosStudio, err = chaosstudio.NewClient(o); err != nil {
+		return fmt.Errorf("building client for ChaosStudio: %+v", err)
+	}
 
 	if client.ContainerService, err = containers.NewClient(o); err != nil {
 		return fmt.Errorf("building client for ContainerService: %+v", err)

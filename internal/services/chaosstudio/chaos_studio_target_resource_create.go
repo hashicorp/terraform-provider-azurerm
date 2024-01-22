@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targettypes"
@@ -50,7 +51,7 @@ func (r ChaosStudioTargetResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("%q is not a valid `target_type` for the region %s, must be one of %+v", config.TargetType, config.Location, targetTypes)
 			}
 
-			id := targets.NewScopedTargetID(config.TargetResourceId, config.TargetType)
+			id := commonids.NewChaosStudioTargetID(config.TargetResourceId, config.TargetType)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
