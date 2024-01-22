@@ -18,6 +18,7 @@ type AdhocBackupOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *OperationJobExtendedInfo
 }
 
 // AdhocBackup ...
@@ -48,6 +49,10 @@ func (c BackupInstancesClient) AdhocBackup(ctx context.Context, id BackupInstanc
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

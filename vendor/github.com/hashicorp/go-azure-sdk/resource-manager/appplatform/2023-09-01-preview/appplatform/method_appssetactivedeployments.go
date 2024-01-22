@@ -18,6 +18,7 @@ type AppsSetActiveDeploymentsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AppResource
 }
 
 // AppsSetActiveDeployments ...
@@ -48,6 +49,10 @@ func (c AppPlatformClient) AppsSetActiveDeployments(ctx context.Context, id AppI
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

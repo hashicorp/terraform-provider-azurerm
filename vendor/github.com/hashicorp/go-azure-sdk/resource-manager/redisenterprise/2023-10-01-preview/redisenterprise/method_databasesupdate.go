@@ -18,6 +18,7 @@ type DatabasesUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Database
 }
 
 // DatabasesUpdate ...
@@ -48,6 +49,10 @@ func (c RedisEnterpriseClient) DatabasesUpdate(ctx context.Context, id DatabaseI
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

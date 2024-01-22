@@ -18,6 +18,7 @@ type GetStatusOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PacketCaptureQueryStatusResult
 }
 
 // GetStatus ...
@@ -44,6 +45,10 @@ func (c PacketCapturesClient) GetStatus(ctx context.Context, id PacketCaptureId)
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

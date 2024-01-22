@@ -18,6 +18,7 @@ type BotsUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *HealthBot
 }
 
 // BotsUpdate ...
@@ -48,6 +49,10 @@ func (c HealthbotsClient) BotsUpdate(ctx context.Context, id HealthBotId, input 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

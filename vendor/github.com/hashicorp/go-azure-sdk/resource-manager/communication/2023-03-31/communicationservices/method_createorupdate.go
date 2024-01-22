@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *CommunicationServiceResource
 }
 
 // CreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c CommunicationServicesClient) CreateOrUpdate(ctx context.Context, id Comm
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

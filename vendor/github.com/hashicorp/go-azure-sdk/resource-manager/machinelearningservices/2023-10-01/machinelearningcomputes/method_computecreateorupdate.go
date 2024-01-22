@@ -18,6 +18,7 @@ type ComputeCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ComputeResource
 }
 
 // ComputeCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c MachineLearningComputesClient) ComputeCreateOrUpdate(ctx context.Context
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -18,6 +18,7 @@ type GatewaysUpdateCapacityOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *GatewayResource
 }
 
 // GatewaysUpdateCapacity ...
@@ -48,6 +49,10 @@ func (c AppPlatformClient) GatewaysUpdateCapacity(ctx context.Context, id Gatewa
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

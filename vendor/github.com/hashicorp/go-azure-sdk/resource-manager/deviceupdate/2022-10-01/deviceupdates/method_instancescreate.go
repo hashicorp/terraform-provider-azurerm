@@ -18,6 +18,7 @@ type InstancesCreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Instance
 }
 
 // InstancesCreate ...
@@ -47,6 +48,10 @@ func (c DeviceupdatesClient) InstancesCreate(ctx context.Context, id InstanceId,
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

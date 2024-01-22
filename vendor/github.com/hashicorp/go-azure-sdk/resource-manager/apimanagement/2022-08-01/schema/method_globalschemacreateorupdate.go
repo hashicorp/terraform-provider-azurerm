@@ -18,6 +18,7 @@ type GlobalSchemaCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *GlobalSchemaContract
 }
 
 type GlobalSchemaCreateOrUpdateOperationOptions struct {
@@ -77,6 +78,10 @@ func (c SchemaClient) GlobalSchemaCreateOrUpdate(ctx context.Context, id SchemaI
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

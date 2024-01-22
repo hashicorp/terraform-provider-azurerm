@@ -18,6 +18,7 @@ type TriggerRestoreOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *OperationJobExtendedInfo
 }
 
 // TriggerRestore ...
@@ -48,6 +49,10 @@ func (c BackupInstancesClient) TriggerRestore(ctx context.Context, id BackupInst
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

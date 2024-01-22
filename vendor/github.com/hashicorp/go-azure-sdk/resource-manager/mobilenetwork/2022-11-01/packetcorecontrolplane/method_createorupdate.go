@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PacketCoreControlPlane
 }
 
 // CreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c PacketCoreControlPlaneClient) CreateOrUpdate(ctx context.Context, id Pac
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

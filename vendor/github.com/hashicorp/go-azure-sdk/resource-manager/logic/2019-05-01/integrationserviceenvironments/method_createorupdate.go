@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *IntegrationServiceEnvironment
 }
 
 // CreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c IntegrationServiceEnvironmentsClient) CreateOrUpdate(ctx context.Context
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 
