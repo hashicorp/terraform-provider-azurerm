@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HybridConnectionAuthorizationRuleId{}
+var _ resourceids.ResourceId = &HybridConnectionAuthorizationRuleId{}
 
 // HybridConnectionAuthorizationRuleId is a struct representing the Resource ID for a Hybrid Connection Authorization Rule
 type HybridConnectionAuthorizationRuleId struct {
@@ -34,7 +34,7 @@ func NewHybridConnectionAuthorizationRuleID(subscriptionId string, resourceGroup
 
 // ParseHybridConnectionAuthorizationRuleID parses 'input' into a HybridConnectionAuthorizationRuleId
 func ParseHybridConnectionAuthorizationRuleID(input string) (*HybridConnectionAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseHybridConnectionAuthorizationRuleID(input string) (*HybridConnectionAu
 // ParseHybridConnectionAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a HybridConnectionAuthorizationRuleId
 // note: this method should only be used for API response data and not user input
 func ParseHybridConnectionAuthorizationRuleIDInsensitively(input string) (*HybridConnectionAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

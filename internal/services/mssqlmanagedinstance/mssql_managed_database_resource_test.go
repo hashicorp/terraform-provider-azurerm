@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -50,6 +51,28 @@ func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "pitr")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			PreConfig: func() { time.Sleep(11 * time.Minute) },
+			Config:    r.pointInTimeRestore(data, time.Now().UTC().Format(time.RFC3339)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(""),
 	})
 }
 
@@ -121,4 +144,20 @@ resource "azurerm_mssql_managed_database" "test" {
 
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) pointInTimeRestore(data acceptance.TestData, restorePointInTime string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "pitr" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d-pitr"
+
+  point_in_time_restore {
+    restore_point_in_time = "%[3]s"
+    source_database_id    = azurerm_mssql_managed_database.test.id
+  }
+}
+`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger, restorePointInTime)
 }

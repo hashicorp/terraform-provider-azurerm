@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = UpdateId{}
+var _ resourceids.ResourceId = &UpdateId{}
 
 // UpdateId is a struct representing the Resource ID for a Update
 type UpdateId struct {
@@ -32,7 +32,7 @@ func NewUpdateID(subscriptionId string, resourceGroupName string, clusterName st
 
 // ParseUpdateID parses 'input' into a UpdateId
 func ParseUpdateID(input string) (*UpdateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpdateId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpdateId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseUpdateID(input string) (*UpdateId, error) {
 // ParseUpdateIDInsensitively parses 'input' case-insensitively into a UpdateId
 // note: this method should only be used for API response data and not user input
 func ParseUpdateIDInsensitively(input string) (*UpdateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpdateId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpdateId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

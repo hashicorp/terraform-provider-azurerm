@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NamedValueId{}
+var _ resourceids.ResourceId = &NamedValueId{}
 
 // NamedValueId is a struct representing the Resource ID for a Named Value
 type NamedValueId struct {
@@ -32,7 +32,7 @@ func NewNamedValueID(subscriptionId string, resourceGroupName string, serviceNam
 
 // ParseNamedValueID parses 'input' into a NamedValueId
 func ParseNamedValueID(input string) (*NamedValueId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NamedValueId{})
+	parser := resourceids.NewParserFromResourceIdType(&NamedValueId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseNamedValueID(input string) (*NamedValueId, error) {
 // ParseNamedValueIDInsensitively parses 'input' case-insensitively into a NamedValueId
 // note: this method should only be used for API response data and not user input
 func ParseNamedValueIDInsensitively(input string) (*NamedValueId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NamedValueId{})
+	parser := resourceids.NewParserFromResourceIdType(&NamedValueId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ServiceEndpointPolicyId{}
+var _ resourceids.ResourceId = &ServiceEndpointPolicyId{}
 
 // ServiceEndpointPolicyId is a struct representing the Resource ID for a Service Endpoint Policy
 type ServiceEndpointPolicyId struct {
@@ -30,7 +30,7 @@ func NewServiceEndpointPolicyID(subscriptionId string, resourceGroupName string,
 
 // ParseServiceEndpointPolicyID parses 'input' into a ServiceEndpointPolicyId
 func ParseServiceEndpointPolicyID(input string) (*ServiceEndpointPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServiceEndpointPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServiceEndpointPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseServiceEndpointPolicyID(input string) (*ServiceEndpointPolicyId, error
 // ParseServiceEndpointPolicyIDInsensitively parses 'input' case-insensitively into a ServiceEndpointPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseServiceEndpointPolicyIDInsensitively(input string) (*ServiceEndpointPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServiceEndpointPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServiceEndpointPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

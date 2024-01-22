@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DiagnosticId{}
+var _ resourceids.ResourceId = &DiagnosticId{}
 
 // DiagnosticId is a struct representing the Resource ID for a Diagnostic
 type DiagnosticId struct {
@@ -32,7 +32,7 @@ func NewDiagnosticID(subscriptionId string, resourceGroupName string, serviceNam
 
 // ParseDiagnosticID parses 'input' into a DiagnosticId
 func ParseDiagnosticID(input string) (*DiagnosticId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DiagnosticId{})
+	parser := resourceids.NewParserFromResourceIdType(&DiagnosticId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDiagnosticID(input string) (*DiagnosticId, error) {
 // ParseDiagnosticIDInsensitively parses 'input' case-insensitively into a DiagnosticId
 // note: this method should only be used for API response data and not user input
 func ParseDiagnosticIDInsensitively(input string) (*DiagnosticId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DiagnosticId{})
+	parser := resourceids.NewParserFromResourceIdType(&DiagnosticId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

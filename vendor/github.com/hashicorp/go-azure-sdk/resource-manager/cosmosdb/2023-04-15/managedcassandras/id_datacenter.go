@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataCenterId{}
+var _ resourceids.ResourceId = &DataCenterId{}
 
 // DataCenterId is a struct representing the Resource ID for a Data Center
 type DataCenterId struct {
@@ -32,7 +32,7 @@ func NewDataCenterID(subscriptionId string, resourceGroupName string, cassandraC
 
 // ParseDataCenterID parses 'input' into a DataCenterId
 func ParseDataCenterID(input string) (*DataCenterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCenterId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCenterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDataCenterID(input string) (*DataCenterId, error) {
 // ParseDataCenterIDInsensitively parses 'input' case-insensitively into a DataCenterId
 // note: this method should only be used for API response data and not user input
 func ParseDataCenterIDInsensitively(input string) (*DataCenterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCenterId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCenterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

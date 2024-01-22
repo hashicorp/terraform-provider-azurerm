@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectedRegistryId{}
+var _ resourceids.ResourceId = &ConnectedRegistryId{}
 
 // ConnectedRegistryId is a struct representing the Resource ID for a Connected Registry
 type ConnectedRegistryId struct {
@@ -32,7 +32,7 @@ func NewConnectedRegistryID(subscriptionId string, resourceGroupName string, reg
 
 // ParseConnectedRegistryID parses 'input' into a ConnectedRegistryId
 func ParseConnectedRegistryID(input string) (*ConnectedRegistryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedRegistryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedRegistryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseConnectedRegistryID(input string) (*ConnectedRegistryId, error) {
 // ParseConnectedRegistryIDInsensitively parses 'input' case-insensitively into a ConnectedRegistryId
 // note: this method should only be used for API response data and not user input
 func ParseConnectedRegistryIDInsensitively(input string) (*ConnectedRegistryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedRegistryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedRegistryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AliasId{}
+var _ resourceids.ResourceId = &AliasId{}
 
 // AliasId is a struct representing the Resource ID for a Alias
 type AliasId struct {
@@ -26,7 +26,7 @@ func NewAliasID(aliasName string) AliasId {
 
 // ParseAliasID parses 'input' into a AliasId
 func ParseAliasID(input string) (*AliasId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AliasId{})
+	parser := resourceids.NewParserFromResourceIdType(&AliasId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,7 +43,7 @@ func ParseAliasID(input string) (*AliasId, error) {
 // ParseAliasIDInsensitively parses 'input' case-insensitively into a AliasId
 // note: this method should only be used for API response data and not user input
 func ParseAliasIDInsensitively(input string) (*AliasId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AliasId{})
+	parser := resourceids.NewParserFromResourceIdType(&AliasId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

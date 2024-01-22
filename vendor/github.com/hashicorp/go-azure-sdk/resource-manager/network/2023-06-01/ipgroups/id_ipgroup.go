@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IPGroupId{}
+var _ resourceids.ResourceId = &IPGroupId{}
 
 // IPGroupId is a struct representing the Resource ID for a I P Group
 type IPGroupId struct {
@@ -30,7 +30,7 @@ func NewIPGroupID(subscriptionId string, resourceGroupName string, ipGroupName s
 
 // ParseIPGroupID parses 'input' into a IPGroupId
 func ParseIPGroupID(input string) (*IPGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IPGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&IPGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseIPGroupID(input string) (*IPGroupId, error) {
 // ParseIPGroupIDInsensitively parses 'input' case-insensitively into a IPGroupId
 // note: this method should only be used for API response data and not user input
 func ParseIPGroupIDInsensitively(input string) (*IPGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IPGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&IPGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

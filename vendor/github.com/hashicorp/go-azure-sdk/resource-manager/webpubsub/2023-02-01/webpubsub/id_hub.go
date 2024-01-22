@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HubId{}
+var _ resourceids.ResourceId = &HubId{}
 
 // HubId is a struct representing the Resource ID for a Hub
 type HubId struct {
@@ -32,7 +32,7 @@ func NewHubID(subscriptionId string, resourceGroupName string, webPubSubName str
 
 // ParseHubID parses 'input' into a HubId
 func ParseHubID(input string) (*HubId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HubId{})
+	parser := resourceids.NewParserFromResourceIdType(&HubId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseHubID(input string) (*HubId, error) {
 // ParseHubIDInsensitively parses 'input' case-insensitively into a HubId
 // note: this method should only be used for API response data and not user input
 func ParseHubIDInsensitively(input string) (*HubId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HubId{})
+	parser := resourceids.NewParserFromResourceIdType(&HubId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RuleId{}
+var _ resourceids.ResourceId = &RuleId{}
 
 // RuleId is a struct representing the Resource ID for a Rule
 type RuleId struct {
@@ -36,7 +36,7 @@ func NewRuleID(subscriptionId string, resourceGroupName string, namespaceName st
 
 // ParseRuleID parses 'input' into a RuleId
 func ParseRuleID(input string) (*RuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&RuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseRuleID(input string) (*RuleId, error) {
 // ParseRuleIDInsensitively parses 'input' case-insensitively into a RuleId
 // note: this method should only be used for API response data and not user input
 func ParseRuleIDInsensitively(input string) (*RuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&RuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

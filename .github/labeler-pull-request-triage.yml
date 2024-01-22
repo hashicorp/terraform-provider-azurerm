@@ -474,6 +474,11 @@ service/recovery-services:
   - any-glob-to-any-file:
     - internal/services/recoveryservices/**/*
 
+service/redhatopenshift:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/redhatopenshift/**/*
+
 service/redis:
 - changed-files:
   - any-glob-to-any-file:

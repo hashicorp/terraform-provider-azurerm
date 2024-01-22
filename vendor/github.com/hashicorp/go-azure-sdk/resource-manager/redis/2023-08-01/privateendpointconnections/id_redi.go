@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RediId{}
+var _ resourceids.ResourceId = &RediId{}
 
 // RediId is a struct representing the Resource ID for a Redi
 type RediId struct {
@@ -30,7 +30,7 @@ func NewRediID(subscriptionId string, resourceGroupName string, redisName string
 
 // ParseRediID parses 'input' into a RediId
 func ParseRediID(input string) (*RediId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RediId{})
+	parser := resourceids.NewParserFromResourceIdType(&RediId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseRediID(input string) (*RediId, error) {
 // ParseRediIDInsensitively parses 'input' case-insensitively into a RediId
 // note: this method should only be used for API response data and not user input
 func ParseRediIDInsensitively(input string) (*RediId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RediId{})
+	parser := resourceids.NewParserFromResourceIdType(&RediId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

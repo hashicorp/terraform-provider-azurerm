@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SharedImageGalleryId{}
+var _ resourceids.ResourceId = &SharedImageGalleryId{}
 
 // SharedImageGalleryId is a struct representing the Resource ID for a Shared Image Gallery
 type SharedImageGalleryId struct {
@@ -30,7 +30,7 @@ func NewSharedImageGalleryID(subscriptionId string, resourceGroupName string, ga
 
 // ParseSharedImageGalleryID parses 'input' into a sharedImageGalleryId
 func ParseSharedImageGalleryID(input string) (*SharedImageGalleryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SharedImageGalleryId{})
+	parser := resourceids.NewParserFromResourceIdType(&SharedImageGalleryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseSharedImageGalleryID(input string) (*SharedImageGalleryId, error) {
 // ParseSharedImageGalleryIDInsensitively parses 'input' case-insensitively into a sharedImageGalleryId
 // note: this method should only be used for API response data and not user input
 func ParseSharedImageGalleryIDInsensitively(input string) (*SharedImageGalleryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SharedImageGalleryId{})
+	parser := resourceids.NewParserFromResourceIdType(&SharedImageGalleryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := SharedImageGalleryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

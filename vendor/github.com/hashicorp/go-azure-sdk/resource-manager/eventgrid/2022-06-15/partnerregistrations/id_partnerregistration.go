@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PartnerRegistrationId{}
+var _ resourceids.ResourceId = &PartnerRegistrationId{}
 
 // PartnerRegistrationId is a struct representing the Resource ID for a Partner Registration
 type PartnerRegistrationId struct {
@@ -30,7 +30,7 @@ func NewPartnerRegistrationID(subscriptionId string, resourceGroupName string, p
 
 // ParsePartnerRegistrationID parses 'input' into a PartnerRegistrationId
 func ParsePartnerRegistrationID(input string) (*PartnerRegistrationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerRegistrationId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerRegistrationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParsePartnerRegistrationID(input string) (*PartnerRegistrationId, error) {
 // ParsePartnerRegistrationIDInsensitively parses 'input' case-insensitively into a PartnerRegistrationId
 // note: this method should only be used for API response data and not user input
 func ParsePartnerRegistrationIDInsensitively(input string) (*PartnerRegistrationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerRegistrationId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerRegistrationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

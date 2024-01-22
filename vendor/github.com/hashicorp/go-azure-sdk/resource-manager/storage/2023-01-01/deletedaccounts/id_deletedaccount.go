@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeletedAccountId{}
+var _ resourceids.ResourceId = &DeletedAccountId{}
 
 // DeletedAccountId is a struct representing the Resource ID for a Deleted Account
 type DeletedAccountId struct {
@@ -30,7 +30,7 @@ func NewDeletedAccountID(subscriptionId string, locationName string, deletedAcco
 
 // ParseDeletedAccountID parses 'input' into a DeletedAccountId
 func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
 // ParseDeletedAccountIDInsensitively parses 'input' case-insensitively into a DeletedAccountId
 // note: this method should only be used for API response data and not user input
 func ParseDeletedAccountIDInsensitively(input string) (*DeletedAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

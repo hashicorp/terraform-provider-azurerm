@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeleteQueryKeyId{}
+var _ resourceids.ResourceId = &DeleteQueryKeyId{}
 
 // DeleteQueryKeyId is a struct representing the Resource ID for a Delete Query Key
 type DeleteQueryKeyId struct {
@@ -32,7 +32,7 @@ func NewDeleteQueryKeyID(subscriptionId string, resourceGroupName string, search
 
 // ParseDeleteQueryKeyID parses 'input' into a DeleteQueryKeyId
 func ParseDeleteQueryKeyID(input string) (*DeleteQueryKeyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeleteQueryKeyId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeleteQueryKeyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDeleteQueryKeyID(input string) (*DeleteQueryKeyId, error) {
 // ParseDeleteQueryKeyIDInsensitively parses 'input' case-insensitively into a DeleteQueryKeyId
 // note: this method should only be used for API response data and not user input
 func ParseDeleteQueryKeyIDInsensitively(input string) (*DeleteQueryKeyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeleteQueryKeyId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeleteQueryKeyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

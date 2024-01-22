@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SqlServerId{}
+var _ resourceids.ResourceId = &SqlServerId{}
 
 // SqlServerId is a struct representing the Resource ID for a Sql Server
 type SqlServerId struct {
@@ -30,7 +30,7 @@ func NewSqlServerID(subscriptionId string, resourceGroupName string, serverName 
 
 // ParseSqlServerID parses 'input' into a SqlServerId
 func ParseSqlServerID(input string) (*SqlServerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlServerId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlServerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseSqlServerID(input string) (*SqlServerId, error) {
 // ParseSqlServerIDInsensitively parses 'input' case-insensitively into a SqlServerId
 // note: this method should only be used for API response data and not user input
 func ParseSqlServerIDInsensitively(input string) (*SqlServerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlServerId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlServerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := SqlServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

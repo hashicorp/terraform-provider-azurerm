@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = GraphId{}
+var _ resourceids.ResourceId = &GraphId{}
 
 // GraphId is a struct representing the Resource ID for a Graph
 type GraphId struct {
@@ -34,7 +34,7 @@ func NewGraphID(subscriptionId string, resourceGroupName string, databaseAccount
 
 // ParseGraphID parses 'input' into a GraphId
 func ParseGraphID(input string) (*GraphId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GraphId{})
+	parser := resourceids.NewParserFromResourceIdType(&GraphId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseGraphID(input string) (*GraphId, error) {
 // ParseGraphIDInsensitively parses 'input' case-insensitively into a GraphId
 // note: this method should only be used for API response data and not user input
 func ParseGraphIDInsensitively(input string) (*GraphId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GraphId{})
+	parser := resourceids.NewParserFromResourceIdType(&GraphId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

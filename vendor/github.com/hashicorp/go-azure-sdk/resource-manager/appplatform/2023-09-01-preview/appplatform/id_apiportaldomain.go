@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApiPortalDomainId{}
+var _ resourceids.ResourceId = &ApiPortalDomainId{}
 
 // ApiPortalDomainId is a struct representing the Resource ID for a Api Portal Domain
 type ApiPortalDomainId struct {
@@ -34,7 +34,7 @@ func NewApiPortalDomainID(subscriptionId string, resourceGroupName string, sprin
 
 // ParseApiPortalDomainID parses 'input' into a ApiPortalDomainId
 func ParseApiPortalDomainID(input string) (*ApiPortalDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApiPortalDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApiPortalDomainId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseApiPortalDomainID(input string) (*ApiPortalDomainId, error) {
 // ParseApiPortalDomainIDInsensitively parses 'input' case-insensitively into a ApiPortalDomainId
 // note: this method should only be used for API response data and not user input
 func ParseApiPortalDomainIDInsensitively(input string) (*ApiPortalDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApiPortalDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApiPortalDomainId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

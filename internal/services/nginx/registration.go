@@ -29,7 +29,9 @@ func (r Registration) WebsiteCategories() []string {
 
 // DataSources ...
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		DeploymentDataSource{},
+	}
 }
 
 // Resources ...

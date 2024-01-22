@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AuthorizationRuleId{}
+var _ resourceids.ResourceId = &AuthorizationRuleId{}
 
 // AuthorizationRuleId is a struct representing the Resource ID for a Authorization Rule
 type AuthorizationRuleId struct {
@@ -32,7 +32,7 @@ func NewAuthorizationRuleID(subscriptionId string, resourceGroupName string, nam
 
 // ParseAuthorizationRuleID parses 'input' into a AuthorizationRuleId
 func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&AuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
 // ParseAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a AuthorizationRuleId
 // note: this method should only be used for API response data and not user input
 func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&AuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
