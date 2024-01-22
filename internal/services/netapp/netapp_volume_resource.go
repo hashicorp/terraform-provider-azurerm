@@ -119,6 +119,18 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"smb_non_browsable_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"smb_access_based_enumeration_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				ForceNew: true,
@@ -328,6 +340,16 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	networkFeatures = volumes.NetworkFeatures(networkFeaturesString)
 
+	smbNonBrowsable := volumes.SmbNonBrowsableDisabled
+	if d.Get("smb_non_browsable_enabled").(bool) {
+		smbNonBrowsable = volumes.SmbNonBrowsableEnabled
+	}
+
+	smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
+	if d.Get("smb_access_based_enumeration_enabled").(bool) {
+		smbAccessBasedEnumeration = volumes.SmbAccessBasedEnumerationEnabled
+	}
+
 	protocols := d.Get("protocols").(*pluginsdk.Set).List()
 	if len(protocols) == 0 {
 		protocols = append(protocols, "NFSv3")
@@ -438,23 +460,25 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	parameters := volumes.Volume{
 		Location: location,
-		Properties: volumes.VolumeProperties{
-			CreationToken:   volumePath,
-			ServiceLevel:    &serviceLevel,
-			SubnetId:        subnetID,
-			NetworkFeatures: &networkFeatures,
-			ProtocolTypes:   utils.ExpandStringSlice(protocols),
-			SecurityStyle:   &securityStyle,
-			UsageThreshold:  storageQuotaInGB,
-			ExportPolicy:    exportPolicyRule,
-			VolumeType:      utils.String(volumeType),
-			SnapshotId:      utils.String(snapshotID),
-			DataProtection: &volumes.VolumePropertiesDataProtection{
+		Properties:                    volumes.VolumeProperties{
+			CreationToken:             volumePath,
+			ServiceLevel:              &serviceLevel,
+			SubnetId:                  subnetID,
+			NetworkFeatures:           &networkFeatures,
+			SmbNonBrowsable:           &smbNonBrowsable,
+			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
+			ProtocolTypes:             utils.ExpandStringSlice(protocols),
+			SecurityStyle:             &securityStyle,
+			UsageThreshold:            storageQuotaInGB,
+			ExportPolicy:              exportPolicyRule,
+			VolumeType:                utils.String(volumeType),
+			SnapshotId:                utils.String(snapshotID),
+			DataProtection:            &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 			},
-			AvsDataStore:             &avsDataStoreEnabled,
-			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+			AvsDataStore:              &avsDataStoreEnabled,
+			SnapshotDirectoryVisible:  utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
@@ -553,6 +577,26 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
+	if d.HasChange("smb_non_browsable_enabled") {
+		shouldUpdate = true
+		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
+		update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		if d.Get("smb_non_browsable_enabled").(bool) {
+			smbNonBrowsable := volumes.SmbNonBrowsableEnabled
+			update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		}
+	}
+
+	if d.HasChange("smb_access_based_enumeration_enabled") {
+		shouldUpdate = true
+		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
+		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		if d.Get("smb_access_based_enumeration_enabled").(bool) {
+			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
+			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		}
+	}
+
 	if d.HasChange("tags") {
 		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
@@ -614,6 +658,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
+		d.Set("smb_non_browsable_enabled", string(pointer.From(props.SmbNonBrowsable)))
+		d.Set("smb_access_based_enumeration_enabled", string(pointer.From(props.SmbAccessBasedEnumeration)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
