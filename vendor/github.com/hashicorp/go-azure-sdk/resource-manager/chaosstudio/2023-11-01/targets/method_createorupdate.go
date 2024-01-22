@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -18,7 +19,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c TargetsClient) CreateOrUpdate(ctx context.Context, id ScopedTargetId, input Target) (result CreateOrUpdateOperationResponse, err error) {
+func (c TargetsClient) CreateOrUpdate(ctx context.Context, id commonids.ChaosStudioTargetId, input Target) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

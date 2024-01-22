@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExperimentId{}
+var _ resourceids.ResourceId = &ExperimentId{}
 
 // ExperimentId is a struct representing the Resource ID for a Experiment
 type ExperimentId struct {
@@ -30,7 +30,7 @@ func NewExperimentID(subscriptionId string, resourceGroupName string, experiment
 
 // ParseExperimentID parses 'input' into a ExperimentId
 func ParseExperimentID(input string) (*ExperimentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExperimentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExperimentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseExperimentID(input string) (*ExperimentId, error) {
 // ParseExperimentIDInsensitively parses 'input' case-insensitively into a ExperimentId
 // note: this method should only be used for API response data and not user input
 func ParseExperimentIDInsensitively(input string) (*ExperimentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExperimentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExperimentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

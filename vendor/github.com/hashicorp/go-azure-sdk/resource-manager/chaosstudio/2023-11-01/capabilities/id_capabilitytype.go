@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CapabilityTypeId{}
+var _ resourceids.ResourceId = &CapabilityTypeId{}
 
 // CapabilityTypeId is a struct representing the Resource ID for a Capability Type
 type CapabilityTypeId struct {
@@ -32,7 +32,7 @@ func NewCapabilityTypeID(subscriptionId string, locationName string, targetTypeN
 
 // ParseCapabilityTypeID parses 'input' into a CapabilityTypeId
 func ParseCapabilityTypeID(input string) (*CapabilityTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapabilityTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&CapabilityTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCapabilityTypeID(input string) (*CapabilityTypeId, error) {
 // ParseCapabilityTypeIDInsensitively parses 'input' case-insensitively into a CapabilityTypeId
 // note: this method should only be used for API response data and not user input
 func ParseCapabilityTypeIDInsensitively(input string) (*CapabilityTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapabilityTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&CapabilityTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

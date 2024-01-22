@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capabilities.NewScopedCapabilityID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue", "capabilityValue")
+id := capabilities.NewChaosStudioCapabilityID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue", "capabilityValue")
 
 payload := capabilities.Capability{
 	// ...
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capabilities.NewScopedCapabilityID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue", "capabilityValue")
+id := capabilities.NewChaosStudioCapabilityID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue", "capabilityValue")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capabilities.NewScopedCapabilityID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue", "capabilityValue")
+id := capabilities.NewChaosStudioCapabilityID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue", "capabilityValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capabilities.NewScopedTargetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue")
+id := capabilities.NewChaosStudioTargetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "targetValue")
 
 // alternatively `client.List(ctx, id, capabilities.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, capabilities.DefaultListOperationOptions())
