@@ -4,9 +4,9 @@ package clients
 
 import (
 	"fmt"
-	chaosstudio "github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/client"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	chaosstudio "github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/client"
 	containers "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	devcenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/client"
 	loadtestservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
