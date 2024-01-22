@@ -8,7 +8,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.66.1` of `github.com/hashicorp/go-azure-helpers` [GH-24561]
-* dependencies: updating to `v0.20240122.1052955` of `github.com/hashicorp/go-azure-sdk` [GH-24578]
+* dependencies: updating to `v0.20240122.1074123` of `github.com/hashicorp/go-azure-sdk` [GH-24581]
 * `containerservice`: the SDK Clients now support logging [GH-24564]
 * `loadtestservice`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` (and support logging) [GH-24578]
 * `managedidentity`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` (and support logging) [GH-24578]
