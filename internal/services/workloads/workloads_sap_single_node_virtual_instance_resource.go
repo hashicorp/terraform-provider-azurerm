@@ -257,9 +257,10 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 								},
 
 								"number_of_disks": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
-									ForceNew: true,
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.IntAtLeast(1),
 								},
 
 								"size_in_gb": {
@@ -373,6 +374,40 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 
 func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r WorkloadsSAPSingleNodeVirtualInstanceResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			if v := rd.Get("single_server_configuration.0.disk_volume_configuration"); v != nil {
+				diskVolumes := v.(*pluginsdk.Set).List()
+				if hasDuplicateVolumeName(diskVolumes) {
+					return fmt.Errorf("`volume_name` cannot be duplicated")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func hasDuplicateVolumeName(input []interface{}) bool {
+	seen := make(map[string]bool)
+
+	for _, v := range input {
+		diskVolume := v.(map[string]interface{})
+		volumeName := diskVolume["volume_name"].(string)
+
+		if seen[volumeName] {
+			return true
+		}
+		seen[volumeName] = true
+	}
+
+	return false
 }
 
 func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc {
