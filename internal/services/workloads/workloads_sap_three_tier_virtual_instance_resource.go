@@ -223,9 +223,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"instance_count": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
-									ForceNew: true,
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.IntAtLeast(1),
 								},
 
 								"subnet_id": {
@@ -336,9 +337,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"instance_count": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
-									ForceNew: true,
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.IntAtLeast(1),
 								},
 
 								"subnet_id": {
@@ -449,9 +451,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"instance_count": {
-									Type:     pluginsdk.TypeInt,
-									Required: true,
-									ForceNew: true,
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.IntAtLeast(1),
 								},
 
 								"subnet_id": {
@@ -579,9 +582,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 											},
 
 											"number_of_disks": {
-												Type:     pluginsdk.TypeInt,
-												Required: true,
-												ForceNew: true,
+												Type:         pluginsdk.TypeInt,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.IntAtLeast(1),
 											},
 
 											"size_in_gb": {
@@ -947,10 +951,11 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 					},
 
 					"transport_create_and_mount": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						MaxItems: 1,
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ForceNew:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"three_tier_configuration.0.transport_mount"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"resource_group_id": {
@@ -971,10 +976,11 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 					},
 
 					"transport_mount": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						MaxItems: 1,
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ForceNew:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"three_tier_configuration.0.transport_create_and_mount"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"file_share_id": {
@@ -1010,6 +1016,40 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r WorkloadsSAPThreeTierVirtualInstanceResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			if v := rd.Get("three_tier_configuration.0.database_server_configuration.0.disk_volume_configuration"); v != nil {
+				diskVolumes := v.(*pluginsdk.Set).List()
+				if hasDuplicateVolumeName(diskVolumes) {
+					return fmt.Errorf("`volume_name` cannot be duplicated")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func hasDuplicateVolumeName(input []interface{}) bool {
+	seen := make(map[string]bool)
+
+	for _, v := range input {
+		diskVolume := v.(map[string]interface{})
+		volumeName := diskVolume["volume_name"].(string)
+
+		if seen[volumeName] {
+			return true
+		}
+		seen[volumeName] = true
+	}
+
+	return false
 }
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc {
@@ -1159,11 +1199,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 				if config := props.Configuration; config != nil {
 					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-						appLocation := ""
-						if appLocationVal := v.AppLocation; appLocationVal != nil {
-							appLocation = *v.AppLocation
-						}
-						state.AppLocation = location.Normalize(appLocation)
+						state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
 
 						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
 							state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)

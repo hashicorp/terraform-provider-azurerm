@@ -3,12 +3,12 @@ subcategory: "Workloads"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_workloads_sap_three_tier_virtual_instance"
 description: |-
-  Manages an SAP Three Tier Virtual Instance with new SAP System.
+  Manages an SAP Three Tier Virtual Instance with a new SAP System.
 ---
 
 # azurerm_workloads_sap_three_tier_virtual_instance
 
-Manages an SAP Three Tier Virtual Instance with new SAP System.
+Manages an SAP Three Tier Virtual Instance with a new SAP System.
 
 -> **Note:** Before using this resource, it's required to submit the request of registering the Resource Provider with Azure CLI `az provider register --namespace "Microsoft.Workloads"`. The Resource Provider can take a while to register, you can check the status by running `az provider show --namespace "Microsoft.Workloads" --query "registrationState"`. Once this outputs "Registered" the Resource Provider is available for use.
 
@@ -318,19 +318,11 @@ The following arguments are supported:
 
 ---
 
-A `deployer_virtual_machine_packages` block supports the following:
-
-* `storage_account_id` - (Required) The ID of the deployer VM packages storage account. Changing this forces a new resource to be created.
-
-* `url` - (Required) The URL of the deployer VM packages file. Changing this forces a new resource to be created.
-
----
-
 A `disk_volume_configuration` block supports the following:
 
 * `volume_name` - (Required) Specifies the volumn name of the database disk. Possible values are `backup`, `hana/data`, `hana/log`, `hana/shared`, `os` and `usr/sap`. Changing this forces a new resource to be created.
 
-* `number_of_disks` - (Required) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
+* `number_of_disks` - (Required) The total number of disks required for the concerned volume. Possible values are at least `1`. Changing this forces a new resource to be created.
 
 * `size_in_gb` - (Required) The size of the Disk in GB. Changing this forces a new resource to be created.
 
@@ -392,7 +384,7 @@ A `three_tier_configuration` block supports the following:
 
 * `transport_mount` - (Optional) A `transport_mount` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** The `Skip` configuration type would be enabled when the `transport_create_and_mount` and the `transport_mount` aren't set.
+~> **Note:** The file share configuration uses `skip` by default If neither `transport_create_and_mount` nor `transport_mount` is set.
 
 ---
 
@@ -414,7 +406,7 @@ A `transport_mount` block supports the following:
 
 An `application_server_configuration` block supports the following:
 
-* `instance_count` - (Required) The number of instances for the Application Server. Changing this forces a new resource to be created.
+* `instance_count` - (Required) The number of instances for the Application Server. Possible values are at least `1`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The resource ID of the Subnet for the Application Server. Changing this forces a new resource to be created.
 
@@ -424,7 +416,7 @@ An `application_server_configuration` block supports the following:
 
 A `central_server_configuration` block supports the following:
 
-* `instance_count` - (Required) The number of instances for the Central Server. Changing this forces a new resource to be created.
+* `instance_count` - (Required) The number of instances for the Central Server. Possible values are at least `1`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The resource ID of the Subnet for the Central Server. Changing this forces a new resource to be created.
 
@@ -434,7 +426,7 @@ A `central_server_configuration` block supports the following:
 
 A `database_server_configuration` block supports the following:
 
-* `instance_count` - (Required) The number of instances for the Database Server. Changing this forces a new resource to be created.
+* `instance_count` - (Required) The number of instances for the Database Server. Possible values are at least `1`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The resource ID of the Subnet for the Database Server. Changing this forces a new resource to be created.
 
