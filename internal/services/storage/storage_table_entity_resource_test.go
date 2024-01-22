@@ -280,7 +280,7 @@ resource "azurerm_storage_table_entity" "test" {
     Test             = "Updated"
   }
   lifecycle {
-	ignore_changes = [entity]
+    ignore_changes = [entity]
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
