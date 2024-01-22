@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ReplicationProtectedItem
 }
 
 // Update ...
@@ -48,6 +49,10 @@ func (c ReplicationProtectedItemsClient) Update(ctx context.Context, id Replicat
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

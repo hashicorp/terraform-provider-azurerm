@@ -18,6 +18,7 @@ type DiagnoseOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DiagnoseResponseResult
 }
 
 // Diagnose ...
@@ -48,6 +49,10 @@ func (c WorkspacesClient) Diagnose(ctx context.Context, id WorkspaceId, input Di
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

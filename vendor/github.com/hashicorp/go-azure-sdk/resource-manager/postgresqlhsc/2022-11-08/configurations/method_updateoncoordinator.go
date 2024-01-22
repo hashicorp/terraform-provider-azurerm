@@ -18,6 +18,7 @@ type UpdateOnCoordinatorOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ServerConfiguration
 }
 
 // UpdateOnCoordinator ...
@@ -48,6 +49,10 @@ func (c ConfigurationsClient) UpdateOnCoordinator(ctx context.Context, id Coordi
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

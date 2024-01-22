@@ -18,6 +18,7 @@ type ApmsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApmResource
 }
 
 // ApmsCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c AppPlatformClient) ApmsCreateOrUpdate(ctx context.Context, id ApmId, inp
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

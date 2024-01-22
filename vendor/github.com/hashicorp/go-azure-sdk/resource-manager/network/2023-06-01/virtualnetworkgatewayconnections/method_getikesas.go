@@ -18,6 +18,7 @@ type GetIkeSasOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *string
 }
 
 // GetIkeSas ...
@@ -44,6 +45,10 @@ func (c VirtualNetworkGatewayConnectionsClient) GetIkeSas(ctx context.Context, i
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

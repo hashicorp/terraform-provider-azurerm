@@ -18,6 +18,7 @@ type ScheduleRunOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Run
 }
 
 // ScheduleRun ...
@@ -48,6 +49,10 @@ func (c RegistriesClient) ScheduleRun(ctx context.Context, id RegistryId, input 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

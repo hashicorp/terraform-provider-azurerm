@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Pool
 }
 
 // Update ...
@@ -48,6 +49,10 @@ func (c PoolsClient) Update(ctx context.Context, id PoolId, input PoolUpdate) (r
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

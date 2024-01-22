@@ -18,6 +18,7 @@ type ComputeUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ComputeResource
 }
 
 // ComputeUpdate ...
@@ -47,6 +48,10 @@ func (c MachineLearningComputesClient) ComputeUpdate(ctx context.Context, id Com
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

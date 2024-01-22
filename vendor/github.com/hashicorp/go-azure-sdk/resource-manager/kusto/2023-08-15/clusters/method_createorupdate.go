@@ -19,6 +19,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Cluster
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -81,6 +82,10 @@ func (c ClustersClient) CreateOrUpdate(ctx context.Context, id commonids.KustoCl
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

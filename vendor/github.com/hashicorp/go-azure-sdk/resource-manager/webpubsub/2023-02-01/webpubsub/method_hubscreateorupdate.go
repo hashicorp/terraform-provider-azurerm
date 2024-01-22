@@ -18,6 +18,7 @@ type HubsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *WebPubSubHub
 }
 
 // HubsCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c WebPubSubClient) HubsCreateOrUpdate(ctx context.Context, id HubId, input
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

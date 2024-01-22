@@ -2,6 +2,7 @@ package databases
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -19,6 +20,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Database
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -80,6 +82,16 @@ func (c DatabasesClient) CreateOrUpdate(ctx context.Context, id commonids.KustoD
 	if err != nil {
 		return
 	}
+
+	var respObj json.RawMessage
+	if err = resp.Unmarshal(&respObj); err != nil {
+		return
+	}
+	model, err := unmarshalDatabaseImplementation(respObj)
+	if err != nil {
+		return
+	}
+	result.Model = &model
 
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {

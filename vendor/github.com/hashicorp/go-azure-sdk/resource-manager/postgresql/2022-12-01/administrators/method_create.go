@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ActiveDirectoryAdministrator
 }
 
 // Create ...
@@ -49,6 +50,10 @@ func (c AdministratorsClient) Create(ctx context.Context, id AdministratorId, in
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *GalleryApplicationVersion
 }
 
 // Update ...
@@ -47,6 +48,10 @@ func (c GalleryApplicationVersionsClient) Update(ctx context.Context, id Applica
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

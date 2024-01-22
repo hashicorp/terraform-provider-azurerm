@@ -18,6 +18,7 @@ type GenerateCredentialsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *GenerateCredentialsResult
 }
 
 // GenerateCredentials ...
@@ -48,6 +49,10 @@ func (c RegistriesClient) GenerateCredentials(ctx context.Context, id RegistryId
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

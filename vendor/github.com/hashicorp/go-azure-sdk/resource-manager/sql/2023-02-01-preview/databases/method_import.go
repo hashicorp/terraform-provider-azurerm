@@ -19,6 +19,7 @@ type ImportOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ImportExportOperationResult
 }
 
 // Import ...
@@ -49,6 +50,10 @@ func (c DatabasesClient) Import(ctx context.Context, id commonids.SqlDatabaseId,
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

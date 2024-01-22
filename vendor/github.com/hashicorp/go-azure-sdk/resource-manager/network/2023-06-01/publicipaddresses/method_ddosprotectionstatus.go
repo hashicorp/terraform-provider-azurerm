@@ -19,6 +19,7 @@ type DdosProtectionStatusOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PublicIPDdosProtectionStatusResult
 }
 
 // DdosProtectionStatus ...
@@ -45,6 +46,10 @@ func (c PublicIPAddressesClient) DdosProtectionStatus(ctx context.Context, id co
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

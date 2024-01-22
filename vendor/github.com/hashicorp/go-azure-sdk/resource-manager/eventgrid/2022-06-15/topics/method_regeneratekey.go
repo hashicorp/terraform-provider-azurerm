@@ -18,6 +18,7 @@ type RegenerateKeyOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *TopicSharedAccessKeys
 }
 
 // RegenerateKey ...
@@ -48,6 +49,10 @@ func (c TopicsClient) RegenerateKey(ctx context.Context, id TopicId, input Topic
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

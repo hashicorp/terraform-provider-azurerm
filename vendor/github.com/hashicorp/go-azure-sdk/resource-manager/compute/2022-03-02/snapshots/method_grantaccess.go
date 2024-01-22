@@ -18,6 +18,7 @@ type GrantAccessOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AccessUri
 }
 
 // GrantAccess ...
@@ -48,6 +49,10 @@ func (c SnapshotsClient) GrantAccess(ctx context.Context, id SnapshotId, input G
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 
