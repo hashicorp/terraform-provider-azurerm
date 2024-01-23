@@ -329,7 +329,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			siteCredentials := &webapps.User{}
 
 			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information: %+v", id, err)
+				return fmt.Errorf("reading Publishing Credential informationfor %s: %+v", id, err)
 			}
 			basicAuthFTP := true
 			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil && basicAuthFTPResp.Model != nil {

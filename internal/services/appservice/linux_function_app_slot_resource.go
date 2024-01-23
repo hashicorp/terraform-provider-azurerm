@@ -663,7 +663,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			siteCredentials := &webapps.User{}
 
 			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information: %+v", *id, err)
+				return fmt.Errorf("reading Publishing Credential information for %s: %+v", *id, err)
 			}
 
 			auth, err := client.GetAuthSettingsSlot(ctx, *id)
