@@ -1915,10 +1915,14 @@ func flattenCosmosdbAccountBackup(input cosmosdb.BackupPolicy) ([]interface{}, e
 
 	switch backupPolicy := input.(type) {
 	case cosmosdb.ContinuousModeBackupPolicy:
+		var tier cosmosdb.ContinuousTier
+		if v := backupPolicy.ContinuousModeProperties; v != nil {
+			tier = pointer.From(v.Tier)
+		}
 		return []interface{}{
 			map[string]interface{}{
 				"type": string(cosmosdb.BackupPolicyTypeContinuous),
-				"tier": string(pointer.From(backupPolicy.ContinuousModeProperties.Tier)),
+				"tier": string(tier),
 			},
 		}, nil
 
