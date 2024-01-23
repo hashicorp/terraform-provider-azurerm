@@ -23,9 +23,11 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_configuration_key` - the value for the property `value` can now be removed/emptied [GH-24582]
-* `azure_cognitive_deployment` - `model.version` is no longer a required property [GH-24264]
+* `azurerm_app_service_plan` - fix casing in `serverFarms` due to ID update [GH-24562]
+* `azurerm_cognitive_deployment` - `model.version` is no longer a required property [GH-24264]
 * `azurerm_container_app` - fix issue where multiple `custom_scale_rule` were not being updated [GH-24509]
 * `azurerm_container_registry_task_schedule_run_now` - fix issue where the incorrect scheduled run in tracked if there have been multiple [GH-24592]
+* `azurerm_logic_app_standard` - fix read function to parse app service ID insensitively [GH-24562]
 * `azurerm_logic_app_workflow` - fix issue where `workflow_parameters` were unable to handle information specified by `$connections` [GH-24141]
 * `azurerm_mssql_managed_instance_security_alert_policy` - fix error when updating with empty storage attributes [GH-24553]
 * `azurerm_network_interface` - all `ip_configuration` are no longer added to a Load Balancer Backend if one of those `ip_configurations` is associated with a backend [GH-24470]
