@@ -72,12 +72,12 @@ func (d TriggerSchedulesDataSource) Read() sdk.ResourceFunc {
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("fetching trigger list from Azure Data Factory %s", dataFactoryId.ID())
+						return fmt.Errorf("fetching triggers list for %s", dataFactoryId)
 					}
 				} else {
-					return fmt.Errorf("fetching triggers list from Azure Data Factory %q: %+v", dataFactoryId.ID(), err)
+					return fmt.Errorf("fetching triggers list for %s: %+v", dataFactoryId, err)
 				}
-				return fmt.Errorf("fetching triggers list from Azure Data Factory %q: %+v", dataFactoryId.ID(), err)
+				return fmt.Errorf("fetching triggers list for %s: %+v", dataFactoryId, err)
 			}
 
 			triggers := []string{}
