@@ -29,7 +29,7 @@ The following arguments are supported:
 
 - `name` - (Required) The name of the trigger schedule.
 
-- `data_factory_id` - (Required) The id of the Azure Data Factory to fetch trigger schedule from.
+- `data_factory_id` - (Required) The ID of the Azure Data Factory to fetch trigger schedule from.
 
 ## Attributes Reference
 
