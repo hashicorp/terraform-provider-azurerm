@@ -479,6 +479,13 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"minimal_tls_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
+			},
+
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -503,6 +510,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
+			},
+
+			"partition_merge_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"backup": {
@@ -750,8 +763,10 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	partitionMergeEnabled := d.Get("partition_merge_enabled").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
+	minimalTlsVersion := d.Get("minimal_tls_version").(string)
 
 	r, err := databaseClient.CheckNameExists(ctx, id.DatabaseAccountName)
 	if err != nil {
@@ -801,6 +816,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Capabilities:                       capabilities,
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
+			EnablePartitionMerge:               utils.Bool(partitionMergeEnabled),
 			PublicNetworkAccess:                pointer.To(publicNetworkAccess),
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
 			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
@@ -808,6 +824,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkAclBypass:                   pointer.To(networkByPass),
 			NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
+			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(minimalTlsVersion)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1044,6 +1061,8 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 				DisableLocalAuth:                   disableLocalAuthentication,
 				BackupPolicy:                       backup,
+				EnablePartitionMerge:               props.EnablePartitionMerge,
+				MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 			},
 			Tags: t,
 		}
@@ -1122,6 +1141,23 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		} else {
 			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'EnableMultipleWriteLocations' [NO CHANGE]")
+		}
+
+		// Update the following properties independently after the initial CreateOrUpdate...
+		if d.HasChange("partition_merge_enabled") {
+			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'EnablePartitionMerge'")
+
+			partitionMergeEnabled := pointer.To(d.Get("partition_merge_enabled").(bool))
+			if props.EnablePartitionMerge != partitionMergeEnabled {
+				account.Properties.EnablePartitionMerge = partitionMergeEnabled
+
+				// Update the database...
+				if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
+					return fmt.Errorf("updating %q EnablePartitionMerge: %+v", id, err)
+				}
+			}
+		} else {
+			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'EnablePartitionMerge' [NO CHANGE]")
 		}
 
 		// determine if any locations have been renamed/priority reordered and remove them
@@ -1327,6 +1363,8 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cosmosdb.PublicNetworkAccessEnabled)
 		d.Set("default_identity_type", props.DefaultIdentity)
 		d.Set("create_mode", pointer.From(props.CreateMode))
+		d.Set("partition_merge_enabled", pointer.From(props.EnablePartitionMerge))
+		d.Set("minimal_tls_version", pointer.From(props.MinimalTlsVersion))
 
 		if v := existing.Model.Properties.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)

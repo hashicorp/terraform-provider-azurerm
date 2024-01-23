@@ -146,6 +146,8 @@ The following arguments are supported:
 
 * `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
 
+* `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
@@ -163,6 +165,8 @@ The following arguments are supported:
 * `enable_multiple_write_locations` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
+
+* `minimal_tls_version` - (Optional) The minimum allowed TLS version. Possible values are `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
 
 * `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.2`, `4.0`, `3.6`, and `3.2`.
 
