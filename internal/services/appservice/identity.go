@@ -8,19 +8,19 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
-func expandIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
+func expandIdentity(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	out := web.ManagedServiceIdentity{
-		Type: web.ManagedServiceIdentityType(string(expanded.Type)),
+	out := identity.SystemAndUserAssignedMap{
+		Type: expanded.Type,
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*web.UserAssignedIdentity)
+		out.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &web.UserAssignedIdentity{
+			out.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 				// intentionally empty
 			}
 		}

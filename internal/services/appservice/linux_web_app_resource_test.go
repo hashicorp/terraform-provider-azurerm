@@ -6,6 +6,8 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"regexp"
 	"testing"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -1585,19 +1586,19 @@ func TestAccLinuxWebApp_publicNetworkAccessUpdate(t *testing.T) {
 // Exists func
 
 func (r LinuxWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebAppID(state.ID)
+	id, err := commonids.ParseWebAppID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.AppService.WebAppsClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Linux Web App %s: %+v", id, err)
 	}
-	if utils.ResponseWasNotFound(resp.Response) {
+	if response.WasNotFound(resp.HttpResponse) {
 		return utils.Bool(false), nil
 	}
 	return utils.Bool(true), nil
