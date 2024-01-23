@@ -196,9 +196,9 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"sku": {
+			"sku_name": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 				Default:  string(streamingjobs.SkuNameStandard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamingjobs.SkuNameStandard),
@@ -271,7 +271,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &streamingjobs.StreamingJobProperties{
 			Sku: &streamingjobs.Sku{
-				Name: pointer.To(streamingjobs.SkuName(d.Get("sku").(string))),
+				Name: pointer.To(streamingjobs.SkuName(d.Get("sku_name").(string))),
 			},
 			ContentStoragePolicy:               pointer.To(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
 			EventsLateArrivalMaxDelayInSeconds: pointer.To(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
@@ -450,7 +450,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 			if props.Sku != nil && props.Sku.Name != nil {
 				jobType = string(*props.Sku.Name)
 			}
-			d.Set("sku", sku)
+			d.Set("sku_name", sku)
 
 			storagePolicy := ""
 			if v := props.ContentStoragePolicy; v != nil {

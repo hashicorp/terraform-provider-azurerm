@@ -26,7 +26,7 @@ type ClusterModel struct {
 	ResourceGroup     string                 `tfschema:"resource_group_name"`
 	Location          string                 `tfschema:"location"`
 	StreamingCapacity int64                  `tfschema:"streaming_capacity"`
-	Sku               string                 `tfschema:"sku"`
+	Sku               string                 `tfschema:"sku_name"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
@@ -69,7 +69,7 @@ func (r ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"sku": {
+		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			Default:  clusters.ClusterSkuNameDefault,

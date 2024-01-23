@@ -39,6 +39,8 @@ The following arguments are supported:
 
 * `streaming_capacity` - (Required) The number of streaming units supported by the Cluster. Accepted values are multiples of `36` in the range of `36` to `216`.
 
+* `sku_name` - (Optional) The SKU Name to use for the Stream Analytics Cluster.
+* 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Stream Analytics.
 
 ## Attributes Reference
