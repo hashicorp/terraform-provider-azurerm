@@ -69,7 +69,7 @@ func (r ElasticSANVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validate.ElasticSanVolumeGroupName,
 		},
 
-		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(volumegroups.ElasticSanId{}),
+		"elastic_san_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumegroups.ElasticSanId{}),
 
 		"encryption_type": {
 			Type:         pluginsdk.TypeString,
