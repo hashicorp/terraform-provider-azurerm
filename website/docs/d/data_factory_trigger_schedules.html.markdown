@@ -26,7 +26,7 @@ output "items" {
 
 The following arguments are supported:
 
-- `data_factory_id` - (Required) The id of the Azure Data Factory to fetch trigger schedules from.
+- `data_factory_id` - (Required) The ID of the Azure Data Factory to fetch trigger schedules from.
 
 ## Attributes Reference
 
