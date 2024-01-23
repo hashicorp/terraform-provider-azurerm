@@ -158,7 +158,7 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 				}
 			}
-			if existing.Model.Id != nil && *existing.Model.Id != "" {
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
