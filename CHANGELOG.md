@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* New Data Source: `azurerm_data_factory_trigger_schedule` [GH-24572]
+* New Data Source: `azurerm_data_factory_trigger_schedules` [GH-24572]
 * New Data Source: `azurerm_ip_groups` [GH-24540]
 * New Data Source: `azurerm_nginx_certificate` [GH-24577]
 * New Resource: `azurerm_chaos_studio_target` [GH-24580]
