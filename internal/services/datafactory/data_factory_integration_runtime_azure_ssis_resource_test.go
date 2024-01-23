@@ -917,7 +917,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   data_factory_id                        = azurerm_data_factory.test.id
   location                               = azurerm_resource_group.test.location
   node_size                              = "Standard_D8_v3"
-  user_assigned_identity_credential_name = azurerm_data_factory_credential_user_managed_identity.test.name
+  credential_user_assigned_identity_name = azurerm_data_factory_credential_user_managed_identity.test.name
 
   catalog_info {
     server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name
