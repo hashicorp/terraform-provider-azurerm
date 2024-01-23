@@ -85,6 +85,13 @@ func (c WebAppsClient) StartWebSiteNetworkTraceOperation(ctx context.Context, id
 		return
 	}
 
+<<<<<<< HEAD
+=======
+	if err = resp.Unmarshal(&result.Model); err != nil {
+		return
+	}
+
+>>>>>>> bd17dc90f0 (finish refactor for go-azure-sdk first pass)
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

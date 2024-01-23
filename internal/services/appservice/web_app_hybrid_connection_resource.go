@@ -18,8 +18,6 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -52,7 +50,7 @@ func (r WebAppHybridConnectionResource) ResourceType() string {
 }
 
 func (r WebAppHybridConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppHybridConnectionID
+	return webapps.ValidateRelayID
 }
 
 func (r WebAppHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -327,11 +325,11 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 
 func (r WebAppHybridConnectionResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := parse.AppHybridConnectionID(metadata.ResourceData.Id())
+		id, err := webapps.ParseRelayID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
-		appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
+		appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
 		_, sku, err := helpers.ServicePlanInfoForApp(ctx, metadata, appId)
 		if err != nil {

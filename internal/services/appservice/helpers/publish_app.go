@@ -90,7 +90,7 @@ func GetSitePublishingCredentials(ctx context.Context, client *webapps.WebAppsCl
 	userModel := &webapps.User{}
 
 	if err = siteCredentialsResp.Poller.FinalResult(userModel); err != nil {
-		return nil, nil, fmt.Errorf("reading Publishing Credential information: %+v", appID, err)
+		return nil, nil, fmt.Errorf("reading Publishing Credential information for %s: %+v", appID, err)
 	}
 
 	if userModel.Properties != nil {
@@ -107,7 +107,7 @@ func GetSitePublishingCredentialsSlot(ctx context.Context, client *webapps.WebAp
 	userModel := &webapps.User{}
 
 	if err = siteCredentialsResp.Poller.FinalResult(userModel); err != nil {
-		return nil, nil, fmt.Errorf("reading Publishing Credential information: %+v", id, err)
+		return nil, nil, fmt.Errorf("reading Publishing Credential information for %s: %+v", id, err)
 	}
 
 	if userModel.Properties != nil {
