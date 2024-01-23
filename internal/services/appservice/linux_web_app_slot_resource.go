@@ -496,7 +496,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
-			webAppSiteConfig, err := client.GetConfigurationSlot(ctx, *id)
+			webAppSiteSlotConfig, err := client.GetConfigurationSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
 			}
@@ -542,15 +542,9 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsResp, err := client.ListPublishingCredentialsSlot(ctx, *id)
+			siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
-			}
-
-			siteCredentials := &webapps.User{}
-
-			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information for %s: %+v", id, err)
 			}
 
 			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
@@ -577,7 +571,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				basicAuthWebDeploy = csmProps.Allow
 			}
 
-			if model := webAppSlot.Model; model == nil {
+			if model := webAppSlot.Model; model != nil {
 				state := LinuxWebAppSlotModel{
 					Name:                             id.SlotName,
 					AppServiceId:                     appId.ID(),
@@ -592,26 +586,24 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 					StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
-					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials.Model),
 				}
 
-				if props := webAppSlot.Model.Properties; props != nil {
-					state = LinuxWebAppSlotModel{
-						ClientAffinityEnabled:         pointer.From(props.ClientAffinityEnabled),
-						ClientCertEnabled:             pointer.From(props.ClientCertEnabled),
-						ClientCertMode:                string(pointer.From(props.ClientCertMode)),
-						ClientCertExclusionPaths:      pointer.From(props.ClientCertExclusionPaths),
-						CustomDomainVerificationId:    pointer.From(props.CustomDomainVerificationId),
-						DefaultHostname:               pointer.From(props.DefaultHostName),
-						KeyVaultReferenceIdentityID:   pointer.From(props.KeyVaultReferenceIdentity),
-						Enabled:                       pointer.From(props.Enabled),
-						HttpsOnly:                     pointer.From(props.HTTPSOnly),
-						OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
-						OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
-						PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
-						PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
-						PublicNetworkAccess:           !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
-					}
+				if props := model.Properties; props != nil {
+					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
+					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
+					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+					state.DefaultHostname = pointer.From(props.DefaultHostName)
+					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
+					state.Enabled = pointer.From(props.Enabled)
+					state.HttpsOnly = pointer.From(props.HTTPSOnly)
+					state.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
+					state.OutboundIPAddressList = strings.Split(pointer.From(props.OutboundIPAddresses), ",")
+					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
+					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -639,7 +631,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				}
 
 				siteConfig := helpers.SiteConfigLinuxWebAppSlot{}
-				siteConfig.Flatten(webAppSiteConfig.Model.Properties)
+				siteConfig.Flatten(webAppSiteSlotConfig.Model.Properties)
 				siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
 				// For non-import cases we check for use of the deprecated docker settings - remove in 4.0

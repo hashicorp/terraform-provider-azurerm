@@ -590,15 +590,9 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
 			}
 
-			siteCredentialsResp, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
-			}
-
-			siteCredentials := &webapps.User{}
-
-			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information for %s: %+v", id, err)
 			}
 
 			siteMetadata, err := client.ListMetadata(ctx, *id)
@@ -629,7 +623,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				ConnectionStrings: helpers.FlattenConnectionStrings(connectionStrings.Model),
 				LogsConfig:        helpers.FlattenLogsConfig(logsConfig.Model),
 				StickySettings:    helpers.FlattenStickySettings(stickySettings.Model.Properties),
-				SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials),
+				SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials.Model),
 				StorageAccounts:   helpers.FlattenStorageAccounts(storageAccounts.Model),
 			}
 

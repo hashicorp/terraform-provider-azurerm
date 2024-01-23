@@ -655,15 +655,9 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsResp, err := client.ListPublishingCredentialsSlot(ctx, *id)
+			siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", *id, err)
-			}
-
-			siteCredentials := &webapps.User{}
-
-			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information for %s: %+v", *id, err)
 			}
 
 			auth, err := client.GetAuthSettingsSlot(ctx, *id)
@@ -718,7 +712,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					PublishingFTPBasicAuthEnabled:    basicAuthFTP,
 					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
-					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials.Model),
 					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),

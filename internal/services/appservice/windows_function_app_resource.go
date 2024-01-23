@@ -682,15 +682,9 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
-			siteCredentialsResp, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", *id, err)
-			}
-
-			siteCredentials := &webapps.User{}
-
-			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information for %s: %+v", id, err)
 			}
 
 			auth, err := client.GetAuthSettings(ctx, *id)
@@ -805,7 +799,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 				state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 
-				state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+				state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials.Model)
 
 				state.AuthSettings = helpers.FlattenAuthSettings(auth.Model)
 

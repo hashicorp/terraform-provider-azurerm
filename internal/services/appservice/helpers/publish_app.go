@@ -82,16 +82,11 @@ func GetCredentialsAndPublishSlot(ctx context.Context, client *webapps.WebAppsCl
 }
 
 func GetSitePublishingCredentials(ctx context.Context, client *webapps.WebAppsClient, appID commonids.AppServiceId) (user *string, passwd *string, err error) {
-	siteCredentialsResp, err := client.ListPublishingCredentials(ctx, appID)
-	if err != nil {
+	siteCredentials, err := client.ListPublishingCredentials(ctx, appID)
+	if err != nil || siteCredentials.Model == nil {
 		return nil, nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", appID, err)
 	}
-
-	userModel := &webapps.User{}
-
-	if err = siteCredentialsResp.Poller.FinalResult(userModel); err != nil {
-		return nil, nil, fmt.Errorf("reading Publishing Credential information for %s: %+v", appID, err)
-	}
+	userModel := *siteCredentials.Model
 
 	if userModel.Properties != nil {
 		return pointer.To(userModel.Properties.PublishingUserName), userModel.Properties.PublishingPassword, nil
@@ -100,13 +95,13 @@ func GetSitePublishingCredentials(ctx context.Context, client *webapps.WebAppsCl
 }
 
 func GetSitePublishingCredentialsSlot(ctx context.Context, client *webapps.WebAppsClient, id webapps.SlotId) (user *string, passwd *string, err error) {
-	siteCredentialsResp, err := client.ListPublishingCredentialsSlot(ctx, id)
-	if err != nil {
+	siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, id)
+	if err != nil || siteCredentials.Model == nil {
 		return nil, nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 	}
-	userModel := &webapps.User{}
+	userModel := *siteCredentials.Model
 
-	if err = siteCredentialsResp.Poller.FinalResult(userModel); err != nil {
+	if err = siteCredentials.Poller.FinalResult(userModel); err != nil {
 		return nil, nil, fmt.Errorf("reading Publishing Credential information for %s: %+v", id, err)
 	}
 

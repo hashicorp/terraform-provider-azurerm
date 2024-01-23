@@ -321,16 +321,11 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsResp, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 			}
 
-			siteCredentials := &webapps.User{}
-
-			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential informationfor %s: %+v", id, err)
-			}
 			basicAuthFTP := true
 			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil && basicAuthFTPResp.Model != nil {
 				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
@@ -354,7 +349,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts.Model)
 			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
-			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials.Model)
 
 			if model := existing.Model; model != nil {
 				webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings.Model)

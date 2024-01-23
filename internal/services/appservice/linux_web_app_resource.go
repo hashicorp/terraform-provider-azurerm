@@ -516,6 +516,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			webApp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(webApp.HttpResponse) {
@@ -576,15 +577,9 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsResp, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
-			}
-
-			siteCredentials := &webapps.User{}
-
-			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information for %s: %+v", id, err)
 			}
 
 			basicAuthFTP := true
@@ -614,7 +609,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					StickySettings:    helpers.FlattenStickySettings(stickySettings.Model.Properties),
 					StorageAccounts:   helpers.FlattenStorageAccounts(storageAccounts.Model),
 					ConnectionStrings: helpers.FlattenConnectionStrings(connectionStrings.Model),
-					SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials),
+					SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials.Model),
 					Tags:              pointer.From(model.Tags),
 				}
 

@@ -684,15 +684,9 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsResp, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", *id, err)
-			}
-
-			siteCredentials := &webapps.User{}
-
-			if err = siteCredentialsResp.Poller.FinalResult(siteCredentials); err != nil {
-				return fmt.Errorf("reading Publishing Credential information for %s: %+v", *id, err)
 			}
 
 			auth, err := client.GetAuthSettings(ctx, *id)
@@ -742,7 +736,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					Location:                         location.Normalize(model.Location),
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
-					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials.Model),
 					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
