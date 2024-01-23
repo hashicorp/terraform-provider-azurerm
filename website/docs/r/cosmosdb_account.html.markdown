@@ -241,6 +241,8 @@ A `backup` block supports the following:
 
 * `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
 
+* `tier` - (Optional) The continuous backup tier. Possible values are `Continuous7Days` and `Continuous30Days`.
+
 * `interval_in_minutes` - (Optional) The interval in minutes between two backups. This is configurable only when `type` is `Periodic`. Possible values are between 60 and 1440.
 
 * `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.

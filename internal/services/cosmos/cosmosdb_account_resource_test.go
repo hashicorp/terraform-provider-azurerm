@@ -1039,7 +1039,7 @@ func TestAccCosmosDBAccount_backupPeriodicToContinuous(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1054,7 +1054,14 @@ func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousThreeZeroDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3239,7 +3246,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "MongoDB"
 
-  default_identity_type = join("=", ["UserAssignedIdentity", %[4]s])
+  default_identity_type = join("=", ["UserAssignedIdentity", "%[4]s"])
 
   capabilities {
     name = "EnableMongo"
@@ -3258,7 +3265,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [%[4]s]
+    identity_ids = ["%[4]s"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, identityResource)
@@ -3386,7 +3393,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, tier cosmosdb.ContinuousTier) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3415,9 +3422,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   backup {
     type = "Continuous"
+    tier = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), string(tier))
 }
 
 func (CosmosDBAccountResource) basicWithBackupContinuousUpdate(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
@@ -3451,6 +3459,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   backup {
     type = "Continuous"
+  }
+
+  lifecycle {
+    ignore_changes = [backup.0.tier]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
@@ -4007,6 +4019,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [backup.0.tier]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -4044,6 +4060,10 @@ resource "azurerm_cosmosdb_account" "test1" {
 
   backup {
     type = "Continuous"
+  }
+
+  lifecycle {
+    ignore_changes = [backup.0.tier]
   }
 }
 
@@ -4109,7 +4129,8 @@ resource "azurerm_cosmosdb_account" "test" {
   // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc
+      restore.0.restore_timestamp_in_utc,
+      backup.0.tier
     ]
   }
 }
