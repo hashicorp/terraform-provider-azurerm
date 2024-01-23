@@ -132,7 +132,7 @@ func (r ChaosStudioCapabilityResource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 			return nil
 		},
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 	}
 }
 
@@ -162,7 +162,7 @@ func (r ChaosStudioCapabilityResource) Read() sdk.ResourceFunc {
 
 			return metadata.Encode(&schema)
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 	}
 }
 
