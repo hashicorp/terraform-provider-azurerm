@@ -3,12 +3,12 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_data_factory_trigger_schedules"
 description: |-
-  Gets information about all existing trigger schedules in Azure Data Factory (Version 2).
+  Gets information about all existing trigger schedules in Azure Data Factory.
 ---
 
 # Data Source: azurerm_data_factory_trigger_schedules
 
-Use this data source to access information about all existing trigger schedules in Azure Data Factory (Version 2).
+Use this data source to access information about all existing trigger schedules in Azure Data Factory.
 
 ## Example Usage
 

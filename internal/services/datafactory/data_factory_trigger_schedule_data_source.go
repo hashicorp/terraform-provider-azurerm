@@ -20,31 +20,31 @@ import (
 type TriggerScheduleDataSource struct{}
 
 type TriggerScheduleDataSourceModel struct {
-	Name          string                    `tfschema:"name"`
-	DataFactoryID string                    `tfschema:"data_factory_id"`
-	Description   string                    `tfschema:"description"`
-	Schedule      []TriggerScheduleSchedule `tfschema:"schedule"`
-	StartTime     string                    `tfschema:"start_time"`
-	EndTime       string                    `tfschema:"end_time"`
-	TimeZone      string                    `tfschema:"time_zone"`
-	Frequency     string                    `tfschema:"frequency"`
-	Interval      int                       `tfschema:"interval"`
-	Activated     bool                      `tfschema:"activated"`
-	PipelineName  string                    `tfschema:"pipeline_name"`
-	Annotations   []string                  `tfschema:"annotations"`
+	Name          string            `tfschema:"name"`
+	DataFactoryID string            `tfschema:"data_factory_id"`
+	Description   string            `tfschema:"description"`
+	Schedule      []TriggerSchedule `tfschema:"schedule"`
+	StartTime     string            `tfschema:"start_time"`
+	EndTime       string            `tfschema:"end_time"`
+	TimeZone      string            `tfschema:"time_zone"`
+	Frequency     string            `tfschema:"frequency"`
+	Interval      int64             `tfschema:"interval"`
+	Activated     bool              `tfschema:"activated"`
+	PipelineName  string            `tfschema:"pipeline_name"`
+	Annotations   []string          `tfschema:"annotations"`
 }
 
-type TriggerScheduleSchedule struct {
-	DaysOfMonth []int                            `tfschema:"days_of_month"`
+type TriggerSchedule struct {
+	DaysOfMonth []int64                          `tfschema:"days_of_month"`
 	DaysOfWeek  []string                         `tfschema:"days_of_week"`
-	Hours       []int                            `tfschema:"hours"`
-	Minutes     []int                            `tfschema:"minutes"`
+	Hours       []int64                          `tfschema:"hours"`
+	Minutes     []int64                          `tfschema:"minutes"`
 	Monthly     []TriggerScheduleScheduleMonthly `tfschema:"monthly"`
 }
 
 type TriggerScheduleScheduleMonthly struct {
 	Weekday string `tfschema:"weekday"`
-	Week    int    `tfschema:"week"`
+	Week    int64  `tfschema:"week"`
 }
 
 var _ sdk.DataSource = TriggerScheduleDataSource{}
@@ -208,9 +208,9 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("Trigger %s not found", id)
+					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("retreiving Trigger %s: %+v", id, err)
+				return fmt.Errorf("retreiving %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -234,7 +234,7 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 						model.EndTime = v.Format(time.RFC3339)
 					}
 					model.Frequency = string(recurrence.Frequency)
-					model.Interval = int(*recurrence.Interval)
+					model.Interval = int64(*recurrence.Interval)
 					model.TimeZone = *recurrence.TimeZone
 
 					if schedule := recurrence.Schedule; schedule != nil {
@@ -267,29 +267,29 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenDataFactoryScheduleModel(schedule *datafactory.RecurrenceSchedule) []TriggerScheduleSchedule {
+func flattenDataFactoryScheduleModel(schedule *datafactory.RecurrenceSchedule) []TriggerSchedule {
 	if schedule == nil {
-		return []TriggerScheduleSchedule{}
+		return []TriggerSchedule{}
 	}
 
-	result := TriggerScheduleSchedule{}
-	results := []TriggerScheduleSchedule{}
+	result := TriggerSchedule{}
+	results := []TriggerSchedule{}
 
 	if schedule.Hours != nil {
 		for _, v := range *schedule.Hours {
-			result.Hours = append(result.Hours, int(v))
+			result.Hours = append(result.Hours, int64(v))
 		}
 	}
 
 	if schedule.Minutes != nil {
 		for _, v := range *schedule.Minutes {
-			result.Minutes = append(result.Minutes, int(v))
+			result.Minutes = append(result.Minutes, int64(v))
 		}
 	}
 
 	if schedule.MonthDays != nil {
 		for _, v := range *schedule.MonthDays {
-			result.DaysOfMonth = append(result.DaysOfMonth, int(v))
+			result.DaysOfMonth = append(result.DaysOfMonth, int64(v))
 		}
 	}
 
@@ -307,7 +307,7 @@ func flattenDataFactoryScheduleModel(schedule *datafactory.RecurrenceSchedule) [
 			occurrence := TriggerScheduleScheduleMonthly{}
 			occurrence.Weekday = string(v.Day)
 			if v.Occurrence != nil {
-				occurrence.Week = int(*v.Occurrence)
+				occurrence.Week = int64(*v.Occurrence)
 			}
 			monthlyOccurrences = append(monthlyOccurrences, occurrence)
 		}
