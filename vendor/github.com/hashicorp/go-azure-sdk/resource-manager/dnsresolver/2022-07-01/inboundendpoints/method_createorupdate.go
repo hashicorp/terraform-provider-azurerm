@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *InboundEndpoint
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -81,6 +82,10 @@ func (c InboundEndpointsClient) CreateOrUpdate(ctx context.Context, id InboundEn
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

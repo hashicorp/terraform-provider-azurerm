@@ -20,10 +20,19 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_netapp_account" "example" {
-  name                = "example-netapp"
-  resource_group_name = azurerm_resource_group.example.name
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "anf-user-assigned-identity"
   location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_netapp_account" "example" {
+  name                = "netappaccount"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   active_directory {
     username            = "aduser"
@@ -33,7 +42,15 @@ resource "azurerm_netapp_account" "example" {
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
   }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id
+    ]
+  }
 }
+
 ```
 
 ## Argument Reference
@@ -47,6 +64,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `active_directory` - (Optional) A `active_directory` block as defined below.
+
+* `identity` - (Optional) The identity block where it is used when customer managed keys based encryption will be enabled.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -67,6 +86,15 @@ The `active_directory` block supports the following:
 * `organizational_unit` - (Optional) The Organizational Unit (OU) within the Active Directory Domain.
 
 ---
+
+---
+The `identity` block supports the following:
+
+* `type` - (Required) The identity type, which can be `SystemAssigned` or `UserAssigned`. Only one type at a time is supported by Azure NetApp Files.
+* `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
+---
+
+~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module. 
 
 ## Attributes Reference
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ManagedHSMId{}
+var _ resourceids.ResourceId = &ManagedHSMId{}
 
 // ManagedHSMId is a struct representing the Resource ID for a Managed H S M
 type ManagedHSMId struct {
@@ -30,7 +30,7 @@ func NewManagedHSMID(subscriptionId string, resourceGroupName string, managedHSM
 
 // ParseManagedHSMID parses 'input' into a ManagedHSMId
 func ParseManagedHSMID(input string) (*ManagedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedHSMId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseManagedHSMID(input string) (*ManagedHSMId, error) {
 // ParseManagedHSMIDInsensitively parses 'input' case-insensitively into a ManagedHSMId
 // note: this method should only be used for API response data and not user input
 func ParseManagedHSMIDInsensitively(input string) (*ManagedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedHSMId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

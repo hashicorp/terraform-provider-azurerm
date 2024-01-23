@@ -18,6 +18,7 @@ type CreateOrUpdatePrivateEndpointConnectionOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PrivateEndpointConnection
 }
 
 // CreateOrUpdatePrivateEndpointConnection ...
@@ -48,6 +49,10 @@ func (c IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnection(ctx contex
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

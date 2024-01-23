@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FluidRelayContainerId{}
+var _ resourceids.ResourceId = &FluidRelayContainerId{}
 
 // FluidRelayContainerId is a struct representing the Resource ID for a Fluid Relay Container
 type FluidRelayContainerId struct {
@@ -32,7 +32,7 @@ func NewFluidRelayContainerID(subscriptionId string, resourceGroup string, fluid
 
 // ParseFluidRelayContainerID parses 'input' into a FluidRelayContainerId
 func ParseFluidRelayContainerID(input string) (*FluidRelayContainerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FluidRelayContainerId{})
+	parser := resourceids.NewParserFromResourceIdType(&FluidRelayContainerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFluidRelayContainerID(input string) (*FluidRelayContainerId, error) {
 // ParseFluidRelayContainerIDInsensitively parses 'input' case-insensitively into a FluidRelayContainerId
 // note: this method should only be used for API response data and not user input
 func ParseFluidRelayContainerIDInsensitively(input string) (*FluidRelayContainerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FluidRelayContainerId{})
+	parser := resourceids.NewParserFromResourceIdType(&FluidRelayContainerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

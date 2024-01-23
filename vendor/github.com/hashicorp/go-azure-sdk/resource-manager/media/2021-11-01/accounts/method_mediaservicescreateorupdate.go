@@ -18,6 +18,7 @@ type MediaservicesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *MediaService
 }
 
 // MediaservicesCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c AccountsClient) MediaservicesCreateOrUpdate(ctx context.Context, id Medi
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

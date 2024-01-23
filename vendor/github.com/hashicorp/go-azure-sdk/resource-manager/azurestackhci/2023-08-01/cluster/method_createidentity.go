@@ -18,6 +18,7 @@ type CreateIdentityOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ClusterIdentityResponse
 }
 
 // CreateIdentity ...
@@ -44,6 +45,10 @@ func (c ClusterClient) CreateIdentity(ctx context.Context, id ClusterId) (result
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

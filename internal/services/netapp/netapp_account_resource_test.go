@@ -29,9 +29,6 @@ func TestAccNetAppAccount(t *testing.T) {
 			"complete":       testAccNetAppAccount_complete,
 			"update":         testAccNetAppAccount_update,
 		},
-		"DataSource": {
-			"basic": testAccDataSourceNetAppAccount_basic,
-		},
 	}
 
 	for group, m := range testCases {
@@ -122,6 +119,59 @@ func testAccNetAppAccount_update(t *testing.T) {
 	})
 }
 
+func TestAccNetAppAccount_systemAssignedManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
+	r := NetAppAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppAccount_userAssignedManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
+	r := NetAppAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppAccount_updateManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
+	r := NetAppAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := netappaccounts.ParseNetAppAccountID(state.ID)
 	if err != nil {
@@ -136,19 +186,12 @@ func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (NetAppAccountResource) basicConfig(data acceptance.TestData) string {
+func (r NetAppAccountResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-netapp-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_netapp_account" "test" {
-  name                = "acctest-NetAppAccount-%d"
+  name                = "acctest-NetAppAccount-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -156,7 +199,7 @@ resource "azurerm_netapp_account" "test" {
     "CreatedOnDate" = "2022-07-08T23:50:21Z",
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r NetAppAccountResource) requiresImportConfig(data acceptance.TestData) string {
@@ -175,19 +218,12 @@ resource "azurerm_netapp_account" "import" {
 `, r.basicConfig(data))
 }
 
-func (NetAppAccountResource) completeConfig(data acceptance.TestData) string {
+func (r NetAppAccountResource) completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-netapp-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_netapp_account" "test" {
-  name                = "acctest-NetAppAccount-%d"
+  name                = "acctest-NetAppAccount-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -205,5 +241,88 @@ resource "azurerm_netapp_account" "test" {
     "FoO"           = "BaR"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppAccountResource) systemAssignedManagedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "FoO"           = "BaR"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppAccountResource) userAssignedManagedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "user-assigned-identity-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (NetAppAccountResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%[1]d"
+  location = "%[2]s"
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "SkipNRMSNSG"   = "true"
+  }
+}
+
+
+`, data.RandomInteger, data.Locations.Primary)
 }

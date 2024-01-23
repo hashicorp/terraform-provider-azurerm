@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LocalRulestackFqdnListId{}
+var _ resourceids.ResourceId = &LocalRulestackFqdnListId{}
 
 // LocalRulestackFqdnListId is a struct representing the Resource ID for a Local Rulestack Fqdn List
 type LocalRulestackFqdnListId struct {
@@ -32,7 +32,7 @@ func NewLocalRulestackFqdnListID(subscriptionId string, resourceGroupName string
 
 // ParseLocalRulestackFqdnListID parses 'input' into a LocalRulestackFqdnListId
 func ParseLocalRulestackFqdnListID(input string) (*LocalRulestackFqdnListId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalRulestackFqdnListId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalRulestackFqdnListId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseLocalRulestackFqdnListID(input string) (*LocalRulestackFqdnListId, err
 // ParseLocalRulestackFqdnListIDInsensitively parses 'input' case-insensitively into a LocalRulestackFqdnListId
 // note: this method should only be used for API response data and not user input
 func ParseLocalRulestackFqdnListIDInsensitively(input string) (*LocalRulestackFqdnListId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalRulestackFqdnListId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalRulestackFqdnListId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

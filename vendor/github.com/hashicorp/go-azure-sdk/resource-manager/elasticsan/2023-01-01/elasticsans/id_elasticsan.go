@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ElasticSanId{}
+var _ resourceids.ResourceId = &ElasticSanId{}
 
 // ElasticSanId is a struct representing the Resource ID for a Elastic San
 type ElasticSanId struct {
@@ -30,7 +30,7 @@ func NewElasticSanID(subscriptionId string, resourceGroupName string, elasticSan
 
 // ParseElasticSanID parses 'input' into a ElasticSanId
 func ParseElasticSanID(input string) (*ElasticSanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ElasticSanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ElasticSanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseElasticSanID(input string) (*ElasticSanId, error) {
 // ParseElasticSanIDInsensitively parses 'input' case-insensitively into a ElasticSanId
 // note: this method should only be used for API response data and not user input
 func ParseElasticSanIDInsensitively(input string) (*ElasticSanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ElasticSanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ElasticSanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

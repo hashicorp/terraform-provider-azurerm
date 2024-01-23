@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkWatcherId{}
+var _ resourceids.ResourceId = &NetworkWatcherId{}
 
 // NetworkWatcherId is a struct representing the Resource ID for a Network Watcher
 type NetworkWatcherId struct {
@@ -30,7 +30,7 @@ func NewNetworkWatcherID(subscriptionId string, resourceGroupName string, networ
 
 // ParseNetworkWatcherID parses 'input' into a NetworkWatcherId
 func ParseNetworkWatcherID(input string) (*NetworkWatcherId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkWatcherId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkWatcherId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseNetworkWatcherID(input string) (*NetworkWatcherId, error) {
 // ParseNetworkWatcherIDInsensitively parses 'input' case-insensitively into a NetworkWatcherId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkWatcherIDInsensitively(input string) (*NetworkWatcherId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkWatcherId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkWatcherId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

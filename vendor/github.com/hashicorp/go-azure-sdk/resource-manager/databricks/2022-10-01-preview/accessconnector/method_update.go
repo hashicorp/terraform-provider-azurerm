@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AccessConnector
 }
 
 // Update ...
@@ -48,6 +49,10 @@ func (c AccessConnectorClient) Update(ctx context.Context, id AccessConnectorId,
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

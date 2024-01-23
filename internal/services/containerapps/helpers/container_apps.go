@@ -3167,7 +3167,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 		r := containerapps.ScaleRule{
 			Name: pointer.To(v.Name),
 			Custom: &containerapps.CustomScaleRule{
-				Metadata: &v.Metadata,
+				Metadata: pointer.To(v.Metadata),
 				Type:     pointer.To(v.CustomRuleType),
 			},
 		}

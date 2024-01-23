@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EndpointTypeId{}
+var _ resourceids.ResourceId = &EndpointTypeId{}
 
 // EndpointTypeId is a struct representing the Resource ID for a Endpoint Type
 type EndpointTypeId struct {
@@ -34,7 +34,7 @@ func NewEndpointTypeID(subscriptionId string, resourceGroupName string, trafficM
 
 // ParseEndpointTypeID parses 'input' into a EndpointTypeId
 func ParseEndpointTypeID(input string) (*EndpointTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EndpointTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&EndpointTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseEndpointTypeID(input string) (*EndpointTypeId, error) {
 // ParseEndpointTypeIDInsensitively parses 'input' case-insensitively into a EndpointTypeId
 // note: this method should only be used for API response data and not user input
 func ParseEndpointTypeIDInsensitively(input string) (*EndpointTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EndpointTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&EndpointTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

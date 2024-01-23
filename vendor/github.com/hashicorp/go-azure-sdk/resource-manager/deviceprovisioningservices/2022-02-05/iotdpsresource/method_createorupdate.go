@@ -19,6 +19,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ProvisioningServiceDescription
 }
 
 // CreateOrUpdate ...
@@ -49,6 +50,10 @@ func (c IotDpsResourceClient) CreateOrUpdate(ctx context.Context, id commonids.P
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

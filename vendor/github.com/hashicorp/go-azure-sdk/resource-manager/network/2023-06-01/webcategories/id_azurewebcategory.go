@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AzureWebCategoryId{}
+var _ resourceids.ResourceId = &AzureWebCategoryId{}
 
 // AzureWebCategoryId is a struct representing the Resource ID for a Azure Web Category
 type AzureWebCategoryId struct {
@@ -28,7 +28,7 @@ func NewAzureWebCategoryID(subscriptionId string, azureWebCategoryName string) A
 
 // ParseAzureWebCategoryID parses 'input' into a AzureWebCategoryId
 func ParseAzureWebCategoryID(input string) (*AzureWebCategoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AzureWebCategoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&AzureWebCategoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseAzureWebCategoryID(input string) (*AzureWebCategoryId, error) {
 // ParseAzureWebCategoryIDInsensitively parses 'input' case-insensitively into a AzureWebCategoryId
 // note: this method should only be used for API response data and not user input
 func ParseAzureWebCategoryIDInsensitively(input string) (*AzureWebCategoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AzureWebCategoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&AzureWebCategoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

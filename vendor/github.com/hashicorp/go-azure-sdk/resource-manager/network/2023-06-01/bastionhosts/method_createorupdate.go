@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *BastionHost
 }
 
 // CreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c BastionHostsClient) CreateOrUpdate(ctx context.Context, id BastionHostId
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

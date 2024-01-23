@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectivityConfigurationId{}
+var _ resourceids.ResourceId = &ConnectivityConfigurationId{}
 
 // ConnectivityConfigurationId is a struct representing the Resource ID for a Connectivity Configuration
 type ConnectivityConfigurationId struct {
@@ -32,7 +32,7 @@ func NewConnectivityConfigurationID(subscriptionId string, resourceGroupName str
 
 // ParseConnectivityConfigurationID parses 'input' into a ConnectivityConfigurationId
 func ParseConnectivityConfigurationID(input string) (*ConnectivityConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectivityConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectivityConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseConnectivityConfigurationID(input string) (*ConnectivityConfigurationI
 // ParseConnectivityConfigurationIDInsensitively parses 'input' case-insensitively into a ConnectivityConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseConnectivityConfigurationIDInsensitively(input string) (*ConnectivityConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectivityConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectivityConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

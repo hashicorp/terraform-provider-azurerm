@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SupportedBuildPackId{}
+var _ resourceids.ResourceId = &SupportedBuildPackId{}
 
 // SupportedBuildPackId is a struct representing the Resource ID for a Supported Build Pack
 type SupportedBuildPackId struct {
@@ -34,7 +34,7 @@ func NewSupportedBuildPackID(subscriptionId string, resourceGroupName string, sp
 
 // ParseSupportedBuildPackID parses 'input' into a SupportedBuildPackId
 func ParseSupportedBuildPackID(input string) (*SupportedBuildPackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SupportedBuildPackId{})
+	parser := resourceids.NewParserFromResourceIdType(&SupportedBuildPackId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseSupportedBuildPackID(input string) (*SupportedBuildPackId, error) {
 // ParseSupportedBuildPackIDInsensitively parses 'input' case-insensitively into a SupportedBuildPackId
 // note: this method should only be used for API response data and not user input
 func ParseSupportedBuildPackIDInsensitively(input string) (*SupportedBuildPackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SupportedBuildPackId{})
+	parser := resourceids.NewParserFromResourceIdType(&SupportedBuildPackId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

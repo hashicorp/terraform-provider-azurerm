@@ -18,6 +18,7 @@ type ApiPortalsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApiPortalResource
 }
 
 // ApiPortalsCreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c AppPlatformClient) ApiPortalsCreateOrUpdate(ctx context.Context, id ApiP
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

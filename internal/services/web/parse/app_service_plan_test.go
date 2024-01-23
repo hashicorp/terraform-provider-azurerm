@@ -15,7 +15,7 @@ var _ resourceids.Id = AppServicePlanId{}
 
 func TestAppServicePlanIDFormatter(t *testing.T) {
 	actual := NewAppServicePlanID("12345678-1234-9876-4563-123456789012", "resGroup1", "farm1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/farm1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverFarms/farm1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -59,24 +59,24 @@ func TestAppServicePlanID(t *testing.T) {
 		},
 
 		{
-			// missing ServerfarmName
+			// missing ServerFarmName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/",
 			Error: true,
 		},
 
 		{
-			// missing value for ServerfarmName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/",
+			// missing value for ServerFarmName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverFarms/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/farm1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverFarms/farm1",
 			Expected: &AppServicePlanId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				ServerfarmName: "farm1",
+				ServerFarmName: "farm1",
 			},
 		},
 
@@ -108,8 +108,8 @@ func TestAppServicePlanID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.ServerfarmName != v.Expected.ServerfarmName {
-			t.Fatalf("Expected %q but got %q for ServerfarmName", v.Expected.ServerfarmName, actual.ServerfarmName)
+		if actual.ServerFarmName != v.Expected.ServerFarmName {
+			t.Fatalf("Expected %q but got %q for ServerFarmName", v.Expected.ServerFarmName, actual.ServerFarmName)
 		}
 	}
 }

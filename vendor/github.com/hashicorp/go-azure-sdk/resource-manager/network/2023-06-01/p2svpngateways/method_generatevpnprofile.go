@@ -19,6 +19,7 @@ type GenerateVpnProfileOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VpnProfileResponse
 }
 
 // GenerateVpnProfile ...
@@ -49,6 +50,10 @@ func (c P2sVpnGatewaysClient) GenerateVpnProfile(ctx context.Context, id commoni
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

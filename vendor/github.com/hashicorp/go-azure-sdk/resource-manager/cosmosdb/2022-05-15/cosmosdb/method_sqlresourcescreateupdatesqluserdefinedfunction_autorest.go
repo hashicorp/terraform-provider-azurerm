@@ -16,6 +16,7 @@ import (
 type SqlResourcesCreateUpdateSqlUserDefinedFunctionOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *SqlUserDefinedFunctionGetResults
 }
 
 // SqlResourcesCreateUpdateSqlUserDefinedFunction ...

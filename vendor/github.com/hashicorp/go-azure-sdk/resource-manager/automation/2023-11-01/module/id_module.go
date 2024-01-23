@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ModuleId{}
+var _ resourceids.ResourceId = &ModuleId{}
 
 // ModuleId is a struct representing the Resource ID for a Module
 type ModuleId struct {
@@ -32,7 +32,7 @@ func NewModuleID(subscriptionId string, resourceGroupName string, automationAcco
 
 // ParseModuleID parses 'input' into a ModuleId
 func ParseModuleID(input string) (*ModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&ModuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseModuleID(input string) (*ModuleId, error) {
 // ParseModuleIDInsensitively parses 'input' case-insensitively into a ModuleId
 // note: this method should only be used for API response data and not user input
 func ParseModuleIDInsensitively(input string) (*ModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&ModuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

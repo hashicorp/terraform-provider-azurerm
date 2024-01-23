@@ -18,6 +18,7 @@ type BindingsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *BindingResource
 }
 
 // BindingsCreateOrUpdate ...
@@ -49,6 +50,10 @@ func (c AppPlatformClient) BindingsCreateOrUpdate(ctx context.Context, id Bindin
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

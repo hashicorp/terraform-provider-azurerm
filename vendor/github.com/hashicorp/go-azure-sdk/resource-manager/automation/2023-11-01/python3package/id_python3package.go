@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = Python3PackageId{}
+var _ resourceids.ResourceId = &Python3PackageId{}
 
 // Python3PackageId is a struct representing the Resource ID for a Python 3 Package
 type Python3PackageId struct {
@@ -32,7 +32,7 @@ func NewPython3PackageID(subscriptionId string, resourceGroupName string, automa
 
 // ParsePython3PackageID parses 'input' into a Python3PackageId
 func ParsePython3PackageID(input string) (*Python3PackageId, error) {
-	parser := resourceids.NewParserFromResourceIdType(Python3PackageId{})
+	parser := resourceids.NewParserFromResourceIdType(&Python3PackageId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParsePython3PackageID(input string) (*Python3PackageId, error) {
 // ParsePython3PackageIDInsensitively parses 'input' case-insensitively into a Python3PackageId
 // note: this method should only be used for API response data and not user input
 func ParsePython3PackageIDInsensitively(input string) (*Python3PackageId, error) {
-	parser := resourceids.NewParserFromResourceIdType(Python3PackageId{})
+	parser := resourceids.NewParserFromResourceIdType(&Python3PackageId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

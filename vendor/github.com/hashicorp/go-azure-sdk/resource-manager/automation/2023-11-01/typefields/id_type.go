@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TypeId{}
+var _ resourceids.ResourceId = &TypeId{}
 
 // TypeId is a struct representing the Resource ID for a Type
 type TypeId struct {
@@ -34,7 +34,7 @@ func NewTypeID(subscriptionId string, resourceGroupName string, automationAccoun
 
 // ParseTypeID parses 'input' into a TypeId
 func ParseTypeID(input string) (*TypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&TypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseTypeID(input string) (*TypeId, error) {
 // ParseTypeIDInsensitively parses 'input' case-insensitively into a TypeId
 // note: this method should only be used for API response data and not user input
 func ParseTypeIDInsensitively(input string) (*TypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&TypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

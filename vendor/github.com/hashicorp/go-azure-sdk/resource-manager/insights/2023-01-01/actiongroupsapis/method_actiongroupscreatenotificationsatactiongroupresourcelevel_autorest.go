@@ -16,6 +16,7 @@ import (
 type ActionGroupsCreateNotificationsAtActionGroupResourceLevelOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *TestNotificationDetailsResponse
 }
 
 // ActionGroupsCreateNotificationsAtActionGroupResourceLevel ...

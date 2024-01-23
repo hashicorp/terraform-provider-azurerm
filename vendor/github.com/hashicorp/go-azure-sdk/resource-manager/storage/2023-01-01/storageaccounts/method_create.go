@@ -19,6 +19,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *StorageAccount
 }
 
 // Create ...
@@ -49,6 +50,10 @@ func (c StorageAccountsClient) Create(ctx context.Context, id commonids.StorageA
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

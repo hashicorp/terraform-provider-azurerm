@@ -18,6 +18,7 @@ type CustomDomainsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *CustomDomainResource
 }
 
 // CustomDomainsCreateOrUpdate ...
@@ -49,6 +50,10 @@ func (c AppPlatformClient) CustomDomainsCreateOrUpdate(ctx context.Context, id D
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

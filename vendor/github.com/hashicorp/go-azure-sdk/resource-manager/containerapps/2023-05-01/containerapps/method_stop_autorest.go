@@ -16,6 +16,7 @@ import (
 type StopOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ContainerApp
 }
 
 // Stop ...

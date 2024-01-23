@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VirtualNetworkGateway
 }
 
 // CreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c VirtualNetworkGatewaysClient) CreateOrUpdate(ctx context.Context, id Vir
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

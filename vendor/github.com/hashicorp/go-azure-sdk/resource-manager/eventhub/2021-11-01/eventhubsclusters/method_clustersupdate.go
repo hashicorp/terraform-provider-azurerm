@@ -18,6 +18,7 @@ type ClustersUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Cluster
 }
 
 // ClustersUpdate ...
@@ -49,6 +50,10 @@ func (c EventHubsClustersClient) ClustersUpdate(ctx context.Context, id ClusterI
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

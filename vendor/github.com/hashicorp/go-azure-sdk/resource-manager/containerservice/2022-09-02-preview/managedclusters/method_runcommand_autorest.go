@@ -17,6 +17,7 @@ import (
 type RunCommandOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *RunCommandResult
 }
 
 // RunCommand ...

@@ -9,7 +9,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -36,7 +38,9 @@ func dataSourceNetAppAccount() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			// TODO: add Tags now that https://github.com/Azure/azure-rest-api-specs/issues/7447 has been fixed
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -63,6 +67,18 @@ func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
+
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
 	return nil

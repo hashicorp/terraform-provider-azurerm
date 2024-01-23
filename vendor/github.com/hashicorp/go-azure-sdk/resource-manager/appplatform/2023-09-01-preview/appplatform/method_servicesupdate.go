@@ -19,6 +19,7 @@ type ServicesUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ServiceResource
 }
 
 // ServicesUpdate ...
@@ -49,6 +50,10 @@ func (c AppPlatformClient) ServicesUpdate(ctx context.Context, id commonids.Spri
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RouteFilterId{}
+var _ resourceids.ResourceId = &RouteFilterId{}
 
 // RouteFilterId is a struct representing the Resource ID for a Route Filter
 type RouteFilterId struct {
@@ -30,7 +30,7 @@ func NewRouteFilterID(subscriptionId string, resourceGroupName string, routeFilt
 
 // ParseRouteFilterID parses 'input' into a RouteFilterId
 func ParseRouteFilterID(input string) (*RouteFilterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RouteFilterId{})
+	parser := resourceids.NewParserFromResourceIdType(&RouteFilterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseRouteFilterID(input string) (*RouteFilterId, error) {
 // ParseRouteFilterIDInsensitively parses 'input' case-insensitively into a RouteFilterId
 // note: this method should only be used for API response data and not user input
 func ParseRouteFilterIDInsensitively(input string) (*RouteFilterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RouteFilterId{})
+	parser := resourceids.NewParserFromResourceIdType(&RouteFilterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
