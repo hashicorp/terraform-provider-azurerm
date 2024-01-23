@@ -63,7 +63,7 @@ A `schedule` block exports the following:
 
 * `days_of_month` - Day(s) of the month on which the trigger is scheduled.
 
-* `days_of_week` - Days of the week on which the trigger is scheduled.
+* `days_of_week` - Day(s) of the week on which the trigger is scheduled.
 
 * `hours` - Hours of the day on which the trigger is scheduled.
 
