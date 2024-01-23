@@ -75,6 +75,7 @@ func (r ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  clusters.ClusterSkuNameDefault,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(clusters.ClusterSkuNameDefault),
+				"StandardV2", // missing from swagger as described here https://github.com/Azure/azure-rest-api-specs/issues/27506
 			}, false),
 		},
 
