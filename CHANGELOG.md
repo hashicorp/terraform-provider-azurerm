@@ -2,6 +2,10 @@
 
 FEATURES:
 
+* New Data Source: `azurerm_ip_groups` [GH-24540]
+* New Data Source: `azurerm_nginx_certificate` [GH-24577]
+* New Resource: `azurerm_chaos_studio_target` [GH-24580]
+* New Resource: `azurerm_elastic_san_volume_group` [GH-24166]
 * New Resource: `azurerm_netapp_account_encryption` [GH-23733]
 * New Resource: `azurerm_redhat_openshift_cluster` [GH-24375]
 
@@ -10,6 +14,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.66.1` of `github.com/hashicorp/go-azure-helpers` [GH-24561]
 * dependencies: updating to `v0.20240122.1074123` of `github.com/hashicorp/go-azure-sdk` [GH-24581]
 * `containerservice`: the SDK Clients now support logging [GH-24564]
+* `cosmosdb`: updating to API Version `2023-04-15` [GH-24541]
 * `loadtestservice`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` (and support logging) [GH-24578]
 * `managedidentity`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` (and support logging) [GH-24578]
 * `azurerm_api_management_api` - change `id` format so specific `revision`s can be managed by Terraform [GH-23031]
@@ -17,6 +22,11 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_configuration_key` - the value for the property `value` can now be removed/emptied [GH-24582]
+* `azure_cognitive_deployment` - `model.version` is no longer a required property [GH-24264]
+* `azurerm_container_app` - fix issue where multiple `custom_scale_rule` were not being updated [GH-24509]
+* `azurerm_container_registry_task_schedule_run_now` - fix issue where the incorrect scheduled run in tracked if there have been multiple [GH-24592]
+* `azurerm_logic_app_workflow` - fix issue where `workflow_parameters` were unable to handle information specified by `$connections` [GH-24141]
 * `azurerm_mssql_managed_instance_security_alert_policy` - fix error when updating with empty storage attributes [GH-24553]
 * `azurerm_network_interface` - all `ip_configuration` are no longer added to a Load Balancer Backend if one of those `ip_configurations` is associated with a backend [GH-24470]
 
