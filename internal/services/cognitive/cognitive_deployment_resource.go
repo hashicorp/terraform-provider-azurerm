@@ -100,7 +100,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"version": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 					},
 				},
 			},
