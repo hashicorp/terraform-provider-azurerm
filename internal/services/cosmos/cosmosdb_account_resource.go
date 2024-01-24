@@ -1014,7 +1014,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_free_tier", "enable_automatic_failover", "analytical_storage_enabled",
-			"local_authentication_disabled") {
+			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version") {
 			updateRequired = true
 		}
 
@@ -1061,7 +1061,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 				DisableLocalAuth:                   disableLocalAuthentication,
 				BackupPolicy:                       backup,
-				EnablePartitionMerge:               props.EnablePartitionMerge,
+				EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
 				MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 			},
 			Tags: t,
@@ -1141,23 +1141,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		} else {
 			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'EnableMultipleWriteLocations' [NO CHANGE]")
-		}
-
-		// Update the following properties independently after the initial CreateOrUpdate...
-		if d.HasChange("partition_merge_enabled") {
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'EnablePartitionMerge'")
-
-			partitionMergeEnabled := pointer.To(d.Get("partition_merge_enabled").(bool))
-			if props.EnablePartitionMerge != partitionMergeEnabled {
-				account.Properties.EnablePartitionMerge = partitionMergeEnabled
-
-				// Update the database...
-				if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
-					return fmt.Errorf("updating %q EnablePartitionMerge: %+v", id, err)
-				}
-			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'EnablePartitionMerge' [NO CHANGE]")
 		}
 
 		// determine if any locations have been renamed/priority reordered and remove them

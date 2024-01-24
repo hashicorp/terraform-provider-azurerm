@@ -430,7 +430,7 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind cosmosdb.Databa
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, true, cosmosdb.MinimalTlsVersionTlsOneTwo, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
+			Config: r.consistency(data, kind, true, cosmosdb.MinimalTlsVersionTlsOneOne, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
