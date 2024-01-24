@@ -107,7 +107,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 16),
 			},
 
-			"credential_user_assigned_identity_name": {
+			"credential_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -570,8 +570,8 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 			return fmt.Errorf("setting `catalog_info`: %+v", err)
 		}
 
-		if err := d.Set("credential_user_assigned_identity_name", ssisProps.Credential.ReferenceName); err != nil {
-			return fmt.Errorf("setting `credential_user_assigned_identity_name`: %+v", err)
+		if err := d.Set("credential_name", flattenDataFactoryIntegrationRuntimeUserAssignedCredential(ssisProps.Credential)); err != nil {
+			return fmt.Errorf("setting `credential_name`: %+v", err)
 		}
 
 		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
@@ -658,7 +658,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 		PackageStores:                expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]interface{})),
 	}
 
-	if credentialName := d.Get("credential_user_assigned_identity_name"); credentialName.(string) != "" {
+	if credentialName := d.Get("credential_name"); credentialName.(string) != "" {
 		ssisProperties.Credential = &datafactory.CredentialReference{
 			ReferenceName: utils.String(credentialName.(string)),
 			Type:          utils.String("CredentialReference"),
@@ -952,6 +952,14 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisProxy(input *datafactory.Integ
 			"staging_storage_linked_service_name":  stagingStorageLinkedServiceName,
 		},
 	}
+}
+
+func flattenDataFactoryIntegrationRuntimeUserAssignedCredential(credentialProperties *datafactory.CredentialReference) *string {
+	if credentialProperties == nil {
+		return nil
+	}
+
+	return credentialProperties.ReferenceName
 }
 
 func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *pluginsdk.ResourceData) []interface{} {
