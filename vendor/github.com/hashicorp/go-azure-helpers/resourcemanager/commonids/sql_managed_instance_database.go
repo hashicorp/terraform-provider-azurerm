@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SqlManagedInstanceDatabaseId{}
+var _ resourceids.ResourceId = &SqlManagedInstanceDatabaseId{}
 
 // SqlManagedInstanceDatabaseId is a struct representing the Resource ID for a Sql Managed Instance Database
 type SqlManagedInstanceDatabaseId struct {
@@ -32,7 +32,7 @@ func NewSqlManagedInstanceDatabaseID(subscriptionId string, resourceGroupName st
 
 // ParseManagedInstanceDatabaseID parses 'input' into a SqlManagedInstanceDatabaseId
 func ParseManagedInstanceDatabaseID(input string) (*SqlManagedInstanceDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlManagedInstanceDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlManagedInstanceDatabaseId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -48,14 +48,14 @@ func ParseManagedInstanceDatabaseID(input string) (*SqlManagedInstanceDatabaseId
 // ParseSqlManagedInstanceDatabaseIDInsensitively parses 'input' case-insensitively into a SqlManagedInstanceDatabaseId
 // note: this method should only be used for API response data and not user input
 func ParseSqlManagedInstanceDatabaseIDInsensitively(input string) (*SqlManagedInstanceDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlManagedInstanceDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlManagedInstanceDatabaseId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := SqlManagedInstanceDatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

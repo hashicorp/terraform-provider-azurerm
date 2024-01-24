@@ -19,6 +19,7 @@ type VirtualHubBgpConnectionsListAdvertisedRoutesOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *map[string][]PeerRoute
 }
 
 // VirtualHubBgpConnectionsListAdvertisedRoutes ...

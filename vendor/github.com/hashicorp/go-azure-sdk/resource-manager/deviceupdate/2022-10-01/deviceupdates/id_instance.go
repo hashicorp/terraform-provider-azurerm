@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = InstanceId{}
+var _ resourceids.ResourceId = &InstanceId{}
 
 // InstanceId is a struct representing the Resource ID for a Instance
 type InstanceId struct {
@@ -32,7 +32,7 @@ func NewInstanceID(subscriptionId string, resourceGroupName string, accountName 
 
 // ParseInstanceID parses 'input' into a InstanceId
 func ParseInstanceID(input string) (*InstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&InstanceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseInstanceID(input string) (*InstanceId, error) {
 // ParseInstanceIDInsensitively parses 'input' case-insensitively into a InstanceId
 // note: this method should only be used for API response data and not user input
 func ParseInstanceIDInsensitively(input string) (*InstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&InstanceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

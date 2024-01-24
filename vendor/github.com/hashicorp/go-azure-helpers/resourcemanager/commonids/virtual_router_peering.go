@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualRouterPeeringId{}
+var _ resourceids.ResourceId = &VirtualRouterPeeringId{}
 
 // VirtualRouterPeeringId is a struct representing the Resource ID for a Virtual Router Peering
 type VirtualRouterPeeringId struct {
@@ -32,7 +32,7 @@ func NewVirtualRouterPeeringID(subscriptionId string, resourceGroupName string, 
 
 // ParseVirtualRouterPeeringID parses 'input' into a VirtualRouterPeeringId
 func ParseVirtualRouterPeeringID(input string) (*VirtualRouterPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualRouterPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualRouterPeeringId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseVirtualRouterPeeringID(input string) (*VirtualRouterPeeringId, error) 
 // ParseVirtualRouterPeeringIDInsensitively parses 'input' case-insensitively into a VirtualRouterPeeringId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualRouterPeeringIDInsensitively(input string) (*VirtualRouterPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualRouterPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualRouterPeeringId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

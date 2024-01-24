@@ -18,6 +18,7 @@ type SetVpnclientIPsecParametersOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VpnClientIPsecParameters
 }
 
 // SetVpnclientIPsecParameters ...

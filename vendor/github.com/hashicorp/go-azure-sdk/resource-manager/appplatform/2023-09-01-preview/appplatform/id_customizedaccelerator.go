@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CustomizedAcceleratorId{}
+var _ resourceids.ResourceId = &CustomizedAcceleratorId{}
 
 // CustomizedAcceleratorId is a struct representing the Resource ID for a Customized Accelerator
 type CustomizedAcceleratorId struct {
@@ -34,7 +34,7 @@ func NewCustomizedAcceleratorID(subscriptionId string, resourceGroupName string,
 
 // ParseCustomizedAcceleratorID parses 'input' into a CustomizedAcceleratorId
 func ParseCustomizedAcceleratorID(input string) (*CustomizedAcceleratorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CustomizedAcceleratorId{})
+	parser := resourceids.NewParserFromResourceIdType(&CustomizedAcceleratorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseCustomizedAcceleratorID(input string) (*CustomizedAcceleratorId, error
 // ParseCustomizedAcceleratorIDInsensitively parses 'input' case-insensitively into a CustomizedAcceleratorId
 // note: this method should only be used for API response data and not user input
 func ParseCustomizedAcceleratorIDInsensitively(input string) (*CustomizedAcceleratorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CustomizedAcceleratorId{})
+	parser := resourceids.NewParserFromResourceIdType(&CustomizedAcceleratorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

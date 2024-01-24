@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualMachineScaleSetNetworkInterfaceId{}
+var _ resourceids.ResourceId = &VirtualMachineScaleSetNetworkInterfaceId{}
 
 // VirtualMachineScaleSetNetworkInterfaceId is a struct representing the Resource ID for a Virtual Machine Scale Set Network Interface
 type VirtualMachineScaleSetNetworkInterfaceId struct {
@@ -34,7 +34,7 @@ func NewVirtualMachineScaleSetNetworkInterfaceID(subscriptionId string, resource
 
 // ParseVirtualMachineScaleSetNetworkInterfaceID parses 'input' into a VirtualMachineScaleSetNetworkInterfaceId
 func ParseVirtualMachineScaleSetNetworkInterfaceID(input string) (*VirtualMachineScaleSetNetworkInterfaceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetNetworkInterfaceId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetNetworkInterfaceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,14 +51,14 @@ func ParseVirtualMachineScaleSetNetworkInterfaceID(input string) (*VirtualMachin
 // ParseVirtualMachineScaleSetNetworkInterfaceIDInsensitively parses 'input' case-insensitively into a VirtualMachineScaleSetNetworkInterfaceId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualMachineScaleSetNetworkInterfaceIDInsensitively(input string) (*VirtualMachineScaleSetNetworkInterfaceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetNetworkInterfaceId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetNetworkInterfaceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := VirtualMachineScaleSetNetworkInterfaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

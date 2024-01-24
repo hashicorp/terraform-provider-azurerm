@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApiTagId{}
+var _ resourceids.ResourceId = &ApiTagId{}
 
 // ApiTagId is a struct representing the Resource ID for a Api Tag
 type ApiTagId struct {
@@ -34,7 +34,7 @@ func NewApiTagID(subscriptionId string, resourceGroupName string, serviceName st
 
 // ParseApiTagID parses 'input' into a ApiTagId
 func ParseApiTagID(input string) (*ApiTagId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApiTagId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApiTagId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseApiTagID(input string) (*ApiTagId, error) {
 // ParseApiTagIDInsensitively parses 'input' case-insensitively into a ApiTagId
 // note: this method should only be used for API response data and not user input
 func ParseApiTagIDInsensitively(input string) (*ApiTagId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApiTagId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApiTagId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

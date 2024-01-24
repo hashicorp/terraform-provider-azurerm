@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedDiagnosticSettingsCategoryId{}
+var _ resourceids.ResourceId = &ScopedDiagnosticSettingsCategoryId{}
 
 // ScopedDiagnosticSettingsCategoryId is a struct representing the Resource ID for a Scoped Diagnostic Settings Category
 type ScopedDiagnosticSettingsCategoryId struct {
@@ -28,7 +28,7 @@ func NewScopedDiagnosticSettingsCategoryID(resourceUri string, diagnosticSetting
 
 // ParseScopedDiagnosticSettingsCategoryID parses 'input' into a ScopedDiagnosticSettingsCategoryId
 func ParseScopedDiagnosticSettingsCategoryID(input string) (*ScopedDiagnosticSettingsCategoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedDiagnosticSettingsCategoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedDiagnosticSettingsCategoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseScopedDiagnosticSettingsCategoryID(input string) (*ScopedDiagnosticSet
 // ParseScopedDiagnosticSettingsCategoryIDInsensitively parses 'input' case-insensitively into a ScopedDiagnosticSettingsCategoryId
 // note: this method should only be used for API response data and not user input
 func ParseScopedDiagnosticSettingsCategoryIDInsensitively(input string) (*ScopedDiagnosticSettingsCategoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedDiagnosticSettingsCategoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedDiagnosticSettingsCategoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StreamingEndpointOperationId{}
+var _ resourceids.ResourceId = &StreamingEndpointOperationId{}
 
 // StreamingEndpointOperationId is a struct representing the Resource ID for a Streaming Endpoint Operation
 type StreamingEndpointOperationId struct {
@@ -32,7 +32,7 @@ func NewStreamingEndpointOperationID(subscriptionId string, resourceGroupName st
 
 // ParseStreamingEndpointOperationID parses 'input' into a StreamingEndpointOperationId
 func ParseStreamingEndpointOperationID(input string) (*StreamingEndpointOperationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingEndpointOperationId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingEndpointOperationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseStreamingEndpointOperationID(input string) (*StreamingEndpointOperatio
 // ParseStreamingEndpointOperationIDInsensitively parses 'input' case-insensitively into a StreamingEndpointOperationId
 // note: this method should only be used for API response data and not user input
 func ParseStreamingEndpointOperationIDInsensitively(input string) (*StreamingEndpointOperationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingEndpointOperationId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingEndpointOperationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

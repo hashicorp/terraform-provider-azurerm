@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FlowLogId{}
+var _ resourceids.ResourceId = &FlowLogId{}
 
 // FlowLogId is a struct representing the Resource ID for a Flow Log
 type FlowLogId struct {
@@ -32,7 +32,7 @@ func NewFlowLogID(subscriptionId string, resourceGroupName string, networkWatche
 
 // ParseFlowLogID parses 'input' into a FlowLogId
 func ParseFlowLogID(input string) (*FlowLogId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FlowLogId{})
+	parser := resourceids.NewParserFromResourceIdType(&FlowLogId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFlowLogID(input string) (*FlowLogId, error) {
 // ParseFlowLogIDInsensitively parses 'input' case-insensitively into a FlowLogId
 // note: this method should only be used for API response data and not user input
 func ParseFlowLogIDInsensitively(input string) (*FlowLogId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FlowLogId{})
+	parser := resourceids.NewParserFromResourceIdType(&FlowLogId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

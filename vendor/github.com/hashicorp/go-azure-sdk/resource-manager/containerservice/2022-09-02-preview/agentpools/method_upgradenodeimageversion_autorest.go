@@ -16,6 +16,7 @@ import (
 type UpgradeNodeImageVersionOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *AgentPool
 }
 
 // UpgradeNodeImageVersion ...

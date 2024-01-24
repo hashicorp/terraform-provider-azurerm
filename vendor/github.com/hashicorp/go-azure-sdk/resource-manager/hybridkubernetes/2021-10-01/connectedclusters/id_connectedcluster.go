@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectedClusterId{}
+var _ resourceids.ResourceId = &ConnectedClusterId{}
 
 // ConnectedClusterId is a struct representing the Resource ID for a Connected Cluster
 type ConnectedClusterId struct {
@@ -30,7 +30,7 @@ func NewConnectedClusterID(subscriptionId string, resourceGroupName string, conn
 
 // ParseConnectedClusterID parses 'input' into a ConnectedClusterId
 func ParseConnectedClusterID(input string) (*ConnectedClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedClusterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseConnectedClusterID(input string) (*ConnectedClusterId, error) {
 // ParseConnectedClusterIDInsensitively parses 'input' case-insensitively into a ConnectedClusterId
 // note: this method should only be used for API response data and not user input
 func ParseConnectedClusterIDInsensitively(input string) (*ConnectedClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedClusterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

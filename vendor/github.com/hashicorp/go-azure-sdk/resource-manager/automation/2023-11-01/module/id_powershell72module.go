@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PowerShell72ModuleId{}
+var _ resourceids.ResourceId = &PowerShell72ModuleId{}
 
 // PowerShell72ModuleId is a struct representing the Resource ID for a Power Shell 7 2 Module
 type PowerShell72ModuleId struct {
@@ -32,7 +32,7 @@ func NewPowerShell72ModuleID(subscriptionId string, resourceGroupName string, au
 
 // ParsePowerShell72ModuleID parses 'input' into a PowerShell72ModuleId
 func ParsePowerShell72ModuleID(input string) (*PowerShell72ModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PowerShell72ModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&PowerShell72ModuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParsePowerShell72ModuleID(input string) (*PowerShell72ModuleId, error) {
 // ParsePowerShell72ModuleIDInsensitively parses 'input' case-insensitively into a PowerShell72ModuleId
 // note: this method should only be used for API response data and not user input
 func ParsePowerShell72ModuleIDInsensitively(input string) (*PowerShell72ModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PowerShell72ModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&PowerShell72ModuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

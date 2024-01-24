@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VMwareSiteRunAsAccountId{}
+var _ resourceids.ResourceId = &VMwareSiteRunAsAccountId{}
 
 // VMwareSiteRunAsAccountId is a struct representing the Resource ID for a VMware Site Run As Account
 type VMwareSiteRunAsAccountId struct {
@@ -32,7 +32,7 @@ func NewVMwareSiteRunAsAccountID(subscriptionId string, resourceGroupName string
 
 // ParseVMwareSiteRunAsAccountID parses 'input' into a VMwareSiteRunAsAccountId
 func ParseVMwareSiteRunAsAccountID(input string) (*VMwareSiteRunAsAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VMwareSiteRunAsAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&VMwareSiteRunAsAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -48,14 +48,14 @@ func ParseVMwareSiteRunAsAccountID(input string) (*VMwareSiteRunAsAccountId, err
 // ParseVMwareSiteRunAsAccountIDInsensitively parses 'input' case-insensitively into a VMwareSiteRunAsAccountId
 // note: this method should only be used for API response data and not user input
 func ParseVMwareSiteRunAsAccountIDInsensitively(input string) (*VMwareSiteRunAsAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VMwareSiteRunAsAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&VMwareSiteRunAsAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := VMwareSiteRunAsAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

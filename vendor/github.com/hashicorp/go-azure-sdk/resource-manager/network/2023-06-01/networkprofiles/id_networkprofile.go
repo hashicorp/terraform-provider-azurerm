@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkProfileId{}
+var _ resourceids.ResourceId = &NetworkProfileId{}
 
 // NetworkProfileId is a struct representing the Resource ID for a Network Profile
 type NetworkProfileId struct {
@@ -30,7 +30,7 @@ func NewNetworkProfileID(subscriptionId string, resourceGroupName string, networ
 
 // ParseNetworkProfileID parses 'input' into a NetworkProfileId
 func ParseNetworkProfileID(input string) (*NetworkProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkProfileId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseNetworkProfileID(input string) (*NetworkProfileId, error) {
 // ParseNetworkProfileIDInsensitively parses 'input' case-insensitively into a NetworkProfileId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkProfileIDInsensitively(input string) (*NetworkProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkProfileId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

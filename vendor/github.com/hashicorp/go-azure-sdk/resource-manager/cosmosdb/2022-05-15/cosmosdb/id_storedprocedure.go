@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StoredProcedureId{}
+var _ resourceids.ResourceId = &StoredProcedureId{}
 
 // StoredProcedureId is a struct representing the Resource ID for a Stored Procedure
 type StoredProcedureId struct {
@@ -36,7 +36,7 @@ func NewStoredProcedureID(subscriptionId string, resourceGroupName string, datab
 
 // ParseStoredProcedureID parses 'input' into a StoredProcedureId
 func ParseStoredProcedureID(input string) (*StoredProcedureId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StoredProcedureId{})
+	parser := resourceids.NewParserFromResourceIdType(&StoredProcedureId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseStoredProcedureID(input string) (*StoredProcedureId, error) {
 // ParseStoredProcedureIDInsensitively parses 'input' case-insensitively into a StoredProcedureId
 // note: this method should only be used for API response data and not user input
 func ParseStoredProcedureIDInsensitively(input string) (*StoredProcedureId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StoredProcedureId{})
+	parser := resourceids.NewParserFromResourceIdType(&StoredProcedureId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

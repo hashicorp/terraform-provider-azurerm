@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApiSchemaId{}
+var _ resourceids.ResourceId = &ApiSchemaId{}
 
 // ApiSchemaId is a struct representing the Resource ID for a Api Schema
 type ApiSchemaId struct {
@@ -34,7 +34,7 @@ func NewApiSchemaID(subscriptionId string, resourceGroupName string, serviceName
 
 // ParseApiSchemaID parses 'input' into a ApiSchemaId
 func ParseApiSchemaID(input string) (*ApiSchemaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApiSchemaId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApiSchemaId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseApiSchemaID(input string) (*ApiSchemaId, error) {
 // ParseApiSchemaIDInsensitively parses 'input' case-insensitively into a ApiSchemaId
 // note: this method should only be used for API response data and not user input
 func ParseApiSchemaIDInsensitively(input string) (*ApiSchemaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApiSchemaId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApiSchemaId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

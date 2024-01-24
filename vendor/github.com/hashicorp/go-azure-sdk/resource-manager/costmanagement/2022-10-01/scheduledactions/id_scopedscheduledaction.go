@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedScheduledActionId{}
+var _ resourceids.ResourceId = &ScopedScheduledActionId{}
 
 // ScopedScheduledActionId is a struct representing the Resource ID for a Scoped Scheduled Action
 type ScopedScheduledActionId struct {
@@ -28,7 +28,7 @@ func NewScopedScheduledActionID(scope string, scheduledActionName string) Scoped
 
 // ParseScopedScheduledActionID parses 'input' into a ScopedScheduledActionId
 func ParseScopedScheduledActionID(input string) (*ScopedScheduledActionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedScheduledActionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedScheduledActionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseScopedScheduledActionID(input string) (*ScopedScheduledActionId, error
 // ParseScopedScheduledActionIDInsensitively parses 'input' case-insensitively into a ScopedScheduledActionId
 // note: this method should only be used for API response data and not user input
 func ParseScopedScheduledActionIDInsensitively(input string) (*ScopedScheduledActionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedScheduledActionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedScheduledActionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

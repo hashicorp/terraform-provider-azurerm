@@ -54,7 +54,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateKustoClusterID,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 
 			"key_name": {
 				Type:         pluginsdk.TypeString,
