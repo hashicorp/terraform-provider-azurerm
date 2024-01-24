@@ -65,8 +65,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 				"computer_name_prefix": computerPrefixWindowsSchema(),
 
-				// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
-				// "additional_unattend_content": additionalUnattendContentSchema(),
+				"additional_unattend_content": additionalUnattendContentSchema(),
 
 				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_automatic_updates": {

@@ -191,7 +191,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_basicWindows(t *testing.T) {
 			Config: r.basicWindows(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("additional_unattend_content.0.setting").HasValue("AutoLogon"),
+				check.That(data.ResourceName).Key("os_profile.0.windows_configuration.0.additional_unattend_content.0.setting").HasValue("AutoLogon"),
 			),
 		},
 	})
@@ -988,11 +988,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   platform_fault_domain_count = 2
 
-  additional_unattend_content {
-    content = "<UserAccounts><AdministratorPassword><Value>Jasdfds164</Value><PlainText>true</PlainText></AdministratorPassword></UserAccounts>"
-    setting = "AutoLogon"
-  }
-
   os_profile {
     windows_configuration {
       computer_name_prefix = "testvm"
@@ -1005,6 +1000,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
       winrm_listener {
         protocol = "Http"
+      }
+
+      additional_unattend_content {
+        content = "<UserAccounts><AdministratorPassword><Value>Jasdfds164</Value><PlainText>true</PlainText></AdministratorPassword></UserAccounts>"
+        setting = "AutoLogon"
       }
     }
   }

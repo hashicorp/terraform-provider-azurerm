@@ -51,8 +51,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `additional_capabilities` - (Optional) An `additional_capabilities` block as defined below.
 
-* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
-
 * `encryption_at_host_enabled` - (Optional) Should disks attached to this Virtual Machine Scale Set be encrypted by enabling Encryption at Host?
 
 * `instances` - (Optional) The number of Virtual Machines in the Orcestrated Virtual Machine Scale Set.
@@ -131,14 +129,6 @@ An `additional_capabilities` block supports the following:
 
 ---
 
-An `additional_unattend_content` block supports the following:
-
-* `content` - (Required) The XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
-
-* `setting` - (Required) The name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`. Changing this forces a new resource to be created.
-
----
-
 An `os_profile` block supports the following:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Orchestrated Virtual Machine Scale Set.
@@ -181,6 +171,8 @@ A `windows_configuration` block supports the following:
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
+* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
+
 ---
 
 A `linux_configuration` block supports the following:
@@ -218,6 +210,14 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined below.
 
 -> **NOTE:** The schema of the `certificate` block is slightly different depending on if you are provisioning a `windows_configuration` or a `linux_configuration`.
+
+---
+
+An `additional_unattend_content` block supports the following:
+
+* `content` - (Required) The XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
+
+* `setting` - (Required) The name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`. Changing this forces a new resource to be created.
 
 ---
 

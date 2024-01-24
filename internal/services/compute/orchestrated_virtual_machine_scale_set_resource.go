@@ -266,8 +266,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
-
-			"additional_unattend_content": additionalUnattendContentSchema(),
 		},
 	}
 }
@@ -405,9 +403,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	extensionOperationsEnabled := d.Get("extension_operations_enabled").(bool)
 	osProfileRaw := d.Get("os_profile").([]interface{})
 
-	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
-	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
-
 	if len(osProfileRaw) > 0 {
 		osProfile := osProfileRaw[0].(map[string]interface{})
 		winConfigRaw = osProfile["windows_configuration"].([]interface{})
@@ -424,6 +419,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig, customData)
+			additionalUnattendContentRaw := winConfig["additional_unattend_content"].([]interface{})
+			additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
 
 			if len(additionalUnattendContentRaw) > 0 {
 				vmssOsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
