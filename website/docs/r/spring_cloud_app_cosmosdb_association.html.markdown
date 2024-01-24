@@ -45,6 +45,10 @@ resource "azurerm_cosmosdb_account" "example" {
     location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 
 resource "azurerm_spring_cloud_app_cosmosdb_association" "example" {

@@ -38,4 +38,8 @@ resource "azurerm_cosmosdb_account" "example" {
     location          = var.alt_location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }

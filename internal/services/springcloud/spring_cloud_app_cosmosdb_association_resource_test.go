@@ -649,6 +649,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 
 resource "azurerm_cosmosdb_gremlin_database" "test" {
@@ -717,6 +721,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 
 resource "azurerm_cosmosdb_mongo_database" "test" {
@@ -765,6 +773,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 
 resource "azurerm_cosmosdb_sql_database" "test" {
@@ -812,6 +824,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

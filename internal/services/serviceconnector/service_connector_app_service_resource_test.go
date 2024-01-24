@@ -470,6 +470,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 
 resource "azurerm_cosmosdb_sql_database" "test" {
@@ -582,6 +586,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 

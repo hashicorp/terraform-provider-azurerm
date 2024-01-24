@@ -63,6 +63,10 @@ resource "azurerm_cosmosdb_account" "db" {
     location          = "westus"
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 ```
 
@@ -99,6 +103,10 @@ resource "azurerm_cosmosdb_account" "example" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 ```
