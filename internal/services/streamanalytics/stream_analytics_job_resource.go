@@ -14,15 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -140,7 +139,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"streaming_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
+				ValidateFunc: validation.IntBetween(1, 120),
 			},
 
 			"content_storage_policy": {
@@ -202,6 +201,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Default:  string(streamingjobs.SkuNameStandard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamingjobs.SkuNameStandard),
+					"StandardV2", // missing from swagger as described here https://github.com/Azure/azure-rest-api-specs/issues/27506
 				}, false),
 			},
 
@@ -448,7 +448,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 
 			sku := ""
 			if props.Sku != nil && props.Sku.Name != nil {
-				jobType = string(*props.Sku.Name)
+				sku = string(*props.Sku.Name)
 			}
 			d.Set("sku_name", sku)
 
