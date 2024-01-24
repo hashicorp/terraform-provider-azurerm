@@ -44,7 +44,17 @@ import (
 )
 
 var (
-	storageAccountResourceName = "azurerm_storage_account"
+	storageAccountResourceName  = "azurerm_storage_account"
+	storageKindsSupportsSkuTier = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindFileStorage,
+	}
+	storageKindsSupportHns = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindFileStorage,
+	}
 )
 
 type storageAccountServiceSupportLevel struct {
@@ -155,7 +165,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
+			// Only valid for FileStorage, BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1249,15 +1259,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 
 				if d.Get("access_tier") != "" {
-					if accountKind := d.Get("account_kind").(string); !slices.Contains(
-						[]storage.Kind{
-							storage.KindBlobStorage,
-							storage.KindStorageV2,
-							storage.KindFileStorage,
-						},
-						storage.Kind(accountKind),
-					) {
-						return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
+					if accountKind := d.Get("account_kind").(string); !slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
+						return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
 					}
 				}
 
@@ -1399,33 +1402,18 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	accessTier, ok := d.GetOk("access_tier")
-	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
-	if slices.Contains(
-		[]storage.Kind{
-			storage.KindBlobStorage,
-			storage.KindStorageV2,
-			storage.KindFileStorage,
-		},
-		storage.Kind(accountKind),
-	) {
+	if slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
 		if !ok {
 			// default to "Hot"
 			accessTier = string(storage.AccessTierHot)
 		}
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
 	} else if ok {
-		return fmt.Errorf("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts")
+		return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
 	}
 
-	if isHnsEnabled && !slices.Contains(
-		[]storage.Kind{
-			storage.KindStorageV2,
-			storage.KindBlobStorage,
-			storage.KindBlockBlobStorage,
-		},
-		storage.Kind(accountKind),
-	) {
-		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
+	if isHnsEnabled && !slices.Contains(storageKindsSupportHns, storage.Kind(accountKind)) {
+		return fmt.Errorf("`is_hns_enabled` can only be used with account of kinds: %v", storageKindsSupportHns)
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
