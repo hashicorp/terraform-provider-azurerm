@@ -31,40 +31,41 @@ import (
 type LinuxWebAppSlotResource struct{}
 
 type LinuxWebAppSlotModel struct {
-	Name                             string                              `tfschema:"name"`
-	AppServiceId                     string                              `tfschema:"app_service_id"`
-	ServicePlanID                    string                              `tfschema:"service_plan_id"`
-	AppSettings                      map[string]string                   `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings              `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings            `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                    `tfschema:"backup"`
-	ClientAffinityEnabled            bool                                `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                bool                                `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                              `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                              `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                          bool                                `tfschema:"enabled"`
-	HttpsOnly                        bool                                `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                              `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                       []helpers.LogsConfig                `tfschema:"logs"`
-	MetaData                         map[string]string                   `tfschema:"app_metadata"`
-	SiteConfig                       []helpers.SiteConfigLinuxWebAppSlot `tfschema:"site_config"`
-	StorageAccounts                  []helpers.StorageAccount            `tfschema:"storage_account"`
-	ConnectionStrings                []helpers.ConnectionString          `tfschema:"connection_string"`
-	ZipDeployFile                    string                              `tfschema:"zip_deploy_file"`
-	Tags                             map[string]string                   `tfschema:"tags"`
-	CustomDomainVerificationId       string                              `tfschema:"custom_domain_verification_id"`
-	DefaultHostname                  string                              `tfschema:"default_hostname"`
-	HostingEnvId                     string                              `tfschema:"hosting_environment_id"`
-	Kind                             string                              `tfschema:"kind"`
-	OutboundIPAddresses              string                              `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                            `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                              `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                            `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess              bool                                `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                                `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteCredentials                  []helpers.SiteCredential            `tfschema:"site_credential"`
-	VirtualNetworkSubnetID           string                              `tfschema:"virtual_network_subnet_id"`
+	Name                             string                                     `tfschema:"name"`
+	AppServiceId                     string                                     `tfschema:"app_service_id"`
+	ServicePlanID                    string                                     `tfschema:"service_plan_id"`
+	AppSettings                      map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled            bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                          bool                                       `tfschema:"enabled"`
+	HttpsOnly                        bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
+	MetaData                         map[string]string                          `tfschema:"app_metadata"`
+	SiteConfig                       []helpers.SiteConfigLinuxWebAppSlot        `tfschema:"site_config"`
+	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
+	ZipDeployFile                    string                                     `tfschema:"zip_deploy_file"`
+	Tags                             map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                  string                                     `tfschema:"default_hostname"`
+	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
+	Kind                             string                                     `tfschema:"kind"`
+	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
+	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
@@ -334,7 +335,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(webAppSlot.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -658,18 +659,16 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
 					state.ZipDeployFile = deployFile
 				}
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(webAppSlot.Model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = pointer.From(flattenedIdentity)
 
 				if err := metadata.Encode(&state); err != nil {
 					return fmt.Errorf("encoding: %+v", err)
 				}
 
-				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(webAppSlot.Model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
-				}
 			}
 
 			return nil
@@ -781,7 +780,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

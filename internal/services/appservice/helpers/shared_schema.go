@@ -5,11 +5,11 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1155,7 +1155,7 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 			restriction.VnetSubnetResourceId = utils.String(v.VnetSubnetId)
 		}
 
-		restriction.Priority = pointer.To(int64(v.Priority))
+		restriction.Priority = pointer.To(v.Priority)
 
 		restriction.Action = pointer.To(v.Action)
 

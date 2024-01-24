@@ -1272,7 +1272,7 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	s.LocalMysql = pointer.From(appSiteSlotConfig.LocalMySqlEnabled)
 	s.ManagedPipelineMode = string(pointer.From(appSiteSlotConfig.ManagedPipelineMode))
 	s.MinTlsVersion = string(pointer.From(appSiteSlotConfig.MinTlsVersion))
-	s.WorkerCount = int64(pointer.From(appSiteSlotConfig.NumberOfWorkers))
+	s.WorkerCount = pointer.From(appSiteSlotConfig.NumberOfWorkers)
 	s.RemoteDebugging = pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled)
 	s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion))
 	s.ScmIpRestriction = FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions)
@@ -1298,7 +1298,7 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	}
 
 	if appSiteSlotConfig.NumberOfWorkers != nil {
-		s.WorkerCount = int64(*appSiteSlotConfig.NumberOfWorkers)
+		s.WorkerCount = *appSiteSlotConfig.NumberOfWorkers
 	}
 
 	winAppStack := ApplicationStackWindows{}

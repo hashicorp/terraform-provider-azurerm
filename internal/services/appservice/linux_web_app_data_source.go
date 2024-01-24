@@ -6,16 +6,16 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -26,43 +26,44 @@ import (
 type LinuxWebAppDataSource struct{}
 
 type LinuxWebAppDataSourceModel struct {
-	Name                             string                     `tfschema:"name"`
-	ResourceGroup                    string                     `tfschema:"resource_group_name"`
-	Location                         string                     `tfschema:"location"`
-	ServicePlanId                    string                     `tfschema:"service_plan_id"`
-	AppSettings                      map[string]string          `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
-	Availability                     string                     `tfschema:"availability"`
-	Backup                           []helpers.Backup           `tfschema:"backup"`
-	ClientAffinityEnabled            bool                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                bool                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                          bool                       `tfschema:"enabled"`
-	HttpsOnly                        bool                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                       []helpers.LogsConfig       `tfschema:"logs"`
-	MetaData                         map[string]string          `tfschema:"app_metadata"`
-	SiteConfig                       []helpers.SiteConfigLinux  `tfschema:"site_config"`
-	StickySettings                   []helpers.StickySettings   `tfschema:"sticky_settings"`
-	StorageAccounts                  []helpers.StorageAccount   `tfschema:"storage_account"`
-	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
-	Tags                             map[string]string          `tfschema:"tags"`
-	CustomDomainVerificationId       string                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                     string                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                  string                     `tfschema:"default_hostname"`
-	Kind                             string                     `tfschema:"kind"`
-	OutboundIPAddresses              string                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                   `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
-	Usage                            string                     `tfschema:"usage"`
-	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteCredentials                  []helpers.SiteCredential   `tfschema:"site_credential"`
-	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
+	Name                             string                                     `tfschema:"name"`
+	ResourceGroup                    string                                     `tfschema:"resource_group_name"`
+	Location                         string                                     `tfschema:"location"`
+	ServicePlanId                    string                                     `tfschema:"service_plan_id"`
+	AppSettings                      map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Availability                     string                                     `tfschema:"availability"`
+	Backup                           []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled            bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                          bool                                       `tfschema:"enabled"`
+	HttpsOnly                        bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
+	MetaData                         map[string]string                          `tfschema:"app_metadata"`
+	SiteConfig                       []helpers.SiteConfigLinux                  `tfschema:"site_config"`
+	StickySettings                   []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
+	Tags                             map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                  string                                     `tfschema:"default_hostname"`
+	Kind                             string                                     `tfschema:"kind"`
+	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
+	Usage                            string                                     `tfschema:"usage"`
+	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
+	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
@@ -401,6 +402,11 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 				// Filter out all settings we've consumed above
 				webApp.AppSettings = helpers.FilterManagedAppSettings(webApp.AppSettings)
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				webApp.Identity = pointer.From(flattenedIdentity)
 
 				metadata.SetID(id)
 
@@ -408,13 +414,6 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("encoding: %+v", err)
 				}
 
-				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
-				}
 			}
 
 			return nil

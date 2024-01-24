@@ -70,6 +70,8 @@ type WindowsFunctionAppDataSourceModel struct {
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+
+	Identity []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 var _ sdk.DataSource = WindowsFunctionAppDataSource{}
@@ -421,18 +423,17 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 				functionApp.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
 
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				functionApp.Identity = pointer.From(flattenedIdentity)
+
 				metadata.SetID(id)
 
 				if err := metadata.Encode(&functionApp); err != nil {
 					return fmt.Errorf("encoding: %+v", err)
-				}
-
-				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
 				}
 			}
 

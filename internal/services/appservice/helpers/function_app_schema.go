@@ -1496,7 +1496,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	expanded.AlwaysOn = pointer.To(linuxSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.app_scale_limit") {
-		expanded.FunctionAppScaleLimit = pointer.To(int64(linuxSiteConfig.AppScaleLimit))
+		expanded.FunctionAppScaleLimit = pointer.To(linuxSiteConfig.AppScaleLimit)
 	}
 
 	if linuxSiteConfig.AppInsightsConnectionString == "" {
@@ -1655,7 +1655,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = pointer.To(int64(linuxSiteConfig.WorkerCount))
+		expanded.NumberOfWorkers = pointer.To(linuxSiteConfig.WorkerCount)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
@@ -1672,7 +1672,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
-		expanded.PreWarmedInstanceCount = pointer.To(int64(linuxSiteConfig.PreWarmedInstanceCount))
+		expanded.PreWarmedInstanceCount = pointer.To(linuxSiteConfig.PreWarmedInstanceCount)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
@@ -1680,7 +1680,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
-		expanded.MinimumElasticInstanceCount = pointer.To(int64(linuxSiteConfig.ElasticInstanceMinimum))
+		expanded.MinimumElasticInstanceCount = pointer.To(linuxSiteConfig.ElasticInstanceMinimum)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
@@ -1760,7 +1760,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	expanded.AlwaysOn = pointer.To(windowsSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.app_scale_limit") {
-		expanded.FunctionAppScaleLimit = pointer.To(int64(windowsSiteConfig.AppScaleLimit))
+		expanded.FunctionAppScaleLimit = pointer.To(windowsSiteConfig.AppScaleLimit)
 	}
 
 	if windowsSiteConfig.AppInsightsConnectionString == "" {
@@ -1889,7 +1889,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = pointer.To(int64(windowsSiteConfig.NumberOfWorkers))
+		expanded.NumberOfWorkers = pointer.To(windowsSiteConfig.NumberOfWorkers)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
@@ -1906,7 +1906,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
-		expanded.PreWarmedInstanceCount = pointer.To(int64(windowsSiteConfig.PreWarmedInstanceCount))
+		expanded.PreWarmedInstanceCount = pointer.To(windowsSiteConfig.PreWarmedInstanceCount)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
@@ -1914,7 +1914,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
-		expanded.MinimumElasticInstanceCount = pointer.To(int64(windowsSiteConfig.ElasticInstanceMinimum))
+		expanded.MinimumElasticInstanceCount = pointer.To(windowsSiteConfig.ElasticInstanceMinimum)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
@@ -2122,8 +2122,8 @@ func ExpandFunctionAppAppServiceLogs(input []FunctionAppAppServiceLogs) webapps.
 		Properties: &webapps.SiteLogsConfigProperties{
 			HTTPLogs: &webapps.HTTPLogsConfig{
 				FileSystem: &webapps.FileSystemHTTPLogsConfig{
-					RetentionInDays: pointer.To(int64(config.RetentionPeriodDays)),
-					RetentionInMb:   pointer.To(int64(config.DiskQuotaMB)),
+					RetentionInDays: pointer.To(config.RetentionPeriodDays),
+					RetentionInMb:   pointer.To(config.DiskQuotaMB),
 					Enabled:         pointer.To(true),
 				},
 			},

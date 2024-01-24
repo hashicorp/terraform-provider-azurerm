@@ -873,10 +873,10 @@ func ExpandBackupConfig(backupConfigs []Backup) (*webapps.BackupRequest, error) 
 		BackupName:        pointer.To(backupConfig.Name),
 		StorageAccountUrl: backupConfig.StorageAccountUrl,
 		BackupSchedule: &webapps.BackupSchedule{
-			FrequencyInterval:     int64(backupSchedule.FrequencyInterval),
+			FrequencyInterval:     backupSchedule.FrequencyInterval,
 			FrequencyUnit:         webapps.FrequencyUnit(backupSchedule.FrequencyUnit),
 			KeepAtLeastOneBackup:  backupSchedule.KeepAtLeastOneBackup,
-			RetentionPeriodInDays: int64(backupSchedule.RetentionPeriodDays),
+			RetentionPeriodInDays: backupSchedule.RetentionPeriodDays,
 		},
 	}
 
@@ -1021,7 +1021,6 @@ func FlattenBackupConfig(backupRequest *webapps.BackupRequest) []Backup {
 			RetentionPeriodDays:  schedule.RetentionPeriodInDays,
 		}
 
-		//TODO - This needs manual checking
 		startTimeAsTime, err := time.Parse(time.RFC3339, *schedule.StartTime)
 		if err == nil {
 			if schedule.StartTime != nil && !startTimeAsTime.IsZero() {

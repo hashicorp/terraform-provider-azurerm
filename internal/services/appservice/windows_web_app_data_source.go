@@ -26,39 +26,40 @@ import (
 type WindowsWebAppDataSource struct{}
 
 type WindowsWebAppDataSourceModel struct {
-	Name                             string                      `tfschema:"name"`
-	ResourceGroup                    string                      `tfschema:"resource_group_name"`
-	Location                         string                      `tfschema:"location"`
-	ServicePlanId                    string                      `tfschema:"service_plan_id"`
-	AppSettings                      map[string]string           `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings      `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings    `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup            `tfschema:"backup"`
-	ClientAffinityEnabled            bool                        `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                bool                        `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                      `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                      `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                          bool                        `tfschema:"enabled"`
-	HttpsOnly                        bool                        `tfschema:"https_only"`
-	LogsConfig                       []helpers.LogsConfig        `tfschema:"logs"`
-	PublicNetworkAccess              bool                        `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                        `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                        `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteConfig                       []helpers.SiteConfigWindows `tfschema:"site_config"`
-	StickySettings                   []helpers.StickySettings    `tfschema:"sticky_settings"`
-	StorageAccounts                  []helpers.StorageAccount    `tfschema:"storage_account"`
-	ConnectionStrings                []helpers.ConnectionString  `tfschema:"connection_string"`
-	CustomDomainVerificationId       string                      `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                     string                      `tfschema:"hosting_environment_id"`
-	DefaultHostname                  string                      `tfschema:"default_hostname"`
-	Kind                             string                      `tfschema:"kind"`
-	OutboundIPAddresses              string                      `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                    `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                      `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                    `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials                  []helpers.SiteCredential    `tfschema:"site_credential"`
-	Tags                             map[string]string           `tfschema:"tags"`
-	VirtualNetworkSubnetID           string                      `tfschema:"virtual_network_subnet_id"`
+	Name                             string                                     `tfschema:"name"`
+	ResourceGroup                    string                                     `tfschema:"resource_group_name"`
+	Location                         string                                     `tfschema:"location"`
+	ServicePlanId                    string                                     `tfschema:"service_plan_id"`
+	AppSettings                      map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled            bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                          bool                                       `tfschema:"enabled"`
+	HttpsOnly                        bool                                       `tfschema:"https_only"`
+	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
+	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                       []helpers.SiteConfigWindows                `tfschema:"site_config"`
+	StickySettings                   []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
+	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                  string                                     `tfschema:"default_hostname"`
+	Kind                             string                                     `tfschema:"kind"`
+	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
+	Tags                             map[string]string                          `tfschema:"tags"`
+	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = WindowsWebAppDataSource{}
@@ -401,17 +402,17 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 				webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials.Model)
 
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				webApp.Identity = pointer.From(flattenedIdentity)
+
 				if err = metadata.Encode(&webApp); err != nil {
 					return fmt.Errorf("encoding: %+v", err)
 				}
 
-				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
-				}
 			}
 
 			metadata.SetID(id)
