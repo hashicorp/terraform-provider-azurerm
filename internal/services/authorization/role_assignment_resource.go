@@ -138,15 +138,14 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				RequiredWith: []string{"condition_version"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				RequiredWith: []string{"condition"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",
@@ -238,13 +237,14 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	condition := d.Get("condition").(string)
 	conditionVersion := d.Get("condition_version").(string)
 
-	if condition != "" && conditionVersion != "" {
+	switch {
+	case condition != "" && conditionVersion != "":
 		properties.RoleAssignmentProperties.Condition = utils.String(condition)
 		properties.RoleAssignmentProperties.ConditionVersion = utils.String(conditionVersion)
-	} else if condition != "" && condition == ""{
+	case condition != "" && conditionVersion == "":
 		properties.RoleAssignmentProperties.Condition = utils.String(condition)
-                peoperties.RoleAssignmentProperties.ConditionVersion = "2.0"
-	} else if condition == "" && conditionVersion != "" {
+		properties.RoleAssignmentProperties.ConditionVersion = utils.String("2.0")
+	case condition == "" && conditionVersion != "":
 		return fmt.Errorf("`conditionVersion` should not be set without `condition`")
 	}
 
