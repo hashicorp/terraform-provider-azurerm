@@ -16,6 +16,7 @@ import (
 type CreateOrReplaceOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *StreamingJob
 }
 
 type CreateOrReplaceOperationOptions struct {
