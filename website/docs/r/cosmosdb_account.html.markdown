@@ -166,7 +166,7 @@ The following arguments are supported:
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
-* `minimal_tls_version` - (Optional) The minimum allowed TLS version. Possible values are `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
+* `minimal_tls_version` - (Optional) The minimum allowed TLS version. Possible values are `Tls`, `Tls11`, and `Tls12`.
 
 * `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.2`, `4.0`, `3.6`, and `3.2`.
 

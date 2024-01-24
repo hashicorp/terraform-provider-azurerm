@@ -482,7 +482,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"minimal_tls_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
 				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
 			},
 
@@ -766,7 +765,6 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	partitionMergeEnabled := d.Get("partition_merge_enabled").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
-	minimalTlsVersion := d.Get("minimal_tls_version").(string)
 
 	r, err := databaseClient.CheckNameExists(ctx, id.DatabaseAccountName)
 	if err != nil {
@@ -824,9 +822,12 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			NetworkAclBypass:                   pointer.To(networkByPass),
 			NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
-			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(minimalTlsVersion)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("minimal_tls_version"); ok {
+		account.Properties.MinimalTlsVersion = pointer.To(cosmosdb.MinimalTlsVersion(v.(string)))
 	}
 
 	// These values may not have changed but they need to be in the update params...
@@ -1062,9 +1063,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				DisableLocalAuth:                   disableLocalAuthentication,
 				BackupPolicy:                       backup,
 				EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
-				MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 			},
 			Tags: t,
+		}
+
+		if v, ok := d.GetOk("minimal_tls_version"); ok {
+			account.Properties.MinimalTlsVersion = pointer.To(cosmosdb.MinimalTlsVersion(v.(string)))
 		}
 
 		if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {

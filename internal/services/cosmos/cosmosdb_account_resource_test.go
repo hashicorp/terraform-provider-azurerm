@@ -1381,6 +1381,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -1414,6 +1418,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
@@ -1506,6 +1514,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency), interval, staleness)
@@ -1602,6 +1614,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1662,6 +1678,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   tags = {
     ENV = "Test"
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
@@ -1725,6 +1745,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1764,6 +1788,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = "%s"
     failover_priority = 1
     zone_redundant    = true
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), data.Locations.Secondary)
@@ -1808,6 +1836,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = "%s"
     failover_priority = 1
     zone_redundant    = true
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
@@ -1878,6 +1910,10 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   access_key_metadata_writes_enabled = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1943,6 +1979,10 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   access_key_metadata_writes_enabled = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -2019,6 +2059,10 @@ resource "azurerm_cosmosdb_account" "test" {
     max_age_in_seconds = 2147483647
   }
   access_key_metadata_writes_enabled = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -2091,6 +2135,10 @@ resource "azurerm_cosmosdb_account" "test" {
     max_age_in_seconds = 2147483647
   }
   access_key_metadata_writes_enabled = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -2125,6 +2173,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency))
@@ -2169,6 +2221,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency))
 }
@@ -2206,6 +2262,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), capeTf)
 }
@@ -2240,6 +2300,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = "%s"
     failover_priority = 1
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary)
@@ -2301,6 +2365,10 @@ resource "azurerm_cosmosdb_account" "test" {
       failover_priority = geo_location.value.failover_priority
       zone_redundant    = geo_location.value.zone_redundant
     }
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
@@ -2383,6 +2451,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
 }
@@ -2424,6 +2496,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
 }
@@ -2456,6 +2532,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -2487,6 +2567,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), enableAnalyticalStorage, string(consistency))
@@ -2523,6 +2607,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
@@ -2585,6 +2673,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
@@ -2703,6 +2795,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
@@ -2853,6 +2949,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
@@ -3007,6 +3107,10 @@ resource "azurerm_cosmosdb_account" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
@@ -3160,6 +3264,10 @@ resource "azurerm_cosmosdb_account" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
@@ -3206,6 +3314,10 @@ resource "azurerm_cosmosdb_account" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
@@ -3262,6 +3374,10 @@ resource "azurerm_cosmosdb_account" "test" {
     type         = "UserAssigned"
     identity_ids = [%[4]s]
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, identityResource)
 }
@@ -3310,6 +3426,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -3346,6 +3466,10 @@ resource "azurerm_cosmosdb_account" "test" {
     interval_in_minutes = 120
     retention_in_hours  = 10
     storage_redundancy  = "Geo"
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
@@ -3384,6 +3508,10 @@ resource "azurerm_cosmosdb_account" "test" {
     retention_in_hours  = 8
     storage_redundancy  = "Local"
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -3417,6 +3545,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   backup {
     type = "Continuous"
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
@@ -3453,6 +3585,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   backup {
     type = "Continuous"
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
@@ -3520,6 +3656,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   network_acl_bypass_for_azure_services = true
   network_acl_bypass_ids                = [azurerm_synapse_workspace.test.id]
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.basicWithNetworkBypassTemplate(data), data.RandomInteger, string(kind), string(consistency))
 }
@@ -3544,6 +3684,9 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.basicWithNetworkBypassTemplate(data), data.RandomInteger, string(kind), string(consistency))
 }
@@ -3578,7 +3721,8 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities
+      capabilities,
+      minimal_tls_version
     ]
   }
 }
@@ -3620,6 +3764,10 @@ resource "azurerm_cosmosdb_account" "test" {
   capabilities {
     name = "EnableMongo16MBDocumentSupport"
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3654,10 +3802,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities
+      capabilities,
+      minimal_tls_version
     ]
   }
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3720,7 +3868,8 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities
+      capabilities,
+      minimal_tls_version
     ]
   }
 }
@@ -3761,7 +3910,8 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities
+      capabilities,
+      minimal_tls_version
     ]
   }
 }
@@ -3796,6 +3946,10 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   local_authentication_disabled = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -3830,6 +3984,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(schemaType), string(consistency))
@@ -3866,6 +4024,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), totalThroughputLimit, string(consistency))
 }
@@ -3896,6 +4058,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, string(consistency))
@@ -3931,6 +4097,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, string(consistency))
@@ -3974,6 +4144,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, identityType, string(consistency))
 }
@@ -4008,6 +4182,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
@@ -4046,6 +4224,10 @@ resource "azurerm_cosmosdb_account" "test1" {
 
   backup {
     type = "Continuous"
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 
@@ -4111,7 +4293,8 @@ resource "azurerm_cosmosdb_account" "test" {
   // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc
+      restore.0.restore_timestamp_in_utc,
+      minimal_tls_version
     ]
   }
 }
@@ -4155,6 +4338,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
 }
@@ -4195,6 +4382,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
@@ -4237,6 +4428,10 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
 }
@@ -4277,6 +4472,10 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
   }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
@@ -4328,6 +4527,10 @@ resource "azurerm_cosmosdb_account" "test" {
     environment  = "%[2]s",
     created_date = "2023-07-18"
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, data.RandomInteger, tag)
 }
@@ -4335,45 +4538,60 @@ resource "azurerm_cosmosdb_account" "test" {
 func (r CosmosDBAccountResource) withoutMaxAgeInSeconds(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 %[1]s
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%[3]s"
+
   consistency_policy {
     consistency_level       = "%[4]s"
     max_interval_in_seconds = 300
     max_staleness_prefix    = 170000
   }
+
   is_virtual_network_filter_enabled = true
+
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
   }
+
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
   }
+
   enable_multiple_write_locations = true
+
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
   geo_location {
     location          = "%[5]s"
     failover_priority = 1
   }
+
   geo_location {
     location          = "%[6]s"
     failover_priority = 2
   }
+
   cors_rule {
     allowed_origins = ["http://www.example.com"]
     exposed_headers = ["x-tempo-*"]
     allowed_headers = ["x-tempo-*"]
     allowed_methods = ["GET", "PUT"]
   }
+
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
