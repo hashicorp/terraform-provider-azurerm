@@ -4070,6 +4070,18 @@ data "azurerm_cosmosdb_restorable_database_accounts" "test" {
   location = azurerm_resource_group.test.location
 }
 
+resource "azurerm_cosmosdb_table" "test" {
+  name                = "acctest-table-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
+resource "azurerm_cosmosdb_table" "test2" {
+  name                = "acctest-table2-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca2-%d"
   location            = azurerm_resource_group.test.location
@@ -4099,6 +4111,7 @@ resource "azurerm_cosmosdb_account" "test" {
   restore {
     source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_accounts.test.accounts[0].id
     restore_timestamp_in_utc   = timeadd(timestamp(), "-1s")
+    tables_to_restore          = [azurerm_cosmosdb_table.test.name, azurerm_cosmosdb_table.test2.name]
 
     database {
       name             = azurerm_cosmosdb_mongo_database.test.name
@@ -4113,7 +4126,7 @@ resource "azurerm_cosmosdb_account" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (r CosmosDBAccountResource) ipRangeFilters(data acceptance.TestData) string {

@@ -281,6 +281,8 @@ A `restore` block supports the following:
 
 * `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
 
+* `tables_to_restore` - (Optional) A list of specific tables available for restore. Changing this forces a new resource to be created.
+
 ---
 
 A `database` block supports the following:

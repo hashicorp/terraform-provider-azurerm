@@ -598,6 +598,16 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								},
 							},
 						},
+
+						"tables_to_restore": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 					},
 				},
 			},
@@ -2001,6 +2011,10 @@ func expandCosmosdbAccountRestoreParameters(input []interface{}) *cosmosdb.Resto
 	restoreTimestampInUtc, _ := time.Parse(time.RFC3339, v["restore_timestamp_in_utc"].(string))
 	restoreParameters.SetRestoreTimestampInUtcAsTime(restoreTimestampInUtc)
 
+	if tablesToRestore := v["tables_to_restore"].([]string); len(tablesToRestore) > 0 {
+		restoreParameters.TablesToRestore = pointer.To(tablesToRestore)
+	}
+
 	return &restoreParameters
 }
 
@@ -2037,6 +2051,7 @@ func flattenCosmosdbAccountRestoreParameters(input *cosmosdb.RestoreParameters) 
 			"database":                   flattenCosmosdbAccountDatabasesToRestore(input.DatabasesToRestore),
 			"source_cosmosdb_account_id": restoreSource,
 			"restore_timestamp_in_utc":   restoreTimestampInUtc,
+			"tables_to_restore":          pointer.From(input.TablesToRestore),
 		},
 	}
 }
