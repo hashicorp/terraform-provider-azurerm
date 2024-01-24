@@ -150,6 +150,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"monthly_occurrence": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day": {
