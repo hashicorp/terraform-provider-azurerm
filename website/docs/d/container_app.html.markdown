@@ -285,13 +285,13 @@ A `custom_domain` block supports the following:
 
 ---
 
-A `ip_security_restriction` block supports the following:
+A `ip_security_restriction` block exports the following:
 
-* `action` - The IP-filter action. `Allow` or `Deny`.
+* `action` - The IP-filter action.
 
-* `description` - Describe the IP restriction rule that is being sent to the container-app.
+* `description` - Description of the IP restriction rule that is being sent to the container-app.
 
-* `ip_address_range` - CIDR notation to match incoming IP address.
+* `ip_address_range` - CIDR notation that matches the incoming IP address.
 
 * `name` - Name for the IP restriction rule.
 
