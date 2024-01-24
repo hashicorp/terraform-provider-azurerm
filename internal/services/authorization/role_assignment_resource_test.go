@@ -214,6 +214,24 @@ func TestAccRoleAssignment_condition(t *testing.T) {
 	})
 }
 
+func TestAccRoleAssignment_implicitCondition(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azure_role_assignment", "test")
+	id := uuid.New().String()
+
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.implicitConditionVersion(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+
+}
+
 func TestAccRoleAssignment_resourceScoped(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
@@ -578,6 +596,29 @@ resource "azurerm_role_assignment" "test" {
   description          = "Monitoring Reader except "
   condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase 'foo_storage_container'"
   condition_version    = "1.0"
+}
+`, groupId)
+}
+
+func (RoleAssignmentResource) implicitConditionVersion(groupId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = data.azurerm_client_config.test.object_id
+  description          = "Monitoring Reader except "
+  condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase 'foo_storage_container'"
 }
 `, groupId)
 }

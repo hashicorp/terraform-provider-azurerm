@@ -232,9 +232,9 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	if condition != "" && conditionVersion != "" {
 		properties.RoleAssignmentProperties.Condition = utils.String(condition)
 		properties.RoleAssignmentProperties.ConditionVersion = utils.String(conditionVersion)
-	} else if condition != "" && condition == ""{
+	} else if condition != "" && conditionVersion == "" {
 		properties.RoleAssignmentProperties.Condition = utils.String(condition)
-                peoperties.RoleAssignmentProperties.ConditionVersion = "2.0"
+		properties.RoleAssignmentProperties.ConditionVersion = utils.String("2.0")
 	} else if condition == "" && conditionVersion != "" {
 		return fmt.Errorf("`conditionVersion` should not be set without `condition`")
 	}
