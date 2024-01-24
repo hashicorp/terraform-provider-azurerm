@@ -816,7 +816,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Capabilities:                       capabilities,
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
-			EnablePartitionMerge:               utils.Bool(partitionMergeEnabled),
+			EnablePartitionMerge:               pointer.To(partitionMergeEnabled),
 			PublicNetworkAccess:                pointer.To(publicNetworkAccess),
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
 			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
