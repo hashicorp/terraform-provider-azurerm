@@ -26,14 +26,13 @@ import (
 
 func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorPrivateLinkScopedServiceCreateUpdate,
+		Create: resourceMonitorPrivateLinkScopedServiceCreate,
 		Read:   resourceMonitorPrivateLinkScopedServiceRead,
 		Delete: resourceMonitorPrivateLinkScopedServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -74,7 +73,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorPrivateLinkScopedServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

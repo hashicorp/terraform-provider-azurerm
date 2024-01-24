@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Webhook
 }
 
 // Update ...
@@ -48,6 +49,10 @@ func (c WebHooksClient) Update(ctx context.Context, id WebHookId, input WebhookU
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -18,10 +19,11 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DedicatedHost
 }
 
 // CreateOrUpdate ...
-func (c DedicatedHostsClient) CreateOrUpdate(ctx context.Context, id HostId, input DedicatedHost) (result CreateOrUpdateOperationResponse, err error) {
+func (c DedicatedHostsClient) CreateOrUpdate(ctx context.Context, id commonids.DedicatedHostId, input DedicatedHost) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -51,6 +53,10 @@ func (c DedicatedHostsClient) CreateOrUpdate(ctx context.Context, id HostId, inp
 		return
 	}
 
+	if err = resp.Unmarshal(&result.Model); err != nil {
+		return
+	}
+
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return
@@ -60,7 +66,7 @@ func (c DedicatedHostsClient) CreateOrUpdate(ctx context.Context, id HostId, inp
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c DedicatedHostsClient) CreateOrUpdateThenPoll(ctx context.Context, id HostId, input DedicatedHost) error {
+func (c DedicatedHostsClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.DedicatedHostId, input DedicatedHost) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

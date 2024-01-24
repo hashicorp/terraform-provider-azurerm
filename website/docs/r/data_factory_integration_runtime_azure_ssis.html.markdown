@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `number_of_nodes` - (Optional) Number of nodes for the Azure-SSIS Integration Runtime. Max is `10`. Defaults to `1`.
 
-* `max_parallel_executions_per_node` - (Optional) Defines the maximum parallel executions per node. Defaults to `1`. Max is `16`.
+* `max_parallel_executions_per_node` - (Optional) Defines the maximum parallel executions per node. Defaults to `1`. Max is `1`.
 
 * `edition` - (Optional) The Azure-SSIS Integration Runtime edition. Valid values are `Standard` and `Enterprise`. Defaults to `Standard`.
 

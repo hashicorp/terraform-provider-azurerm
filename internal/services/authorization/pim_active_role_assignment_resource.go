@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization
 
 import (
@@ -6,6 +9,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	// nolint: staticcheck
@@ -180,7 +184,8 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
 			}
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect {
+				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
@@ -201,13 +206,18 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("generating uuid: %+v", err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
+
 			requestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(config.Scope, uuid)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Missing"},
 				Target:     []string{"Created"},
 				Refresh:    createActiveRoleAssignment(ctx, clientRequest, requestId, &payload),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
@@ -219,7 +229,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				Target:     []string{"Found"},
 				Refresh:    waitForActiveRoleAssignment(ctx, clientInstances, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -257,8 +267,10 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 			}
 			var instance *roleassignmentscheduleinstances.RoleAssignmentScheduleInstance
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect {
+				if *item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					instance = &item
+					break
 				}
 			}
 			if instance == nil {
@@ -341,13 +353,17 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			}
 			deleteId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, uuid)
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
 			// wait for resource to deleted
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Exist"},
 				Target:     []string{"Deleted"},
 				Refresh:    deleteActiveRoleAssignment(ctx, clientRequest, deleteId, &payload),
 				MinTimeout: 1 * time.Minute,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -360,7 +376,7 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				Target:     []string{"Missing"},
 				Refresh:    waitForActiveRoleAssignment(ctx, clientInstances, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -620,9 +636,11 @@ func waitForActiveRoleAssignment(ctx context.Context, client *roleassignmentsche
 
 		for _, item := range items.Items {
 			if *item.Properties.RoleDefinitionId == roleDefinitionId &&
-				*item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect {
+				*item.Properties.MemberType == roleassignmentscheduleinstances.MemberTypeDirect &&
+				strings.EqualFold(*item.Properties.Scope, scope) {
 				state = "Found"
 				result = item
+				break
 			}
 		}
 

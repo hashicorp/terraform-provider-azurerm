@@ -8,11 +8,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
@@ -101,12 +100,12 @@ func TestAccVirtualMachine_withPPG(t *testing.T) {
 }
 
 func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineID(state.ID)
+	id, err := commonids.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine %q", id)
 	}
@@ -116,7 +115,7 @@ func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Clien
 
 func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := disks.ParseDiskID(*diskId)
+		id, err := commonids.ParseManagedDiskID(*diskId)
 		if err != nil {
 			return err
 		}
@@ -144,7 +143,7 @@ func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.Clien
 
 func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := disks.ParseDiskID(*diskId)
+		id, err := commonids.ParseManagedDiskID(*diskId)
 		if err != nil {
 			return err
 		}
@@ -171,12 +170,12 @@ func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool
 
 func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.VirtualMachineID(state.ID)
+		id, err := commonids.ParseVirtualMachineID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		virtualMachine, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+		virtualMachine, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
 		if err != nil {
 			return err
 		}
@@ -216,13 +215,13 @@ func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *str
 }
 
 func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	vmID, err := parse.VirtualMachineID(state.ID)
+	vmID, err := commonids.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	name := vmID.Name
-	resourceGroup := vmID.ResourceGroup
+	name := vmID.VirtualMachineName
+	resourceGroup := vmID.ResourceGroupName
 
 	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
 	future, err := client.Legacy.VMClient.Deallocate(ctx, resourceGroup, name, utils.Bool(false))
@@ -444,8 +443,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -550,8 +549,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -656,8 +655,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -762,8 +761,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

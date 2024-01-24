@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apischema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apischema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -108,7 +108,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	parameters := apischema.SchemaContract{
 		Properties: &apischema.SchemaContractProperties{
 			ContentType: d.Get("content_type").(string),
-			Document:    &apischema.SchemaDocumentProperties{},
+			Document:    apischema.SchemaDocumentProperties{},
 		},
 	}
 
@@ -161,26 +161,25 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("content_type", props.ContentType)
-			if documentProperties := props.Document; documentProperties != nil {
-				if documentProperties.Value != nil {
-					d.Set("value", pointer.From(documentProperties.Value))
-				}
+			documentProperties := props.Document
+			if documentProperties.Value != nil {
+				d.Set("value", pointer.From(documentProperties.Value))
+			}
 
-				if documentProperties.Components != nil {
-					value, err := convert2Str(pointer.From(documentProperties.Components))
-					if err != nil {
-						return err
-					}
-					d.Set("components", value)
+			if documentProperties.Components != nil {
+				value, err := convert2Str(pointer.From(documentProperties.Components))
+				if err != nil {
+					return err
 				}
+				d.Set("components", value)
+			}
 
-				if documentProperties.Definitions != nil {
-					value, err := convert2Str(documentProperties.Definitions)
-					if err != nil {
-						return err
-					}
-					d.Set("definitions", value)
+			if documentProperties.Definitions != nil {
+				value, err := convert2Str(documentProperties.Definitions)
+				if err != nil {
+					return err
 				}
+				d.Set("definitions", value)
 			}
 		}
 	}

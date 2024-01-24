@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization_test
 
 import (
@@ -277,7 +280,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[3]s"
 }
 resource "azurerm_virtual_network" "test" {
-  name                = "amtestVNET1-%[2]d"
+  name                = "acctestVNET1-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]

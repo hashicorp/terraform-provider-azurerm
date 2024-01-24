@@ -10,15 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -259,24 +258,21 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 				return metadata.MarkAsGone(id)
 			}
 
-			result, err := featureClient.ListComplete(ctx, id.ProviderName)
+			resourceProviderFeatureId := features.NewProviders2ID(id.SubscriptionId, id.ProviderName)
+			result, err := featureClient.ListComplete(ctx, resourceProviderFeatureId)
 			if err != nil {
 				return fmt.Errorf("retrieving features for %s: %+v", *id, err)
 			}
 			features := make([]ResourceProviderRegistrationFeatureModel, 0)
-			for result.NotDone() {
-				value := result.Value()
-				if value.Properties != nil && value.Properties.State != nil && value.Name != nil {
-					featureName := (*value.Name)[len(id.ProviderName)+1:]
-					switch *value.Properties.State {
+			for _, item := range result.Items {
+				if item.Properties != nil && item.Properties.State != nil && item.Name != nil {
+					featureName := (*item.Name)[len(id.ProviderName)+1:]
+					switch *item.Properties.State {
 					case Registering, Registered:
 						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: true})
 					case Unregistering, Unregistered:
 						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: false})
 					}
-				}
-				if err := result.NextWithContext(ctx); err != nil {
-					return fmt.Errorf("enumerating features: %+v", err)
 				}
 			}
 
@@ -395,12 +391,13 @@ func (r ResourceProviderRegistrationResource) applyFeatures(ctx context.Context,
 	for _, v := range newFeatures {
 		value := v.(map[string]interface{})
 		name := value["name"].(string)
+		featureId := features.NewFeatureID(id.SubscriptionId, id.ProviderName, name)
 		if value["registered"].(bool) {
-			if err := r.registerFeature(ctx, metadata, parse.NewFeatureID(id.SubscriptionId, id.ProviderName, name)); err != nil {
+			if err := r.registerFeature(ctx, metadata, featureId); err != nil {
 				return err
 			}
 		} else {
-			if err := r.unregisterFeature(ctx, metadata, parse.NewFeatureID(id.SubscriptionId, id.ProviderName, name)); err != nil {
+			if err := r.unregisterFeature(ctx, metadata, featureId); err != nil {
 				return err
 			}
 		}
@@ -421,7 +418,8 @@ func (r ResourceProviderRegistrationResource) applyFeatures(ctx context.Context,
 
 	for featureName, registered := range unmanagedRegisteredFeatures {
 		if registered {
-			if err := r.unregisterFeature(ctx, metadata, parse.NewFeatureID(id.SubscriptionId, id.ProviderName, featureName)); err != nil {
+			featureId := features.NewFeatureID(id.SubscriptionId, id.ProviderName, featureName)
+			if err := r.unregisterFeature(ctx, metadata, featureId); err != nil {
 				return err
 			}
 		}
@@ -429,30 +427,30 @@ func (r ResourceProviderRegistrationResource) applyFeatures(ctx context.Context,
 	return nil
 }
 
-func (r ResourceProviderRegistrationResource) registerFeature(ctx context.Context, metadata sdk.ResourceMetaData, id parse.FeatureId) error {
+func (r ResourceProviderRegistrationResource) registerFeature(ctx context.Context, metadata sdk.ResourceMetaData, id features.FeatureId) error {
 	client := metadata.Client.Resource.FeaturesClient
-	existing, err := client.Get(ctx, id.ProviderNamespace, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("error checking for existing feature %q: %+v", id, err)
 	}
 
-	if existing.Properties != nil && existing.Properties.State != nil {
-		if strings.EqualFold(*existing.Properties.State, Pending) {
+	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
+		if strings.EqualFold(*existing.Model.Properties.State, Pending) {
 			return fmt.Errorf("%s which requires manual approval should not be managed by terraform", id)
 		}
-		if strings.EqualFold(*existing.Properties.State, Registered) {
+		if strings.EqualFold(*existing.Model.Properties.State, Registered) {
 			return nil
 		}
 	}
 
 	log.Printf("[INFO] registering feature %q.", id)
-	resp, err := client.Register(ctx, id.ProviderNamespace, id.Name)
+	resp, err := client.Register(ctx, id)
 	if err != nil {
 		return fmt.Errorf("error registering feature %q: %+v", id, err)
 	}
 
-	if resp.Properties != nil && resp.Properties.State != nil {
-		if strings.EqualFold(*resp.Properties.State, Pending) {
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.State != nil {
+		if strings.EqualFold(*resp.Model.Properties.State, Pending) {
 			return fmt.Errorf("%s which requires manual approval can not be managed by terraform", id)
 		}
 	}
@@ -475,30 +473,30 @@ func (r ResourceProviderRegistrationResource) registerFeature(ctx context.Contex
 	return nil
 }
 
-func (r ResourceProviderRegistrationResource) unregisterFeature(ctx context.Context, metadata sdk.ResourceMetaData, id parse.FeatureId) error {
+func (r ResourceProviderRegistrationResource) unregisterFeature(ctx context.Context, metadata sdk.ResourceMetaData, id features.FeatureId) error {
 	client := metadata.Client.Resource.FeaturesClient
-	existing, err := client.Get(ctx, id.ProviderNamespace, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("error checking for existing feature %q: %+v", id, err)
 	}
 
-	if existing.Properties != nil && existing.Properties.State != nil {
-		if strings.EqualFold(*existing.Properties.State, Pending) {
+	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
+		if strings.EqualFold(*existing.Model.Properties.State, Pending) {
 			return fmt.Errorf("%s which requires manual approval should not be managed by terraform", id)
 		}
-		if strings.EqualFold(*existing.Properties.State, Unregistered) {
+		if strings.EqualFold(*existing.Model.Properties.State, Unregistered) {
 			return nil
 		}
 	}
 
 	log.Printf("[INFO] unregistering feature %q.", id)
-	resp, err := client.Unregister(ctx, id.ProviderNamespace, id.Name)
+	resp, err := client.Unregister(ctx, id)
 	if err != nil {
 		return fmt.Errorf("unregistering feature %q: %+v", id, err)
 	}
 
-	if resp.Properties != nil && resp.Properties.State != nil {
-		if strings.EqualFold(*resp.Properties.State, Pending) {
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.State != nil {
+		if strings.EqualFold(*resp.Model.Properties.State, Pending) {
 			return fmt.Errorf("%s requires manual registration approval and can not be managed by terraform", id)
 		}
 	}
@@ -522,16 +520,16 @@ func (r ResourceProviderRegistrationResource) unregisterFeature(ctx context.Cont
 	return nil
 }
 
-func (r ResourceProviderRegistrationResource) featureRegisteringStateRefreshFunc(ctx context.Context, client *features.Client, id parse.FeatureId) pluginsdk.StateRefreshFunc {
+func (r ResourceProviderRegistrationResource) featureRegisteringStateRefreshFunc(ctx context.Context, client *features.FeaturesClient, id features.FeatureId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ProviderNamespace, id.Name)
+		res, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
-		if res.Properties == nil || res.Properties.State == nil {
+		if res.Model == nil || res.Model.Properties == nil || res.Model.Properties.State == nil {
 			return nil, "", fmt.Errorf("error reading %s registering status: %+v", id, err)
 		}
 
-		return res, *res.Properties.State, nil
+		return res, *res.Model.Properties.State, nil
 	}
 }

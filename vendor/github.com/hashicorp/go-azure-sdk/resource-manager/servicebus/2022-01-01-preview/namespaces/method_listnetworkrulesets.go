@@ -19,7 +19,8 @@ type ListNetworkRuleSetsOperationResponse struct {
 }
 
 type ListNetworkRuleSetsCompleteResult struct {
-	Items []NetworkRuleSet
+	LatestHttpResponse *http.Response
+	Items              []NetworkRuleSet
 }
 
 // ListNetworkRuleSets ...
@@ -83,7 +84,8 @@ func (c NamespacesClient) ListNetworkRuleSetsCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListNetworkRuleSetsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -464,8 +464,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -605,8 +605,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -638,6 +638,10 @@ resource "azurerm_application_security_group" "test" {
   name                = "acctestasg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -653,8 +657,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -686,12 +690,20 @@ resource "azurerm_application_security_group" "test" {
   name                = "acctestasg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_application_security_group" "other" {
   name                = "acctestasg2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -707,8 +719,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -752,8 +764,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -794,8 +806,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -836,8 +848,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -878,8 +890,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -953,8 +965,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -996,8 +1008,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1042,8 +1054,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1089,8 +1101,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1140,8 +1152,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1201,8 +1213,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1254,8 +1266,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1308,6 +1320,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -1323,8 +1339,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1356,12 +1372,20 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_network_security_group" "other" {
   name                = "acctestnsg2-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -1377,8 +1401,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1419,8 +1443,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1460,8 +1484,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1506,8 +1530,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1559,8 +1583,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1607,8 +1631,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1708,8 +1732,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

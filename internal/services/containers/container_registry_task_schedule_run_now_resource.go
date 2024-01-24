@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/runs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
@@ -86,34 +87,22 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 			registryId := registries.NewRegistryID(taskId.SubscriptionId, taskId.ResourceGroupName, taskId.RegistryName)
 			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Registries
 
-			_, err = registryClient.ScheduleRun(ctx, registryId, req)
+			scheduleResp, err := registryClient.ScheduleRun(ctx, registryId, req)
 			if err != nil {
 				return fmt.Errorf("scheduling the task: %+v", err)
 
 			}
-
-			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
-			run, err := runsClient.List(ctx, runs.RegistryId(registryId), runs.ListOperationOptions{})
-			if err != nil {
-				return fmt.Errorf("retrieving runs for %s: %+v", taskId, err)
+			if scheduleResp.Model == nil {
+				return fmt.Errorf("ScheduleRun model was nil for taskID %s", taskId)
 			}
-
-			if run.Model == nil {
-				return fmt.Errorf("model was nil for %s", registryId)
-			}
-
-			runName := ""
-			for _, v := range *run.Model {
-				if *v.Properties.Task == taskId.TaskName {
-					runName = *v.Name
-				}
-			}
-
+			runName := pointer.From(scheduleResp.Model.Name)
 			if runName == "" {
 				return fmt.Errorf("unexpected nil scheduled run name")
 			}
 
 			runId := runs.NewRunID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, runName)
+
+			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
 
 			timeout, _ := ctx.Deadline()
 			stateConf := &pluginsdk.StateChangeConf{
@@ -129,7 +118,7 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 						return nil, "", fmt.Errorf("model was nil for %s", runId)
 					}
 
-					return run, string(*resp.Model.Properties.Status), nil
+					return resp, string(*resp.Model.Properties.Status), nil
 				},
 				ContinuousTargetOccurence: 1,
 				PollInterval:              5 * time.Second,

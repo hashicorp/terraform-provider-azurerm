@@ -44,14 +44,12 @@ resource "azurerm_site_recovery_vmware_replication_policy_association" "example"
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the replication policy association. Changing this forces a new association to be
-  created.
+* `name` - (Required) The name of the replication policy association. Changing this forces a new association to be created.
 
 * `recovery_vault_id` - (Required) The ID of the Recovery Service Vault to which the policy should be associated.
   Changing this forces a new association to be created.
 
-* `policy_id` - (Required) The ID of the VMWare replication policy which to be associated. Changing this forces a new
-  association to be created.
+* `policy_id` - (Required) The ID of the VMWare replication policy which to be associated. Changing this forces a new association to be created.
 
 ## Attributes Reference
 

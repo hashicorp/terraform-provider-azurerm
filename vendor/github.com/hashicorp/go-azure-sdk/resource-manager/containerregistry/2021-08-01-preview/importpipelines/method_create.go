@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ImportPipeline
 }
 
 // Create ...
@@ -48,6 +49,10 @@ func (c ImportPipelinesClient) Create(ctx context.Context, id ImportPipelineId, 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

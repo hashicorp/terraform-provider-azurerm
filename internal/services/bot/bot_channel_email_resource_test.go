@@ -42,9 +42,6 @@ func testAccBotChannelEmail_update(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
-	if ok := skipSlackChannel(); ok {
-		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
@@ -67,7 +64,7 @@ func testAccBotChannelEmail_update(t *testing.T) {
 }
 
 func testAccBotChannelEmail_magicCode(t *testing.T) {
-	if os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME") == "" || os.Getenv("ARM_TEST_BOT_LOCATION") == "" || os.Getenv("ARM_TEST_BOT_NAME") == "" || os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_MAGIC_CODE") == "" {
+	if os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME") == "" || os.Getenv("ARM_TEST_BOT_NAME") == "" || os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_MAGIC_CODE") == "" {
 		t.Skip("Skipping as one of `ARM_TEST_BOT_RESOURCE_GROUP_NAME`, `ARM_TEST_BOT_LOCATION`, `ARM_TEST_BOT_NAME`, `ARM_TEST_EMAIL`, AND `ARM_TEST_MAGIC_CODE` was not specified")
 	}
 
@@ -135,12 +132,12 @@ provider "azurerm" {
 
 resource "azurerm_bot_channel_email" "test" {
   bot_name            = "%s"
-  location            = "%s"
+  location            = "global"
   resource_group_name = "%s"
   email_address       = "%s"
   magic_code          = "%s"
 }
-`, os.Getenv("ARM_TEST_BOT_NAME"), os.Getenv("ARM_TEST_BOT_LOCATION"), os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_MAGIC_CODE"))
+`, os.Getenv("ARM_TEST_BOT_NAME"), os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_MAGIC_CODE"))
 }
 
 func skipEmailChannel() bool {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -18,10 +19,11 @@ type GallerySharingProfileUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *SharingUpdate
 }
 
 // GallerySharingProfileUpdate ...
-func (c GallerySharingUpdateClient) GallerySharingProfileUpdate(ctx context.Context, id GalleryId, input SharingUpdate) (result GallerySharingProfileUpdateOperationResponse, err error) {
+func (c GallerySharingUpdateClient) GallerySharingProfileUpdate(ctx context.Context, id commonids.SharedImageGalleryId, input SharingUpdate) (result GallerySharingProfileUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -51,6 +53,10 @@ func (c GallerySharingUpdateClient) GallerySharingProfileUpdate(ctx context.Cont
 		return
 	}
 
+	if err = resp.Unmarshal(&result.Model); err != nil {
+		return
+	}
+
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return
@@ -60,7 +66,7 @@ func (c GallerySharingUpdateClient) GallerySharingProfileUpdate(ctx context.Cont
 }
 
 // GallerySharingProfileUpdateThenPoll performs GallerySharingProfileUpdate then polls until it's completed
-func (c GallerySharingUpdateClient) GallerySharingProfileUpdateThenPoll(ctx context.Context, id GalleryId, input SharingUpdate) error {
+func (c GallerySharingUpdateClient) GallerySharingProfileUpdateThenPoll(ctx context.Context, id commonids.SharedImageGalleryId, input SharingUpdate) error {
 	result, err := c.GallerySharingProfileUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GallerySharingProfileUpdate: %+v", err)

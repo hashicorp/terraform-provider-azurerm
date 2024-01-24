@@ -11,7 +11,7 @@ func PostgresqlFlexibleServerDatabaseCollation(v interface{}, k string) (warning
 	value, ok := v.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	collations := map[string]bool{

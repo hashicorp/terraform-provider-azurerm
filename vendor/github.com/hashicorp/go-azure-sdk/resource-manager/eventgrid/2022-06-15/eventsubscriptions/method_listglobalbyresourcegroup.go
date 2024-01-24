@@ -20,7 +20,8 @@ type ListGlobalByResourceGroupOperationResponse struct {
 }
 
 type ListGlobalByResourceGroupCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type ListGlobalByResourceGroupOperationOptions struct {
@@ -116,7 +117,8 @@ func (c EventSubscriptionsClient) ListGlobalByResourceGroupCompleteMatchingPredi
 	}
 
 	result = ListGlobalByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

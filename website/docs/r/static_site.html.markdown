@@ -15,10 +15,15 @@ Manages an App Service Static Site.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
 resource "azurerm_static_site" "example" {
   name                = "example"
-  resource_group_name = "example"
-  location            = "West Europe"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 
@@ -37,6 +42,8 @@ The following arguments are supported:
 * `sku_size` - (Optional) Specifies the SKU size of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `app_settings` - (Optional) A key-value pair of App Settings.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

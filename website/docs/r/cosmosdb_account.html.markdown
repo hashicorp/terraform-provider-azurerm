@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB`, `MongoDB` and `Parse`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
-* `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
+* `consistency_policy` - (Required) Specifies one `consistency_policy` block as defined below, used to define the consistency policy for this CosmosDB account.
 
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
@@ -158,7 +158,7 @@ The following arguments are supported:
 
 ~> **NOTE:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
-* `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
+* `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
 
 * `enable_multiple_write_locations` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
@@ -310,6 +310,22 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
+
+* `primary_sql_connection_string` - Primary SQL connection string for the CosmosDB Account.
+
+* `secondary_sql_connection_string` - Secondary SQL connection string for the CosmosDB Account.
+
+* `primary_readonly_sql_connection_string` - Primary readonly SQL connection string for the CosmosDB Account.
+
+* `secondary_readonly_sql_connection_string` - Secondary readonly SQL connection string for the CosmosDB Account. 
+
+* `primary_mongodb_connection_string` - Primary Mongodb connection string for the CosmosDB Account.
+
+* `secondary_mongodb_connection_string` - Secondary Mongodb connection string for the CosmosDB Account.
+
+* `primary_readonly_mongodb_connection_string` - Primary readonly Mongodb connection string for the CosmosDB Account.
+
+* `secondary_readonly_mongodb_connection_string` - Secondary readonly Mongodb connection string for the CosmosDB Account.
 
 ---
 

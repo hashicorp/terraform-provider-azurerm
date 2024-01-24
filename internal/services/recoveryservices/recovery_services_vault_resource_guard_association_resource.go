@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/resourceguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/resourceguards"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -48,16 +48,19 @@ func (r VaultGuardProxyResource) ResourceType() string {
 
 func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		// todo 4.0: remove the `name` field as the service only allow create `VaultProxy`
 		"name": {
+			Deprecated:   "The `name` field will be removed in v4.0 of the AzureRM Provider.",
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
+			Default:      "VaultProxy",
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(vaults.VaultId{}),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}),
 
-		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(resourceguards.ResourceGuardId{}),
+		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguards.ResourceGuardId{}),
 	}
 }
 

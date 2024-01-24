@@ -175,6 +175,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -893,57 +894,60 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		if len(s.ApplicationStack) == 1 {
-			linuxAppStack := s.ApplicationStack[0]
-			if linuxAppStack.NetFrameworkVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
-			}
-
-			if linuxAppStack.GoVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
-			}
-
-			if linuxAppStack.PhpVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
-			}
-
-			if linuxAppStack.NodeVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
-			}
-
-			if linuxAppStack.RubyVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
-			}
-
-			if linuxAppStack.PythonVersion != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
-			}
-
-			if linuxAppStack.JavaServer != "" {
-				javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
-				if err != nil {
-					return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
-				}
-				expanded.LinuxFxVersion = javaString
-			}
-
-			if !features.FourPointOhBeta() {
-				if linuxAppStack.DockerImage != "" {
-					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
-				}
-			}
-
-			if linuxAppStack.DockerImageName != "" {
-				expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
-				appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
-				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
-				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
-			}
-		} else {
-			expanded.LinuxFxVersion = pointer.To("")
+	if len(s.ApplicationStack) == 1 {
+		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.NetFrameworkVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 		}
+
+		if linuxAppStack.GoVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
+		}
+
+		if linuxAppStack.PhpVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
+		}
+
+		if linuxAppStack.NodeVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+		}
+
+		if linuxAppStack.RubyVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+		}
+
+		if linuxAppStack.PythonVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+		}
+
+		if linuxAppStack.JavaServer != "" {
+			javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
+			if err != nil {
+				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
+			}
+			expanded.LinuxFxVersion = javaString
+		}
+
+		if !features.FourPointOhBeta() {
+			if linuxAppStack.DockerImage != "" {
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			}
+		}
+
+		if linuxAppStack.DockerImageName != "" {
+			expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+			if appSettings == nil {
+				appSettings = map[string]string{}
+			}
+			appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
+			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
+			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
+		}
+	} else {
+		expanded.LinuxFxVersion = pointer.To("")
 	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
@@ -1142,6 +1146,16 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 
 	autoHeal := autoHealSettings[0]
 
+	if len(autoHeal.Actions) > 0 {
+		action := autoHeal.Actions[0]
+		result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
+		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
+	}
+
+	if len(autoHeal.Triggers) == 0 {
+		return result
+	}
+
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
 		result.Triggers.Requests = &web.RequestsBasedTrigger{
@@ -1192,10 +1206,6 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 		result.Triggers.StatusCodes = &statusCodeTriggers
 		result.Triggers.StatusCodesRange = &statusCodeRangeTriggers
 	}
-
-	action := autoHeal.Actions[0]
-	result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
-	result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 
 	return result
 }

@@ -12,21 +12,18 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -47,7 +44,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 		Delete: resourceWindowsVirtualMachineDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.VirtualMachineID(id)
+			_, err := commonids.ParseVirtualMachineID(id)
 			return err
 		}, importVirtualMachine(compute.OperatingSystemTypesWindows, "azurerm_windows_virtual_machine")),
 
@@ -120,7 +117,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
+				ValidateFunc: commonids.ValidateAvailabilitySetID,
 				// the Compute/VM API is broken and returns the Availability Set name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -168,7 +165,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: dedicatedhosts.ValidateHostID,
+				ValidateFunc: commonids.ValidateDedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -180,7 +177,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: dedicatedhostgroups.ValidateHostGroupID,
+				ValidateFunc: commonids.ValidateDedicatedHostGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -366,7 +363,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{
 					"availability_set_id",
 				},
-				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
 			"platform_fault_domain": {
@@ -431,12 +428,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.Name, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
+	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
@@ -468,7 +465,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}
-		computerName = id.Name
+		computerName = id.VirtualMachineName
 	}
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -510,7 +507,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := compute.VirtualMachine{
-		Name:             utils.String(id.Name),
+		Name:             utils.String(id.VirtualMachineName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         utils.String(location),
 		Identity:         identity,
@@ -595,7 +592,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
 			}
 
-			return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
+			return fmt.Errorf("%q is currently only supported on %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk")
 		}
 	}
 
@@ -775,7 +772,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualMachineName, params)
 	if err != nil {
 		return fmt.Errorf("creating Windows %s: %+v", id, err)
 	}
@@ -796,24 +793,24 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineID(d.Id())
+	id, err := commonids.ParseVirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Windows Virtual Machine %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Windows %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VirtualMachineName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
@@ -830,7 +827,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if resp.VirtualMachineProperties == nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Windows %s: `properties` was nil", id)
 	}
 
 	props := *resp.VirtualMachineProperties
@@ -1047,24 +1044,24 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineID(d.Id())
+	id, err := commonids.ParseVirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
+	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
+	log.Printf("[DEBUG] Retrieving Windows %s", id)
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
 	if err != nil {
-		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving InstanceView for Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	instanceView, err := client.InstanceView(ctx, id.ResourceGroup, id.Name)
+	log.Printf("[DEBUG] Retrieving InstanceView for Windows %s", id)
+	instanceView, err := client.InstanceView(ctx, id.ResourceGroupName, id.VirtualMachineName)
 	if err != nil {
-		return fmt.Errorf("retrieving InstanceView for Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving InstanceView for Windows %s: %+v", id, err)
 	}
 
 	shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
@@ -1385,9 +1382,9 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		// Azure will auto-reboot this for us, providing this machine will fit on this host
 		// otherwise we need to shut down the VM to move it to another host to be able to use this size
 		availableOnThisHost := false
-		sizes, err := client.ListAvailableSizes(ctx, id.ResourceGroup, id.Name)
+		sizes, err := client.ListAvailableSizes(ctx, id.ResourceGroupName, id.VirtualMachineName)
 		if err != nil {
-			return fmt.Errorf("retrieving available sizes for Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving available sizes for Windows %s: %+v", id, err)
 		}
 
 		if sizes.Value != nil {
@@ -1434,7 +1431,8 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("additional_capabilities") {
 		shouldUpdate = true
 
-		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+		n, _ := d.GetChange("additional_capabilities")
+		if len(n.([]interface{})) == 0 || d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
 			shouldShutDown = true
 			shouldDeallocate = true
 		}
@@ -1509,37 +1507,37 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if shouldShutDown {
-		log.Printf("[DEBUG] Shutting Down Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Shutting Down Windows %s", id)
 		forceShutdown := false
-		future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(forceShutdown))
+		future, err := client.PowerOff(ctx, id.ResourceGroupName, id.VirtualMachineName, utils.Bool(forceShutdown))
 		if err != nil {
-			return fmt.Errorf("sending Power Off to Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("sending Power Off to Windows %s: %+v", id, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for Power Off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for Power Off of Windows %s: %+v", id, err)
 		}
 
-		log.Printf("[DEBUG] Shut Down Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Shut Down Windows %s", id)
 	}
 
 	if shouldDeallocate {
 		if !hasEphemeralOSDisk {
-			log.Printf("[DEBUG] Deallocating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Deallocating Windows %s", id)
 			// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the Deallocate method
-			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
+			future, err := client.Deallocate(ctx, id.ResourceGroupName, id.VirtualMachineName, utils.Bool(false))
 			if err != nil {
-				return fmt.Errorf("deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("deallocating Windows %s: %+v", id, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Deallocation of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for Deallocation of Windows %s: %+v", id, err)
 			}
 
-			log.Printf("[DEBUG] Deallocated Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Deallocated Windows %s", id)
 		} else {
 			// Code="OperationNotAllowed" Message="Operation 'deallocate' is not supported for VMs or VM Scale Set instances using an ephemeral OS disk."
-			log.Printf("[DEBUG] Skipping deallocation for Windows Virtual Machine %q (Resource Group %q) since cannot deallocate a Virtual Machine with an Ephemeral OS Disk", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Skipping deallocation for Windows %s since cannot deallocate a Virtual Machine with an Ephemeral OS Disk", id)
 		}
 	}
 
@@ -1549,11 +1547,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("os_disk.0.disk_size_gb") {
 		diskName := d.Get("os_disk.0.name").(string)
 		newSize := d.Get("os_disk.0.disk_size_gb").(int)
-		log.Printf("[DEBUG] Resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB..", diskName, id.Name, id.ResourceGroup, newSize)
+		log.Printf("[DEBUG] Resizing OS Disk %q for Windows %s to %dGB..", diskName, id, newSize)
 
 		disksClient := meta.(*clients.Client).Compute.DisksClient
 		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-		id := disks.NewDiskID(subscriptionId, id.ResourceGroup, diskName)
+		id := commonids.NewManagedDiskID(subscriptionId, id.ResourceGroupName, diskName)
 
 		update := disks.DiskUpdate{
 			Properties: &disks.DiskUpdateProperties{
@@ -1572,7 +1570,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("os_disk.0.disk_encryption_set_id") {
 		if diskEncryptionSetId := d.Get("os_disk.0.disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			diskName := d.Get("os_disk.0.name").(string)
-			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows %s to %q..", diskName, id, diskEncryptionSetId)
 
 			encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, meta.(*clients.Client).Compute.DiskEncryptionSetsClient, diskEncryptionSetId)
 			if err != nil {
@@ -1581,7 +1579,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 			disksClient := meta.(*clients.Client).Compute.DisksClient
 			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-			id := disks.NewDiskID(subscriptionId, id.ResourceGroup, diskName)
+			id := commonids.NewManagedDiskID(subscriptionId, id.ResourceGroupName, diskName)
 
 			update := disks.DiskUpdate{
 				Properties: &disks.DiskUpdateProperties{
@@ -1604,32 +1602,32 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if shouldUpdate {
-		log.Printf("[DEBUG] Updating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
+		log.Printf("[DEBUG] Updating Windows %s", id)
+		future, err := client.Update(ctx, id.ResourceGroupName, id.VirtualMachineName, update)
 		if err != nil {
-			return fmt.Errorf("updating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Windows %s: %+v", id, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Windows %s: %+v", id, err)
 		}
 
-		log.Printf("[DEBUG] Updated Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Updated Windows %s.", id)
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
 	if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
-		log.Printf("[DEBUG] Starting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
+		log.Printf("[DEBUG] Starting Windows %s", id)
+		future, err := client.Start(ctx, id.ResourceGroupName, id.VirtualMachineName)
 		if err != nil {
-			return fmt.Errorf("starting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("starting Windows %s: %+v", id, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for start of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for start of Windows %s: %+v", id, err)
 		}
 
-		log.Printf("[DEBUG] Started Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Started Windows %s", id)
 	}
 
 	return resourceWindowsVirtualMachineRead(d, meta)
@@ -1640,47 +1638,47 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineID(d.Id())
+	id, err := commonids.ParseVirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, VirtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
+	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	log.Printf("[DEBUG] Retrieving Windows %s", id)
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
 	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
 		// If the VM was in a Failed state we can skip powering off, since that'll fail
 		if strings.EqualFold(*existing.ProvisioningState, "failed") {
-			log.Printf("[DEBUG] Powering Off Windows Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Powering Off Windows %s was skipped because the VM was in %q state", id, *existing.ProvisioningState)
 		} else {
 			// ISSUE: 4920
 			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
 			// thus this can be a large cost-saving when deleting larger instances
 			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-			log.Printf("[DEBUG] Powering Off Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Powering Off Windows %s.", id)
 			skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-			powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
+			powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroupName, id.VirtualMachineName, utils.Bool(skipShutdown))
 			if err != nil {
-				return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("powering off Windows %s: %+v", id, err)
 			}
 			if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for power off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for power off of Windows %s: %+v", id, err)
 			}
-			log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Powered Off Windows %s", id)
 		}
 	}
 
-	log.Printf("[DEBUG] Deleting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting Windows %s", id)
 
 	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
 	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
@@ -1689,18 +1687,18 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
 		forceDeletion = utils.Bool(true)
 	}
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroupName, id.VirtualMachineName, forceDeletion)
 	if err != nil {
-		return fmt.Errorf("deleting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
 	if err := deleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Windows %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Deleted Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleted Windows %s", id)
 
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
-		log.Printf("[DEBUG] Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Deleting OS Disk from Windows %s", id)
 		disksClient := meta.(*clients.Client).Compute.DisksClient
 		managedDiskId := ""
 		if props := existing.VirtualMachineProperties; props != nil && props.StorageProfile != nil && props.StorageProfile.OsDisk != nil {
@@ -1710,7 +1708,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if managedDiskId != "" {
-			diskId, err := disks.ParseDiskID(managedDiskId)
+			diskId, err := commonids.ParseManagedDiskID(managedDiskId)
 			if err != nil {
 				return err
 			}
@@ -1718,35 +1716,35 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 			diskDeleteFuture, err := disksClient.Delete(ctx, *diskId)
 			if err != nil {
 				if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows %s: %+v", diskId.DiskName, diskId.ResourceGroupName, id, err)
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.HttpResponse) {
 				if err := diskDeleteFuture.Poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroupName, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("OS Disk %s for Windows %s: %+v", diskId, id, err)
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroupName)
+			log.Printf("[DEBUG] Deleted OS Disk from Windows %s.", id)
 		} else {
-			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q) - cannot determine OS Disk ID.", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows %s - cannot determine OS Disk ID.", id)
 		}
 	} else {
-		log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows %s", id)
 	}
 
 	// Need to add a get and a state wait to avoid bug in network API where the attached disk(s) are not actually deleted
 	// Service team indicated that we need to do a get after VM delete call returns to verify that the VM and all attached
 	// disks have actually been deleted.
 
-	log.Printf("[INFO] verifying Windows Virtual Machine %q has been deleted", id.Name)
-	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	log.Printf("[INFO] verifying Windows %s has been deleted", id)
+	virtualMachine, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
 	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
-		return fmt.Errorf("verifying Windows Virtual Machine %q (Resource Group %q) has been deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("verifying Windows %s has been deleted: %+v", id, err)
 	}
 
 	if !utils.ResponseWasNotFound(virtualMachine.Response) {
-		log.Printf("[INFO] Windows Virtual Machine still exists, waiting on Windows Virtual Machine %q to be deleted", id.Name)
+		log.Printf("[INFO] Windows %s still exists, waiting on vm to be deleted", id)
 
 		deleteWait := &pluginsdk.StateChangeConf{
 			Pending:    []string{"200"},
@@ -1754,20 +1752,20 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 			MinTimeout: 30 * time.Second,
 			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 			Refresh: func() (interface{}, string, error) {
-				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
-				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+				log.Printf("[INFO] checking on state of Windows %s", id)
+				resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
 				if err != nil {
 					if utils.ResponseWasNotFound(resp.Response) {
 						return resp, strconv.Itoa(resp.StatusCode), nil
 					}
-					return nil, "nil", fmt.Errorf("polling for the status of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+					return nil, "nil", fmt.Errorf("polling for the status of Windows %s: %v", id, err)
 				}
 				return resp, strconv.Itoa(resp.StatusCode), nil
 			},
 		}
 
 		if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for the deletion of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for the deletion of Windows %s: %v", id, err)
 		}
 	}
 

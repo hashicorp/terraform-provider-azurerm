@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DomainTopic
 }
 
 // CreateOrUpdate ...
@@ -43,6 +44,10 @@ func (c DomainTopicsClient) CreateOrUpdate(ctx context.Context, id DomainTopicId
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

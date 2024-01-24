@@ -40,32 +40,32 @@ resource "azurerm_automation_variable_object" "example" {
 
 The following arguments are supported:
 
-- `name` - (Required) The name of the Automation Variable. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Automation Variable. Changing this forces a new resource to be created.
 
-- `resource_group_name` - (Required) The name of the resource group in which to create the Automation Variable. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Automation Variable. Changing this forces a new resource to be created.
 
-- `automation_account_name` - (Required) The name of the automation account in which the Variable is created. Changing this forces a new resource to be created.
+* `automation_account_name` - (Required) The name of the automation account in which the Variable is created. Changing this forces a new resource to be created.
 
-- `description` - (Optional) The description of the Automation Variable.
+* `description` - (Optional) The description of the Automation Variable.
 
-- `encrypted` - (Optional) Specifies if the Automation Variable is encrypted. Defaults to `false`.
+* `encrypted` - (Optional) Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
-- `value` - (Optional) The value of the Automation Variable as a `jsonencode()` string.
+* `value` - (Optional) The value of the Automation Variable as a `jsonencode()` string.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the Automation Variable.
+* `id` - The ID of the Automation Variable.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 30 minutes) Used when creating the Automation Object Variable.
-- `update` - (Defaults to 30 minutes) Used when updating the Automation Object Variable.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Automation Object Variable.
-- `delete` - (Defaults to 30 minutes) Used when deleting the Automation Object Variable.
+* `create` - (Defaults to 30 minutes) Used when creating the Automation Object Variable.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Object Variable.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Object Variable.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation Object Variable.
 
 ## Import
 

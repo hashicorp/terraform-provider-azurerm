@@ -14,9 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,14 +26,16 @@ import (
 type ContainerAppEnvironmentResource struct{}
 
 type ContainerAppEnvironmentModel struct {
-	Name                                    string                 `tfschema:"name"`
-	ResourceGroup                           string                 `tfschema:"resource_group_name"`
-	Location                                string                 `tfschema:"location"`
-	DaprApplicationInsightsConnectionString string                 `tfschema:"dapr_application_insights_connection_string"`
-	LogAnalyticsWorkspaceId                 string                 `tfschema:"log_analytics_workspace_id"`
-	InfrastructureSubnetId                  string                 `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled             bool                   `tfschema:"internal_load_balancer_enabled"`
-	Tags                                    map[string]interface{} `tfschema:"tags"`
+	Name                                    string                         `tfschema:"name"`
+	ResourceGroup                           string                         `tfschema:"resource_group_name"`
+	Location                                string                         `tfschema:"location"`
+	DaprApplicationInsightsConnectionString string                         `tfschema:"dapr_application_insights_connection_string"`
+	LogAnalyticsWorkspaceId                 string                         `tfschema:"log_analytics_workspace_id"`
+	InfrastructureSubnetId                  string                         `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled             bool                           `tfschema:"internal_load_balancer_enabled"`
+	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
+	Tags                                    map[string]interface{}         `tfschema:"tags"`
+	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -95,11 +98,22 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"internal_load_balancer_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			ForceNew:    true,
-			Default:     false,
-			Description: "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      false,
+			RequiredWith: []string{"infrastructure_subnet_id"},
+			Description:  "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+		},
+
+		"workload_profile": helpers.WorkloadProfileSchema(),
+
+		"zone_redundancy_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      false,
+			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -172,6 +186,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Name:     pointer.To(containerAppEnvironment.Name),
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
+					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
@@ -220,6 +235,8 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 			}
 
+			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -265,8 +282,10 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
 					}
 
+					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 				}
 			}
 
@@ -330,6 +349,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = tags.Expand(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("workload_profile") {
+				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
 
 			// (@jackofallops) This is not updatable and needs to be removed since the read does not return the sensitive Key field.

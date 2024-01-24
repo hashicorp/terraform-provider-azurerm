@@ -143,28 +143,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Palo Alto Next Generation Firewall VHub Panorama.
 
-* `pan_etag` - The Etag value of the configuration.
-
-* `panorama_config` - A `panorama_config` block as defined below.
-
----
-
-A `panorama` block exports the following:
-
-* `device_group_name` - The Device Group Name to which this Firewall Resource is registered.
-
-* `host_name` - The Host Name of this Firewall Resource.
-
-* `name` - The name of this Firewall Resource.
-
-* `panorama_server_1` - The name of the First Panorama server.
-
-* `panorama_server_2` - The name of the Second Panorama server.
-
-* `template_name` - The name of the Panorama Template applied to this Firewall Resource.
-
-* `virtual_machine_ssh_key` - The SSH Key to connect to the Firewall Resource.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

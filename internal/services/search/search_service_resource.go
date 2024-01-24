@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -161,6 +161,15 @@ func resourceSearchService() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"semantic_search_sku": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(services.SearchSemanticSearchFree),
+					string(services.SearchSemanticSearchStandard),
+				}, false),
+			},
+
 			"allowed_ips": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -210,6 +219,11 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
 	authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 
+	semanticSearchSku := services.SearchSemanticSearchDisabled
+	if v := d.Get("semantic_search_sku").(string); v != "" {
+		semanticSearchSku = services.SearchSemanticSearch(v)
+	}
+
 	cmkEnforcement := services.SearchEncryptionWithCmkDisabled
 	if cmkEnforcementEnabled {
 		cmkEnforcement = services.SearchEncryptionWithCmkEnabled
@@ -231,6 +245,11 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// 'partition_count' must be between 1 and 3.
 	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
 		return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
+	}
+
+	// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
+	if skuName == services.SkuNameFree && semanticSearchSku != services.SearchSemanticSearchDisabled {
+		return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
 	}
 
 	// The number of replicas can be between 1 and 12 for 'standard', 'storage_optimized_l1' and storage_optimized_l2' SKUs
@@ -281,6 +300,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			DisableLocalAuth: pointer.To(!localAuthenticationEnabled),
 			PartitionCount:   pointer.To(partitionCount),
 			ReplicaCount:     pointer.To(replicaCount),
+			SemanticSearch:   pointer.To(semanticSearchSku),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -434,6 +454,20 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	if d.HasChange("semantic_search_sku") {
+		semanticSearchSku := services.SearchSemanticSearchDisabled
+		if v := d.Get("semantic_search_sku").(string); v != "" {
+			semanticSearchSku = services.SearchSemanticSearch(v)
+		}
+
+		// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
+		if pointer.From(model.Sku.Name) == services.SkuNameFree && semanticSearchSku != services.SearchSemanticSearchDisabled {
+			return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
+		}
+
+		model.Properties.SemanticSearch = pointer.To(semanticSearchSku)
+	}
+
 	if d.HasChange("tags") {
 		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -486,6 +520,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			hostingMode := services.HostingModeDefault
 			localAuthEnabled := true
 			authFailureMode := ""
+			semanticSearchSku := ""
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(pointer.From(count))
@@ -525,6 +560,10 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				}
 			}
 
+			if props.SemanticSearch != nil && pointer.From(props.SemanticSearch) != services.SearchSemanticSearchDisabled {
+				semanticSearchSku = string(pointer.From(props.SemanticSearch))
+			}
+
 			d.Set("authentication_failure_mode", authFailureMode)
 			d.Set("local_authentication_enabled", localAuthEnabled)
 			d.Set("partition_count", partitionCount)
@@ -533,6 +572,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("hosting_mode", hostingMode)
 			d.Set("customer_managed_key_enforcement_enabled", cmkEnforcement)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
+			d.Set("semantic_search_sku", semanticSearchSku)
 		}
 
 		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {

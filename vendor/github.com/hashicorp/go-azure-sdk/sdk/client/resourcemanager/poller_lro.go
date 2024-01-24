@@ -164,6 +164,14 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			// whilst the standard set above should be sufficient, some APIs differ from the spec and should be documented below:
 			// Dashboard@2022-08-01 returns `Accepted` rather than `InProgress` during creation
 			"Accepted": pollers.PollingStatusInProgress,
+			// EventGrid@2022-06-15 returns `Active` rather than `InProgress` during creation
+			"Active": pollers.PollingStatusInProgress,
+			// NetAppVolumeReplication @ 2023-05-01 returns `AuthorizeReplication` during authorizing replication
+			"AuthorizeReplication": pollers.PollingStatusInProgress,
+			// NetAppVolumeReplication @ 2023-05-01 returns `BreakReplication` during breaking replication
+			"BreakReplication": pollers.PollingStatusInProgress,
+			// Mysql @ 2022-01-01 returns `CancelInProgress` during Update
+			"CancelInProgress": pollers.PollingStatusInProgress,
 			// CostManagement@2021-10-01 returns `Completed` rather than `Succeeded`: https://github.com/Azure/azure-sdk-for-go/issues/20342
 			"Completed": pollers.PollingStatusSucceeded,
 			// ContainerRegistry@2019-06-01-preview returns `Creating` rather than `InProgress` during creation
@@ -181,8 +189,14 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			// StorageSync@2020-03-01 (CloudEndpoints) returns `newReplicaGroup` rather than `InProgress` during creation/update
 			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
 			"newReplicaGroup": pollers.PollingStatusInProgress,
+			// SAPVirtualInstance @ 2023-04-01 returns `Preparing System Configuration` during Creation
+			"Preparing System Configuration": pollers.PollingStatusInProgress,
+			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Pausing` during update
+			"Pausing": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
 			"Provisioning": pollers.PollingStatusInProgress,
+			// Resources @ 2020-10-01 (DeploymentScripts) returns `ProvisioningResources` during Creation
+			"ProvisioningResources": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers Resume) returns `Resuming` during Update
 			"Resuming": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Scaling` during Update
@@ -234,8 +248,12 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 }
 
 type operationResult struct {
-	Name      *string    `json:"name"`
-	StartTime *time.Time `json:"startTime"`
+	Name *string `json:"name"`
+	// Some APIs (such as CosmosDbPostgreSQLCluster) return a DateTime value that doesn't match RFC3339
+	// as such we're intentionally parsing this as a string (for info) rather than as a time.Time due to:
+	// > parsing time "2023-08-11 01:58:30 +0000" as "2006-01-02T15:04:05Z07:00":
+	// >  cannot parse " 01:58:30 +0000" as "T"
+	StartTime *string `json:"startTime"`
 
 	Properties struct {
 		// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState

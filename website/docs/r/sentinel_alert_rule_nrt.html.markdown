@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `suppression_enabled` - (Optional) Should the Sentinel NRT Alert Rulea stop running query after alert is generated? Defaults to `false`.
 
-* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation` and `PreAttack`.
+* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `ImpairProcessControl`, `InhibitResponseFunction`, `InitialAccess`, `LateralMovement`, `Persistence`, `PreAttack`, `PrivilegeEscalation`, `Reconnaissance` and `ResourceDevelopment`.
 
 * `techniques` - (Optional) A list of techniques of attacks by which to classify the rule.
 

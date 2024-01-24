@@ -38,6 +38,6 @@ variable "active_directory_password" {
 }
 
 locals {
-  virtual_machine_name = join("-", [var.prefix, "client"])
+  virtual_machine_name    = join("-", [var.prefix, "client"])
   wait_for_domain_command = "while (!(Test-Connection -TargetName ${var.active_directory_domain_name} -Count 1 -Quiet) -and ($retryCount++ -le 360)) { Start-Sleep 10 }"
 }

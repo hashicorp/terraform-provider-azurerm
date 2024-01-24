@@ -10,7 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -165,6 +166,40 @@ func TestAccManagedDisk_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acctest"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("2"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue(string(disks.DiskStorageAccountTypesPremiumLRS)),
+			),
+		},
+	})
+}
+
+func TestAccManagedDisk_optimizedFrequentAttach(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.optimizedFrequentAttach(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.empty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccManagedDisk_performancePlus(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.performancePlus(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -782,7 +817,7 @@ func TestAccManagedDisk_premiumV2WithIOpsReadOnlyAndMBpsReadOnly(t *testing.T) {
 }
 
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := disks.ParseDiskID(state.ID)
+	id, err := commonids.ParseManagedDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -814,6 +849,61 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) optimizedFrequentAttach(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                              = "acctestd-%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  storage_account_type              = "Standard_LRS"
+  create_option                     = "Empty"
+  disk_size_gb                      = "1"
+  optimized_frequent_attach_enabled = true
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ManagedDiskResource) performancePlus(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                     = "acctestd-%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  storage_account_type     = "Premium_LRS"
+  create_option            = "Empty"
+  disk_size_gb             = "1024"
+  performance_plus_enabled = true
   tags = {
     environment = "acctest"
     cost-center = "ops"
@@ -919,8 +1009,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1062,8 +1152,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "16.04-LTS"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1093,8 +1183,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "16.04-LTS"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1141,8 +1231,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1761,8 +1851,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2039,8 +2129,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "18_04-LTS-gen2"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts-gen2"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -2486,8 +2576,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2575,8 +2665,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

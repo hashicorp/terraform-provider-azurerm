@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 func TestMaintenanceAssignmentVirtualMachineScaleSetID(t *testing.T) {
@@ -58,10 +58,10 @@ func TestMaintenanceAssignmentVirtualMachineScaleSetID(t *testing.T) {
 			Error: false,
 			Expect: &MaintenanceAssignmentVirtualMachineScaleSetId{
 				VirtualMachineScaleSetIdRaw: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachineScaleSets/vmss1",
-				VirtualMachineScaleSetId: &parseCompute.VirtualMachineScaleSetId{
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "resGroup1",
-					Name:           "vmss1",
+				VirtualMachineScaleSetId: &commonids.VirtualMachineScaleSetId{
+					SubscriptionId:             "00000000-0000-0000-0000-000000000000",
+					ResourceGroupName:          "resGroup1",
+					VirtualMachineScaleSetName: "vmss1",
 				},
 				Name: "assign1",
 			},

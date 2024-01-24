@@ -32,7 +32,6 @@ func resourceActiveDirectoryDomainServiceReplicaSet() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(3 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(2 * time.Hour),
 			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
 		},
 

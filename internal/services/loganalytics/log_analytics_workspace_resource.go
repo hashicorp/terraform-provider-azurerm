@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -85,6 +87,8 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
 			"internet_ingestion_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -142,6 +146,17 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:          -1.0,
 				DiffSuppressFunc: dailyQuotaGbDiffSuppressFunc,
 				ValidateFunc:     validation.FloatAtLeast(-1.0),
+			},
+
+			"data_collection_rule_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
+			},
+
+			"immediate_data_purge_on_30_days_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"workspace_id": {
@@ -291,6 +306,12 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	// The `ImmediatePurgeDataOn30Days` are not returned before it has been set
+	// nolint : staticcheck
+	if v, ok := d.GetOkExists("immediate_data_purge_on_30_days_enabled"); ok {
+		parameters.Properties.Features.ImmediatePurgeDataOn30Days = utils.Bool(v.(bool))
+	}
+
 	propName := "reservation_capacity_in_gb_per_day"
 	capacityReservationLevel, ok := d.GetOk(propName)
 	if ok {
@@ -306,9 +327,23 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	if v, ok := d.GetOk("identity"); ok {
+		expanded, err := identity.ExpandSystemOrUserAssignedMap(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding identity: %+v", err)
+		}
+		parameters.Identity = expanded
+	}
+
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return err
+	}
+
+	// `data_collection_rule_id` also needs an additional update.
+	// error message: Default dcr is not applicable on workspace creation, please provide it on update.
+	if v, ok := d.GetOk("data_collection_rule_id"); ok {
+		parameters.Properties.DefaultDataCollectionRuleResourceId = pointer.To(v.(string))
 	}
 
 	// `allow_resource_only_permissions` needs an additional update, tacked on https://github.com/Azure/azure-rest-api-specs/issues/21591
@@ -368,6 +403,14 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
+		if model.Identity != nil {
+			flattenIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening identity: %+v", err)
+			}
+			d.Set("identity", flattenIdentity)
+		}
+
 		if props := model.Properties; props != nil {
 			internetIngestionEnabled := true
 			if props.PublicNetworkAccessForIngestion != nil {
@@ -425,18 +468,26 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 			allowResourceOnlyPermissions := true
 			disableLocalAuth := false
+			purgeDataOnThirtyDays := false
 			if features := props.Features; features != nil {
-				v := features.EnableLogAccessUsingOnlyResourcePermissions
-				if v != nil {
-					allowResourceOnlyPermissions = *v
-				}
-				d := features.DisableLocalAuth
-				if d != nil {
-					disableLocalAuth = *d
-				}
+				allowResourceOnlyPermissions = pointer.From(features.EnableLogAccessUsingOnlyResourcePermissions)
+				disableLocalAuth = pointer.From(features.DisableLocalAuth)
+				purgeDataOnThirtyDays = pointer.From(features.ImmediatePurgeDataOn30Days)
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 			d.Set("local_authentication_disabled", disableLocalAuth)
+			d.Set("immediate_data_purge_on_30_days_enabled", purgeDataOnThirtyDays)
+
+			defaultDataCollectionRuleResourceId := ""
+			if props.DefaultDataCollectionRuleResourceId != nil {
+				dataCollectionId, err := datacollectionrules.ParseDataCollectionRuleID(*props.DefaultDataCollectionRuleResourceId)
+				if err != nil {
+					return err
+				}
+
+				defaultDataCollectionRuleResourceId = dataCollectionId.ID()
+			}
+			d.Set("data_collection_rule_id", defaultDataCollectionRuleResourceId)
 
 			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
 				SubscriptionId:    id.SubscriptionId,

@@ -171,7 +171,7 @@ The `match_condition` block supports the following:
 
 * `transform` - (Optional) can be set to one or more values out of `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` and `UrlEncode`
 
-* `negate_condition` - (Optional) can be set to `true` or `false` to negate the given condition. Defaults to `true`.
+* `negate_condition` - (Optional) can be set to `true` or `false` to negate the given condition. Defaults to `false`.
 
 * `value` - (Optional) (array) can contain one or more strings.
 

@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VaultSetting
 }
 
 // Create ...
@@ -47,6 +48,10 @@ func (c ReplicationVaultSettingClient) Create(ctx context.Context, id Replicatio
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

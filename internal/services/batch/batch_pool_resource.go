@@ -463,9 +463,15 @@ func resourceBatchPool() *pluginsdk.Resource {
 								string(pool.DynamicVNetAssignmentScopeJob),
 							}, false),
 						},
+						"accelerated_networking_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+							ForceNew: true,
+						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -1202,7 +1208,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								extension["settings_json"] = item.Settings
+								extension["settings_json"], err = pluginsdk.FlattenJsonToString((*item.Settings).(map[string]interface{}))
+								if err != nil {
+									return fmt.Errorf("flattening `settings_json`: %+v", err)
+								}
 							}
 
 							for i := 0; i < n; i++ {

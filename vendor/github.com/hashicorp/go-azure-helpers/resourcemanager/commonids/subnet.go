@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SubnetId{}
+var _ resourceids.ResourceId = &SubnetId{}
 
 // SubnetId is a struct representing the Resource ID for a Subnet
 type SubnetId struct {
@@ -32,29 +32,15 @@ func NewSubnetID(subscriptionId string, resourceGroupName string, virtualNetwork
 
 // ParseSubnetID parses 'input' into a SubnetId
 func ParseSubnetID(input string) (*SubnetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SubnetId{})
+	parser := resourceids.NewParserFromResourceIdType(&SubnetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SubnetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualNetworkName, ok = parsed.Parsed["virtualNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkName", *parsed)
-	}
-
-	if id.SubnetName, ok = parsed.Parsed["subnetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subnetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseSubnetID(input string) (*SubnetId, error) {
 // ParseSubnetIDInsensitively parses 'input' case-insensitively into a SubnetId
 // note: this method should only be used for API response data and not user input
 func ParseSubnetIDInsensitively(input string) (*SubnetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SubnetId{})
+	parser := resourceids.NewParserFromResourceIdType(&SubnetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SubnetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualNetworkName, ok = parsed.Parsed["virtualNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkName", *parsed)
-	}
-
-	if id.SubnetName, ok = parsed.Parsed["subnetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subnetName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SubnetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualNetworkName, ok = input.Parsed["virtualNetworkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkName", input)
+	}
+
+	if id.SubnetName, ok = input.Parsed["subnetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subnetName", input)
+	}
+
+	return nil
 }
 
 // ValidateSubnetID checks that 'input' can be parsed as a Subnet ID

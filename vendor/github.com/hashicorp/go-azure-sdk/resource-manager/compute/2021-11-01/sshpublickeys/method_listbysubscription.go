@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []SshPublicKeyResource
+	LatestHttpResponse *http.Response
+	Items              []SshPublicKeyResource
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c SshPublicKeysClient) ListBySubscriptionCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

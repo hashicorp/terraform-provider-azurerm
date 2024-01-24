@@ -7,23 +7,23 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-	id, err := parse.VirtualMachineScaleSetID(d.Id())
+	id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, err
 	}
 
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	_, err = client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	_, err = client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
-		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return []*pluginsdk.ResourceData{d}, nil
@@ -31,28 +31,28 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 
 func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := parse.VirtualMachineScaleSetID(d.Id())
+		id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
 		client := meta.(*clients.Client).Compute.VMScaleSetClient
 		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+		vm, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 		if err != nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		if vm.VirtualMachineScaleSetProperties == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties` was nil", id)
 		}
 
 		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties.virtualMachineProfile` was nil", id)
 		}
 
 		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.OsProfile == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile.osProfile` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties.virtualMachineProfile.osProfile` was nil", id)
 		}
 
 		isCorrectOS := false
@@ -87,7 +87,7 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 				}
 				updatedExtensions, err = flattenVirtualMachineScaleSetExtensions(extensionsProfile, d)
 				if err != nil {
-					return []*pluginsdk.ResourceData{}, fmt.Errorf("could not read VMSS extensions data for %q (resource group %q)", id.Name, id.ResourceGroup)
+					return []*pluginsdk.ResourceData{}, fmt.Errorf("could not read VMSS extensions data for %s", id)
 				}
 			}
 		}

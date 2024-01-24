@@ -152,7 +152,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	nestedItemObjectType := NestedItemObjectType(components[0])
 
 	childId := NestedItemId{
-		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
+		KeyVaultBaseUrl: fmt.Sprintf("https://%s/", idURL.Host),
 		NestedItemType:  nestedItemObjectType,
 		Name:            components[1],
 		Version:         version,

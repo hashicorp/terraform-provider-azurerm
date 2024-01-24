@@ -19,7 +19,8 @@ type ListByFluidRelayServersOperationResponse struct {
 }
 
 type ListByFluidRelayServersCompleteResult struct {
-	Items []FluidRelayContainer
+	LatestHttpResponse *http.Response
+	Items              []FluidRelayContainer
 }
 
 // ListByFluidRelayServers ...
@@ -83,7 +84,8 @@ func (c FluidRelayContainersClient) ListByFluidRelayServersCompleteMatchingPredi
 	}
 
 	result = ListByFluidRelayServersCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

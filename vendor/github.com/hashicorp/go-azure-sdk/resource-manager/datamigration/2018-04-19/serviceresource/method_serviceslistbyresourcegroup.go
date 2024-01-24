@@ -19,7 +19,8 @@ type ServicesListByResourceGroupOperationResponse struct {
 }
 
 type ServicesListByResourceGroupCompleteResult struct {
-	Items []DataMigrationService
+	LatestHttpResponse *http.Response
+	Items              []DataMigrationService
 }
 
 // ServicesListByResourceGroup ...
@@ -83,7 +84,8 @@ func (c ServiceResourceClient) ServicesListByResourceGroupCompleteMatchingPredic
 	}
 
 	result = ServicesListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

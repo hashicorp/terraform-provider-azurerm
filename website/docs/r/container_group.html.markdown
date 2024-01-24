@@ -93,15 +93,21 @@ The following arguments are supported:
 
 ~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group.
 
-* `ip_address_type` - (Optional) Specifies the IP address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `subnet_ids` also needs to be set.
+* `ip_address_type` - (Optional) Specifies the IP address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `subnet_ids` also needs to be set. Defaults to `Public`.
 
 ~> **Note:** `dns_name_label` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 
 * `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
 
+* `key_vault_user_assigned_identity_id` - (Optional) The user assigned identity that has access to the Key Vault Key. If not specified, the RP principal named "Azure Container Instance Service" will be used instead. Make sure the identity has the proper `key_permissions` set, at least with `Get`, `UnwrapKey`, `WrapKey` and `GetRotationPolicy`.
+
 * `subnet_ids` - (Optional) The subnet resource IDs for a container group. Changing this forces a new resource to be created.
 
 * `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
+
+* `priority` - (Optional) The priority of the Container Group. Possible values are `Regular` and `Spot`. Changing this forces a new resource to be created.
+
+~> **NOTE:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
@@ -185,7 +191,7 @@ An `exposed_port` block supports:
 
 * `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created. Defaults to `TCP`.
 
 ~> **Note:** Removing all `exposed_port` blocks requires setting `exposed_port = []`.
 
@@ -225,7 +231,7 @@ A `ports` block supports:
 
 * `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created. Defaults to `TCP`.
 
 ~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
 
@@ -293,13 +299,13 @@ The `readiness_probe` block supports:
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
-* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. Changing this forces a new resource to be created.
 
-* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). Changing this forces a new resource to be created.
 
-* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. Changing this forces a new resource to be created.
 
-* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. Changing this forces a new resource to be created.
 
 ---
 
@@ -311,13 +317,13 @@ The `liveness_probe` block supports:
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
-* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. Changing this forces a new resource to be created.
 
-* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). Changing this forces a new resource to be created.
 
-* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. Changing this forces a new resource to be created.
 
-* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. Changing this forces a new resource to be created.
 
 ---
 

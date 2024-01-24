@@ -73,13 +73,13 @@ The following arguments are supported:
 
 * `storage_account_authentication_mode` - (Optional) Specifies the storage account authentication mode. Possible values include `StorageKeys`, `BatchAccountManagedIdentity`.
 
-~> **NOTE:** When using `BatchAccountManagedIdentity` mod, the `identity.type` must set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **NOTE:** When using `BatchAccountManagedIdentity` mod, the `identity.type` must set to `UserAssigned` or `SystemAssigned`.
 
 * `storage_account_node_identity` - (Optional) Specifies the user assigned identity for the storage account.
 
 * `allowed_authentication_modes` - (Optional) Specifies the allowed authentication mode for the Batch account. Possible values include `AAD`, `SharedKey` or `TaskAuthenticationToken`.
 
-* `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data.
+* `encryption` - (Optional) Specifies if customer managed key encryption should be used to encrypt batch account data. One `encryption` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -87,11 +87,11 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Possible values are `SystemAssigned` or `UserAssigned`.
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 

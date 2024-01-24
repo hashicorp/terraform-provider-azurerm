@@ -20,7 +20,8 @@ type ConnectedClusterListBySubscriptionOperationResponse struct {
 }
 
 type ConnectedClusterListBySubscriptionCompleteResult struct {
-	Items []ConnectedCluster
+	LatestHttpResponse *http.Response
+	Items              []ConnectedCluster
 }
 
 // ConnectedClusterListBySubscription ...
@@ -84,7 +85,8 @@ func (c ConnectedClustersClient) ConnectedClusterListBySubscriptionCompleteMatch
 	}
 
 	result = ConnectedClusterListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

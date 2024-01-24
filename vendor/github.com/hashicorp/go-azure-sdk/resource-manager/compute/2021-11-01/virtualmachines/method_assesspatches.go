@@ -18,6 +18,7 @@ type AssessPatchesOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VirtualMachineAssessPatchesResult
 }
 
 // AssessPatches ...
@@ -44,6 +45,10 @@ func (c VirtualMachinesClient) AssessPatches(ctx context.Context, id VirtualMach
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

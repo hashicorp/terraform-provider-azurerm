@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -36,25 +37,27 @@ type WindowsFunctionAppDataSourceModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"`
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings               map[string]string                      `tfschema:"app_settings"`
-	AuthSettings              []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	AuthV2Settings            []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
-	Backup                    []helpers.Backup                       `tfschema:"backup"`
-	BuiltinLogging            bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled         bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode            string                                 `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths  string                                 `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings         []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota      int                                    `tfschema:"daily_memory_time_quota"`
-	Enabled                   bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare  bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                 bool                                   `tfschema:"https_only"`
-	PublicNetworkAccess       bool                                   `tfschema:"public_network_access_enabled"`
-	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	StickySettings            []helpers.StickySettings               `tfschema:"sticky_settings"`
-	Tags                      map[string]string                      `tfschema:"tags"`
-	VirtualNetworkSubnetId    string                                 `tfschema:"virtual_network_subnet_id"`
+	AppSettings                      map[string]string                      `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                       `tfschema:"backup"`
+	BuiltinLogging                   bool                                   `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                bool                                   `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                 `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                []helpers.ConnectionString             `tfschema:"connection_string"`
+	DailyMemoryTimeQuota             int                                    `tfschema:"daily_memory_time_quota"`
+	Enabled                          bool                                   `tfschema:"enabled"`
+	FunctionExtensionsVersion        string                                 `tfschema:"functions_extension_version"`
+	ForceDisableContentShare         bool                                   `tfschema:"content_share_force_disabled"`
+	HttpsOnly                        bool                                   `tfschema:"https_only"`
+	PublicNetworkAccess              bool                                   `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                       []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StickySettings                   []helpers.StickySettings               `tfschema:"sticky_settings"`
+	Tags                             map[string]string                      `tfschema:"tags"`
+	VirtualNetworkSubnetId           string                                 `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -236,6 +239,16 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 		"site_credential": helpers.SiteCredentialSchema(),
 
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppComputed(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
@@ -280,7 +293,11 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			functionApp.Name = id.SiteName
 			functionApp.ResourceGroup = id.ResourceGroup
-			functionApp.ServicePlanId = utils.NormalizeNilableString(props.ServerFarmID)
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
+			if err != nil {
+				return fmt.Errorf("reading Service Plan Id for %s: %+v", id, err)
+			}
+			functionApp.ServicePlanId = servicePlanId.ID()
 			functionApp.Location = location.NormalizeNilable(existing.Location)
 			functionApp.Enabled = utils.NormaliseNilableBool(existing.Enabled)
 			functionApp.ClientCertMode = string(existing.ClientCertMode)
@@ -292,6 +309,23 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
 			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
 			functionApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthFTP = pointer.From(csmProps.Allow)
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			}
+
+			functionApp.PublishingFTPBasicAuthEnabled = basicAuthFTP
+			functionApp.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 				functionApp.HostingEnvId = pointer.From(hostingEnv.ID)

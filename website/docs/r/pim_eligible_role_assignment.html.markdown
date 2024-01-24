@@ -86,8 +86,6 @@ The following arguments are supported:
 
 * `principal_id` - (Required) The principal id. Changing this forces a new Pim Eligible Role Assignment to be created.
 
-* `principal_type` - (Required) The type of principal. Changing this forces a new Pim Eligible Role Assignment to be created.
-
 * `role_definition_id` - (Required) The role definition id. Changing this forces a new Pim Eligible Role Assignment to be created.
 
 * `scope` - (Required) The scope. Changing this forces a new Pim Eligible Role Assignment to be created.
@@ -102,6 +100,8 @@ The following arguments are supported:
 
 ---
 
+
+---
 
 A `expiration` block supports the following:
 
@@ -133,7 +133,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Pim Eligible Role Assignment.
 * `principal_type` - The type of principal.
-*
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

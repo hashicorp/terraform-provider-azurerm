@@ -19,7 +19,8 @@ type TopicsListAuthorizationRulesOperationResponse struct {
 }
 
 type TopicsListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
 }
 
 // TopicsListAuthorizationRules ...
@@ -83,7 +84,8 @@ func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesCompleteMatch
 	}
 
 	result = TopicsListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

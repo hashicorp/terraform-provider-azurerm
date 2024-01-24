@@ -17,12 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
@@ -31,8 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -134,7 +130,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_availability_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
+				ValidateFunc: commonids.ValidateAvailabilitySetID,
 				ConflictsWith: []string{
 					"target_zone",
 				},
@@ -252,7 +248,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: diskencryptionsets.ValidateDiskEncryptionSetID,
+							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 						},
 
 						"target_disk_encryption": {
@@ -287,12 +283,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_virtual_machine_scale_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
 			"network_interface": {
 				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
-				Set:        resourceSiteRecoveryReplicatedVMNicHash,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Computed:   true,
 				Optional:   true,
@@ -387,7 +382,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -406,7 +401,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -757,7 +752,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			availabilitySetId := ""
 			if respAvailabilitySetId := pointer.From(a2aDetails.RecoveryAvailabilitySet); respAvailabilitySetId != "" {
-				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(respAvailabilitySetId)
+				parsedAvailabilitySetId, err := commonids.ParseAvailabilitySetIDInsensitively(respAvailabilitySetId)
 				if err != nil {
 					return err
 				}
@@ -817,7 +812,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			vmssId := ""
 			if respVmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); respVmssId != "" {
-				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(respVmssId)
+				parsedVmssId, err := commonids.ParseVirtualMachineScaleSetIDInsensitively(respVmssId)
 				if err != nil {
 					return err
 				}
@@ -847,7 +842,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					diskOutput := make(map[string]interface{})
 					diskId := ""
 					if respDiskId := pointer.From(disk.DiskId); respDiskId != "" {
-						parsedDiskId, err := disks.ParseDiskIDInsensitively(respDiskId)
+						parsedDiskId, err := commonids.ParseManagedDiskIDInsensitively(respDiskId)
 						if err != nil {
 							return err
 						}
@@ -889,7 +884,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 					recoveryEncryptionSetId := ""
 					if respDESId := pointer.From(disk.RecoveryDiskEncryptionSetId); respDESId != "" {
-						parsedEncryptionSetId, err := diskencryptionsets.ParseDiskEncryptionSetIDInsensitively(respDESId)
+						parsedEncryptionSetId, err := commonids.ParseDiskEncryptionSetIDInsensitively(respDESId)
 						if err != nil {
 							return err
 						}
@@ -977,19 +972,6 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["disk_id"]; ok {
-			buf.WriteString(strings.ToLower(v.(string)))
-		}
-	}
-
-	return pluginsdk.HashString(buf.String())
-}
-
-// the default hash function will not ignore Option + Computed properties, which will cause diff.
-func resourceSiteRecoveryReplicatedVMNicHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		if v, ok := m["source_network_interface_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
 		}
 	}

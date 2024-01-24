@@ -37,7 +37,6 @@ func invalidRedisEnterpriseClusterFlashLocations() []string {
 func friendlyInvalidRedisEnterpriseClusterFlashLocations() []string {
 	return []string{
 		"Australia Southeast",
-		"Brazil South",
 		"Central US",
 		"Central US EUAP",
 		"East Asia",

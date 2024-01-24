@@ -5,6 +5,7 @@ package containers
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -553,6 +554,27 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+
+			"key_vault_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
+
+			"priority": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupPriority(), false),
+			},
+		},
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if p := d.Get("priority").(string); p == string(containerinstance.ContainerGroupPrioritySpot) {
+				if d.Get("ip_address_type").(string) != "None" {
+					return fmt.Errorf("`ip_address_type` has to be `None` when `priority` is set to `Spot`")
+				}
+			}
+			return nil
 		},
 	}
 }
@@ -777,6 +799,14 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			KeyName:      keyId.Name,
 			KeyVersion:   keyId.Version,
 		}
+
+		if keyVaultUAI := d.Get("key_vault_user_assigned_identity_id").(string); keyVaultUAI != "" {
+			containerGroup.Properties.EncryptionProperties.Identity = &keyVaultUAI
+		}
+	}
+
+	if priority := d.Get("priority").(string); priority != "" {
+		containerGroup.Properties.Priority = pointer.To(containerinstance.ContainerGroupPriority(priority))
 	}
 
 	// Avoid parallel provisioning if "subnet_ids" are given.
@@ -870,6 +900,12 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("sku", sku)
 
+		var priority string
+		if v := props.Priority; v != nil {
+			priority = string(*v)
+		}
+		d.Set("priority", priority)
+
 		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
@@ -942,6 +978,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return err
 			}
 			d.Set("key_vault_key_id", keyId.ID())
+			d.Set("key_vault_user_assigned_identity_id", pointer.From(kvProps.Identity))
 		}
 	}
 

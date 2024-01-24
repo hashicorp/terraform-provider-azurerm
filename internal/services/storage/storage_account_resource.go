@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -30,7 +30,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -189,12 +188,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"storage_sid": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
 									"domain_guid": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -207,21 +200,27 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
+									"storage_sid": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
 									"domain_sid": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"forest_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"netbios_domain_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
@@ -873,12 +872,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_blob_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -893,12 +932,32 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_queue_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -913,12 +972,32 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_table_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_table_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_table_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -933,12 +1012,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_web_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_web_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_web_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -953,12 +1072,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_dfs_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_dfs_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_dfs_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -973,12 +1132,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_file_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_file_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_file_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_microsoft_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -1074,7 +1273,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	client := meta.(*clients.Client).Storage.AccountsClient
 	storageClient := meta.(*clients.Client).Storage
 	keyVaultClient := meta.(*clients.Client).KeyVault
-	resourceClient := meta.(*clients.Client).Resource
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1239,7 +1437,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned {
 			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned`")
 		}
-		encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, resourceClient, v.([]interface{}))
+		encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, v.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -1324,7 +1522,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-		blobProperties, err := expandBlobProperties(val.([]interface{}))
+		blobProperties, err := expandBlobProperties(storage.Kind(accountKind), val.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -1434,7 +1632,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultClient := meta.(*clients.Client).KeyVault
-	resourceClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1581,7 +1778,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("customer_managed_key") {
 		cmk := d.Get("customer_managed_key").([]interface{})
-		encryption, err := expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, resourceClient, cmk)
+		encryption, err := expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.StorageAccountName, cmk)
 		if err != nil {
 			return err
 		}
@@ -1794,7 +1991,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-		blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		blobProperties, err := expandBlobProperties(storage.Kind(accountKind), d.Get("blob_properties").([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -2029,8 +2226,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
-			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints, resp.RoutingPreference); err != nil {
+			return fmt.Errorf("setting internet, microsoft primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
 		if accessKeys := keys.Keys; accessKeys != nil {
@@ -2042,8 +2239,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 		}
 
-		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
-			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints, resp.RoutingPreference); err != nil {
+			return fmt.Errorf("setting internet, microsoft secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
 		if accessKeys := keys.Keys; accessKeys != nil {
@@ -2198,7 +2395,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
 		if err != nil {
-			return fmt.Errorf("retrieving static website for %s: %+v", *id, err)
+			return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
 		}
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {
@@ -2306,7 +2503,7 @@ func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{
 	return []interface{}{domain}
 }
 
-func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyvault.Client, resourceClient *resource.Client, input []interface{}) (*storage.Encryption, error) {
+func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyvault.Client, subscriptionId string, input []interface{}) (*storage.Encryption, error) {
 	if len(input) == 0 {
 		return &storage.Encryption{}, nil
 	}
@@ -2318,7 +2515,8 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourceClient, keyId.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -2462,14 +2660,31 @@ func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*stor
 
 	v := input[0].(map[string]interface{})
 
+	ad := expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
+
 	directoryOption := storage.DirectoryServiceOptions(v["directory_type"].(string))
-	if _, ok := v["active_directory"]; directoryOption == storage.DirectoryServiceOptionsAD && !ok {
-		return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
+
+	if directoryOption == storage.DirectoryServiceOptionsAD {
+		if ad == nil {
+			return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
+		}
+		if ad.AzureStorageSid == nil {
+			return nil, fmt.Errorf("`active_directory.0.storage_sid` is required when `directory_type` is `AD`")
+		}
+		if ad.DomainSid == nil {
+			return nil, fmt.Errorf("`active_directory.0.domain_sid` is required when `directory_type` is `AD`")
+		}
+		if ad.ForestName == nil {
+			return nil, fmt.Errorf("`active_directory.0.forest_name` is required when `directory_type` is `AD`")
+		}
+		if ad.NetBiosDomainName == nil {
+			return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
+		}
 	}
 
 	return &storage.AzureFilesIdentityBasedAuthentication{
 		DirectoryServiceOptions:   directoryOption,
-		ActiveDirectoryProperties: expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{})),
+		ActiveDirectoryProperties: ad,
 	}, nil
 }
 
@@ -2477,15 +2692,25 @@ func expandArmStorageAccountActiveDirectoryProperties(input []interface{}) *stor
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
-	return &storage.ActiveDirectoryProperties{
-		AzureStorageSid:   utils.String(v["storage_sid"].(string)),
-		DomainGUID:        utils.String(v["domain_guid"].(string)),
-		DomainName:        utils.String(v["domain_name"].(string)),
-		DomainSid:         utils.String(v["domain_sid"].(string)),
-		ForestName:        utils.String(v["forest_name"].(string)),
-		NetBiosDomainName: utils.String(v["netbios_domain_name"].(string)),
+	m := input[0].(map[string]interface{})
+
+	output := &storage.ActiveDirectoryProperties{
+		DomainGUID: utils.String(m["domain_guid"].(string)),
+		DomainName: utils.String(m["domain_name"].(string)),
 	}
+	if v := m["storage_sid"]; v != "" {
+		output.AzureStorageSid = utils.String(v.(string))
+	}
+	if v := m["domain_sid"]; v != "" {
+		output.DomainSid = utils.String(v.(string))
+	}
+	if v := m["forest_name"]; v != "" {
+		output.ForestName = utils.String(v.(string))
+	}
+	if v := m["netbios_domain_name"]; v != "" {
+		output.NetBiosDomainName = utils.String(v.(string))
+	}
+	return output
 }
 
 func expandArmStorageAccountRouting(input []interface{}) *storage.RoutingPreference {
@@ -2584,23 +2809,31 @@ func expandStorageAccountPrivateLinkAccess(inputs []interface{}, tenantId string
 	return &privateLinkAccess
 }
 
-func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, error) {
+func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.BlobServiceProperties, error) {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
 				CorsRules: &[]storage.CorsRule{},
 			},
-			IsVersioningEnabled: utils.Bool(false),
-			ChangeFeed: &storage.ChangeFeed{
-				Enabled: utils.Bool(false),
-			},
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
-			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
-				Enable: utils.Bool(false),
-			},
 		},
+	}
+
+	// `Storage` (v1) kind doesn't support:
+	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
+	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
+	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
+	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	if kind != storage.KindStorage {
+		props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+			Enable: utils.Bool(false),
+		}
+		props.ChangeFeed = &storage.ChangeFeed{
+			Enabled: utils.Bool(false),
+		}
+		props.IsVersioningEnabled = utils.Bool(false)
 	}
 
 	if len(input) == 0 || input[0] == nil {
@@ -2615,28 +2848,53 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
 
-	restorePolicyRaw := v["restore_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
-
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
 	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
 
-	props.ChangeFeed = &storage.ChangeFeed{
-		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
-	}
-
-	if v := v["change_feed_retention_in_days"].(int); v != 0 {
-		props.ChangeFeed.RetentionInDays = utils.Int32((int32)(v))
-	}
-
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
-	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
+	// `Storage` (v1) kind doesn't support:
+	// - LastAccessTimeTrackingPolicy
+	// - ChangeFeed
+	// - Versioning
+	// - RestorePolicy
+	lastAccessTimeEnabled := v["last_access_time_enabled"].(bool)
+	changeFeedEnabled := v["change_feed_enabled"].(bool)
+	changeFeedRetentionInDays := v["change_feed_retention_in_days"].(int)
+	restorePolicyRaw := v["restore_policy"].([]interface{})
+	versioningEnabled := v["versioning_enabled"].(bool)
+	if kind != storage.KindStorage {
+		props.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+			Enable: utils.Bool(lastAccessTimeEnabled),
+		}
+		props.BlobServicePropertiesProperties.ChangeFeed = &storage.ChangeFeed{
+			Enabled: utils.Bool(changeFeedEnabled),
+		}
+		if changeFeedRetentionInDays != 0 {
+			props.BlobServicePropertiesProperties.ChangeFeed.RetentionInDays = utils.Int32(int32(changeFeedRetentionInDays))
+		}
+		props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
+		props.BlobServicePropertiesProperties.IsVersioningEnabled = &versioningEnabled
+	} else {
+		if lastAccessTimeEnabled {
+			return nil, fmt.Errorf("`last_access_time_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if changeFeedEnabled {
+			return nil, fmt.Errorf("`change_feed_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if changeFeedRetentionInDays != 0 {
+			return nil, fmt.Errorf("`change_feed_retention_in_days` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if len(restorePolicyRaw) != 0 {
+			return nil, fmt.Errorf("`restore_policy` can not be configured when `kind` is set to `Storage` (v1)")
+		}
+		if versioningEnabled {
+			return nil, fmt.Errorf("`versioning_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+		}
 	}
 
 	// Sanity check for the prerequisites of restore_policy
@@ -3383,6 +3641,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
+
 	versions := []interface{}{}
 	if input.Versions != nil {
 		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
@@ -3546,7 +3805,7 @@ func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *st
 	return fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", endpoint, name, key)
 }
 
-func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceData, primary *storage.Endpoints) error {
+func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceData, primary *storage.Endpoints, routingInputs *storage.RoutingPreference) error {
 	if primary == nil {
 		return fmt.Errorf("primary endpoints should not be empty")
 	}
@@ -3570,10 +3829,56 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		return err
 	}
 
+	// below null check is to avoid nullpointer scenarios when either of publish_internet_endpoints
+	// or publish_microsoft_endpoints or both aren't set
+	if routingInputs != nil && routingInputs.PublishInternetEndpoints != nil && *routingInputs.PublishInternetEndpoints {
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Blob, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Dfs, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.File, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Web, "web_internet"); err != nil {
+			return err
+		}
+	}
+
+	if routingInputs != nil && routingInputs.PublishMicrosoftEndpoints != nil && *routingInputs.PublishMicrosoftEndpoints {
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Blob, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Dfs, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.File, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Web, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Table, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceData, secondary *storage.Endpoints) error {
+func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceData, secondary *storage.Endpoints, routingInputs *storage.RoutingPreference) error {
 	if secondary == nil {
 		return nil
 	}
@@ -3595,6 +3900,50 @@ func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceD
 	}
 	if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
 		return err
+	}
+
+	if v := routingInputs; v != nil && v.PublishInternetEndpoints != nil && *v.PublishInternetEndpoints {
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Blob, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Dfs, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.File, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Web, "web_internet"); err != nil {
+			return err
+		}
+	}
+
+	if routingInputs != nil && *routingInputs.PublishMicrosoftEndpoints {
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Blob, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Dfs, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.File, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Web, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Table, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
 	}
 	return nil
 }

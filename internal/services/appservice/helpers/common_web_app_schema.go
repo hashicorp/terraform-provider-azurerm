@@ -1219,10 +1219,18 @@ func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionar
 	return connectionStrings
 }
 
-func ExpandAppSettingsForUpdate(settings map[string]string) *web.StringDictionary {
+func ExpandAppSettingsForUpdate(siteConfigSettings *[]web.NameValuePair) *web.StringDictionary {
 	appSettings := make(map[string]*string)
-	for k, v := range settings {
-		appSettings[k] = pointer.To(v)
+	if siteConfigSettings == nil {
+		return &web.StringDictionary{
+			Properties: appSettings,
+		}
+	}
+
+	for _, v := range *siteConfigSettings {
+		if name := pointer.From(v.Name); name != "" {
+			appSettings[name] = v.Value
+		}
 	}
 
 	return &web.StringDictionary{

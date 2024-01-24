@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
@@ -108,7 +108,7 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 
 	id := streamingjobs.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	opts := streamingjobs.GetOperationOptions{
-		Expand: utils.ToPtr("transformation"),
+		Expand: pointer.To("transformation"),
 	}
 	resp, err := client.Get(ctx, id, opts)
 	if err != nil {

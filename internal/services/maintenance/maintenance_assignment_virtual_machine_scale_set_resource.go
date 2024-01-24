@@ -8,14 +8,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	validateCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -41,7 +40,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 				return err
 			}
 
-			if _, err := parseCompute.VirtualMachineScaleSetID(parsed.Scope); err != nil {
+			if _, err := commonids.ParseVirtualMachineScaleSetID(parsed.Scope); err != nil {
 				return fmt.Errorf("parsing %q as a Virtual Machine Scale Set ID: %+v", parsed.Scope, err)
 			}
 
@@ -68,7 +67,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateFunc:     validateCompute.VirtualMachineScaleSetID,
+				ValidateFunc:     commonids.ValidateVirtualMachineScaleSetID,
 				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
 			},
 		},
@@ -80,7 +79,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineScaleSetId, err := parseCompute.VirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
+	virtualMachineScaleSetId, err := commonids.ParseVirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
 	if err != nil {
 		return err
 	}
@@ -140,7 +139,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 		return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
 	}
 
-	virtualMachineScaleSetId, err := parseCompute.VirtualMachineScaleSetID(id.Scope)
+	virtualMachineScaleSetId, err := commonids.ParseVirtualMachineScaleSetID(id.Scope)
 	if err != nil {
 		return fmt.Errorf("parsing %q as a virtual machine scale set id: %+v", id.Scope, err)
 	}

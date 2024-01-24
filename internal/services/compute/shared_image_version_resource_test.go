@@ -234,6 +234,29 @@ func TestAccSharedImageVersion_replicationMode(t *testing.T) {
 	})
 }
 
+func TestAccSharedImageVersion_replicatedRegionDeletion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config: r.setup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+			),
+		},
+		{
+			Config: r.replicatedRegionDeletion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
@@ -693,6 +716,29 @@ resource "azurerm_shared_image_version" "test" {
   target_region {
     name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
+  }
+}
+`, template)
+}
+
+func (r SharedImageVersionResource) replicatedRegionDeletion(data acceptance.TestData) string {
+	template := r.provision(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                                     = "0.0.1"
+  gallery_name                             = azurerm_shared_image_gallery.test.name
+  image_name                               = azurerm_shared_image.test.name
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
+  managed_image_id                         = azurerm_image.test.id
+  deletion_of_replicated_locations_enabled = true
+
+  target_region {
+    name                        = azurerm_resource_group.test.location
+    regional_replica_count      = 1
+    exclude_from_latest_enabled = true
   }
 }
 `, template)

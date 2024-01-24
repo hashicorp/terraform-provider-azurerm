@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -29,42 +30,46 @@ import (
 type WindowsWebAppResource struct{}
 
 type WindowsWebAppModel struct {
-	Name                          string                      `tfschema:"name"`
-	ResourceGroup                 string                      `tfschema:"resource_group_name"`
-	Location                      string                      `tfschema:"location"`
-	ServicePlanId                 string                      `tfschema:"service_plan_id"`
-	AppSettings                   map[string]string           `tfschema:"app_settings"`
-	StickySettings                []helpers.StickySettings    `tfschema:"sticky_settings"`
-	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
-	AuthV2Settings                []helpers.AuthV2Settings    `tfschema:"auth_settings_v2"`
-	Backup                        []helpers.Backup            `tfschema:"backup"`
-	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
-	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths      string                      `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                       bool                        `tfschema:"enabled"`
-	HttpsOnly                     bool                        `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
-	PublicNetworkAccess           bool                        `tfschema:"public_network_access_enabled"`
-	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
-	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
-	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
-	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                  string                      `tfschema:"hosting_environment_id"`
-	DefaultHostname               string                      `tfschema:"default_hostname"`
-	Kind                          string                      `tfschema:"kind"`
-	OutboundIPAddresses           string                      `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string                    `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string                      `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string                    `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials               []helpers.SiteCredential    `tfschema:"site_credential"`
-	ZipDeployFile                 string                      `tfschema:"zip_deploy_file"`
-	Tags                          map[string]string           `tfschema:"tags"`
-	VirtualNetworkSubnetID        string                      `tfschema:"virtual_network_subnet_id"`
+	Name                             string                      `tfschema:"name"`
+	ResourceGroup                    string                      `tfschema:"resource_group_name"`
+	Location                         string                      `tfschema:"location"`
+	ServicePlanId                    string                      `tfschema:"service_plan_id"`
+	AppSettings                      map[string]string           `tfschema:"app_settings"`
+	StickySettings                   []helpers.StickySettings    `tfschema:"sticky_settings"`
+	AuthSettings                     []helpers.AuthSettings      `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings    `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup            `tfschema:"backup"`
+	ClientAffinityEnabled            bool                        `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                bool                        `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                      `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                      `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                          bool                        `tfschema:"enabled"`
+	HttpsOnly                        bool                        `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                      `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                       []helpers.LogsConfig        `tfschema:"logs"`
+	PublicNetworkAccess              bool                        `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                        `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                        `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                       []helpers.SiteConfigWindows `tfschema:"site_config"`
+	StorageAccounts                  []helpers.StorageAccount    `tfschema:"storage_account"`
+	ConnectionStrings                []helpers.ConnectionString  `tfschema:"connection_string"`
+	CustomDomainVerificationId       string                      `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                     string                      `tfschema:"hosting_environment_id"`
+	DefaultHostname                  string                      `tfschema:"default_hostname"`
+	Kind                             string                      `tfschema:"kind"`
+	OutboundIPAddresses              string                      `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                    `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                      `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                    `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                  []helpers.SiteCredential    `tfschema:"site_credential"`
+	ZipDeployFile                    string                      `tfschema:"zip_deploy_file"`
+	Tags                             map[string]string           `tfschema:"tags"`
+	VirtualNetworkSubnetID           string                      `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
+
+var _ sdk.ResourceWithStateMigration = WindowsWebAppResource{}
 
 func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -82,7 +87,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		// Optional
@@ -162,6 +167,18 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  true,
 		},
 
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaWindows(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),
@@ -185,9 +202,6 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 	}
 }
-
-// TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights?
 
 func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -274,41 +288,52 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			sc := webApp.SiteConfig[0]
+
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
 				Name: pointer.To(webApp.Name),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
-			servicePlanId, err := parse.ServicePlanID(webApp.ServicePlanId)
+			servicePlanId, err := commonids.ParseAppServicePlanID(webApp.ServicePlanId)
 			if err != nil {
 				return err
 			}
 
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
 				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
 			}
-			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
-				// Attempt to check the ASE for the appropriate suffix for the name availability request. Not convinced
-				// the `DNSSuffix` field is still valid and possibly should have been deprecated / removed as is legacy
-				// setting from ASEv1? Hence the non-fatal approach here.
-				nameSuffix := "appserviceenvironment.net"
-				if ase.ID != nil {
-					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
-					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
-					if err != nil {
-						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
-					} else {
-						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+			if servicePlan.Model != nil && servicePlan.Model.Properties != nil {
+				if ase := servicePlan.Model.Properties.HostingEnvironmentProfile; ase != nil {
+					// Attempt to check the ASE for the appropriate suffix for the name availability request. Not convinced
+					// the `DNSSuffix` field is still valid and possibly should have been deprecated / removed as is legacy
+					// setting from ASEv1? Hence the non-fatal approach here.
+					nameSuffix := "appserviceenvironment.net"
+					if ase.Id != nil {
+						aseId, err := parse.AppServiceEnvironmentID(*ase.Id)
+						nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
 						if err != nil {
-							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
-						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
-							nameSuffix = *props.DNSSuffix
+							metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
+						} else {
+							existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+							if err != nil {
+								metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
+							} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
+								nameSuffix = *props.DNSSuffix
+							}
+						}
+					}
+					availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
+					availabilityRequest.IsFqdn = pointer.To(true)
+				}
+				if servicePlan.Model.Sku != nil && servicePlan.Model.Sku.Name != nil {
+					if helpers.IsFreeOrSharedServicePlan(*servicePlan.Model.Sku.Name) {
+						if sc.AlwaysOn {
+							return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 						}
 					}
 				}
-				availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
-				availabilityRequest.IsFqdn = pointer.To(true)
 			}
 
 			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -319,16 +344,6 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			sc := webApp.SiteConfig[0]
-
-			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
-				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-					if sc.AlwaysOn {
-						return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
-					}
-				}
-			}
-
 			siteConfig, err := sc.ExpandForCreate(webApp.AppSettings)
 			if err != nil {
 				return err
@@ -337,12 +352,6 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			currentStack := ""
 			if len(sc.ApplicationStack) == 1 {
 				currentStack = sc.ApplicationStack[0].CurrentStack
-				if currentStack == helpers.CurrentStackNode || sc.ApplicationStack[0].NodeVersion != "" {
-					if webApp.AppSettings == nil {
-						webApp.AppSettings = make(map[string]string, 0)
-					}
-					webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = sc.ApplicationStack[0].NodeVersion
-				}
 			}
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -406,7 +415,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
@@ -481,6 +490,28 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			if webApp.ZipDeployFile != "" {
 				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, webApp.ZipDeployFile); err != nil {
 					return err
+				}
+			}
+
+			if !webApp.PublishingDeployBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if !webApp.PublishingFTPBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 				}
 			}
 
@@ -577,6 +608,20 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthFTP = pointer.From(csmProps.Allow)
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			}
+
 			state := WindowsWebAppModel{}
 			if props := webApp.SiteProperties; props != nil {
 				state = WindowsWebAppModel{
@@ -609,7 +654,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					Tags:                          tags.ToTypedObject(webApp.Tags),
 				}
 
-				serverFarmId, err := parse.ServicePlanID(pointer.From(props.ServerFarmID))
+				serverFarmId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
 				if err != nil {
 					return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
 				}
@@ -629,6 +674,9 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				}
 
 			}
+
+			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
+			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 
@@ -735,6 +783,13 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
+			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
+			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
+			}
+			existing.SiteConfig = webAppSiteConfig.SiteConfig
+
 			var serviceFarmId string
 			servicePlanChange := false
 			if existing.SiteProperties.ServerFarmID != nil {
@@ -745,12 +800,12 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = pointer.To(serviceFarmId)
 				servicePlanChange = true
 			}
-			servicePlanId, err := parse.ServicePlanID(serviceFarmId)
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(serviceFarmId)
 			if err != nil {
 				return err
 			}
 
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
 				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
 			}
@@ -806,8 +861,8 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			currentStack := ""
 			sc := state.SiteConfig[0]
 
-			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
-				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if servicePlan.Model != nil && servicePlan.Model.Sku != nil && servicePlan.Model.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Model.Sku.Name) {
 					if sc.AlwaysOn {
 						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 					}
@@ -818,7 +873,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				currentStack = sc.ApplicationStack[0].CurrentStack
 			}
 
-			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
+			if metadata.ResourceData.HasChanges("site_config", "app_settings") || servicePlanChange {
 				existing.SiteConfig, err = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 				if err != nil {
 					return err
@@ -852,8 +907,8 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+			if metadata.ResourceData.HasChanges("app_settings", "site_config") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(existing.SiteConfig.AppSettings)
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
@@ -965,6 +1020,28 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingFTPBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingDeployBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, id.ResourceGroup, id.SiteName, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
 			return nil
 		},
 	}
@@ -987,19 +1064,28 @@ func (r WindowsWebAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if props.ServerFarmID == nil {
 			return fmt.Errorf("determining Service Plan ID for Windows %s: %+v", id, err)
 		}
-		servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
 		if err != nil {
 			return err
 		}
 
-		sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-		if err != nil || sp.Kind == nil {
+		sp, err := servicePlanClient.Get(ctx, *servicePlanId)
+		if err != nil || sp.Model == nil || sp.Model.Kind == nil {
 			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
 		}
-		if strings.Contains(*sp.Kind, "linux") || strings.Contains(*sp.Kind, "Linux") {
+		if strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
 			return fmt.Errorf("specified Service Plan is not a Windows plan")
 		}
 
 		return nil
+	}
+}
+
+func (r WindowsWebAppResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.WindowsWebAppV0toV1{},
+		},
 	}
 }

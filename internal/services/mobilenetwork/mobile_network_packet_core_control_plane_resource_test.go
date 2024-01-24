@@ -332,7 +332,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   }
 
   interoperability_settings_json = jsonencode({
-    "mtu" = 1440
+    "unknownuser-causecode" = "eps-and-non-eps-service-not-allowed-8"
   })
 
   depends_on = [azurerm_mobile_network.test]
@@ -489,7 +489,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   control_plane_access_ipv4_subnet  = "192.168.1.0/25"
 
   interoperability_settings_json = jsonencode({
-    "mtu" = 1440
+    "unknownuser-causecode" = "eps-and-non-eps-service-not-allowed-8"
   })
 
   local_diagnostics_access {

@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should the Function App Slot use Client Certificates.
 
-* `client_certificate_mode` - (Optional) The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
+* `client_certificate_mode` - (Optional) The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Optional`.
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
@@ -93,9 +93,11 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Windows Function App Slot enabled. Defaults to `true`.
 
+* `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
+
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.
 
-* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
+* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
@@ -129,6 +131,8 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+* `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
+
 ---
 
 An `auth_settings` block supports the following:
@@ -139,7 +143,7 @@ An `auth_settings` block supports the following:
 
 * `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
-* `allowed_external_redirect_urls` - (Optional) an `allowed_external_redirect_urls` block as detailed below.
+* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
 
 * `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.
 
@@ -177,7 +181,7 @@ An `auth_settings_v2` block supports the following:
 
 * `config_file_path` - (Optional) The path to the App Auth settings.
 
-* ~> **Note:** Relative Paths are evaluated from the Site Root directory.
+~> **Note:** Relative Paths are evaluated from the Site Root directory.
 
 * `require_authentication` - (Optional) Should the authentication flow be used for all requests.
 
@@ -189,11 +193,13 @@ An `auth_settings_v2` block supports the following:
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
+~> **NOTE:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
+
 * `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
 
 * `http_route_api_prefix` - (Optional) The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`.
 
-* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`.
+* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `NoProxy`, `Standard`, `Custom`. Defaults to `NoProxy`.
 
 * `forward_proxy_custom_host_header_name` - (Optional) The name of the custom header containing the host of the request.
 
@@ -217,7 +223,7 @@ An `auth_settings_v2` block supports the following:
 
 * `twitter_v2` - (Optional) A `twitter_v2` block as defined below.
 
-* `login` - (Optional) A `login` block as defined below.
+* `login` - (Required) A `login` block as defined below.
 
 ---
 
@@ -247,13 +253,13 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
 * `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
 
-* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`
+* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`.
 
 * `allowed_groups` - (Optional) The list of allowed Group Names for the Default Authorisation Policy.
 
@@ -451,7 +457,7 @@ A `site_config` block supports the following:
 
 * `cors` - (Optional) a `cors` block as detailed below.
 
-* `default_documents` - (Optional) a `default_documents` block as detailed below.
+* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Web App.
 
 * `detailed_error_logging_enabled` - Is detailed error logging enabled
 
@@ -459,7 +465,7 @@ A `site_config` block supports the following:
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.
 
-* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`
+* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `0`. Only valid in conjunction with `health_check_path`.
 
 * `health_check_path` - (Optional) The path to be checked for this function app health.
 
@@ -515,7 +521,7 @@ An `active_directory` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
 
-* `allowed_audiences` - (Optional) an `allowed_audiences` block as detailed below.
+* `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
 
 ~> **Note:** The `client_id` value is always considered an allowed audience.
 
@@ -533,7 +539,7 @@ A `facebook` block supports the following:
 
 * `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`.
 
-* `oauth_scopes` - (Optional) an `oauth_scopes` block as detailed below.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.
 
 ---
 
@@ -545,7 +551,7 @@ A `github` block supports the following:
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) an `oauth_scopes` block as detailed below.
+* `oauth_scopes` - (Optional) an `oauth_scopes`.
 
 ---
 
@@ -557,7 +563,7 @@ A `google` block supports the following:
 
 * `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) an `oauth_scopes` block as detailed below.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes.
 
 ---
 
@@ -613,7 +619,7 @@ An `app_service_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0` and `v7.0`. Defaults to `v4.0`.
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0`, `v7.0` and `v8.0`. Defaults to `v4.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
@@ -629,7 +635,7 @@ An `application_stack` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) an `allowed_origins` block as detailed below.
+* `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Are credentials allowed in CORS requests? Defaults to `false`.
 
@@ -637,7 +643,7 @@ A `cors` block supports the following:
 
 An `ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) a `headers` block as detailed below.
 
@@ -657,7 +663,7 @@ An `ip_restriction` block supports the following:
 
 A `scm_ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) a `headers` block as detailed below.
 

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -29,40 +30,44 @@ import (
 type WindowsWebAppSlotResource struct{}
 
 type WindowsWebAppSlotModel struct {
-	Name                          string                                `tfschema:"name"`
-	AppServiceId                  string                                `tfschema:"app_service_id"`
-	ServicePlanID                 string                                `tfschema:"service_plan_id"`
-	AppSettings                   map[string]string                     `tfschema:"app_settings"`
-	AuthSettings                  []helpers.AuthSettings                `tfschema:"auth_settings"`
-	AuthV2Settings                []helpers.AuthV2Settings              `tfschema:"auth_settings_v2"`
-	Backup                        []helpers.Backup                      `tfschema:"backup"`
-	ClientAffinityEnabled         bool                                  `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                                  `tfschema:"client_certificate_enabled"`
-	ClientCertMode                string                                `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths      string                                `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                       bool                                  `tfschema:"enabled"`
-	HttpsOnly                     bool                                  `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID   string                                `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                    []helpers.LogsConfig                  `tfschema:"logs"`
-	PublicNetworkAccess           bool                                  `tfschema:"public_network_access_enabled"`
-	SiteConfig                    []helpers.SiteConfigWindowsWebAppSlot `tfschema:"site_config"`
-	StorageAccounts               []helpers.StorageAccount              `tfschema:"storage_account"`
-	ConnectionStrings             []helpers.ConnectionString            `tfschema:"connection_string"`
-	CustomDomainVerificationId    string                                `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                  string                                `tfschema:"hosting_environment_id"`
-	DefaultHostname               string                                `tfschema:"default_hostname"`
-	Kind                          string                                `tfschema:"kind"`
-	OutboundIPAddresses           string                                `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string                              `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string                                `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string                              `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials               []helpers.SiteCredential              `tfschema:"site_credential"`
-	ZipDeployFile                 string                                `tfschema:"zip_deploy_file"`
-	Tags                          map[string]string                     `tfschema:"tags"`
-	VirtualNetworkSubnetID        string                                `tfschema:"virtual_network_subnet_id"`
+	Name                             string                                `tfschema:"name"`
+	AppServiceId                     string                                `tfschema:"app_service_id"`
+	ServicePlanID                    string                                `tfschema:"service_plan_id"`
+	AppSettings                      map[string]string                     `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings                `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings              `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                      `tfschema:"backup"`
+	ClientAffinityEnabled            bool                                  `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                bool                                  `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                          bool                                  `tfschema:"enabled"`
+	HttpsOnly                        bool                                  `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                                `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                       []helpers.LogsConfig                  `tfschema:"logs"`
+	PublicNetworkAccess              bool                                  `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                                  `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                  `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                       []helpers.SiteConfigWindowsWebAppSlot `tfschema:"site_config"`
+	StorageAccounts                  []helpers.StorageAccount              `tfschema:"storage_account"`
+	ConnectionStrings                []helpers.ConnectionString            `tfschema:"connection_string"`
+	CustomDomainVerificationId       string                                `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                     string                                `tfschema:"hosting_environment_id"`
+	DefaultHostname                  string                                `tfschema:"default_hostname"`
+	Kind                             string                                `tfschema:"kind"`
+	OutboundIPAddresses              string                                `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                              `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                                `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                              `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                  []helpers.SiteCredential              `tfschema:"site_credential"`
+	ZipDeployFile                    string                                `tfschema:"zip_deploy_file"`
+	Tags                             map[string]string                     `tfschema:"tags"`
+	VirtualNetworkSubnetID           string                                `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsWebAppSlotResource{}
+
+var _ sdk.ResourceWithStateMigration = WindowsWebAppSlotResource{}
 
 func (r WindowsWebAppSlotResource) ModelObject() interface{} {
 	return &WindowsWebAppSlotModel{}
@@ -97,7 +102,7 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"app_settings": {
@@ -170,6 +175,18 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"logs": helpers.LogsConfigSchema(),
 
 		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -275,21 +292,30 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("could not determine location for %s: %+v", id, err)
 			}
 
-			var servicePlanId *parse.ServicePlanId
+			var servicePlanId *commonids.AppServicePlanId
+			differentServicePlanToParent := false
+			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
+				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+			}
+
+			servicePlanId, err = commonids.ParseAppServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
+			if err != nil {
+				return err
+			}
+
 			if webAppSlot.ServicePlanID != "" {
-				servicePlanId, err = parse.ServicePlanID(webAppSlot.ServicePlanID)
+				newServicePlanId, err := commonids.ParseAppServicePlanID(webAppSlot.ServicePlanID)
 				if err != nil {
-					return err
+					return fmt.Errorf("parsing service_plan_id for %s: %+v", id, err)
 				}
-			} else {
-				if props := webApp.SiteProperties; props == nil || props.ServerFarmID == nil {
-					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
-				} else {
-					servicePlanId, err = parse.ServicePlanID(*props.ServerFarmID)
-					if err != nil {
-						return err
-					}
+				// we only set `service_plan_id` when it differs from the parent `service_plan_id` which is causing issues
+				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024
+				// we'll error here if the `service_plan_id` equals the parent `service_plan_id`
+				if strings.EqualFold(newServicePlanId.ID(), servicePlanId.ID()) {
+					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
+				differentServicePlanToParent = true
+				servicePlanId = newServicePlanId
 			}
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -310,12 +336,6 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			currentStack := ""
 			if len(sc.ApplicationStack) == 1 {
 				currentStack = sc.ApplicationStack[0].CurrentStack
-				if currentStack == helpers.CurrentStackNode || sc.ApplicationStack[0].NodeVersion != "" {
-					if webAppSlot.AppSettings == nil {
-						webAppSlot.AppSettings = make(map[string]string, 0)
-					}
-					webAppSlot.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = sc.ApplicationStack[0].NodeVersion
-				}
 			}
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -328,7 +348,6 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:             pointer.To(servicePlanId.ID()),
 					Enabled:                  pointer.To(webAppSlot.Enabled),
 					HTTPSOnly:                pointer.To(webAppSlot.HttpsOnly),
 					SiteConfig:               siteConfig,
@@ -338,6 +357,10 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertExclusionPaths: pointer.To(webAppSlot.ClientCertExclusionPaths),
 					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
+			}
+
+			if differentServicePlanToParent {
+				siteEnvelope.SiteProperties.ServerFarmID = pointer.To(servicePlanId.ID())
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -385,7 +408,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
 			}
@@ -448,6 +471,28 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			if webAppSlot.ZipDeployFile != "" {
 				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, id.ResourceGroup, id.SiteName, webAppSlot.ZipDeployFile, id.SlotName); err != nil {
 					return err
+				}
+			}
+
+			if !webAppSlot.PublishingDeployBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if !webAppSlot.PublishingFTPBasicAuthEnabled {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(false),
+					},
+				}
+				if _, err := client.UpdateFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 				}
 			}
 
@@ -548,6 +593,20 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
 
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthFTP = pointer.From(csmProps.Allow)
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			}
+
 			state := WindowsWebAppSlotModel{}
 			if props := webAppSlot.SiteProperties; props != nil {
 				state = WindowsWebAppSlotModel{
@@ -586,18 +645,25 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.HostingEnvId = hostingEnvId.ID()
 				}
 
-				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
+				parentAppFarmId, err := commonids.ParseAppServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
-					return err
+					return fmt.Errorf("reading parent Service Plan ID: %+v", err)
 				}
-				if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
-					state.ServicePlanID = *slotPlanId
+				if slotPlanIdRaw := props.ServerFarmID; slotPlanIdRaw != nil && *slotPlanIdRaw != "" && !strings.EqualFold(parentAppFarmId.ID(), *slotPlanIdRaw) {
+					slotPlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(slotPlanIdRaw))
+					if err != nil {
+						return fmt.Errorf("reading Slot Service Plan ID: %+v", err)
+					}
+					state.ServicePlanID = slotPlanId.ID()
 				}
 
 				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 					state.VirtualNetworkSubnetID = subnetId
 				}
 			}
+
+			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
+			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 			currentStack := ""
@@ -697,15 +763,34 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("service_plan_id") {
-				o, n := metadata.ResourceData.GetChange("service_plan_id")
-				oldPlan, err := parse.ServicePlanID(o.(string))
+				webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading parent Windows Web App for %s: %+v", id, err)
+				}
+				if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
+					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+				}
+				parentServicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
 					return err
 				}
 
-				newPlan, err := parse.ServicePlanID(n.(string))
+				o, n := metadata.ResourceData.GetChange("service_plan_id")
+				oldPlan, err := commonids.ParseAppServicePlanID(o.(string))
 				if err != nil {
 					return err
+				}
+
+				newPlan, err := commonids.ParseAppServicePlanID(n.(string))
+				if err != nil {
+					return err
+				}
+
+				// we only set `service_plan_id` when it differs from the parent `service_plan_id` which is causing issues
+				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024
+				// we'll error here if the `service_plan_id` equals the parent `service_plan_id`
+				if strings.EqualFold(newPlan.ID(), parentServicePlanId.ID()) {
+					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
 				locks.ByID(oldPlan.ID())
 				defer locks.UnlockByID(oldPlan.ID())
@@ -759,7 +844,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				currentStack = sc.ApplicationStack[0].CurrentStack
 			}
 
-			if metadata.ResourceData.HasChange("site_config") {
+			if metadata.ResourceData.HasChanges("site_config", "app_settings") {
 				existing.SiteConfig, err = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 				if err != nil {
 					return err
@@ -815,8 +900,8 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+			if metadata.ResourceData.HasChanges("app_settings", "site_config") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(existing.SiteConfig.AppSettings)
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 				appSettingsUpdate.Properties["WEBSITE_NODE_DEFAULT_VERSION"] = pointer.To(state.SiteConfig[0].ApplicationStack[0].NodeVersion)
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
@@ -905,7 +990,38 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingFTPBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateFtpAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
+				sitePolicy := web.CsmPublishingCredentialsPoliciesEntity{
+					CsmPublishingCredentialsPoliciesEntityProperties: &web.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: pointer.To(state.PublishingDeployBasicAuthEnabled),
+					},
+				}
+				if _, err := client.UpdateScmAllowedSlot(ctx, id.ResourceGroup, id.SiteName, sitePolicy, id.SlotName); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
 			return nil
+		},
+	}
+}
+
+func (r WindowsWebAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.WindowsWebAppSlotV0toV1{},
 		},
 	}
 }

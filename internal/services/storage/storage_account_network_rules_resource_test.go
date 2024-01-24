@@ -88,9 +88,6 @@ func TestAccStorageAccountNetworkRules_privateLinkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
-	// Not all regions support setting the private endpoint resource as the endpoint resource in network_rules.private_link_access in the storage account
-	data.Locations.Primary = "westeurope"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disablePrivateLinkAccess(data),
@@ -426,12 +423,19 @@ resource "azurerm_storage_account_network_rules" "test" {
   ip_rules                   = []
   virtual_network_subnet_ids = []
 }
-`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
+`, StorageAccountResource{}.networkRulesTemplate(data), data.RandomString)
 }
 
 func (r StorageAccountNetworkRulesResource) privateLinkAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "basic"
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
@@ -446,19 +450,15 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-
+  storage_account_id         = azurerm_storage_account.test.id
   default_action             = "Deny"
   ip_rules                   = ["127.0.0.1"]
   virtual_network_subnet_ids = [azurerm_subnet.test.id]
   private_link_access {
-    endpoint_resource_id = azurerm_private_endpoint.blob.id
-  }
-  private_link_access {
-    endpoint_resource_id = azurerm_private_endpoint.table.id
+    endpoint_resource_id = azurerm_search_service.test.id
   }
 }
-`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString)
+`, StorageAccountResource{}.networkRulesTemplate(data), data.RandomInteger, data.RandomString)
 }
 
 func (r StorageAccountNetworkRulesResource) synapseAccess(data acceptance.TestData) string {
@@ -514,7 +514,7 @@ resource "azurerm_storage_account_network_rules" "test" {
     endpoint_resource_id = azurerm_synapse_workspace.test.id
   }
 }
-`, StorageAccountResource{}.networkRulesPrivateEndpointTemplate(data), data.RandomString, data.RandomInteger)
+`, StorageAccountResource{}.networkRulesTemplate(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StorageAccountNetworkRulesResource) deploy(data acceptance.TestData) string {

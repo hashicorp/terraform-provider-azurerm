@@ -93,7 +93,7 @@ A `customer_managed_key` block supports the following:
 
 A `network_rule_set` block supports the following:
 
-* `default_action` - (Optional) Specifies the default action for the Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Optional) Specifies the default action for the Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Allow`.
 
 * `public_network_access_enabled` - (Optional) Whether to allow traffic over public network. Possible values are `true` and `false`. Defaults to `true`.
 

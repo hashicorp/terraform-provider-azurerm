@@ -19,13 +19,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-03-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -129,7 +130,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33553408}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"version": {
@@ -163,10 +164,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
+				// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
 				// This is `computed`, because there is a breaking change to require this field when setting vnet.
 				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
 				// We need to ignore the diff when remote is set private dns zone
-				ForceNew:     true,
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
@@ -666,6 +668,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("when `administrator_login` is first set, `authentication.password_auth_enabled` must be set to `true`")
 			}
 		}
+	}
+
+	if d.HasChange("private_dns_zone_id") {
+		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
 
 	var requireFailover bool

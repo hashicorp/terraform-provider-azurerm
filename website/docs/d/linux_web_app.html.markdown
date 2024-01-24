@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `auth_settings_v2` - An `auth_settings_v2` block as defined below.
 
 * `availability` - The current availability state. Possible values are `Normal`, `Limited`, and `DisasterRecoveryMode`.
-* 
+
 * `backup` - A `backup` block as defined below.
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
@@ -67,6 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Linux Web App enabled?
 
+* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+
 * `https_only` - Should the Linux Web App require HTTPS connections.
 
 * `identity` - A `identity` block as defined below.
@@ -85,6 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
+* `public_network_access_enabled` - Is Public Network Access enabled for this Linux Web App.
+
 * `service_plan_id` - The ID of the Service Plan that this Linux Web App exists in.
 
 * `site_config` - A `site_config` block as defined below.
@@ -98,6 +102,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
 
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
+
+* `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
 
 * `tags` - A mapping of tags assigned to the Linux Web App.
 

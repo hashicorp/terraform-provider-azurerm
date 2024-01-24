@@ -6,6 +6,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -64,7 +65,7 @@ func TestAccWindowsWebAppSlot_autoSwap(t *testing.T) {
 	})
 }
 
-func TestAccWidowsWebAppSlot_separateStandardPlan(t *testing.T) {
+func TestAccWindowsWebAppSlot_separateStandardPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
@@ -98,6 +99,29 @@ func TestAccWindowsWebAppSlot_separateStandardPlanUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebAppSlot_parentStandardPlanError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.parentStandardPlanError(data),
+			ExpectError: regexp.MustCompile("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App"),
+		},
+		{
+			Config: r.separatePlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.parentStandardPlanError(data),
+			ExpectError: regexp.MustCompile("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App"),
+		},
 	})
 }
 
@@ -629,6 +653,21 @@ func TestAccWindowsWebAppSlot_withDotNet7(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withDotNet8(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -883,10 +922,10 @@ func TestAccWindowsWebAppSlot_withDockerImageDockerHub(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:v3.0-windowsservercore-1809"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:v3.0-windowsservercore-1809"),
 			),
 		},
 		data.ImportStep(),
@@ -1372,6 +1411,9 @@ resource "azurerm_windows_web_app_slot" "test" {
     access_key   = azurerm_storage_account.test.primary_access_key
     mount_path   = "/mounts/files"
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
     Environment = "AccTest"
@@ -2140,6 +2182,32 @@ resource "azurerm_windows_web_app_slot" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan, SkuPremiumPlan)
+}
+
+func (r WindowsWebAppSlotResource) parentStandardPlanError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name            = "acctestWAS-%[2]d"
+  app_service_id  = azurerm_windows_web_app.test.id
+  service_plan_id = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan)
 }
 
 func (r WindowsWebAppSlotResource) publicNetworkAccessDisabled(data acceptance.TestData) string {

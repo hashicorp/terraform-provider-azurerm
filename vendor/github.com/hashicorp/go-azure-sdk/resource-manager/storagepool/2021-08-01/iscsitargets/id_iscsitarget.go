@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IscsiTargetId{}
+var _ resourceids.ResourceId = &IscsiTargetId{}
 
 // IscsiTargetId is a struct representing the Resource ID for a Iscsi Target
 type IscsiTargetId struct {
@@ -32,29 +32,15 @@ func NewIscsiTargetID(subscriptionId string, resourceGroupName string, diskPoolN
 
 // ParseIscsiTargetID parses 'input' into a IscsiTargetId
 func ParseIscsiTargetID(input string) (*IscsiTargetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IscsiTargetId{})
+	parser := resourceids.NewParserFromResourceIdType(&IscsiTargetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IscsiTargetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DiskPoolName, ok = parsed.Parsed["diskPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diskPoolName", *parsed)
-	}
-
-	if id.IscsiTargetName, ok = parsed.Parsed["iscsiTargetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "iscsiTargetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseIscsiTargetID(input string) (*IscsiTargetId, error) {
 // ParseIscsiTargetIDInsensitively parses 'input' case-insensitively into a IscsiTargetId
 // note: this method should only be used for API response data and not user input
 func ParseIscsiTargetIDInsensitively(input string) (*IscsiTargetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IscsiTargetId{})
+	parser := resourceids.NewParserFromResourceIdType(&IscsiTargetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IscsiTargetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DiskPoolName, ok = parsed.Parsed["diskPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diskPoolName", *parsed)
-	}
-
-	if id.IscsiTargetName, ok = parsed.Parsed["iscsiTargetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "iscsiTargetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *IscsiTargetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DiskPoolName, ok = input.Parsed["diskPoolName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "diskPoolName", input)
+	}
+
+	if id.IscsiTargetName, ok = input.Parsed["iscsiTargetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "iscsiTargetName", input)
+	}
+
+	return nil
 }
 
 // ValidateIscsiTargetID checks that 'input' can be parsed as a Iscsi Target ID

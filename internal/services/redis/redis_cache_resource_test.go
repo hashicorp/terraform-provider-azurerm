@@ -6,10 +6,9 @@ package redis_test
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,8 +30,6 @@ func TestAccRedisCache_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("minimum_tls_version").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
-				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", true),
-				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", true),
 			),
 		},
 		data.ImportStep(),
@@ -48,8 +45,6 @@ func TestAccRedisCache_withoutSSL(t *testing.T) {
 			Config: r.basic(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", false),
-				testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", false),
 			),
 		},
 		data.ImportStep(),
@@ -133,6 +128,21 @@ func TestAccRedisCache_premiumShardedScaling(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccRedisCache_AadEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("redis_configuration.0.rdb_storage_connection_string"),
 	})
 }
 
@@ -246,6 +256,27 @@ func TestAccRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
 			// TODO: remove this once the Bug's been fixed:
 			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
+// ignore `aof_backup_enabled` if SKU is not `Premium`
+func TestAccRedisCache_IgnoreAOFBackupWhenSKUNotPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ignoreAOFBackupEnableWhenSKUNotPremium(data, "volatile-lru"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.ignoreAOFBackupEnableWhenSKUNotPremium(data, "allkeys-lru"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
@@ -693,6 +724,34 @@ resource "azurerm_redis_cache" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (RedisCacheResource) aadEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                          = "acctestRedis-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  capacity                      = 3
+  family                        = "P"
+  sku_name                      = "Premium"
+  enable_non_ssl_port           = false
+  public_network_access_enabled = false
+
+  redis_configuration {
+    active_directory_authentication_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (RedisCacheResource) backupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -792,13 +851,14 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    rdb_backup_enabled            = true
-    rdb_backup_frequency          = 60
-    rdb_backup_max_snapshot_count = 1
-    rdb_storage_connection_string = azurerm_storage_account.test.primary_connection_string
+    rdb_backup_enabled              = true
+    rdb_backup_frequency            = 60
+    rdb_backup_max_snapshot_count   = 1
+    rdb_storage_connection_string   = azurerm_storage_account.test.primary_connection_string
+    storage_account_subscription_id = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Client().SubscriptionID)
 }
 
 func (RedisCacheResource) aofBackupDisabled(data acceptance.TestData) string {
@@ -919,6 +979,60 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger)
+}
+
+func (RedisCacheResource) ignoreAOFBackupEnableWhenSKUNotPremium(data acceptance.TestData, maxMemoryPolicy string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  capacity            = 1
+  family              = "C"
+  sku_name            = "Basic"
+  enable_non_ssl_port = false
+
+  redis_configuration {
+    aof_backup_enabled = false
+    maxmemory_reserved = 125
+    maxmemory_delta    = 125
+    maxmemory_policy   = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, maxMemoryPolicy)
 }
 
 func (RedisCacheResource) patchSchedule(data acceptance.TestData) string {
@@ -1415,24 +1529,4 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) acceptance.TestCheckFunc {
-	return func(s *acceptance.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		connectionString := rs.Primary.Attributes[propertyName]
-		if strings.Contains(connectionString, fmt.Sprintf("ssl=%t", requireSSL)) {
-			return nil
-		}
-		if strings.Contains(connectionString, fmt.Sprintf("ssl=%t", !requireSSL)) {
-			return fmt.Errorf("Bad: wrong SSL setting in connection string: %s", propertyName)
-		}
-
-		return fmt.Errorf("Bad: missing SSL setting in connection string: %s", propertyName)
-	}
 }

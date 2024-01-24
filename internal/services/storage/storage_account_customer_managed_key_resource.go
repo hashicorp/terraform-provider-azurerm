@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -50,13 +51,22 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			"key_vault_id": {
 				// TODO: should this be split into two resources, since Key Vault and Managed HSM behave subtly differently in places already
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.Any(
 					// Storage Account Customer Managed Keys support both Key Vault and Key Vault Managed HSM keys:
 					// https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview
 					commonids.ValidateKeyVaultID,
 					managedhsms.ValidateManagedHSMID,
 				),
+				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
+			},
+
+			"key_vault_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsURLWithHTTPS,
+				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
+				Computed:     true,
 			},
 
 			"key_name": {
@@ -75,6 +85,13 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
+
+			"federated_identity_client_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+				RequiredWith: []string{"user_assigned_identity_id"},
 			},
 		},
 	}
@@ -113,37 +130,46 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		}
 	}
 
-	keyVaultID, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
-	if err != nil {
-		return err
-	}
-	keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
-	if err != nil {
-		return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, err)
-	}
-
-	softDeleteEnabled := false
-	purgeProtectionEnabled := false
-	if model := keyVault.Model; model != nil {
-		if esd := model.Properties.EnableSoftDelete; esd != nil {
-			softDeleteEnabled = *esd
+	keyVaultURI := ""
+	if keyVaultURIRaw := d.Get("key_vault_uri").(string); keyVaultURIRaw != "" {
+		keyVaultURI = keyVaultURIRaw
+	} else {
+		keyVaultID, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
+		if err != nil {
+			return err
 		}
-		if epp := model.Properties.EnablePurgeProtection; epp != nil {
-			purgeProtectionEnabled = *epp
-		}
-	}
-	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.VaultName, keyVaultID.ResourceGroupName)
-	}
 
-	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
-	if err != nil {
-		return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
+		keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
+		if err != nil {
+			return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, err)
+		}
+
+		softDeleteEnabled := false
+		purgeProtectionEnabled := false
+		if model := keyVault.Model; model != nil {
+			if esd := model.Properties.EnableSoftDelete; esd != nil {
+				softDeleteEnabled = *esd
+			}
+			if epp := model.Properties.EnablePurgeProtection; epp != nil {
+				purgeProtectionEnabled = *epp
+			}
+		}
+		if !softDeleteEnabled || !purgeProtectionEnabled {
+			return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.VaultName, keyVaultID.ResourceGroupName)
+		}
+
+		keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
+		if err != nil {
+			return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
+		}
+
+		keyVaultURI = *keyVaultBaseURL
 	}
 
 	keyName := d.Get("key_name").(string)
 	keyVersion := d.Get("key_version").(string)
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
+	federatedIdentityClientID := d.Get("federated_identity_client_id").(string)
 
 	props := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -163,10 +189,14 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 				KeyVaultProperties: &storage.KeyVaultProperties{
 					KeyName:     utils.String(keyName),
 					KeyVersion:  utils.String(keyVersion),
-					KeyVaultURI: utils.String(*keyVaultBaseURL),
+					KeyVaultURI: utils.String(keyVaultURI),
 				},
 			},
 		},
+	}
+
+	if federatedIdentityClientID != "" {
+		props.Encryption.EncryptionIdentity.EncryptionFederatedIdentityClientID = utils.String(federatedIdentityClientID)
 	}
 
 	if _, err = storageClient.Update(ctx, id.ResourceGroupName, id.StorageAccountName, props); err != nil {
@@ -180,7 +210,6 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -226,9 +255,13 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 	}
 
 	userAssignedIdentity := ""
+	federatedIdentityClientID := ""
 	if props := encryption.EncryptionIdentity; props != nil {
 		if props.EncryptionUserAssignedIdentity != nil {
 			userAssignedIdentity = *props.EncryptionUserAssignedIdentity
+		}
+		if props.EncryptionFederatedIdentityClientID != nil {
+			federatedIdentityClientID = *props.EncryptionFederatedIdentityClientID
 		}
 	}
 
@@ -236,18 +269,26 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", id)
 	}
 
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultURI)
-	if err != nil {
-		return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
-	}
-
 	// now we have the key vault uri we can look up the ID
+
+	// we can't look up the ID when using federated identity as the key will be under different tenant
+	keyVaultID := ""
+	if federatedIdentityClientID == "" {
+		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+		tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
+		if err != nil {
+			return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+		}
+		keyVaultID = pointer.From(tmpKeyVaultID)
+	}
 
 	d.Set("storage_account_id", id.ID())
 	d.Set("key_vault_id", keyVaultID)
+	d.Set("key_vault_uri", keyVaultURI)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
 	d.Set("user_assigned_identity_id", userAssignedIdentity)
+	d.Set("federated_identity_client_id", federatedIdentityClientID)
 
 	return nil
 }

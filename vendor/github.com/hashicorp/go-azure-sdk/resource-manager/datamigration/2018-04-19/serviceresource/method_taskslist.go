@@ -19,7 +19,8 @@ type TasksListOperationResponse struct {
 }
 
 type TasksListCompleteResult struct {
-	Items []ProjectTask
+	LatestHttpResponse *http.Response
+	Items              []ProjectTask
 }
 
 type TasksListOperationOptions struct {
@@ -111,7 +112,8 @@ func (c ServiceResourceClient) TasksListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = TasksListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

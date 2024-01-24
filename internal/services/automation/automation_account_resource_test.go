@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -219,7 +219,7 @@ func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (AutomationAccountResource) basic(data acceptance.TestData) string {

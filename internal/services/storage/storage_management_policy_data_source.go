@@ -126,6 +126,18 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
+												"tier_to_cold_after_days_since_modification_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_cold_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 												"delete_after_days_since_modification_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
@@ -158,6 +170,10 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 												"delete_after_days_since_creation_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
@@ -179,6 +195,10 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 													Computed: true,
 												},
 												"change_tier_to_cool_after_days_since_creation": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},

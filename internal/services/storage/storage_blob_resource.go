@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -150,6 +151,15 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			},
 
 			"metadata": MetaDataComputedSchema(),
+		},
+
+		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
+			if content := diff.Get("source_content"); content != "" && diff.Get("type") == "Page" {
+				if len(content.(string))%512 != 0 {
+					return fmt.Errorf(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`)
+				}
+			}
+			return nil
 		},
 	}
 }

@@ -168,7 +168,7 @@ func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("setting Throughput for Cosmos MongoDB Database %q (Account: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.DatabaseAccountName, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later", id.Name, id.DatabaseAccountName, err)
 			}
 		}
 

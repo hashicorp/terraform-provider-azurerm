@@ -10,11 +10,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
@@ -535,28 +535,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherWinRMHTTPS(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_updateHealthProbeSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.updateLoadBalancerHealthProbeSKU(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.updateLoadBalancerHealthProbeSKU(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -943,12 +921,12 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 					// and simulates the scenario where rolling upgrades are running when we try to delete a VMSS
 					client := clients.Compute.VMScaleSetClient
 
-					id, err := parse.VirtualMachineScaleSetID(state.Attributes["id"])
+					id, err := commonids.ParseVirtualMachineScaleSetID(state.Attributes["id"])
 					if err != nil {
 						return err
 					}
 
-					existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+					existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", *id, err)
 					}
@@ -974,7 +952,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 						VirtualMachineScaleSetUpdateProperties: &updateProps,
 					}
 
-					if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
+					if _, err := client.Update(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, update); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 
@@ -1479,8 +1457,7 @@ func (r WindowsVirtualMachineScaleSetResource) otherForceDelete(data acceptance.
 provider "azurerm" {
   features {
     virtual_machine_scale_set {
-      force_delete                 = true
-      roll_instances_when_required = true
+      force_delete = true
     }
   }
 }
@@ -2511,124 +2488,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomString)
-}
-
-func (r WindowsVirtualMachineScaleSetResource) updateLoadBalancerHealthProbeSKU(data acceptance.TestData, isStandardSku bool) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_public_ip" "test" {
-  count = 2
-
-  name                    = "acctestpip${count.index}-%[2]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = count.index == 0 ? "Dynamic" : "Static"
-  idle_timeout_in_minutes = 4
-  sku                     = count.index == 0 ? "Basic" : "Standard"
-}
-
-resource "azurerm_lb" "test" {
-  count = 2
-
-  name                = "acctestlb${count.index}-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = count.index == 0 ? "Basic" : "Standard"
-
-  frontend_ip_configuration {
-    name                 = "internal"
-    public_ip_address_id = azurerm_public_ip.test[count.index].id
-  }
-}
-
-resource "azurerm_lb_backend_address_pool" "test" {
-  count = 2
-
-  name            = "test${count.index}"
-  loadbalancer_id = azurerm_lb.test[count.index].id
-}
-
-resource "azurerm_lb_nat_pool" "test" {
-  count = 2
-
-  name                           = "test${count.index}"
-  resource_group_name            = azurerm_resource_group.test.name
-  loadbalancer_id                = azurerm_lb.test[count.index].id
-  frontend_ip_configuration_name = "internal"
-  protocol                       = "Tcp"
-  frontend_port_start            = 80
-  frontend_port_end              = 81
-  backend_port                   = 8080
-}
-
-resource "azurerm_lb_probe" "test" {
-  count = 2
-
-  loadbalancer_id = azurerm_lb.test[count.index].id
-  name            = "acctest-lb-probe${count.index}"
-  port            = 22
-  protocol        = "Tcp"
-}
-
-resource "azurerm_lb_rule" "test" {
-  count = 2
-
-  name                           = "AccTestLBRule${count.index}"
-  loadbalancer_id                = azurerm_lb.test[count.index].id
-  probe_id                       = azurerm_lb_probe.test[count.index].id
-  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test[count.index].id]
-  frontend_ip_configuration_name = "internal"
-  protocol                       = "Tcp"
-  frontend_port                  = 22
-  backend_port                   = 22
-}
-
-resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = %[3]t ? azurerm_lb_probe.test[1].id : azurerm_lb_probe.test[0].id
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  data_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-    disk_size_gb         = 10
-    lun                  = 10
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name                                   = "internal"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
-      load_balancer_backend_address_pool_ids = %[3]t ? [azurerm_lb_backend_address_pool.test[1].id] : [azurerm_lb_backend_address_pool.test[0].id]
-      load_balancer_inbound_nat_rules_ids    = %[3]t ? [azurerm_lb_nat_pool.test[1].id] : [azurerm_lb_nat_pool.test[0].id]
-    }
-  }
-
-  depends_on = [azurerm_lb_rule.test]
-}
-`, r.template(data), data.RandomInteger, isStandardSku)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherScaleInPolicy(data acceptance.TestData) string {

@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []ProximityPlacementGroup
+	LatestHttpResponse *http.Response
+	Items              []ProximityPlacementGroup
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ProximityPlacementGroupsClient) ListByResourceGroupCompleteMatchingPredi
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

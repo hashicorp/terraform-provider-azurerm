@@ -41,7 +41,7 @@ func (a SoftwareUpdateConfigurationResource) Exists(ctx context.Context, client 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.SoftwareUpdateConfigClient.SoftwareUpdateConfigurationsGetByName(ctx, *id, softwareupdateconfiguration.SoftwareUpdateConfigurationsGetByNameOperationOptions{})
+	resp, err := client.Automation.SoftwareUpdateConfigClient.GetByName(ctx, *id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

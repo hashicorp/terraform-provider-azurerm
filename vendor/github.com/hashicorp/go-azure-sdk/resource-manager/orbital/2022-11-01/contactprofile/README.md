@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ContactProfileClient.ContactProfilesCreateOrUpdate`
+### Example Usage: `ContactProfileClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,31 +31,31 @@ payload := contactprofile.ContactProfile{
 }
 
 
-if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `ContactProfileClient.ContactProfilesDelete`
+### Example Usage: `ContactProfileClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := contactprofile.NewContactProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "contactProfileValue")
 
-if err := client.ContactProfilesDeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
 
 
-### Example Usage: `ContactProfileClient.ContactProfilesGet`
+### Example Usage: `ContactProfileClient.Get`
 
 ```go
 ctx := context.TODO()
 id := contactprofile.NewContactProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "contactProfileValue")
 
-read, err := client.ContactProfilesGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -65,14 +65,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ContactProfileClient.ContactProfilesList`
+### Example Usage: `ContactProfileClient.List`
 
 ```go
 ctx := context.TODO()
 id := contactprofile.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
-// alternatively `client.ContactProfilesList(ctx, id)` can be used to do batched pagination
-items, err := client.ContactProfilesListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -82,14 +82,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `ContactProfileClient.ContactProfilesListBySubscription`
+### Example Usage: `ContactProfileClient.ListBySubscription`
 
 ```go
 ctx := context.TODO()
 id := contactprofile.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-// alternatively `client.ContactProfilesListBySubscription(ctx, id)` can be used to do batched pagination
-items, err := client.ContactProfilesListBySubscriptionComplete(ctx, id)
+// alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
+items, err := client.ListBySubscriptionComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -99,7 +99,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `ContactProfileClient.ContactProfilesUpdateTags`
+### Example Usage: `ContactProfileClient.UpdateTags`
 
 ```go
 ctx := context.TODO()
@@ -110,7 +110,7 @@ payload := contactprofile.TagsObject{
 }
 
 
-if err := client.ContactProfilesUpdateTagsThenPoll(ctx, id, payload); err != nil {
+if err := client.UpdateTagsThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

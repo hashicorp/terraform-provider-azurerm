@@ -10,9 +10,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,7 +36,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AssessmentMetadataID(id)
+			_, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(id)
 			return err
 		}),
 
@@ -142,57 +144,57 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 
 	name := uuid.New().String()
 
-	id := parse.NewAssessmentMetadataID(subscriptionId, name)
+	id := assessmentsmetadata.NewProviderAssessmentMetadataID(subscriptionId, name)
 
-	existing, err := client.GetInSubscription(ctx, name)
+	existing, err := client.GetInSubscription(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
 	}
 
-	params := security.AssessmentMetadata{
-		AssessmentMetadataProperties: &security.AssessmentMetadataProperties{
-			AssessmentType: security.CustomerManaged,
-			Description:    utils.String(d.Get("description").(string)),
-			DisplayName:    utils.String(d.Get("display_name").(string)),
-			Severity:       security.Severity(d.Get("severity").(string)),
+	params := assessmentsmetadata.SecurityAssessmentMetadataResponse{
+		Properties: &assessmentsmetadata.SecurityAssessmentMetadataPropertiesResponse{
+			AssessmentType: assessmentsmetadata.AssessmentTypeCustomerManaged,
+			Description:    pointer.To(d.Get("description").(string)),
+			DisplayName:    d.Get("display_name").(string),
+			Severity:       assessmentsmetadata.Severity(d.Get("severity").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("categories"); ok {
-		categories := make([]security.Categories, 0)
+		categories := make([]assessmentsmetadata.Categories, 0)
 		for _, item := range v.(*pluginsdk.Set).List() {
-			categories = append(categories, (security.Categories)(item.(string)))
+			categories = append(categories, (assessmentsmetadata.Categories)(item.(string)))
 		}
-		params.AssessmentMetadataProperties.Categories = &categories
+		params.Properties.Categories = &categories
 	}
 
 	if v, ok := d.GetOk("threats"); ok {
-		threats := make([]security.Threats, 0)
+		threats := make([]assessmentsmetadata.Threats, 0)
 		for _, item := range v.(*pluginsdk.Set).List() {
-			threats = append(threats, (security.Threats)(item.(string)))
+			threats = append(threats, assessmentsmetadata.Threats(item.(string)))
 		}
-		params.AssessmentMetadataProperties.Threats = &threats
+		params.Properties.Threats = &threats
 	}
 
 	if v, ok := d.GetOk("implementation_effort"); ok {
-		params.AssessmentMetadataProperties.ImplementationEffort = security.ImplementationEffort(v.(string))
+		params.Properties.ImplementationEffort = pointer.To(assessmentsmetadata.ImplementationEffort(v.(string)))
 	}
 
 	if v, ok := d.GetOk("remediation_description"); ok {
-		params.AssessmentMetadataProperties.RemediationDescription = utils.String(v.(string))
+		params.Properties.RemediationDescription = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("user_impact"); ok {
-		params.AssessmentMetadataProperties.UserImpact = security.UserImpact(v.(string))
+		params.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(v.(string)))
 	}
 
-	if _, err := client.CreateInSubscription(ctx, name, params); err != nil {
+	if _, err := client.CreateInSubscription(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -206,46 +208,48 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AssessmentMetadataID(d.Id())
+	id, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetInSubscription(ctx, id.AssessmentMetadataName)
+	resp, err := client.GetInSubscription(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] %s does not exist - removing from state", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.AssessmentMetadataName)
 
-	if props := resp.AssessmentMetadataProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("severity", string(props.Severity))
-		d.Set("implementation_effort", string(props.ImplementationEffort))
-		d.Set("remediation_description", props.RemediationDescription)
-		d.Set("user_impact", string(props.UserImpact))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+			d.Set("display_name", props.DisplayName)
+			d.Set("severity", string(props.Severity))
+			d.Set("implementation_effort", string(pointer.From(props.ImplementationEffort)))
+			d.Set("remediation_description", pointer.From(props.RemediationDescription))
+			d.Set("user_impact", string(pointer.From(props.UserImpact)))
 
-		categories := make([]string, 0)
-		if props.Categories != nil {
-			for _, item := range *props.Categories {
-				categories = append(categories, string(item))
+			categories := make([]string, 0)
+			if props.Categories != nil {
+				for _, item := range *props.Categories {
+					categories = append(categories, string(item))
+				}
 			}
-		}
-		d.Set("categories", utils.FlattenStringSlice(&categories))
+			d.Set("categories", utils.FlattenStringSlice(&categories))
 
-		threats := make([]string, 0)
-		if props.Threats != nil {
-			for _, item := range *props.Threats {
-				threats = append(threats, string(item))
+			threats := make([]string, 0)
+			if props.Threats != nil {
+				for _, item := range *props.Threats {
+					threats = append(threats, string(item))
+				}
 			}
+			d.Set("threats", utils.FlattenStringSlice(&threats))
 		}
-		d.Set("threats", utils.FlattenStringSlice(&threats))
 	}
 
 	return nil
@@ -256,61 +260,61 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AssessmentMetadataID(d.Id())
+	id, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	existing, err := client.GetInSubscription(ctx, id.AssessmentMetadataName)
+	existing, err := client.GetInSubscription(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if existing.AssessmentMetadataProperties == nil {
-		return fmt.Errorf("retrieving %s: `assessmentMetadataProperties` was nil", id)
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	if d.HasChange("description") {
-		existing.AssessmentMetadataProperties.Description = utils.String(d.Get("description").(string))
+		existing.Model.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if d.HasChange("display_name") {
-		existing.AssessmentMetadataProperties.DisplayName = utils.String(d.Get("display_name").(string))
+		existing.Model.Properties.DisplayName = d.Get("display_name").(string)
 	}
 
 	if d.HasChange("severity") {
-		existing.AssessmentMetadataProperties.Severity = security.Severity(d.Get("severity").(string))
+		existing.Model.Properties.Severity = assessmentsmetadata.Severity(d.Get("severity").(string))
 	}
 
 	if d.HasChange("categories") {
-		categories := make([]security.Categories, 0)
+		categories := make([]assessmentsmetadata.Categories, 0)
 		for _, item := range d.Get("categories").(*pluginsdk.Set).List() {
-			categories = append(categories, (security.Categories)(item.(string)))
+			categories = append(categories, assessmentsmetadata.Categories(item.(string)))
 		}
-		existing.AssessmentMetadataProperties.Categories = &categories
+		existing.Model.Properties.Categories = &categories
 	}
 
 	if d.HasChange("threats") {
-		threats := make([]security.Threats, 0)
+		threats := make([]assessmentsmetadata.Threats, 0)
 		for _, item := range d.Get("threats").(*pluginsdk.Set).List() {
-			threats = append(threats, (security.Threats)(item.(string)))
+			threats = append(threats, (assessmentsmetadata.Threats)(item.(string)))
 		}
-		existing.AssessmentMetadataProperties.Threats = &threats
+		existing.Model.Properties.Threats = &threats
 	}
 
 	if d.HasChange("implementation_effort") {
-		existing.AssessmentMetadataProperties.ImplementationEffort = security.ImplementationEffort(d.Get("implementation_effort").(string))
+		existing.Model.Properties.ImplementationEffort = pointer.To(assessmentsmetadata.ImplementationEffort(d.Get("implementation_effort").(string)))
 	}
 
 	if d.HasChange("remediation_description") {
-		existing.AssessmentMetadataProperties.RemediationDescription = utils.String(d.Get("remediation_description").(string))
+		existing.Model.Properties.RemediationDescription = utils.String(d.Get("remediation_description").(string))
 	}
 
 	if d.HasChange("user_impact") {
-		existing.AssessmentMetadataProperties.UserImpact = security.UserImpact(d.Get("user_impact").(string))
+		existing.Model.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(d.Get("user_impact").(string)))
 	}
 
-	if _, err := client.CreateInSubscription(ctx, id.AssessmentMetadataName, existing); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	if _, err := client.CreateInSubscription(ctx, *id, *existing.Model); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
@@ -321,13 +325,13 @@ func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AssessmentMetadataID(d.Id())
+	id, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.DeleteInSubscription(ctx, id.AssessmentMetadataName); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	if _, err := client.DeleteInSubscription(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

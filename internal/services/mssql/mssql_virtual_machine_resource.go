@@ -13,14 +13,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,7 +55,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"sql_license_type": {
@@ -499,11 +498,11 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmId, err := parseCompute.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	vmId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return err
 	}
-	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroup, vmId.Name)
+	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})

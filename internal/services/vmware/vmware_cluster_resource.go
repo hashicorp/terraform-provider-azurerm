@@ -70,7 +70,10 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 					"av36",
 					"av36t",
 					"av36p",
+					"av36pt",
 					"av52",
+					"av52t",
+					"av64",
 				}, false),
 			},
 

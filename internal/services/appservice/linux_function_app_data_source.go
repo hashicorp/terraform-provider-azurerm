@@ -36,27 +36,29 @@ type LinuxFunctionAppDataSourceModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings               map[string]string                    `tfschema:"app_settings"`
-	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
-	AuthV2Settings            []helpers.AuthV2Settings             `tfschema:"auth_settings_v2"`
-	Availability              string                               `tfschema:"availability"`
-	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
-	ClientCertMode            string                               `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths  string                               `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
-	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"`
-	Enabled                   bool                                 `tfschema:"enabled"`
-	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
-	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
-	HttpsOnly                 bool                                 `tfschema:"https_only"`
-	PublicNetworkAccess       bool                                 `tfschema:"public_network_access_enabled"`
-	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
-	StickySettings            []helpers.StickySettings             `tfschema:"sticky_settings"`
-	Tags                      map[string]string                    `tfschema:"tags"`
-	VirtualNetworkSubnetID    string                               `tfschema:"virtual_network_subnet_id"`
+	AppSettings                      map[string]string                    `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings               `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings             `tfschema:"auth_settings_v2"`
+	Availability                     string                               `tfschema:"availability"`
+	Backup                           []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                   bool                                 `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                bool                                 `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                               `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                               `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                []helpers.ConnectionString           `tfschema:"connection_string"`
+	DailyMemoryTimeQuota             int                                  `tfschema:"daily_memory_time_quota"`
+	Enabled                          bool                                 `tfschema:"enabled"`
+	FunctionExtensionsVersion        string                               `tfschema:"functions_extension_version"`
+	ForceDisableContentShare         bool                                 `tfschema:"content_share_force_disabled"`
+	HttpsOnly                        bool                                 `tfschema:"https_only"`
+	PublicNetworkAccess              bool                                 `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                                 `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                 `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                       []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
+	StickySettings                   []helpers.StickySettings             `tfschema:"sticky_settings"`
+	Tags                             map[string]string                    `tfschema:"tags"`
 
+	VirtualNetworkSubnetID        string   `tfschema:"virtual_network_subnet_id"`
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
 	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
@@ -257,6 +259,16 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_credential": helpers.SiteCredentialSchema(),
 
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
 
 		"virtual_network_subnet_id": {
@@ -361,6 +373,23 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				Usage:                      string(props.UsageState),
 				PublicNetworkAccess:        !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
+
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthFTP = pointer.From(csmProps.Allow)
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
+				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			}
+
+			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
+			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 				state.HostingEnvId = pointer.From(hostingEnv.ID)

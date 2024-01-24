@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                     // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -43,7 +44,6 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -101,7 +101,14 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 
 			"principal_type": {
 				Type:     pluginsdk.TypeString,
+				Optional: true,
 				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"User",
+					"Group",
+					"ServicePrincipal",
+				}, false),
 			},
 
 			"skip_service_principal_aad_check": {
@@ -234,6 +241,11 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
+	principalType := d.Get("principal_type").(string)
+	if principalType != "" {
+		properties.RoleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
+	}
+
 	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta, tenantId)); err != nil {
 		return err
 	}
@@ -274,7 +286,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", resp.Name)
 
 	if props := resp.RoleAssignmentPropertiesWithScope; props != nil {
-		d.Set("scope", props.Scope)
+		d.Set("scope", normalizeScopeValue(pointer.From(props.Scope)))
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
 		d.Set("principal_type", props.PrincipalType)
@@ -412,4 +424,13 @@ func getTenantIdBySubscriptionId(ctx context.Context, client *subscriptions.Clie
 		return "", fmt.Errorf("tenant Id is nil by Subscription %s: %+v", subscriptionId, resp)
 	}
 	return *resp.TenantID, nil
+}
+
+func normalizeScopeValue(scope string) (result string) {
+	if rg, err := commonids.ParseResourceGroupIDInsensitively(scope); err == nil {
+		return rg.ID()
+	}
+	// only check part of IDs, there are may be other specific resource types, like storage account id
+	// we may need append these parse logics below when needed
+	return scope
 }

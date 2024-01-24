@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ManagedHSMId{}
+var _ resourceids.ResourceId = &ManagedHSMId{}
 
 // ManagedHSMId is a struct representing the Resource ID for a Managed H S M
 type ManagedHSMId struct {
@@ -30,25 +30,15 @@ func NewManagedHSMID(subscriptionId string, resourceGroupName string, managedHSM
 
 // ParseManagedHSMID parses 'input' into a ManagedHSMId
 func ParseManagedHSMID(input string) (*ManagedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedHSMId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedHSMName, ok = parsed.Parsed["managedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedHSMName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseManagedHSMID(input string) (*ManagedHSMId, error) {
 // ParseManagedHSMIDInsensitively parses 'input' case-insensitively into a ManagedHSMId
 // note: this method should only be used for API response data and not user input
 func ParseManagedHSMIDInsensitively(input string) (*ManagedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedHSMId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedHSMName, ok = parsed.Parsed["managedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedHSMName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ManagedHSMId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ManagedHSMName, ok = input.Parsed["managedHSMName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedHSMName", input)
+	}
+
+	return nil
 }
 
 // ValidateManagedHSMID checks that 'input' can be parsed as a Managed H S M ID

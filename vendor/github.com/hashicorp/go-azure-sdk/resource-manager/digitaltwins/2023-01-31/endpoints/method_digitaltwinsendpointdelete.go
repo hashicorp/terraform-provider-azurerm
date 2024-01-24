@@ -18,6 +18,7 @@ type DigitalTwinsEndpointDeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DigitalTwinsEndpointResource
 }
 
 // DigitalTwinsEndpointDelete ...
@@ -45,6 +46,10 @@ func (c EndpointsClient) DigitalTwinsEndpointDelete(ctx context.Context, id Endp
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TrafficManagerProfileId{}
+var _ resourceids.ResourceId = &TrafficManagerProfileId{}
 
 // TrafficManagerProfileId is a struct representing the Resource ID for a Traffic Manager Profile
 type TrafficManagerProfileId struct {
@@ -30,25 +30,15 @@ func NewTrafficManagerProfileID(subscriptionId string, resourceGroupName string,
 
 // ParseTrafficManagerProfileID parses 'input' into a TrafficManagerProfileId
 func ParseTrafficManagerProfileID(input string) (*TrafficManagerProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TrafficManagerProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&TrafficManagerProfileId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TrafficManagerProfileId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseTrafficManagerProfileID(input string) (*TrafficManagerProfileId, error
 // ParseTrafficManagerProfileIDInsensitively parses 'input' case-insensitively into a TrafficManagerProfileId
 // note: this method should only be used for API response data and not user input
 func ParseTrafficManagerProfileIDInsensitively(input string) (*TrafficManagerProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TrafficManagerProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&TrafficManagerProfileId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TrafficManagerProfileId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TrafficManagerProfileId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.TrafficManagerProfileName, ok = input.Parsed["trafficManagerProfileName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", input)
+	}
+
+	return nil
 }
 
 // ValidateTrafficManagerProfileID checks that 'input' can be parsed as a Traffic Manager Profile ID

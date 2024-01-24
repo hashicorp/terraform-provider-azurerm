@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package paloalto_test
 
 import (
@@ -227,20 +230,6 @@ provider "azurerm" {
 }
 
 %[1]s
-
-resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
-  name         = "testacc-pafqdn-%[2]d"
-  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-
-  fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
-}
-
-resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
-  name         = "testacc-palr-%[2]d"
-  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-
-  prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
-}
 
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name         = "testacc-palr-%[2]d"
@@ -527,6 +516,20 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   name         = "testacc-palc-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   self_signed  = true
+}
+
+resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
+  name         = "testacc-pafqdn-%[1]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+
+  fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
+}
+
+resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
+  name         = "testacc-palr-%[1]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+
+  prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
 }
 
 data "azurerm_client_config" "current" {}

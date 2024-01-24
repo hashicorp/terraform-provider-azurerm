@@ -58,6 +58,8 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the EventGrid Domain.
 
+* `identity` - An `identity` block as documented below.
+
 ---
 
 A `input_mapping_fields` supports the following:
@@ -91,6 +93,18 @@ A `inbound_ip_rule` block supports the following:
 * `ip_mask` - The IP mask (CIDR) to match on.
 
 * `action` - The action to take when the rule is matched. Possible values are `Allow`.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this EventGrid Domain.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this EventGrid Domain.
 
 ## Timeouts
 

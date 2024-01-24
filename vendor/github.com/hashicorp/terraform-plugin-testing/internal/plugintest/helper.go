@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-exec/tfexec"
 
 	"github.com/hashicorp/terraform-plugin-testing/internal/logging"
@@ -42,6 +43,7 @@ type Helper struct {
 	// for tests that use fixture files.
 	sourceDir     string
 	terraformExec string
+	terraformVer  *version.Version
 
 	// execTempDir is created during DiscoverConfig to store any downloaded
 	// binaries
@@ -78,11 +80,23 @@ func InitHelper(ctx context.Context, config *Config) (*Helper, error) {
 		return nil, fmt.Errorf("failed to create temporary directory for test helper: %s", err)
 	}
 
+	tf, err := tfexec.NewTerraform(baseDir, config.TerraformExec)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create terraform-exec instance: %w", err)
+	}
+
+	tfVersion, _, err := tf.Version(ctx, false)
+
+	if err != nil {
+		return nil, fmt.Errorf("error calling terraform version command: %w", err)
+	}
+
 	return &Helper{
 		baseDir:       baseDir,
 		sourceDir:     config.SourceDir,
 		terraformExec: config.TerraformExec,
 		execTempDir:   config.execTempDir,
+		terraformVer:  tfVersion,
 	}, nil
 }
 
@@ -92,12 +106,17 @@ func InitHelper(ctx context.Context, config *Config) (*Helper, error) {
 // Call this before returning from TestMain to minimize the amount of detritus
 // left behind in the filesystem after the tests complete.
 func (h *Helper) Close() error {
+	if os.Getenv(EnvTfAccPersistWorkingDir) != "" {
+		return nil
+	}
+
 	if h.execTempDir != "" {
 		err := os.RemoveAll(h.execTempDir)
 		if err != nil {
 			return err
 		}
 	}
+
 	return os.RemoveAll(h.baseDir)
 }
 
@@ -107,8 +126,15 @@ func (h *Helper) Close() error {
 // If the working directory object is not itself closed by the time the test
 // program exits, the Close method on the helper itself will attempt to
 // delete it.
-func (h *Helper) NewWorkingDir(ctx context.Context, t TestControl) (*WorkingDir, error) {
-	dir, err := os.MkdirTemp(h.baseDir, "work")
+func (h *Helper) NewWorkingDir(ctx context.Context, t TestControl, wd string) (*WorkingDir, error) {
+	workingDir := h.baseDir
+
+	if wd != "" {
+		workingDir = wd
+		h.baseDir = wd
+	}
+
+	dir, err := os.MkdirTemp(workingDir, "work")
 	if err != nil {
 		return nil, err
 	}
@@ -267,10 +293,10 @@ func (h *Helper) NewWorkingDir(ctx context.Context, t TestControl) (*WorkingDir,
 // RequireNewWorkingDir is a variant of NewWorkingDir that takes a TestControl
 // object and will immediately fail the running test if the creation of the
 // working directory fails.
-func (h *Helper) RequireNewWorkingDir(ctx context.Context, t TestControl) *WorkingDir {
+func (h *Helper) RequireNewWorkingDir(ctx context.Context, t TestControl, workingDir string) *WorkingDir {
 	t.Helper()
 
-	wd, err := h.NewWorkingDir(ctx, t)
+	wd, err := h.NewWorkingDir(ctx, t, workingDir)
 	if err != nil {
 		t := testingT{t}
 		t.Fatalf("failed to create new working directory: %s", err)
@@ -288,4 +314,9 @@ func (h *Helper) WorkingDirectory() string {
 // should be used when running tests.
 func (h *Helper) TerraformExecPath() string {
 	return h.terraformExec
+}
+
+// TerraformVersion returns the Terraform CLI version being used when running tests.
+func (h *Helper) TerraformVersion() *version.Version {
+	return h.terraformVer
 }
