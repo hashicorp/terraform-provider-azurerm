@@ -62,6 +62,10 @@ resource "azurerm_cosmosdb_account" "test" {
   backup {
     type = "Continuous"
   }
+
+  lifecycle {
+    ignore_changes = [minimal_tls_version]
+  }
 }
 
 resource "azurerm_cosmosdb_mongo_database" "test" {
