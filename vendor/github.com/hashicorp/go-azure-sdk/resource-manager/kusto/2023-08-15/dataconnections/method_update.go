@@ -2,7 +2,6 @@ package dataconnections
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -53,16 +52,6 @@ func (c DataConnectionsClient) Update(ctx context.Context, id DataConnectionId, 
 	if err != nil {
 		return
 	}
-
-	var respObj json.RawMessage
-	if err = resp.Unmarshal(&respObj); err != nil {
-		return
-	}
-	model, err := unmarshalDataConnectionImplementation(respObj)
-	if err != nil {
-		return
-	}
-	result.Model = &model
 
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
