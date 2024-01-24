@@ -548,7 +548,11 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.SiteProperties; props != nil {
-		d.Set("app_service_plan_id", props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
+		if err != nil {
+			return err
+		}
+		d.Set("app_service_plan_id", servicePlanId.ID())
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("https_only", props.HTTPSOnly)
