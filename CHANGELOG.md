@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `managedidentity`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` (and support logging) [GH-24578]
 * `azurerm_api_management_api` - change `id` format so specific `revision`s can be managed by Terraform [GH-23031]
 * `azurerm_data_protection_backup_vault` - `redundancy` can now be set to `ZoneRedundant` [GH-24556]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `credential_name` property [GH-24458]
 * `azurerm_orchestrated_virtual_machine_scale_set` - support '2022-datacenter-azure-edition-hotpatch' and '2022-datacenter-azure-edition-hotpatch-smalldisk' hotpatching images [GH-23500]
 
 BUG FIXES:
