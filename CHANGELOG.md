@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_data_protection_backup_vault` - `redundancy` can now be set to `ZoneRedundant` [GH-24556]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `credential_name` property [GH-24458]
 * `azurerm_orchestrated_virtual_machine_scale_set` - support '2022-datacenter-azure-edition-hotpatch' and '2022-datacenter-azure-edition-hotpatch-smalldisk' hotpatching images [GH-23500]
+* `azurerm_stream_analytics_job` - add support for `sku_name`  [GH-24554]
 
 BUG FIXES:
 
