@@ -242,7 +242,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 				Target:  []string{"ready"},
 				Refresh: func() (result interface{}, state string, err error) {
 					function, err := client.Get(ctx, *appId)
-					if err != nil || function.Model == nil || function.Model.Properties == nil || function.Model.Properties.SiteConfig == nil {
+					if err != nil || function.Model == nil || function.Model.Properties == nil {
 						return "unknown", "unknown", err
 					}
 					if function.Model.Properties.InProgressOperationId != nil {
@@ -262,12 +262,12 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			if err := client.CreateFunctionThenPoll(ctx, id, fnEnvelope); err != nil {
-				fn, err := client.Get(ctx, *appId)
-				if err != nil {
-					return fmt.Errorf("reading parent %s: %+v", appId, err)
+			if result, err := client.CreateFunction(ctx, id, fnEnvelope); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			} else {
+				if err = result.Poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 				}
-				return fmt.Errorf("creating %s - State: %#v / InProgressOperationID: %#v", id, *fn.Model.Properties.State, fn.Model.Properties.InProgressOperationId)
 			}
 
 			metadata.SetID(id)

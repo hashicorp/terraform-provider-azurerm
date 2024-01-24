@@ -594,9 +594,14 @@ func applicationLogSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"file_system_level": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{ // webapps.LoglevelOff is the implied value when this block is removed.
+						string(webapps.LogLevelError),
+						string(webapps.LogLevelInformation),
+						string(webapps.LogLevelVerbose),
+						string(webapps.LogLevelWarning),
+					}, false),
 				},
 
 				"azure_blob_storage": appLogBlobStorageSchema(),
@@ -630,9 +635,14 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"level": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{ // webapps.LoglevelOff is the implied value when this block is removed.
+						string(webapps.LogLevelError),
+						string(webapps.LogLevelInformation),
+						string(webapps.LogLevelVerbose),
+						string(webapps.LogLevelWarning),
+					}, false),
 				},
 				"sas_url": {
 					Type:     pluginsdk.TypeString,
@@ -1047,9 +1057,9 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		appLogs := *props.ApplicationLogs
 		applicationLog := ApplicationLog{}
 
-		if appLogs.FileSystem != nil {
+		if appLogs.FileSystem != nil && pointer.From(appLogs.FileSystem.Level) != webapps.LogLevelOff {
 			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
-			if appLogs.AzureBlobStorage != nil {
+			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasUrl != nil {
 				blobStorage := AzureBlobStorage{
 					Level: string(pointer.From(appLogs.AzureBlobStorage.Level)),
 				}
