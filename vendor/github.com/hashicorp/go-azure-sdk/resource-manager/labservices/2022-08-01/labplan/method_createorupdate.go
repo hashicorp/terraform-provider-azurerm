@@ -53,10 +53,6 @@ func (c LabPlanClient) CreateOrUpdate(ctx context.Context, id LabPlanId, input L
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

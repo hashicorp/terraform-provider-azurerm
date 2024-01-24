@@ -52,10 +52,6 @@ func (c VolumeQuotaRulesClient) Create(ctx context.Context, id VolumeQuotaRuleId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

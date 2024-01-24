@@ -49,10 +49,6 @@ func (c ShareClient) Delete(ctx context.Context, id ShareId) (result DeleteOpera
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return
