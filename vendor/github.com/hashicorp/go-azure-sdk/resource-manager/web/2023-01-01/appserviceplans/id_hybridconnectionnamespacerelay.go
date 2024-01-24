@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HybridConnectionNamespaceRelayId{}
+var _ resourceids.ResourceId = &HybridConnectionNamespaceRelayId{}
 
 // HybridConnectionNamespaceRelayId is a struct representing the Resource ID for a Hybrid Connection Namespace Relay
 type HybridConnectionNamespaceRelayId struct {
@@ -34,7 +34,7 @@ func NewHybridConnectionNamespaceRelayID(subscriptionId string, resourceGroupNam
 
 // ParseHybridConnectionNamespaceRelayID parses 'input' into a HybridConnectionNamespaceRelayId
 func ParseHybridConnectionNamespaceRelayID(input string) (*HybridConnectionNamespaceRelayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionNamespaceRelayId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionNamespaceRelayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseHybridConnectionNamespaceRelayID(input string) (*HybridConnectionNames
 // ParseHybridConnectionNamespaceRelayIDInsensitively parses 'input' case-insensitively into a HybridConnectionNamespaceRelayId
 // note: this method should only be used for API response data and not user input
 func ParseHybridConnectionNamespaceRelayIDInsensitively(input string) (*HybridConnectionNamespaceRelayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionNamespaceRelayId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionNamespaceRelayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataSourceTypeId{}
+var _ resourceids.ResourceId = &DataSourceTypeId{}
 
 // DataSourceTypeId is a struct representing the Resource ID for a Data Source Type
 type DataSourceTypeId struct {
@@ -32,7 +32,7 @@ func NewDataSourceTypeID(subscriptionId string, resourceGroupName string, worksp
 
 // ParseDataSourceTypeID parses 'input' into a DataSourceTypeId
 func ParseDataSourceTypeID(input string) (*DataSourceTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataSourceTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataSourceTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDataSourceTypeID(input string) (*DataSourceTypeId, error) {
 // ParseDataSourceTypeIDInsensitively parses 'input' case-insensitively into a DataSourceTypeId
 // note: this method should only be used for API response data and not user input
 func ParseDataSourceTypeIDInsensitively(input string) (*DataSourceTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataSourceTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataSourceTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

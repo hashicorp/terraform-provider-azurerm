@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AppId{}
+var _ resourceids.ResourceId = &AppId{}
 
 // AppId is a struct representing the Resource ID for a App
 type AppId struct {
@@ -32,7 +32,7 @@ func NewAppID(subscriptionId string, resourceGroupName string, springName string
 
 // ParseAppID parses 'input' into a AppId
 func ParseAppID(input string) (*AppId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAppID(input string) (*AppId, error) {
 // ParseAppIDInsensitively parses 'input' case-insensitively into a AppId
 // note: this method should only be used for API response data and not user input
 func ParseAppIDInsensitively(input string) (*AppId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

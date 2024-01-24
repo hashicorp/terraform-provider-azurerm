@@ -19,6 +19,7 @@ type RefreshStatusOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *RefreshExternalGovernanceStatusOperationResult
 }
 
 // RefreshStatus ...
@@ -45,6 +46,10 @@ func (c ServersClient) RefreshStatus(ctx context.Context, id commonids.SqlServer
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

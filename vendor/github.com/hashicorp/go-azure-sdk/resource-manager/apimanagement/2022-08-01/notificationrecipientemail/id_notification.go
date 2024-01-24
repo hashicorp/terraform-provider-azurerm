@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NotificationId{}
+var _ resourceids.ResourceId = &NotificationId{}
 
 // NotificationId is a struct representing the Resource ID for a Notification
 type NotificationId struct {
@@ -32,7 +32,7 @@ func NewNotificationID(subscriptionId string, resourceGroupName string, serviceN
 
 // ParseNotificationID parses 'input' into a NotificationId
 func ParseNotificationID(input string) (*NotificationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NotificationId{})
+	parser := resourceids.NewParserFromResourceIdType(&NotificationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseNotificationID(input string) (*NotificationId, error) {
 // ParseNotificationIDInsensitively parses 'input' case-insensitively into a NotificationId
 // note: this method should only be used for API response data and not user input
 func ParseNotificationIDInsensitively(input string) (*NotificationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NotificationId{})
+	parser := resourceids.NewParserFromResourceIdType(&NotificationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

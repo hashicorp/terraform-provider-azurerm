@@ -19,6 +19,7 @@ type GetP2sVpnConnectionHealthDetailedOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *P2SVpnConnectionHealth
 }
 
 // GetP2sVpnConnectionHealthDetailed ...
@@ -49,6 +50,10 @@ func (c P2sVpnGatewaysClient) GetP2sVpnConnectionHealthDetailed(ctx context.Cont
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

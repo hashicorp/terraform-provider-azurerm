@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApplicationGatewayWebApplicationFirewallPolicyId{}
+var _ resourceids.ResourceId = &ApplicationGatewayWebApplicationFirewallPolicyId{}
 
 // ApplicationGatewayWebApplicationFirewallPolicyId is a struct representing the Resource ID for a Application Gateway Web Application Firewall Policy
 type ApplicationGatewayWebApplicationFirewallPolicyId struct {
@@ -30,7 +30,7 @@ func NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId string, 
 
 // ParseApplicationGatewayWebApplicationFirewallPolicyID parses 'input' into a ApplicationGatewayWebApplicationFirewallPolicyId
 func ParseApplicationGatewayWebApplicationFirewallPolicyID(input string) (*ApplicationGatewayWebApplicationFirewallPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationGatewayWebApplicationFirewallPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationGatewayWebApplicationFirewallPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseApplicationGatewayWebApplicationFirewallPolicyID(input string) (*Appli
 // ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively parses 'input' case-insensitively into a ApplicationGatewayWebApplicationFirewallPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(input string) (*ApplicationGatewayWebApplicationFirewallPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationGatewayWebApplicationFirewallPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationGatewayWebApplicationFirewallPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

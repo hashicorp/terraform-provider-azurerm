@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DevBoxDefinition
 }
 
 // CreateOrUpdate ...
@@ -48,6 +49,10 @@ func (c DevBoxDefinitionsClient) CreateOrUpdate(ctx context.Context, id DevCente
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

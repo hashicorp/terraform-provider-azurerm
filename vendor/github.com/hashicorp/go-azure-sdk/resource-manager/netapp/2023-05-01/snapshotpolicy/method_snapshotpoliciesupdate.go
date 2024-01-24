@@ -18,6 +18,7 @@ type SnapshotPoliciesUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *SnapshotPolicy
 }
 
 // SnapshotPoliciesUpdate ...
@@ -48,6 +49,10 @@ func (c SnapshotPolicyClient) SnapshotPoliciesUpdate(ctx context.Context, id Sna
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

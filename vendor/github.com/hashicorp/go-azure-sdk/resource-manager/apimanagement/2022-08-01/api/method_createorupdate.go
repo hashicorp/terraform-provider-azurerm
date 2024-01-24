@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApiContract
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -77,6 +78,10 @@ func (c ApiClient) CreateOrUpdate(ctx context.Context, id ApiId, input ApiCreate
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

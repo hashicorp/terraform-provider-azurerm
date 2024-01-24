@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicationId{}
+var _ resourceids.ResourceId = &ReplicationId{}
 
 // ReplicationId is a struct representing the Resource ID for a Replication
 type ReplicationId struct {
@@ -32,7 +32,7 @@ func NewReplicationID(subscriptionId string, resourceGroupName string, registryN
 
 // ParseReplicationID parses 'input' into a ReplicationId
 func ParseReplicationID(input string) (*ReplicationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseReplicationID(input string) (*ReplicationId, error) {
 // ParseReplicationIDInsensitively parses 'input' case-insensitively into a ReplicationId
 // note: this method should only be used for API response data and not user input
 func ParseReplicationIDInsensitively(input string) (*ReplicationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

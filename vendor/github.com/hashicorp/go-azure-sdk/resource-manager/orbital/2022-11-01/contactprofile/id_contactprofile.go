@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ContactProfileId{}
+var _ resourceids.ResourceId = &ContactProfileId{}
 
 // ContactProfileId is a struct representing the Resource ID for a Contact Profile
 type ContactProfileId struct {
@@ -30,7 +30,7 @@ func NewContactProfileID(subscriptionId string, resourceGroupName string, contac
 
 // ParseContactProfileID parses 'input' into a ContactProfileId
 func ParseContactProfileID(input string) (*ContactProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContactProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContactProfileId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseContactProfileID(input string) (*ContactProfileId, error) {
 // ParseContactProfileIDInsensitively parses 'input' case-insensitively into a ContactProfileId
 // note: this method should only be used for API response data and not user input
 func ParseContactProfileIDInsensitively(input string) (*ContactProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContactProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContactProfileId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

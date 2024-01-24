@@ -18,6 +18,7 @@ type VerifyIPFlowOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VerificationIPFlowResult
 }
 
 // VerifyIPFlow ...
@@ -48,6 +49,10 @@ func (c NetworkWatchersClient) VerifyIPFlow(ctx context.Context, id NetworkWatch
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

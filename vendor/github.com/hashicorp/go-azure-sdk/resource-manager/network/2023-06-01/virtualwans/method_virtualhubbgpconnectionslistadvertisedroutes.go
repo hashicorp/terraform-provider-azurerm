@@ -19,6 +19,7 @@ type VirtualHubBgpConnectionsListAdvertisedRoutesOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *map[string][]PeerRoute
 }
 
 // VirtualHubBgpConnectionsListAdvertisedRoutes ...
@@ -45,6 +46,10 @@ func (c VirtualWANsClient) VirtualHubBgpConnectionsListAdvertisedRoutes(ctx cont
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

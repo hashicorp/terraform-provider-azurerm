@@ -19,6 +19,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DedicatedHost
 }
 
 // Update ...
@@ -48,6 +49,10 @@ func (c DedicatedHostsClient) Update(ctx context.Context, id commonids.Dedicated
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

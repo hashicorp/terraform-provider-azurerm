@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AssemblyId{}
+var _ resourceids.ResourceId = &AssemblyId{}
 
 // AssemblyId is a struct representing the Resource ID for a Assembly
 type AssemblyId struct {
@@ -32,7 +32,7 @@ func NewAssemblyID(subscriptionId string, resourceGroupName string, integrationA
 
 // ParseAssemblyID parses 'input' into a AssemblyId
 func ParseAssemblyID(input string) (*AssemblyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AssemblyId{})
+	parser := resourceids.NewParserFromResourceIdType(&AssemblyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAssemblyID(input string) (*AssemblyId, error) {
 // ParseAssemblyIDInsensitively parses 'input' case-insensitively into a AssemblyId
 // note: this method should only be used for API response data and not user input
 func ParseAssemblyIDInsensitively(input string) (*AssemblyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AssemblyId{})
+	parser := resourceids.NewParserFromResourceIdType(&AssemblyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

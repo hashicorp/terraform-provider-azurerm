@@ -18,6 +18,7 @@ type AppsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AppResource
 }
 
 // AppsCreateOrUpdate ...
@@ -49,6 +50,10 @@ func (c AppPlatformClient) AppsCreateOrUpdate(ctx context.Context, id AppId, inp
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExpressRouteCrossConnectionPeeringRouteTableId{}
+var _ resourceids.ResourceId = &ExpressRouteCrossConnectionPeeringRouteTableId{}
 
 // ExpressRouteCrossConnectionPeeringRouteTableId is a struct representing the Resource ID for a Express Route Cross Connection Peering Route Table
 type ExpressRouteCrossConnectionPeeringRouteTableId struct {
@@ -34,7 +34,7 @@ func NewExpressRouteCrossConnectionPeeringRouteTableID(subscriptionId string, re
 
 // ParseExpressRouteCrossConnectionPeeringRouteTableID parses 'input' into a ExpressRouteCrossConnectionPeeringRouteTableId
 func ParseExpressRouteCrossConnectionPeeringRouteTableID(input string) (*ExpressRouteCrossConnectionPeeringRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteCrossConnectionPeeringRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteCrossConnectionPeeringRouteTableId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseExpressRouteCrossConnectionPeeringRouteTableID(input string) (*Express
 // ParseExpressRouteCrossConnectionPeeringRouteTableIDInsensitively parses 'input' case-insensitively into a ExpressRouteCrossConnectionPeeringRouteTableId
 // note: this method should only be used for API response data and not user input
 func ParseExpressRouteCrossConnectionPeeringRouteTableIDInsensitively(input string) (*ExpressRouteCrossConnectionPeeringRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteCrossConnectionPeeringRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteCrossConnectionPeeringRouteTableId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -19,6 +19,7 @@ type VpnConnectionsStopPacketCaptureOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *string
 }
 
 // VpnConnectionsStopPacketCapture ...
@@ -49,6 +50,10 @@ func (c VirtualWANsClient) VpnConnectionsStopPacketCapture(ctx context.Context, 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

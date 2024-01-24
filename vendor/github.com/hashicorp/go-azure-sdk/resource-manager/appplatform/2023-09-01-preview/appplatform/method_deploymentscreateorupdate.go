@@ -18,6 +18,7 @@ type DeploymentsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DeploymentResource
 }
 
 // DeploymentsCreateOrUpdate ...
@@ -49,6 +50,10 @@ func (c AppPlatformClient) DeploymentsCreateOrUpdate(ctx context.Context, id Dep
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

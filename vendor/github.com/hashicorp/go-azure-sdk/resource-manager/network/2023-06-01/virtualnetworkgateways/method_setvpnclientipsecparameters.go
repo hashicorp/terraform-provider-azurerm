@@ -18,6 +18,7 @@ type SetVpnclientIPsecParametersOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VpnClientIPsecParameters
 }
 
 // SetVpnclientIPsecParameters ...
@@ -48,6 +49,10 @@ func (c VirtualNetworkGatewaysClient) SetVpnclientIPsecParameters(ctx context.Co
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

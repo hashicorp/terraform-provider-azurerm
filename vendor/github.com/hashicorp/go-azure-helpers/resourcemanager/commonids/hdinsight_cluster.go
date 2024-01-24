@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = HDInsightClusterId{}
+var _ resourceids.ResourceId = &HDInsightClusterId{}
 
 // HDInsightClusterId is a struct representing the Resource ID for a HDInsight Cluster
 type HDInsightClusterId struct {
@@ -30,14 +30,14 @@ func NewHDInsightClusterID(subscriptionId string, resourceGroupName string, clus
 
 // ParseHDInsightClusterID parses 'input' into a HDInsightClusterId
 func ParseHDInsightClusterID(input string) (*HDInsightClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HDInsightClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&HDInsightClusterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := HDInsightClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -47,7 +47,7 @@ func ParseHDInsightClusterID(input string) (*HDInsightClusterId, error) {
 // ParseHDInsightClusterIDInsensitively parses 'input' case-insensitively into a HDInsightClusterId
 // note: this method should only be used for API response data and not user input
 func ParseHDInsightClusterIDInsensitively(input string) (*HDInsightClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HDInsightClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&HDInsightClusterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

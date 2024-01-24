@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ProvisioningServiceId{}
+var _ resourceids.ResourceId = &ProvisioningServiceId{}
 
 // ProvisioningServiceId is a struct representing the Resource ID for a Provisioning Service
 type ProvisioningServiceId struct {
@@ -30,7 +30,7 @@ func NewProvisioningServiceID(subscriptionId string, resourceGroupName string, p
 
 // ParseProvisioningServiceID parses 'input' into a ProvisioningServiceId
 func ParseProvisioningServiceID(input string) (*ProvisioningServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProvisioningServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProvisioningServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseProvisioningServiceID(input string) (*ProvisioningServiceId, error) {
 // ParseProvisioningServiceIDInsensitively parses 'input' case-insensitively into a ProvisioningServiceId
 // note: this method should only be used for API response data and not user input
 func ParseProvisioningServiceIDInsensitively(input string) (*ProvisioningServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProvisioningServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProvisioningServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := ProvisioningServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

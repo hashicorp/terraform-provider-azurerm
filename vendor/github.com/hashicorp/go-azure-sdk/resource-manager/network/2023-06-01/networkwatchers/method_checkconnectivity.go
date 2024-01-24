@@ -18,6 +18,7 @@ type CheckConnectivityOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConnectivityInformation
 }
 
 // CheckConnectivity ...
@@ -48,6 +49,10 @@ func (c NetworkWatchersClient) CheckConnectivity(ctx context.Context, id Network
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NatRuleId{}
+var _ resourceids.ResourceId = &NatRuleId{}
 
 // NatRuleId is a struct representing the Resource ID for a Nat Rule
 type NatRuleId struct {
@@ -32,7 +32,7 @@ func NewNatRuleID(subscriptionId string, resourceGroupName string, vpnGatewayNam
 
 // ParseNatRuleID parses 'input' into a NatRuleId
 func ParseNatRuleID(input string) (*NatRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NatRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&NatRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseNatRuleID(input string) (*NatRuleId, error) {
 // ParseNatRuleIDInsensitively parses 'input' case-insensitively into a NatRuleId
 // note: this method should only be used for API response data and not user input
 func ParseNatRuleIDInsensitively(input string) (*NatRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NatRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&NatRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

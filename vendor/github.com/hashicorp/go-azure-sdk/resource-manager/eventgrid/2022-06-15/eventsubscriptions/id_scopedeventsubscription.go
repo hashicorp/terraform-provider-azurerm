@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedEventSubscriptionId{}
+var _ resourceids.ResourceId = &ScopedEventSubscriptionId{}
 
 // ScopedEventSubscriptionId is a struct representing the Resource ID for a Scoped Event Subscription
 type ScopedEventSubscriptionId struct {
@@ -28,7 +28,7 @@ func NewScopedEventSubscriptionID(scope string, eventSubscriptionName string) Sc
 
 // ParseScopedEventSubscriptionID parses 'input' into a ScopedEventSubscriptionId
 func ParseScopedEventSubscriptionID(input string) (*ScopedEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedEventSubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseScopedEventSubscriptionID(input string) (*ScopedEventSubscriptionId, e
 // ParseScopedEventSubscriptionIDInsensitively parses 'input' case-insensitively into a ScopedEventSubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParseScopedEventSubscriptionIDInsensitively(input string) (*ScopedEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedEventSubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

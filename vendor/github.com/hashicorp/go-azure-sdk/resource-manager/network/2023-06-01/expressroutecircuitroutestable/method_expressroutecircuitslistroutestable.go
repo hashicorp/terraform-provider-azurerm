@@ -18,6 +18,7 @@ type ExpressRouteCircuitsListRoutesTableOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ExpressRouteCircuitsRoutesTableListResult
 }
 
 // ExpressRouteCircuitsListRoutesTable ...
@@ -44,6 +45,10 @@ func (c ExpressRouteCircuitRoutesTableClient) ExpressRouteCircuitsListRoutesTabl
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 

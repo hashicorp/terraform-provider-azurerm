@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 import (
@@ -52,7 +55,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Arguments(
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.SpringCloudServiceId{}),
+		"spring_cloud_service_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.SpringCloudServiceId{}),
 
 		"connection_point": {
 			Type:         pluginsdk.TypeString,

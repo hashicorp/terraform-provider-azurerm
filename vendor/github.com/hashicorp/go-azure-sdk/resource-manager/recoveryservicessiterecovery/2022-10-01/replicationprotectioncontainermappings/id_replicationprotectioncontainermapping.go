@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicationProtectionContainerMappingId{}
+var _ resourceids.ResourceId = &ReplicationProtectionContainerMappingId{}
 
 // ReplicationProtectionContainerMappingId is a struct representing the Resource ID for a Replication Protection Container Mapping
 type ReplicationProtectionContainerMappingId struct {
@@ -36,7 +36,7 @@ func NewReplicationProtectionContainerMappingID(subscriptionId string, resourceG
 
 // ParseReplicationProtectionContainerMappingID parses 'input' into a ReplicationProtectionContainerMappingId
 func ParseReplicationProtectionContainerMappingID(input string) (*ReplicationProtectionContainerMappingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationProtectionContainerMappingId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationProtectionContainerMappingId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseReplicationProtectionContainerMappingID(input string) (*ReplicationPro
 // ParseReplicationProtectionContainerMappingIDInsensitively parses 'input' case-insensitively into a ReplicationProtectionContainerMappingId
 // note: this method should only be used for API response data and not user input
 func ParseReplicationProtectionContainerMappingIDInsensitively(input string) (*ReplicationProtectionContainerMappingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationProtectionContainerMappingId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationProtectionContainerMappingId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

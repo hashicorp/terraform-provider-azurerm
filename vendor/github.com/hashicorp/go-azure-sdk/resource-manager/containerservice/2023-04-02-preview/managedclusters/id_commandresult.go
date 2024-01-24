@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CommandResultId{}
+var _ resourceids.ResourceId = &CommandResultId{}
 
 // CommandResultId is a struct representing the Resource ID for a Command Result
 type CommandResultId struct {
@@ -32,7 +32,7 @@ func NewCommandResultID(subscriptionId string, resourceGroupName string, managed
 
 // ParseCommandResultID parses 'input' into a CommandResultId
 func ParseCommandResultID(input string) (*CommandResultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommandResultId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommandResultId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCommandResultID(input string) (*CommandResultId, error) {
 // ParseCommandResultIDInsensitively parses 'input' case-insensitively into a CommandResultId
 // note: this method should only be used for API response data and not user input
 func ParseCommandResultIDInsensitively(input string) (*CommandResultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommandResultId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommandResultId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

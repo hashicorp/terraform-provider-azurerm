@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualHubIPConfigurationId{}
+var _ resourceids.ResourceId = &VirtualHubIPConfigurationId{}
 
 // VirtualHubIPConfigurationId is a struct representing the Resource ID for a Virtual Hub I P Configuration
 type VirtualHubIPConfigurationId struct {
@@ -32,7 +32,7 @@ func NewVirtualHubIPConfigurationID(subscriptionId string, resourceGroupName str
 
 // ParseVirtualHubIPConfigurationID parses 'input' into a VirtualHubIPConfigurationId
 func ParseVirtualHubIPConfigurationID(input string) (*VirtualHubIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualHubIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualHubIPConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseVirtualHubIPConfigurationID(input string) (*VirtualHubIPConfigurationI
 // ParseVirtualHubIPConfigurationIDInsensitively parses 'input' case-insensitively into a VirtualHubIPConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualHubIPConfigurationIDInsensitively(input string) (*VirtualHubIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualHubIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualHubIPConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := VirtualHubIPConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

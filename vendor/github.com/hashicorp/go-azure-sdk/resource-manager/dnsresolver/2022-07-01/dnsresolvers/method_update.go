@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DnsResolver
 }
 
 type UpdateOperationOptions struct {
@@ -76,6 +77,10 @@ func (c DnsResolversClient) Update(ctx context.Context, id DnsResolverId, input 
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 
