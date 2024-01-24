@@ -6,12 +6,12 @@ package web
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -203,8 +203,8 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 
 	if model, ok := resp.(webapps.PublicCertificate); ok {
 		if properties := model.Properties; properties != nil {
-			d.Set("certificate_location", properties.PublicCertificateLocation)
-			d.Set("blob", *properties.Blob)
+			d.Set("certificate_location", string(pointer.From(properties.PublicCertificateLocation)))
+			d.Set("blob", properties.Blob)
 			d.Set("thumbprint", properties.Thumbprint)
 		}
 	}
