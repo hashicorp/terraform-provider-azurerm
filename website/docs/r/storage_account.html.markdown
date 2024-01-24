@@ -342,7 +342,7 @@ A `network_rules` block supports the following:
 
 A `private_link_access` block supports the following:
 
-* `endpoint_resource_id` - (Required) The resource id of the resource access rule to be granted access.
+* `endpoint_resource_id` - (Required) The ID of the Azure resource that should be allowed access to the target storage account.
 
 * `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
 
