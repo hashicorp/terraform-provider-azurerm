@@ -6,7 +6,7 @@ description: |-
   Manages fully managed Azure Red Hat OpenShift Cluster (also known as ARO)
 ---
 
-# azurerm_redhatopenshift_cluster
+# azurerm_redhat_openshift_cluster
 
 Manages a fully managed Azure Red Hat OpenShift Cluster (also known as ARO).
 
@@ -122,7 +122,7 @@ resource "azurerm_redhat_openshift_cluster" "example" {
 }
 
 output "console_url" {
-  value = azurerm_redhatopenshift_cluster.example.console_url
+  value = azurerm_redhat_openshift_cluster.example.console_url
 }
 ```
 
@@ -278,5 +278,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Red Hat OpenShift Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_redhatopenshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
+terraform import azurerm_redhat_openshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
 ```
