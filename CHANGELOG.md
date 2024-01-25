@@ -7,6 +7,10 @@ ENHANCEMENTS:
 * dependencies: updating `v0.20240125.1172517` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24640]
 * `nginx`: updating to API Version `2023-09-01` [GH-24640]
 
+BUG FIXES:
+
+* `azurerm_mssql_managed_instance_failover_group` - fixed issue when trying to create a failover group with a managed instance from a different subscription [GH-24646]
+
 ## 3.89.0 (January 25, 2024)
 
 FEATURES:
