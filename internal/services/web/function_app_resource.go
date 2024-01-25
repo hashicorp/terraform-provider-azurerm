@@ -650,7 +650,8 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err != nil {
 			return err
 		}
-		d.Set("app_service_plan_id", servicePlan.ID())
+		appServicePlanID = servicePlan.ID()
+		d.Set("app_service_plan_id", appServicePlanID)
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("https_only", props.HTTPSOnly)
