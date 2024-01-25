@@ -2011,8 +2011,8 @@ func expandCosmosdbAccountRestoreParameters(input []interface{}) *cosmosdb.Resto
 	restoreTimestampInUtc, _ := time.Parse(time.RFC3339, v["restore_timestamp_in_utc"].(string))
 	restoreParameters.SetRestoreTimestampInUtcAsTime(restoreTimestampInUtc)
 
-	if tablesToRestore := v["tables_to_restore"].([]string); len(tablesToRestore) > 0 {
-		restoreParameters.TablesToRestore = pointer.To(tablesToRestore)
+	if tablesToRestore := v["tables_to_restore"].([]interface{}); len(tablesToRestore) > 0 {
+		restoreParameters.TablesToRestore = utils.ExpandStringSlice(tablesToRestore)
 	}
 
 	return &restoreParameters
