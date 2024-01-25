@@ -146,7 +146,7 @@ resource "azurerm_monitor_private_link_scope" "test" {
   name                = "acctest-AMPLS-%d"
   resource_group_name = azurerm_resource_group.test.name
 
-  access_mpde {
+  access_mode {
 	ingestion = "Open"
 	query     = "Open"
 	exclusions {

@@ -146,11 +146,11 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	parameters := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
 		Location: "Global",
 		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
-		Properties: privatelinkscopesapis.AzureMonitorPrivateLinkScopeProperties{
-			AccessModeSettings: expandMonitorPrivateLinkScopeAccessMode(d),
-		},
 	}
 
+	if v, ok := d.GetOk("access_mode"); ok {
+		parameters.Properties.AccessModeSettings = expandMonitorPrivateLinkScopeAccessMode(v.(*pluginsdk.ResourceData))
+	}
 	if _, err := client.PrivateLinkScopesCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
