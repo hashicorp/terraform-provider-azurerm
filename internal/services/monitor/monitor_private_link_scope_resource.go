@@ -253,19 +253,13 @@ func expandMonitorPrivateLinkScopeExclusions(i []interface{}) *[]privatelinkscop
 }
 
 func flattenMonitorPrivateLinkScopeAccessMode(accessModeSettings privatelinkscopesapis.AccessModeSettings) []map[string]interface{} {
-	if accessModeSettings == (privatelinkscopesapis.AccessModeSettings{}) {
-		return nil
+	return []map[string]interface{}{
+		{
+			"exclusions": flattenMonitorPrivateLinkScopeExclusions(accessModeSettings.Exclusions),
+			"query":      accessModeSettings.QueryAccessMode,
+			"ingestion":  accessModeSettings.IngestionAccessMode,
+		},
 	}
-
-	accessMode := make([]map[string]interface{}, 1)
-
-	accessMode[0] = map[string]interface{}{
-		"exclusions": flattenMonitorPrivateLinkScopeExclusions(accessModeSettings.Exclusions),
-		"query":      accessModeSettings.QueryAccessMode,
-		"ingestion":  accessModeSettings.IngestionAccessMode,
-	}
-
-	return accessMode
 }
 
 func flattenMonitorPrivateLinkScopeExclusions(exclusions *[]privatelinkscopesapis.AccessModeSettingsExclusion) []map[string]interface{} {
