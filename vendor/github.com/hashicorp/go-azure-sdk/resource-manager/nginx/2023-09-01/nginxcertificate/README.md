@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01/nginxcertificate` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxcertificate` Documentation
 
-The `nginxcertificate` SDK allows for interaction with the Azure Resource Manager Service `nginx` (API Version `2023-04-01`).
+The `nginxcertificate` SDK allows for interaction with the Azure Resource Manager Service `nginx` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01/nginxcertificate"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxcertificate"
 ```
 
 

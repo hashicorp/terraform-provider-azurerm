@@ -1,7 +1,8 @@
-package querypacks
+package nginxconfigurationanalysis
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -11,22 +12,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateOperationResponse struct {
+type ConfigurationsAnalysisOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *LogAnalyticsQueryPack
+	Model        *AnalysisResult
 }
 
-// CreateOrUpdate ...
-func (c QueryPacksClient) CreateOrUpdate(ctx context.Context, id QueryPackId, input LogAnalyticsQueryPack) (result CreateOrUpdateOperationResponse, err error) {
+// ConfigurationsAnalysis ...
+func (c NginxConfigurationAnalysisClient) ConfigurationsAnalysis(ctx context.Context, id ConfigurationId, input AnalysisCreate) (result ConfigurationsAnalysisOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
-		Path:       id.ID(),
+		HttpMethod: http.MethodPost,
+		Path:       fmt.Sprintf("%s/analyze", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -16,7 +16,7 @@ import (
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
-	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01"
+	nginx_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01"
 	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
 	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
@@ -240,7 +240,7 @@ type Client struct {
 	Network               *network.Client
 	NetworkFunction       *networkfunction.Client
 	NewRelic              *newrelic.Client
-	Nginx                 *nginx2.Client
+	Nginx                 *nginx_2023_09_01.Client
 	NotificationHubs      *notificationhub.Client
 	Orbital               *orbital.Client
 	PaloAlto              *paloalto.Client
