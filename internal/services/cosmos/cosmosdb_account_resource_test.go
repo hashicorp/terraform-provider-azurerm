@@ -4185,17 +4185,23 @@ resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-sqltable-%d"
   resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
   account_name        = azurerm_cosmosdb_account.test1.name
+
+  depends_on = [azurerm_cosmosdb_sql_container.test]
 }
 
 resource "azurerm_cosmosdb_table" "test2" {
   name                = "acctest-sqltable2-%d"
   resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
   account_name        = azurerm_cosmosdb_account.test1.name
+
+  depends_on = [azurerm_cosmosdb_table.test]
 }
 
 data "azurerm_cosmosdb_restorable_database_accounts" "test" {
   name     = azurerm_cosmosdb_account.test1.name
   location = azurerm_resource_group.test.location
+
+  depends_on = [azurerm_cosmosdb_table.test2]
 }
 
 resource "azurerm_cosmosdb_account" "test" {
