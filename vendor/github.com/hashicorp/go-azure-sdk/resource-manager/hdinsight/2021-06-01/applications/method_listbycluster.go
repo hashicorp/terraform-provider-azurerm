@@ -20,7 +20,8 @@ type ListByClusterOperationResponse struct {
 }
 
 type ListByClusterCompleteResult struct {
-	Items []Application
+	LatestHttpResponse *http.Response
+	Items              []Application
 }
 
 // ListByCluster ...
@@ -84,7 +85,8 @@ func (c ApplicationsClient) ListByClusterCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListByClusterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

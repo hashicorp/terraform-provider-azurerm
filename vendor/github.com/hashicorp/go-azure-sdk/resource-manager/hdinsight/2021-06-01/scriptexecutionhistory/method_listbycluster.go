@@ -20,7 +20,8 @@ type ListByClusterOperationResponse struct {
 }
 
 type ListByClusterCompleteResult struct {
-	Items []RuntimeScriptActionDetail
+	LatestHttpResponse *http.Response
+	Items              []RuntimeScriptActionDetail
 }
 
 // ListByCluster ...
@@ -84,7 +85,8 @@ func (c ScriptExecutionHistoryClient) ListByClusterCompleteMatchingPredicate(ctx
 	}
 
 	result = ListByClusterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

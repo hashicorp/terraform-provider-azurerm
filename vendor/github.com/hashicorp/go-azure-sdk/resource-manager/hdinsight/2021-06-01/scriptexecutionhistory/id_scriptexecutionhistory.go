@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScriptExecutionHistoryId{}
+var _ resourceids.ResourceId = &ScriptExecutionHistoryId{}
 
 // ScriptExecutionHistoryId is a struct representing the Resource ID for a Script Execution History
 type ScriptExecutionHistoryId struct {
@@ -32,7 +32,7 @@ func NewScriptExecutionHistoryID(subscriptionId string, resourceGroupName string
 
 // ParseScriptExecutionHistoryID parses 'input' into a ScriptExecutionHistoryId
 func ParseScriptExecutionHistoryID(input string) (*ScriptExecutionHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScriptExecutionHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScriptExecutionHistoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseScriptExecutionHistoryID(input string) (*ScriptExecutionHistoryId, err
 // ParseScriptExecutionHistoryIDInsensitively parses 'input' case-insensitively into a ScriptExecutionHistoryId
 // note: this method should only be used for API response data and not user input
 func ParseScriptExecutionHistoryIDInsensitively(input string) (*ScriptExecutionHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScriptExecutionHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScriptExecutionHistoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

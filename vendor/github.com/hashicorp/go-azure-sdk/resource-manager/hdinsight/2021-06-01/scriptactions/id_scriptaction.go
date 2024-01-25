@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScriptActionId{}
+var _ resourceids.ResourceId = &ScriptActionId{}
 
 // ScriptActionId is a struct representing the Resource ID for a Script Action
 type ScriptActionId struct {
@@ -32,7 +32,7 @@ func NewScriptActionID(subscriptionId string, resourceGroupName string, clusterN
 
 // ParseScriptActionID parses 'input' into a ScriptActionId
 func ParseScriptActionID(input string) (*ScriptActionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScriptActionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScriptActionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseScriptActionID(input string) (*ScriptActionId, error) {
 // ParseScriptActionIDInsensitively parses 'input' case-insensitively into a ScriptActionId
 // note: this method should only be used for API response data and not user input
 func ParseScriptActionIDInsensitively(input string) (*ScriptActionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScriptActionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScriptActionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
