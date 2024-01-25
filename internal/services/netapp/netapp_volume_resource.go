@@ -118,18 +118,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"smb_non_browsable_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"smb_access_based_enumeration_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				ForceNew: true,
@@ -313,6 +301,18 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 				RequiredWith: []string{"encryption_key_source"},
 			},
+
+			"smb_non_browsable_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"smb_access_based_enumeration_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -476,7 +476,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	parameters := volumes.Volume{
 		Location: location,
-		Properties:                    volumes.VolumeProperties{
+		Properties: volumes.VolumeProperties{
 			CreationToken:             volumePath,
 			ServiceLevel:              &serviceLevel,
 			SubnetId:                  subnetID,
@@ -489,12 +489,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			ExportPolicy:              exportPolicyRule,
 			VolumeType:                utils.String(volumeType),
 			SnapshotId:                utils.String(snapshotID),
-			DataProtection:            &volumes.VolumePropertiesDataProtection{
+			DataProtection: &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 			},
-			AvsDataStore:              &avsDataStoreEnabled,
-			SnapshotDirectoryVisible:  utils.Bool(snapshotDirectoryVisible),
+			AvsDataStore:             &avsDataStoreEnabled,
+			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
@@ -687,8 +687,6 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
-		d.Set("smb_non_browsable_enabled", string(pointer.From(props.SmbNonBrowsable)))
-		d.Set("smb_access_based_enumeration_enabled", string(pointer.From(props.SmbAccessBasedEnumeration)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
@@ -696,6 +694,18 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
+
+		smbNonBrowsable := false
+		if props.SmbNonBrowsable != nil {
+			smbNonBrowsable = strings.EqualFold(string(*props.SmbNonBrowsable), string(volumes.SmbNonBrowsableEnabled))
+		}
+		d.Set("smb_non_browsable_enabled", smbNonBrowsable)
+
+		smbAccessBasedEnumeration := false
+		if props.SmbAccessBasedEnumeration != nil {
+			smbAccessBasedEnumeration = strings.EqualFold(string(*props.SmbAccessBasedEnumeration), string(volumes.SmbAccessBasedEnumerationEnabled))
+		}
+		d.Set("smb_access_based_enumeration_enabled", smbAccessBasedEnumeration)
 
 		avsDataStore := false
 		if props.AvsDataStore != nil {
