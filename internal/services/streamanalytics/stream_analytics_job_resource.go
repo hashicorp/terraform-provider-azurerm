@@ -14,15 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -140,7 +139,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"streaming_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
+				ValidateFunc: validation.IntBetween(1, 120),
 			},
 
 			"content_storage_policy": {
@@ -194,6 +193,16 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"job_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamingjobs.SkuNameStandard),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamingjobs.SkuNameStandard),
+					"StandardV2", // missing from swagger as described here https://github.com/Azure/azure-rest-api-specs/issues/27506
+				}, false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -262,7 +271,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &streamingjobs.StreamingJobProperties{
 			Sku: &streamingjobs.Sku{
-				Name: pointer.To(streamingjobs.SkuNameStandard),
+				Name: pointer.To(streamingjobs.SkuName(d.Get("sku_name").(string))),
 			},
 			ContentStoragePolicy:               pointer.To(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
 			EventsLateArrivalMaxDelayInSeconds: pointer.To(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
@@ -436,6 +445,12 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 				jobType = string(*v)
 			}
 			d.Set("type", jobType)
+
+			sku := ""
+			if props.Sku != nil && props.Sku.Name != nil {
+				sku = string(*props.Sku.Name)
+			}
+			d.Set("sku_name", sku)
 
 			storagePolicy := ""
 			if v := props.ContentStoragePolicy; v != nil {
