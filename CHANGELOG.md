@@ -28,12 +28,19 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_app_service` - parsing the API Response for `app_service_plan_id` case-insensitively [GH-24626]
+* Data Source: `azurerm_function_app` - parsing the API Response for `app_service_plan_id` case-insensitively [GH-24626]
 * `azurerm_app_configuration_key` - the value for the `value` property can now be removed/emptied ([#24582](https://github.com/hashicorp/terraform-provider-azurerm/issues/24582))
+
+* `azurerm_app_service` - parsing the API Response for `app_service_plan_id` case-insensitively [GH-24626]
 * `azurerm_app_service_plan` - fix casing in `serverFarms` due to ID update ([#24562](https://github.com/hashicorp/terraform-provider-azurerm/issues/24562))
+* `azurerm_app_service_slot` - parsing the API Response for `app_service_plan_id` case-insensitively [GH-24626]
 * `azurerm_automation_schedule` - only one `monthly_occurence` block can now be specified ([#24614](https://github.com/hashicorp/terraform-provider-azurerm/issues/24614))
 * `azurerm_cognitive_deployment` - the `model.version` property is no longer required ([#24264](https://github.com/hashicorp/terraform-provider-azurerm/issues/24264))
 * `azurerm_container_app` - multiple `custom_scale_rule` can not be updated ([#24509](https://github.com/hashicorp/terraform-provider-azurerm/issues/24509))
 * `azurerm_container_registry_task_schedule_run_now` - prevent issue where the incorrect scheduled run in tracked if there have been multiple ([#24592](https://github.com/hashicorp/terraform-provider-azurerm/issues/24592))
+* `azurerm_function_app` - parsing the API Response for `app_service_plan_id` case-insensitively [GH-24626]
+* `azurerm_function_app_slot` - parsing the API Response for `app_service_plan_id` case-insensitively [GH-24626]
 * `azurerm_logic_app_standard` - now will parse the app service ID insensitively ([#24562](https://github.com/hashicorp/terraform-provider-azurerm/issues/24562))
 * `azurerm_logic_app_workflow` - the `workflow_parameters` will now correctly handle information specified by `$connections` ([#24141](https://github.com/hashicorp/terraform-provider-azurerm/issues/24141))
 * `azurerm_mssql_managed_instance_security_alert_policy` - can not update empty storage attributes ([#24553](https://github.com/hashicorp/terraform-provider-azurerm/issues/24553))
