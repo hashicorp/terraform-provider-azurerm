@@ -1264,6 +1264,21 @@ func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_tablesToRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tablesToRestore(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // todo remove for 4.0
 func TestAccCosmosDBAccount_ipRangeFiltersThreePointOh(t *testing.T) {
 	if features.FourPointOhBeta() {
@@ -4070,18 +4085,6 @@ data "azurerm_cosmosdb_restorable_database_accounts" "test" {
   location = azurerm_resource_group.test.location
 }
 
-resource "azurerm_cosmosdb_table" "test" {
-  name                = "acctest-table-%d"
-  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test1.name
-}
-
-resource "azurerm_cosmosdb_table" "test2" {
-  name                = "acctest-table2-%d"
-  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test1.name
-}
-
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca2-%d"
   location            = azurerm_resource_group.test.location
@@ -4111,12 +4114,120 @@ resource "azurerm_cosmosdb_account" "test" {
   restore {
     source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_accounts.test.accounts[0].id
     restore_timestamp_in_utc   = timeadd(timestamp(), "-1s")
-    tables_to_restore          = [azurerm_cosmosdb_table.test.name, azurerm_cosmosdb_table.test2.name]
 
     database {
       name             = azurerm_cosmosdb_mongo_database.test.name
       collection_names = [azurerm_cosmosdb_mongo_collection.test.name]
     }
+  }
+
+  // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  lifecycle {
+    ignore_changes = [
+      restore.0.restore_timestamp_in_utc
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) tablesToRestore(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test1" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  capabilities {
+    name = "EnableTable"
+  }
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-sqldb-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
+}
+
+resource "azurerm_cosmosdb_table" "test" {
+  name                = "acctest-sqltable-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
+resource "azurerm_cosmosdb_table" "test2" {
+  name                = "acctest-sqltable2-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
+data "azurerm_cosmosdb_restorable_database_accounts" "test" {
+  name     = azurerm_cosmosdb_account.test1.name
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  capabilities {
+    name = "EnableTable"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+
+  create_mode = "Restore"
+
+  restore {
+    source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_accounts.test.accounts[0].id
+    restore_timestamp_in_utc   = timeadd(timestamp(), "-1s")
+    tables_to_restore          = [azurerm_cosmosdb_table.test.name, azurerm_cosmosdb_table.test2.name]
   }
 
   // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.

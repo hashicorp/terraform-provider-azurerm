@@ -605,7 +605,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: validate.CosmosEntityName,
 							},
 						},
 					},
