@@ -20,24 +20,24 @@ ENHANCEMENTS:
 * `cosmosdb`: updating to API Version `2023-04-15` [GH-24541]
 * `loadtestservice`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` (and support logging) [GH-24578]
 * `managedidentity`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` (and support logging) [GH-24578]
-* `azurerm_api_management_api` - change `id` format so specific `revision`s can be managed by Terraform [GH-23031]
-* `azurerm_data_protection_backup_vault` - `redundancy` can now be set to `ZoneRedundant` [GH-24556]
+* `azurerm_api_management_api` - change the `id` format so specific `revision`s can be managed by Terraform [GH-23031]
+* `azurerm_data_protection_backup_vault` - the `redundancy` propety can now be set to `ZoneRedundant` [GH-24556]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `credential_name` property [GH-24458]
-* `azurerm_orchestrated_virtual_machine_scale_set` - support '2022-datacenter-azure-edition-hotpatch' and '2022-datacenter-azure-edition-hotpatch-smalldisk' hotpatching images [GH-23500]
-* `azurerm_stream_analytics_job` - add support for `sku_name`  [GH-24554]
+* `azurerm_orchestrated_virtual_machine_scale_set` - support `2022-datacenter-azure-edition-hotpatch` and `2022-datacenter-azure-edition-hotpatch-smalldisk` hotpatching images [GH-23500]
+* `azurerm_stream_analytics_job` - support for the `sku_name` property [GH-24554]
 
 BUG FIXES:
 
-* `azurerm_app_configuration_key` - the value for the property `value` can now be removed/emptied [GH-24582]
+* `azurerm_app_configuration_key` - the value for the `value` property can now be removed/emptied [GH-24582]
 * `azurerm_app_service_plan` - fix casing in `serverFarms` due to ID update [GH-24562]
 * `azurerm_automation_schedule` - only one `monthly_occurence` block can now be specified [GH-24614]
-* `azurerm_cognitive_deployment` - `model.version` is no longer a required property [GH-24264]
-* `azurerm_container_app` - fix issue where multiple `custom_scale_rule` were not being updated [GH-24509]
-* `azurerm_container_registry_task_schedule_run_now` - fix issue where the incorrect scheduled run in tracked if there have been multiple [GH-24592]
-* `azurerm_logic_app_standard` - fix read function to parse app service ID insensitively [GH-24562]
-* `azurerm_logic_app_workflow` - fix issue where `workflow_parameters` were unable to handle information specified by `$connections` [GH-24141]
-* `azurerm_mssql_managed_instance_security_alert_policy` - fix error when updating with empty storage attributes [GH-24553]
-* `azurerm_network_interface` - all `ip_configuration` are no longer added to a Load Balancer Backend if one of those `ip_configurations` is associated with a backend [GH-24470]
+* `azurerm_cognitive_deployment` - the `model.version` property is no longer required [GH-24264]
+* `azurerm_container_app` - multiple `custom_scale_rule` can not be updated [GH-24509]
+* `azurerm_container_registry_task_schedule_run_now` - prevent issue where the incorrect scheduled run in tracked if there have been multiple [GH-24592]
+* `azurerm_logic_app_standard` - now will parse the app service ID insensitively [GH-24562]
+* `azurerm_logic_app_workflow` - the `workflow_parameters` will now correctly handle information specified by `$connections` [GH-24141]
+* `azurerm_mssql_managed_instance_security_alert_policy` - can not update empty storage attributes [GH-24553]
+* `azurerm_network_interface` - the `ip_configuration` properties are no longer added to a Load Balancer Backend if one of those `ip_configurations` is associated with a backend [GH-24470]
 
 ## 3.88.0 (January 18, 2024)
 
