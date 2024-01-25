@@ -8,14 +8,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -49,6 +51,69 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"access_mode": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ingestion": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(privatelinkscopesapis.AccessModePrivateOnly),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(privatelinkscopesapis.AccessModeOpen),
+								string(privatelinkscopesapis.AccessModePrivateOnly),
+							}, false),
+						},
+
+						"query": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(privatelinkscopesapis.AccessModePrivateOnly),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(privatelinkscopesapis.AccessModeOpen),
+								string(privatelinkscopesapis.AccessModePrivateOnly),
+							}, false),
+						},
+
+						"exclusions": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"connection_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"ingestion": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(privatelinkscopesapis.AccessModePrivateOnly),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(privatelinkscopesapis.AccessModeOpen),
+											string(privatelinkscopesapis.AccessModePrivateOnly),
+										}, false),
+									},
+
+									"query": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(privatelinkscopesapis.AccessModePrivateOnly),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(privatelinkscopesapis.AccessModeOpen),
+											string(privatelinkscopesapis.AccessModePrivateOnly),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -81,6 +146,9 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	parameters := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
 		Location: "Global",
 		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Properties: privatelinkscopesapis.AzureMonitorPrivateLinkScopeProperties{
+			AccessModeSettings: expandMonitorPrivateLinkScopeAccessMode(d),
+		},
 	}
 
 	if _, err := client.PrivateLinkScopesCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -119,6 +187,11 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
+
+		if err = d.Set("access_mode", flattenMonitorPrivateLinkScopeAccessMode(model.Properties.AccessModeSettings)); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
@@ -140,4 +213,75 @@ func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandMonitorPrivateLinkScopeAccessMode(d *pluginsdk.ResourceData) privatelinkscopesapis.AccessModeSettings {
+	input, ok := d.Get("job_storage_account").([]interface{})
+	if input == nil || !ok {
+		return privatelinkscopesapis.AccessModeSettings{}
+	}
+
+	v := input[0].(map[string]interface{})
+
+	action := privatelinkscopesapis.AccessModeSettings{
+		Exclusions:          expandMonitorPrivateLinkScopeExclusions(v["exclusions"].([]interface{})),
+		QueryAccessMode:     privatelinkscopesapis.AccessMode(v["query"].(string)),
+		IngestionAccessMode: privatelinkscopesapis.AccessMode(v["ingestion"].(string)),
+	}
+
+	return action
+}
+
+func expandMonitorPrivateLinkScopeExclusions(i []interface{}) *[]privatelinkscopesapis.AccessModeSettingsExclusion {
+	if i == nil {
+		return nil
+	}
+
+	exclusions := make([]privatelinkscopesapis.AccessModeSettingsExclusion, len(i))
+
+	for i, v := range i {
+		exclusion := v.(map[string]interface{})
+
+		exclusions[i] = privatelinkscopesapis.AccessModeSettingsExclusion{
+			PrivateEndpointConnectionName: pointer.To(exclusion["connection_name"].(string)),
+			QueryAccessMode:               pointer.To(privatelinkscopesapis.AccessMode(exclusion["query"].(string))),
+			IngestionAccessMode:           pointer.To(privatelinkscopesapis.AccessMode(exclusion["ingestion"].(string))),
+		}
+	}
+
+	return &exclusions
+}
+
+func flattenMonitorPrivateLinkScopeAccessMode(accessModeSettings privatelinkscopesapis.AccessModeSettings) []map[string]interface{} {
+	if accessModeSettings == (privatelinkscopesapis.AccessModeSettings{}) {
+		return nil
+	}
+
+	accessMode := make([]map[string]interface{}, 1)
+
+	accessMode[0] = map[string]interface{}{
+		"exclusions": flattenMonitorPrivateLinkScopeExclusions(accessModeSettings.Exclusions),
+		"query":      accessModeSettings.QueryAccessMode,
+		"ingestion":  accessModeSettings.IngestionAccessMode,
+	}
+
+	return accessMode
+}
+
+func flattenMonitorPrivateLinkScopeExclusions(exclusions *[]privatelinkscopesapis.AccessModeSettingsExclusion) []map[string]interface{} {
+	if exclusions == nil {
+		return nil
+	}
+
+	exclusion := make([]map[string]interface{}, len(*exclusions))
+
+	for i, v := range *exclusions {
+		exclusion[i] = map[string]interface{}{
+			"connection_name": v.PrivateEndpointConnectionName,
+			"query":           v.QueryAccessMode,
+			"ingestion":       v.IngestionAccessMode,
+		}
+	}
+
+	return exclusion
 }

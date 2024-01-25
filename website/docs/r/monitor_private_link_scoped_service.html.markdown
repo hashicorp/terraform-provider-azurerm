@@ -50,6 +50,31 @@ The following arguments are supported:
 
 * `linked_resource_id` - (Required) The ID of the linked resource. It must be the Log Analytics workspace or the Application Insights component or the Data Collection endpoint. Changing this forces a new resource to be created.
 
+* `access_mode` - (Optional) One or more `access_mode` blocks as defined below.`
+
+---
+
+
+A `access_mode` block supports the following:
+
+* `ingestion` - (Optional) The ingestion access mode of the Azure Monitor Private Link Scoped Service. Possible values are `PrivateOnly` and `Open`. Defaults to `PrivateOnly`.
+
+* `query` - (Optional) The query access mode of the Azure Monitor Private Link Scoped Service. Possible values are `PrivateOnly` and `Open`. Defaults to `PrivateOnly`.
+
+* `exclusions` - (Optional) One or more `exclusions` blocks as defined below.`
+
+
+---
+ 
+
+A `exclusions` block supports the following:
+
+* `connection_name` - (Required) The name of the connection to apply the access mode exclusion to. 
+
+* `ingestion` - (Optional) The ingestion access mode of the Azure Monitor Private Link Scoped Service. Possible values are `PrivateOnly` and `Open`. Defaults to `PrivateOnly`.
+
+* `query` - (Optional) The query access mode of the Azure Monitor Private Link Scoped Service. Possible values are `PrivateOnly` and `Open`. Defaults to `PrivateOnly`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

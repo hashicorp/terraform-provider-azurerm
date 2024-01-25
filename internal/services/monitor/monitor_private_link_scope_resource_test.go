@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -145,6 +145,17 @@ func (r MonitorPrivateLinkScopeResource) complete(data acceptance.TestData, tag 
 resource "azurerm_monitor_private_link_scope" "test" {
   name                = "acctest-AMPLS-%d"
   resource_group_name = azurerm_resource_group.test.name
+
+  access_mpde {
+	ingestion = "Open"
+	query     = "Open"
+	exclusions {
+	  connection_name = "connection"
+
+	  ingestion = "Open"
+	  query     = "Open"
+	}
+  }
 
   tags = {
     ENV = "%s"
