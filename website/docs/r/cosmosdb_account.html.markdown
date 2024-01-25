@@ -281,6 +281,8 @@ A `restore` block supports the following:
 
 * `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
 
+* `gremlin_database` - (Optional) One or more `gremlin_database` blocks as defined below. Changing this forces a new resource to be created.
+
 * `tables_to_restore` - (Optional) A list of specific tables available for restore. Changing this forces a new resource to be created.
 
 ---
@@ -290,6 +292,14 @@ A `database` block supports the following:
 * `name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
 
 * `collection_names` - (Optional) A list of the collection names for the restore request. Changing this forces a new resource to be created.
+
+---
+
+A `gremlin_database` block supports the following:
+
+* `name` - (Required) The Gremlin Database name for the restore request. Changing this forces a new resource to be created.
+
+* `graph_names` - (Optional) A list of the Graph names for the restore request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

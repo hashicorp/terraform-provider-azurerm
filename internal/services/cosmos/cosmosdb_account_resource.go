@@ -599,6 +599,32 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							},
 						},
 
+						"gremlin_database": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.CosmosEntityName,
+									},
+
+									"graph_names": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validate.CosmosEntityName,
+										},
+									},
+								},
+							},
+						},
+
 						"tables_to_restore": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -2003,9 +2029,10 @@ func expandCosmosdbAccountRestoreParameters(input []interface{}) *cosmosdb.Resto
 	v := input[0].(map[string]interface{})
 
 	restoreParameters := cosmosdb.RestoreParameters{
-		RestoreMode:        pointer.To(cosmosdb.RestoreModePointInTime),
-		RestoreSource:      pointer.To(v["source_cosmosdb_account_id"].(string)),
-		DatabasesToRestore: expandCosmosdbAccountDatabasesToRestore(v["database"].(*pluginsdk.Set).List()),
+		RestoreMode:               pointer.To(cosmosdb.RestoreModePointInTime),
+		RestoreSource:             pointer.To(v["source_cosmosdb_account_id"].(string)),
+		DatabasesToRestore:        expandCosmosdbAccountDatabasesToRestore(v["database"].(*pluginsdk.Set).List()),
+		GremlinDatabasesToRestore: expandCosmosdbAccountGremlinDatabasesToRestore(v["gremlin_database"].([]interface{})),
 	}
 
 	restoreTimestampInUtc, _ := time.Parse(time.RFC3339, v["restore_timestamp_in_utc"].(string))
@@ -2032,6 +2059,21 @@ func expandCosmosdbAccountDatabasesToRestore(input []interface{}) *[]cosmosdb.Da
 	return &results
 }
 
+func expandCosmosdbAccountGremlinDatabasesToRestore(input []interface{}) *[]cosmosdb.GremlinDatabaseRestoreResource {
+	results := make([]cosmosdb.GremlinDatabaseRestoreResource, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, cosmosdb.GremlinDatabaseRestoreResource{
+			DatabaseName: pointer.To(v["name"].(string)),
+			GraphNames:   utils.ExpandStringSlice(v["graph_names"].([]interface{})),
+		})
+	}
+
+	return &results
+}
+
 func flattenCosmosdbAccountRestoreParameters(input *cosmosdb.RestoreParameters) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -2049,6 +2091,7 @@ func flattenCosmosdbAccountRestoreParameters(input *cosmosdb.RestoreParameters) 
 	return []interface{}{
 		map[string]interface{}{
 			"database":                   flattenCosmosdbAccountDatabasesToRestore(input.DatabasesToRestore),
+			"gremlin_database":           flattenCosmosdbAccountGremlinDatabasesToRestore(input.GremlinDatabasesToRestore),
 			"source_cosmosdb_account_id": restoreSource,
 			"restore_timestamp_in_utc":   restoreTimestampInUtc,
 			"tables_to_restore":          pointer.From(input.TablesToRestore),
@@ -2073,6 +2116,22 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]cosmosdb.DatabaseRestoreR
 			"name":             databaseName,
 		})
 	}
+	return results
+}
+
+func flattenCosmosdbAccountGremlinDatabasesToRestore(input *[]cosmosdb.GremlinDatabaseRestoreResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"graph_names": utils.FlattenStringSlice(item.GraphNames),
+			"name":        pointer.From(item.DatabaseName),
+		})
+	}
+
 	return results
 }
 
