@@ -117,7 +117,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
   name                = "acctestcse-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
   selector {
-    id   = "val-${var.random_string}"
+    id   = azurerm_chaos_studio_target.test.id
     type = "List"
   }
   step {
@@ -126,7 +126,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
       name = "acctestcse-${var.random_string}"
       action {
         name = "acctestcse-${var.random_string}"
-        type = "val-${var.random_string}"
+        type = "continuous"
       }
     }
   }
@@ -234,10 +234,10 @@ resource "azurerm_chaos_studio_capability" "test" {
   capability_type        = "NetworkChaos-2.0"
 }
 
-resource "azurerm_chaos_studio_capability" "test" {
-  location           = azurerm_resource_group.test.location
-  target_resource_id = azurerm_storage_account.test.id
-  target_type        = "PodChaos-2.1"
+resource "azurerm_chaos_studio_capability" "test2" {
+  chaos_studio_target_id = azurerm_chaos_studio_target.test.id
+  capability_type        = "PodChaos-2.1"
 }
+
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

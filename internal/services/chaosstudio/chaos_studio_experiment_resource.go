@@ -39,9 +39,9 @@ type ChaosStudioExperimentResourceSchema struct {
 }
 
 type ChaosStudioExperimentResourceSelectorSchema struct {
-	Filter []ChaosStudioExperimentResourceFilterSchema `tfschema:"filter"`
-	Id     string                                      `tfschema:"id"`
-	Type   string                                      `tfschema:"type"`
+	//Filter []ChaosStudioExperimentResourceFilterSchema `tfschema:"filter"`
+	Id   string `tfschema:"id"`
+	Type string `tfschema:"type"`
 }
 
 type ChaosStudioExperimentResourceStepSchema struct {
@@ -79,6 +79,8 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"selector": {
+			Required: true,
+			Type:     pluginsdk.TypeList,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -94,6 +96,9 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 						}, false),
 					},
 					"filter": {
+						MaxItems: 1,
+						Optional: true,
+						Type:     pluginsdk.TypeList,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"type": {
@@ -105,24 +110,35 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 								},
 							},
 						},
-						MaxItems: 1,
-						Optional: true,
-						Type:     pluginsdk.TypeList,
 					},
 				},
 			},
-			Required: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"step": {
+			Required: true,
+			Type:     pluginsdk.TypeList,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Required: true,
+						Type:     pluginsdk.TypeString,
+					},
 					"branch": {
+						Required: true,
+						Type:     pluginsdk.TypeList,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Required: true,
+									Type:     pluginsdk.TypeString,
+								},
+								// split into three types of actions?
 								"action": {
+									Required: true,
+									Type:     pluginsdk.TypeList,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
+											// urn?
 											"name": {
 												Required: true,
 												Type:     pluginsdk.TypeString,
@@ -130,29 +146,20 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 											"type": {
 												Required: true,
 												Type:     pluginsdk.TypeString,
+												ValidateFunc: validation.StringInSlice([]string{
+													"continuous",
+													"delay",
+													"discrete",
+												}, false),
 											},
 										},
 									},
-									Required: true,
-									Type:     pluginsdk.TypeList,
-								},
-								"name": {
-									Required: true,
-									Type:     pluginsdk.TypeString,
 								},
 							},
 						},
-						Required: true,
-						Type:     pluginsdk.TypeList,
-					},
-					"name": {
-						Required: true,
-						Type:     pluginsdk.TypeString,
 					},
 				},
 			},
-			Required: true,
-			Type:     pluginsdk.TypeList,
 		},
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 		"tags":     commonschema.Tags(),
@@ -187,9 +194,27 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 			}
 
 			var payload experiments.Experiment
-			if err := r.mapChaosStudioExperimentResourceSchemaToExperiment(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+
+			expandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
 			}
+			payload.Identity = expandedIdentity
+
+			payload.Location = location.Normalize(config.Location)
+			payload.Tags = tags.Expand(config.Tags)
+
+			var experimentProperties experiments.ExperimentProperties
+			//selector, err := expandSelector(config.Selector)
+
+			if err := r.mapChaosStudioExperimentResourceSchemaToExperimentProperties(config, &experimentProperties); err != nil {
+				return fmt.Errorf("flattening steps")
+			}
+
+			payload.Properties = experimentProperties
+			//if err := r.mapChaosStudioExperimentResourceSchemaToExperiment(config, &payload); err != nil {
+			//	return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+			//}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -200,6 +225,21 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
+//func expandSelector(input []ChaosStudioExperimentResourceSelectorSchema) ([]experiments.Selector, error) {
+//	output := make([]experiments.Selector, 0)
+//
+//	for _, v := range input {
+//		output = append(output, experiments.Selector{
+//			Filter: nil,
+//			Id:     v.Id,
+//			Type:   experiments.SelectorType(v.Type),
+//		})
+//	}
+//
+//	return output, nil
+//}
+
 func (r ChaosStudioExperimentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -363,11 +403,11 @@ func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceSchemaToE
 
 func (r ChaosStudioExperimentResource) mapExperimentToChaosStudioExperimentResourceSchema(input experiments.Experiment, output *ChaosStudioExperimentResourceSchema) error {
 
-	identity, err := identity.FlattenSystemOrUserAssignedMapToModel(input.Identity)
+	flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening SystemOrUserAssigned Identity: %+v", err)
 	}
-	output.Identity = identity
+	output.Identity = *flattenedIdentity
 
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Flatten(input.Tags)
@@ -430,24 +470,24 @@ func (r ChaosStudioExperimentResource) mapExperimentPropertiesToChaosStudioExper
 }
 
 func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceSelectorSchemaToSelector(input ChaosStudioExperimentResourceSelectorSchema, output *experiments.Selector) error {
-	if len(input.Filter) > 0 {
-		if err := r.mapChaosStudioExperimentResourceFilterSchemaToSelector(input.Filter[0], output); err != nil {
-			return err
-		}
-	}
+	//if len(input.Filter) > 0 {
+	//	if err := r.mapChaosStudioExperimentResourceFilterSchemaToSelector(input.Filter[0], output); err != nil {
+	//		return err
+	//	}
+	//}
 	output.Id = input.Id
 	output.Type = experiments.SelectorType(input.Type)
 	return nil
 }
 
 func (r ChaosStudioExperimentResource) mapSelectorToChaosStudioExperimentResourceSelectorSchema(input experiments.Selector, output *ChaosStudioExperimentResourceSelectorSchema) error {
-	tmpFilter := &ChaosStudioExperimentResourceFilterSchema{}
-	if err := r.mapSelectorToChaosStudioExperimentResourceFilterSchema(input, tmpFilter); err != nil {
-		return err
-	} else {
-		output.Filter = make([]ChaosStudioExperimentResourceFilterSchema, 0)
-		output.Filter = append(output.Filter, *tmpFilter)
-	}
+	//tmpFilter := &ChaosStudioExperimentResourceFilterSchema{}
+	//if err := r.mapSelectorToChaosStudioExperimentResourceFilterSchema(input, tmpFilter); err != nil {
+	//	return err
+	//} else {
+	//	output.Filter = make([]ChaosStudioExperimentResourceFilterSchema, 0)
+	//	output.Filter = append(output.Filter, *tmpFilter)
+	//}
 	output.Id = input.Id
 	output.Type = string(input.Type)
 	return nil
