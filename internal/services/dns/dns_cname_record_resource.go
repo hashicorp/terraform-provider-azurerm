@@ -193,6 +193,7 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			targetResourceId := ""
 			if props.TargetResource != nil && props.TargetResource.Id != nil {
+				// TODO update this once https://github.com/hashicorp/go-azure-helpers/issues/189 is resolved
 				targetResourceId = *props.TargetResource.Id
 				if recordTypeID, err := recordsets.ParseRecordTypeIDInsensitively(targetResourceId); err == nil {
 					targetResourceId = recordTypeID.ID()
