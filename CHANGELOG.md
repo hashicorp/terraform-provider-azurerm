@@ -3,8 +3,9 @@
 ENHANCEMENTS:
 
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
-* dependencies: updating to `v0.20240125.1122928` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24636]
-* dependencies: updating to `v0.20240125.1122928` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24636]
+* dependencies: updating `v0.20240125.1172517` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24640]
+* dependencies: updating `v0.20240125.1172517` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24640]
+* `nginx`: updating to API Version `2023-09-01` [GH-24640]
 
 ## 3.89.0 (January 25, 2024)
 
