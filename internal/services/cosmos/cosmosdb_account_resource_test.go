@@ -4167,26 +4167,10 @@ resource "azurerm_cosmosdb_account" "test1" {
   }
 }
 
-resource "azurerm_cosmosdb_sql_database" "test" {
-  name                = "acctest-sqldb-%d"
-  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test1.name
-}
-
-resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "acctest-CSQLC-%d"
-  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test1.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
-}
-
 resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-sqltable-%d"
   resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
   account_name        = azurerm_cosmosdb_account.test1.name
-
-  depends_on = [azurerm_cosmosdb_sql_container.test]
 }
 
 resource "azurerm_cosmosdb_table" "test2" {
@@ -4243,7 +4227,7 @@ resource "azurerm_cosmosdb_account" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (r CosmosDBAccountResource) ipRangeFilters(data acceptance.TestData) string {
