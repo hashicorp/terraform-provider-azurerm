@@ -18,9 +18,13 @@ func (autoRegistration) DataSources() []sdk.DataSource {
 }
 
 func (autoRegistration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		ChaosStudioTargetResource{},
+	}
 }
 
 func (autoRegistration) WebsiteCategories() []string {
-	return []string{}
+	return []string{
+		"Chaos Studio",
+	}
 }

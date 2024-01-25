@@ -52,10 +52,6 @@ func (c VirtualWANsClient) VirtualHubsGetInboundRoutes(ctx context.Context, id V
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

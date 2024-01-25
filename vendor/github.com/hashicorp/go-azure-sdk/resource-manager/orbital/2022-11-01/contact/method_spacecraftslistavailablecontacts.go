@@ -57,15 +57,6 @@ func (c ContactClient) SpacecraftsListAvailableContacts(ctx context.Context, id 
 		return
 	}
 
-	var values struct {
-		Values *[]AvailableContacts `json:"value"`
-	}
-	if err = resp.Unmarshal(&values); err != nil {
-		return
-	}
-
-	result.Model = values.Values
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

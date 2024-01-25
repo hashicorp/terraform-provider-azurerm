@@ -52,10 +52,6 @@ func (c RedisClient) Create(ctx context.Context, id RediId, input RedisCreatePar
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

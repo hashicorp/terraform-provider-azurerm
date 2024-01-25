@@ -52,10 +52,6 @@ func (c MobileNetworkClient) CreateOrUpdate(ctx context.Context, id MobileNetwor
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return
