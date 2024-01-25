@@ -12,6 +12,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -522,7 +524,11 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if props := resp.SiteProperties; props != nil {
-		d.Set("app_service_plan_id", props.ServerFarmID)
+		servicePlan, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
+		if err != nil {
+			return err
+		}
+		d.Set("app_service_plan_id", servicePlan.ID())
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("https_only", props.HTTPSOnly)
