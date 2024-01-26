@@ -196,17 +196,28 @@ func (r CustomLocationResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 
 				state := CustomLocationResourceModel{
-					Name:                id.CustomLocationName,
-					ResourceGroupName:   id.ResourceGroupName,
-					Location:            model.Location,
-					ClusterExtensionIds: pointer.From(props.ClusterExtensionIds),
-					DisplayName:         pointer.From(props.DisplayName),
-					HostResourceId:      pointer.From(props.HostResourceId),
-					HostType:            string(pointer.From(props.HostType)),
-					Namespace:           pointer.From(props.Namespace),
+					Name:              id.CustomLocationName,
+					ResourceGroupName: id.ResourceGroupName,
+					Location:          model.Location,
 				}
 
-				if props != nil && props.Authentication != nil {
+				if props.ClusterExtensionIds != nil {
+					state.ClusterExtensionIds = pointer.From(props.ClusterExtensionIds)
+				}
+				if props.DisplayName != nil {
+					state.DisplayName = pointer.From(props.DisplayName)
+				}
+				if props.HostResourceId != nil {
+					state.HostResourceId = pointer.From(props.HostResourceId)
+				}
+				if props.HostType != nil {
+					state.HostType = string(pointer.From(props.HostType))
+				}
+				if props.Namespace != nil {
+					state.Namespace = pointer.From(props.Namespace)
+				}
+
+				if props.Authentication != nil {
 					state.Authentication = []AuthModel{
 						{
 							Type:  pointer.From(props.Authentication.Type),
