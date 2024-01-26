@@ -5,6 +5,7 @@ package subscription
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -91,11 +92,11 @@ func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("subscription_id", model.SubscriptionId)
 		d.Set("display_name", model.DisplayName)
 		d.Set("tenant_id", model.TenantId)
-		d.Set("state", model.State)
+		d.Set("state", string(pointer.From(model.State)))
 		if props := model.SubscriptionPolicies; props != nil {
 			d.Set("location_placement_id", props.LocationPlacementId)
 			d.Set("quota_id", props.QuotaId)
-			d.Set("spending_limit", props.SpendingLimit)
+			d.Set("spending_limit", string(pointer.From(props.SpendingLimit)))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
