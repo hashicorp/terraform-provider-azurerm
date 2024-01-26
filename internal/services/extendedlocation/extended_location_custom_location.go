@@ -141,35 +141,20 @@ func (r CustomLocationResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			customLocationProps := customlocations.CustomLocationProperties{}
+			customLocationProps := customlocations.CustomLocationProperties{
+				ClusterExtensionIds: pointer.To(model.ClusterExtensionIds),
+				DisplayName:         pointer.To(model.DisplayName),
+				HostResourceId:      pointer.To(model.HostResourceId),
+				HostType:            pointer.To(customlocations.HostType(model.HostType)),
+				Namespace:           pointer.To(model.Namespace),
+			}
 
-			if model.Authentication != nil && len(model.Authentication) > 0 {
+			if len(model.Authentication) > 0 {
 				auth := model.Authentication[0]
 				customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
 					Type:  pointer.To(auth.Type),
 					Value: pointer.To(auth.Value),
 				}
-			}
-
-			if model.ClusterExtensionIds != nil {
-				customLocationProps.ClusterExtensionIds = pointer.To(model.ClusterExtensionIds)
-			}
-
-			if model.DisplayName != "" {
-				customLocationProps.DisplayName = pointer.To(model.DisplayName)
-			}
-
-			if model.HostResourceId != "" {
-				customLocationProps.HostResourceId = pointer.To(model.HostResourceId)
-			}
-
-			if model.HostType != "" {
-				hostType := customlocations.HostType(model.HostType)
-				customLocationProps.HostType = pointer.To(hostType)
-			}
-
-			if model.Namespace != "" {
-				customLocationProps.Namespace = pointer.To(model.Namespace)
 			}
 
 			props := customlocations.CustomLocation{
@@ -303,10 +288,6 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 			if d.HasChange("host_type") {
 				hostType := customlocations.HostType(state.HostType)
 				customLocationProps.HostType = pointer.To(hostType)
-			}
-
-			if d.HasChange("namespace") {
-				customLocationProps.Namespace = pointer.To(state.Namespace)
 			}
 
 			props := customlocations.PatchableCustomLocations{
