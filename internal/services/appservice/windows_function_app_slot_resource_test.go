@@ -2553,7 +2553,6 @@ resource "azurerm_service_plan" "test2" {
   sku_name            = "%[3]s"
 }
 
-
 resource "azurerm_windows_function_app_slot" "test" {
   name                       = "acctest-WFAS-%[2]d"
   function_app_id            = azurerm_windows_function_app.test.id
@@ -2592,7 +2591,7 @@ resource "azurerm_service_plan" "test3" {
 }
 
 resource "azurerm_windows_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%[2]d"
+  name                       = "acctest-WFAS-%[2]d"
   function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key

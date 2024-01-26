@@ -612,22 +612,20 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				state.Kind = pointer.From(model.Kind)
 				state.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
-					state = WindowsWebAppSlotModel{
-						ClientAffinityEnabled:         pointer.From(props.ClientAffinityEnabled),
-						ClientCertEnabled:             pointer.From(props.ClientCertEnabled),
-						ClientCertMode:                string(pointer.From(props.ClientCertMode)),
-						ClientCertExclusionPaths:      pointer.From(props.ClientCertExclusionPaths),
-						CustomDomainVerificationId:    pointer.From(props.CustomDomainVerificationId),
-						DefaultHostname:               pointer.From(props.DefaultHostName),
-						Enabled:                       pointer.From(props.Enabled),
-						HttpsOnly:                     pointer.From(props.HTTPSOnly),
-						KeyVaultReferenceIdentityID:   pointer.From(props.KeyVaultReferenceIdentity),
-						OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
-						OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
-						PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
-						PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
-						PublicNetworkAccess:           !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
-					}
+					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
+					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
+					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+					state.DefaultHostname = pointer.From(props.DefaultHostName)
+					state.Enabled = pointer.From(props.Enabled)
+					state.HttpsOnly = pointer.From(props.HTTPSOnly)
+					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
+					state.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
+					state.OutboundIPAddressList = strings.Split(pointer.From(props.OutboundIPAddresses), ",")
+					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
+					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
@@ -793,7 +791,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				locks.ByID(newPlan.ID())
 				defer locks.UnlockByID(newPlan.ID())
 				if model.Properties == nil {
-					return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
+					return fmt.Errorf("updating Service Plan for Windows %s: Slot SiteProperties was nil", *id)
 				}
 				model.Properties.ServerFarmId = pointer.To(newPlan.ID())
 			}

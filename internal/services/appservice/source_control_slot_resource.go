@@ -218,8 +218,6 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			// TODO - Need to introduce polling for deployment statuses to avoid 409's elsewhere
-
 			metadata.SetID(id)
 			return nil
 		},

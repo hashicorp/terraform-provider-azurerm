@@ -723,12 +723,26 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				basicAuthWebDeploy = csmProps.Allow
 			}
 			state := WindowsFunctionAppSlotModel{
-				Name:          id.SlotName,
-				FunctionAppID: functionAppId.ID(),
+				Name:                             id.SlotName,
+				FunctionAppID:                    functionAppId.ID(),
+				PublishingFTPBasicAuthEnabled:    basicAuthFTP,
+				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
+				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
+				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials.Model),
+				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
+				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
+				Backup:                           helpers.FlattenBackupConfig(backup.Model),
+				StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
 			}
 			if model := functionAppSlot.Model; model != nil {
 				state.Tags = pointer.From(model.Tags)
 				state.Kind = pointer.From(model.Kind)
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				state.Identity = pointer.From(flattenedIdentity)
 
 				if props := model.Properties; props != nil {
 					state.Enabled = pointer.From(props.Enabled)
@@ -739,8 +753,6 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.PublishingFTPBasicAuthEnabled = basicAuthFTP
-					state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -788,26 +800,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 				state.unpackWindowsFunctionAppSettings(appSettingsResp.Model, metadata)
 
-				state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
-
-				state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials.Model)
-
-				state.AuthSettings = helpers.FlattenAuthSettings(auth.Model)
-
-				state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
-
-				state.Backup = helpers.FlattenBackupConfig(backup.Model)
-
 				state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
-
-				state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts.Model)
-
-				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-
-				state.Identity = pointer.From(flattenedIdentity)
 
 				if err := metadata.Encode(&state); err != nil {
 					return fmt.Errorf("encoding: %+v", err)

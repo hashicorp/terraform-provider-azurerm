@@ -635,6 +635,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			functionAppSlot, err := client.GetSlot(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(functionAppSlot.HttpResponse) {
@@ -653,6 +654,11 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			connectionStrings, err := client.ListConnectionStringsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
+			}
+
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
 			siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, *id)
@@ -679,11 +685,6 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				if !response.WasNotFound(backup.HttpResponse) {
 					return fmt.Errorf("reading Backup Settings for Linux %s: %+v", id, err)
 				}
-			}
-
-			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
 			logs, err := client.GetDiagnosticLogsConfigurationSlot(ctx, *id)

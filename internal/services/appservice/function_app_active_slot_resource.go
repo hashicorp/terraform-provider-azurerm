@@ -6,13 +6,16 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -101,8 +104,30 @@ func (r FunctionAppActiveSlotResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			if err := client.SwapSlotWithProductionThenPoll(ctx, appId, csmSlotEntity); err != nil {
+			if resp, err := client.SwapSlotWithProduction(ctx, appId, csmSlotEntity); err != nil {
 				return fmt.Errorf("making %s the active slot: %+v", id.SlotName, err)
+			} else {
+				err = resp.Poller.PollUntilDone(ctx)
+				if err != nil {
+					// This is a workaround for a bug in the Azure API where the LRO Success doesn't provide a status or provisioningState in the response
+					if regexp.MustCompile("expected either `provisioningState` or `status` to be returned from the LRO API but both were empty").Match([]byte(err.Error())) {
+						if checkSwap, appErr := client.Get(ctx, appId); appErr != nil {
+							if checkSwap.Model != nil && checkSwap.Model.Properties != nil && checkSwap.Model.Properties.SlotSwapStatus != nil {
+								swapStatus := pointer.From(checkSwap.Model.Properties.SlotSwapStatus)
+								if pointer.From(swapStatus.SourceSlotName) != id.SlotName {
+									return err
+								}
+							}
+							return err
+						}
+					}
+				}
+			}
+
+			pollerType := custompollers.NewAppServiceActiveSlotPoller(client, appId, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			metadata.SetID(appId)
