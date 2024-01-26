@@ -123,8 +123,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up. Defaults to `48`.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableImageCleanerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/image-cleaner) for more information.
-
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
 -> **Note:** Since the Application Gateway is deployed inside a Virtual Network, users (and Service Principals) that are operating the Application Gateway must have the `Microsoft.Network/virtualNetworks/subnets/join/action` permission on the Virtual Network or Subnet. For more details, please visit [Virtual Network Permission](https://learn.microsoft.com/en-us/azure/application-gateway/configuration-infrastructure#virtual-network-permission).
