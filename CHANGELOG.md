@@ -7,13 +7,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
-* dependencies: updating `v0.20240125.1172517` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24640]
-* dependencies: updating `v0.20240125.1172517` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24640]
+* dependencies: updating to `v0.20240126.1105227` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24654]
+* dependencies: updating to `v0.20240126.1105227` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24654]
 * provider: the Provider is now built using Go 1.21.6 [GH-24653]
 * `hdinsight`: refactoring to use `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24011]
 * `hdinsight`: updating to API Version `2021-06-01` [GH-24011]
 * `loadbalancer`: updating to use `hashicorp/go-azure-sdk` [GH-24291]
 * `nginx`: updating to API Version `2023-09-01` [GH-24640]
+* `servicefabricmanagedcluster`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24654]
 * `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
 
 BUG FIXES:
