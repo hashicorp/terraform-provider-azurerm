@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* New Data Source: `azurerm_nginx_configuration` [GH-24642]
+* **New Data Source**: `azurerm_nginx_configuration` [GH-24642]
 
 ENHANCEMENTS:
 
