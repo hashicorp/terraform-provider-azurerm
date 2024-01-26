@@ -16,6 +16,7 @@ type SBNamespaceProperties struct {
 	Encryption                 *Encryption                  `json:"encryption,omitempty"`
 	MetricId                   *string                      `json:"metricId,omitempty"`
 	MinimumTlsVersion          *TlsVersion                  `json:"minimumTlsVersion,omitempty"`
+	PremiumMessagingPartitions *int64                       `json:"premiumMessagingPartitions,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *string                      `json:"provisioningState,omitempty"`
 	PublicNetworkAccess        *PublicNetworkAccess         `json:"publicNetworkAccess,omitempty"`
