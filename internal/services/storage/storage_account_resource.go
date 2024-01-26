@@ -1655,9 +1655,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	allowSharedKeyAccess := true
+	shouldUpdate := false
 	if d.HasChange("shared_access_key_enabled") {
 		allowSharedKeyAccess = d.Get("shared_access_key_enabled").(bool)
-
+		shouldUpdate = true
 		// If AllowSharedKeyAccess is nil that breaks the Portal UI as reported in https://github.com/hashicorp/terraform-provider-azurerm/issues/11689
 		// currently the Portal UI reports nil as false, and per the ARM API documentation nil is true. This manifests itself in the Portal UI
 		// when a storage account is created by terraform that the AllowSharedKeyAccess is Disabled when it is actually Enabled, thus confusing out customers
@@ -1686,17 +1687,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("default_to_oauth_authentication") {
+		shouldUpdate = true
 		defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 		opts.AccountPropertiesUpdateParameters.DefaultToOAuthAuthentication = &defaultToOAuthAuthentication
 	}
 
 	if d.HasChange("cross_tenant_replication_enabled") {
+		shouldUpdate = true
 		crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 		opts.AccountPropertiesUpdateParameters.AllowCrossTenantReplication = &crossTenantReplication
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-		return fmt.Errorf("updating AllowSharedKeyAccess for %s: %+v", *id, err)
+	if shouldUpdate {
+		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
+			return fmt.Errorf("updating AllowSharedKeyAccess for %s: %+v", *id, err)
+		}
 	}
 
 	if d.HasChange("account_replication_type") {
