@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `hdinsight`: refactoring to use `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24011]
 * `hdinsight`: updating to API Version `2021-06-01` [GH-24011]
 * `nginx`: updating to API Version `2023-09-01` [GH-24640]
+* `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
 
 BUG FIXES:
 
