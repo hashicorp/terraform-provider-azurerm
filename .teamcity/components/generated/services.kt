@@ -22,6 +22,7 @@ var services = mapOf(
         "blueprints" to "Blueprints",
         "bot" to "Bot",
         "cdn" to "CDN",
+        "chaosstudio" to "ChaosStudio",
         "cognitive" to "Cognitive Services",
         "communication" to "Communication",
         "compute" to "Compute",
