@@ -6,7 +6,6 @@ package authorization
 import (
 	"context"
 	"fmt"
-	resourceManager "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"log"
 	"regexp"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -415,7 +415,7 @@ func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authoriza
 	}
 }
 
-func getTenantIdBySubscriptionId(ctx context.Context, client *resourceManager.SubscriptionsClient, subscriptionId string) (string, error) {
+func getTenantIdBySubscriptionId(ctx context.Context, client *subscriptions.SubscriptionsClient, subscriptionId string) (string, error) {
 	id := commonids.NewSubscriptionID(subscriptionId)
 	resp, err := client.Get(ctx, id)
 	if err != nil {
