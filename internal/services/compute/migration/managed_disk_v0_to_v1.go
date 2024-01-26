@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,7 +19,7 @@ type ManagedDiskV0ToV1 struct{}
 func (ManagedDiskV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldIdRaw := rawState["id"].(string)
-		oldId, err := disks.ParseDiskIDInsensitively(oldIdRaw)
+		oldId, err := commonids.ParseManagedDiskIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}

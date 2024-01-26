@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CentralInstanceId{}
+var _ resourceids.ResourceId = &CentralInstanceId{}
 
 // CentralInstanceId is a struct representing the Resource ID for a Central Instance
 type CentralInstanceId struct {
@@ -32,7 +32,7 @@ func NewCentralInstanceID(subscriptionId string, resourceGroupName string, sapVi
 
 // ParseCentralInstanceID parses 'input' into a CentralInstanceId
 func ParseCentralInstanceID(input string) (*CentralInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CentralInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&CentralInstanceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCentralInstanceID(input string) (*CentralInstanceId, error) {
 // ParseCentralInstanceIDInsensitively parses 'input' case-insensitively into a CentralInstanceId
 // note: this method should only be used for API response data and not user input
 func ParseCentralInstanceIDInsensitively(input string) (*CentralInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CentralInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&CentralInstanceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

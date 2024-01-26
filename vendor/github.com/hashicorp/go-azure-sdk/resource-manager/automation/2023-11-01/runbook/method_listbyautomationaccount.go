@@ -19,7 +19,8 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []Runbook
+	LatestHttpResponse *http.Response
+	Items              []Runbook
 }
 
 // ListByAutomationAccount ...
@@ -83,7 +84,8 @@ func (c RunbookClient) ListByAutomationAccountCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

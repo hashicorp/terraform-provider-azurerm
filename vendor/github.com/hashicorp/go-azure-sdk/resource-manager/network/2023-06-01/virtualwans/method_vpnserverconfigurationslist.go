@@ -20,7 +20,8 @@ type VpnServerConfigurationsListOperationResponse struct {
 }
 
 type VpnServerConfigurationsListCompleteResult struct {
-	Items []VpnServerConfiguration
+	LatestHttpResponse *http.Response
+	Items              []VpnServerConfiguration
 }
 
 // VpnServerConfigurationsList ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) VpnServerConfigurationsListCompleteMatchingPredicate(
 	}
 
 	result = VpnServerConfigurationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type ListByResourceOperationResponse struct {
 }
 
 type ListByResourceCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type ListByResourceOperationOptions struct {
@@ -116,7 +117,8 @@ func (c EventSubscriptionsClient) ListByResourceCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

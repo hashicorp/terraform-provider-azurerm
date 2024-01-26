@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualNetworkId{}
+var _ resourceids.ResourceId = &VirtualNetworkId{}
 
 // VirtualNetworkId is a struct representing the Resource ID for a Virtual Network
 type VirtualNetworkId struct {
@@ -32,7 +32,7 @@ func NewVirtualNetworkID(subscriptionId string, resourceGroupName string, labNam
 
 // ParseVirtualNetworkID parses 'input' into a VirtualNetworkId
 func ParseVirtualNetworkID(input string) (*VirtualNetworkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseVirtualNetworkID(input string) (*VirtualNetworkId, error) {
 // ParseVirtualNetworkIDInsensitively parses 'input' case-insensitively into a VirtualNetworkId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualNetworkIDInsensitively(input string) (*VirtualNetworkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -111,6 +111,27 @@ func TestAccAppConfigurationKey_KVToVault(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationKey_basicNoValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicNoValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationKey_slash(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
 	r := AppConfigurationKeyResource{}
@@ -253,6 +274,19 @@ resource "azurerm_app_configuration_key" "test" {
 `, t.base(data), data.RandomInteger, data.RandomInteger)
 }
 
+func (t AppConfigurationKeyResource) basicNoValue(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_key" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "acctest-ackey-%d"
+  content_type           = "test"
+  value                  = ""
+}
+`, t.base(data), data.RandomInteger)
+}
+
 func (t AppConfigurationKeyResource) basicNoLabel(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -351,6 +385,11 @@ resource "azurerm_app_configuration_key" "test" {
   type                   = "vault"
   label                  = "acctest-ackeylabel-%d"
   vault_key_reference    = azurerm_key_vault_secret.example.id
+  lifecycle {
+    ignore_changes = [
+      value
+    ]
+  }
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

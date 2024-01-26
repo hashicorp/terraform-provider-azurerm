@@ -20,7 +20,8 @@ type ContainerRegistriesListOperationResponse struct {
 }
 
 type ContainerRegistriesListCompleteResult struct {
-	Items []ContainerRegistryResource
+	LatestHttpResponse *http.Response
+	Items              []ContainerRegistryResource
 }
 
 // ContainerRegistriesList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ContainerRegistriesListCompleteMatchingPredicate(ctx 
 	}
 
 	result = ContainerRegistriesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

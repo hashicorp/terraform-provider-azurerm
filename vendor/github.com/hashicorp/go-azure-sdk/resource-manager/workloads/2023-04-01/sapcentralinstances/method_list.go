@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []SAPCentralServerInstance
+	LatestHttpResponse *http.Response
+	Items              []SAPCentralServerInstance
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c SAPCentralInstancesClient) ListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

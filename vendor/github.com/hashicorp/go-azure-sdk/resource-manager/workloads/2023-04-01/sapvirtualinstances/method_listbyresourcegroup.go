@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []SAPVirtualInstance
+	LatestHttpResponse *http.Response
+	Items              []SAPVirtualInstance
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c SAPVirtualInstancesClient) ListByResourceGroupCompleteMatchingPredicate(
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

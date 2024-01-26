@@ -172,7 +172,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			},
 
 			// https://github.com/Azure/azure-rest-api-specs/issues/13365
-			"tags": commonschema.TagsForceNew(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -258,6 +258,22 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	resp, err := hsmClient.Get(ctx, *id)
 	if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	model := resp.Model
+	hasUpdate := false
+	if d.HasChange("tags") {
+		hasUpdate = true
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+	if d.HasChange("network_acls") {
+		hasUpdate = true
+		model.Properties.NetworkAcls = expandMHSMNetworkAcls(d.Get("network_acls").([]interface{}))
+	}
+	if hasUpdate {
+		if err := hsmClient.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+			return fmt.Errorf("updating %s tags: %+v", id, err)
+		}
 	}
 
 	// security domain download to activate this module
@@ -376,9 +392,18 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		}
 	}
 
-	purgedId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
-	if err := hsmClient.PurgeDeletedThenPoll(ctx, purgedId); err != nil {
+	// the polling operation of purge can not terminate correctly, so we use the custom polling operation of polling delete
+	// try to purge again if managed HSM still exists after 1 minute
+	// for API issue: https://github.com/Azure/azure-rest-api-specs/issues/27138
+	purgeId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
+	if _, err := hsmClient.PurgeDeleted(ctx, purgeId); err != nil {
 		return fmt.Errorf("purging %s: %+v", id, err)
+	}
+
+	purgePoller := custompollers.NewHSMPurgePoller(hsmClient, purgeId)
+	poller := pollers.NewPoller(purgePoller, time.Second*30, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be purged: %+v", id, err)
 	}
 
 	return nil

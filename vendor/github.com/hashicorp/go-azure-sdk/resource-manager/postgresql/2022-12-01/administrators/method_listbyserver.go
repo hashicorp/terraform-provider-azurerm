@@ -19,7 +19,8 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []ActiveDirectoryAdministrator
+	LatestHttpResponse *http.Response
+	Items              []ActiveDirectoryAdministrator
 }
 
 // ListByServer ...
@@ -83,7 +84,8 @@ func (c AdministratorsClient) ListByServerCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

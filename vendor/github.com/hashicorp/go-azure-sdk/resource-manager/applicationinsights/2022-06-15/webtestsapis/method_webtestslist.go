@@ -20,7 +20,8 @@ type WebTestsListOperationResponse struct {
 }
 
 type WebTestsListCompleteResult struct {
-	Items []WebTest
+	LatestHttpResponse *http.Response
+	Items              []WebTest
 }
 
 // WebTestsList ...
@@ -84,7 +85,8 @@ func (c WebTestsAPIsClient) WebTestsListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = WebTestsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

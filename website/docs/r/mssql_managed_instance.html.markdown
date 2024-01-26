@@ -263,6 +263,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The SQL Managed Instance ID.
 
+* `dns_zone` - The Dns Zone where the SQL Managed Instance is located.
+
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance
 
 ---

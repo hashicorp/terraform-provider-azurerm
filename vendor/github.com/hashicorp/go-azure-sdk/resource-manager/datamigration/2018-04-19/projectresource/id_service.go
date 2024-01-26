@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ServiceId{}
+var _ resourceids.ResourceId = &ServiceId{}
 
 // ServiceId is a struct representing the Resource ID for a Service
 type ServiceId struct {
@@ -30,7 +30,7 @@ func NewServiceID(subscriptionId string, resourceGroupName string, serviceName s
 
 // ParseServiceID parses 'input' into a ServiceId
 func ParseServiceID(input string) (*ServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseServiceID(input string) (*ServiceId, error) {
 // ParseServiceIDInsensitively parses 'input' case-insensitively into a ServiceId
 // note: this method should only be used for API response data and not user input
 func ParseServiceIDInsensitively(input string) (*ServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []AdminRuleCollection
+	LatestHttpResponse *http.Response
+	Items              []AdminRuleCollection
 }
 
 type ListOperationOptions struct {
@@ -111,7 +112,8 @@ func (c AdminRuleCollectionsClient) ListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

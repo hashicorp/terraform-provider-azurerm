@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkVirtualApplianceSkuId{}
+var _ resourceids.ResourceId = &NetworkVirtualApplianceSkuId{}
 
 // NetworkVirtualApplianceSkuId is a struct representing the Resource ID for a Network Virtual Appliance Sku
 type NetworkVirtualApplianceSkuId struct {
@@ -28,7 +28,7 @@ func NewNetworkVirtualApplianceSkuID(subscriptionId string, networkVirtualApplia
 
 // ParseNetworkVirtualApplianceSkuID parses 'input' into a NetworkVirtualApplianceSkuId
 func ParseNetworkVirtualApplianceSkuID(input string) (*NetworkVirtualApplianceSkuId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkVirtualApplianceSkuId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkVirtualApplianceSkuId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseNetworkVirtualApplianceSkuID(input string) (*NetworkVirtualApplianceSk
 // ParseNetworkVirtualApplianceSkuIDInsensitively parses 'input' case-insensitively into a NetworkVirtualApplianceSkuId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkVirtualApplianceSkuIDInsensitively(input string) (*NetworkVirtualApplianceSkuId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkVirtualApplianceSkuId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkVirtualApplianceSkuId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

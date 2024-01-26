@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderLockId{}
+var _ resourceids.ResourceId = &ProviderLockId{}
 
 // ProviderLockId is a struct representing the Resource ID for a Provider Lock
 type ProviderLockId struct {
@@ -30,7 +30,7 @@ func NewProviderLockID(subscriptionId string, resourceGroupName string, lockName
 
 // ParseProviderLockID parses 'input' into a ProviderLockId
 func ParseProviderLockID(input string) (*ProviderLockId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderLockId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderLockId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseProviderLockID(input string) (*ProviderLockId, error) {
 // ParseProviderLockIDInsensitively parses 'input' case-insensitively into a ProviderLockId
 // note: this method should only be used for API response data and not user input
 func ParseProviderLockIDInsensitively(input string) (*ProviderLockId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderLockId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderLockId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

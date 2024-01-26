@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FrontDoorWebApplicationFirewallPolicyId{}
+var _ resourceids.ResourceId = &FrontDoorWebApplicationFirewallPolicyId{}
 
 // FrontDoorWebApplicationFirewallPolicyId is a struct representing the Resource ID for a Front Door Web Application Firewall Policy
 type FrontDoorWebApplicationFirewallPolicyId struct {
@@ -30,7 +30,7 @@ func NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId string, resourceG
 
 // ParseFrontDoorWebApplicationFirewallPolicyID parses 'input' into a FrontDoorWebApplicationFirewallPolicyId
 func ParseFrontDoorWebApplicationFirewallPolicyID(input string) (*FrontDoorWebApplicationFirewallPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontDoorWebApplicationFirewallPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontDoorWebApplicationFirewallPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseFrontDoorWebApplicationFirewallPolicyID(input string) (*FrontDoorWebAp
 // ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively parses 'input' case-insensitively into a FrontDoorWebApplicationFirewallPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(input string) (*FrontDoorWebApplicationFirewallPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontDoorWebApplicationFirewallPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontDoorWebApplicationFirewallPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

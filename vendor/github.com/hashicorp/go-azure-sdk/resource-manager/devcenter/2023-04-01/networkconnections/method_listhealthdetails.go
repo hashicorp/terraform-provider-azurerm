@@ -19,7 +19,8 @@ type ListHealthDetailsOperationResponse struct {
 }
 
 type ListHealthDetailsCompleteResult struct {
-	Items []HealthCheckStatusDetails
+	LatestHttpResponse *http.Response
+	Items              []HealthCheckStatusDetails
 }
 
 // ListHealthDetails ...
@@ -83,7 +84,8 @@ func (c NetworkConnectionsClient) ListHealthDetailsCompleteMatchingPredicate(ctx
 	}
 
 	result = ListHealthDetailsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

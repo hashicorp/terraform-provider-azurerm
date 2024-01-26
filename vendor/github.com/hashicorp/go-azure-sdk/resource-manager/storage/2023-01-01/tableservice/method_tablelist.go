@@ -20,7 +20,8 @@ type TableListOperationResponse struct {
 }
 
 type TableListCompleteResult struct {
-	Items []Table
+	LatestHttpResponse *http.Response
+	Items              []Table
 }
 
 // TableList ...
@@ -84,7 +85,8 @@ func (c TableServiceClient) TableListCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = TableListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

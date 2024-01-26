@@ -20,7 +20,8 @@ type ResourcesListByResourceGroupOperationResponse struct {
 }
 
 type ResourcesListByResourceGroupCompleteResult struct {
-	Items []GenericResourceExpanded
+	LatestHttpResponse *http.Response
+	Items              []GenericResourceExpanded
 }
 
 type ResourcesListByResourceGroupOperationOptions struct {
@@ -120,7 +121,8 @@ func (c ResourceGroupsClient) ResourcesListByResourceGroupCompleteMatchingPredic
 	}
 
 	result = ResourcesListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

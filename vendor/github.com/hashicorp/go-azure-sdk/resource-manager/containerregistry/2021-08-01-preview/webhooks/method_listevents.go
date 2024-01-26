@@ -19,7 +19,8 @@ type ListEventsOperationResponse struct {
 }
 
 type ListEventsCompleteResult struct {
-	Items []Event
+	LatestHttpResponse *http.Response
+	Items              []Event
 }
 
 // ListEvents ...
@@ -83,7 +84,8 @@ func (c WebHooksClient) ListEventsCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = ListEventsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

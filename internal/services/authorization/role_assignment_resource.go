@@ -101,7 +101,14 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 
 			"principal_type": {
 				Type:     pluginsdk.TypeString,
+				Optional: true,
 				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"User",
+					"Group",
+					"ServicePrincipal",
+				}, false),
 			},
 
 			"skip_service_principal_aad_check": {
@@ -232,6 +239,11 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
 	if skipPrincipalCheck {
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
+	}
+
+	principalType := d.Get("principal_type").(string)
+	if principalType != "" {
+		properties.RoleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
 	}
 
 	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta, tenantId)); err != nil {

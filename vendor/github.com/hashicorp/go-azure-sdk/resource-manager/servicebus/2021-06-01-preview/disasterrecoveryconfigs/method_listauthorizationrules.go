@@ -19,7 +19,8 @@ type ListAuthorizationRulesOperationResponse struct {
 }
 
 type ListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
 }
 
 // ListAuthorizationRules ...
@@ -83,7 +84,8 @@ func (c DisasterRecoveryConfigsClient) ListAuthorizationRulesCompleteMatchingPre
 	}
 
 	result = ListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

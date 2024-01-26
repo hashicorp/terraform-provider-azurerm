@@ -16,6 +16,7 @@ import (
 type CassandraClustersInvokeCommandOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *CommandOutput
 }
 
 // CassandraClustersInvokeCommand ...

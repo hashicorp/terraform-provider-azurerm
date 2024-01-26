@@ -20,7 +20,8 @@ type ConfigurationServicesListOperationResponse struct {
 }
 
 type ConfigurationServicesListCompleteResult struct {
-	Items []ConfigurationServiceResource
+	LatestHttpResponse *http.Response
+	Items              []ConfigurationServiceResource
 }
 
 // ConfigurationServicesList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ConfigurationServicesListCompleteMatchingPredicate(ct
 	}
 
 	result = ConfigurationServicesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListByCacheOperationResponse struct {
 }
 
 type ListByCacheCompleteResult struct {
-	Items []StorageTarget
+	LatestHttpResponse *http.Response
+	Items              []StorageTarget
 }
 
 // ListByCache ...
@@ -83,7 +84,8 @@ func (c StorageTargetsClient) ListByCacheCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListByCacheCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

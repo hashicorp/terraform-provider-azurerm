@@ -932,6 +932,29 @@ func TestAccWindowsWebApp_withDockerImageMCR(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withDockerSiteConfigUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerImageName(data, "https://mcr.microsoft.com", "azure-app-service/windows/parkingpage:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/windows/parkingpage:latest"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dockerImageNameSiteConfigUpdate(data, "https://mcr.microsoft.com", "azure-app-service/windows/parkingpage:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/windows/parkingpage:latest"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebApp_withDockerImageDockerHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -2127,7 +2150,7 @@ resource "azurerm_windows_web_app" "test" {
     local_mysql_enabled         = true
     managed_pipeline_mode       = "Integrated"
     remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
+    remote_debugging_version    = "VS2022"
     use_32_bit_worker           = false
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
@@ -2488,6 +2511,36 @@ resource "azurerm_windows_web_app" "test" {
       docker_image_name   = "%s"
       docker_registry_url = "%s"
     }
+  }
+}
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, containerImage, registryUrl)
+}
+
+func (r WindowsWebAppResource) dockerImageNameSiteConfigUpdate(data acceptance.TestData, registryUrl, containerImage string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  }
+
+  site_config {
+    application_stack {
+      docker_image_name   = "%s"
+      docker_registry_url = "%s"
+    }
+
+    vnet_route_all_enabled = true
   }
 }
 `, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, containerImage, registryUrl)

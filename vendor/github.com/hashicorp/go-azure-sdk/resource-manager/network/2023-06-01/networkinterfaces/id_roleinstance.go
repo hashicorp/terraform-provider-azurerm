@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RoleInstanceId{}
+var _ resourceids.ResourceId = &RoleInstanceId{}
 
 // RoleInstanceId is a struct representing the Resource ID for a Role Instance
 type RoleInstanceId struct {
@@ -32,7 +32,7 @@ func NewRoleInstanceID(subscriptionId string, resourceGroupName string, cloudSer
 
 // ParseRoleInstanceID parses 'input' into a RoleInstanceId
 func ParseRoleInstanceID(input string) (*RoleInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoleInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoleInstanceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseRoleInstanceID(input string) (*RoleInstanceId, error) {
 // ParseRoleInstanceIDInsensitively parses 'input' case-insensitively into a RoleInstanceId
 // note: this method should only be used for API response data and not user input
 func ParseRoleInstanceIDInsensitively(input string) (*RoleInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoleInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoleInstanceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

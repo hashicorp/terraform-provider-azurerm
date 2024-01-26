@@ -16,7 +16,7 @@ import (
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
-	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01"
+	nginx_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01"
 	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
 	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
@@ -119,6 +119,7 @@ import (
 	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
+	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
@@ -241,7 +242,7 @@ type Client struct {
 	Network               *network.Client
 	NetworkFunction       *networkfunction.Client
 	NewRelic              *newrelic.Client
-	Nginx                 *nginx2.Client
+	Nginx                 *nginx_2023_09_01.Client
 	NotificationHubs      *notificationhub.Client
 	Orbital               *orbital.Client
 	PaloAlto              *paloalto.Client
@@ -253,6 +254,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
+	RedHatOpenShift       *redhatopenshift.Client
 	Redis                 *redis_2023_08_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
@@ -318,7 +320,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.AppPlatform, err = appPlatform.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AppPlatform: %+v", err)
 	}
-	client.AppService = appService.NewClient(o)
+	if client.AppService, err = appService.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AppService: %+v", err)
+	}
 	if client.ArcKubernetes, err = arckubernetes.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ArcKubernetes: %+v", err)
 	}
@@ -400,7 +404,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataProtection: %+v", err)
 	}
-	client.DataShare = datashare.NewClient(o)
+	if client.DataShare, err = datashare.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataShare: %+v", err)
+	}
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
 	}
@@ -456,7 +462,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
-	client.Kusto = kusto.NewClient(o)
+	if client.Kusto, err = kusto.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Kusto: %+v", err)
+	}
 	if client.LabService, err = labservice.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LabService: %+v", err)
 	}
@@ -554,6 +562,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
+	if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
 	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)

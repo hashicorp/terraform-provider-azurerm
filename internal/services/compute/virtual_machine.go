@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
@@ -363,7 +364,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
 
 		if input.ManagedDisk.ID != nil {
-			id, err := disks.ParseDiskID(*input.ManagedDisk.ID)
+			id, err := commonids.ParseManagedDiskID(*input.ManagedDisk.ID)
 			if err != nil {
 				return nil, err
 			}

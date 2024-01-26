@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MetricAlertId{}
+var _ resourceids.ResourceId = &MetricAlertId{}
 
 // MetricAlertId is a struct representing the Resource ID for a Metric Alert
 type MetricAlertId struct {
@@ -30,7 +30,7 @@ func NewMetricAlertID(subscriptionId string, resourceGroupName string, metricAle
 
 // ParseMetricAlertID parses 'input' into a MetricAlertId
 func ParseMetricAlertID(input string) (*MetricAlertId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MetricAlertId{})
+	parser := resourceids.NewParserFromResourceIdType(&MetricAlertId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseMetricAlertID(input string) (*MetricAlertId, error) {
 // ParseMetricAlertIDInsensitively parses 'input' case-insensitively into a MetricAlertId
 // note: this method should only be used for API response data and not user input
 func ParseMetricAlertIDInsensitively(input string) (*MetricAlertId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MetricAlertId{})
+	parser := resourceids.NewParserFromResourceIdType(&MetricAlertId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DomainId{}
+var _ resourceids.ResourceId = &DomainId{}
 
 // DomainId is a struct representing the Resource ID for a Domain
 type DomainId struct {
@@ -34,7 +34,7 @@ func NewDomainID(subscriptionId string, resourceGroupName string, springName str
 
 // ParseDomainID parses 'input' into a DomainId
 func ParseDomainID(input string) (*DomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseDomainID(input string) (*DomainId, error) {
 // ParseDomainIDInsensitively parses 'input' case-insensitively into a DomainId
 // note: this method should only be used for API response data and not user input
 func ParseDomainIDInsensitively(input string) (*DomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

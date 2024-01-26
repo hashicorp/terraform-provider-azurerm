@@ -20,7 +20,8 @@ type VirtualNetworksListUsageOperationResponse struct {
 }
 
 type VirtualNetworksListUsageCompleteResult struct {
-	Items []VirtualNetworkUsage
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetworkUsage
 }
 
 // VirtualNetworksListUsage ...
@@ -84,7 +85,8 @@ func (c VirtualNetworksClient) VirtualNetworksListUsageCompleteMatchingPredicate
 	}
 
 	result = VirtualNetworksListUsageCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

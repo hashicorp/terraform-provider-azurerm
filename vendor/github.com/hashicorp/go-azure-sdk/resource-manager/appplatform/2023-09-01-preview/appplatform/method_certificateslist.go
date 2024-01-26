@@ -20,7 +20,8 @@ type CertificatesListOperationResponse struct {
 }
 
 type CertificatesListCompleteResult struct {
-	Items []CertificateResource
+	LatestHttpResponse *http.Response
+	Items              []CertificateResource
 }
 
 // CertificatesList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) CertificatesListCompleteMatchingPredicate(ctx context
 	}
 
 	result = CertificatesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

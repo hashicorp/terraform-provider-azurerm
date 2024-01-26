@@ -20,7 +20,8 @@ type LinkerListOperationResponse struct {
 }
 
 type LinkerListCompleteResult struct {
-	Items []LinkerResource
+	LatestHttpResponse *http.Response
+	Items              []LinkerResource
 }
 
 // LinkerList ...
@@ -84,7 +85,8 @@ func (c ServiceLinkerClient) LinkerListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = LinkerListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FrontDoorId{}
+var _ resourceids.ResourceId = &FrontDoorId{}
 
 // FrontDoorId is a struct representing the Resource ID for a Front Door
 type FrontDoorId struct {
@@ -30,7 +30,7 @@ func NewFrontDoorID(subscriptionId string, resourceGroupName string, frontDoorNa
 
 // ParseFrontDoorID parses 'input' into a FrontDoorId
 func ParseFrontDoorID(input string) (*FrontDoorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontDoorId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontDoorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseFrontDoorID(input string) (*FrontDoorId, error) {
 // ParseFrontDoorIDInsensitively parses 'input' case-insensitively into a FrontDoorId
 // note: this method should only be used for API response data and not user input
 func ParseFrontDoorIDInsensitively(input string) (*FrontDoorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontDoorId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontDoorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RepetitionId{}
+var _ resourceids.ResourceId = &RepetitionId{}
 
 // RepetitionId is a struct representing the Resource ID for a Repetition
 type RepetitionId struct {
@@ -36,7 +36,7 @@ func NewRepetitionID(subscriptionId string, resourceGroupName string, workflowNa
 
 // ParseRepetitionID parses 'input' into a RepetitionId
 func ParseRepetitionID(input string) (*RepetitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RepetitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RepetitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseRepetitionID(input string) (*RepetitionId, error) {
 // ParseRepetitionIDInsensitively parses 'input' case-insensitively into a RepetitionId
 // note: this method should only be used for API response data and not user input
 func ParseRepetitionIDInsensitively(input string) (*RepetitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RepetitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RepetitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

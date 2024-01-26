@@ -18,6 +18,7 @@ type SetFlowLogConfigurationOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *FlowLogInformation
 }
 
 // SetFlowLogConfiguration ...
