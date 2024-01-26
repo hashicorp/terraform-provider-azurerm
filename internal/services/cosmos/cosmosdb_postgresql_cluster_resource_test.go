@@ -182,14 +182,14 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   location            = azurerm_resource_group.test.location
 
   administrator_login_password    = "H@Sh1CoR3!"
-  coordinator_storage_quota_in_mb = 32768
-  coordinator_vcore_count         = 1
+  coordinator_storage_quota_in_mb = 131072
+  coordinator_vcore_count         = 2
   node_count                      = 0
 
   citus_version                        = "11.1"
   coordinator_public_ip_access_enabled = true
   ha_enabled                           = false
-  coordinator_server_edition           = "BurstableMemoryOptimized"
+  coordinator_server_edition           = "GeneralPurpose"
 
   maintenance_window {
     day_of_week  = 0
@@ -222,7 +222,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   location            = azurerm_resource_group.test.location
 
   administrator_login_password    = "H@Sh1CoR4!"
-  coordinator_storage_quota_in_mb = 262144
+  coordinator_storage_quota_in_mb = 524288
   coordinator_vcore_count         = 4
   node_count                      = 2
 
@@ -241,7 +241,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   node_server_edition           = "GeneralPurpose"
   sql_version                   = "16"
   preferred_primary_zone        = 2
-  node_storage_quota_in_mb      = 262144
+  node_storage_quota_in_mb      = 524288
   node_vcores                   = 4
   shards_on_coordinator_enabled = false
 
