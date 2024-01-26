@@ -44,7 +44,7 @@ resource "azurerm_extended_location_custom_location" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
   cluster_extension_ids = [
-    "${azurerm_arc_kubernetes_cluster_extension.test.id}"
+    azurerm_arc_kubernetes_cluster_extension.example.id
   ]
   display_name     = "example-custom-location"
   namespace        = "example-namespace"
