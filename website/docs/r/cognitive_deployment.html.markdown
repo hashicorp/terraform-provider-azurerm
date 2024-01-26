@@ -66,7 +66,7 @@ A `model` block supports the following:
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version of Cognitive Services Account Deployment model.
+* `version` - (Optional) The version of Cognitive Services Account Deployment model. If `version` is not specified, the default version of the model at the time will be assigned.
 
 ---
 

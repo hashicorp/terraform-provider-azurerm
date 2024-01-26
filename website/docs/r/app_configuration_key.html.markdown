@@ -112,6 +112,12 @@ resource "azurerm_app_configuration_key" "test" {
   depends_on = [
     azurerm_role_assignment.appconf_dataowner
   ]
+
+  lifecycle {
+    ignore_changes = [
+      value
+    ]
+  }
 }
 ```
 

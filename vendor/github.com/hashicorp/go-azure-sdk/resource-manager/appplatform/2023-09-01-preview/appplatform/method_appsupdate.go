@@ -52,10 +52,6 @@ func (c AppPlatformClient) AppsUpdate(ctx context.Context, id AppId, input AppRe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return
