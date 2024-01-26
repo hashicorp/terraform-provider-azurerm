@@ -387,6 +387,38 @@ func TestAccKubernetesClusterNodePool_modeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+	taints1 := []string{"key=value:NoSchedule"}
+	taints2 := []string{"key=value:NoSchedule", "key2=value2:NoSchedule"}
+	taints3 := []string{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeTaintsConfig(data, taints1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_taints.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_taints.0").HasValue("key=value:NoSchedule"),
+			),
+		},
+		{
+			Config: r.nodeTaintsConfig(data, taints2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_taints.#").HasValue("2"),
+				check.That(data.ResourceName).Key("node_taints.0").HasValue("key=value:NoSchedule"),
+				check.That(data.ResourceName).Key("node_taints.1").HasValue("key2=value2:NoSchedule"),
+			),
+		},
+		{
+			Config: r.nodeTaintsConfig(data, taints3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_taints.#").HasValue("0"),
+			),
+		},
+	})
+}
+
 func TestAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -425,21 +457,6 @@ func TestAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodePublicIPConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nodeTaintsConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1735,6 +1752,31 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data), labelsStr)
 }
 
+func (r KubernetesClusterNodePoolResource) nodeTaintsConfig(data acceptance.TestData, taints []string) string {
+	taintsSlice := make([]string, 0, len(taints))
+	for _, v := range taints {
+		taintsSlice = append(taintsSlice, fmt.Sprintf("\"%s\"", v))
+	}
+	taintsStr := strings.Join(taintsSlice, ",")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  node_taints = [
+%s
+  ]
+}
+`, r.templateConfig(data), taintsStr)
+}
+
 func (r KubernetesClusterNodePoolResource) nodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1759,26 +1801,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, r.templateConfig(data), data.RandomInteger)
-}
-
-func (r KubernetesClusterNodePoolResource) nodeTaintsConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  node_taints = [
-    "key=value:NoSchedule"
-  ]
-}
-`, r.templateConfig(data))
 }
 
 func (r KubernetesClusterNodePoolResource) podSubnet(data acceptance.TestData) string {

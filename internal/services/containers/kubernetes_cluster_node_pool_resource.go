@@ -219,7 +219,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"node_taints": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -795,6 +794,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_labels") {
 		props.NodeLabels = expandNodeLabels(d.Get("node_labels").(map[string]interface{}))
+	}
+
+	if d.HasChange("node_taints") {
+		props.NodeTaints = utils.ExpandStringSlice(d.Get("node_taints").([]interface{}))
 	}
 
 	if d.HasChange("node_network_profile") {
