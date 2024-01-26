@@ -70,7 +70,7 @@ func TestWorkspaceName(t *testing.T) {
 			Valid: false,
 		},
 		{
-			// start with a number
+			// can start with a number
 			Input: "0abc",
 			Valid: true,
 		},
