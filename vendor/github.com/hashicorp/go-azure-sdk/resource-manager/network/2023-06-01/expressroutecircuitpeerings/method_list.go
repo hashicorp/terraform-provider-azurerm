@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ExpressRouteCircuitPeering
+	LatestHttpResponse *http.Response
+	Items              []ExpressRouteCircuitPeering
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c ExpressRouteCircuitPeeringsClient) ListCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

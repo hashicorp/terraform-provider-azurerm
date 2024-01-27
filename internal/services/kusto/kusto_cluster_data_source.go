@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,6 +38,8 @@ func dataSourceKustoCluster() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"uri": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -58,7 +61,7 @@ func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewKustoClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
@@ -70,11 +73,19 @@ func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.ClusterName)
+	d.Set("name", id.KustoClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&resp.Model.Location))
+
+		identityMap, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityMap); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
+		}
 
 		if clusterProperties := model.Properties; clusterProperties != nil {
 			d.Set("uri", clusterProperties.Uri)

@@ -19,7 +19,8 @@ type VolumeSnapshotsListByVolumeGroupOperationResponse struct {
 }
 
 type VolumeSnapshotsListByVolumeGroupCompleteResult struct {
-	Items []Snapshot
+	LatestHttpResponse *http.Response
+	Items              []Snapshot
 }
 
 type VolumeSnapshotsListByVolumeGroupOperationOptions struct {
@@ -111,7 +112,8 @@ func (c SnapshotsClient) VolumeSnapshotsListByVolumeGroupCompleteMatchingPredica
 	}
 
 	result = VolumeSnapshotsListByVolumeGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

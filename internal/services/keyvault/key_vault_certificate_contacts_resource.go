@@ -40,7 +40,7 @@ type Contact struct {
 
 func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 		"contact": {
 			Type:     pluginsdk.TypeSet,

@@ -20,7 +20,8 @@ type ApplicationLiveViewsListOperationResponse struct {
 }
 
 type ApplicationLiveViewsListCompleteResult struct {
-	Items []ApplicationLiveViewResource
+	LatestHttpResponse *http.Response
+	Items              []ApplicationLiveViewResource
 }
 
 // ApplicationLiveViewsList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ApplicationLiveViewsListCompleteMatchingPredicate(ctx
 	}
 
 	result = ApplicationLiveViewsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -78,7 +78,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the KeyVault Role Definition.
 
-* `resource_id` - The ID of the role definition resource without Key Vault base URL.
+* `resource_manager_id` - The ID of the role definition resource without Key Vault base URL.
 
 * `role_type` - The type of the role definition. Possible values are `AKVBuiltInRole` and `CustomRole`.
 

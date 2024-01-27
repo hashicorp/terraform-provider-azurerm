@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedBlueprintId{}
+var _ resourceids.ResourceId = &ScopedBlueprintId{}
 
 // ScopedBlueprintId is a struct representing the Resource ID for a Scoped Blueprint
 type ScopedBlueprintId struct {
@@ -28,7 +28,7 @@ func NewScopedBlueprintID(resourceScope string, blueprintName string) ScopedBlue
 
 // ParseScopedBlueprintID parses 'input' into a ScopedBlueprintId
 func ParseScopedBlueprintID(input string) (*ScopedBlueprintId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedBlueprintId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedBlueprintId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseScopedBlueprintID(input string) (*ScopedBlueprintId, error) {
 // ParseScopedBlueprintIDInsensitively parses 'input' case-insensitively into a ScopedBlueprintId
 // note: this method should only be used for API response data and not user input
 func ParseScopedBlueprintIDInsensitively(input string) (*ScopedBlueprintId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedBlueprintId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedBlueprintId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

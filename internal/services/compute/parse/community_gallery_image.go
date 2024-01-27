@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = CommunityGalleryImageId{}
+var _ resourceids.ResourceId = &CommunityGalleryImageId{}
 
 type CommunityGalleryImageId struct {
 	GalleryName string
@@ -50,18 +50,32 @@ func (id CommunityGalleryImageId) Segments() []resourceids.Segment {
 // CommunityGalleryImageID parses a CommunityGalleryImage Unique ID into an CommunityGalleryImageId struct
 func CommunityGalleryImageID(input string) (*CommunityGalleryImageId, error) {
 	id := CommunityGalleryImageId{}
-	parsed, err := resourceids.NewParserFromResourceIdType(id).Parse(input, false)
+	parsed, err := resourceids.NewParserFromResourceIdType(&id).Parse(input, false)
 	if err != nil {
 		return nil, err
 	}
 
 	var ok bool
 	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
+		return nil, resourceids.NewSegmentNotSpecifiedError(&id, "galleryName", *parsed)
 	}
 	if id.ImageName, ok = parsed.Parsed["imageName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "imageName", *parsed)
+		return nil, resourceids.NewSegmentNotSpecifiedError(&id, "imageName", *parsed)
 	}
 
 	return &id, nil
+}
+
+func (id *CommunityGalleryImageId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.GalleryName, ok = input.Parsed["galleryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "galleryName", input)
+	}
+
+	if id.ImageName, ok = input.Parsed["imageName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "imageName", input)
+	}
+
+	return nil
 }

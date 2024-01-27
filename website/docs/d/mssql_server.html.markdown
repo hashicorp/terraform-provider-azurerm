@@ -47,6 +47,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `restorable_dropped_database_ids` - A list of dropped restorable database IDs on the server.
 
+* `transparent_data_encryption_key_vault_key_id` - The Key Vault key URI to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.
+
 * `tags` - A mapping of tags assigned to this Microsoft SQL Server.
 
 * `version` - This servers MS SQL version.

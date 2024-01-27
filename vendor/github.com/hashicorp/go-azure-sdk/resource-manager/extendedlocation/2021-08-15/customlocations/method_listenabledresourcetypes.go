@@ -19,7 +19,8 @@ type ListEnabledResourceTypesOperationResponse struct {
 }
 
 type ListEnabledResourceTypesCompleteResult struct {
-	Items []EnabledResourceType
+	LatestHttpResponse *http.Response
+	Items              []EnabledResourceType
 }
 
 // ListEnabledResourceTypes ...
@@ -83,7 +84,8 @@ func (c CustomLocationsClient) ListEnabledResourceTypesCompleteMatchingPredicate
 	}
 
 	result = ListEnabledResourceTypesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

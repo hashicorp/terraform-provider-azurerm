@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FeatureId{}
+var _ resourceids.ResourceId = &FeatureId{}
 
 // FeatureId is a struct representing the Resource ID for a Feature
 type FeatureId struct {
@@ -30,7 +30,7 @@ func NewFeatureID(subscriptionId string, providerName string, featureName string
 
 // ParseFeatureID parses 'input' into a FeatureId
 func ParseFeatureID(input string) (*FeatureId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FeatureId{})
+	parser := resourceids.NewParserFromResourceIdType(&FeatureId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseFeatureID(input string) (*FeatureId, error) {
 // ParseFeatureIDInsensitively parses 'input' case-insensitively into a FeatureId
 // note: this method should only be used for API response data and not user input
 func ParseFeatureIDInsensitively(input string) (*FeatureId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FeatureId{})
+	parser := resourceids.NewParserFromResourceIdType(&FeatureId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

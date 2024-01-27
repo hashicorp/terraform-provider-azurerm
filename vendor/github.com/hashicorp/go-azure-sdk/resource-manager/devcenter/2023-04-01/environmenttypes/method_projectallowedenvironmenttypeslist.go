@@ -19,7 +19,8 @@ type ProjectAllowedEnvironmentTypesListOperationResponse struct {
 }
 
 type ProjectAllowedEnvironmentTypesListCompleteResult struct {
-	Items []AllowedEnvironmentType
+	LatestHttpResponse *http.Response
+	Items              []AllowedEnvironmentType
 }
 
 type ProjectAllowedEnvironmentTypesListOperationOptions struct {
@@ -111,7 +112,8 @@ func (c EnvironmentTypesClient) ProjectAllowedEnvironmentTypesListCompleteMatchi
 	}
 
 	result = ProjectAllowedEnvironmentTypesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

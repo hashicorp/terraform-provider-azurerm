@@ -18,6 +18,7 @@ type ConfigurationServicesValidateResourceOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConfigurationServiceSettingsValidateResult
 }
 
 // ConfigurationServicesValidateResource ...

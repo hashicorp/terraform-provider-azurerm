@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SqlVirtualMachineId{}
+var _ resourceids.ResourceId = &SqlVirtualMachineId{}
 
 // SqlVirtualMachineId is a struct representing the Resource ID for a Sql Virtual Machine
 type SqlVirtualMachineId struct {
@@ -30,7 +30,7 @@ func NewSqlVirtualMachineID(subscriptionId string, resourceGroupName string, sql
 
 // ParseSqlVirtualMachineID parses 'input' into a SqlVirtualMachineId
 func ParseSqlVirtualMachineID(input string) (*SqlVirtualMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlVirtualMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlVirtualMachineId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseSqlVirtualMachineID(input string) (*SqlVirtualMachineId, error) {
 // ParseSqlVirtualMachineIDInsensitively parses 'input' case-insensitively into a SqlVirtualMachineId
 // note: this method should only be used for API response data and not user input
 func ParseSqlVirtualMachineIDInsensitively(input string) (*SqlVirtualMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlVirtualMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlVirtualMachineId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

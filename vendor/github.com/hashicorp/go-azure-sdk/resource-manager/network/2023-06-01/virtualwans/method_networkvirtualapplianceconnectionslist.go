@@ -19,7 +19,8 @@ type NetworkVirtualApplianceConnectionsListOperationResponse struct {
 }
 
 type NetworkVirtualApplianceConnectionsListCompleteResult struct {
-	Items []NetworkVirtualApplianceConnection
+	LatestHttpResponse *http.Response
+	Items              []NetworkVirtualApplianceConnection
 }
 
 // NetworkVirtualApplianceConnectionsList ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsListCompleteMatchin
 	}
 
 	result = NetworkVirtualApplianceConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

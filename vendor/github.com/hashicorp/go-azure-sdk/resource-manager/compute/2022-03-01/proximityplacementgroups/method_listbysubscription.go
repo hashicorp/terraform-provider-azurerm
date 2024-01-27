@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []ProximityPlacementGroup
+	LatestHttpResponse *http.Response
+	Items              []ProximityPlacementGroup
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c ProximityPlacementGroupsClient) ListBySubscriptionCompleteMatchingPredic
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

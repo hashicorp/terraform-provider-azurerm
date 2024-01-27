@@ -130,6 +130,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(runbook.RunbookTypeEnumPythonTwo),
 					string(runbook.RunbookTypeEnumPythonThree),
 					string(runbook.RunbookTypeEnumPowerShellWorkflow),
+					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
 					string(runbook.RunbookTypeEnumScript),
 				}, false),
 			},

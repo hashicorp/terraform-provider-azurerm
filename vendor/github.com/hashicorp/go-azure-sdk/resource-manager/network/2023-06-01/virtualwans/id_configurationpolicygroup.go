@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConfigurationPolicyGroupId{}
+var _ resourceids.ResourceId = &ConfigurationPolicyGroupId{}
 
 // ConfigurationPolicyGroupId is a struct representing the Resource ID for a Configuration Policy Group
 type ConfigurationPolicyGroupId struct {
@@ -32,7 +32,7 @@ func NewConfigurationPolicyGroupID(subscriptionId string, resourceGroupName stri
 
 // ParseConfigurationPolicyGroupID parses 'input' into a ConfigurationPolicyGroupId
 func ParseConfigurationPolicyGroupID(input string) (*ConfigurationPolicyGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConfigurationPolicyGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConfigurationPolicyGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseConfigurationPolicyGroupID(input string) (*ConfigurationPolicyGroupId,
 // ParseConfigurationPolicyGroupIDInsensitively parses 'input' case-insensitively into a ConfigurationPolicyGroupId
 // note: this method should only be used for API response data and not user input
 func ParseConfigurationPolicyGroupIDInsensitively(input string) (*ConfigurationPolicyGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConfigurationPolicyGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConfigurationPolicyGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

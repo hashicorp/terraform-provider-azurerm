@@ -19,7 +19,8 @@ type HubsListOperationResponse struct {
 }
 
 type HubsListCompleteResult struct {
-	Items []WebPubSubHub
+	LatestHttpResponse *http.Response
+	Items              []WebPubSubHub
 }
 
 // HubsList ...
@@ -83,7 +84,8 @@ func (c WebPubSubClient) HubsListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = HubsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

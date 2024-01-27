@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []RelayNamespace
+	LatestHttpResponse *http.Response
+	Items              []RelayNamespace
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c NamespacesClient) ListCompleteMatchingPredicate(ctx context.Context, id 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

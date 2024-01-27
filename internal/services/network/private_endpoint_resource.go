@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
@@ -1168,7 +1168,7 @@ func normalizePrivateConnectionId(privateConnectionId string) string {
 		}
 	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.kusto") {
-		if clusterId, err := clusters.ParseClusterIDInsensitively(privateConnectionId); err == nil {
+		if clusterId, err := commonids.ParseKustoClusterIDInsensitively(privateConnectionId); err == nil {
 			privateConnectionId = clusterId.ID()
 		}
 	}

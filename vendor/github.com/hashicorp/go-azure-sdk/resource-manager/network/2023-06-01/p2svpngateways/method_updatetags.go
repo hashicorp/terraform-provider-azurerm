@@ -19,6 +19,7 @@ type UpdateTagsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *P2SVpnGateway
 }
 
 // UpdateTags ...

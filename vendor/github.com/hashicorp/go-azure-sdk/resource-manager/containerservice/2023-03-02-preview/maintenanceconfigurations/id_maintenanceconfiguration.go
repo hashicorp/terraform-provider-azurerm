@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MaintenanceConfigurationId{}
+var _ resourceids.ResourceId = &MaintenanceConfigurationId{}
 
 // MaintenanceConfigurationId is a struct representing the Resource ID for a Maintenance Configuration
 type MaintenanceConfigurationId struct {
@@ -32,7 +32,7 @@ func NewMaintenanceConfigurationID(subscriptionId string, resourceGroupName stri
 
 // ParseMaintenanceConfigurationID parses 'input' into a MaintenanceConfigurationId
 func ParseMaintenanceConfigurationID(input string) (*MaintenanceConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MaintenanceConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&MaintenanceConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseMaintenanceConfigurationID(input string) (*MaintenanceConfigurationId,
 // ParseMaintenanceConfigurationIDInsensitively parses 'input' case-insensitively into a MaintenanceConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseMaintenanceConfigurationIDInsensitively(input string) (*MaintenanceConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MaintenanceConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&MaintenanceConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

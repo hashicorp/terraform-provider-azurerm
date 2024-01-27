@@ -19,7 +19,8 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []Module
+	LatestHttpResponse *http.Response
+	Items              []Module
 }
 
 // ListByAutomationAccount ...
@@ -83,7 +84,8 @@ func (c Python3PackageClient) ListByAutomationAccountCompleteMatchingPredicate(c
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

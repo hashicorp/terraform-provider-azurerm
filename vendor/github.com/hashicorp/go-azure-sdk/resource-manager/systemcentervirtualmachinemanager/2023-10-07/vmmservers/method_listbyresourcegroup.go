@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []VMMServer
+	LatestHttpResponse *http.Response
+	Items              []VMMServer
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c VMmServersClient) ListByResourceGroupCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

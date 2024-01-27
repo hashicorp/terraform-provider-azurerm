@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []VirtualMachineTemplate
+	LatestHttpResponse *http.Response
+	Items              []VirtualMachineTemplate
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c VirtualMachineTemplatesClient) ListByResourceGroupCompleteMatchingPredic
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

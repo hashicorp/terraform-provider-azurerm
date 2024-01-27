@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CloudId{}
+var _ resourceids.ResourceId = &CloudId{}
 
 // CloudId is a struct representing the Resource ID for a Cloud
 type CloudId struct {
@@ -30,7 +30,7 @@ func NewCloudID(subscriptionId string, resourceGroupName string, cloudName strin
 
 // ParseCloudID parses 'input' into a CloudId
 func ParseCloudID(input string) (*CloudId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CloudId{})
+	parser := resourceids.NewParserFromResourceIdType(&CloudId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseCloudID(input string) (*CloudId, error) {
 // ParseCloudIDInsensitively parses 'input' case-insensitively into a CloudId
 // note: this method should only be used for API response data and not user input
 func ParseCloudIDInsensitively(input string) (*CloudId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CloudId{})
+	parser := resourceids.NewParserFromResourceIdType(&CloudId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

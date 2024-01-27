@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProtectedItemId{}
+var _ resourceids.ResourceId = &ProtectedItemId{}
 
 // ProtectedItemId is a struct representing the Resource ID for a Protected Item
 type ProtectedItemId struct {
@@ -36,7 +36,7 @@ func NewProtectedItemID(subscriptionId string, resourceGroupName string, vaultNa
 
 // ParseProtectedItemID parses 'input' into a ProtectedItemId
 func ParseProtectedItemID(input string) (*ProtectedItemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProtectedItemId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProtectedItemId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseProtectedItemID(input string) (*ProtectedItemId, error) {
 // ParseProtectedItemIDInsensitively parses 'input' case-insensitively into a ProtectedItemId
 // note: this method should only be used for API response data and not user input
 func ParseProtectedItemIDInsensitively(input string) (*ProtectedItemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProtectedItemId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProtectedItemId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

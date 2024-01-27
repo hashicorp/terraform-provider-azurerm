@@ -18,6 +18,7 @@ type StoragesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *StorageResource
 }
 
 // StoragesCreateOrUpdate ...

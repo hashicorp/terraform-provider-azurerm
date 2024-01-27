@@ -19,7 +19,8 @@ type RouteMapsListOperationResponse struct {
 }
 
 type RouteMapsListCompleteResult struct {
-	Items []RouteMap
+	LatestHttpResponse *http.Response
+	Items              []RouteMap
 }
 
 // RouteMapsList ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) RouteMapsListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = RouteMapsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

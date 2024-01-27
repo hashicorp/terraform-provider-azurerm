@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []ApplicationDefinition
+	LatestHttpResponse *http.Response
+	Items              []ApplicationDefinition
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ApplicationDefinitionsClient) ListByResourceGroupCompleteMatchingPredica
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

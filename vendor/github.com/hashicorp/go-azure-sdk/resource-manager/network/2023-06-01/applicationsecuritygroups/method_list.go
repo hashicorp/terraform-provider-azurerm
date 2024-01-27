@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ApplicationSecurityGroup
+	LatestHttpResponse *http.Response
+	Items              []ApplicationSecurityGroup
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c ApplicationSecurityGroupsClient) ListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

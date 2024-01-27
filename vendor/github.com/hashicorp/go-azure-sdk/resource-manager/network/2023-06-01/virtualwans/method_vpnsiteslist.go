@@ -20,7 +20,8 @@ type VpnSitesListOperationResponse struct {
 }
 
 type VpnSitesListCompleteResult struct {
-	Items []VpnSite
+	LatestHttpResponse *http.Response
+	Items              []VpnSite
 }
 
 // VpnSitesList ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) VpnSitesListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = VpnSitesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

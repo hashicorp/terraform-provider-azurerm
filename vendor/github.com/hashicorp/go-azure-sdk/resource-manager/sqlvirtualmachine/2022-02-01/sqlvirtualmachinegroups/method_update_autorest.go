@@ -16,6 +16,7 @@ import (
 type UpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *SqlVirtualMachineGroup
 }
 
 // Update ...

@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []NetworkVirtualAppliance
+	LatestHttpResponse *http.Response
+	Items              []NetworkVirtualAppliance
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c NetworkVirtualAppliancesClient) ListByResourceGroupCompleteMatchingPredi
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

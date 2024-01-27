@@ -20,7 +20,8 @@ type ConnectedClusterListByResourceGroupOperationResponse struct {
 }
 
 type ConnectedClusterListByResourceGroupCompleteResult struct {
-	Items []ConnectedCluster
+	LatestHttpResponse *http.Response
+	Items              []ConnectedCluster
 }
 
 // ConnectedClusterListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ConnectedClustersClient) ConnectedClusterListByResourceGroupCompleteMatc
 	}
 
 	result = ConnectedClusterListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

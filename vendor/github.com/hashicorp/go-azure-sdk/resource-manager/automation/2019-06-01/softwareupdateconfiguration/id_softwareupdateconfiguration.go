@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SoftwareUpdateConfigurationId{}
+var _ resourceids.ResourceId = &SoftwareUpdateConfigurationId{}
 
 // SoftwareUpdateConfigurationId is a struct representing the Resource ID for a Software Update Configuration
 type SoftwareUpdateConfigurationId struct {
@@ -32,7 +32,7 @@ func NewSoftwareUpdateConfigurationID(subscriptionId string, resourceGroupName s
 
 // ParseSoftwareUpdateConfigurationID parses 'input' into a SoftwareUpdateConfigurationId
 func ParseSoftwareUpdateConfigurationID(input string) (*SoftwareUpdateConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SoftwareUpdateConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SoftwareUpdateConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseSoftwareUpdateConfigurationID(input string) (*SoftwareUpdateConfigurat
 // ParseSoftwareUpdateConfigurationIDInsensitively parses 'input' case-insensitively into a SoftwareUpdateConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseSoftwareUpdateConfigurationIDInsensitively(input string) (*SoftwareUpdateConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SoftwareUpdateConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SoftwareUpdateConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SupportedStackId{}
+var _ resourceids.ResourceId = &SupportedStackId{}
 
 // SupportedStackId is a struct representing the Resource ID for a Supported Stack
 type SupportedStackId struct {
@@ -34,7 +34,7 @@ func NewSupportedStackID(subscriptionId string, resourceGroupName string, spring
 
 // ParseSupportedStackID parses 'input' into a SupportedStackId
 func ParseSupportedStackID(input string) (*SupportedStackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SupportedStackId{})
+	parser := resourceids.NewParserFromResourceIdType(&SupportedStackId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseSupportedStackID(input string) (*SupportedStackId, error) {
 // ParseSupportedStackIDInsensitively parses 'input' case-insensitively into a SupportedStackId
 // note: this method should only be used for API response data and not user input
 func ParseSupportedStackIDInsensitively(input string) (*SupportedStackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SupportedStackId{})
+	parser := resourceids.NewParserFromResourceIdType(&SupportedStackId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
