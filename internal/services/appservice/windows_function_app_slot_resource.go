@@ -678,7 +678,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
-			siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, *id)
+			siteCredentials, err := helpers.ListPublishingCredentialsSlot(ctx, client, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", *id, err)
 			}
@@ -728,7 +728,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				PublishingFTPBasicAuthEnabled:    basicAuthFTP,
 				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
-				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials.Model),
+				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
 				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 				Backup:                           helpers.FlattenBackupConfig(backup.Model),

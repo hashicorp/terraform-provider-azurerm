@@ -685,7 +685,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
-			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", *id, err)
 			}
@@ -742,7 +742,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					Location:                         location.Normalize(model.Location),
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
-					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials.Model),
+					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
 					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),

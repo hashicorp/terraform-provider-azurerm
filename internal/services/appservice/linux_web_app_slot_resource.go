@@ -543,7 +543,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
-			siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, *id)
+			siteCredentials, err := helpers.ListPublishingCredentialsSlot(ctx, client, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 			}
@@ -587,7 +587,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 					StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
-					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials.Model),
+					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
 				}
 
 				if props := model.Properties; props != nil {

@@ -297,7 +297,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
-			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", *id, err)
 			}
@@ -400,7 +400,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 				webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 
-				webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials.Model)
+				webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {

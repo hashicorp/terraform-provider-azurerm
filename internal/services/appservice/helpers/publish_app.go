@@ -82,31 +82,25 @@ func GetCredentialsAndPublishSlot(ctx context.Context, client *webapps.WebAppsCl
 }
 
 func GetSitePublishingCredentials(ctx context.Context, client *webapps.WebAppsClient, appID commonids.AppServiceId) (user *string, passwd *string, err error) {
-	siteCredentials, err := client.ListPublishingCredentials(ctx, appID)
-	if err != nil || siteCredentials.Model == nil {
-		return nil, nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", appID, err)
+	siteCredentials, err := ListPublishingCredentials(ctx, client, appID)
+	if err != nil {
+		return nil, nil, err
 	}
-	userModel := *siteCredentials.Model
 
-	if userModel.Properties != nil {
-		return pointer.To(userModel.Properties.PublishingUserName), userModel.Properties.PublishingPassword, nil
+	if siteCredentials.Properties != nil {
+		return pointer.To(siteCredentials.Properties.PublishingUserName), siteCredentials.Properties.PublishingPassword, nil
 	}
 	return nil, nil, fmt.Errorf("could not decode Publishing Credential information for %s", appID)
 }
 
 func GetSitePublishingCredentialsSlot(ctx context.Context, client *webapps.WebAppsClient, id webapps.SlotId) (user *string, passwd *string, err error) {
-	siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, id)
-	if err != nil || siteCredentials.Model == nil {
-		return nil, nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
-	}
-	userModel := *siteCredentials.Model
-
-	if err = siteCredentials.Poller.FinalResult(userModel); err != nil {
-		return nil, nil, fmt.Errorf("reading Publishing Credential information for %s: %+v", id, err)
+	siteCredentials, err := ListPublishingCredentialsSlot(ctx, client, id)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if userModel.Properties != nil {
-		return pointer.To(userModel.Properties.PublishingUserName), userModel.Properties.PublishingPassword, nil
+	if siteCredentials.Properties != nil {
+		return pointer.To(siteCredentials.Properties.PublishingUserName), siteCredentials.Properties.PublishingPassword, nil
 	}
 	return nil, nil, fmt.Errorf("could not decode Publishing Credential information for %s", id)
 }

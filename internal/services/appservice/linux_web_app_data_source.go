@@ -322,7 +322,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
-			siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
+			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 			}
@@ -350,7 +350,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts.Model)
 			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
-			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials.Model)
+			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			if model := existing.Model; model != nil {
 				webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings.Model)

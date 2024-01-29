@@ -92,3 +92,7 @@ require (
 )
 
 go 1.21
+
+//replace (
+//	github.com/hashicorp/go-azure-sdk => /Users/ste/code/go/src/github.com/hashicorp/go-azure-sdk
+//)

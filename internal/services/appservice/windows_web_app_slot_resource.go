@@ -562,7 +562,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", *id, err)
 			}
 
-			siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, *id)
+			siteCredentials, err := helpers.ListPublishingCredentialsSlot(ctx, client, *id)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 			}
@@ -604,7 +604,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				Backup:            helpers.FlattenBackupConfig(backup.Model),
 				ConnectionStrings: helpers.FlattenConnectionStrings(connectionStrings.Model),
 				LogsConfig:        helpers.FlattenLogsConfig(logsConfig.Model),
-				SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials.Model),
+				SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:   helpers.FlattenStorageAccounts(storageAccounts.Model),
 			}
 

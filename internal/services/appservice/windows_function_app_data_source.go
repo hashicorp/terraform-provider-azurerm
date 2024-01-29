@@ -366,7 +366,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
 				}
 
-				siteCredentials, err := client.ListPublishingCredentials(ctx, *id)
+				siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 				if err != nil {
 					return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 				}
@@ -411,7 +411,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 				functionApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 
-				functionApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials.Model)
+				functionApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 				functionApp.AuthSettings = helpers.FlattenAuthSettings(auth.Model)
 
