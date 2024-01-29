@@ -479,6 +479,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// The `minimalTlsVersion` of the source CosmosDB Account is `Tls12` when it isn't set in the request payload but the `minimalTlsVersion` of the restored CosmosDB Account is `Tls` when it isn't set in the request payload. So the default value isn't added in the schema.
 			"minimal_tls_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
