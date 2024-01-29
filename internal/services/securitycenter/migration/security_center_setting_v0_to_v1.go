@@ -31,10 +31,11 @@ func (SecurityCenterSettingsV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (SecurityCenterSettingsV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		log.Println("[DEBUG] Migrating Security Center Settings from v0 to v1 format")
-		oldId := rawState["id"].(string)
-		// only find the last one
-		idx := strings.LastIndex(oldId, "/SENTINEL")
-		newId := oldId[:idx] + "/Sentinel"
+		oldId := strings.Split(rawState["id"].(string), "/")
+		if oldId[len(oldId)-1] == "SENTINEL" {
+			oldId[len(oldId)-1] = "Sentinel"
+		}
+		newId := strings.Join(oldId, "/")
 
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 

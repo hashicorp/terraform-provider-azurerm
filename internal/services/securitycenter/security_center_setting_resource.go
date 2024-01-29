@@ -83,7 +83,8 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	settingName := d.Get("setting_name").(string)
-	if settingName == "SENTINEL" {
+
+	if features.FourPointOhBeta() && settingName == "SENTINEL" {
 		settingName = "Sentinel"
 	}
 
