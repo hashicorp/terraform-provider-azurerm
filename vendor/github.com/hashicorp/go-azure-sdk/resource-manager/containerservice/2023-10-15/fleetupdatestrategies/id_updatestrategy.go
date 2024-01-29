@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = UpdateStrategyId{}
+var _ resourceids.ResourceId = &UpdateStrategyId{}
 
 // UpdateStrategyId is a struct representing the Resource ID for a Update Strategy
 type UpdateStrategyId struct {
@@ -32,7 +32,7 @@ func NewUpdateStrategyID(subscriptionId string, resourceGroupName string, fleetN
 
 // ParseUpdateStrategyID parses 'input' into a UpdateStrategyId
 func ParseUpdateStrategyID(input string) (*UpdateStrategyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpdateStrategyId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpdateStrategyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseUpdateStrategyID(input string) (*UpdateStrategyId, error) {
 // ParseUpdateStrategyIDInsensitively parses 'input' case-insensitively into a UpdateStrategyId
 // note: this method should only be used for API response data and not user input
 func ParseUpdateStrategyIDInsensitively(input string) (*UpdateStrategyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpdateStrategyId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpdateStrategyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
