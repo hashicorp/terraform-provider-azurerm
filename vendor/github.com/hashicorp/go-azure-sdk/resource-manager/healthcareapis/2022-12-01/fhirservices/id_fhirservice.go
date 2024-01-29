@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FhirServiceId{}
+var _ resourceids.ResourceId = &FhirServiceId{}
 
 // FhirServiceId is a struct representing the Resource ID for a Fhir Service
 type FhirServiceId struct {
@@ -32,7 +32,7 @@ func NewFhirServiceID(subscriptionId string, resourceGroupName string, workspace
 
 // ParseFhirServiceID parses 'input' into a FhirServiceId
 func ParseFhirServiceID(input string) (*FhirServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FhirServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&FhirServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFhirServiceID(input string) (*FhirServiceId, error) {
 // ParseFhirServiceIDInsensitively parses 'input' case-insensitively into a FhirServiceId
 // note: this method should only be used for API response data and not user input
 func ParseFhirServiceIDInsensitively(input string) (*FhirServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FhirServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&FhirServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -17,6 +17,7 @@ import (
 type UpdateTagsOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ManagedCluster
 }
 
 // UpdateTags ...

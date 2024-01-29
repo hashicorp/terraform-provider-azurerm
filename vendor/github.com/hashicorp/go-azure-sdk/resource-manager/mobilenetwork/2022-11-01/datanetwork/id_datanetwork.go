@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataNetworkId{}
+var _ resourceids.ResourceId = &DataNetworkId{}
 
 // DataNetworkId is a struct representing the Resource ID for a Data Network
 type DataNetworkId struct {
@@ -32,7 +32,7 @@ func NewDataNetworkID(subscriptionId string, resourceGroupName string, mobileNet
 
 // ParseDataNetworkID parses 'input' into a DataNetworkId
 func ParseDataNetworkID(input string) (*DataNetworkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataNetworkId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataNetworkId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDataNetworkID(input string) (*DataNetworkId, error) {
 // ParseDataNetworkIDInsensitively parses 'input' case-insensitively into a DataNetworkId
 // note: this method should only be used for API response data and not user input
 func ParseDataNetworkIDInsensitively(input string) (*DataNetworkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataNetworkId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataNetworkId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

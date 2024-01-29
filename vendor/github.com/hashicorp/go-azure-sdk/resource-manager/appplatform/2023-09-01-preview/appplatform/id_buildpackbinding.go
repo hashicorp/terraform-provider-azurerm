@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BuildPackBindingId{}
+var _ resourceids.ResourceId = &BuildPackBindingId{}
 
 // BuildPackBindingId is a struct representing the Resource ID for a Build Pack Binding
 type BuildPackBindingId struct {
@@ -36,7 +36,7 @@ func NewBuildPackBindingID(subscriptionId string, resourceGroupName string, spri
 
 // ParseBuildPackBindingID parses 'input' into a BuildPackBindingId
 func ParseBuildPackBindingID(input string) (*BuildPackBindingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BuildPackBindingId{})
+	parser := resourceids.NewParserFromResourceIdType(&BuildPackBindingId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseBuildPackBindingID(input string) (*BuildPackBindingId, error) {
 // ParseBuildPackBindingIDInsensitively parses 'input' case-insensitively into a BuildPackBindingId
 // note: this method should only be used for API response data and not user input
 func ParseBuildPackBindingIDInsensitively(input string) (*BuildPackBindingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BuildPackBindingId{})
+	parser := resourceids.NewParserFromResourceIdType(&BuildPackBindingId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -19,7 +19,8 @@ type VirtualHubBgpConnectionsListOperationResponse struct {
 }
 
 type VirtualHubBgpConnectionsListCompleteResult struct {
-	Items []BgpConnection
+	LatestHttpResponse *http.Response
+	Items              []BgpConnection
 }
 
 // VirtualHubBgpConnectionsList ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) VirtualHubBgpConnectionsListCompleteMatchingPredicate
 	}
 
 	result = VirtualHubBgpConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

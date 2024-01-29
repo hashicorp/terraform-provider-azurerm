@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProjectId{}
+var _ resourceids.ResourceId = &ProjectId{}
 
 // ProjectId is a struct representing the Resource ID for a Project
 type ProjectId struct {
@@ -32,7 +32,7 @@ func NewProjectID(subscriptionId string, resourceGroupName string, serviceName s
 
 // ParseProjectID parses 'input' into a ProjectId
 func ParseProjectID(input string) (*ProjectId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProjectId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProjectId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseProjectID(input string) (*ProjectId, error) {
 // ParseProjectIDInsensitively parses 'input' case-insensitively into a ProjectId
 // note: this method should only be used for API response data and not user input
 func ParseProjectIDInsensitively(input string) (*ProjectId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProjectId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProjectId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

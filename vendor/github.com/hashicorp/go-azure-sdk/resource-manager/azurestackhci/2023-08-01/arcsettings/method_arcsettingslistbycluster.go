@@ -19,7 +19,8 @@ type ArcSettingsListByClusterOperationResponse struct {
 }
 
 type ArcSettingsListByClusterCompleteResult struct {
-	Items []ArcSetting
+	LatestHttpResponse *http.Response
+	Items              []ArcSetting
 }
 
 // ArcSettingsListByCluster ...
@@ -83,7 +84,8 @@ func (c ArcSettingsClient) ArcSettingsListByClusterCompleteMatchingPredicate(ctx
 	}
 
 	result = ArcSettingsListByClusterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

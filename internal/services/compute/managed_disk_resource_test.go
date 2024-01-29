@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -816,7 +817,7 @@ func TestAccManagedDisk_premiumV2WithIOpsReadOnlyAndMBpsReadOnly(t *testing.T) {
 }
 
 func (ManagedDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := disks.ParseDiskID(state.ID)
+	id, err := commonids.ParseManagedDiskID(state.ID)
 	if err != nil {
 		return nil, err
 	}

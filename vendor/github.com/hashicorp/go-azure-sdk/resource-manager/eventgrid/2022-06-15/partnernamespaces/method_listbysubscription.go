@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []PartnerNamespace
+	LatestHttpResponse *http.Response
+	Items              []PartnerNamespace
 }
 
 type ListBySubscriptionOperationOptions struct {
@@ -116,7 +117,8 @@ func (c PartnerNamespacesClient) ListBySubscriptionCompleteMatchingPredicate(ctx
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

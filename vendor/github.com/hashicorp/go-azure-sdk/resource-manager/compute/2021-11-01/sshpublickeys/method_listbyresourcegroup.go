@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []SshPublicKeyResource
+	LatestHttpResponse *http.Response
+	Items              []SshPublicKeyResource
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c SshPublicKeysClient) ListByResourceGroupCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListByRouteFilterOperationResponse struct {
 }
 
 type ListByRouteFilterCompleteResult struct {
-	Items []RouteFilterRule
+	LatestHttpResponse *http.Response
+	Items              []RouteFilterRule
 }
 
 // ListByRouteFilter ...
@@ -83,7 +84,8 @@ func (c RouteFilterRulesClient) ListByRouteFilterCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListByRouteFilterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

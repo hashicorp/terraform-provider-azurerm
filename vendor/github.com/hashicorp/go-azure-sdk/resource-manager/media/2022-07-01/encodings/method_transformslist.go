@@ -19,7 +19,8 @@ type TransformsListOperationResponse struct {
 }
 
 type TransformsListCompleteResult struct {
-	Items []Transform
+	LatestHttpResponse *http.Response
+	Items              []Transform
 }
 
 type TransformsListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c EncodingsClient) TransformsListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = TransformsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

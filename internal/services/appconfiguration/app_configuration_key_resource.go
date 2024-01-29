@@ -86,7 +86,6 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 		"value": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 		},
 		"locked": {
 			Type:     pluginsdk.TypeBool,

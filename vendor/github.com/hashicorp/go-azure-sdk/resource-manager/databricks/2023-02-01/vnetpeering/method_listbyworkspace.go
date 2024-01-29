@@ -19,7 +19,8 @@ type ListByWorkspaceOperationResponse struct {
 }
 
 type ListByWorkspaceCompleteResult struct {
-	Items []VirtualNetworkPeering
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetworkPeering
 }
 
 // ListByWorkspace ...
@@ -83,7 +84,8 @@ func (c VNetPeeringClient) ListByWorkspaceCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

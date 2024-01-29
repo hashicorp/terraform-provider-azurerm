@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExpressRoutePortsLocationId{}
+var _ resourceids.ResourceId = &ExpressRoutePortsLocationId{}
 
 // ExpressRoutePortsLocationId is a struct representing the Resource ID for a Express Route Ports Location
 type ExpressRoutePortsLocationId struct {
@@ -28,7 +28,7 @@ func NewExpressRoutePortsLocationID(subscriptionId string, expressRoutePortsLoca
 
 // ParseExpressRoutePortsLocationID parses 'input' into a ExpressRoutePortsLocationId
 func ParseExpressRoutePortsLocationID(input string) (*ExpressRoutePortsLocationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRoutePortsLocationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRoutePortsLocationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseExpressRoutePortsLocationID(input string) (*ExpressRoutePortsLocationI
 // ParseExpressRoutePortsLocationIDInsensitively parses 'input' case-insensitively into a ExpressRoutePortsLocationId
 // note: this method should only be used for API response data and not user input
 func ParseExpressRoutePortsLocationIDInsensitively(input string) (*ExpressRoutePortsLocationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRoutePortsLocationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRoutePortsLocationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

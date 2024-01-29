@@ -16,6 +16,7 @@ import (
 type CassandraResourcesMigrateCassandraTableToManualThroughputOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // CassandraResourcesMigrateCassandraTableToManualThroughput ...

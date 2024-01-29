@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FrontendId{}
+var _ resourceids.ResourceId = &FrontendId{}
 
 // FrontendId is a struct representing the Resource ID for a Frontend
 type FrontendId struct {
@@ -32,7 +32,7 @@ func NewFrontendID(subscriptionId string, resourceGroupName string, trafficContr
 
 // ParseFrontendID parses 'input' into a FrontendId
 func ParseFrontendID(input string) (*FrontendId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFrontendID(input string) (*FrontendId, error) {
 // ParseFrontendIDInsensitively parses 'input' case-insensitively into a FrontendId
 // note: this method should only be used for API response data and not user input
 func ParseFrontendIDInsensitively(input string) (*FrontendId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

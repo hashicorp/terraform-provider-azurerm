@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []IntegrationServiceEnvironment
+	LatestHttpResponse *http.Response
+	Items              []IntegrationServiceEnvironment
 }
 
 type ListByResourceGroupOperationOptions struct {
@@ -112,7 +113,8 @@ func (c IntegrationServiceEnvironmentsClient) ListByResourceGroupCompleteMatchin
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

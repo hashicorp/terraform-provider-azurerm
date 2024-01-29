@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -85,6 +86,8 @@ var _ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
 
+var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
+
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}
 }
@@ -114,7 +117,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 			Description:  "The ID of the App Service Plan within which to create this Function App",
 		},
 
@@ -375,19 +378,49 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewFunctionAppID(subscriptionId, functionApp.ResourceGroup, functionApp.Name)
 
-			servicePlanId, err := parse.ServicePlanID(functionApp.ServicePlanId)
+			servicePlanId, err := commonids.ParseAppServicePlanID(functionApp.ServicePlanId)
 			if err != nil {
 				return err
 			}
 
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
 			var planSKU *string
-			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
-				planSKU = sku.Name
+			availabilityRequest := web.ResourceNameAvailabilityRequest{
+				Name: pointer.To(functionApp.Name),
+				Type: web.CheckNameResourceTypesMicrosoftWebsites,
+			}
+			if servicePlanModel := servicePlan.Model; servicePlanModel != nil {
+				if sku := servicePlanModel.Sku; sku != nil && sku.Name != nil {
+					planSKU = sku.Name
+				}
+
+				if ase := servicePlanModel.Properties.HostingEnvironmentProfile; ase != nil {
+					// Attempt to check the ASE for the appropriate suffix for the name availability request.
+					// This varies between internal and external ASE Types, and potentially has other names in other clouds
+					// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
+					nameSuffix := "appserviceenvironment.net"
+					if ase.Id != nil {
+						aseId, err := parse.AppServiceEnvironmentID(*ase.Id)
+						nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
+						if err != nil {
+							metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
+						} else {
+							existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+							if err != nil {
+								metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
+							} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
+								nameSuffix = *props.DNSSuffix
+							}
+						}
+					}
+
+					availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix))
+					availabilityRequest.IsFqdn = pointer.To(true)
+				}
 			}
 			// Only send for ElasticPremium and Consumption plan
 			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
@@ -400,35 +433,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(functionApp.Name),
-				Type: web.CheckNameResourceTypesMicrosoftWebsites,
-			}
-
-			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
-				// Attempt to check the ASE for the appropriate suffix for the name availability request.
-				// This varies between internal and external ASE Types, and potentially has other names in other clouds
-				// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
-				nameSuffix := "appserviceenvironment.net"
-				if ase.ID != nil {
-					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
-					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
-					if err != nil {
-						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
-					} else {
-						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
-						if err != nil {
-							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
-						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
-							nameSuffix = *props.DNSSuffix
-						}
-					}
-				}
-
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix))
-				availabilityRequest.IsFqdn = utils.Bool(true)
 			}
 
 			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -743,7 +747,6 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			state := LinuxFunctionAppModel{
 				Name:                        id.SiteName,
 				ResourceGroup:               id.ResourceGroup,
-				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
 				Location:                    location.NormalizeNilable(functionApp.Location),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
@@ -757,6 +760,12 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
+
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
+			if err != nil {
+				return err
+			}
+			state.ServicePlanId = servicePlanId.ID()
 
 			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
 			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
@@ -882,13 +891,6 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			// Some service plan updates are allowed - see customiseDiff for exceptions
-			var serviceFarmId string
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				serviceFarmId = state.ServicePlanId
-				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
-			}
-
 			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
 			if err != nil {
 				return err
@@ -897,19 +899,21 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
-				servicePlanId, err := parse.ServicePlanID(state.ServicePlanId)
+				servicePlanId, err := commonids.ParseAppServicePlanID(state.ServicePlanId)
 				if err != nil {
 					return err
 				}
 
 				servicePlanClient := metadata.Client.AppService.ServicePlanClient
-				servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+				servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 				if err != nil {
-					return fmt.Errorf("reading new service plan (%s) for Linux %s: %+v", servicePlanId.ServerfarmName, id, err)
+					return fmt.Errorf("reading new service plan (%s) for Linux %s: %+v", servicePlanId.ServerFarmName, id, err)
 				}
 
-				if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
-					planSKU = sku.Name
+				if model := servicePlan.Model; model != nil {
+					if sku := servicePlan.Model.Sku; sku != nil && sku.Name != nil {
+						planSKU = sku.Name
+					}
 				}
 			}
 
@@ -1199,16 +1203,16 @@ func (r LinuxFunctionAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if props.ServerFarmID == nil {
 			return fmt.Errorf("determining Service Plan ID for Linux %s: %+v", id, err)
 		}
-		servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
 		if err != nil {
 			return err
 		}
 
-		sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-		if err != nil || sp.Kind == nil {
+		sp, err := servicePlanClient.Get(ctx, *servicePlanId)
+		if err != nil || sp.Model == nil || sp.Model.Kind == nil {
 			return fmt.Errorf("reading Service Plan for Linux %s: %+v", id, err)
 		}
-		if !strings.Contains(strings.ToLower(*sp.Kind), "linux") && !strings.Contains(strings.ToLower(*sp.Kind), "elastic") && !strings.Contains(strings.ToLower(*sp.Kind), "functionapp") {
+		if !strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") && !strings.Contains(strings.ToLower(*sp.Model.Kind), "elastic") && !strings.Contains(strings.ToLower(*sp.Model.Kind), "functionapp") {
 			return fmt.Errorf("specified Service Plan is not a Linux Functionapp plan")
 		}
 
@@ -1222,44 +1226,58 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			rd := metadata.ResourceDiff
-
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
 				if newPlanIdRaw.(string) == "" {
 					// Plans creating a new service_plan inline will be empty as `Computed` known after apply
 					return nil
 				}
-				newPlanId, err := parse.ServicePlanID(newPlanIdRaw.(string))
+				newPlanId, err := commonids.ParseAppServicePlanID(newPlanIdRaw.(string))
 				if err != nil {
 					return fmt.Errorf("reading new plan id %+v", err)
 				}
 
 				var currentTierIsDynamic, newTierIsDynamic, newTierIsBasic bool
 
-				newPlan, err := client.Get(ctx, newPlanId.ResourceGroup, newPlanId.ServerfarmName)
+				newPlan, err := client.Get(ctx, *newPlanId)
 				if err != nil {
-					return fmt.Errorf("could not read new Service Plan to check tier %s: %+v", newPlanId, err)
+					return fmt.Errorf("could not read new Service Plan to check tier %s: %+v ", newPlanId, err)
 				}
-				if planSku := newPlan.Sku; planSku != nil {
-					if tier := planSku.Tier; tier != nil {
-						newTierIsDynamic = strings.EqualFold(*tier, "dynamic")
-						newTierIsBasic = strings.EqualFold(*tier, "basic")
+				if newPlan.Model != nil {
+					if planSku := newPlan.Model.Sku; planSku != nil {
+						if tier := planSku.Tier; tier != nil {
+							newTierIsDynamic = strings.EqualFold(*tier, "dynamic")
+							newTierIsBasic = strings.EqualFold(*tier, "basic")
+						}
 					}
+				}
+				if _, ok := rd.GetOk("backup"); ok && newTierIsDynamic {
+					return fmt.Errorf("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
+				}
+				if _, ok := rd.GetOk("backup"); ok && newTierIsBasic {
+					return fmt.Errorf("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
+				}
+
+				if strings.EqualFold(currentPlanIdRaw.(string), newPlanIdRaw.(string)) || currentPlanIdRaw.(string) == "" {
+					// State migration escape for correcting case in serverFarms
+					// change of case here will not move the app to a new Service Plan
+					// also if the current Service Plan is empty, this is a new resource, so can skip this
+					return nil
 				}
 
 				// Service Plans can only be updated in place when both New and Existing are not Dynamic
 				if currentPlanIdRaw.(string) != "" {
-					currentPlanId, err := parse.ServicePlanID(currentPlanIdRaw.(string))
+					currentPlanId, err := commonids.ParseAppServicePlanIDInsensitively(currentPlanIdRaw.(string))
 					if err != nil {
 						return fmt.Errorf("reading existing plan id %+v", err)
 					}
 
-					currentPlan, err := client.Get(ctx, currentPlanId.ResourceGroup, currentPlanId.ServerfarmName)
-					if err != nil {
+					currentPlan, err := client.Get(ctx, *currentPlanId)
+					if err != nil || currentPlan.Model == nil {
 						return fmt.Errorf("could not read old Service Plan to check tier %s: %+v", currentPlanId, err)
 					}
 
-					if planSku := currentPlan.Sku; planSku != nil {
+					if planSku := currentPlan.Model.Sku; planSku != nil {
 						if tier := planSku.Tier; tier != nil {
 							currentTierIsDynamic = strings.EqualFold(*tier, "dynamic")
 						}
@@ -1271,12 +1289,7 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-				if _, ok := rd.GetOk("backup"); ok && newTierIsDynamic {
-					return fmt.Errorf("cannot specify backup configuration for Dynamic tier Service Plans, Standard or higher is required")
-				}
-				if _, ok := rd.GetOk("backup"); ok && newTierIsBasic {
-					return fmt.Errorf("cannot specify backup configuration for Basic tier Service Plans, Standard or higher is required")
-				}
+
 			}
 			return nil
 		},
@@ -1377,4 +1390,13 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 	}
 
 	m.AppSettings = appSettings
+}
+
+func (r LinuxFunctionAppResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.LinuxFunctionAppV0toV1{},
+		},
+	}
 }

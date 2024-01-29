@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EventhubId{}
+var _ resourceids.ResourceId = &EventhubId{}
 
 // EventhubId is a struct representing the Resource ID for a Eventhub
 type EventhubId struct {
@@ -32,7 +32,7 @@ func NewEventhubID(subscriptionId string, resourceGroupName string, namespaceNam
 
 // ParseEventhubID parses 'input' into a EventhubId
 func ParseEventhubID(input string) (*EventhubId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EventhubId{})
+	parser := resourceids.NewParserFromResourceIdType(&EventhubId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseEventhubID(input string) (*EventhubId, error) {
 // ParseEventhubIDInsensitively parses 'input' case-insensitively into a EventhubId
 // note: this method should only be used for API response data and not user input
 func ParseEventhubIDInsensitively(input string) (*EventhubId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EventhubId{})
+	parser := resourceids.NewParserFromResourceIdType(&EventhubId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

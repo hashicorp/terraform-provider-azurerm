@@ -19,6 +19,7 @@ type ExportTemplateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ResourceGroupExportResult
 }
 
 // ExportTemplate ...

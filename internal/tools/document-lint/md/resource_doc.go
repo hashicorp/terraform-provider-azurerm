@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package md
 
 import (
@@ -49,8 +52,15 @@ func getDefaultValue(line string) string {
 // ForceNewReg have to stop at dot or end of line to remove this part from the document when needed
 var ForceNewReg = regexp.MustCompile(` ?Changing.*forces? a [^.]*(\.|$)`)
 
+// customized forceNew like: Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
+var partForceNewReg = regexp.MustCompile(` ?Changing.*forces? a [^.]* created when [^.]*(\.|$)`)
+
 func isForceNew(line string) bool {
-	return ForceNewReg.MatchString(line)
+	if ForceNewReg.MatchString(line) && !partForceNewReg.MatchString(line) {
+		return true
+	}
+
+	return false
 }
 
 func extractFieldFromLine(line string) (field *model.Field) {

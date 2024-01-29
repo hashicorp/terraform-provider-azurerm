@@ -19,7 +19,8 @@ type BuildServiceAgentPoolListOperationResponse struct {
 }
 
 type BuildServiceAgentPoolListCompleteResult struct {
-	Items []BuildServiceAgentPoolResource
+	LatestHttpResponse *http.Response
+	Items              []BuildServiceAgentPoolResource
 }
 
 // BuildServiceAgentPoolList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) BuildServiceAgentPoolListCompleteMatchingPredicate(ct
 	}
 
 	result = BuildServiceAgentPoolListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

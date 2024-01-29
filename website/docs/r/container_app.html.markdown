@@ -185,7 +185,7 @@ An `init_container` block supports:
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+* `cpu` - (Optional) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
@@ -197,7 +197,7 @@ An `init_container` block supports:
 
 * `image` - (Required) The image to use to create the container.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+* `memory` - (Optional) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
@@ -371,15 +371,15 @@ An `ingress` block supports the following:
 
 * `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
 
+* `ip_security_restriction` - (Optional) One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
+
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
  
 * `exposed_port` - (Optional) The exposed port on the container for the Ingress traffic.
 
 ~> **Note:** `exposed_port` can only be specified when `transport` is set to `tcp`.
 
-* `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
-
-~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
+* `traffic_weight` - (Required) One or more `traffic_weight` blocks as detailed below.
 
 * `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
@@ -395,15 +395,31 @@ A `custom_domain` block supports the following:
 
 ---
 
+A `ip_security_restriction` block supports the following:
+
+* `action` - (Required) The IP-filter action. `Allow` or `Deny`.
+
+~> **NOTE:** The `action` types in an all `ip_security_restriction` blocks must be the same for the `ingress`, mixing `Allow` and `Deny` rules is not currently supported by the service.
+
+* `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
+
+* `ip_address_range` - (Required) CIDR notation to match incoming IP address.
+
+* `name` - (Required) Name for the IP restriction rule.
+
+---
+
 A `traffic_weight` block supports the following:
 
 ~> **Note:** This block only applies when `revision_mode` is set to `Multiple`.
 
 * `label` - (Optional) The label to apply to the revision as a name prefix for routing traffic.
 
-* `latest_revision` - (Optional) This traffic Weight relates to the latest stable Container Revision.
+* `latest_revision` - (Optional) This traffic Weight applies to the latest stable Container Revision. At most only one `traffic_weight` block can have the `latest_revision` set to `true`.
 
 * `revision_suffix` - (Optional) The suffix string to which this `traffic_weight` applies.
+
+~> **Note:** `latest_revision` conflicts with `revision_suffix`, which means you shall either set `latest_revision` to `true` or specify `revision_suffix`. Especially for creation, there shall only be one `traffic_weight`, with the `latest_revision` set to `true`, and leave the `revision_suffix` empty.
 
 * `percentage` - (Required) The percentage of traffic which should be sent this revision.
 

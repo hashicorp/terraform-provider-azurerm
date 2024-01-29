@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RouteConfigId{}
+var _ resourceids.ResourceId = &RouteConfigId{}
 
 // RouteConfigId is a struct representing the Resource ID for a Route Config
 type RouteConfigId struct {
@@ -34,7 +34,7 @@ func NewRouteConfigID(subscriptionId string, resourceGroupName string, springNam
 
 // ParseRouteConfigID parses 'input' into a RouteConfigId
 func ParseRouteConfigID(input string) (*RouteConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RouteConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&RouteConfigId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseRouteConfigID(input string) (*RouteConfigId, error) {
 // ParseRouteConfigIDInsensitively parses 'input' case-insensitively into a RouteConfigId
 // note: this method should only be used for API response data and not user input
 func ParseRouteConfigIDInsensitively(input string) (*RouteConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RouteConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&RouteConfigId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

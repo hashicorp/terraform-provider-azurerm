@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []DedicatedHostGroup
+	LatestHttpResponse *http.Response
+	Items              []DedicatedHostGroup
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c DedicatedHostGroupsClient) ListByResourceGroupCompleteMatchingPredicate(
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

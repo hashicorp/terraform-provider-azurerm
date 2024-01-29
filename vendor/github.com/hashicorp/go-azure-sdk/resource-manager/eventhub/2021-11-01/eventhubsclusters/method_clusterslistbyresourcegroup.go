@@ -20,7 +20,8 @@ type ClustersListByResourceGroupOperationResponse struct {
 }
 
 type ClustersListByResourceGroupCompleteResult struct {
-	Items []Cluster
+	LatestHttpResponse *http.Response
+	Items              []Cluster
 }
 
 // ClustersListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c EventHubsClustersClient) ClustersListByResourceGroupCompleteMatchingPred
 	}
 
 	result = ClustersListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

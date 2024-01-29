@@ -19,6 +19,7 @@ type ConfigServersUpdatePatchOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConfigServerResource
 }
 
 // ConfigServersUpdatePatch ...

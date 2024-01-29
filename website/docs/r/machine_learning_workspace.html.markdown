@@ -406,7 +406,7 @@ An `encryption` block supports the following:
 
 * `user_assigned_identity_id` - (Optional) The Key Vault URI to access the encryption key.
 
-~> **Note**: `user_assigned_identity_id` must set when`identity.type` is `UserAssigned` or service won't be able to find the assigned permissions.
+~> **Note:** `user_assigned_identity_id` must set when`identity.type` is `UserAssigned` or service won't be able to find the assigned permissions.
 
 ## Attributes Reference
 

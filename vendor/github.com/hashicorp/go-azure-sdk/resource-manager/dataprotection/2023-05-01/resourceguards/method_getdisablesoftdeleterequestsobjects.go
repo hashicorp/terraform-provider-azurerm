@@ -19,7 +19,8 @@ type GetDisableSoftDeleteRequestsObjectsOperationResponse struct {
 }
 
 type GetDisableSoftDeleteRequestsObjectsCompleteResult struct {
-	Items []DppBaseResource
+	LatestHttpResponse *http.Response
+	Items              []DppBaseResource
 }
 
 // GetDisableSoftDeleteRequestsObjects ...
@@ -83,7 +84,8 @@ func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjectsCompleteMatchin
 	}
 
 	result = GetDisableSoftDeleteRequestsObjectsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

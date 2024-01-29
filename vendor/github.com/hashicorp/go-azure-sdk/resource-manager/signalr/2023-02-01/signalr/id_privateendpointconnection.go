@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateEndpointConnectionId{}
+var _ resourceids.ResourceId = &PrivateEndpointConnectionId{}
 
 // PrivateEndpointConnectionId is a struct representing the Resource ID for a Private Endpoint Connection
 type PrivateEndpointConnectionId struct {
@@ -32,7 +32,7 @@ func NewPrivateEndpointConnectionID(subscriptionId string, resourceGroupName str
 
 // ParsePrivateEndpointConnectionID parses 'input' into a PrivateEndpointConnectionId
 func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionI
 // ParsePrivateEndpointConnectionIDInsensitively parses 'input' case-insensitively into a PrivateEndpointConnectionId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateEndpointConnectionIDInsensitively(input string) (*PrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

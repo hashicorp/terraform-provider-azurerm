@@ -16,6 +16,7 @@ import (
 type SqlResourcesMigrateSqlContainerToAutoscaleOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // SqlResourcesMigrateSqlContainerToAutoscale ...

@@ -20,7 +20,8 @@ type GetInResourceGroupOperationResponse struct {
 }
 
 type GetInResourceGroupCompleteResult struct {
-	Items []BackupVaultResource
+	LatestHttpResponse *http.Response
+	Items              []BackupVaultResource
 }
 
 // GetInResourceGroup ...
@@ -84,7 +85,8 @@ func (c BackupVaultsClient) GetInResourceGroupCompleteMatchingPredicate(ctx cont
 	}
 
 	result = GetInResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

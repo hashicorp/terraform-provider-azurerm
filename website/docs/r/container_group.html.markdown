@@ -105,6 +105,10 @@ The following arguments are supported:
 
 * `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
+* `priority` - (Optional) The priority of the Container Group. Possible values are `Regular` and `Spot`. Changing this forces a new resource to be created.
+
+~> **NOTE:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
+
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) A list of Availability Zones in which this Container Group is located. Changing this forces a new resource to be created.

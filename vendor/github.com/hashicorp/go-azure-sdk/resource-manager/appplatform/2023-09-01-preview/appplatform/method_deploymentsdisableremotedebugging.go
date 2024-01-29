@@ -18,6 +18,7 @@ type DeploymentsDisableRemoteDebuggingOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *RemoteDebugging
 }
 
 // DeploymentsDisableRemoteDebugging ...

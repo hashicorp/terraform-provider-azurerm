@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LocationTopicTypeId{}
+var _ resourceids.ResourceId = &LocationTopicTypeId{}
 
 // LocationTopicTypeId is a struct representing the Resource ID for a Location Topic Type
 type LocationTopicTypeId struct {
@@ -30,7 +30,7 @@ func NewLocationTopicTypeID(subscriptionId string, locationName string, topicTyp
 
 // ParseLocationTopicTypeID parses 'input' into a LocationTopicTypeId
 func ParseLocationTopicTypeID(input string) (*LocationTopicTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocationTopicTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocationTopicTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseLocationTopicTypeID(input string) (*LocationTopicTypeId, error) {
 // ParseLocationTopicTypeIDInsensitively parses 'input' case-insensitively into a LocationTopicTypeId
 // note: this method should only be used for API response data and not user input
 func ParseLocationTopicTypeIDInsensitively(input string) (*LocationTopicTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocationTopicTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocationTopicTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

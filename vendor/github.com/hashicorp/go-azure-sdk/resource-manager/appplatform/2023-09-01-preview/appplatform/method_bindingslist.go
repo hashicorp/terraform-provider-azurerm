@@ -19,7 +19,8 @@ type BindingsListOperationResponse struct {
 }
 
 type BindingsListCompleteResult struct {
-	Items []BindingResource
+	LatestHttpResponse *http.Response
+	Items              []BindingResource
 }
 
 // BindingsList ...
@@ -83,7 +84,8 @@ func (c AppPlatformClient) BindingsListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = BindingsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

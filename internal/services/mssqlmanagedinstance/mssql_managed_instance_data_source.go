@@ -26,6 +26,7 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	AdministratorLogin        string                              `tfschema:"administrator_login"`
 	Collation                 string                              `tfschema:"collation"`
 	CustomerManagedKeyId      string                              `tfschema:"customer_managed_key_id"`
+	DnsZone                   string                              `tfschema:"dns_zone"`
 	DnsZonePartnerId          string                              `tfschema:"dns_zone_partner_id"`
 	Fqdn                      string                              `tfschema:"fqdn"`
 	Identity                  []identity.SystemOrUserAssignedList `tfschema:"identity"`
@@ -83,6 +84,11 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 
 		"customer_managed_key_id": {
 			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"dns_zone": {
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
@@ -197,6 +203,9 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				}
 				if props.Collation != nil {
 					model.Collation = *props.Collation
+				}
+				if props.DNSZone != nil {
+					model.DnsZone = *props.DNSZone
 				}
 				if props.KeyID != nil {
 					model.CustomerManagedKeyId = *props.KeyID

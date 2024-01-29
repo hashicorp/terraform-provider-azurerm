@@ -20,7 +20,8 @@ type StoragesListOperationResponse struct {
 }
 
 type StoragesListCompleteResult struct {
-	Items []StorageResource
+	LatestHttpResponse *http.Response
+	Items              []StorageResource
 }
 
 // StoragesList ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) StoragesListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = StoragesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

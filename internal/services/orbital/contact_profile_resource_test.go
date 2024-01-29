@@ -34,6 +34,21 @@ func TestAccContactProfile_basic(t *testing.T) {
 	})
 }
 
+func TestAccContactProfile_multipleChannels(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
+	r := ContactProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleChannels(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContactProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
@@ -105,6 +120,50 @@ resource "azurerm_orbital_contact_profile" "test" {
       end_point {
         end_point_name = "AQUA_command"
         port           = "49513"
+        protocol       = "TCP"
+      }
+    }
+    direction    = "Uplink"
+    name         = "RHCP_UL"
+    polarization = "RHCP"
+  }
+  network_configuration_subnet_id = azurerm_subnet.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func (r ContactProfileResource) multipleChannels(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_orbital_contact_profile" "test" {
+  name                              = "testcontactprofile-%[2]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  minimum_variable_contact_duration = "PT1M"
+  auto_tracking                     = "disabled"
+  links {
+    channels {
+      name                       = "channelname"
+      bandwidth_mhz              = 100
+      center_frequency_mhz       = 101
+      demodulation_configuration = "aqua_direct_broadcast"
+      modulation_configuration   = "AQUA_UPLINK_BPSK"
+      end_point {
+        end_point_name = "AQUA_command"
+        port           = "49513"
+        protocol       = "TCP"
+      }
+    }
+    channels {
+      name                     = "channelname2"
+      bandwidth_mhz            = 102
+      center_frequency_mhz     = 103
+      modulation_configuration = "AQUA_UPLINK_BPSK"
+      end_point {
+        end_point_name = "AQUA_command"
+        port           = "49514"
         protocol       = "TCP"
       }
     }

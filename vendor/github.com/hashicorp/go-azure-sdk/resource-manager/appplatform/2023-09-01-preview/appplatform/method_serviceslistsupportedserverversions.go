@@ -20,7 +20,8 @@ type ServicesListSupportedServerVersionsOperationResponse struct {
 }
 
 type ServicesListSupportedServerVersionsCompleteResult struct {
-	Items []SupportedServerVersion
+	LatestHttpResponse *http.Response
+	Items              []SupportedServerVersion
 }
 
 // ServicesListSupportedServerVersions ...
@@ -84,7 +85,8 @@ func (c AppPlatformClient) ServicesListSupportedServerVersionsCompleteMatchingPr
 	}
 
 	result = ServicesListSupportedServerVersionsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

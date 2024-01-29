@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualRouterId{}
+var _ resourceids.ResourceId = &VirtualRouterId{}
 
 // VirtualRouterId is a struct representing the Resource ID for a Virtual Router
 type VirtualRouterId struct {
@@ -30,7 +30,7 @@ func NewVirtualRouterID(subscriptionId string, resourceGroupName string, virtual
 
 // ParseVirtualRouterID parses 'input' into a VirtualRouterId
 func ParseVirtualRouterID(input string) (*VirtualRouterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualRouterId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualRouterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseVirtualRouterID(input string) (*VirtualRouterId, error) {
 // ParseVirtualRouterIDInsensitively parses 'input' case-insensitively into a VirtualRouterId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualRouterIDInsensitively(input string) (*VirtualRouterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualRouterId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualRouterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

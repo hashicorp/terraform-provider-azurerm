@@ -19,7 +19,8 @@ type GetDeleteResourceGuardProxyRequestsObjectsOperationResponse struct {
 }
 
 type GetDeleteResourceGuardProxyRequestsObjectsCompleteResult struct {
-	Items []DppBaseResource
+	LatestHttpResponse *http.Response
+	Items              []DppBaseResource
 }
 
 // GetDeleteResourceGuardProxyRequestsObjects ...
@@ -83,7 +84,8 @@ func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjectsComplete
 	}
 
 	result = GetDeleteResourceGuardProxyRequestsObjectsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

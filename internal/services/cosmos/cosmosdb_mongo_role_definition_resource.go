@@ -151,7 +151,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeOne
+			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: pointer.To(databaseId.Name),
@@ -206,7 +206,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeOne
+			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: pointer.To(databaseId.Name),

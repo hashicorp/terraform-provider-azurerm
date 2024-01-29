@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExpressRoutePortAuthorizationId{}
+var _ resourceids.ResourceId = &ExpressRoutePortAuthorizationId{}
 
 // ExpressRoutePortAuthorizationId is a struct representing the Resource ID for a Express Route Port Authorization
 type ExpressRoutePortAuthorizationId struct {
@@ -32,7 +32,7 @@ func NewExpressRoutePortAuthorizationID(subscriptionId string, resourceGroupName
 
 // ParseExpressRoutePortAuthorizationID parses 'input' into a ExpressRoutePortAuthorizationId
 func ParseExpressRoutePortAuthorizationID(input string) (*ExpressRoutePortAuthorizationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRoutePortAuthorizationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRoutePortAuthorizationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseExpressRoutePortAuthorizationID(input string) (*ExpressRoutePortAuthor
 // ParseExpressRoutePortAuthorizationIDInsensitively parses 'input' case-insensitively into a ExpressRoutePortAuthorizationId
 // note: this method should only be used for API response data and not user input
 func ParseExpressRoutePortAuthorizationIDInsensitively(input string) (*ExpressRoutePortAuthorizationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRoutePortAuthorizationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRoutePortAuthorizationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
