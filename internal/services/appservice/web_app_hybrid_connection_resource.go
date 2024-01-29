@@ -150,7 +150,7 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, appHybridConn.NamespaceName, appHybridConn.RelayName)
+			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
 
 			existing, err := client.GetHybridConnection(ctx, id)
 			if err != nil {
