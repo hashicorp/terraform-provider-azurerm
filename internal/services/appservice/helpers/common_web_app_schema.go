@@ -1028,10 +1028,12 @@ func FlattenBackupConfig(backupRequest *webapps.BackupRequest) []Backup {
 			}
 		}
 
-		lastExecutionTimeAsTime, err := time.Parse(time.RFC3339, *schedule.LastExecutionTime)
-		if err == nil {
-			if schedule.LastExecutionTime != nil && !lastExecutionTimeAsTime.IsZero() {
-				backupSchedule.LastExecutionTime = lastExecutionTimeAsTime.Format(time.RFC3339)
+		if schedule.LastExecutionTime != nil {
+			lastExecutionTimeAsTime, err := time.Parse(time.RFC3339, *schedule.LastExecutionTime)
+			if err == nil {
+				if schedule.LastExecutionTime != nil && !lastExecutionTimeAsTime.IsZero() {
+					backupSchedule.LastExecutionTime = lastExecutionTimeAsTime.Format(time.RFC3339)
+				}
 			}
 		}
 
