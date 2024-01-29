@@ -9,6 +9,47 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type ApiPortalApiTryOutEnabledState string
+
+const (
+	ApiPortalApiTryOutEnabledStateDisabled ApiPortalApiTryOutEnabledState = "Disabled"
+	ApiPortalApiTryOutEnabledStateEnabled  ApiPortalApiTryOutEnabledState = "Enabled"
+)
+
+func PossibleValuesForApiPortalApiTryOutEnabledState() []string {
+	return []string{
+		string(ApiPortalApiTryOutEnabledStateDisabled),
+		string(ApiPortalApiTryOutEnabledStateEnabled),
+	}
+}
+
+func (s *ApiPortalApiTryOutEnabledState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseApiPortalApiTryOutEnabledState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseApiPortalApiTryOutEnabledState(input string) (*ApiPortalApiTryOutEnabledState, error) {
+	vals := map[string]ApiPortalApiTryOutEnabledState{
+		"disabled": ApiPortalApiTryOutEnabledStateDisabled,
+		"enabled":  ApiPortalApiTryOutEnabledStateEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ApiPortalApiTryOutEnabledState(input)
+	return &out, nil
+}
+
 type ApiPortalProvisioningState string
 
 const (
@@ -2449,6 +2490,59 @@ func parseTrafficDirection(input string) (*TrafficDirection, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := TrafficDirection(input)
+	return &out, nil
+}
+
+type TriggeredBuildResultProvisioningState string
+
+const (
+	TriggeredBuildResultProvisioningStateBuilding  TriggeredBuildResultProvisioningState = "Building"
+	TriggeredBuildResultProvisioningStateCanceled  TriggeredBuildResultProvisioningState = "Canceled"
+	TriggeredBuildResultProvisioningStateDeleting  TriggeredBuildResultProvisioningState = "Deleting"
+	TriggeredBuildResultProvisioningStateFailed    TriggeredBuildResultProvisioningState = "Failed"
+	TriggeredBuildResultProvisioningStateQueuing   TriggeredBuildResultProvisioningState = "Queuing"
+	TriggeredBuildResultProvisioningStateSucceeded TriggeredBuildResultProvisioningState = "Succeeded"
+)
+
+func PossibleValuesForTriggeredBuildResultProvisioningState() []string {
+	return []string{
+		string(TriggeredBuildResultProvisioningStateBuilding),
+		string(TriggeredBuildResultProvisioningStateCanceled),
+		string(TriggeredBuildResultProvisioningStateDeleting),
+		string(TriggeredBuildResultProvisioningStateFailed),
+		string(TriggeredBuildResultProvisioningStateQueuing),
+		string(TriggeredBuildResultProvisioningStateSucceeded),
+	}
+}
+
+func (s *TriggeredBuildResultProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTriggeredBuildResultProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseTriggeredBuildResultProvisioningState(input string) (*TriggeredBuildResultProvisioningState, error) {
+	vals := map[string]TriggeredBuildResultProvisioningState{
+		"building":  TriggeredBuildResultProvisioningStateBuilding,
+		"canceled":  TriggeredBuildResultProvisioningStateCanceled,
+		"deleting":  TriggeredBuildResultProvisioningStateDeleting,
+		"failed":    TriggeredBuildResultProvisioningStateFailed,
+		"queuing":   TriggeredBuildResultProvisioningStateQueuing,
+		"succeeded": TriggeredBuildResultProvisioningStateSucceeded,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := TriggeredBuildResultProvisioningState(input)
 	return &out, nil
 }
 
