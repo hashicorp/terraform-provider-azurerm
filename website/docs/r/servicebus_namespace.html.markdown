@@ -51,6 +51,8 @@ The following arguments are supported:
 
 * `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium`, capacity can be `1`, `2`, `4`, `8` or `16`. When `sku` is `Basic` or `Standard`, capacity can be `0` only.
 
+* `premium_messaging_partitions` - (Optional) Specifies the messaging partitions. When `sku` is `Premium`, messaging partitions can be `1`, `2`, `4`. When `sku` is `Basic` or `Standard`, messaging partitions can be `0` only. Changing this forces a new resource to be created.
+
 * `customer_managed_key` - (Optional) An `customer_managed_key` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether or not SAS authentication is enabled for the Service Bus namespace. Defaults to `true`.
