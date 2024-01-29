@@ -28,16 +28,15 @@ resource "azurerm_kubernetes_fleet_manager" "example" {
 }
 
 resource "azurerm_kubernetes_fleet_update_strategy" "example" {
-  name             = "example"
-  fleet_manager_id = azurerm_kubernetes_fleet_manager.example.id
-  strategy {
-    stage {
-      name = "example-stage-1"
-      group {
-        name = "example-group-1"
-      }
-      after_stage_wait_in_seconds = 21
+  name                        = "example"
+  kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.example.id
+
+  stage {
+    name = "example-stage-1"
+    group {
+      name = "example-group-1"
     }
+    after_stage_wait_in_seconds = 21
   }
 }
 ```
@@ -48,13 +47,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Kubernetes Fleet Update Strategy. Changing this forces a new Kubernetes Fleet Update Strategy to be created.
 
-* `fleet_manager_id` - (Required) The ID of the Fleet Manager. Changing this forces a new Kubernetes Fleet Update Strategy to be created.
-
-* `strategy` - (Required) A `strategy` block as defined below.
-
----
-
-A `strategy` block supports the following:
+* `kubernetes_fleet_manager_id` - (Required) The ID of the Fleet Manager. Changing this forces a new Kubernetes Fleet Update Strategy to be created.
 
 * `stage` - (Required) One or more `stage` blocks as defined below.
 

@@ -106,16 +106,16 @@ func (r KubernetesFleetUpdateStrategyTestResource) basic(data acceptance.TestDat
 %s
 
 resource "azurerm_kubernetes_fleet_update_strategy" "test" {
-  name             = "acctestfus-%[2]d"
-  fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
-  strategy {
-    stage {
+  name                        = "acctestfus-%[2]d"
+  kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
+
+  stage {
+    name = "acctestfus-%[2]d"
+    group {
       name = "acctestfus-%[2]d"
-      group {
-        name = "acctestfus-%[2]d"
-      }
     }
   }
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -125,16 +125,15 @@ func (r KubernetesFleetUpdateStrategyTestResource) requiresImport(data acceptanc
 %s
 
 resource "azurerm_kubernetes_fleet_update_strategy" "import" {
-  name             = azurerm_kubernetes_fleet_update_strategy.test.name
-  fleet_manager_id = azurerm_kubernetes_fleet_update_strategy.test.fleet_manager_id
-  strategy {
-    stage {
+  name                        = azurerm_kubernetes_fleet_update_strategy.test.name
+  kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_update_strategy.test.kubernetes_fleet_manager_id
+  stage {
+    name = "acctestfus-%[2]d"
+    group {
       name = "acctestfus-%[2]d"
-      group {
-        name = "acctestfus-%[2]d"
-      }
     }
   }
+
 }
 `, r.basic(data), data.RandomInteger)
 }
@@ -144,16 +143,15 @@ func (r KubernetesFleetUpdateStrategyTestResource) complete(data acceptance.Test
 %s
 
 resource "azurerm_kubernetes_fleet_update_strategy" "test" {
-  name             = "acctestfus-%[2]d"
-  fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
-  strategy {
-    stage {
-      name = "acctestfus-%[2]d-complte"
-      group {
-        name = "acctestfus-%[2]d-complete"
-      }
-      after_stage_wait_in_seconds = 21
+  name                        = "acctestfus-%[2]d"
+  kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
+
+  stage {
+    name = "acctestfus-%[2]d-complte"
+    group {
+      name = "acctestfus-%[2]d-complete"
     }
+    after_stage_wait_in_seconds = 21
   }
 }
 `, r.template(data), data.RandomInteger)

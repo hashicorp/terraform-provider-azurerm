@@ -25,17 +25,13 @@ func (r KubernetesFleetUpdateStrategyResource) ModelObject() interface{} {
 }
 
 type KubernetesFleetUpdateStrategyResourceSchema struct {
-	FleetId  string                                                         `tfschema:"fleet_manager_id"`
-	Name     string                                                         `tfschema:"name"`
-	Strategy []KubernetesFleetUpdateStrategyResourceUpdateRunStrategySchema `tfschema:"strategy"`
+	KubernetesFleetManagerId string                                                   `tfschema:"kubernetes_fleet_manager_id"`
+	Name                     string                                                   `tfschema:"name"`
+	Stage                    []KubernetesFleetUpdateStrategyResourceUpdateStageSchema `tfschema:"stage"`
 }
 
 type KubernetesFleetUpdateStrategyResourceUpdateGroupSchema struct {
 	Name string `tfschema:"name"`
-}
-
-type KubernetesFleetUpdateStrategyResourceUpdateRunStrategySchema struct {
-	Stage []KubernetesFleetUpdateStrategyResourceUpdateStageSchema `tfschema:"stage"`
 }
 
 type KubernetesFleetUpdateStrategyResourceUpdateStageSchema struct {
@@ -60,17 +56,23 @@ func (r KubernetesFleetUpdateStrategyResource) Arguments() map[string]*pluginsdk
 			Type:     pluginsdk.TypeString,
 		},
 
-		"fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(fleetupdatestrategies.FleetId{}),
+		"kubernetes_fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(fleetupdatestrategies.FleetId{}),
 
-		"strategy": {
+		"stage": {
 			Required: true,
-			MaxItems: 1,
 			Type:     pluginsdk.TypeList,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"stage": {
+					"name": {
+						Required:     true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"group": {
 						Required: true,
 						Type:     pluginsdk.TypeList,
+						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -78,28 +80,13 @@ func (r KubernetesFleetUpdateStrategyResource) Arguments() map[string]*pluginsdk
 									Type:         pluginsdk.TypeString,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-
-								"group": {
-									Required: true,
-									Type:     pluginsdk.TypeList,
-									MinItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"name": {
-												Required:     true,
-												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-										},
-									},
-								},
-
-								"after_stage_wait_in_seconds": {
-									Optional: true,
-									Type:     pluginsdk.TypeInt,
-								},
 							},
 						},
+					},
+
+					"after_stage_wait_in_seconds": {
+						Optional: true,
+						Type:     pluginsdk.TypeInt,
 					},
 				},
 			},
@@ -122,7 +109,7 @@ func (r KubernetesFleetUpdateStrategyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			fleetId, err := commonids.ParseFleetID(config.FleetId)
+			fleetId, err := commonids.ParseFleetID(config.KubernetesFleetManagerId)
 			if err != nil {
 				return err
 			}
@@ -141,7 +128,9 @@ func (r KubernetesFleetUpdateStrategyResource) Create() sdk.ResourceFunc {
 
 			payload := fleetupdatestrategies.FleetUpdateStrategy{
 				Properties: &fleetupdatestrategies.FleetUpdateStrategyProperties{
-					Strategy: expandKubernetesFleetUpdateStrategy(config.Strategy),
+					Strategy: fleetupdatestrategies.UpdateRunStrategy{
+						Stages: expandKubernetesFleetUpdateStrategyStage(config.Stage),
+					},
 				},
 			}
 
@@ -180,8 +169,8 @@ func (r KubernetesFleetUpdateStrategyResource) Update() sdk.ResourceFunc {
 			}
 			payload := *existing.Model
 
-			if metadata.ResourceData.HasChange("strategy") {
-				payload.Properties.Strategy.Stages = expandKubernetesFleetUpdateStrategyStage(config.Strategy[0].Stage)
+			if metadata.ResourceData.HasChange("stage") {
+				payload.Properties.Strategy.Stages = expandKubernetesFleetUpdateStrategyStage(config.Stage)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload, fleetupdatestrategies.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -215,9 +204,9 @@ func (r KubernetesFleetUpdateStrategyResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				schema.Name = id.UpdateStrategyName
-				schema.FleetId = fleetupdatestrategies.NewFleetID(id.SubscriptionId, id.ResourceGroupName, id.FleetName).ID()
+				schema.KubernetesFleetManagerId = fleetupdatestrategies.NewFleetID(id.SubscriptionId, id.ResourceGroupName, id.FleetName).ID()
 				if model.Properties != nil {
-					schema.Strategy = flattenKubernetesFleetUpdateStrategy(model.Properties.Strategy)
+					schema.Stage = flattenKubernetesFleetUpdateStrategyStage(model.Properties.Strategy.Stages)
 				}
 			}
 
@@ -245,14 +234,6 @@ func (r KubernetesFleetUpdateStrategyResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandKubernetesFleetUpdateStrategy(input []KubernetesFleetUpdateStrategyResourceUpdateRunStrategySchema) fleetupdatestrategies.UpdateRunStrategy {
-	output := fleetupdatestrategies.UpdateRunStrategy{}
-	if len(input) > 0 {
-		output.Stages = expandKubernetesFleetUpdateStrategyStage(input[0].Stage)
-	}
-	return output
-}
-
 func expandKubernetesFleetUpdateStrategyStage(input []KubernetesFleetUpdateStrategyResourceUpdateStageSchema) []fleetupdatestrategies.UpdateStage {
 	output := make([]fleetupdatestrategies.UpdateStage, 0)
 	for _, stage := range input {
@@ -273,14 +254,6 @@ func expandKubernetesFleetUpdateStrategyGroup(input []KubernetesFleetUpdateStrat
 		})
 	}
 	return &output
-}
-
-func flattenKubernetesFleetUpdateStrategy(input fleetupdatestrategies.UpdateRunStrategy) []KubernetesFleetUpdateStrategyResourceUpdateRunStrategySchema {
-	output := make([]KubernetesFleetUpdateStrategyResourceUpdateRunStrategySchema, 0)
-	output = append(output, KubernetesFleetUpdateStrategyResourceUpdateRunStrategySchema{
-		Stage: flattenKubernetesFleetUpdateStrategyStage(input.Stages),
-	})
-	return output
 }
 
 func flattenKubernetesFleetUpdateStrategyStage(input []fleetupdatestrategies.UpdateStage) []KubernetesFleetUpdateStrategyResourceUpdateStageSchema {
