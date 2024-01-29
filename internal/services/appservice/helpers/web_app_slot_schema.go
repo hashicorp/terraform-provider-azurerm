@@ -1394,7 +1394,8 @@ func (s *SiteConfigWindowsWebAppSlot) DecodeDockerDeprecatedAppStack(input map[s
 
 		registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 		dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
-		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+		dockerString = strings.TrimPrefix(dockerString, registryHost)
+		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, "/")
 	} else {
 		parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
 		if len(parts) == 2 {

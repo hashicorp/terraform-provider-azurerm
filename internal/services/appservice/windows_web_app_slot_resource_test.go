@@ -892,10 +892,10 @@ func TestAccWindowsWebAppSlot_withDockerDeprecatedUpgrade(t *testing.T) {
 			"app_settings.DOCKER_REGISTRY_SERVER_URL",
 			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
 		{
-			Config: r.dockerImageName(data, "https://index.docker.io", "hello-world:latest"),
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|hello-world:latest"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
 			),
 		},
 		data.ImportStep(),
