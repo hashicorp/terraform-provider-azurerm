@@ -824,7 +824,12 @@ func (r WindowsFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting Windows %s", *id)
 
-			if _, err := client.DeleteSlot(ctx, *id, webapps.DefaultDeleteSlotOperationOptions()); err != nil {
+			delOpts := webapps.DeleteSlotOperationOptions{
+				DeleteEmptyServerFarm: pointer.To(false),
+				DeleteMetrics:         pointer.To(false),
+			}
+
+			if _, err := client.DeleteSlot(ctx, *id, delOpts); err != nil {
 				return fmt.Errorf("deleting Windows %s: %+v", id, err)
 			}
 			return nil
