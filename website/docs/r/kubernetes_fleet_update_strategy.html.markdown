@@ -30,7 +30,6 @@ resource "azurerm_kubernetes_fleet_manager" "example" {
 resource "azurerm_kubernetes_fleet_update_strategy" "example" {
   name                        = "example"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.example.id
-
   stage {
     name = "example-stage-1"
     group {

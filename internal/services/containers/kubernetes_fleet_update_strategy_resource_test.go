@@ -108,7 +108,6 @@ func (r KubernetesFleetUpdateStrategyTestResource) basic(data acceptance.TestDat
 resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   name                        = "acctestfus-%[2]d"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
-
   stage {
     name = "acctestfus-%[2]d"
     group {
@@ -133,7 +132,6 @@ resource "azurerm_kubernetes_fleet_update_strategy" "import" {
       name = "acctestfus-%[2]d"
     }
   }
-
 }
 `, r.basic(data), data.RandomInteger)
 }
@@ -145,7 +143,6 @@ func (r KubernetesFleetUpdateStrategyTestResource) complete(data acceptance.Test
 resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   name                        = "acctestfus-%[2]d"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
-
   stage {
     name = "acctestfus-%[2]d-complte"
     group {
