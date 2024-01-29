@@ -18,6 +18,7 @@ type CustomizedAcceleratorsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *CustomizedAcceleratorResource
 }
 
 // CustomizedAcceleratorsCreateOrUpdate ...

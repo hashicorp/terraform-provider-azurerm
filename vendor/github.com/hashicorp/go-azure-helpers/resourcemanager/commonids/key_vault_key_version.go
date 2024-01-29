@@ -13,7 +13,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = KeyVaultKeyVersionId{}
+var _ resourceids.ResourceId = &KeyVaultKeyVersionId{}
 
 // KeyVaultKeyVersionId is a struct representing the Resource ID for a Version
 type KeyVaultKeyVersionId struct {
@@ -37,7 +37,7 @@ func NewKeyVaultKeyVersionID(subscriptionId string, resourceGroupName string, va
 
 // ParseKeyVaultKeyVersionID parses 'input' into a KeyVaultKeyVersionId
 func ParseKeyVaultKeyVersionID(input string) (*KeyVaultKeyVersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultKeyVersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultKeyVersionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -54,14 +54,14 @@ func ParseKeyVaultKeyVersionID(input string) (*KeyVaultKeyVersionId, error) {
 // ParseKeyVaultKeyVersionIDInsensitively parses 'input' case-insensitively into a KeyVaultKeyVersionId
 // note: this method should only be used for API response data and not user input
 func ParseKeyVaultKeyVersionIDInsensitively(input string) (*KeyVaultKeyVersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultKeyVersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultKeyVersionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := KeyVaultKeyVersionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

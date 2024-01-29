@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BackendId{}
+var _ resourceids.ResourceId = &BackendId{}
 
 // BackendId is a struct representing the Resource ID for a Backend
 type BackendId struct {
@@ -32,7 +32,7 @@ func NewBackendID(subscriptionId string, resourceGroupName string, serviceName s
 
 // ParseBackendID parses 'input' into a BackendId
 func ParseBackendID(input string) (*BackendId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackendId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackendId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseBackendID(input string) (*BackendId, error) {
 // ParseBackendIDInsensitively parses 'input' case-insensitively into a BackendId
 // note: this method should only be used for API response data and not user input
 func ParseBackendIDInsensitively(input string) (*BackendId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackendId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackendId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

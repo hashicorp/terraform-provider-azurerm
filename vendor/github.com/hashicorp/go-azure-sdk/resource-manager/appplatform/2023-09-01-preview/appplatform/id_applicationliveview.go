@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApplicationLiveViewId{}
+var _ resourceids.ResourceId = &ApplicationLiveViewId{}
 
 // ApplicationLiveViewId is a struct representing the Resource ID for a Application Live View
 type ApplicationLiveViewId struct {
@@ -32,7 +32,7 @@ func NewApplicationLiveViewID(subscriptionId string, resourceGroupName string, s
 
 // ParseApplicationLiveViewID parses 'input' into a ApplicationLiveViewId
 func ParseApplicationLiveViewID(input string) (*ApplicationLiveViewId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationLiveViewId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationLiveViewId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseApplicationLiveViewID(input string) (*ApplicationLiveViewId, error) {
 // ParseApplicationLiveViewIDInsensitively parses 'input' case-insensitively into a ApplicationLiveViewId
 // note: this method should only be used for API response data and not user input
 func ParseApplicationLiveViewIDInsensitively(input string) (*ApplicationLiveViewId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationLiveViewId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationLiveViewId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderLoadBalancerId{}
+var _ resourceids.ResourceId = &ProviderLoadBalancerId{}
 
 // ProviderLoadBalancerId is a struct representing the Resource ID for a Provider Load Balancer
 type ProviderLoadBalancerId struct {
@@ -30,7 +30,7 @@ func NewProviderLoadBalancerID(subscriptionId string, resourceGroupName string, 
 
 // ParseProviderLoadBalancerID parses 'input' into a ProviderLoadBalancerId
 func ParseProviderLoadBalancerID(input string) (*ProviderLoadBalancerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderLoadBalancerId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderLoadBalancerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseProviderLoadBalancerID(input string) (*ProviderLoadBalancerId, error) 
 // ParseProviderLoadBalancerIDInsensitively parses 'input' case-insensitively into a ProviderLoadBalancerId
 // note: this method should only be used for API response data and not user input
 func ParseProviderLoadBalancerIDInsensitively(input string) (*ProviderLoadBalancerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderLoadBalancerId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderLoadBalancerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

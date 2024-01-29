@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CustomDomainId{}
+var _ resourceids.ResourceId = &CustomDomainId{}
 
 // CustomDomainId is a struct representing the Resource ID for a Custom Domain
 type CustomDomainId struct {
@@ -32,7 +32,7 @@ func NewCustomDomainID(subscriptionId string, resourceGroupName string, signalRN
 
 // ParseCustomDomainID parses 'input' into a CustomDomainId
 func ParseCustomDomainID(input string) (*CustomDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CustomDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&CustomDomainId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCustomDomainID(input string) (*CustomDomainId, error) {
 // ParseCustomDomainIDInsensitively parses 'input' case-insensitively into a CustomDomainId
 // note: this method should only be used for API response data and not user input
 func ParseCustomDomainIDInsensitively(input string) (*CustomDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CustomDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&CustomDomainId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

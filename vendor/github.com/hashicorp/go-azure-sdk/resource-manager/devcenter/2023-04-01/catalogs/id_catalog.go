@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CatalogId{}
+var _ resourceids.ResourceId = &CatalogId{}
 
 // CatalogId is a struct representing the Resource ID for a Catalog
 type CatalogId struct {
@@ -32,7 +32,7 @@ func NewCatalogID(subscriptionId string, resourceGroupName string, devCenterName
 
 // ParseCatalogID parses 'input' into a CatalogId
 func ParseCatalogID(input string) (*CatalogId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CatalogId{})
+	parser := resourceids.NewParserFromResourceIdType(&CatalogId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCatalogID(input string) (*CatalogId, error) {
 // ParseCatalogIDInsensitively parses 'input' case-insensitively into a CatalogId
 // note: this method should only be used for API response data and not user input
 func ParseCatalogIDInsensitively(input string) (*CatalogId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CatalogId{})
+	parser := resourceids.NewParserFromResourceIdType(&CatalogId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

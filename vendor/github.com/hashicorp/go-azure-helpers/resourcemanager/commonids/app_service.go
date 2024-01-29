@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AppServiceId{}
+var _ resourceids.ResourceId = &AppServiceId{}
 
 // AppServiceId is a struct representing the Resource ID for an App Service
 type AppServiceId struct {
@@ -30,7 +30,7 @@ func NewAppServiceID(subscriptionId string, resourceGroupName string, siteName s
 
 // ParseAppServiceID parses 'input' into a AppServiceId
 func ParseAppServiceID(input string) (*AppServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseAppServiceID(input string) (*AppServiceId, error) {
 // ParseAppServiceIDInsensitively parses 'input' case-insensitively into a AppServiceId
 // note: this method should only be used for API response data and not user input
 func ParseAppServiceIDInsensitively(input string) (*AppServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

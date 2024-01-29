@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TrafficManagerProfileId{}
+var _ resourceids.ResourceId = &TrafficManagerProfileId{}
 
 // TrafficManagerProfileId is a struct representing the Resource ID for a Traffic Manager Profile
 type TrafficManagerProfileId struct {
@@ -30,7 +30,7 @@ func NewTrafficManagerProfileID(subscriptionId string, resourceGroupName string,
 
 // ParseTrafficManagerProfileID parses 'input' into a TrafficManagerProfileId
 func ParseTrafficManagerProfileID(input string) (*TrafficManagerProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TrafficManagerProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&TrafficManagerProfileId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseTrafficManagerProfileID(input string) (*TrafficManagerProfileId, error
 // ParseTrafficManagerProfileIDInsensitively parses 'input' case-insensitively into a TrafficManagerProfileId
 // note: this method should only be used for API response data and not user input
 func ParseTrafficManagerProfileIDInsensitively(input string) (*TrafficManagerProfileId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TrafficManagerProfileId{})
+	parser := resourceids.NewParserFromResourceIdType(&TrafficManagerProfileId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

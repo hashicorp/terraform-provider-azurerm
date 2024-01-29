@@ -282,6 +282,9 @@ service/purview:
 service/recovery-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(backup_|recovery_services_vault|site_recovery_)((.|\n)*)###'
 
+service/redhatopenshift:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_redhat_openshift_cluster((.|\n)*)###'
+
 service/redis:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_redis_((.|\n)*)###'
 

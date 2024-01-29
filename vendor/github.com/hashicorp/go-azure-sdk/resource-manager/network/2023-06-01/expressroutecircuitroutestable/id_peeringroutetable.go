@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PeeringRouteTableId{}
+var _ resourceids.ResourceId = &PeeringRouteTableId{}
 
 // PeeringRouteTableId is a struct representing the Resource ID for a Peering Route Table
 type PeeringRouteTableId struct {
@@ -34,7 +34,7 @@ func NewPeeringRouteTableID(subscriptionId string, resourceGroupName string, exp
 
 // ParsePeeringRouteTableID parses 'input' into a PeeringRouteTableId
 func ParsePeeringRouteTableID(input string) (*PeeringRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PeeringRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&PeeringRouteTableId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParsePeeringRouteTableID(input string) (*PeeringRouteTableId, error) {
 // ParsePeeringRouteTableIDInsensitively parses 'input' case-insensitively into a PeeringRouteTableId
 // note: this method should only be used for API response data and not user input
 func ParsePeeringRouteTableIDInsensitively(input string) (*PeeringRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PeeringRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&PeeringRouteTableId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

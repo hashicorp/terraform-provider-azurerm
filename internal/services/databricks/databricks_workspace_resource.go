@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,8 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -160,7 +159,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
+				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
 			},
 
 			"custom_parameters": {
@@ -386,13 +385,13 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	if backendPool != "" {
-		backendPoolId, err := loadBalancerParse.LoadBalancerBackendAddressPoolID(backendPool)
+		backendPoolId, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(backendPool)
 		if err != nil {
 			return err
 		}
 
 		// Generate the load balancer ID from the Backend Address Pool Id...
-		lbId := loadBalancerParse.NewLoadBalancerID(backendPoolId.SubscriptionId, backendPoolId.ResourceGroup, backendPoolId.LoadBalancerName)
+		lbId := loadbalancers.NewLoadBalancerID(backendPoolId.SubscriptionId, backendPoolId.ResourceGroupName, backendPoolId.LoadBalancerName)
 
 		backendPoolName = backendPoolId.BackendAddressPoolName
 		loadBalancerId = lbId.ID()
@@ -404,12 +403,13 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		defer locks.UnlockByID(lbId.ID())
 
 		// check to make sure the load balancer exists as referred to by the Backend Address Pool...
-		lb, err := lbClient.Get(ctx, lbId.ResourceGroup, lbId.Name, "")
+		plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: backendPoolId.SubscriptionId, ResourceGroupName: backendPoolId.ResourceGroupName, LoadBalancerName: backendPoolId.LoadBalancerName}
+		lb, err := lbClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("load balancer %q for Backend Address Pool %q was not found", lbId, backendPoolId)
+			if response.WasNotFound(lb.HttpResponse) {
+				return fmt.Errorf("%s was not found", lbId)
 			}
-			return fmt.Errorf("failed to retrieve Load Balancer %q for Backend Address Pool %q: %+v", lbId, backendPoolId, err)
+			return fmt.Errorf("retrieving %s: %+v", lbId, err)
 		}
 	}
 
@@ -829,10 +829,10 @@ func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameter
 		parameters["virtual_network_id"] = v.Value
 	}
 
-	lbId, err := loadBalancerParse.LoadBalancerIDInsensitively(loadBalancerId)
+	lbId, err := loadbalancers.ParseLoadBalancerIDInsensitively(loadBalancerId)
 
 	if err == nil {
-		backendId := loadBalancerParse.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroup, lbId.Name, backendName)
+		backendId := loadbalancers.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroupName, lbId.LoadBalancerName, backendName)
 		backendAddressPoolId = backendId.ID()
 	}
 

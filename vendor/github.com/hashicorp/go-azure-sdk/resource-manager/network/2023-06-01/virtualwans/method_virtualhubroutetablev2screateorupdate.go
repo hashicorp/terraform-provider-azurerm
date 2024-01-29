@@ -18,6 +18,7 @@ type VirtualHubRouteTableV2sCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VirtualHubRouteTableV2
 }
 
 // VirtualHubRouteTableV2sCreateOrUpdate ...

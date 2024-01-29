@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = KeyVaultId{}
+var _ resourceids.ResourceId = &KeyVaultId{}
 
 // KeyVaultId is a struct representing the Resource ID for a Key Vault
 type KeyVaultId struct {
@@ -30,7 +30,7 @@ func NewKeyVaultID(subscriptionId string, resourceGroupName string, vaultName st
 
 // ParseKeyVaultID parses 'input' into a KeyVaultId
 func ParseKeyVaultID(input string) (*KeyVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseKeyVaultID(input string) (*KeyVaultId, error) {
 // ParseKeyVaultIDInsensitively parses 'input' case-insensitively into a KeyVaultId
 // note: this method should only be used for API response data and not user input
 func ParseKeyVaultIDInsensitively(input string) (*KeyVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := KeyVaultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

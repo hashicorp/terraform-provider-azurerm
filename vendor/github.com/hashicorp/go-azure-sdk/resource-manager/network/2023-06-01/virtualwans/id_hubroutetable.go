@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HubRouteTableId{}
+var _ resourceids.ResourceId = &HubRouteTableId{}
 
 // HubRouteTableId is a struct representing the Resource ID for a Hub Route Table
 type HubRouteTableId struct {
@@ -32,7 +32,7 @@ func NewHubRouteTableID(subscriptionId string, resourceGroupName string, virtual
 
 // ParseHubRouteTableID parses 'input' into a HubRouteTableId
 func ParseHubRouteTableID(input string) (*HubRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HubRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&HubRouteTableId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseHubRouteTableID(input string) (*HubRouteTableId, error) {
 // ParseHubRouteTableIDInsensitively parses 'input' case-insensitively into a HubRouteTableId
 // note: this method should only be used for API response data and not user input
 func ParseHubRouteTableIDInsensitively(input string) (*HubRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HubRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&HubRouteTableId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

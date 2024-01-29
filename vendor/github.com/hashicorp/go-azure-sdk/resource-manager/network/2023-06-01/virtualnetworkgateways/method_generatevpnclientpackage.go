@@ -18,6 +18,7 @@ type GeneratevpnclientpackageOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *string
 }
 
 // Generatevpnclientpackage ...

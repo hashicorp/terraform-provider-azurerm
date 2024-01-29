@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RequestHistoryId{}
+var _ resourceids.ResourceId = &RequestHistoryId{}
 
 // RequestHistoryId is a struct representing the Resource ID for a Request History
 type RequestHistoryId struct {
@@ -36,7 +36,7 @@ func NewRequestHistoryID(subscriptionId string, resourceGroupName string, workfl
 
 // ParseRequestHistoryID parses 'input' into a RequestHistoryId
 func ParseRequestHistoryID(input string) (*RequestHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RequestHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RequestHistoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseRequestHistoryID(input string) (*RequestHistoryId, error) {
 // ParseRequestHistoryIDInsensitively parses 'input' case-insensitively into a RequestHistoryId
 // note: this method should only be used for API response data and not user input
 func ParseRequestHistoryIDInsensitively(input string) (*RequestHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RequestHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RequestHistoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

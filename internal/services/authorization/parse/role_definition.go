@@ -16,7 +16,7 @@ type RoleDefinitionID struct {
 	RoleID     string
 }
 
-var _ resourceids.ResourceId = RoleDefinitionID{}
+var _ resourceids.Id = RoleDefinitionID{}
 
 func (r RoleDefinitionID) ID() string {
 	return fmt.Sprintf("%s|%s", r.ResourceID, r.Scope)
