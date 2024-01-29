@@ -484,7 +484,6 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   sku                          = "Premium"
   capacity                     = 2
-  premium_messaging_partitions = 0
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
