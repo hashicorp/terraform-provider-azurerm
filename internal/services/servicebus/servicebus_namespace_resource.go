@@ -102,7 +102,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ForceNew:     true,
 				Default:      0,
 				Optional:     true,
-				ValidateFunc: validation.IntInSlice([]int{1, 2, 4}),
+				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4}),
 			},
 
 			"customer_managed_key": {
