@@ -98,7 +98,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Create() sdk
 			client := metadata.Client.AppPlatform.AppPlatformClient
 			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
-				return fmt.Errorf("parsing spring service ID: %+v", err)
+				return err
 			}
 			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 

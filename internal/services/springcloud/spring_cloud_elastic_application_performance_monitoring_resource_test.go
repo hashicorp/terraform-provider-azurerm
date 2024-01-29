@@ -16,7 +16,7 @@ import (
 
 type SpringCloudElasticApplicationPerformanceMonitoringResource struct{}
 
-func TestAccSpringCloudElasticApplicationPerformanceMonitoringPerformanceMonitoring_basic(t *testing.T) {
+func TestAccSpringCloudElasticApplicationPerformanceMonitoring_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_elastic_application_performance_monitoring", "test")
 	r := SpringCloudElasticApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -30,7 +30,7 @@ func TestAccSpringCloudElasticApplicationPerformanceMonitoringPerformanceMonitor
 	})
 }
 
-func TestAccSpringCloudElasticApplicationPerformanceMonitoringPerformanceMonitoring_requiresImport(t *testing.T) {
+func TestAccSpringCloudElasticApplicationPerformanceMonitoring_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_elastic_application_performance_monitoring", "test")
 	r := SpringCloudElasticApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -44,7 +44,7 @@ func TestAccSpringCloudElasticApplicationPerformanceMonitoringPerformanceMonitor
 	})
 }
 
-func TestAccSpringCloudElasticApplicationPerformanceMonitoringPerformanceMonitoring_complete(t *testing.T) {
+func TestAccSpringCloudElasticApplicationPerformanceMonitoring_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_elastic_application_performance_monitoring", "test")
 	r := SpringCloudElasticApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -58,7 +58,7 @@ func TestAccSpringCloudElasticApplicationPerformanceMonitoringPerformanceMonitor
 	})
 }
 
-func TestAccSpringCloudElasticApplicationPerformanceMonitoringPerformanceMonitoring_update(t *testing.T) {
+func TestAccSpringCloudElasticApplicationPerformanceMonitoring_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_elastic_application_performance_monitoring", "test")
 	r := SpringCloudElasticApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -98,7 +98,7 @@ func (r SpringCloudElasticApplicationPerformanceMonitoringResource) Exists(ctx c
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SpringCloudElasticApplicationPerformanceMonitoringResource) template(data acceptance.TestData) string {

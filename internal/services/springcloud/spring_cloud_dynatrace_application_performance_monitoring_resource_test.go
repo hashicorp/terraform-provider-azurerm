@@ -16,7 +16,7 @@ import (
 
 type SpringCloudDynatraceApplicationPerformanceMonitoringResource struct{}
 
-func TestAccSpringCloudDynatraceApplicationPerformanceMonitoringPerformanceMonitoring_basic(t *testing.T) {
+func TestAccSpringCloudDynatraceApplicationPerformanceMonitoring_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_dynatrace_application_performance_monitoring", "test")
 	r := SpringCloudDynatraceApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -30,7 +30,7 @@ func TestAccSpringCloudDynatraceApplicationPerformanceMonitoringPerformanceMonit
 	})
 }
 
-func TestAccSpringCloudDynatraceApplicationPerformanceMonitoringPerformanceMonitoring_requiresImport(t *testing.T) {
+func TestAccSpringCloudDynatraceApplicationPerformanceMonitoring_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_dynatrace_application_performance_monitoring", "test")
 	r := SpringCloudDynatraceApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -44,7 +44,7 @@ func TestAccSpringCloudDynatraceApplicationPerformanceMonitoringPerformanceMonit
 	})
 }
 
-func TestAccSpringCloudDynatraceApplicationPerformanceMonitoringPerformanceMonitoring_complete(t *testing.T) {
+func TestAccSpringCloudDynatraceApplicationPerformanceMonitoring_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_dynatrace_application_performance_monitoring", "test")
 	r := SpringCloudDynatraceApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -58,7 +58,7 @@ func TestAccSpringCloudDynatraceApplicationPerformanceMonitoringPerformanceMonit
 	})
 }
 
-func TestAccSpringCloudDynatraceApplicationPerformanceMonitoringPerformanceMonitoring_update(t *testing.T) {
+func TestAccSpringCloudDynatraceApplicationPerformanceMonitoring_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_dynatrace_application_performance_monitoring", "test")
 	r := SpringCloudDynatraceApplicationPerformanceMonitoringResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -98,7 +98,7 @@ func (r SpringCloudDynatraceApplicationPerformanceMonitoringResource) Exists(ctx
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r SpringCloudDynatraceApplicationPerformanceMonitoringResource) template(data acceptance.TestData) string {
@@ -160,12 +160,12 @@ resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "te
   name                    = "acctest-apm-%[2]d"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
   globally_enabled        = true
-  api_url                 = "https://test-api-url.com"
-  api_token               = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-  environment_id          = "test-environment-id"
-  tenant                  = "test-tenant"
-  tenant_token            = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-  connection_point        = "https://example.live.dynatrace.com:443"
+  api_url                 = "https://updated-test-api-url.com"
+  api_token               = "dt0s01.BBBBBBBBBBBBBBBBBBBBBBBB.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  environment_id          = "updated-environment-id"
+  tenant                  = "updated-tenant"
+  tenant_token            = "dt0s01.BBBBBBBBBBBBBBBBBBBBBBBB.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  connection_point        = "https://updated.live.dynatrace.com:443"
 }
 `, template, data.RandomInteger)
 }

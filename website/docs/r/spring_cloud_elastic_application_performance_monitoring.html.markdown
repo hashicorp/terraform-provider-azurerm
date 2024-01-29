@@ -55,8 +55,6 @@ The following arguments are supported:
 
 * `server_url` - (Required) Specifies the server URL. The URL must be fully qualified, including protocol (http or https) and port.
 
----
-
 * `globally_enabled` - (Optional) Specifies whether the Spring Cloud Application Performance Monitoring resource for Application Insights is enabled globally. Defaults to `false`.
 
 ## Attributes Reference
