@@ -743,7 +743,11 @@ func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if _, err := client.Delete(ctx, *id, webapps.DefaultDeleteOperationOptions()); err != nil {
+			delOptions := webapps.DeleteOperationOptions{
+				DeleteEmptyServerFarm: pointer.To(false),
+				DeleteMetrics:         pointer.To(false),
+			}
+			if _, err = client.Delete(ctx, *id, delOptions); err != nil {
 				return fmt.Errorf("deleting Windows %s: %+v", *id, err)
 			}
 			return nil
