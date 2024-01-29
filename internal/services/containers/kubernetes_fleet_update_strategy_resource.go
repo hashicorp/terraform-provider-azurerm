@@ -56,7 +56,7 @@ func (r KubernetesFleetUpdateStrategyResource) Arguments() map[string]*pluginsdk
 			Type:     pluginsdk.TypeString,
 		},
 
-		"kubernetes_fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(fleetupdatestrategies.FleetId{}),
+		"kubernetes_fleet_manager_id": commonschema.ResourceIDReferenceRequiredForceNew(&fleetupdatestrategies.FleetId{}),
 
 		"stage": {
 			Required: true,
