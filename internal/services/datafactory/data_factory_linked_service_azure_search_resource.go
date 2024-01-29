@@ -212,8 +212,8 @@ func resourceDataFactoryLinkedServiceAzureSearchRead(d *pluginsdk.ResourceData, 
 		d.Set("url", url)
 
 		encryptedCredential := ""
-		if v, ok := prop.EncryptedCredential.(string); ok {
-			encryptedCredential = v
+		if prop.EncryptedCredential != nil {
+			encryptedCredential = *prop.EncryptedCredential
 		}
 		d.Set("encrypted_credential", encryptedCredential)
 	}
